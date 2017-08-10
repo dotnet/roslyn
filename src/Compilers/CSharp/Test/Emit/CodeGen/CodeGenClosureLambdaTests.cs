@@ -742,7 +742,7 @@ using System;
 
 class Program
 {
-    static bool Foo(Action x)
+    static bool Goo(Action x)
     {
         x();
         return true;
@@ -754,7 +754,7 @@ class Program
         {
             throw new Exception(""fail"");
         }
-        catch (Exception ex) when (Foo(() => { ex = new Exception(""pass""); }))
+        catch (Exception ex) when (Goo(() => { ex = new Exception(""pass""); }))
         {
             Console.Write(ex.Message);
         }
@@ -792,7 +792,7 @@ class Program
     IL_0025:  ldloc.0
     IL_0026:  ldftn      ""void Program.<>c__DisplayClass1_0.<Main>b__0()""
     IL_002c:  newobj     ""System.Action..ctor(object, System.IntPtr)""
-    IL_0031:  call       ""bool Program.Foo(System.Action)""
+    IL_0031:  call       ""bool Program.Goo(System.Action)""
     IL_0036:  ldc.i4.0
     IL_0037:  cgt.un
     IL_0039:  endfilter
@@ -818,7 +818,7 @@ using System;
 
 class Program
 {
-    static bool Foo(Action x)
+    static bool Goo(Action x)
     {
         x();
         return true;
@@ -830,11 +830,11 @@ class Program
         {
             throw new Exception(""fail"");
         }
-        catch (ArgumentException ex) when (Foo(() => { ex = new ArgumentException(""fail""); }))
+        catch (ArgumentException ex) when (Goo(() => { ex = new ArgumentException(""fail""); }))
         {
             Console.Write(ex.Message);
         }
-        catch (Exception ex) when (Foo(() => { ex = new Exception(""pass""); }))
+        catch (Exception ex) when (Goo(() => { ex = new Exception(""pass""); }))
         {
             Console.Write(ex.Message);
         }
@@ -1015,17 +1015,17 @@ class Program
 {
   // Code size      131 (0x83)
   .maxstack  3
-  .locals init (Program.<>c__DisplayClass1_2<T> V_0, //CS$<>8__locals0
-                Program.<>c__DisplayClass1_1<T> V_1, //CS$<>8__locals1
+  .locals init (Program.<>c__DisplayClass1_1<T> V_0, //CS$<>8__locals0
+                Program.<>c__DisplayClass1_2<T> V_1, //CS$<>8__locals1
                 T V_2)
-  IL_0000:  newobj     ""Program.<>c__DisplayClass1_2<T>..ctor()""
+  IL_0000:  newobj     ""Program.<>c__DisplayClass1_1<T>..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldarg.0
-  IL_0008:  stfld      ""Program.<>c__DisplayClass1_0<T> Program.<>c__DisplayClass1_2<T>.CS$<>8__locals1""
+  IL_0008:  stfld      ""Program.<>c__DisplayClass1_0<T> Program.<>c__DisplayClass1_1<T>.CS$<>8__locals1""
   IL_000d:  ldloc.0
   IL_000e:  ldstr      ""y""
-  IL_0013:  stfld      ""string Program.<>c__DisplayClass1_2<T>.y""
+  IL_0013:  stfld      ""string Program.<>c__DisplayClass1_1<T>.y""
   .try
   {
     IL_0018:  ldstr      ""xy""
@@ -1041,17 +1041,17 @@ class Program
     IL_002c:  ldc.i4.0
     IL_002d:  br.s       IL_005d
     IL_002f:  unbox.any  ""T""
-    IL_0034:  newobj     ""Program.<>c__DisplayClass1_1<T>..ctor()""
+    IL_0034:  newobj     ""Program.<>c__DisplayClass1_2<T>..ctor()""
     IL_0039:  stloc.1
     IL_003a:  ldloc.1
     IL_003b:  ldloc.0
-    IL_003c:  stfld      ""Program.<>c__DisplayClass1_2<T> Program.<>c__DisplayClass1_1<T>.CS$<>8__locals2""
+    IL_003c:  stfld      ""Program.<>c__DisplayClass1_1<T> Program.<>c__DisplayClass1_2<T>.CS$<>8__locals2""
     IL_0041:  stloc.2
     IL_0042:  ldloc.1
     IL_0043:  ldloc.2
-    IL_0044:  stfld      ""T Program.<>c__DisplayClass1_1<T>.e""
+    IL_0044:  stfld      ""T Program.<>c__DisplayClass1_2<T>.e""
     IL_0049:  ldloc.1
-    IL_004a:  ldftn      ""bool Program.<>c__DisplayClass1_1<T>.<F>b__1()""
+    IL_004a:  ldftn      ""bool Program.<>c__DisplayClass1_2<T>.<F>b__1()""
     IL_0050:  newobj     ""System.Func<bool>..ctor(object, System.IntPtr)""
     IL_0055:  callvirt   ""bool System.Func<bool>.Invoke()""
     IL_005a:  ldc.i4.0
@@ -1064,8 +1064,8 @@ class Program
     IL_0065:  ldarg.0
     IL_0066:  ldfld      ""string Program.<>c__DisplayClass1_0<T>.x""
     IL_006b:  ldloc.1
-    IL_006c:  ldfld      ""Program.<>c__DisplayClass1_2<T> Program.<>c__DisplayClass1_1<T>.CS$<>8__locals2""
-    IL_0071:  ldfld      ""string Program.<>c__DisplayClass1_2<T>.y""
+    IL_006c:  ldfld      ""Program.<>c__DisplayClass1_1<T> Program.<>c__DisplayClass1_2<T>.CS$<>8__locals2""
+    IL_0071:  ldfld      ""string Program.<>c__DisplayClass1_1<T>.y""
     IL_0076:  call       ""string string.Concat(string, string, string)""
     IL_007b:  call       ""void System.Console.Write(string)""
     IL_0080:  leave.s    IL_0082
@@ -1172,11 +1172,11 @@ class C
                 Console.WriteLine(s);
             };
         };
-        d1(""foo"");
+        d1(""goo"");
         d0();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "foo");
+            CompileAndVerify(source, expectedOutput: "goo");
         }
 
         [Fact]
@@ -2675,13 +2675,13 @@ class C
     public static void Main(string[] args)
     {
         G<int>.F(12);
-        G<string>.F(""foo"");
+        G<string>.F(""goo"");
     }
 }";
 
             CompileAndVerify(source, expectedOutput: @"
 12
-foo
+goo
 ");
         }
 
@@ -2708,13 +2708,13 @@ class C
     public static void Main(string[] args)
     {
         G.F<int>(12);
-        G.F<string>(""foo"");
+        G.F<string>(""goo"");
     }
 }";
 
             CompileAndVerify(source, expectedOutput: @"
 12
-foo
+goo
 ");
         }
 
@@ -3116,7 +3116,7 @@ class Program
             query = () =>
             {
                 i = 6;
-                Foo(i++);
+                Goo(i++);
                 return i;
             };
         }
@@ -3125,7 +3125,7 @@ class Program
         System.Console.WriteLine(query.Invoke());
     }
 
-    public static int Foo(int i)
+    public static int Goo(int i)
     {
         i = 4;
         return i;
@@ -3160,7 +3160,7 @@ class Program
 using System;
 class Program
 {
-    public static void Foo<T>(T x)
+    public static void Goo<T>(T x)
     {
         Func<string> f = x.ToString;
         Console.Write(f.Invoke());       
@@ -3169,10 +3169,10 @@ class Program
     static void Main()
     {
         string s = ""Hi"";
-        Foo(s);
+        Goo(s);
 
         int x = 42;
-        Foo(x);
+        Goo(x);
     }
 }"
 ;
@@ -3320,8 +3320,8 @@ public class Program
 
     public static void Test6()
     {
-        Func<int> a1 = Foo<int>.Bar<int>();
-        Func<int> a2 = Foo<int>.Bar<int>();
+        Func<int> a1 = Goo<int>.Bar<int>();
+        Func<int> a2 = Goo<int>.Bar<int>();
         Assert(ReferenceEquals(a1, a2)); // both native compiler and Roslyn miss this
     }
 
@@ -3336,12 +3336,12 @@ public class Program
     }
 }
 
-class Foo<T>
+class Goo<T>
 {
     static T t;
     public static Func<U> Bar<U>()
     {
-        return () => Foo<U>.t;
+        return () => Goo<U>.t;
     }
 }";
             CompileAndVerify(source, expectedOutput: "");
@@ -3611,13 +3611,13 @@ public static class Program
 
     class c1
     {
-        public int foo = 42;
+        public int goo = 42;
 
         public object Test()
         {
             if (T())
             {
-                Func<int, Boolean> a = (s) => s == foo && ((Func<bool>)(() => s == foo)).Invoke();
+                Func<int, Boolean> a = (s) => s == goo && ((Func<bool>)(() => s == goo)).Invoke();
 
                 return a.Invoke(42);
             }
@@ -3626,7 +3626,7 @@ public static class Program
 
             if (T())
             {
-                Func<int, bool> a = (s) => aaa == foo;
+                Func<int, bool> a = (s) => aaa == goo;
                 return a.Invoke(42);
             }
 
@@ -3646,12 +3646,12 @@ public static class Program
 {
   // Code size       89 (0x59)
   .maxstack  2
-  .locals init (Program.c1.<>c__DisplayClass1_1 V_0) //CS$<>8__locals0
-  IL_0000:  newobj     ""Program.c1.<>c__DisplayClass1_1..ctor()""
+  .locals init (Program.c1.<>c__DisplayClass1_0 V_0) //CS$<>8__locals0
+  IL_0000:  newobj     ""Program.c1.<>c__DisplayClass1_0..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldarg.0
-  IL_0008:  stfld      ""Program.c1 Program.c1.<>c__DisplayClass1_1.<>4__this""
+  IL_0008:  stfld      ""Program.c1 Program.c1.<>c__DisplayClass1_0.<>4__this""
   IL_000d:  ldarg.0
   IL_000e:  call       ""bool Program.c1.T()""
   IL_0013:  brfalse.s  IL_002e
@@ -3664,12 +3664,12 @@ public static class Program
   IL_002d:  ret
   IL_002e:  ldloc.0
   IL_002f:  ldc.i4.s   42
-  IL_0031:  stfld      ""int Program.c1.<>c__DisplayClass1_1.aaa""
+  IL_0031:  stfld      ""int Program.c1.<>c__DisplayClass1_0.aaa""
   IL_0036:  ldarg.0
   IL_0037:  call       ""bool Program.c1.T()""
   IL_003c:  brfalse.s  IL_0057
   IL_003e:  ldloc.0
-  IL_003f:  ldftn      ""bool Program.c1.<>c__DisplayClass1_1.<Test>b__2(int)""
+  IL_003f:  ldftn      ""bool Program.c1.<>c__DisplayClass1_0.<Test>b__2(int)""
   IL_0045:  newobj     ""System.Func<int, bool>..ctor(object, System.IntPtr)""
   IL_004a:  ldc.i4.s   42
   IL_004c:  callvirt   ""bool System.Func<int, bool>.Invoke(int)""
@@ -4084,7 +4084,7 @@ namespace Lambda.Bugs
 {
     public interface I<T>
     {
-        void Foo(int x);
+        void Goo(int x);
     }
 
     public class OuterGenericClass<T, S>
@@ -4093,7 +4093,7 @@ namespace Lambda.Bugs
 
         public class C : I<NestedClass.NestedClass.NestedClass.NestedClass.NestedClass>
         {
-            void I<NestedClass.NestedClass.NestedClass.NestedClass.NestedClass>.Foo(int x)
+            void I<NestedClass.NestedClass.NestedClass.NestedClass.NestedClass>.Goo(int x)
             {
                 Func<int> f = () => x;
                 Console.WriteLine(f());
@@ -4108,21 +4108,21 @@ namespace Lambda.Bugs
             I<OuterGenericClass<int, int>.NestedClass.NestedClass.NestedClass.NestedClass.NestedClass> x =
                 new OuterGenericClass<int, int>.C();
 
-            x.Foo(1);
+            x.Goo(1);
         }
     }
 }
 ";
 
             CreateStandardCompilation(source).VerifyEmitDiagnostics(
-                // error CS7013: Name '<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Foo>b__0' exceeds the maximum length allowed in metadata.
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong).WithArguments("<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Foo>b__0").WithLocation(1, 1),
-                // (17,81): error CS7013: Name 'Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Foo' exceeds the maximum length allowed in metadata.
-                //             void I<NestedClass.NestedClass.NestedClass.NestedClass.NestedClass>.Foo(int x)
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "Foo").WithArguments("Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Foo").WithLocation(17, 81),
-                // (19,31): error CS7013: Name '<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Foo>b__0' exceeds the maximum length allowed in metadata.
+                // error CS7013: Name '<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo>b__0' exceeds the maximum length allowed in metadata.
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong).WithArguments("<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo>b__0").WithLocation(1, 1),
+                // (17,81): error CS7013: Name 'Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo' exceeds the maximum length allowed in metadata.
+                //             void I<NestedClass.NestedClass.NestedClass.NestedClass.NestedClass>.Goo(int x)
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "Goo").WithArguments("Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo").WithLocation(17, 81),
+                // (19,31): error CS7013: Name '<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo>b__0' exceeds the maximum length allowed in metadata.
                 //                 Func<int> f = () => x;
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "() => x").WithArguments("<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Foo>b__0").WithLocation(19, 31));
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "() => x").WithArguments("<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo>b__0").WithLocation(19, 31));
         }
 
         [WorkItem(540049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540049")]
@@ -4196,12 +4196,12 @@ class Test
     static int Main()
     {
         Test t = new Test();
-        t.foo();
+        t.goo();
 
         return 0;
     }
 
-    void foo()
+    void goo()
     {
         int l = 0;
         MyDel d = delegate
@@ -4239,7 +4239,7 @@ public delegate void E<T, U>(T t, U u);
 
 public class Gen<T>
 {
-    public static void Foo<U>(T t, U u)
+    public static void Goo<U>(T t, U u)
     {
         ((D)delegate
         {
@@ -4255,7 +4255,7 @@ public class Test
 {
     public static void Main()
     {
-        Gen<int>.Foo<string>(1, ""2"");
+        Gen<int>.Goo<string>(1, ""2"");
         Console.WriteLine(""PASS"");
     }
 }
@@ -4279,7 +4279,7 @@ class A
     {
         this.N = n;
     }
-    public void Foo(A @this)
+    public void Goo(A @this)
     {
         Action a = () => Bar(@this);
         a.Invoke();
@@ -4294,7 +4294,7 @@ class A
     {
         A a = new A(1);
         A b = new A(2);
-        a.Foo(b);
+        a.Goo(b);
     }
 }
 ";
@@ -4360,10 +4360,10 @@ class Program
 {
     static void Main()
     {
-        Foo<int>()()();
+        Goo<int>()()();
     }
  
-    static Func<Func<T>> Foo<T>()
+    static Func<Func<T>> Goo<T>()
     {
         T[] x = new T[1];
         return () => () => x[0];
@@ -4387,17 +4387,17 @@ class Test
     {
     }
     Func<int, int> f = (x) => 0;
-    Func<string, string> Foo()
+    Func<string, string> Goo()
     {
         string s = """"; Console.WriteLine(s);
         return (a) => s;
     }
 }";
-            // Dev11 emits "public", we emit "internal" visibility for <Foo>b__1:
+            // Dev11 emits "public", we emit "internal" visibility for <Goo>b__1:
             CompileAndVerify(source, expectedSignatures: new[]
             {
-                Signature("Test+<>c__DisplayClass2_0", "<Foo>b__0",
-                          ".method assembly hidebysig instance System.String <Foo>b__0(System.String a) cil managed"),
+                Signature("Test+<>c__DisplayClass2_0", "<Goo>b__0",
+                          ".method assembly hidebysig instance System.String <Goo>b__0(System.String a) cil managed"),
             });
         }
 
@@ -5217,7 +5217,7 @@ using System.Linq;
 public class BadBaby
 {
     IEnumerable<object> Children;
-    public object Foo<T>()
+    public object Goo<T>()
     {
         return from child in Children select from T ch in Children select false;
     }

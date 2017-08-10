@@ -1548,15 +1548,15 @@ class Program
             var text = @"
 interface I1
 {
-    void Foo(out int x);
+    void Goo(out int x);
 }
 class C1 : I1
 {
-    public void Foo(ref int x) { }
+    public void Goo(ref int x) { }
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.Foo(out int)"));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.Goo(out int)"));
         }
 
         [Fact]
@@ -1565,19 +1565,19 @@ class C1 : I1
             var text = @"
 interface I1<T>
 {
-    void Foo(int x);
-    void Foo(T x);
+    void Goo(int x);
+    void Goo(T x);
 }
 class C1 : I1<int>
 {
-    public void Foo(int x) { }
+    public void Goo(int x) { }
 }
 static class Program
 {
     static void Main()
     {
         I1<int> i = new C1();
-        i.Foo(0);       
+        i.Goo(0);       
     }
 }
 ";
@@ -1586,13 +1586,13 @@ static class Program
 
             var typeSymbol = comp.GlobalNamespace.GetTypeMembers("C1").Single();
             var interfaceSymbol = typeSymbol.Interfaces.First();
-            var fooMethod = typeSymbol.GetMember<MethodSymbol>("Foo");
+            var gooMethod = typeSymbol.GetMember<MethodSymbol>("Goo");
 
             var interfaceMembers = interfaceSymbol.GetMembers().OfType<MethodSymbol>();
             var firstInterfaceMethod = interfaceMembers.First();
             var secondInterfaceMethod = interfaceMembers.Last();
-            Assert.Equal(fooMethod, typeSymbol.FindImplementationForInterfaceMember(firstInterfaceMethod));
-            Assert.Equal(fooMethod, typeSymbol.FindImplementationForInterfaceMember(secondInterfaceMethod));
+            Assert.Equal(gooMethod, typeSymbol.FindImplementationForInterfaceMember(firstInterfaceMethod));
+            Assert.Equal(gooMethod, typeSymbol.FindImplementationForInterfaceMember(secondInterfaceMethod));
         }
 
         /// <summary>

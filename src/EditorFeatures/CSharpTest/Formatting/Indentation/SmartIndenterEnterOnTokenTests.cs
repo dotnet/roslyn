@@ -904,7 +904,7 @@ class What
         public async Task Preprocessor()
         {
             var code = @"
-#line 1 """"Bar""""class Foo : [|IComparable|]#line default#line hidden";
+#line 1 """"Bar""""class Goo : [|IComparable|]#line default#line hidden";
 
             await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
                 code,

@@ -1883,7 +1883,7 @@ done:
         /// and returns it instead of rebinding it. 
         /// 
         /// For example, we might have:
-        ///    while (x > foo())
+        ///    while (x > goo())
         ///    {
         ///      y = y * x;
         ///      z = z + y;

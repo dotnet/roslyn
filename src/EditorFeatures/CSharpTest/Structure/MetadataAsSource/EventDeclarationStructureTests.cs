@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         public async Task NoCommentsOrAttributes()
         {
             const string code = @"
-class Foo
+class Goo
 {
-    public event EventArgs $$foo { add; remove; }
+    public event EventArgs $$goo { add; remove; }
 }";
 
             await VerifyNoBlockSpansAsync(code);
@@ -31,10 +31,10 @@ class Foo
         public async Task WithAttributes()
         {
             const string code = @"
-class Foo
+class Goo
 {
-    {|hint:{|textspan:[Foo]
-    |}public event EventArgs $$foo { add; remove; }|}
+    {|hint:{|textspan:[Goo]
+    |}public event EventArgs $$goo { add; remove; }|}
 }";
 
             await VerifyBlockSpansAsync(code,
@@ -45,12 +45,12 @@ class Foo
         public async Task WithCommentsAndAttributes()
         {
             const string code = @"
-class Foo
+class Goo
 {
     {|hint:{|textspan:// Summary:
     //     This is a summary.
-    [Foo]
-    |}event EventArgs $$foo { add; remove; }|}
+    [Goo]
+    |}event EventArgs $$goo { add; remove; }|}
 }";
 
             await VerifyBlockSpansAsync(code,
@@ -61,12 +61,12 @@ class Foo
         public async Task WithCommentsAttributesAndModifiers()
         {
             const string code = @"
-class Foo
+class Goo
 {
     {|hint:{|textspan:// Summary:
     //     This is a summary.
-    [Foo]
-    |}public event EventArgs $$foo { add; remove; }|}
+    [Goo]
+    |}public event EventArgs $$goo { add; remove; }|}
 }";
 
             await VerifyBlockSpansAsync(code,

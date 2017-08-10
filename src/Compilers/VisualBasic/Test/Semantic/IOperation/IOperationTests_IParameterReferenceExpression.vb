@@ -10,6 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_TupleExpression()
             Dim source = <![CDATA[
@@ -33,6 +34,7 @@ ITupleExpression (OperationKind.TupleExpression, Type: (x As System.Int32, Syste
             VerifyOperationTreeAndDiagnosticsForTest(Of TupleExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_AnonymousObjectCreation()
             Dim source = <![CDATA[
@@ -65,6 +67,7 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_QueryExpression()
             Dim source = <![CDATA[
@@ -91,7 +94,8 @@ IOperation:  (OperationKind.None) (Syntax: 'From cust I ... t cust.Name')
       IOperation:  (OperationKind.None) (Syntax: 'Select cust.Name')
         Children(1):
             IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of Customer).Select(Of System.String)(selector As System.Func(Of Customer, System.String)) As System.Collections.Generic.IEnumerable(Of System.String)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of System.String)) (Syntax: 'Select cust.Name')
-              Instance Receiver: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of Customer)) (Syntax: 'cust In customers')
+              Instance Receiver: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of Customer)) (Syntax: 'cust In customers')
+                  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: IOperation:  (OperationKind.None) (Syntax: 'cust In customers')
                       Children(1):
                           IOperation:  (OperationKind.None) (Syntax: 'customers')
@@ -99,7 +103,8 @@ IOperation:  (OperationKind.None) (Syntax: 'From cust I ... t cust.Name')
                                 IParameterReferenceExpression: customers (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.List(Of Customer)) (Syntax: 'customers')
               Arguments(1):
                   IArgument (ArgumentKind.DefaultValue, Matching Parameter: selector) (OperationKind.Argument) (Syntax: 'cust.Name')
-                    IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Func(Of Customer, System.String)) (Syntax: 'cust.Name')
+                    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of Customer, System.String)) (Syntax: 'cust.Name')
+                      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Operand: IOperation:  (OperationKind.None) (Syntax: 'cust.Name')
                           Children(1):
                               IOperation:  (OperationKind.None) (Syntax: 'cust.Name')
@@ -115,6 +120,7 @@ IOperation:  (OperationKind.None) (Syntax: 'From cust I ... t cust.Name')
             VerifyOperationTreeAndDiagnosticsForTest(Of QueryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_QueryExpressionAggregateClause()
             Dim source = <![CDATA[
@@ -142,7 +148,8 @@ IOperation:  (OperationKind.None) (Syntax: 'Aggregate y ... nto Count()')
                   IOperation:  (OperationKind.None) (Syntax: 'Count()')
                     Children(1):
                         IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Count() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Count()')
-                          Instance Receiver: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32)) (Syntax: 'y In New Integer() {x}')
+                          Instance Receiver: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32)) (Syntax: 'y In New Integer() {x}')
+                              Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               Operand: IOperation:  (OperationKind.None) (Syntax: 'y In New Integer() {x}')
                                   Children(1):
                                       IOperation:  (OperationKind.None) (Syntax: 'New Integer() {x}')
@@ -161,6 +168,7 @@ IOperation:  (OperationKind.None) (Syntax: 'Aggregate y ... nto Count()')
             VerifyOperationTreeAndDiagnosticsForTest(Of QueryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_QueryExpressionOrderByClause()
             Dim source = <![CDATA[
@@ -179,7 +187,8 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'From y In x ... By y.Length')
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'From y In x ... By y.Length')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: IOperation:  (OperationKind.None) (Syntax: 'From y In x ... By y.Length')
       Children(1):
           IOperation:  (OperationKind.None) (Syntax: 'Order By y.Length')
@@ -187,7 +196,8 @@ IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionE
                 IOperation:  (OperationKind.None) (Syntax: 'y.Length')
                   Children(1):
                       IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.String).OrderBy(Of System.Int32)(keySelector As System.Func(Of System.String, System.Int32)) As System.Linq.IOrderedEnumerable(Of System.String)) (OperationKind.InvocationExpression, Type: System.Linq.IOrderedEnumerable(Of System.String)) (Syntax: 'y.Length')
-                        Instance Receiver: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.String)) (Syntax: 'y In x')
+                        Instance Receiver: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.String)) (Syntax: 'y In x')
+                            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             Operand: IOperation:  (OperationKind.None) (Syntax: 'y In x')
                                 Children(1):
                                     IOperation:  (OperationKind.None) (Syntax: 'x')
@@ -195,7 +205,8 @@ IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionE
                                           IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'x')
                         Arguments(1):
                             IArgument (ArgumentKind.DefaultValue, Matching Parameter: keySelector) (OperationKind.Argument) (Syntax: 'y.Length')
-                              IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Func(Of System.String, System.Int32)) (Syntax: 'y.Length')
+                              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String, System.Int32)) (Syntax: 'y.Length')
+                                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                 Operand: IOperation:  (OperationKind.None) (Syntax: 'y.Length')
                                     Children(1):
                                         IPropertyReferenceExpression: ReadOnly Property System.String.Length As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'y.Length')
@@ -209,6 +220,7 @@ IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionE
             VerifyOperationTreeAndDiagnosticsForTest(Of QueryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_QueryExpressionGroupByClause()
             Dim source = <![CDATA[
@@ -232,7 +244,8 @@ IOperation:  (OperationKind.None) (Syntax: 'From y In x ... nto Count()')
       IOperation:  (OperationKind.None) (Syntax: 'Group By w  ... nto Count()')
         Children(1):
             IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.String).GroupBy(Of <anonymous type: Key w As System.String(), Key z As System.String>, <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)(keySelector As System.Func(Of System.String, <anonymous type: Key w As System.String(), Key z As System.String>), resultSelector As System.Func(Of <anonymous type: Key w As System.String(), Key z As System.String>, System.Collections.Generic.IEnumerable(Of System.String), <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) (Syntax: 'Group By w  ... nto Count()')
-              Instance Receiver: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.String)) (Syntax: 'y In x')
+              Instance Receiver: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.String)) (Syntax: 'y In x')
+                  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: IOperation:  (OperationKind.None) (Syntax: 'y In x')
                       Children(1):
                           IOperation:  (OperationKind.None) (Syntax: 'x')
@@ -240,7 +253,8 @@ IOperation:  (OperationKind.None) (Syntax: 'From y In x ... nto Count()')
                                 IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'x')
               Arguments(2):
                   IArgument (ArgumentKind.DefaultValue, Matching Parameter: keySelector) (OperationKind.Argument) (Syntax: 'x')
-                    IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Func(Of System.String, <anonymous type: Key w As System.String(), Key z As System.String>)) (Syntax: 'x')
+                    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String, <anonymous type: Key w As System.String(), Key z As System.String>)) (Syntax: 'x')
+                      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Operand: IOperation:  (OperationKind.None) (Syntax: 'x')
                           Children(1):
                               IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key w As System.String(), Key z As System.String>) (Syntax: 'Group By w  ... nto Count()')
@@ -254,7 +268,8 @@ IOperation:  (OperationKind.None) (Syntax: 'From y In x ... nto Count()')
                     InConversion: null
                     OutConversion: null
                   IArgument (ArgumentKind.DefaultValue, Matching Parameter: resultSelector) (OperationKind.Argument) (Syntax: 'Group By w  ... nto Count()')
-                    IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Func(Of <anonymous type: Key w As System.String(), Key z As System.String>, System.Collections.Generic.IEnumerable(Of System.String), <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) (Syntax: 'Group By w  ... nto Count()')
+                    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of <anonymous type: Key w As System.String(), Key z As System.String>, System.Collections.Generic.IEnumerable(Of System.String), <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) (Syntax: 'Group By w  ... nto Count()')
+                      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Operand: IOperation:  (OperationKind.None) (Syntax: 'Group By w  ... nto Count()')
                           Children(1):
                               IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>) (Syntax: 'Group By w  ... nto Count()')
@@ -277,6 +292,7 @@ IOperation:  (OperationKind.None) (Syntax: 'From y In x ... nto Count()')
             VerifyOperationTreeAndDiagnosticsForTest(Of QueryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_ObjectAndCollectionInitializer()
             Dim source = <![CDATA[
@@ -347,6 +363,7 @@ IObjectCreationExpression (Constructor: Sub [Class]..ctor()) (OperationKind.Obje
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_DelegateCreationExpressionWithLambdaArgument()
             Dim source = <![CDATA[
@@ -361,7 +378,8 @@ Class Class1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.EventHandler) (Syntax: 'New EventHa ... nction() x)')
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.EventHandler) (Syntax: 'New EventHa ... nction() x)')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: ILambdaExpression (Signature: Function () As System.Object) (OperationKind.LambdaExpression, Type: null) (Syntax: 'Function() x')
       IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Function() x')
         Locals: Local_1: <anonymous local> As System.Object
@@ -378,6 +396,7 @@ IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.Conversion
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_DelegateCreationExpressionWithMethodArgument()
             Dim source = <![CDATA[
@@ -390,7 +409,8 @@ Class Class1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.EventHandler) (Syntax: 'New EventHa ... essOf Me.M)')
+IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.EventHandler) (Syntax: 'New EventHa ... essOf Me.M)')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: IOperation:  (OperationKind.None) (Syntax: 'AddressOf Me.M')
       Children(1):
           IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: Class1) (Syntax: 'Me')
@@ -401,6 +421,7 @@ IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionE
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_DelegateCreationExpressionWithInvalidArgument()
             Dim source = <![CDATA[
@@ -429,6 +450,7 @@ BC32008: Delegate 'EventHandler' requires an 'AddressOf' expression or lambda ex
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_NameOfExpression()
             Dim source = <![CDATA[
@@ -448,6 +470,7 @@ INameOfExpression (OperationKind.NameOfExpression, Type: System.String, Constant
             VerifyOperationTreeAndDiagnosticsForTest(Of NameOfExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_NameOfExpression_ErrorCase()
             Dim source = <![CDATA[
@@ -473,6 +496,7 @@ BC37244: This expression does not have a name.
             VerifyOperationTreeAndDiagnosticsForTest(Of NameOfExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_LateBoundIndexerAccess()
             Dim source = <![CDATA[
@@ -489,7 +513,8 @@ End Class
 IOperation:  (OperationKind.None) (Syntax: 'd(x)')
   Children(2):
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
-      IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'x')
+      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'x')
+        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
 ]]>.Value
 
@@ -498,6 +523,7 @@ IOperation:  (OperationKind.None) (Syntax: 'd(x)')
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_LateBoundMemberAccess()
             Dim source = <![CDATA[
@@ -524,6 +550,7 @@ IOperation:  (OperationKind.None) (Syntax: 'x.M(y)')
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_LateBoundInvocation()
             Dim source = <![CDATA[
@@ -540,7 +567,8 @@ End Class
 IOperation:  (OperationKind.None) (Syntax: 'x(y)')
   Children(2):
       IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
-      IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'y')
+      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'y')
+        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
 ]]>.Value
 
@@ -549,6 +577,7 @@ IOperation:  (OperationKind.None) (Syntax: 'x(y)')
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_InterpolatedStringExpression()
             Dim source = <![CDATA[
@@ -588,6 +617,7 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
             VerifyOperationTreeAndDiagnosticsForTest(Of InterpolatedStringExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_MidAssignmentStatement()
             Dim source = <![CDATA[
@@ -617,6 +647,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Mid(str, st .
             VerifyOperationTreeAndDiagnosticsForTest(Of AssignmentStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_MisplacedCaseStatement()
             Dim source = <![CDATA[
@@ -642,6 +673,7 @@ BC30072: 'Case' can only appear inside a 'Select Case' statement.
             VerifyOperationTreeAndDiagnosticsForTest(Of CaseStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_RedimStatement()
             Dim source = <![CDATA[
@@ -676,6 +708,7 @@ IOperation:  (OperationKind.None) (Syntax: 'ReDim intArray(x, x, x)')
             VerifyOperationTreeAndDiagnosticsForTest(Of ReDimStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_EraseStatement()
             Dim source = <![CDATA[
@@ -692,7 +725,8 @@ IOperation:  (OperationKind.None) (Syntax: 'Erase x')
   Children(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32()) (Syntax: 'x')
         Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32()) (Syntax: 'x')
-        Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32(), Constant: null) (Syntax: 'x')
+        Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32(), Constant: null) (Syntax: 'x')
+            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Erase x')
 ]]>.Value
 
@@ -701,6 +735,7 @@ IOperation:  (OperationKind.None) (Syntax: 'Erase x')
             VerifyOperationTreeAndDiagnosticsForTest(Of EraseStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/19024"), WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_UnstructuredExceptionHandlingStatement()
             Dim source = <![CDATA[
@@ -723,6 +758,7 @@ IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Public S
             VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_LateAddressOfOperator()
             Dim source = <![CDATA[
@@ -750,6 +786,7 @@ IOperation:  (OperationKind.None) (Syntax: 'AddressOf x.Method')
             VerifyOperationTreeAndDiagnosticsForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_NullableIsTrueOperator()
             Dim source = <![CDATA[
@@ -776,6 +813,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If x Then'B ... End If')
             VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_NoPiaObjectCreation()
             Dim sources0 = <compilation>
@@ -813,7 +851,7 @@ End Structure
                 sources1,
                 references:={MscorlibRef, SystemRef, compilation0.EmitToImageReference(embedInteropTypes:=True)})
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IInvalidExpression (OperationKind.InvalidExpression, Type: I, IsInvalid) (Syntax: 'New I(x)')
   Children(2):
       IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'x')

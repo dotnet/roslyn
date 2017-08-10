@@ -577,7 +577,7 @@ End Class
 <compilation name="Generic">
     <file name="g.vb">
 Namespace NS
-    Public Interface IFoo(Of T)
+    Public Interface IGoo(Of T)
     End Interface
 
     Friend Class A(Of V)
@@ -606,15 +606,15 @@ End Namespace
             Assert.Equal("V", classA.TypeParameters(0).Name)
             Assert.Equal(1, classA.TypeArguments.Length)
 
-            Dim ifoo = DirectCast(membersOfNS(1), NamedTypeSymbol)
-            Assert.Equal(nsNS.GetTypeMembers("IFoo").First(), ifoo)
-            Assert.Equal(nsNS, ifoo.ContainingSymbol)
-            Assert.Equal(SymbolKind.NamedType, ifoo.Kind)
-            Assert.Equal(TypeKind.Interface, ifoo.TypeKind)
-            Assert.Equal(Accessibility.Public, ifoo.DeclaredAccessibility)
-            Assert.Equal(1, ifoo.TypeParameters.Length)
-            Assert.Equal("T", ifoo.TypeParameters(0).Name)
-            Assert.Equal(1, ifoo.TypeArguments.Length)
+            Dim igoo = DirectCast(membersOfNS(1), NamedTypeSymbol)
+            Assert.Equal(nsNS.GetTypeMembers("IGoo").First(), igoo)
+            Assert.Equal(nsNS, igoo.ContainingSymbol)
+            Assert.Equal(SymbolKind.NamedType, igoo.Kind)
+            Assert.Equal(TypeKind.Interface, igoo.TypeKind)
+            Assert.Equal(Accessibility.Public, igoo.DeclaredAccessibility)
+            Assert.Equal(1, igoo.TypeParameters.Length)
+            Assert.Equal("T", igoo.TypeParameters(0).Name)
+            Assert.Equal(1, igoo.TypeArguments.Length)
 
             Dim structS = DirectCast(membersOfNS(2), NamedTypeSymbol)
             Assert.Equal(nsNS.GetTypeMembers("S").First(), structS)
@@ -763,12 +763,12 @@ End Namespace
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="SourceTypeUndefinedBaseType">
     <file name="undefinedbasetype.vb">
-Class Class1 : Inherits Foo
+Class Class1 : Inherits Goo
 End Class
     </file>
 </compilation>)
             Dim baseType = compilation.GlobalNamespace.GetTypeMembers("Class1").Single().BaseType
-            Assert.Equal("Foo", baseType.ToTestDisplayString())
+            Assert.Equal("Goo", baseType.ToTestDisplayString())
             Assert.Equal(SymbolKind.ErrorType, baseType.Kind)
         End Sub
 
@@ -790,7 +790,7 @@ Namespace InterfaceErr005
 
     'COMPILEERROR: BC31089, "PrivateIntf"
     Private Interface PrivateIntf
-        Function foo()
+        Function goo()
     End Interface
    'COMPILEERROR: BC31047
     Protected Class ProtectedClass
@@ -835,7 +835,7 @@ BC31047: Protected types can only be declared inside of a class.
 Public Module m1
 
     Public Class C1_1
-        Public Class foo
+        Public Class goo
         End Class
     End Class
 
@@ -860,7 +860,7 @@ Namespace ShadowsGen203
     Public Module M1
         Public Class C1_3
             Inherits C1_1
-            Private Shadows Class foo
+            Private Shadows Class goo
             End Class
         End Class
 
@@ -890,7 +890,7 @@ End Namespace
 Imports System.Collections.Generic
 
 Namespace MT
-    Public Interface IFoo(Of T)
+    Public Interface IGoo(Of T)
         Sub M(ByVal t As T)
     End Interface
 End Namespace
@@ -906,9 +906,9 @@ End Namespace
     Imports MT
 
     Namespace SS
-        Public Class Foo
-            Implements IFoo(Of String)
-            Sub N(ByVal s As String) Implements IFoo(Of String).M
+        Public Class Goo
+            Implements IGoo(Of String)
+            Sub N(ByVal s As String) Implements IGoo(Of String).M
             End Sub
         End Class
     End Namespace
@@ -917,14 +917,14 @@ End Namespace
 
 
             Dim ns = DirectCast(comp.SourceModule.GlobalNamespace.GetMembers("SS").Single(), NamespaceSymbol)
-            Dim type1 = DirectCast(ns.GetTypeMembers("Foo", 0).Single(), NamedTypeSymbol)
+            Dim type1 = DirectCast(ns.GetTypeMembers("Goo", 0).Single(), NamedTypeSymbol)
             ' Not impl ex
             Assert.Equal(1, type1.Interfaces.Length)
             Dim type2 = DirectCast(type1.Interfaces(0), NamedTypeSymbol)
             Assert.Equal(TypeKind.Interface, type2.TypeKind)
             Assert.Equal(1, type2.Arity)
             Assert.Equal(1, type2.TypeParameters.Length)
-            Assert.Equal("MT.IFoo(Of System.String)", type2.ToTestDisplayString())
+            Assert.Equal("MT.IGoo(Of System.String)", type2.ToTestDisplayString())
 
         End Sub
 
@@ -1541,15 +1541,15 @@ BC30294: Structure 'SI_1' cannot contain an instance of itself:
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
                <compilation name="C">
                    <file name="a.vb">
-Class Foo
+Class Goo
 End Class
                     </file>
                </compilation>)
 
-            Dim typeFoo = compilation.SourceModule.GlobalNamespace.GetTypeMembers("Foo").Single()
-            Dim instanceConstructor = typeFoo.InstanceConstructors.Single()
+            Dim typeGoo = compilation.SourceModule.GlobalNamespace.GetTypeMembers("Goo").Single()
+            Dim instanceConstructor = typeGoo.InstanceConstructors.Single()
 
-            AssertEx.Equal(typeFoo.Locations, instanceConstructor.Locations)
+            AssertEx.Equal(typeGoo.Locations, instanceConstructor.Locations)
         End Sub
 
         <Fact>
@@ -1557,7 +1557,7 @@ End Class
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
                <compilation name="UsingProtectedInStructureMethods">
                    <file name="a.vb">
-Structure Foo
+Structure Goo
     Protected Overrides Sub Finalize()
     End Sub
     Protected Sub OtherMethod()
@@ -1585,7 +1585,7 @@ End Sub
 End Module
  
 Structure S2
-Public MustOverride Function Foo() As String
+Public MustOverride Function Goo() As String
 End Function
 End Structure
 
@@ -1595,7 +1595,7 @@ End Structure
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
 BC30435: Members in a Structure cannot be declared 'MustOverride'.
-Public MustOverride Function Foo() As String
+Public MustOverride Function Goo() As String
        ~~~~~~~~~~~~
 BC30430: 'End Function' must be preceded by a matching 'Function'.
 End Function

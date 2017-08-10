@@ -10,6 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/18077"), WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidVariableDeclarationStatement()
             Dim source = <![CDATA[
@@ -38,6 +39,7 @@ BC30203: Identifier expected.
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidSwitchStatementExpression()
             Dim source = <![CDATA[
@@ -49,7 +51,7 @@ Class Program
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'Select Case ... End Select')
   Switch expression: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Program')
   Sections:
@@ -70,6 +72,7 @@ BC30109: 'Program' is a class type and cannot be used as an expression.
             VerifyOperationTreeAndDiagnosticsForTest(Of SelectBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidSwitchStatementCaseLabel()
             Dim source = <![CDATA[
@@ -83,7 +86,7 @@ Class Program
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'Select Case ... End Select')
   Switch expression: IInvocationExpression (virtual Function System.Object.ToString() As System.String) (OperationKind.InvocationExpression, Type: System.String) (Syntax: 'x.ToString()')
       Instance Receiver: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
@@ -107,6 +110,7 @@ BC30311: Value of type 'Program' cannot be converted to 'String'.
             VerifyOperationTreeAndDiagnosticsForTest(Of SelectBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidIfStatement()
             Dim source = <![CDATA[
@@ -118,12 +122,14 @@ Class Program
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'If x = Noth ... End If')
-  Condition: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x = Nothing')
+  Condition: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x = Nothing')
+      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: IBinaryOperatorExpression (BinaryOperationKind.Invalid) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'x = Nothing')
           Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')
-          Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: Program, Constant: null, IsInvalid) (Syntax: 'Nothing')
+          Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program, Constant: null, IsInvalid) (Syntax: 'Nothing')
+              Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, IsInvalid) (Syntax: 'Nothing')
   IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'If x = Noth ... End If')
   IfFalse: null
@@ -138,6 +144,7 @@ BC30452: Operator '=' is not defined for types 'Program' and 'Program'.
             VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidIfElseIfStatement()
             Dim source = <![CDATA[
@@ -151,14 +158,16 @@ Class Program
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'If Then'BIN ... Else')
-  Condition: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: '')
+  Condition: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: '')
+      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
           Children(0)
   IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'If Then'BIN ... Else')
   IfFalse: IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'ElseIf x Th ... x')
-      Condition: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x')
+      Condition: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x')
+          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')
       IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'ElseIf x Th ... x')
           IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x')
@@ -186,6 +195,7 @@ BC30454: Expression is not a method.
             VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidForStatement_MissingConditionAndStep()
             Dim source = <![CDATA[
@@ -210,14 +220,16 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement, IsInvalid) (Synta
       IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: '')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: '')
             Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: '')
-            Right: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '')
+            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
                     Children(0)
   AtLoopBottom:
       IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'For i As In ... Next i')
         Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: 'For i As In ... Next i')
             Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i As Integer')
-            Right: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: 'For i As In ... Next i')
+            Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: 'For i As In ... Next i')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: 'For i As In ... Next i')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'For i As In ... Next i')
 ]]>.Value
@@ -231,6 +243,7 @@ BC30035: Syntax error.
             VerifyOperationTreeAndDiagnosticsForTest(Of ForBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidForStatement_MissingConditionAndInitialization()
             Dim source = <![CDATA[
@@ -261,19 +274,22 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement, IsInvalid) (Synta
       IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: '')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Object, IsInvalid) (Syntax: '')
             Left: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Object, IsInvalid) (Syntax: '')
-            Right: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: '')
+            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: '')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
                     Children(0)
       IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: '')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Object, IsInvalid) (Syntax: '')
             Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Object, IsInvalid) (Syntax: '')
-            Right: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: '')
+            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: '')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
                     Children(0)
       IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'For Step (M ... Next')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Object, IsInvalid) (Syntax: 'For Step (M ... Next')
             Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'For Step (M ... Next')
-            Right: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'For Step (M ... Next')
+            Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'For Step (M ... Next')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: 'For Step (M ... Next')
   AtLoopBottom:
       IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'For Step (M ... Next')
@@ -301,6 +317,7 @@ BC30249: '=' expected.
             VerifyOperationTreeAndDiagnosticsForTest(Of ForBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidForStatement_InvalidConditionAndStep()
             Dim source = <![CDATA[
@@ -331,12 +348,14 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement, IsInvalid) (Synta
       IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Program')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: 'Program')
             Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'Program')
-            Right: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Program')
+            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Program')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Program')
       IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')
             Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')
-            Right: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')
+            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'x')
                     Children(0)
   AtLoopBottom:
@@ -359,6 +378,7 @@ BC30451: 'x' is not declared. It may be inaccessible due to its protection level
             VerifyOperationTreeAndDiagnosticsForTest(Of ForBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidGotoStatement_MissingLabel()
             Dim source = <![CDATA[
@@ -387,6 +407,7 @@ BC30132: Label 'Label1' is not defined.
             VerifyOperationTreeAndDiagnosticsForTest(Of GoToStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidExitStatement_OutsideLoopOrSwitch()
             Dim source = <![CDATA[
@@ -410,6 +431,7 @@ BC30096: 'Exit For' can only appear inside a 'For' statement.
             VerifyOperationTreeAndDiagnosticsForTest(Of ExitStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidContinueStatement_OutsideLoopOrSwitch()
             Dim source = <![CDATA[
@@ -436,6 +458,7 @@ BC30781: 'Continue' must be followed by 'Do', 'For' or 'While'.
             VerifyOperationTreeAndDiagnosticsForTest(Of ContinueStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/18225"), WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidCaseStatement_OutsideSwitchBlock()
             Dim source = <![CDATA[
@@ -459,6 +482,7 @@ BC30072: 'Case' can only appear inside a 'Select Case' statement.
             VerifyOperationTreeAndDiagnosticsForTest(Of CaseStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidElseIfStatement_NoPrecedingIfStatement()
             Dim source = <![CDATA[
@@ -472,7 +496,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'ElseIf args.Length = 0')
   Children(1):
       IBinaryOperatorExpression (BinaryOperationKind.IntegerEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, IsInvalid) (Syntax: 'args.Length = 0')

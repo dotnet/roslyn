@@ -152,10 +152,10 @@ class$$ ABCD
             var code = @"
 class ABCD
 {
-    void Foo(int x)
+    void Goo(int x)
     {
         int abc = 3;
-        Foo($$
+        Goo($$
     }
 }";
             using (var state = RenameTrackingTestState.Create(code, LanguageNames.CSharp))
@@ -193,7 +193,7 @@ class C$$
             var code = @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string s = ""abc$$""
     }
@@ -806,14 +806,14 @@ Module Program
     Sub Main()
         $$[|main|]()
     End Sub
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Module";
             using (var state = RenameTrackingTestState.Create(code, LanguageNames.VisualBasic))
             {
                 var textSpan = state.HostDocument.SelectedSpans.Single();
-                state.EditorOperations.ReplaceText(new Span(textSpan.Start, textSpan.Length), "Fo");
-                await state.AssertTag("main", "Fo");
+                state.EditorOperations.ReplaceText(new Span(textSpan.Start, textSpan.Length), "Go");
+                await state.AssertTag("main", "Go");
                 state.EditorOperations.InsertText("o");
                 await state.AssertNoTag();
             }

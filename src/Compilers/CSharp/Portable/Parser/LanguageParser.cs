@@ -751,9 +751,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private bool ScanExternAliasDirective()
         {
             // The check also includes the ending semicolon so that we can disambiguate among:
-            //   extern alias foo;
-            //   extern alias foo();
-            //   extern alias foo { get; }
+            //   extern alias goo;
+            //   extern alias goo();
+            //   extern alias goo { get; }
 
             return this.CurrentToken.Kind == SyntaxKind.ExternKeyword
                 && this.PeekToken(1).Kind == SyntaxKind.IdentifierToken && this.PeekToken(1).ContextualKind == SyntaxKind.AliasKeyword
@@ -818,7 +818,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 //new directive.  e.g.
                 //
                 //    using 
-                //    namespace Foo {
+                //    namespace Goo {
                 //        //...
                 //    }
                 //
@@ -1276,7 +1276,7 @@ tryAgain:
                 {
                     // We've seen "async TypeName".  Now we have to determine if we should we treat 
                     // 'async' as a modifier.  Or is the user actually writing something like 
-                    // "public async Foo" where 'async' is actually the return type.
+                    // "public async Goo" where 'async' is actually the return type.
 
                     if (IsPossibleMemberName())
                     {
@@ -2449,13 +2449,13 @@ parse_member_name:;
             var kind = this.PeekToken(1).Kind;
             switch (kind)
             {
-                case SyntaxKind.DotToken:                   // Foo.     explicit
-                case SyntaxKind.ColonColonToken:            // Foo::    explicit
-                case SyntaxKind.LessThanToken:            // Foo<     explicit or generic method
-                case SyntaxKind.OpenBraceToken:        // Foo {    property
-                case SyntaxKind.EqualsGreaterThanToken:     // Foo =>   property
+                case SyntaxKind.DotToken:                   // Goo.     explicit
+                case SyntaxKind.ColonColonToken:            // Goo::    explicit
+                case SyntaxKind.LessThanToken:            // Goo<     explicit or generic method
+                case SyntaxKind.OpenBraceToken:        // Goo {    property
+                case SyntaxKind.EqualsGreaterThanToken:     // Goo =>   property
                     return false;
-                case SyntaxKind.OpenParenToken:             // Foo(     method
+                case SyntaxKind.OpenParenToken:             // Goo(     method
                     return isEvent;
                 default:
                     return true;
@@ -2659,7 +2659,7 @@ parse_member_name:;
         {
             if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
             {
-                // void Foo<T (
+                // void Goo<T (
                 return true;
             }
 
@@ -3810,7 +3810,7 @@ tryAgain:
                 type = this.ParseType(mode: ParseTypeMode.Parameter);
                 name = this.ParseIdentifierToken();
 
-                // When the user type "int foo[]", give them a useful error
+                // When the user type "int goo[]", give them a useful error
                 if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind == SyntaxKind.CloseBracketToken)
                 {
                     var open = this.EatToken();
@@ -4900,7 +4900,7 @@ tryAgain:
             var ctk = this.CurrentToken.Kind;
             if (ctk == SyntaxKind.IdentifierToken)
             {
-                // Error tolerance for IntelliSense. Consider the following case: [EditorBrowsable( partial class Foo {
+                // Error tolerance for IntelliSense. Consider the following case: [EditorBrowsable( partial class Goo {
                 // } Because we're parsing an attribute argument we'll end up consuming the "partial" identifier and
                 // we'll eventually end up in an pretty confused state.  Because of that it becomes very difficult to
                 // show the correct parameter help in this case.  So, when we see "partial" we check if it's being used
@@ -5243,7 +5243,7 @@ tryAgain:
                             // to separate out the variable declarator 'v' from the next variable.
                             //
                             // Note: we check if we got 'MustBeType' which triggers for predefined types,
-                            // (int, string, etc.), or array types (Foo[], A<T>[][] etc.), or pointer types
+                            // (int, string, etc.), or array types (Goo[], A<T>[][] etc.), or pointer types
                             // of things that must be types (int*, void**, etc.).
                             isDefinitelyTypeArgumentList = DetermineIfDefinitelyTypeArgumentList(isDefinitelyTypeArgumentList);
                             result = ScanTypeFlags.GenericTypeOrMethod;
@@ -5708,8 +5708,8 @@ tryAgain:
                 }
 
                 // If the left hand side is not an identifier name then the user has done
-                // something like Foo.Bar::Blah. We've already made an error node for the
-                // ::, so just pretend that they typed Foo.Bar.Blah and continue on.
+                // something like Goo.Bar::Blah. We've already made an error node for the
+                // ::, so just pretend that they typed Goo.Bar.Blah and continue on.
 
                 var identifierLeft = left as IdentifierNameSyntax;
                 if (identifierLeft == null)
@@ -9971,10 +9971,10 @@ tryAgain:
             }
 
             // If we have any of the following, we know it must be a cast:
-            // 1) (Foo*)bar;
-            // 2) (Foo?)bar;
+            // 1) (Goo*)bar;
+            // 2) (Goo?)bar;
             // 3) "(int)bar" or "(int[])bar"
-            // 4) (G::Foo)bar
+            // 4) (G::Goo)bar
             if (type == ScanTypeFlags.PointerOrMultiplication ||
                 type == ScanTypeFlags.NullableType ||
                 type == ScanTypeFlags.MustBeType ||

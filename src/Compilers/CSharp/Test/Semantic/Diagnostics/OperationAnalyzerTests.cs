@@ -794,9 +794,9 @@ enum E
         public void NullArgumentCSharp()
         {
             const string source = @"
-class Foo
+class Goo
 {
-    public Foo(string x)
+    public Goo(string x)
     {}
 }
 
@@ -815,8 +815,8 @@ class C
 
     public void M3()
     {
-        var f1 = new Foo("""");
-        var f2 = new Foo(null);
+        var f1 = new Goo("""");
+        var f2 = new Goo(null);
     }
 }
 ";
@@ -840,7 +840,7 @@ struct Bar
     public bool Field;
 }
 
-class Foo
+class Goo
 {
     public int Field;
     public string Property1 { set; get; }
@@ -851,21 +851,21 @@ class C
 {
     public void M1()
     {   
-        var x1 = new Foo();
-        var x2 = new Foo() { Field = 2};
-        var x3 = new Foo() { Property1 = """"};
-        var x4 = new Foo() { Property1 = """", Field = 2};
-        var x5 = new Foo() { Property2 = new Bar { Field = true } };
+        var x1 = new Goo();
+        var x2 = new Goo() { Field = 2};
+        var x3 = new Goo() { Property1 = """"};
+        var x4 = new Goo() { Property1 = """", Field = 2};
+        var x5 = new Goo() { Property2 = new Bar { Field = true } };
 
-        var e1 = new Foo() { Property2 = 1 };
-        var e2 = new Foo() { "" };      
+        var e1 = new Goo() { Property2 = 1 };
+        var e2 = new Goo() { "" };      
     }
 }
 ";
             CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics(
                 // (25,30): error CS1010: Newline in constant
-                //         var e2 = new Foo() { " };      
+                //         var e2 = new Goo() { " };      
                 Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(25, 30),
                 // (26,6): error CS1002: ; expected
                 //     }
@@ -874,7 +874,7 @@ class C
                 // }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(27, 2),
                 // (24,42): error CS0029: Cannot implicitly convert type 'int' to 'Bar'
-                //         var e1 = new Foo() { Property2 = 1 };
+                //         var e1 = new Goo() { Property2 = 1 };
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "Bar").WithLocation(24, 42))
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new MemberInitializerTestAnalyzer() }, null, null, false,
                 Diagnostic(MemberInitializerTestAnalyzer.DoNotUseFieldInitializerDescriptor.Id, "Field").WithLocation(19, 30),
@@ -895,7 +895,7 @@ struct Bar
     public bool Field;
 }
 
-class Foo
+class Goo
 {
     public int Field;
     public string Property1 { set; get; }
@@ -906,16 +906,16 @@ class C
 {
     public void M1()
     {
-        var x1 = new Foo();
-        var x2 = new Foo() { Field = 2};
-        var x3 = new Foo() { Property1 = """"};
-        var x4 = new Foo() { Property1 = """", Field = 2};
-        var x5 = new Foo() { Property2 = new Bar { Field = true } };
+        var x1 = new Goo();
+        var x2 = new Goo() { Field = 2};
+        var x3 = new Goo() { Property1 = """"};
+        var x4 = new Goo() { Property1 = """", Field = 2};
+        var x5 = new Goo() { Property2 = new Bar { Field = true } };
     }
 
     public void M2()
     {
-        var x1 = new Foo() { Property2 = new Bar { Field = true } };
+        var x1 = new Goo() { Property2 = new Bar { Field = true } };
         x1.Field = 10;
         x1.Property1 = null;
 
@@ -1125,7 +1125,7 @@ class D : C
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18839")]
+        [Fact]
         public void EventAndMethodReferencesCSharp()
         {
             const string source = @"
@@ -1154,21 +1154,18 @@ class C
             CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new MemberReferenceAnalyzer() }, null, null, false,
+                // Bug: we are missing diagnostics of "MethodBindingDescriptor" here. https://github.com/dotnet/roslyn/issues/20095
                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "Mumble += new MumbleEventHandler(Mumbler)").WithLocation(10, 9),
-                // Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
-                Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "Mumbler").WithLocation(10, 42),
+                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(10, 9),
                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "Mumble += (s, a) => {}").WithLocation(11, 9),
-                // Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
+                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(11, 9),
                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "Mumble += new MumbleEventHandler((s, a) => {})").WithLocation(12, 9),
-                // Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
-                Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "(s, a) => {}").WithLocation(12, 42),   // Bug: this is not a method binding https://github.com/dotnet/roslyn/issues/8347
+                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(12, 9),
                 Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(13, 9),
                 Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(14, 20),
                 Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "Mumbler").WithLocation(15, 32),
                 Diagnostic(MemberReferenceAnalyzer.HandlerRemovedDescriptor.Id, "Mumble -= new MumbleEventHandler(Mumbler)").WithLocation(17, 9),
-                // Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
-                Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "Mumbler").WithLocation(17, 42)
-                );
+                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(17, 9));
         }
 
         [Fact]
@@ -1235,9 +1232,9 @@ class C
 {
     public int F1 = 44;
     public string F2 = ""Hello"";
-    public int F3 = Foo();
+    public int F3 = Goo();
 
-    static int Foo() { return 10; }
+    static int Goo() { return 10; }
     static int Bar(int P1 = 15, int F2 = 33) { return P1 + F2; }
 }
 ";
@@ -1246,7 +1243,7 @@ class C
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new EqualsValueTestAnalyzer() }, null, null, false,
                 Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= 44").WithLocation(4, 19),
                 Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= \"Hello\"").WithLocation(5, 22),
-                Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= Foo()").WithLocation(6, 19),
+                Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= Goo()").WithLocation(6, 19),
                 Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= 33").WithLocation(9, 40)
                 );
         }
@@ -1468,7 +1465,7 @@ class C
 
     public static void Bar() { }
 
-    void Foo()
+    void Goo()
     {
         C.E += D.Method;
         C.E();
@@ -1484,11 +1481,11 @@ class C
             CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("D.E").WithLocation(6, 32))
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new StaticMemberTestAnalyzer() }, null, null, false,
-                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "C.E += D.Method").WithLocation(23, 9),
+                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "C.E").WithLocation(23, 9),
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.Method").WithLocation(23, 16),
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "C.E").WithLocation(24, 9),
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "C.Bar()").WithLocation(25, 9),
-                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.E += () => { }").WithLocation(27, 9),
+                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.E").WithLocation(27, 9),
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.Field").WithLocation(28, 9),
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.Property").WithLocation(29, 17),
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.Method()").WithLocation(30, 9)
@@ -1726,12 +1723,12 @@ public class A
             const string source = @"
 public class A
 {
-    public static void Foo(params int a) {}
+    public static void Goo(params int a) {}
 
     public static int Main()
     {
-        Foo();
-        Foo(1);
+        Goo();
+        Goo(1);
         return 1;
     }
 }
@@ -1739,11 +1736,11 @@ public class A
             CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics(
                 // (4,28): error CS0225: The params parameter must be a single dimensional array
-                //     public static void Foo(params int a) {}
+                //     public static void Goo(params int a) {}
                 Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(4, 28),
-                // (8,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'a' of 'A.Foo(params int)'
-                //         Foo();
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Foo").WithArguments("a", "A.Foo(params int)").WithLocation(8, 9))
+                // (8,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'a' of 'A.Goo(params int)'
+                //         Goo();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Goo").WithArguments("a", "A.Goo(params int)").WithLocation(8, 9))
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new InvocationTestAnalyzer() }, null, null, false);
         }
 

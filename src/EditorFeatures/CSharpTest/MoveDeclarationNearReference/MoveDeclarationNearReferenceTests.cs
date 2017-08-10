@@ -300,7 +300,7 @@ ignoreTrivia: false);
     void Main()
     {
         int [|x|] = 0;
-        Foo();
+        Goo();
 #line hidden
         Bar(x);
     }
@@ -317,9 +317,9 @@ ignoreTrivia: false);
     void Main()
     {
         int [|x|] = 0;
-        Foo();
+        Goo();
 #line hidden
-        Foo();
+        Goo();
 #line default
         Bar(x);
     }
@@ -336,7 +336,7 @@ class Program
     void Main()
     {
         int [||]x = 0;
-        Foo();
+        Goo();
         Bar(x);
 #line hidden
     }
@@ -347,7 +347,7 @@ class Program
 {
     void Main()
     {
-        Foo();
+        Goo();
         int x = 0;
         Bar(x);
 #line hidden
@@ -366,11 +366,11 @@ ignoreTrivia: false);
     void Main()
     {
         int [||]x = 0;
-        Foo();
+        Goo();
 #line hidden
-        Foo();
+        Goo();
 #line default
-        Foo();
+        Goo();
         Bar(x);
     }
 }",
@@ -378,11 +378,11 @@ ignoreTrivia: false);
 {
     void Main()
     {
-        Foo();
+        Goo();
 #line hidden
-        Foo();
+        Goo();
 #line default
-        Foo();
+        Goo();
         int x = 0;
         Bar(x);
     }
@@ -518,13 +518,13 @@ ignoreTrivia: false);
 
 class X
 {
-    static int Foo(Func<int?, byte> x, object y) { return 1; }
-    static int Foo(Func<X, byte> x, string y) { return 2; }
+    static int Goo(Func<int?, byte> x, object y) { return 1; }
+    static int Goo(Func<X, byte> x, string y) { return 2; }
 
     const int Value = 1000;
     static void Main()
     {
-        var [||]a = Foo(X => (byte)X.Value, null);
+        var [||]a = Goo(X => (byte)X.Value, null);
         unchecked
         {
             Console.WriteLine(a);
@@ -536,15 +536,15 @@ class X
 
 class X
 {
-    static int Foo(Func<int?, byte> x, object y) { return 1; }
-    static int Foo(Func<X, byte> x, string y) { return 2; }
+    static int Goo(Func<int?, byte> x, object y) { return 1; }
+    static int Goo(Func<X, byte> x, string y) { return 2; }
 
     const int Value = 1000;
     static void Main()
     {
         unchecked
         {
-            {|Warning:var a = Foo(X => (byte)X.Value, (object)null);|}
+            {|Warning:var a = Goo(X => (byte)X.Value, (object)null);|}
             Console.WriteLine(a);
         }
     }
@@ -565,16 +565,16 @@ class Program
 {
     static void Main(string[] args)
     {
-        // Comment [||]about foo!
-        // Comment about foo!
-        // Comment about foo!
-        // Comment about foo!
-        // Comment about foo!
-        // Comment about foo!
-        // Comment about foo!
-        int foo;
+        // Comment [||]about goo!
+        // Comment about goo!
+        // Comment about goo!
+        // Comment about goo!
+        // Comment about goo!
+        // Comment about goo!
+        // Comment about goo!
+        int goo;
         Console.WriteLine();
-        Console.WriteLine(foo);
+        Console.WriteLine(goo);
     }
 }");
         }

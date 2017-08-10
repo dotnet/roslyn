@@ -1061,13 +1061,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      IEventAssignmentExpression eventAssignment = (IEventAssignmentExpression)operationContext.Operation;
                      operationContext.ReportDiagnostic(Diagnostic.Create(eventAssignment.Adds ? HandlerAddedDescriptor : HandlerRemovedDescriptor, operationContext.Operation.Syntax.GetLocation()));
 
-                     if (eventAssignment.Event == null)
+                     if (eventAssignment.EventReference?.Event == null && eventAssignment.HasErrors(operationContext.Compilation, operationContext.CancellationToken))
                      {
-                         if (eventAssignment.EventInstance == null && eventAssignment.HasErrors(operationContext.Compilation, operationContext.CancellationToken))
-                         {
-                             // report inside after checking for null to make sure it does't crash.
-                             operationContext.ReportDiagnostic(Diagnostic.Create(InvalidEventDescriptor, eventAssignment.Syntax.GetLocation()));
-                         }
+                         operationContext.ReportDiagnostic(Diagnostic.Create(InvalidEventDescriptor, eventAssignment.Syntax.GetLocation()));
                      }
                  },
                  OperationKind.EventAssignmentExpression);
@@ -1426,10 +1422,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                              memberSymbol = ((IInvocationExpression)operation).TargetMethod;
                              receiver = ((IInvocationExpression)operation).Instance;
                              break;
-                         case OperationKind.EventAssignmentExpression:
-                             memberSymbol = ((IEventAssignmentExpression)operation).Event;
-                             receiver = ((IEventAssignmentExpression)operation).EventInstance;
-                             break;
                          default:
                              throw new ArgumentException();
                      }
@@ -1447,8 +1439,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  OperationKind.PropertyReferenceExpression,
                  OperationKind.EventReferenceExpression,
                  OperationKind.MethodBindingExpression,
-                 OperationKind.InvocationExpression,
-                 OperationKind.EventAssignmentExpression);
+                 OperationKind.InvocationExpression);
         }
     }
 
@@ -1959,9 +1950,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  (operationContext) =>
                  {
                      var conversion = (IConversionExpression)operationContext.Operation;
-                     if (conversion.ConversionKind == ConversionKind.Invalid)
+                     if (conversion.HasErrors(operationContext.Compilation, operationContext.CancellationToken))
                      {
-                         Debug.Assert(conversion.HasErrors(operationContext.Compilation, operationContext.CancellationToken) == true);
                          operationContext.ReportDiagnostic(Diagnostic.Create(InvalidConversionExpressionDescriptor, conversion.Syntax.GetLocation()));
                      }
                  },

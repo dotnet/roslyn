@@ -17,11 +17,12 @@
     <RoslynDiagnosticsNugetPackageVersion>$(MicrosoftNetRoslynDiagnosticsVersion)</RoslynDiagnosticsNugetPackageVersion>
     <!-- Disable analyzers if NuGet deviated from the expected restore location (e.g. by changing case on a case-sensitive file system) -->
     <UseRoslynAnalyzers Condition="!Exists('$(NuGetPackageRoot)\Microsoft.CodeQuality.Analyzers\$(RoslynDiagnosticsNugetPackageVersion)\analyzers\dotnet\cs\Analyzer.Utilities.dll')">False</UseRoslynAnalyzers>
-    <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.RoslynDiagnostics\$(RoslynDiagnosticsNugetPackageVersion)\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
+    <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)/microsoft.net.roslyndiagnostics/$(RoslynDiagnosticsNugetPackageVersion)/build/Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
     <RoslynRuntimeIdentifier Condition="'$(RoslynRuntimeIdentifier)' == '' AND '$(OS)' == 'Windows_NT'">win7-x64</RoslynRuntimeIdentifier>
     <RoslynPortableTargetFrameworks>net46;netcoreapp2.0</RoslynPortableTargetFrameworks>
  
     <Features>strict,IOperation</Features>
+    <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <SignAssembly>true</SignAssembly>
     <!-- The new SDK introduced a GenerateAssemblyInfo target, which is disabled by GenerateAssemblyInfo=false.
@@ -86,6 +87,9 @@
     <!-- Live Unit Testing does not currently support PackageReference style restore unless the Sdk="Microsoft.NET.Sdk" attribute is used on projects.
          Removal of this work-around tracked by:  https://github.com/dotnet/roslyn/issues/20427 -->
     <ProjectAssetsFile Condition="'$(BuildingForLiveUnitTesting)' == 'true'">$(LiveUnitTestingOriginalBaseIntermediateOutputPath)project.assets.json</ProjectAssetsFile>
+
+    <!-- https://github.com/dotnet/roslyn/issues/21272 -->
+    <GenerateResourceMSBuildRuntime Condition="'$(TargetFramework)' == 'netcoreapp2.0'">CurrentRuntime</GenerateResourceMSBuildRuntime>
   </PropertyGroup>
 
   <!-- Windows specific settings -->
@@ -153,7 +157,10 @@
              AssemblyFile="$(BootstrapBuildPath)\Microsoft.Build.Tasks.CodeAnalysis.dll"
              Condition="'$(BootstrapBuildPath)' != ''" />
   <UsingTask TaskName="Roslyn.MSBuild.Util.FindNuGetAssetsForVsix"
-             AssemblyFile="$(NuGetPackageRoot)\Roslyn.Build.Util\$(RoslynBuildUtilVersion)\lib\netstandard1.3\Roslyn.MSBuild.Util.dll"
+             AssemblyFile="$(NuGetPackageRoot)\Roslyn.Build.Util\$(RoslynBuildUtilVersion)\lib\net46\Roslyn.MSBuild.Util.dll"
+             Condition="'$(OS)' == 'Windows_NT'" />
+  <UsingTask TaskName="Roslyn.MSBuild.Util.ValidateBuildEnvironment"
+             AssemblyFile="$(NuGetPackageRoot)\Roslyn.Build.Util\$(RoslynBuildUtilVersion)\lib\net46\Roslyn.MSBuild.Util.dll"
              Condition="'$(OS)' == 'Windows_NT'" />
 
   <!-- This file is imported by all projects at the beginning of the project files -->

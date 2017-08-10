@@ -1,11 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub IDynamicMemberReferenceExpression_SimplePropertyAccess()
             Dim source = <![CDATA[
@@ -31,6 +33,7 @@ IOperation:  (OperationKind.None) (Syntax: 'd.F')
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub IDynamicMemberReferenceExpression_GenericPropertyAccess()
             Dim source = <![CDATA[
@@ -57,6 +60,7 @@ IOperation:  (OperationKind.None) (Syntax: 'd.F(Of String)')
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub IDynamicMemberReferenceExpression_InvalidGenericPropertyAccess()
             Dim source = <![CDATA[
@@ -87,6 +91,7 @@ BC30182: Type expected.
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub IDynamicMemberReferenceExpression_SimpleMethodCall()
             Dim source = <![CDATA[
@@ -112,6 +117,7 @@ IOperation:  (OperationKind.None) (Syntax: 'd.F()')
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub IDynamicMemberReferenceExpression_InvalidMethodCall_MissingParen()
             Dim source = <![CDATA[
@@ -130,7 +136,8 @@ IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'd.F(')
       IDynamicMemberReferenceExpression (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.F')
         Type Arguments(0)
         Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
-      IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: '')
+      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: '')
+        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
             Children(0)
 ]]>.Value
@@ -147,6 +154,7 @@ BC30201: Expression expected.
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub IDynamicMemberReferenceExpression_GenericMethodCall_SingleGeneric()
             Dim source = <![CDATA[
@@ -173,6 +181,7 @@ IOperation:  (OperationKind.None) (Syntax: 'd.GetValue(Of String)()')
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub IDynamicMemberReferenceExpression_GenericMethodCall_MultipleGeneric()
             Dim source = <![CDATA[
@@ -200,6 +209,7 @@ IOperation:  (OperationKind.None) (Syntax: 'd.GetValue( ...  Integer)()')
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub IDynamicMemberReferenceExpression_GenericMethodCall_InvalidGenericParameter()
             Dim source = <![CDATA[
@@ -231,6 +241,7 @@ BC30182: Type expected.
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub IDynamicMemberReferenceExpression_NestedPropertyAccess()
             Dim source = <![CDATA[
@@ -258,6 +269,7 @@ IOperation:  (OperationKind.None) (Syntax: 'd.Prop1.Prop2')
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub IDynamicMemberReferenceExpression_NestedMethodAccess()
             Dim source = <![CDATA[
@@ -287,6 +299,7 @@ IOperation:  (OperationKind.None) (Syntax: 'd.Method1().Method2()')
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub IDynamicMemberReferenceExpression_NestedPropertyAndMethodAccess()
             Dim source = <![CDATA[
@@ -314,6 +327,7 @@ IOperation:  (OperationKind.None) (Syntax: 'd.Prop1.Method2()')
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub IDynamicMemberReferenceExpression_LateBoundModuleFunction()
             Dim source = <![CDATA[
@@ -346,6 +360,7 @@ IOperation:  (OperationKind.None) (Syntax: 'fun(x)')
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub IDynamicMemberReferenceExpression_LateBoundClassFunction()
             Dim source = <![CDATA[

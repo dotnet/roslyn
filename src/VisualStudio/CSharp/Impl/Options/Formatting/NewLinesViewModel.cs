@@ -20,7 +20,7 @@ class C {
 
         private static string s_methodPreview = @"class c {
 //[
-    void Foo(){
+    void Goo(){
         Console.WriteLine();
 
         int LocalFunction(int x) {
@@ -46,7 +46,7 @@ class C {
 
         private const string s_tryCatchFinallyPreview = @"using System;
 class C {
-    void Foo() {
+    void Goo() {
 //[
         try {
         }
@@ -59,7 +59,7 @@ class C {
 }";
 
         private const string s_ifElsePreview = @"class C {
-    void Foo() {
+    void Goo() {
 //[
         if (false) {
         }
@@ -70,7 +70,7 @@ class C {
 }";
 
         private const string s_forBlockPreview = @"class C {
-    void Foo() {
+    void Goo() {
 //[
         for (int i; i < 10; i++){
         }
@@ -80,7 +80,7 @@ class C {
 
         private const string s_lambdaPreview = @"using System;
 class C {
-    void Foo() {
+    void Goo() {
 //[
         Func<int, int> f = x => {
             return 2 * x;
@@ -93,7 +93,7 @@ class C {
 delegate int D(int x);
 
 class C {
-    void Foo() {
+    void Goo() {
 //[
         D d = delegate(int x) {
             return 2 * x;
@@ -104,7 +104,7 @@ class C {
 
         private const string s_anonymousTypePreview = @"using System;
 class C {
-    void Foo() {
+    void Goo() {
 //[
         var z = new {
             A = 3, B = 4
@@ -116,7 +116,7 @@ class C {
 using System.Collections.Generic;
 
 class C {
-    void Foo() {
+    void Goo() {
 //[
         var z = new B()
         {
@@ -144,7 +144,7 @@ class B {
 using System.Collections.Generic;
 
 class C {
-    void Foo() {
+    void Goo() {
 //[
         var z = new B() {
             A = 3, B = 4
@@ -167,7 +167,7 @@ class B {
 }";
         private const string s_objectInitializerPreview = @"using System;
 class C {
-    void Foo() {
+    void Goo() {
 //[
         var z = new B() {
             A = 3, B = 4
@@ -184,7 +184,7 @@ class B {
 using System.Linq;
 using System.Collections.Generic;
 class C {
-    void Foo(IEnumerable<int> e) {
+    void Goo(IEnumerable<int> e) {
 //[
         var q = from a in e from b in e
                 select a * b;

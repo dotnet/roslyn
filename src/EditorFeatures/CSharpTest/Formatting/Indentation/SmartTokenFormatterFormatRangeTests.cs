@@ -2112,14 +2112,14 @@ int         nextLine            =           30          ;$$
         {
             var code = @"class Class1
 {
-    int foo()
+    int goo()
         return 0;
         }$$
 }";
 
             var expected = @"class Class1
 {
-    int foo()
+    int goo()
         return 0;
         }
 }";
@@ -2136,7 +2136,7 @@ int         nextLine            =           30          ;$$
         {
             var code = @"class Class1
 {
-    void Foo()
+    void Goo()
     {
         Object o=new Object);$$
     }
@@ -2144,7 +2144,7 @@ int         nextLine            =           30          ;$$
 
             var expected = @"class Class1
 {
-    void Foo()
+    void Goo()
     {
         Object o=new Object);
     }
@@ -2705,19 +2705,19 @@ class Program
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task NoLineChangeWithSyntaxError()
         {
-            var code = @"struct Foo { public int member; }
+            var code = @"struct Goo { public int member; }
 class Program{
     void Main()
     {
-        var f = new Foo { member;$$ }
+        var f = new Goo { member;$$ }
     }
 }";
 
-            var expected = @"struct Foo { public int member; }
+            var expected = @"struct Goo { public int member; }
 class Program{
     void Main()
     {
-        var f = new Foo { member; }
+        var f = new Goo { member; }
     }
 }";
 

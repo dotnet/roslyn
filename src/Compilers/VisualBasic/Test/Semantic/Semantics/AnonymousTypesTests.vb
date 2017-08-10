@@ -19,7 +19,8 @@ Module ModuleA
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'New With {. ...  = .b + .a}')
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'New With {. ...  = .b + .a}')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>) (Syntax: 'New With {. ...  = .b + .a}')
       Initializers(3):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Constant: 1) (Syntax: '.a = 1')
@@ -56,7 +57,8 @@ Module ModuleA
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'New With {. ... s, .b = .a}')
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'New With {. ... s, .b = .a}')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As ?, b As ?>, IsInvalid) (Syntax: 'New With {. ... s, .b = .a}')
       Initializers(2):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.a = sss')
@@ -97,7 +99,8 @@ IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim v1 As O ... h {.a = tr}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'v1')
       Variables: Local_1: v1 As System.Object
-      Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'New With {.a = tr}')
+      Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'New With {.a = tr}')
+          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As System.TypedReference>, IsInvalid) (Syntax: 'New With {.a = tr}')
               Initializers(1):
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.TypedReference, IsInvalid) (Syntax: '.a = tr')
@@ -107,7 +110,8 @@ IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim v2 As O ... a = {{tr}}}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'v2')
       Variables: Local_1: v2 As System.Object
-      Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'New With {.a = {{tr}}}')
+      Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'New With {.a = {{tr}}}')
+          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As System.TypedReference(,)>, IsInvalid) (Syntax: 'New With {.a = {{tr}}}')
               Initializers(1):
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.TypedReference(,), IsInvalid) (Syntax: '.a = {{tr}}')
@@ -190,7 +194,8 @@ Module ModuleA
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'New With {. ... c, .c = .b}')
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'New With {. ... c, .c = .b}')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: b As ?, c As ?>, IsInvalid) (Syntax: 'New With {. ... c, .c = .b}')
       Initializers(2):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.b = .c')
@@ -224,7 +229,8 @@ Module ModuleA
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'New With {. ... .c, .c = 1}')
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'New With {. ... .c, .c = 1}')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: b As ?, c As System.Int32>, IsInvalid) (Syntax: 'New With {. ... .c, .c = 1}')
       Initializers(2):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.b = .c')
@@ -482,7 +488,8 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Object, Constant: null) (Syntax: '.a = Nothing')
         Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Object>.a As System.Object (Static) (OperationKind.PropertyReferenceExpression, Type: System.Object) (Syntax: 'a')
             Instance Receiver: null
-        Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Object, Constant: null) (Syntax: 'Nothing')
+        Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null) (Syntax: 'Nothing')
+            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
 ]]>.Value
 
@@ -818,7 +825,8 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
         Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.String, Key a As System.String>.a As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'a')
             Instance Receiver: null
         Right: IInvocationExpression (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid) (Syntax: 'DirectCast( ... )).Invoke()')
-            Instance Receiver: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'DirectCast( ... Of String))')
+            Instance Receiver: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'DirectCast( ... Of String))')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILambdaExpression (Signature: Function () As System.String) (OperationKind.LambdaExpression, Type: null, IsInvalid) (Syntax: 'Function()  ... nd Function')
                     IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Function()  ... nd Function')
                       Locals: Local_1: <anonymous local> As System.String
@@ -865,12 +873,14 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
         Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As System.String>.a As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'a')
             Instance Receiver: null
         Right: IInvocationExpression (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid) (Syntax: 'DirectCast( ... )).Invoke()')
-            Instance Receiver: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'DirectCast( ... Of String))')
+            Instance Receiver: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'DirectCast( ... Of String))')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILambdaExpression (Signature: Function () As System.String) (OperationKind.LambdaExpression, Type: null, IsInvalid) (Syntax: 'Function()  ... nd Function')
                     IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Function()  ... nd Function')
                       Locals: Local_1: <anonymous local> As System.String
                       IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Return .a.ToString()')
-                        ReturnedValue: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.String, IsInvalid) (Syntax: '.a.ToString()')
+                        ReturnedValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid) (Syntax: '.a.ToString()')
+                            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.a.ToString()')
                                 Children(1):
                                     IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.a.ToString')
@@ -917,12 +927,14 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
         Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As System.String>.a As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'a')
             Instance Receiver: null
         Right: IInvocationExpression (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid) (Syntax: 'DirectCast( ... )).Invoke()')
-            Instance Receiver: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'DirectCast( ... Of String))')
+            Instance Receiver: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'DirectCast( ... Of String))')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILambdaExpression (Signature: Function () As System.String) (OperationKind.LambdaExpression, Type: null, IsInvalid) (Syntax: 'Function()  ... nd Function')
                     IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Function()  ... nd Function')
                       Locals: Local_1: <anonymous local> As System.String
                       IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Return .x.ToString()')
-                        ReturnedValue: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.String, IsInvalid) (Syntax: '.x.ToString()')
+                        ReturnedValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid) (Syntax: '.x.ToString()')
+                            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.x.ToString()')
                                 Children(1):
                                     IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.x.ToString')
@@ -971,18 +983,21 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
         Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As System.String>.a As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'a')
             Instance Receiver: null
         Right: IInvocationExpression (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid) (Syntax: 'DirectCast( ... )).Invoke()')
-            Instance Receiver: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'DirectCast( ... Of String))')
+            Instance Receiver: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'DirectCast( ... Of String))')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILambdaExpression (Signature: Function () As System.String) (OperationKind.LambdaExpression, Type: null, IsInvalid) (Syntax: 'Function()  ... nd Function')
                     IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Function()  ... nd Function')
                       Locals: Local_1: <anonymous local> As System.String
                       IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Return Dire ... )).Invoke()')
                         ReturnedValue: IInvocationExpression (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid) (Syntax: 'DirectCast( ... )).Invoke()')
-                            Instance Receiver: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'DirectCast( ... Of String))')
+                            Instance Receiver: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'DirectCast( ... Of String))')
+                                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                 Operand: ILambdaExpression (Signature: Function () As System.String) (OperationKind.LambdaExpression, Type: null, IsInvalid) (Syntax: 'Function()  ... nd Function')
                                     IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Function()  ... nd Function')
                                       Locals: Local_1: <anonymous local> As System.String
                                       IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Return .x.ToString()')
-                                        ReturnedValue: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.String, IsInvalid) (Syntax: '.x.ToString()')
+                                        ReturnedValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid) (Syntax: '.x.ToString()')
+                                            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                             Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.x.ToString()')
                                                 Children(1):
                                                     IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.x.ToString')
@@ -1046,7 +1061,7 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
 Imports System
 
 Module S1
-    Public Function Foo(Of T)() As System.Func(Of Object)
+    Public Function Goo(Of T)() As System.Func(Of Object)
         Dim x2 As T = Nothing
         return Function()
                      Return new With {x2}
@@ -1054,7 +1069,7 @@ Module S1
     End Function
 
     Sub Main()
-        Console.WriteLine(Foo(Of Integer)()())
+        Console.WriteLine(Goo(Of Integer)()())
     End Sub
 End Module
     </file>
@@ -1084,7 +1099,8 @@ Module S1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'New With {x2}')
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'New With {x2}')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: x2 As T>) (Syntax: 'New With {x2}')
       Initializers(1):
           ILocalReferenceExpression: x2 (OperationKind.LocalReferenceExpression, Type: T) (Syntax: 'x2')
@@ -1104,7 +1120,7 @@ IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionE
 Imports System
 
 Module S1
-    Public Function Foo(Of T)() As System.Func(Of Object)
+    Public Function Goo(Of T)() As System.Func(Of Object)
         Dim x2 As T = Nothing
         Dim x3 = Function()
                      Dim result = new With {x2}
@@ -1115,7 +1131,7 @@ Module S1
     End Function
 
     Sub Main()
-        Console.WriteLine(Foo(Of Integer)()())
+        Console.WriteLine(Goo(Of Integer)()())
     End Sub
 End Module
     </file>
@@ -1134,7 +1150,7 @@ End Module
 Imports System
 
 Module S1
-    Public Function Foo(Of T)() As System.Func(Of Object)
+    Public Function Goo(Of T)() As System.Func(Of Object)
         Dim x2 As T = Nothing
         Dim x3 = Function()
                      Dim result = new With {x2}
@@ -1146,7 +1162,7 @@ Module S1
     End Function
 
     Sub Main()
-        Console.WriteLine(Foo(Of Integer)()())
+        Console.WriteLine(Goo(Of Integer)()())
     End Sub
 End Module
     </file>
@@ -1166,7 +1182,7 @@ End Module
 Imports System
 
 Module S1
-    Public Sub Foo()
+    Public Sub Goo()
         Dim sss = Sub(x) Console.WriteLine() 'BIND2:"x" 
         sss(x:=1)'BIND1:"sss(x:=1)" 
     End Sub
@@ -1211,7 +1227,7 @@ End Module
 Imports System
 
 Module S1
-    Public Sub Foo()
+    Public Sub Goo()
         Dim sss As Action(Of Object) = Sub(x) Console.WriteLine() 'BIND2:"x" 
         sss(obj:=1)'BIND1:"sss(obj:=1)" 
     End Sub
@@ -1256,7 +1272,7 @@ End Module
 Imports System
 
 Module S1
-    Public Sub Foo()
+    Public Sub Goo()
         Dim sss As Action = Sub(x) Console.WriteLine() 'BIND2:"x" 
         sss()'BIND1:"sss()" 
     End Sub

@@ -22,5 +22,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         Patterns,
         DefaultLiteral,
         AsyncMain,
+        IOperation,
     }
 }

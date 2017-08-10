@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -388,16 +389,30 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyEventReferenceExpression(@event, instance, member, _semanticModel, syntax, type, constantValue);
         }
 
+        private IEventReferenceExpression CreateBoundEventAccessOperation(BoundEventAssignmentOperator boundEventAssignmentOperator)
+        {
+            SyntaxNode syntax = boundEventAssignmentOperator.Syntax;
+            // BoundEventAssignmentOperator doesn't hold on to BoundEventAccess provided during binding.
+            // Based on the implementation of those two bound node types, the following data can be retrieved w/o changing BoundEventAssignmentOperator:
+            //  1. the type of BoundEventAccess is the type of the event symbol.
+            //  2. the constant value of BoundEventAccess is always null.
+            //  3. the syntax of the boundEventAssignmentOperator is always AssignmentExpressionSyntax, so the syntax for the event reference would be the LHS of the assignment.
+            IEventSymbol @event = boundEventAssignmentOperator.Event;
+            Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(boundEventAssignmentOperator.Event.IsStatic ? null : boundEventAssignmentOperator.ReceiverOpt));
+            SyntaxNode eventAccessSyntax = ((AssignmentExpressionSyntax)syntax).Left;
+
+            return new LazyEventReferenceExpression(@event, instance, @event, _semanticModel, eventAccessSyntax, @event.Type, ConvertToOptional(null));
+        }
+
         private IEventAssignmentExpression CreateBoundEventAssignmentOperatorOperation(BoundEventAssignmentOperator boundEventAssignmentOperator)
         {
-            IEventSymbol @event = boundEventAssignmentOperator.Event;
-            Lazy<IOperation> eventInstance = new Lazy<IOperation>(() => Create(boundEventAssignmentOperator.Event.IsStatic ? null : boundEventAssignmentOperator.ReceiverOpt));
+            Lazy<IEventReferenceExpression> eventReference = new Lazy<IEventReferenceExpression>(() => CreateBoundEventAccessOperation(boundEventAssignmentOperator));                
             Lazy<IOperation> handlerValue = new Lazy<IOperation>(() => Create(boundEventAssignmentOperator.Argument));
-            bool adds = boundEventAssignmentOperator.IsAddition;
             SyntaxNode syntax = boundEventAssignmentOperator.Syntax;
+            bool adds = boundEventAssignmentOperator.IsAddition;
             ITypeSymbol type = boundEventAssignmentOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundEventAssignmentOperator.ConstantValue);
-            return new LazyEventAssignmentExpression(@event, eventInstance, handlerValue, adds, _semanticModel, syntax, type, constantValue);
+            return new LazyEventAssignmentExpression(eventReference, handlerValue, adds, _semanticModel, syntax, type, constantValue);
         }
 
         private IParameterReferenceExpression CreateBoundParameterOperation(BoundParameter boundParameter)
@@ -640,28 +655,29 @@ namespace Microsoft.CodeAnalysis.Semantics
             else
             {
                 Lazy<IOperation> operand = new Lazy<IOperation>(() => Create(boundConversion.Operand));
-
-                bool isExplicit = boundConversion.ExplicitCastInCode;
-                bool usesOperatorMethod = boundConversion.ConversionKind == CSharp.ConversionKind.ExplicitUserDefined || boundConversion.ConversionKind == CSharp.ConversionKind.ImplicitUserDefined;
-                IMethodSymbol operatorMethod = boundConversion.SymbolOpt;
                 SyntaxNode syntax = boundConversion.Syntax;
+                Conversion conversion = _semanticModel.GetConversion(syntax);
+                bool isExplicit = boundConversion.ExplicitCastInCode;
+                bool isTryCast = false;
+                // Checked conversions only matter if the conversion is a Numeric conversion. Don't have true unless the conversion is actually numeric.
+                bool isChecked = conversion.IsNumeric && boundConversion.Checked;
                 ITypeSymbol type = boundConversion.Type;
                 Optional<object> constantValue = ConvertToOptional(boundConversion.ConstantValue);
-                return new LazyConversionExpression(operand, conversionKind, isExplicit, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue);
+                return new LazyCSharpConversionExpression(operand, conversion, isExplicit, isTryCast, isChecked, _semanticModel, syntax, type, constantValue);
             }
         }
 
         private IConversionExpression CreateBoundAsOperatorOperation(BoundAsOperator boundAsOperator)
         {
             Lazy<IOperation> operand = new Lazy<IOperation>(() => Create(boundAsOperator.Operand));
-            ConversionKind conversionKind = Semantics.ConversionKind.TryCast;
-            bool isExplicit = true;
-            bool usesOperatorMethod = false;
-            IMethodSymbol operatorMethod = null;
             SyntaxNode syntax = boundAsOperator.Syntax;
+            Conversion conversion = _semanticModel.GetConversion(syntax);
+            bool isExplicit = true;
+            bool isTryCast = true;
+            bool isChecked = false;
             ITypeSymbol type = boundAsOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundAsOperator.ConstantValue);
-            return new LazyConversionExpression(operand, conversionKind, isExplicit, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue);
+            return new LazyCSharpConversionExpression(operand, conversion, isExplicit, isTryCast, isChecked, _semanticModel, syntax, type, constantValue);
         }
 
         private IIsTypeExpression CreateBoundIsOperatorOperation(BoundIsOperator boundIsOperator)

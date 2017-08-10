@@ -128,7 +128,7 @@ multiple lines";
         public void Comment_MultilineIndented()
         {
             var code = @"
-class Foo
+class Goo
 {
     |start|void M()
     {
@@ -195,7 +195,7 @@ class Foo
         public void Comment_SelectionEndsAtColumnZero()
         {
             var code = @"
-class Foo
+class Goo
 {
 |start|    void M()
     {
@@ -215,7 +215,7 @@ class Foo
         public void Comment_BoxSelectionAtStartOfLines()
         {
             var code = @"
-class Foo
+class Goo
 {
 |start||end|    void M()
 |start||end|    {
@@ -237,7 +237,7 @@ class Foo
         public void Comment_BoxSelectionIndentedAtStart()
         {
             var code = @"
-class Foo
+class Goo
 {
     |start||end|void M()
     |start||end|{
@@ -259,7 +259,7 @@ class Foo
         public void Comment_BoxSelectionBlock()
         {
             var code = @"
-class Foo
+class Goo
 {
     |start|v|end|oid M()
     |start|{|end|
@@ -285,7 +285,7 @@ class Foo
         public void Comment_BoxSelectionBlockWithoutSupport()
         {
             var code = @"
-class Foo
+class Goo
 {
     |start|v|end|oid M()
     |start|{|end|
@@ -305,7 +305,7 @@ class Foo
         [WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)]
         public void Uncomment_NoSelection()
         {
-            var code = @"//Foo|start||end|Bar";
+            var code = @"//Goo|start||end|Bar";
             UncommentSelection(code, new[] { new TextChange(new TextSpan(0, 2), string.Empty) }, Span.FromBounds(0, 6), supportBlockComments: true);
         }
 
@@ -369,7 +369,7 @@ class C
         public void Uncomment_BoxSelection()
         {
             var code = @"
-class Foo
+class Goo
 {
     |start|/*v*/|end|oid M()
     |start|//{  |end|

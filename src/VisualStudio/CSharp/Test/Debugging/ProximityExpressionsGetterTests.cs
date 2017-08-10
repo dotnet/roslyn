@@ -201,7 +201,7 @@ namespace ConsoleApplication1
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestIsValidNoTypeSymbol()
         {
-            await TestIsValidAsync("namespace Namespace$$ { }", "foo", false);
+            await TestIsValidAsync("namespace Namespace$$ { }", "goo", false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
@@ -469,9 +469,9 @@ class Class
 {
     void Method()
     {
-        $$Foo(new Bar(a).Baz);
+        $$Goo(new Bar(a).Baz);
     }
-}", "a", "new Bar(a).Baz", "Foo", "this");
+}", "a", "new Bar(a).Baz", "Goo", "this");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
@@ -488,7 +488,7 @@ class Class
 {
     void Method()
     {
-        $$Foo(D.x);
+        $$Goo(D.x);
     }
 }", "D.x", false);
         }

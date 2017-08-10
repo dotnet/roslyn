@@ -1208,32 +1208,21 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseConversionExpression : Operation, IHasOperatorMethodExpression, IConversionExpression
     {
-        protected BaseConversionExpression(ConversionKind conversionKind, bool isExplicit, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseConversionExpression(bool isExplicitInCode, bool isTryCast, bool isChecked, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.ConversionExpression, semanticModel, syntax, type, constantValue)
         {
-            ConversionKind = conversionKind;
-            IsExplicit = isExplicit;
-            UsesOperatorMethod = usesOperatorMethod;
-            OperatorMethod = operatorMethod;
+            IsExplicitInCode = isExplicitInCode;
+            IsTryCast = isTryCast;
+            IsChecked = isChecked;
         }
 
-        protected abstract IOperation OperandImpl { get; }
-        /// <summary>
-        /// Kind of conversion.
-        /// </summary>
-        public ConversionKind ConversionKind { get; }
-        /// <summary>
-        /// True if and only if the conversion is indicated explicity by a cast operation in the source code.
-        /// </summary>
-        public bool IsExplicit { get; }
-        /// <summary>
-        /// True if and only if the operation is performed by an operator method.
-        /// </summary>
-        public bool UsesOperatorMethod { get; }
-        /// <summary>
-        /// Operation method used by the operation, null if the operation does not use an operator method.
-        /// </summary>
-        public IMethodSymbol OperatorMethod { get; }
+        public abstract IOperation OperandImpl { get; }
+        public abstract CommonConversion Conversion { get; }
+        public bool IsExplicitInCode { get; }
+        public bool IsTryCast { get; }
+        public bool IsChecked { get; }
+        public bool UsesOperatorMethod => Conversion.IsUserDefined;
+        public IMethodSymbol OperatorMethod => Conversion.MethodSymbol;
         public override IEnumerable<IOperation> Children
         {
             get
@@ -1253,35 +1242,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             return visitor.VisitConversionExpression(this, argument);
         }
-    }
-
-    /// <summary>
-    /// Represents a conversion operation.
-    /// </summary>
-    internal sealed partial class ConversionExpression : BaseConversionExpression, IHasOperatorMethodExpression, IConversionExpression
-    {
-        public ConversionExpression(IOperation operand, ConversionKind conversionKind, bool isExplicit, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(conversionKind, isExplicit, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue)
-        {
-            OperandImpl = operand;
-        }
-
-        protected override IOperation OperandImpl { get; }
-    }
-
-    /// <summary>
-    /// Represents a conversion operation.
-    /// </summary>
-    internal sealed partial class LazyConversionExpression : BaseConversionExpression, IHasOperatorMethodExpression, IConversionExpression
-    {
-        private readonly Lazy<IOperation> _lazyOperand;
-
-        public LazyConversionExpression(Lazy<IOperation> operand, ConversionKind conversionKind, bool isExplicit, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(conversionKind, isExplicit, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue)
-        {
-            _lazyOperand = operand ?? throw new System.ArgumentNullException(nameof(operand));
-        }
-
-        protected override IOperation OperandImpl => _lazyOperand.Value;
     }
 
     /// <remarks>
@@ -1368,17 +1328,20 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseEventAssignmentExpression : Operation, IEventAssignmentExpression
     {
-        protected BaseEventAssignmentExpression(IEventSymbol @event, bool adds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseEventAssignmentExpression(bool adds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(OperationKind.EventAssignmentExpression, semanticModel, syntax, type, constantValue)
         {
-            Event = @event;
             Adds = adds;
         }
+
         /// <summary>
-        /// Event being bound.
+        /// Reference to the event being bound.
         /// </summary>
-        public IEventSymbol Event { get; }
-        protected abstract IOperation EventInstanceImpl { get; }
+        protected abstract IEventReferenceExpression EventReferenceImpl { get; }
+
+        /// <summary>
+        /// Handler supplied for the event.
+        /// </summary>
         protected abstract IOperation HandlerValueImpl { get; }
 
         /// <summary>
@@ -1389,7 +1352,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             get
             {
-                yield return EventInstance;
+                yield return EventReference;
                 yield return HandlerValue;
             }
         }
@@ -1397,7 +1360,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Instance used to refer to the event being bound.
         /// </summary>
-        public IOperation EventInstance => Operation.SetParentOperation(EventInstanceImpl, this);
+        public IEventReferenceExpression EventReference => Operation.SetParentOperation(EventReferenceImpl, this);
 
         /// <summary>
         /// Handler supplied for the event.
@@ -1418,14 +1381,14 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class EventAssignmentExpression : BaseEventAssignmentExpression, IEventAssignmentExpression
     {
-        public EventAssignmentExpression(IEventSymbol @event, IOperation eventInstance, IOperation handlerValue, bool adds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(@event, adds, semanticModel, syntax, type, constantValue)
+        public EventAssignmentExpression(IEventReferenceExpression eventReference, IOperation handlerValue, bool adds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(adds, semanticModel, syntax, type, constantValue)
         {
-            EventInstanceImpl = eventInstance;
+            EventReferenceImpl = eventReference;
             HandlerValueImpl = handlerValue;
         }
 
-        protected override IOperation EventInstanceImpl { get; }
+        protected override IEventReferenceExpression EventReferenceImpl { get; }
         protected override IOperation HandlerValueImpl { get; }
     }
 
@@ -1434,16 +1397,17 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LazyEventAssignmentExpression : BaseEventAssignmentExpression, IEventAssignmentExpression
     {
-        private readonly Lazy<IOperation> _lazyEventInstance;
+        private readonly Lazy<IEventReferenceExpression> _lazyEventReference;
         private readonly Lazy<IOperation> _lazyHandlerValue;
+        
+        public LazyEventAssignmentExpression(Lazy<IEventReferenceExpression> eventReference, Lazy<IOperation> handlerValue, bool adds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(adds, semanticModel, syntax, type, constantValue)
 
-        public LazyEventAssignmentExpression(IEventSymbol @event, Lazy<IOperation> eventInstance, Lazy<IOperation> handlerValue, bool adds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(@event, adds, semanticModel, syntax, type, constantValue)
         {
-            _lazyEventInstance = eventInstance ?? throw new System.ArgumentNullException(nameof(eventInstance));
+            _lazyEventReference = eventReference ?? throw new System.ArgumentNullException(nameof(eventReference));
             _lazyHandlerValue = handlerValue ?? throw new System.ArgumentNullException(nameof(handlerValue));
         }
-
-        protected override IOperation EventInstanceImpl => _lazyEventInstance.Value;
+        
+        protected override IEventReferenceExpression EventReferenceImpl => _lazyEventReference.Value;
 
         protected override IOperation HandlerValueImpl => _lazyHandlerValue.Value;
     }

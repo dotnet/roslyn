@@ -9,6 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_SimpleForLoopsTest()
             Dim source = <![CDATA[
@@ -43,7 +44,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i A
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For i As In ... Next')
         Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'For i As In ... Next')
             Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i As Integer')
-            Right: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For i As In ... Next')
+            Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For i As In ... Next')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'For i As In ... Next')
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For i As In ... Next')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... myarray(i))')
@@ -62,6 +64,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i A
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_SimpleForLoopsTestConversion()
             Dim source = <![CDATA[
@@ -82,7 +85,7 @@ Public Class MyClass1
 End Class
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i As In ... Next')
   Condition: IConditionalChoiceExpression (OperationKind.ConditionalChoiceExpression, Type: System.Boolean) (Syntax: '"1"')
       Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's')
@@ -102,12 +105,14 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i A
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '"1"')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '"1"')
             Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32) (Syntax: '"1"')
-            Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: '"1"')
+            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: '"1"')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "1") (Syntax: '"1"')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 's')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 's')
             Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32) (Syntax: 's')
-            Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 's')
+            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 's')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.Double) (Syntax: 's')
   AtLoopBottom:
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 's')
@@ -131,6 +136,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i A
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_ForLoopStepIsFloatNegativeVar()
             Dim source = <![CDATA[
@@ -147,7 +153,7 @@ Public Class MyClass1
 End Class
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i As Do ... Next')
   Condition: IConditionalChoiceExpression (OperationKind.ConditionalChoiceExpression, Type: System.Boolean) (Syntax: '0')
       Condition: IBinaryOperatorExpression (BinaryOperationKind.FloatingGreaterThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's')
@@ -155,17 +161,20 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i A
           Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Double, Constant: 0) (Syntax: 's')
       IfTrue: IBinaryOperatorExpression (BinaryOperationKind.FloatingLessThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '0')
           Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Double) (Syntax: 'i As Double')
-          Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Double, Constant: 0) (Syntax: '0')
+          Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, Constant: 0) (Syntax: '0')
+              Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
       IfFalse: IBinaryOperatorExpression (BinaryOperationKind.FloatingGreaterThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '0')
           Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Double) (Syntax: 'i As Double')
-          Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Double, Constant: 0) (Syntax: '0')
+          Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, Constant: 0) (Syntax: '0')
+              Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   Before:
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '2')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Double) (Syntax: '2')
             Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Double) (Syntax: 'i As Double')
-            Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Double, Constant: 2) (Syntax: '2')
+            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, Constant: 2) (Syntax: '2')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 's')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Double) (Syntax: 's')
@@ -190,6 +199,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i A
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_ForLoopObject()
             Dim source = <![CDATA[
@@ -210,7 +220,7 @@ Public Class MyClass1
 End Class
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For ctrlVar ... Next')
   Condition: IConditionalChoiceExpression (OperationKind.ConditionalChoiceExpression, Type: System.Boolean) (Syntax: 'limit')
       Condition: IBinaryOperatorExpression (BinaryOperationKind.ObjectGreaterThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'stp')
@@ -254,6 +264,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For ctr
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_ForLoopNested()
             Dim source = <![CDATA[
@@ -274,7 +285,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For AVarNam ... xt AVarName')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '2')
       Left: ILocalReferenceExpression: AVarName (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'AVarName')
@@ -288,7 +299,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For AVa
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For AVarNam ... xt AVarName')
         Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'For AVarNam ... xt AVarName')
             Left: ILocalReferenceExpression: AVarName (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'AVarName')
-            Right: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For AVarNam ... xt AVarName')
+            Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For AVarNam ... xt AVarName')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'For AVarNam ... xt AVarName')
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For AVarNam ... xt AVarName')
       IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For B = 1 T ... Next B')
@@ -304,7 +316,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For AVa
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For B = 1 T ... Next B')
               Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'For B = 1 T ... Next B')
                   Left: ILocalReferenceExpression: B (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'B')
-                  Right: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For B = 1 T ... Next B')
+                  Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For B = 1 T ... Next B')
+                      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'For B = 1 T ... Next B')
         Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For B = 1 T ... Next B')
             IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For C = 1 T ... Next C')
@@ -320,7 +333,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For AVa
                   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For C = 1 T ... Next C')
                     Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'For C = 1 T ... Next C')
                         Left: ILocalReferenceExpression: C (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'C')
-                        Right: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For C = 1 T ... Next C')
+                        Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For C = 1 T ... Next C')
+                            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'For C = 1 T ... Next C')
               Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For C = 1 T ... Next C')
                   IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For D = 1 T ... Next D')
@@ -336,7 +350,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For AVa
                         IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For D = 1 T ... Next D')
                           Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'For D = 1 T ... Next D')
                               Left: ILocalReferenceExpression: D (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'D')
-                              Right: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For D = 1 T ... Next D')
+                              Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For D = 1 T ... Next D')
+                                  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                   Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'For D = 1 T ... Next D')
                     Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For D = 1 T ... Next D')
 ]]>.Value
@@ -344,6 +359,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For AVa
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_ChangeOuterVarInInnerFor()
             Dim source = <![CDATA[
@@ -363,7 +379,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For I = 1 T ... Next')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '2')
       Left: ILocalReferenceExpression: I (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'I')
@@ -377,7 +393,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For I =
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For I = 1 T ... Next')
         Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'For I = 1 T ... Next')
             Left: ILocalReferenceExpression: I (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'I')
-            Right: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For I = 1 T ... Next')
+            Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For I = 1 T ... Next')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'For I = 1 T ... Next')
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For I = 1 T ... Next')
       IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For J = 1 T ... Next')
@@ -393,7 +410,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For I =
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For J = 1 T ... Next')
               Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'For J = 1 T ... Next')
                   Left: ILocalReferenceExpression: J (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'J')
-                  Right: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For J = 1 T ... Next')
+                  Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For J = 1 T ... Next')
+                      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'For J = 1 T ... Next')
         Body: IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'For J = 1 T ... Next')
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'I = 3')
@@ -413,6 +431,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For I =
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_InnerForRefOuterForVar()
             Dim source = <![CDATA[
@@ -431,7 +450,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For I = 1 T ... Next')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '2')
       Left: ILocalReferenceExpression: I (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'I')
@@ -445,7 +464,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For I =
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For I = 1 T ... Next')
         Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'For I = 1 T ... Next')
             Left: ILocalReferenceExpression: I (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'I')
-            Right: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For I = 1 T ... Next')
+            Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For I = 1 T ... Next')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'For I = 1 T ... Next')
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For I = 1 T ... Next')
       IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For J = I + ... Next')
@@ -463,7 +483,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For I =
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For J = I + ... Next')
               Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'For J = I + ... Next')
                   Left: ILocalReferenceExpression: J (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'J')
-                  Right: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For J = I + ... Next')
+                  Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For J = I + ... Next')
+                      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'For J = I + ... Next')
         Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For J = I + ... Next')
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... riteLine(J)')
@@ -479,6 +500,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For I =
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_ExitNestedFor()
             Dim source = <![CDATA[
@@ -497,7 +519,7 @@ End Class
 
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For I = 1 T ... Next')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '2')
       Left: ILocalReferenceExpression: I (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'I')
@@ -511,7 +533,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For I =
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For I = 1 T ... Next')
         Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'For I = 1 T ... Next')
             Left: ILocalReferenceExpression: I (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'I')
-            Right: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For I = 1 T ... Next')
+            Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For I = 1 T ... Next')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'For I = 1 T ... Next')
   Body: IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'For I = 1 T ... Next')
       IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For J = 1 T ... Next')
@@ -527,7 +550,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For I =
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For J = 1 T ... Next')
               Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'For J = 1 T ... Next')
                   Left: ILocalReferenceExpression: J (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'J')
-                  Right: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For J = 1 T ... Next')
+                  Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For J = 1 T ... Next')
+                      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'For J = 1 T ... Next')
         Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For J = 1 T ... Next')
             IBranchStatement (BranchKind.Break, Label: exit) (OperationKind.BranchStatement) (Syntax: 'Exit For')
@@ -544,6 +568,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For I =
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_EnumAsStart()
             Dim source = <![CDATA[
@@ -562,7 +587,7 @@ Enum e1
 End Enum
     ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x As e1 ... Next')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.EnumLessThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'e1.c')
       Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: e1) (Syntax: 'x As e1')
@@ -578,7 +603,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x A
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For x As e1 ... Next')
         Expression: ICompoundAssignmentExpression (BinaryOperationKind.EnumAdd) (OperationKind.CompoundAssignmentExpression, Type: e1) (Syntax: 'For x As e1 ... Next')
             Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: e1) (Syntax: 'x As e1')
-            Right: IConversionExpression (ConversionKind.Basic, Explicit) (OperationKind.ConversionExpression, Type: e1, Constant: 1) (Syntax: 'For x As e1 ... Next')
+            Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: e1, Constant: 1) (Syntax: 'For x As e1 ... Next')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'For x As e1 ... Next')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For x As e1 ... Next')
 ]]>.Value
@@ -586,6 +612,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x A
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_PropertyAsStart()
             Dim source = <![CDATA[
@@ -617,12 +644,14 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i A
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'P1(30 + i)')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'P1(30 + i)')
             Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i As Integer')
-            Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'P1(30 + i)')
+            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'P1(30 + i)')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: IPropertyReferenceExpression: Property MyClass1.P1(x As System.Int64) As System.Byte (OperationKind.PropertyReferenceExpression, Type: System.Byte) (Syntax: 'P1(30 + i)')
                     Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MyClass1) (Syntax: 'P1')
                     Arguments(1):
                         IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '30 + i')
-                          IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int64) (Syntax: '30 + i')
+                          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64) (Syntax: '30 + i')
+                            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             Operand: IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '30 + i')
                                 Left: ILiteralExpression (Text: 30) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 30) (Syntax: '30')
                                 Right: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -632,7 +661,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i A
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For i As In ... Next')
         Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'For i As In ... Next')
             Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i As Integer')
-            Right: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For i As In ... Next')
+            Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For i As In ... Next')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'For i As In ... Next')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For i As In ... Next')
 ]]>.Value
@@ -640,6 +670,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i A
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_FieldNameAsIteration()
             Dim source = <![CDATA[
@@ -665,14 +696,16 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For glo
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'global_y')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'global_y')
             Left: ILocalReferenceExpression: global_x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'global_x As Integer')
-            Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 20) (Syntax: 'global_y')
+            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 20) (Syntax: 'global_y')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: IFieldReferenceExpression: MyClass1.global_y As System.Int64 (Static) (OperationKind.FieldReferenceExpression, Type: System.Int64, Constant: 20) (Syntax: 'global_y')
                     Instance Receiver: null
   AtLoopBottom:
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For global_ ... Next')
         Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'For global_ ... Next')
             Left: ILocalReferenceExpression: global_x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'global_x As Integer')
-            Right: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For global_ ... Next')
+            Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For global_ ... Next')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'For global_ ... Next')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For global_ ... Next')
 ]]>.Value
@@ -680,6 +713,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For glo
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_SingleLine()
             Dim source = <![CDATA[
@@ -706,7 +740,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x A
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For x As In ... o 10 : Next')
         Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'For x As In ... o 10 : Next')
             Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x As Integer')
-            Right: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For x As In ... o 10 : Next')
+            Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For x As In ... o 10 : Next')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'For x As In ... o 10 : Next')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For x As In ... o 10 : Next')
 ]]>.Value
@@ -714,6 +749,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x A
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_VarDeclOutOfForeach()
             Dim source = <![CDATA[
@@ -744,7 +780,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For Y =
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For Y = 1 T ... Next')
         Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'For Y = 1 T ... Next')
             Left: ILocalReferenceExpression: Y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'Y')
-            Right: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For Y = 1 T ... Next')
+            Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For Y = 1 T ... Next')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'For Y = 1 T ... Next')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For Y = 1 T ... Next')
 ]]>.Value
@@ -752,6 +789,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For Y =
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_GetDeclaredSymbolOfForStatement()
             Dim source = <![CDATA[
@@ -787,7 +825,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For ele
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For element ... Next')
         Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'For element ... Next')
             Left: ILocalReferenceExpression: element1 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'element1')
-            Right: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For element ... Next')
+            Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For element ... Next')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'For element ... Next')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For element ... Next')
 ]]>.Value
@@ -795,6 +834,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For ele
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_ForLoopContinue()
             Dim source = <![CDATA[
@@ -830,7 +870,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i A
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For i As In ... Next')
         Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'For i As In ... Next')
             Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i As Integer')
-            Right: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For i As In ... Next')
+            Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For i As In ... Next')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'For i As In ... Next')
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For i As In ... Next')
       IIfStatement (OperationKind.IfStatement) (Syntax: 'If i Mod 2  ... End If')
@@ -847,6 +888,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i A
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_ForReverse()
             Dim source = <![CDATA[
@@ -882,7 +924,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For X =
         Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'For X = 10  ... Next')
             Left: IFieldReferenceExpression: M.X As System.Int32 (Static) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'X')
                 Instance Receiver: null
-            Right: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For X = 10  ... Next')
+            Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For X = 10  ... Next')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'For X = 10  ... Next')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For X = 10  ... Next')
 ]]>.Value
@@ -892,6 +935,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For X =
             VerifyOperationTreeAndDiagnosticsForTest(Of ForBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_InValid()
             Dim source = <![CDATA[
@@ -940,6 +984,7 @@ BC30337: 'For' loop control variable cannot be of type 'String' because the type
             VerifyOperationTreeAndDiagnosticsForTest(Of ForBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForLoopStatement_ForCombined()
             Dim source = <![CDATA[
@@ -967,7 +1012,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For A =
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For A = 1 T ... Next B, A')
         Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'For A = 1 T ... Next B, A')
             Left: ILocalReferenceExpression: A (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'A')
-            Right: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For A = 1 T ... Next B, A')
+            Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For A = 1 T ... Next B, A')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'For A = 1 T ... Next B, A')
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For A = 1 T ... Next B, A')
       IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For B = A T ... Next B, A')
@@ -983,7 +1029,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For A =
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For B = A T ... Next B, A')
               Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'For B = A T ... Next B, A')
                   Left: ILocalReferenceExpression: B (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'B')
-                  Right: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For B = A T ... Next B, A')
+                  Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For B = A T ... Next B, A')
+                      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'For B = A T ... Next B, A')
         Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For B = A T ... Next B, A')
 ]]>.Value
@@ -993,6 +1040,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For A =
             VerifyOperationTreeAndDiagnosticsForTest(Of ForBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub VerifyForToLoop1()
             Dim source = <![CDATA[
@@ -1024,13 +1072,16 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x =
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For x = 12  ... Next')
         Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'For x = 12  ... Next')
             Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-            Right: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For x = 12  ... Next')
+            Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For x = 12  ... Next')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'For x = 12  ... Next')
-  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For x = 12  ... Next')]]>.Value
+  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For x = 12  ... Next')
+]]>.Value
 
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub VerifyForToLoop2()
             Dim source = <![CDATA[
@@ -1060,28 +1111,33 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x =
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '12')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Nullable(Of System.Int32)) (Syntax: '12')
             Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
-            Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32)) (Syntax: '12')
+            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32)) (Syntax: '12')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (Text: 12) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12) (Syntax: '12')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'y')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
             Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
-            Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
+            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For x = 12  ... Next')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'For x = 12  ... Next')
             Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'For x = 12  ... Next')
-            Right: IConversionExpression (ConversionKind.Basic, Explicit) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'For x = 12  ... Next')
+            Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'For x = 12  ... Next')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'For x = 12  ... Next')
   AtLoopBottom:
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For x = 12  ... Next')
         Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd-IsLifted) (OperationKind.CompoundAssignmentExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'For x = 12  ... Next')
             Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
             Right: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'For x = 12  ... Next')
-  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For x = 12  ... Next')]]>.Value
+  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For x = 12  ... Next')
+]]>.Value
 
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub VerifyForToLoop3()
             Dim source = <![CDATA[
@@ -1108,19 +1164,23 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x =
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'y')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'y')
             Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
-            Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'y')
+            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'y')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
   AtLoopBottom:
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For x = 12  ... Next')
         Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'For x = 12  ... Next')
             Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-            Right: IConversionExpression (ConversionKind.Cast, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For x = 12  ... Next')
+            Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For x = 12  ... Next')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'For x = 12  ... Next')
-  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For x = 12  ... Next')]]>.Value
+  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For x = 12  ... Next')
+]]>.Value
 
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub VerifyForToLoop4()
             Dim source = <![CDATA[
@@ -1150,7 +1210,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x =
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '12')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Nullable(Of System.Int32)) (Syntax: '12')
             Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
-            Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32)) (Syntax: '12')
+            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32)) (Syntax: '12')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (Text: 12) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12) (Syntax: '12')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'y')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
@@ -1159,18 +1220,21 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x =
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For x = 12  ... Next')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'For x = 12  ... Next')
             Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'For x = 12  ... Next')
-            Right: IConversionExpression (ConversionKind.Basic, Explicit) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'For x = 12  ... Next')
+            Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'For x = 12  ... Next')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'For x = 12  ... Next')
   AtLoopBottom:
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For x = 12  ... Next')
         Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd-IsLifted) (OperationKind.CompoundAssignmentExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'For x = 12  ... Next')
             Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
             Right: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'For x = 12  ... Next')
-  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For x = 12  ... Next')]]>.Value
+  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For x = 12  ... Next')
+]]>.Value
 
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub VerifyForToLoop5()
             Dim source = <![CDATA[
@@ -1209,18 +1273,21 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x =
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 's')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 's')
             Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32) (Syntax: 's')
-            Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 's')
+            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 's')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 's')
   AtLoopBottom:
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 's')
         Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 's')
             Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
             Right: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32) (Syntax: 's')
-  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For x = 12  ... Next')]]>.Value
+  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For x = 12  ... Next')
+]]>.Value
 
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub VerifyForToLoop6()
             Dim source = <![CDATA[
@@ -1251,12 +1318,14 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x =
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '12')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Nullable(Of System.Int32)) (Syntax: '12')
             Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
-            Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32)) (Syntax: '12')
+            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32)) (Syntax: '12')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (Text: 12) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12) (Syntax: '12')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'y')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
             Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
-            Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
+            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 's')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 's')
@@ -1267,11 +1336,13 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x =
         Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd-IsLifted) (OperationKind.CompoundAssignmentExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 's')
             Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
             Right: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 's')
-  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For x = 12  ... Next')]]>.Value
+  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For x = 12  ... Next')
+]]>.Value
 
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub VerifyForToLoop7()
             Dim source = <![CDATA[
@@ -1306,23 +1377,27 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x =
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'y')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'y')
             Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
-            Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'y')
+            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'y')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 's')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 's')
             Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32) (Syntax: 's')
-            Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 's')
+            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 's')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 's')
   AtLoopBottom:
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 's')
         Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 's')
             Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
             Right: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32) (Syntax: 's')
-  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For x = 12  ... Next')]]>.Value
+  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For x = 12  ... Next')
+]]>.Value
 
             VerifyOperationTreeForTest(Of ForBlockSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub VerifyForToLoop8()
             Dim source = <![CDATA[
@@ -1353,7 +1428,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x =
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '12')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Nullable(Of System.Int32)) (Syntax: '12')
             Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
-            Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32)) (Syntax: '12')
+            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32)) (Syntax: '12')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (Text: 12) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12) (Syntax: '12')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'y')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')

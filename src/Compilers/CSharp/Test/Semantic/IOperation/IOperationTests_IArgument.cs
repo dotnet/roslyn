@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void NoArgument()
         {
@@ -33,6 +34,7 @@ IInvocationExpression (void P.M2()) (OperationKind.InvocationExpression, Type: S
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void PositionalArgument()
         {
@@ -65,6 +67,7 @@ IInvocationExpression (void P.M2(System.Int32 x, System.Double y)) (OperationKin
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void PositionalArgumentWithDefaultValue()
         {
@@ -97,6 +100,7 @@ IInvocationExpression (void P.M2(System.Int32 x, [System.Double y = 0])) (Operat
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void NamedArgumentListedInParameterOrder()
         {
@@ -129,6 +133,7 @@ IInvocationExpression (void P.M2(System.Int32 x, [System.Double y = 0])) (Operat
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void NamedArgumentListedOutOfParameterOrder()
         {
@@ -161,7 +166,8 @@ IInvocationExpression (void P.M2(System.Int32 x, [System.Double y = 0])) (Operat
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21079")]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
         public void NamedArgumentInParameterOrderWithDefaultValue()
         {
             string source = @"
@@ -176,20 +182,28 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression (static void P.M2([System.Int32 x = 1], [System.Int32 y = 2], [System.Int32 z = 3])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(y: 0, z: 2)')
+IInvocationExpression (void P.M2([System.Int32 x = 1], [System.Int32 y = 2], [System.Int32 z = 3])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(y: 0, z: 2)')
+  Instance Receiver: null
   Arguments(3):
-IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: '0')
-      ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-    IArgument (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument) (Syntax: '2')
-      ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
-    IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'M2(y: 0, z: 2)')
-      ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(y: 0, z: 2)')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: '0')
+        ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+        InConversion: null
+        OutConversion: null
+      IArgument (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument) (Syntax: '2')
+        ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+        InConversion: null
+        OutConversion: null
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'M2(y: 0, z: 2)')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(y: 0, z: 2)')
+        InConversion: null
+        OutConversion: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void NamedArgumentOutOfParameterOrderWithDefaultValue()
         {
@@ -226,6 +240,7 @@ IInvocationExpression (void P.M2([System.Int32 x = 1], [System.Int32 y = 2], [Sy
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void NamedAndPositionalArgumentsWithDefaultValue()
         {
@@ -240,7 +255,7 @@ class P
     static void M2(int x = 1, int y = 2, int z = 3) { }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'M2(9, z: 10);')
   Expression: IInvocationExpression (void P.M2([System.Int32 x = 1], [System.Int32 y = 2], [System.Int32 z = 3])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(9, z: 10)')
       Instance Receiver: null
@@ -263,6 +278,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'M2(9, z: 10);
             VerifyOperationTreeAndDiagnosticsForTest<ExpressionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void PositionalRefAndOutArguments()
         {
@@ -297,6 +313,7 @@ IInvocationExpression ( void P.M2(ref System.Int32 x, out System.Int32 y)) (Oper
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void NamedRefAndOutArgumentsInParameterOrder()
         {
@@ -330,6 +347,7 @@ IInvocationExpression ( void P.M2(ref System.Int32 x, out System.Int32 y)) (Oper
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void NamedRefAndOutArgumentsOutOfParameterOrder()
         {
@@ -364,6 +382,7 @@ IInvocationExpression ( void P.M2(ref System.Int32 x, out System.Int32 y)) (Oper
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DefaultValueOfNewStruct()
         {
@@ -393,6 +412,7 @@ IInvocationExpression ( void P.M2([S sobj = default(S)])) (OperationKind.Invocat
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DefaultValueOfDefaultStruct()
         {
@@ -422,6 +442,7 @@ IInvocationExpression ( void P.M2([S sobj = default(S)])) (OperationKind.Invocat
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DefaultValueOfConstant()
         {
@@ -451,6 +472,7 @@ IInvocationExpression ( void P.M2([System.Double s = 3.14])) (OperationKind.Invo
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void PositionalArgumentForExtensionMethod()
         {
@@ -491,6 +513,7 @@ IInvocationExpression (void Extensions.E1(this P p, [System.Int32 x = 0], [Syste
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void NamedArgumentOutOfParameterOrderForExtensionMethod()
         {
@@ -509,7 +532,7 @@ static class Extensions
     { }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'this.E1(y: 1, x: 2);')
   Expression: IInvocationExpression (void Extensions.E1(this P p, [System.Int32 x = 0], [System.Int32 y = 0])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'this.E1(y: 1, x: 2)')
       Instance Receiver: null
@@ -532,6 +555,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'this.E1(y: 1,
             VerifyOperationTreeAndDiagnosticsForTest<ExpressionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void NamedArgumentWithDefaultValueForExtensionMethod()
         {
@@ -572,6 +596,7 @@ IInvocationExpression (void Extensions.E1(this P p, [System.Int32 x = 0], [Syste
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ParamsArrayArgumentInNormalForm()
         {
@@ -605,6 +630,7 @@ IInvocationExpression ( void P.M2(System.Int32 x, params System.Double[] array))
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ParamsArrayArgumentInExpandedForm()
         {
@@ -643,6 +669,7 @@ IInvocationExpression ( void P.M2(System.Int32 x, params System.Double[] array))
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ParamsArrayArgumentInExpandedFormWithNoArgument()
         {
@@ -679,6 +706,7 @@ IInvocationExpression ( void P.M2(System.Int32 x, params System.Double[] array))
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DefaultValueAndParamsArrayArgumentInExpandedFormWithNoArgument()
         {
@@ -716,6 +744,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DefaultValueAndNamedParamsArrayArgumentInNormalForm()
         {
@@ -749,6 +778,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DefaultValueAndNamedParamsArrayArgumentInExpandedForm()
         {
@@ -763,7 +793,7 @@ class P
     void M2(int x = 0, params double[] array) { }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] array)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(array: 1)')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
   Arguments(2):
@@ -773,7 +803,8 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(array: 1)')
           Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(array: 1)')
               Element Values(1):
-                  IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Double, Constant: 1) (Syntax: '1')
+                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, Constant: 1) (Syntax: '1')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: null
         OutConversion: null
@@ -787,6 +818,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void PositionalArgumentAndNamedParamsArrayArgumentInNormalForm()
         {
@@ -820,6 +852,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void PositionalArgumentAndNamedParamsArrayArgumentInExpandedForm()
         {
@@ -834,7 +867,7 @@ class P
     void M2(int x = 0, params double[] array) { }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] array)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1, array: 1)')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
   Arguments(2):
@@ -848,7 +881,8 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(1, array: 1)')
           Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(1, array: 1)')
               Element Values(1):
-                  IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Double, Constant: 1) (Syntax: '1')
+                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, Constant: 1) (Syntax: '1')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: null
         OutConversion: null
@@ -858,6 +892,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void NamedArgumentAndNamedParamsArrayArgumentInNormalFormOutOfParameterOrder()
         {
@@ -873,7 +908,7 @@ class P
     void M2(int x = 0, params double[] array) { }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'M2(array: a, x: 1);')
   Expression: IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] array)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(array: a, x: 1)')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
@@ -892,6 +927,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'M2(array: a, 
             VerifyOperationTreeAndDiagnosticsForTest<ExpressionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void NamedArgumentAndNamedParamsArrayArgumentInExpandedFormOutOfParameterOrder()
         {
@@ -906,7 +942,7 @@ class P
     void M2(int x = 0, params double[] array) { }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] array)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(array: 1, x: 10)')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
   Arguments(2):
@@ -916,7 +952,8 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(array: 1, x: 10)')
           Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(array: 1, x: 10)')
               Element Values(1):
-                  IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Double, Constant: 1) (Syntax: '1')
+                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, Constant: 1) (Syntax: '1')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: null
         OutConversion: null
@@ -930,6 +967,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CallerInfoAttributesInvokedInMethod()
         {
@@ -972,6 +1010,7 @@ IInvocationExpression ( void P.M2([System.String memberName = null], [System.Str
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, additionalReferences: new[] { MscorlibRef_v46 });
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CallerInfoAttributesInvokedInProperty()
         {
@@ -1013,6 +1052,7 @@ IInvocationExpression ( System.Boolean P.M2([System.String memberName = null], [
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, additionalReferences: new[] { MscorlibRef_v46 });
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CallerInfoAttributesInvokedInFieldInitializer()
         {
@@ -1054,6 +1094,7 @@ IInvocationExpression (System.Boolean P.M2([System.String memberName = null], [S
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, additionalReferences: new[] { MscorlibRef_v46 });
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CallerInfoAttributesInvokedInEventMethods()
         {
@@ -1107,6 +1148,7 @@ IInvocationExpression (System.Boolean P.M2([System.String memberName = null], [S
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, additionalReferences: new[] { MscorlibRef_v46 });
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ExtraArgument()
         {
@@ -1122,7 +1164,7 @@ class P
     { }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvocationExpression ( void P.M2([System.Int32 x = 0])) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(1, 2)')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid) (Syntax: 'M2')
   Arguments(2):
@@ -1144,6 +1186,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0])) (OperationKind.Invocati
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void WrongArgumentType()
         {
@@ -1159,7 +1202,7 @@ class P
     { }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvocationExpression ( void P.M2(System.String x)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(1)')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
   Arguments(1):
@@ -1178,6 +1221,7 @@ IInvocationExpression ( void P.M2(System.String x)) (OperationKind.InvocationExp
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void VarArgsCall()
         {
@@ -1192,7 +1236,7 @@ public class P
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvocationExpression (void System.Console.Write(System.String format, System.Object arg0, System.Object arg1, System.Object arg2, System.Object arg3, __arglist)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... arglist(5))')
   Instance Receiver: null
   Arguments(6):
@@ -1201,22 +1245,26 @@ IInvocationExpression (void System.Console.Write(System.String format, System.Ob
         InConversion: null
         OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: arg0) (OperationKind.Argument) (Syntax: '1')
-        IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '1')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '1')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         InConversion: null
         OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: arg1) (OperationKind.Argument) (Syntax: '2')
-        IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '2')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '2')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
         InConversion: null
         OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: arg2) (OperationKind.Argument) (Syntax: '3')
-        IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '3')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '3')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: ILiteralExpression (Text: 3) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
         InConversion: null
         OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: arg3) (OperationKind.Argument) (Syntax: '4')
-        IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '4')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '4')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: ILiteralExpression (Text: 4) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
         InConversion: null
         OutConversion: null
@@ -1232,6 +1280,7 @@ IInvocationExpression (void System.Console.Write(System.String format, System.Ob
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void InvalidConversionForDefaultArgument_InSource()
         {
@@ -1247,7 +1296,7 @@ class P
     { }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvocationExpression ( void P.M2([System.Int32 x = default(System.Int32)])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2()')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
   Arguments(1):
@@ -1265,6 +1314,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = default(System.Int32)])) (Op
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void AssigningToIndexer()
         {
@@ -1298,6 +1348,7 @@ IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; set
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ReadingFromIndexer()
         {
@@ -1331,6 +1382,7 @@ IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; set
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DefaultArgumentForIndexerGetter()
         {
@@ -1369,6 +1421,7 @@ IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 1], [System.
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ReadingFromWriteOnlyIndexer()
         {
@@ -1387,7 +1440,7 @@ class P
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid) (Syntax: 'this')
   Arguments(1):
@@ -1396,7 +1449,7 @@ IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { set; } (
         InConversion: null
         OutConversion: null
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {               
+            var expectedDiagnostics = new DiagnosticDescription[] {
                 // file.cs(12,27): error CS0154: The property or indexer 'P.this[int]' cannot be used in this context because it lacks the get accessor
                 //         var x = /*<bind>*/this[10]/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_PropertyLacksGet, "this[10]").WithArguments("P.this[int]").WithLocation(12, 27)
@@ -1405,6 +1458,7 @@ IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { set; } (
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void AssigningToReadOnlyIndexer()
         {
@@ -1423,7 +1477,7 @@ class P
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid) (Syntax: 'this')
   Arguments(1):
@@ -1442,6 +1496,7 @@ IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; } (
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void OverridingIndexerWithDefaultArgument()
         {
@@ -1494,6 +1549,7 @@ IPropertyReferenceExpression: System.Int32 Derived.this[[System.Int32 x = 8], [S
             CompileAndVerify(new[] { source }, new[] { SystemRef }, expectedOutput: expectedOutput);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void OmittedParamArrayArgumentInIndexerAccess()
         {
@@ -1534,6 +1590,7 @@ IPropertyReferenceExpression: System.Int32 P.this[System.Int32 x, params System.
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void AssigningToReturnsByRefIndexer()
         {
@@ -1612,8 +1669,8 @@ IPropertyReferenceExpression: ref System.Int32 P.this[System.Int32 x] { get; } (
     IL_0021:  ldloc.0
     IL_0022:  ret
   } // end of method P::get_Item
-  
-  .method public hidebysig specialname instance void 
+
+  .method public hidebysig specialname instance void
           set_Item([opt] int32 i,
                    [opt] int32 j,
                    int32 'value') cil managed
@@ -1728,12 +1785,12 @@ IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.
     IL_0021:  ldloc.0
     IL_0022:  ret
   } // end of method P::get_Item
-  
-  .method public hidebysig specialname instance void 
+
+  .method public hidebysig specialname instance void
           set_Item([opt] int32 i,
                    [opt] int32 j,
                    int32 'value') cil managed
-  {    
+  {
     .param [1] = int32(0x00000003)
     .param [2] = int32(0x00000004)
     // Code size       30 (0x1e)
@@ -1845,12 +1902,12 @@ IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.
     IL_0021:  ldloc.0
     IL_0022:  ret
   } // end of method P::get_Item
-  
-  .method public hidebysig specialname instance void 
+
+  .method public hidebysig specialname instance void
           set_Item([opt] int32 i,
                    [opt] int32 j,
                    int32 'value') cil managed
-  { 
+  {
     .param [1] = int32(0x00000003)
     .param [2] = int32(0x00000004)
     // Code size       30 (0x1e)
@@ -1942,7 +1999,7 @@ IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.
     IL_0000: nop
     IL_0001:  ret
   } // end of method P::M1
-} // end of class P 
+} // end of class P
 ";
 
             var csharp = @"
@@ -1955,12 +2012,13 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvocationExpression ( void P.M1([System.Int32 s = ""abc""])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'p.M1()')
   Instance Receiver: ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: P) (Syntax: 'p')
   Arguments(1):
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument) (Syntax: 'p.M1()')
-        IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'p.M1()')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'p.M1()')
+          Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""abc"") (Syntax: 'p.M1()')
         InConversion: null
         OutConversion: null
@@ -1986,13 +2044,13 @@ class P
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvocationExpression (void P.M2([System.Boolean[missing]? x = null])) (OperationKind.InvocationExpression, Type: System.Void[missing], IsInvalid) (Syntax: 'M2()')
   Instance Receiver: null
   Arguments(0)
 ";
 
-            var expectedDiagnostics = new DiagnosticDescription[] { 
+            var expectedDiagnostics = new DiagnosticDescription[] {
                 // (3,7): error CS0518: Predefined type 'System.Object' is not defined or imported
                 // class P
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
@@ -2036,7 +2094,7 @@ class P
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvocationExpression (void P.M2(System.Int32 x, [S s = null])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1)')
   Instance Receiver: null
   Arguments(1):
@@ -2046,7 +2104,7 @@ IInvocationExpression (void P.M2(System.Int32 x, [S s = null])) (OperationKind.I
         OutConversion: null
 ";
 
-            var expectedDiagnostics = new DiagnosticDescription[] { 
+            var expectedDiagnostics = new DiagnosticDescription[] {
                       // file.cs(9,27): error CS0246: The type or namespace name 'S' could not be found (are you missing a using directive or an assembly reference?)
                       //     static void M2(int x, S s = 0)
                       Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "S").WithArguments("S").WithLocation(9, 27),
@@ -2058,6 +2116,7 @@ IInvocationExpression (void P.M2(System.Int32 x, [S s = null])) (OperationKind.I
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         [WorkItem(18722, "https://github.com/dotnet/roslyn/issues/18722")]
         public void DefaultValueForGenericWithUndefinedTypeArgument()
@@ -2095,7 +2154,7 @@ IInvocationExpression (void P.M2(System.Int32 x, [G<S> s = null])) (OperationKin
         OutConversion: null
 ";
 
-            var expectedDiagnostics = new DiagnosticDescription[] { 
+            var expectedDiagnostics = new DiagnosticDescription[] {
                       // file.cs(9,29): error CS0246: The type or namespace name 'S' could not be found (are you missing a using directive or an assembly reference?)
                       //     static void M2(int x, G<S> s = null)
                       Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "S").WithArguments("S").WithLocation(9, 29)
@@ -2104,6 +2163,7 @@ IInvocationExpression (void P.M2(System.Int32 x, [G<S> s = null])) (OperationKin
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         [WorkItem(18722, "https://github.com/dotnet/roslyn/issues/18722")]
         public void DefaultValueForNullableGenericWithUndefinedTypeArgument()
@@ -2141,7 +2201,7 @@ IInvocationExpression (void P.M2(System.Int32 x, [G<S>? s = null])) (OperationKi
         OutConversion: null
 ";
 
-            var expectedDiagnostics = new DiagnosticDescription[] { 
+            var expectedDiagnostics = new DiagnosticDescription[] {
                       // file.cs(9,29): error CS0246: The type or namespace name 'S' could not be found (are you missing a using directive or an assembly reference?)
                       //     static void M2(int x, G<S> s = null)
                       Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "S").WithArguments("S").WithLocation(9, 29)

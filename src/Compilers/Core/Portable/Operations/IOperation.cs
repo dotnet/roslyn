@@ -46,6 +46,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         IEnumerable<IOperation> Children { get; }
 
+        /// <summary>
+        /// The source language of the IOperation. Possible values are <see cref="LanguageNames.CSharp"/> and <see cref="LanguageNames.VisualBasic"/>.
+        /// </summary>
+        string Language { get; }
+
         void Accept(OperationVisitor visitor);
 
         TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument);

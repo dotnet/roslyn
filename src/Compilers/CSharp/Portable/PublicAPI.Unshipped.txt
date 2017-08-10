@@ -1,1 +1,3 @@
+Microsoft.CodeAnalysis.CSharp.Conversion.ToCommonConversion() -> Microsoft.CodeAnalysis.Semantics.CommonConversion
 Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp7_2 = 702 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
+static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetConversion(this Microsoft.CodeAnalysis.Semantics.IConversionExpression conversionExpression) -> Microsoft.CodeAnalysis.CSharp.Conversion
