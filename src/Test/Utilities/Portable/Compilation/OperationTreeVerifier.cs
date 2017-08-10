@@ -776,12 +776,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var kindStr = $"{nameof(UnaryOperatorKind)}.{operation.OperatorKind}";
             if (operation.IsLifted)
             {
-                kindStr += "-IsLifted";
+                kindStr += ", IsLifted";
             }
 
             if (operation.IsChecked)
             {
-                kindStr += "-IsChecked";
+                kindStr += ", IsChecked";
             }
 
             LogString($" ({kindStr})");
@@ -798,12 +798,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var kindStr = $"{nameof(BinaryOperatorKind)}.{operation.OperatorKind}";
             if (operation.IsLifted)
             {
-                kindStr += "-IsLifted";
+                kindStr += ", IsLifted";
             }
 
             if (operation.IsChecked)
             {
-                kindStr += "-IsChecked";
+                kindStr += ", IsChecked";
             }
 
             if (operation.IsCompareText)
@@ -1107,7 +1107,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var kindStr = $"{nameof(BinaryOperatorKind)}.{operation.OperatorKind}";
             if (operation.IsLifted)
             {
-                LogString($" ({kindStr}-IsLifted)");
+                LogString($" ({kindStr}, IsLifted)");
             }
             else
             {
@@ -1126,6 +1126,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             var kindStr = operation.IsPostfix ? "Postfix" : "Prefix";
             kindStr += operation.IsDecrement ? "Decrement" : "Increment";
+            if (operation.IsLifted)
+            {
+                kindStr += ", IsLifted";
+            }
             LogString($" ({kindStr})");
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);

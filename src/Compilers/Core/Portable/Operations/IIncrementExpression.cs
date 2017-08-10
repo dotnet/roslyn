@@ -29,6 +29,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <code>false</code> if this is a prefix expression.
         /// </summary>
         bool IsPostfix { get; }
+
+        /// <summary>
+        /// <code>true</code> if this is a 'lifted' incremen operator.  When there is an 
+        /// operator that is defined to work on a value type, 'lifted' operators are 
+        /// created to work on the <see cref="System.Nullable{T}"/> versions of those
+        /// value types.
+        /// </summary>
+        bool IsLifted { get; }
     }
 }
 

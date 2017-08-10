@@ -213,7 +213,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
             If clause.ConditionOpt IsNot Nothing AndAlso clause.ConditionOpt.Kind = BoundKind.BinaryOperator Then
                 Dim value As BoundBinaryOperator = DirectCast(clause.ConditionOpt, BoundBinaryOperator)
-                If value.OperatorKind = BinaryOperatorKind.Equals Then
+                If value.OperatorKind = VisualBasic.BinaryOperatorKind.Equals Then
                     Return value.Right
                 End If
             End If

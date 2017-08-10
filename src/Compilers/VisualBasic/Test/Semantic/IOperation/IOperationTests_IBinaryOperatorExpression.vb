@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -20,10 +20,11 @@ Class C
 End Class
 ]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
-IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd-IsLifted) (OperationKind.BinaryOperatorExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x + y')
+Dim expectedOperationTree = <![CDATA[
+IBinaryOperatorExpression (BinaryOperatorKind.Add, IsLifted, IsChecked) (OperationKind.BinaryOperatorExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x + y')
   Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'x')
-  Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')]]>.Value
+  Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'y')
+]]>.Value
 
             VerifyOperationTreeForTest(Of BinaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
@@ -39,8 +40,8 @@ Class C
 End Class
 ]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
-IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + y')
+Dim expectedOperationTree = <![CDATA[
+IBinaryOperatorExpression (BinaryOperatorKind.Add, IsChecked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + y')
   Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
   Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
 ]]>.Value
@@ -65,8 +66,8 @@ Structure C
 End Structure
 ]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
-IBinaryOperatorExpression (BinaryOperationKind.OperatorMethodAnd-IsLifted) (OperatorMethod: Function C.op_BitwiseAnd(c1 As C, cs As C) As C) (OperationKind.BinaryOperatorExpression, Type: System.Nullable(Of C)) (Syntax: 'x And y')
+Dim expectedOperationTree = <![CDATA[
+IBinaryOperatorExpression (BinaryOperatorKind.And, IsLifted, IsChecked) (OperatorMethod: Function C.op_BitwiseAnd(c1 As C, cs As C) As C) (OperationKind.BinaryOperatorExpression, Type: System.Nullable(Of C)) (Syntax: 'x And y')
   Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Nullable(Of C)) (Syntax: 'x')
   Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Nullable(Of C)) (Syntax: 'y')
 ]]>.Value
@@ -91,8 +92,8 @@ Structure C
 End Structure
 ]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
-IBinaryOperatorExpression (BinaryOperationKind.OperatorMethodConditionalAnd-IsLifted) (OperatorMethod: Function C.op_BitwiseAnd(c1 As C, cs As C) As C) (OperationKind.BinaryOperatorExpression, Type: System.Nullable(Of C)) (Syntax: 'x AndAlso y')
+Dim expectedOperationTree = <![CDATA[
+IBinaryOperatorExpression (BinaryOperatorKind.ConditionalAnd, IsLifted) (OperatorMethod: Function C.op_BitwiseAnd(c1 As C, cs As C) As C) (OperationKind.BinaryOperatorExpression, Type: System.Nullable(Of C)) (Syntax: 'x AndAlso y')
   Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Nullable(Of C)) (Syntax: 'x')
   Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Nullable(Of C)) (Syntax: 'y')
 ]]>.Value
@@ -117,8 +118,8 @@ Structure C
 End Structure
 ]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
-IBinaryOperatorExpression (BinaryOperationKind.OperatorMethodAnd) (OperatorMethod: Function C.op_BitwiseAnd(c1 As C, cs As C) As C) (OperationKind.BinaryOperatorExpression, Type: C) (Syntax: 'x And y')
+Dim expectedOperationTree = <![CDATA[
+IBinaryOperatorExpression (BinaryOperatorKind.And, IsChecked) (OperatorMethod: Function C.op_BitwiseAnd(c1 As C, cs As C) As C) (OperationKind.BinaryOperatorExpression, Type: C) (Syntax: 'x And y')
   Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'x')
   Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'y')
 ]]>.Value
@@ -143,10 +144,11 @@ Structure C
 End Structure
 ]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
-IBinaryOperatorExpression (BinaryOperationKind.OperatorMethodConditionalAnd) (OperatorMethod: Function C.op_BitwiseAnd(c1 As C, cs As C) As C) (OperationKind.BinaryOperatorExpression, Type: C) (Syntax: 'x AndAlso y')
+Dim expectedOperationTree = <![CDATA[
+IBinaryOperatorExpression (BinaryOperatorKind.ConditionalAnd) (OperatorMethod: Function C.op_BitwiseAnd(c1 As C, cs As C) As C) (OperationKind.BinaryOperatorExpression, Type: C) (Syntax: 'x AndAlso y')
   Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'x')
-  Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'y')]]>.Value
+  Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'y')
+]]>.Value
 
             VerifyOperationTreeForTest(Of BinaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
@@ -165,8 +167,8 @@ Structure C
 End Structure
 ]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
-IBinaryOperatorExpression (BinaryOperationKind.OperatorMethodAdd-IsLifted) (OperatorMethod: Function C.op_Addition(c1 As C, c2 As C) As C) (OperationKind.BinaryOperatorExpression, Type: System.Nullable(Of C)) (Syntax: 'x + y')
+Dim expectedOperationTree = <![CDATA[
+IBinaryOperatorExpression (BinaryOperatorKind.Add, IsLifted, IsChecked) (OperatorMethod: Function C.op_Addition(c1 As C, c2 As C) As C) (OperationKind.BinaryOperatorExpression, Type: System.Nullable(Of C)) (Syntax: 'x + y')
   Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Nullable(Of C)) (Syntax: 'x')
   Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Nullable(Of C)) (Syntax: 'y')
 ]]>.Value
@@ -188,8 +190,8 @@ Structure C
 End Structure
 ]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
-IBinaryOperatorExpression (BinaryOperationKind.OperatorMethodAdd) (OperatorMethod: Function C.op_Addition(c1 As C, c2 As C) As C) (OperationKind.BinaryOperatorExpression, Type: C) (Syntax: 'x + y')
+Dim expectedOperationTree = <![CDATA[
+IBinaryOperatorExpression (BinaryOperatorKind.Add, IsChecked) (OperatorMethod: Function C.op_Addition(c1 As C, c2 As C) As C) (OperationKind.BinaryOperatorExpression, Type: C) (Syntax: 'x + y')
   Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'x')
   Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'y')
 ]]>.Value

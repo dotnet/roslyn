@@ -48,6 +48,7 @@
       <DependentUpon>Resource.resx</DependentUpon>
     </Compile>
     <Content Include="Semantics\Async_Overload_Change_3.vb.txt" />
+    <Content Include="Semantics\BinaryOperatorsTestBaseline1_OperationTree.txt" />
     <Content Include="Semantics\BinaryOperatorsTestBaseline1.txt" />
     <Content Include="Semantics\BinaryOperatorsTestBaseline2.txt" />
     <Content Include="Semantics\BinaryOperatorsTestBaseline3.txt" />

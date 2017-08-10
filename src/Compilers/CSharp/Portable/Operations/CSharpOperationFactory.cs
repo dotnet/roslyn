@@ -790,13 +790,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             bool isDecrement = Helper.IsDecrement(boundIncrementOperator.OperatorKind);
             bool isPostfix = Helper.IsPostfixIncrementOrDecrement(boundIncrementOperator.OperatorKind);
+            bool isLifted = boundIncrementOperator.OperatorKind.IsLifted();
             Lazy<IOperation> target = new Lazy<IOperation>(() => Create(boundIncrementOperator.Operand));
             bool usesOperatorMethod = (boundIncrementOperator.OperatorKind & CSharp.UnaryOperatorKind.TypeMask) == CSharp.UnaryOperatorKind.UserDefined;
             IMethodSymbol operatorMethod = boundIncrementOperator.MethodOpt;
             SyntaxNode syntax = boundIncrementOperator.Syntax;
             ITypeSymbol type = boundIncrementOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundIncrementOperator.ConstantValue);
-            return new LazyIncrementExpression(isDecrement, isPostfix, target, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue);
+            return new LazyIncrementExpression(isDecrement, isPostfix, isLifted, target, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue);
         }
 
         private IInvalidExpression CreateBoundBadExpressionOperation(BoundBadExpression boundBadExpression)

@@ -814,7 +814,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
                     If boundRangeCaseClause.LowerBoundConditionOpt.Kind = BoundKind.BinaryOperator Then
                         Dim lowerBound As BoundBinaryOperator = DirectCast(boundRangeCaseClause.LowerBoundConditionOpt, BoundBinaryOperator)
-                        If lowerBound.OperatorKind = BinaryOperatorKind.GreaterThanOrEqual Then
+                        If lowerBound.OperatorKind = VisualBasic.BinaryOperatorKind.GreaterThanOrEqual Then
                             Return Create(lowerBound.Right)
                         End If
                     End If
@@ -829,7 +829,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
                     If boundRangeCaseClause.UpperBoundConditionOpt.Kind = BoundKind.BinaryOperator Then
                         Dim upperBound As BoundBinaryOperator = DirectCast(boundRangeCaseClause.UpperBoundConditionOpt, BoundBinaryOperator)
-                        If upperBound.OperatorKind = BinaryOperatorKind.LessThanOrEqual Then
+                        If upperBound.OperatorKind = VisualBasic.BinaryOperatorKind.LessThanOrEqual Then
                             Return Create(upperBound.Right)
                         End If
                     End If

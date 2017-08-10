@@ -2015,11 +2015,12 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseIncrementExpression : Operation, IIncrementExpression
     {
-        public BaseIncrementExpression(bool isDecrement, bool isPostfix, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public BaseIncrementExpression(bool isDecrement, bool isPostfix, bool isLifted, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(OperationKind.IncrementExpression, semanticModel, syntax, type, constantValue)
         {
             IsDecrement = isDecrement;
             IsPostfix = isPostfix;
+            IsLifted = isLifted;
             UsesOperatorMethod = usesOperatorMethod;
             OperatorMethod = operatorMethod;
         }
@@ -2033,6 +2034,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <code>false</code> if this is a prefix expression.
         /// </summary>
         public bool IsPostfix { get; }
+        /// <summary>
+        /// <code>true</code> if this is a 'lifted' incremen operator.  When there is an 
+        /// operator that is defined to work on a value type, 'lifted' operators are 
+        /// created to work on the <see cref="System.Nullable{T}"/> versions of those
+        /// value types.
+        /// </summary>
+        public bool IsLifted { get; }
         protected abstract IOperation TargetImpl { get; }
         /// <summary>
         /// True if and only if the operation is performed by an operator method.
@@ -2069,8 +2077,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class IncrementExpression : BaseIncrementExpression, IIncrementExpression
     {
-        public IncrementExpression(bool isDecrement, bool isPostfix, IOperation target, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(isDecrement, isPostfix, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue)
+        public IncrementExpression(bool isDecrement, bool isPostfix, bool isLifted, IOperation target, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isDecrement, isPostfix, isLifted, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue)
         {
             TargetImpl = target;
         }
@@ -2085,8 +2093,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<IOperation> _lazyTarget;
 
-        public LazyIncrementExpression(bool isDecrement, bool isPostfix, Lazy<IOperation> target, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(isDecrement, isPostfix, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue)
+        public LazyIncrementExpression(bool isDecrement, bool isPostfix, bool isLifted, Lazy<IOperation> target, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isDecrement, isPostfix, isLifted, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue)
         {
             _lazyTarget = target ?? throw new System.ArgumentNullException(nameof(target));
         }

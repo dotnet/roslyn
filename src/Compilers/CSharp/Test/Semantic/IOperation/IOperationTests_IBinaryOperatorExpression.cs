@@ -23,7 +23,7 @@ class C
 }";
 
             string expectedOperationTree =
-@"IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd-IsLifted) (OperationKind.BinaryOperatorExpression, Type: System.Int32?) (Syntax: 'x + y')
+@"IBinaryOperatorExpression (BinaryOperatorKind.Add, IsLifted) (OperationKind.BinaryOperatorExpression, Type: System.Int32?) (Syntax: 'x + y')
   Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32?) (Syntax: 'x')
   Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32?) (Syntax: 'y')";
 
@@ -44,7 +44,7 @@ class C
 }";
 
             string expectedOperationTree =
-@"IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + y')
+@"IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + y')
   Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
   Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')";
 
@@ -66,7 +66,7 @@ struct C
 }";
 
             string expectedOperationTree =
-@"IBinaryOperatorExpression (BinaryOperationKind.OperatorMethodAdd-IsLifted) (OperatorMethod: C C.op_Addition(C c1, C c2)) (OperationKind.BinaryOperatorExpression, Type: C?) (Syntax: 'x + y')
+@"IBinaryOperatorExpression (BinaryOperatorKind.Add, IsLifted) (OperatorMethod: C C.op_Addition(C c1, C c2)) (OperationKind.BinaryOperatorExpression, Type: C?) (Syntax: 'x + y')
   Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: C?) (Syntax: 'x')
   Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: C?) (Syntax: 'y')";
 
@@ -88,7 +88,7 @@ struct C
 }";
 
             string expectedOperationTree =
-@"IBinaryOperatorExpression (BinaryOperationKind.OperatorMethodAdd) (OperatorMethod: C C.op_Addition(C c1, C c2)) (OperationKind.BinaryOperatorExpression, Type: C) (Syntax: 'x + y')
+@"IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperatorMethod: C C.op_Addition(C c1, C c2)) (OperationKind.BinaryOperatorExpression, Type: C) (Syntax: 'x + y')
   Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'x')
   Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'y')";
 

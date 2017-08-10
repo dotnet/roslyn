@@ -56,6 +56,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         End Sub
 
         <Fact>
+        Public Sub Test1_IOperation()
+
+            Dim currCulture = System.Threading.Thread.CurrentThread.CurrentCulture
+            System.Threading.Thread.CurrentThread.CurrentCulture = New System.Globalization.CultureInfo("en-US", useUserOverride:=False)
+
+            Try
+
+                Dim compilationDef =
+<compilation name="VBBinaryOperators1">
+    <file name="lib.vb">
+        <%= My.Resources.Resource.PrintResultTestSource %>
+    </file>
+    <file name="a.vb">
+        <%= My.Resources.Resource.BinaryOperatorsTestSource1 %>
+    </file>
+</compilation>
+                Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+                Dim expectedOperationTree = My.Resources.Resource.BinaryOperatorsTestBaseline1_OperationTree
+
+                Dim expectedDiagnostics = String.Empty
+
+                VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(Compilation, "a.vb", expectedOperationTree, expectedDiagnostics)
+
+            Catch ex As Exception
+                Assert.Null(ex)
+            Finally
+                System.Threading.Thread.CurrentThread.CurrentCulture = currCulture
+            End Try
+
+        End Sub
+
+        <Fact>
         Public Sub Test1_Date()
             ' test binary operator between Date value and another type data
             ' call ToString() on it defeat the purpose of these scenarios
