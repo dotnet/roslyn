@@ -10254,16 +10254,16 @@ BC31065: 'Set' parameter cannot be declared 'Optional'.
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC31067: Method in a structure cannot be declared 'Protected' or 'Protected Friend'.
+BC31067: Method in a structure cannot be declared 'Protected', 'Protected Friend', or 'Private Protected'.
             Protected Sub New(o)
             ~~~~~~~~~
-BC31067: Method in a structure cannot be declared 'Protected' or 'Protected Friend'.
+BC31067: Method in a structure cannot be declared 'Protected', 'Protected Friend', or 'Private Protected'.
             Protected Friend Sub New(x, y)
             ~~~~~~~~~~~~~~~~
-BC31067: Method in a structure cannot be declared 'Protected' or 'Protected Friend'.
+BC31067: Method in a structure cannot be declared 'Protected', 'Protected Friend', or 'Private Protected'.
             Protected Sub M()
             ~~~~~~~~~
-BC31067: Method in a structure cannot be declared 'Protected' or 'Protected Friend'.
+BC31067: Method in a structure cannot be declared 'Protected', 'Protected Friend', or 'Private Protected'.
             Protected Friend Function F()
             ~~~~~~~~~~~~~~~~
                  ]]></errors>
@@ -21952,7 +21952,7 @@ End Class
 BC30178: Specifier is duplicated.
     Public Public p as Integer
            ~~~~~~
-BC30176: Only one of 'Public', 'Private', 'Protected', 'Friend', or 'Protected Friend' can be specified.
+BC30176: Only one of 'Public', 'Private', 'Protected', 'Friend', 'Protected Friend', or 'Private Protected' can be specified.
     Public Private q as Integer
            ~~~~~~~
 BC30235: 'MustOverride' is not valid on a member variable declaration.
