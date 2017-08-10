@@ -18,17 +18,17 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
     /// if (a == null) {
     ///   throw SomeException();
     /// }
-    /// 
+    ///
     /// x = a;
     /// </code>
-    /// 
+    ///
     /// and offers to change it to
-    /// 
+    ///
     /// <code>
     /// x = a ?? throw SomeException();
     /// </code>
-    /// 
-    /// Note: this analyzer can be updated to run on VB once VB supports 'throw' 
+    ///
+    /// Note: this analyzer can be updated to run on VB once VB supports 'throw'
     /// expressions as well.
     /// </summary>
     internal abstract class AbstractUseThrowExpressionDiagnosticAnalyzer :
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 s_registerOperationActionInfo.Invoke(startContext, new object[]
                 {
                     new Action<OperationAnalysisContext>(operationContext => AnalyzeOperation(operationContext, expressionTypeOpt)),
-                    ImmutableArray.Create(OperationKind.ExpressionStatement)
+                    ImmutableArray.Create(OperationKind.ThrowExpression)
                 });
             });
         }
@@ -77,20 +77,21 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
             var cancellationToken = context.CancellationToken;
 
-            var throwOperation = (IExpressionStatement)context.Operation;
-            if (throwOperation.Expression.Kind != OperationKind.ThrowExpression)
+            var throwExpression = (IThrowExpression)context.Operation;
+            var throwStatementOperation = throwExpression.Parent;
+            if (throwStatementOperation.Kind != OperationKind.ExpressionStatement)
             {
                 return;
             }
 
-            var throwStatement = throwOperation.Syntax;
+            var throwStatement = throwExpression.Syntax;
             var options = context.Options;
             var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
             {
                 return;
             }
-            
+
             var option = optionSet.GetOption(CodeStyleOptions.PreferThrowExpression, throwStatement.Language);
             if (!option.Value)
             {
@@ -106,7 +107,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             }
 
             var ifOperation = GetContainingIfOperation(
-                semanticModel, throwOperation, cancellationToken);
+                semanticModel, (IExpressionStatement)throwStatementOperation, cancellationToken);
 
             // This throw statement isn't parented by an if-statement.  Nothing to
             // do here.
@@ -164,7 +165,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
             var allLocations = ImmutableArray.Create(
                 ifOperation.Syntax.GetLocation(),
-                ((IThrowExpression)throwOperation.Expression).Expression.Syntax.GetLocation(),
+                throwExpression.Expression.Syntax.GetLocation(),
                 assignmentExpression.Value.Syntax.GetLocation());
 
             var descriptor = GetDescriptorWithSeverity(option.Notification.Value);
