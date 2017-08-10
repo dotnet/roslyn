@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static readonly DesktopStrongNameProvider s_defaultProvider = new SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray.Create<string>());
 
         [Fact]
-        public void RejectIncimpatibleModifiers()
+        public void RejectIncompatibleModifiers()
         {
             string source =
 @"public class Base
