@@ -495,7 +495,7 @@ IInvocationExpression (virtual System.Boolean System.Object.Equals(System.Object
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Constant: 1) (Syntax: 'f1 = 1')
             Left: IPropertyReferenceExpression: System.Int32 <anonymous type: System.Int32 f1, System.String f2>.f1 { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'f1')
                 Instance Receiver: null
-            Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, Constant: """") (Syntax: 'f2 = """"')
             Left: IPropertyReferenceExpression: System.String <anonymous type: System.Int32 f1, System.String f2>.f2 { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'f2')
                 Instance Receiver: null
