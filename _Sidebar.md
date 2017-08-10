@@ -43,3 +43,7 @@
 [Scripting API Samples](https://github.com/dotnet/roslyn/wiki/Scripting-API-Samples)
 
 [C# Interactive Walkthrough](https://github.com/dotnet/roslyn/wiki/C%23-Interactive-Walkthrough)
+
+# Testing
+
+[Manual Testing](https://github.com/dotnet/roslyn/wiki/Manual-Testing)
