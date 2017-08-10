@@ -1385,5 +1385,70 @@ public class [|C|]
     public void M(CancellationToken cancellationToken = default);
 }}", languageVersion: "CSharp7_1");
         }
+
+        [WorkItem(446567, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=446567")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestDocCommentsWithUnixNewLine()
+        {
+            var source = @"
+using System;
+
+/// <summary>T:IGoo" + "\n/// ABCDE\n" + @"/// FGHIJK</summary>
+public interface IGoo
+{
+    /// <summary>P:IGoo.Prop1" + "\n/// ABCDE\n" + @"/// FGHIJK</summary>
+    Uri Prop1 { get; set; }
+    /// <summary>M:IGoo.Method1" + "\n/// ABCDE\n" + @"/// FGHIJK</summary>
+    Uri Method1();
+}
+";
+            var symbolName = "IGoo";
+            var expectedCS = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+using System;
+
+//
+// {FeaturesResources.Summary_colon}
+//     T:IGoo ABCDE FGHIJK
+public interface [|IGoo|]
+{{
+    //
+    // {FeaturesResources.Summary_colon}
+    //     P:IGoo.Prop1 ABCDE FGHIJK
+    Uri Prop1 {{ get; set; }}
+
+    //
+    // {FeaturesResources.Summary_colon}
+    //     M:IGoo.Method1 ABCDE FGHIJK
+    Uri Method1();
+}}
+";
+            await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.CSharp, expectedCS, ignoreTrivia: false, includeXmlDocComments: true);
+
+            var expectedVB = $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Imports System
+
+'
+' {FeaturesResources.Summary_colon}
+'     T:IGoo ABCDE FGHIJK
+Public Interface [|IGoo|]
+    '
+    ' {FeaturesResources.Summary_colon}
+    '     P:IGoo.Prop1 ABCDE FGHIJK
+    Property Prop1 As Uri
+
+    '
+    ' {FeaturesResources.Summary_colon}
+    '     M:IGoo.Method1 ABCDE FGHIJK
+    Function Method1() As Uri
+End Interface
+";
+            await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.VisualBasic, expectedVB, ignoreTrivia: false, includeXmlDocComments: true);
+        }
     }
 }
