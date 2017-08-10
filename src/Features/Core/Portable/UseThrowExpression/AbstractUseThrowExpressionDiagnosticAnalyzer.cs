@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
             var allLocations = ImmutableArray.Create(
                 ifOperation.Syntax.GetLocation(),
-                throwOperation.Expression.Syntax.GetLocation(),
+                ((IThrowExpression)throwOperation.Expression).Expression.Syntax.GetLocation(),
                 assignmentExpression.Value.Syntax.GetLocation());
 
             var descriptor = GetDescriptorWithSeverity(option.Notification.Value);
