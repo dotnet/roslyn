@@ -152,24 +152,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             public sealed class ClosureEnvironment
             {
                 public readonly SetWithInsertionOrder<Symbol> CapturedVariables;
-
-                private bool _capturesParent;
-
+                
                 /// <summary>
                 /// Represents a <see cref="SynthesizedEnvironment"/> that had its environment
                 /// pointer (a local pointing to the environment) captured like a captured
                 /// variable. Assigned in
                 /// <see cref="ComputeLambdaScopesAndFrameCaptures(ParameterSymbol)"/>
                 /// </summary>
-                public bool CapturesParent
-                {
-                    get => _capturesParent;
-                    set
-                    {
-                        Debug.Assert(value);
-                        _capturesParent = value;
-                    }
-                }
+                public bool CapturesParent;
 
                 public readonly bool IsStruct;
                 internal SynthesizedClosureEnvironment SynthesizedEnvironment;
