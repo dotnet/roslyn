@@ -22,6 +22,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.DiaSymReader;
+using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -1898,18 +1900,14 @@ d.cs
             parsedArgs = DefaultParse(new[] { "/embed:a.txt", "/debug-", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_CannotEmbedWithoutPdb));
 
-            // These should fail when native PDB support is added.
             parsedArgs = DefaultParse(new[] { "/embed", "/debug:full", "a.cs" }, _baseDirectory);
-            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_CannotEmbedWithoutPdb));
-
-            parsedArgs = DefaultParse(new[] { "/embed", "/debug:full", "a.cs" }, _baseDirectory);
-            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_CannotEmbedWithoutPdb));
+            parsedArgs.Errors.Verify();
 
             parsedArgs = DefaultParse(new[] { "/embed", "/debug:pdbonly", "a.cs" }, _baseDirectory);
-            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_CannotEmbedWithoutPdb));
+            parsedArgs.Errors.Verify();
 
             parsedArgs = DefaultParse(new[] { "/embed", "/debug+", "a.cs" }, _baseDirectory);
-            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_CannotEmbedWithoutPdb));
+            parsedArgs.Errors.Verify();
         }
 
         [Theory]
@@ -1921,7 +1919,7 @@ d.cs
         [InlineData("/debug:embedded", "/embed:embed.cs", new[] { "embed.cs", "embed.xyz" })]
         [InlineData("/debug:embedded", "/embed:embed2.cs", new[] { "embed2.cs" })]
         [InlineData("/debug:embedded", "/embed:embed.xyz", new[] {"embed.xyz" })]
-        public void Embed_EndToEnd(string debugSwitch, string embedSwitch, string[] expectedEmbedded)
+        public void Embed_EndToEnd_Portable(string debugSwitch, string embedSwitch, string[] expectedEmbedded)
         {
             // embed.cs: large enough to compress, has #line directives
             const string embed_cs =
@@ -1981,14 +1979,32 @@ print Goodbye, World";
             int exitCode = csc.Run(output);
             Assert.Equal("", output.ToString().Trim());
             Assert.Equal(0, exitCode);
-            
-            bool embedded = debugSwitch == "/debug:embedded";
+
+            switch (debugSwitch)
+            {
+                case "/debug:embedded":
+                    ValidateEmbeddedSources_Portable(expectedEmbeddedMap, dir, isEmbeddedPdb: true);
+                    break;
+                case "/debug:portable":
+                    ValidateEmbeddedSources_Portable(expectedEmbeddedMap, dir, isEmbeddedPdb: false);
+                    break;
+                case "/debug:full":
+                    ValidateEmbeddedSources_Windows(expectedEmbeddedMap, dir);
+                    break;
+            }
+
+            Assert.Empty(expectedEmbeddedMap);
+            CleanupAllGeneratedFiles(src.Path);
+        }
+
+        private static void ValidateEmbeddedSources_Portable(Dictionary<string, string> expectedEmbeddedMap, TempDirectory dir, bool isEmbeddedPdb)
+        {
             using (var peReader = new PEReader(File.OpenRead(Path.Combine(dir.Path, "embed.exe"))))
             {
                 var entry = peReader.ReadDebugDirectory().SingleOrDefault(e => e.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
-                Assert.Equal(embedded, entry.DataSize > 0);
+                Assert.Equal(isEmbeddedPdb, entry.DataSize > 0);
 
-                using (var mdProvider = embedded ?
+                using (var mdProvider = isEmbeddedPdb ?
                     peReader.ReadEmbeddedPortablePdbDebugDirectoryData(entry) :
                     MetadataReaderProvider.FromPortablePdbStream(File.OpenRead(Path.Combine(dir.Path, "embed.pdb"))))
                 {
@@ -2011,9 +2027,36 @@ print Goodbye, World";
                     }
                 }
             }
+        }
 
-            Assert.Empty(expectedEmbeddedMap);
-            CleanupAllGeneratedFiles(src.Path);
+        private static void ValidateEmbeddedSources_Windows(Dictionary<string, string> expectedEmbeddedMap, TempDirectory dir)
+        {
+            ISymUnmanagedReader5 symReader = null;
+
+            try
+            {
+                symReader = SymReaderFactory.CreateReader(File.OpenRead(Path.Combine(dir.Path, "embed.pdb")));
+
+                foreach (var doc in symReader.GetDocuments())
+                {
+                    var docPath = doc.GetName();
+
+                    var sourceBlob = doc.GetEmbeddedSource();
+                    if (sourceBlob.Array == null)
+                    {
+                        continue;
+                    }
+
+                    var sourceStr = Encoding.UTF8.GetString(sourceBlob.Array, sourceBlob.Offset, sourceBlob.Count);
+
+                    Assert.Equal(expectedEmbeddedMap[docPath], sourceStr);
+                    Assert.True(expectedEmbeddedMap.Remove(docPath));
+                }
+            }
+            catch
+            {
+                symReader?.Dispose();
+            }
         }
 
         [Fact]
