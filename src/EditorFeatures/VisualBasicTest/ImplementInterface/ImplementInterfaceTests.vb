@@ -29,6 +29,7 @@ End Class",
 End Interface
 Class C
     Implements I
+
     Public Sub M() Implements I.M
         Throw New System.NotImplementedException()
     End Sub
@@ -48,6 +49,7 @@ End Interface",
 "Imports System
 Class Goo
     Implements IGoo
+
     Public Function Method(x As (Alice As Integer, Bob As Integer)) As (String, String) Implements IGoo.Method
         Throw New NotImplementedException()
     End Function
@@ -73,9 +75,11 @@ End Class",
 End Interface
 Class C
     Implements I
+
     Private Sub I_M() Implements I.M
         Throw New System.NotImplementedException()
     End Sub
+
     Function M() As Integer
     End Function
 End Class")
@@ -99,6 +103,7 @@ Class C
     Implements IGoo
     Public Sub Bar()
     End Sub
+
     Private Sub IGoo_Bar() Implements IGoo.Bar
         Throw New System.NotImplementedException()
     End Sub
@@ -122,6 +127,7 @@ End Interface
 Class C
     Implements I
     Private m As Integer
+
     Private Sub I_M() Implements I.M
         Throw New System.NotImplementedException()
     End Sub
@@ -145,6 +151,7 @@ End Interface
 Class C
     Implements I
     Public Property M As Integer
+
     Private Property I_M As Integer Implements I.M
         Get
             Throw New System.NotImplementedException()
@@ -178,7 +185,6 @@ End Class",
 End Interface
 Class C
     Implements I
-
     Private Property M As Integer
         Get
             Return 5
@@ -223,6 +229,7 @@ End Class
 Class C
     Inherits B
     Implements I
+
     Private Sub I_M() Implements I.M
         Throw New System.NotImplementedException()
     End Sub
@@ -252,6 +259,7 @@ End Class
 Class C
     Inherits B
     Implements I
+
     Private Sub I_M() Implements I.M
         Throw New System.NotImplementedException()
     End Sub
@@ -281,6 +289,7 @@ End Class
 Class C
     Inherits B
     Implements I
+
     Private Sub I_M() Implements I.M
         Throw New System.NotImplementedException()
     End Sub
@@ -301,6 +310,7 @@ End Class",
 End Interface
 MustInherit Class C
     Implements I
+
     Public MustOverride Sub M() Implements I.M
 End Class",
 index:=1)
@@ -320,6 +330,7 @@ End Class",
 End Interface
 Class [Class]
     Implements IInterface1(Of Integer)
+
     Public Sub Method1(t As Integer) Implements IInterface1(Of Integer).Method1
         Throw New System.NotImplementedException()
     End Sub
@@ -340,6 +351,7 @@ End Class",
 End Interface
 Class [Class]
     Implements IInterface1(Of Integer)
+
     Public Sub Method1(Of U)(arg As Integer, arg1 As U) Implements IInterface1(Of Integer).Method1
         Throw New System.NotImplementedException()
     End Sub
@@ -362,6 +374,7 @@ Interface IInterface1(Of T)
 End Interface
 Class [Class]
     Implements IInterface1(Of Integer)
+
     Public Sub Method1(Of U As IList(Of Integer))(arg As Integer, arg1 As U) Implements IInterface1(Of Integer).Method1
         Throw New System.NotImplementedException()
     End Sub
@@ -382,6 +395,7 @@ End Class",
 End Interface
 Class [Class]
     Implements IInterface1(Of Integer)
+
     Public Sub Method1(Of U As Integer)(arg As Integer, arg1 As U) Implements IInterface1(Of Integer).Method1
         Throw New System.NotImplementedException()
     End Sub
@@ -404,6 +418,7 @@ End Interface
 Class C
     Implements I
     Private x As I
+
     Public Sub M() Implements I.M
         Throw New System.NotImplementedException()
     End Sub
@@ -426,6 +441,7 @@ End Interface
 Class C
     Implements I
     Private x As I
+
     Public Sub M() Implements I.M
         x.M()
     End Sub
@@ -549,10 +565,12 @@ Class M
 "Imports System
 Class M
     Implements IServiceProvider
+
     Public Function GetService(serviceType As Type) As Object Implements IServiceProvider.GetService
         Throw New NotImplementedException()
     End Function
-End Class")
+End Class
+")
         End Function
 
         <WorkItem(540367, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540367")>
@@ -570,6 +588,7 @@ End Class",
 End Interface
 Class M
     Implements I1
+
     Public Property Goo As Integer Implements I1.Goo
         Get
             Throw New System.NotImplementedException()
@@ -595,6 +614,7 @@ End Class",
 End Interface
 Class C
     Implements I
+
     Public Function M() As String() Implements I.M
         Throw New System.NotImplementedException()
     End Function
@@ -615,9 +635,11 @@ End Interface",
 "Class C
     Implements I
     Private goo As I
+
     Public Sub Method1(ByRef x As Integer, ByRef y As Integer, z As Integer) Implements I.Method1
         Throw New System.NotImplementedException()
     End Sub
+
     Public Function Method2() As Integer Implements I.Method2
         Throw New System.NotImplementedException()
     End Function
@@ -642,6 +664,7 @@ End Class",
 End Interface
 Class C
     Implements I1
+
     Public Function Method1() As String Implements I1.Method1
         Throw New System.NotImplementedException()
     End Function
@@ -662,6 +685,7 @@ End Class",
 End Interface
 Class C
     Implements I1
+
     Public Sub Method1(ByRef arg As Double) Implements I1.Method1
         Throw New System.NotImplementedException()
     End Sub
@@ -695,9 +719,11 @@ End Interface",
 "Class C
     Implements I
     Private goo As I
+
     Public Sub Method1(ByRef x As Integer, ByRef y As Integer, z As Integer) Implements I.Method1
         Throw New System.NotImplementedException()
     End Sub
+
     Public Function Method2() As Integer Implements I.Method2
         Throw New System.NotImplementedException()
     End Function
@@ -723,6 +749,7 @@ End Class",
 End Interface
 Class C
     Implements I1
+
     Default Public Property Goo(arg As Integer) As Object Implements I1.Goo
         Get
             Throw New System.NotImplementedException()
@@ -756,6 +783,7 @@ End Class",
 End Interface
 Class C
     Implements I1.I2
+
     Public Sub Goo(arg As I1.Del) Implements I1.I2.Goo
         Throw New System.NotImplementedException()
     End Sub
@@ -777,6 +805,7 @@ End Class",
 End Interface
 Class C
     Implements I1
+
     Public Sub Method1(arg() As Integer) Implements I1.Method1
         Throw New System.NotImplementedException()
     End Sub
@@ -801,6 +830,7 @@ End Namespace",
     End Interface
     Class C
         Implements I1
+
         Public Sub Method1() Implements I1.Method1
             Throw New System.NotImplementedException()
         End Sub
@@ -824,6 +854,7 @@ End Class",
 End Interface
 Class A
     Implements I2
+
     Public Function G(ParamArray args() As Double) As Integer Implements I2.G
         Throw New System.NotImplementedException()
     End Function
@@ -845,6 +876,7 @@ End Class",
 End Interface
 Class A
     Implements I1
+
     Public Sub Goo() Implements I1.Goo
         Throw New System.NotImplementedException()
     End Sub
@@ -893,6 +925,7 @@ End Interface
 Class C
     Implements I
     Public Property X As I
+
     Public Sub M() Implements I.M
         Throw New System.NotImplementedException()
     End Sub
@@ -912,6 +945,7 @@ End Interface
 Class C
     Implements I
     Public Property X As I
+
     Public Sub M() Implements I.M
         X.M()
     End Sub
@@ -1025,6 +1059,7 @@ End Class
 Class B
     Implements I
     Dim x As A
+
     Public Sub M() Implements I.M
         DirectCast(x, I).M()
     End Sub
@@ -1109,6 +1144,7 @@ Class B
     Implements I
     Implements I2
     Dim x As A
+
     Public Sub M() Implements I.M
         DirectCast(x, I).M()
     End Sub
@@ -1149,6 +1185,7 @@ Class B
     Implements I
     Implements I2
     Dim x As A
+
     Public Sub M2() Implements I2.M2
         DirectCast(x, I2).M2()
     End Sub
@@ -1205,6 +1242,7 @@ Class B
     Implements I
     Dim x As A
     Dim y As A
+
     Public Sub M() Implements I.M
         DirectCast(x, I).M()
     End Sub
@@ -1239,6 +1277,7 @@ Class B
     Implements I
     Dim x As A
     Dim y As A
+
     Public Sub M() Implements I.M
         DirectCast(y, I).M()
     End Sub
@@ -1351,6 +1390,7 @@ Class C
     Implements I2
     Dim x As A
     Dim y as B
+
     Public Sub M() Implements I.M
         DirectCast(x, I).M()
     End Sub
@@ -1405,6 +1445,7 @@ Class C
     Implements I2
     Dim x As A
     Dim y as B
+
     Public Sub M2() Implements I2.M2
         DirectCast(y, I2).M2()
     End Sub
@@ -1533,6 +1574,7 @@ End Class
 Class C
     Inherits B
     Implements I
+
     Private Sub I_M() Implements I.M
         Throw New System.NotImplementedException()
     End Sub
@@ -1554,6 +1596,7 @@ End Class",
 End Interface
 Class C
     Implements I ' Implement interface 
+
     Public Sub [Rem]() Implements I.[Rem]
         Throw New System.NotImplementedException()
     End Sub
@@ -1582,6 +1625,7 @@ End Class",
 "Imports System.ComponentModel
 Class C
     Implements INotifyPropertyChanged
+
     Public Event PropertyChanged As PropertyChangedEventHandler Implements INotifyPropertyChanged.PropertyChanged
 End Class")
         End Function
@@ -1615,19 +1659,16 @@ Class Boss
 
 	Private worker As Worker
 
-	Public Custom Event PropertyChanged As PropertyChangedEventHandler Implements INotifyPropertyChanged.PropertyChanged
-
-		AddHandler(value As PropertyChangedEventHandler)
-			AddHandler DirectCast(worker, INotifyPropertyChanged).PropertyChanged, value
-		End AddHandler
-
-		RemoveHandler(value As PropertyChangedEventHandler)
-			RemoveHandler DirectCast(worker, INotifyPropertyChanged).PropertyChanged, value
-		End RemoveHandler
-
-		RaiseEvent(sender As Object, e As PropertyChangedEventArgs)
-		End RaiseEvent
-	End Event
+    Public Custom Event PropertyChanged As PropertyChangedEventHandler Implements INotifyPropertyChanged.PropertyChanged
+        AddHandler(value As PropertyChangedEventHandler)
+            AddHandler DirectCast(worker, INotifyPropertyChanged).PropertyChanged, value
+        End AddHandler
+        RemoveHandler(value As PropertyChangedEventHandler)
+            RemoveHandler DirectCast(worker, INotifyPropertyChanged).PropertyChanged, value
+        End RemoveHandler
+        RaiseEvent(sender As Object, e As PropertyChangedEventArgs)
+        End RaiseEvent
+    End Event
 End Class", index:=1)
         End Function
 
@@ -1646,6 +1687,7 @@ End Class",
 End Interface
 Class C(Of T, R)
     Implements I(Of T, R)
+
     Public Sub Goo() Implements I(Of T, R).Goo
         Throw New System.NotImplementedException()
     End Sub
@@ -1675,6 +1717,7 @@ Interface I2
 End Interface
 Class C
     Implements I2
+
     Public Property Bar As Integer Implements I2.Bar
         Get
             Throw New System.NotImplementedException()
@@ -1683,6 +1726,7 @@ Class C
             Throw New System.NotImplementedException()
         End Set
     End Property
+
     Private Property I1_Bar As Integer Implements I1.Bar
         Get
             Throw New System.NotImplementedException()
@@ -1731,6 +1775,7 @@ End Class
 Class C
     Inherits B
     Implements I1
+
     Private Property I1_Bar As Integer Implements I1.Bar
         Get
             Throw New System.NotImplementedException()
@@ -1739,6 +1784,7 @@ Class C
             Throw New System.NotImplementedException()
         End Set
     End Property
+
     Public Sub Goo() Implements I1.Goo
         Throw New System.NotImplementedException()
     End Sub
@@ -1760,6 +1806,7 @@ End Class",
 End Interface
 Class C
     Implements I1
+
     Public Event E(x As String) Implements I1.E
 End Class")
         End Function
@@ -1778,6 +1825,7 @@ End Class",
 End Interface
 Class Bar
     Implements IGoo
+
     Public Sub Goo(Optional s As String = """""""") Implements IGoo.Goo
         Throw New System.NotImplementedException()
     End Sub
@@ -1803,6 +1851,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub VBNullChar(Optional x As String = Constants.vbNullChar) Implements I.VBNullChar
         Throw New System.NotImplementedException()
     End Sub
@@ -1832,6 +1881,7 @@ End Interface
 Namespace N
     Class Microsoft
         Implements I
+
         Public Sub VBNullChar(Optional x As String = Constants.vbNullChar) Implements I.VBNullChar
             Throw New NotImplementedException()
         End Sub
@@ -1861,6 +1911,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub ChrW(Optional x As String = Strings.ChrW(1)) Implements I.ChrW
         Throw New NotImplementedException()
     End Sub
@@ -1882,6 +1933,7 @@ End Class",
 End Interface
 Class C
     Implements I
+
     Public Sub Goo(Optional x As Date = #6/29/2012 12:00:00 AM#) Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
@@ -1909,6 +1961,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub Goo(Optional x As DayOfWeek = DayOfWeek.Friday) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
@@ -1932,6 +1985,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub Goo(x As Integer()()) Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
@@ -1959,6 +2013,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub Goo(Optional x As String = ChrW(8220)) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
@@ -1982,6 +2037,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub Goo(Optional x As Long = Long.MinValue) Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
@@ -2303,6 +2359,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub Goo(x(,) As Integer) Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
@@ -2328,6 +2385,7 @@ Interface I
 End Interface
 Class C
     Implements I
+
     Public Sub Goo(Optional x As Char = ChrW(8220)) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
@@ -2351,6 +2409,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub Goo(Optional x As Object = ""‟"") Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
@@ -2378,6 +2437,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub Goo(Optional x As Decimal = Decimal.MaxValue) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
@@ -2409,6 +2469,7 @@ Class C
     Implements I
 
     Property DayOfWeek As DayOfWeek
+
     Public Sub Goo(Optional x As DayOfWeek = DayOfWeek.Monday) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
@@ -2436,6 +2497,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub Goo(Optional x As DayOfWeek? = DayOfWeek.Friday) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
@@ -2461,6 +2523,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub Goo(Optional x As Double = 2.8025969286496341E-45) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
@@ -2488,6 +2551,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub Goo(Optional x As Char = ChrW(55401)) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
@@ -2517,6 +2581,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub Goo(Optional x As Char = ChrW(13)) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
@@ -2544,6 +2609,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub Goo(Optional x As ConsoleColor = CType(-1, ConsoleColor)) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
@@ -2567,6 +2633,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub Goo(x As Integer?()) Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
@@ -2590,6 +2657,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub Goo(Optional x() As Integer = Nothing) Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
@@ -2625,6 +2693,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub Goo(Optional x As E = E.[Rem]) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
@@ -2648,6 +2717,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub Goo(Optional x As Byte = 1) Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
@@ -2671,6 +2741,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub Goo(Optional x As Object = 1L) Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
@@ -2702,6 +2773,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub Goo(Optional x As E = 0) Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
@@ -2725,6 +2797,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub Goo(Optional x As Object = CByte(1)) Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
@@ -2751,6 +2824,7 @@ Class C
 End Class
 </Text>.Value.Replace(vbLf, vbCrLf),
 <Text>Option Strict On
+
 Interface I
     Sub M1(Optional x As Decimal = 2D)
     Sub M2(Optional x As Decimal = 2.0D)
@@ -2804,12 +2878,14 @@ Class C
     Implements [|I|]
 End Class",
 "Option Strict On
+
 Interface I
     Sub Goo(Optional x As Decimal = Long.MinValue)
 End Interface
 
 Class C
     Implements I
+
     Public Sub Goo(Optional x As Decimal = -9223372036854775808D) Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
@@ -2839,6 +2915,7 @@ Interface IB
 End Interface
 Class C
     Implements IB
+
     Public Event E As Action Implements IB.E
     Private Event IA_E As EventHandler Implements IA.E
 End Class")
@@ -2865,6 +2942,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub Goo(Optional x As Object = 1D) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
@@ -2892,6 +2970,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub Goo(Optional x As Object = 1R) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
@@ -2919,6 +2998,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub Goo(Optional x As Decimal = 10000000000000000000D) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
@@ -2940,6 +3020,7 @@ End Class",
 End Interface
 Class C
     Implements I
+
     Public Sub Goo(Optional x As String = ""𪛖"") Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
@@ -2967,6 +3048,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub Goo(Optional x As String = vbTab) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
@@ -2990,6 +3072,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub Goo(Of [TO], TP, TQ)() Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
@@ -3017,6 +3100,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub Goo(Optional x As ULong = 10000000000000000000UL) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
@@ -3181,6 +3265,7 @@ End Class
 Class C : Implements [|IServiceProvider|] : End Class",
 "Imports System
 Class C : Implements IServiceProvider
+
     Public Function GetService(serviceType As Type) As Object Implements IServiceProvider.GetService
         Throw New NotImplementedException()
     End Function
@@ -3201,6 +3286,7 @@ MustInherit Class D
     MustOverride Sub Goo()
 End Class
 Class C : Inherits D : Implements IServiceProvider
+
     Public Function GetService(serviceType As Type) As Object Implements IServiceProvider.GetService
         Throw New NotImplementedException()
     End Function
@@ -3228,6 +3314,7 @@ End Interface
 
 Class C
     Implements I ' Implement 
+
     Public Sub Goo(Optional x As Object = CStr(ChrW(1))) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
@@ -3255,6 +3342,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub Goo(Optional x As String = ChrW(1)) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
@@ -3286,6 +3374,7 @@ Class C
     Implements I
     Public Sub ChrW(x As Integer)
     End Sub
+
     Public Sub Goo(Optional x As String = Strings.ChrW(1)) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
@@ -3309,6 +3398,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub [ＲＥＭ]() Implements I.[ＲＥＭ]
         Throw New System.NotImplementedException()
     End Sub
@@ -3364,6 +3454,7 @@ Interface I
 End Interface
 Class C
     Implements I ' Implement 
+
     Public Sub Goo(Of M)(Optional x As C(Of M()).E = C(Of M()).E.X) Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
@@ -3397,6 +3488,7 @@ Interface I
 End Interface
 Class C
     Implements I
+
     Public Sub Goo(Of T)(Optional x As C(Of T()).E = C(Of T()).E.X) Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
@@ -3422,6 +3514,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub Goo(Optional x As Object = """"""""c) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
@@ -3457,6 +3550,7 @@ End Class
 
 Partial Class C
     Implements I
+
     Public Sub M() Implements I.M
         Throw New System.NotImplementedException()
     End Sub
@@ -3484,9 +3578,8 @@ End Interface
 
 Class C
     Implements I
-    Public Function Goo(<MarshalAs(UnmanagedType.U1)>
-    x As Boolean) As <MarshalAs(UnmanagedType.U1)>
-    Boolean Implements I.Goo
+
+    Public Function Goo(<MarshalAs(UnmanagedType.U1)> x As Boolean) As <MarshalAs(UnmanagedType.U1)> Boolean Implements I.Goo
         Throw New System.NotImplementedException()
     End Function
 End Class")
@@ -3509,6 +3602,7 @@ Interface I
 End Interface
 Class C
     Implements I ' Implement 
+
     Public Sub Goo(Optional x As Decimal = 1000000000000000000) Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
@@ -3532,6 +3626,7 @@ End Interface
 
 MustInherit Class C
     Implements I ' Implement interface abstractly 
+
     Public Property Goo As Integer Implements I.Goo
         Get
             Throw New System.NotImplementedException()
@@ -3560,6 +3655,7 @@ End Structure",
 End Interface
 Class c
     Implements I
+
     Public ReadOnly Property g(Optional x As S? = Nothing) As Object Implements I.g
         Get
             Throw New System.NotImplementedException()
@@ -3585,6 +3681,7 @@ End Class",
 End Interface
 Class c
     Implements I
+
     Public ReadOnly Property g(Optional x As Long? = Nothing, Optional y As Long? = 5) As Object Implements I.g
         Get
             Throw New System.NotImplementedException()
@@ -3645,6 +3742,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Property P(<MarshalAs(UnmanagedType.I4)> x As Integer) As <MarshalAs(UnmanagedType.I4)> Integer Implements I.P
         Get
             Throw New System.NotImplementedException()
@@ -3675,6 +3773,7 @@ Partial Class C
 End Class
 Partial Class C
     Implements I
+
     Public Sub Goo() Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
@@ -3885,15 +3984,12 @@ Class C
     Implements I
 
     Default Public Property Prop(p As Long) As Integer Implements I.Prop
-
         Get
             Throw New System.NotImplementedException()
         End Get
-
         Set(value As Integer)
             Throw New System.NotImplementedException()
         End Set
-
     End Property
 End Class")
         End Function
@@ -4507,10 +4603,10 @@ Imports System
 interface I
     Function F() As ValueTuple(Of Object)
 end interface
-class C 
+class C
     Implements I
 
-Public Function F() As ValueTuple(Of Object) Implements I.F
+    Public Function F() As ValueTuple(Of Object) Implements I.F
         Throw New NotImplementedException()
     End Function
 end class

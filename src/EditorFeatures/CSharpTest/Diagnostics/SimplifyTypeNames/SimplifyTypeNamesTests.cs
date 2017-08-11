@@ -513,7 +513,7 @@ namespace Root
             var content =
 @"class A
 {
-     [|[||]|] i;
+    [|[||]|] i;
 }
 ";
 
@@ -746,9 +746,7 @@ namespace Root
     {
         public class A2
         {
-            public class A1
-            {
-            }
+            public class A1 { }
 
             A1 a;
         }
@@ -2380,7 +2378,7 @@ class A
 @"using System;
 using System.Collections.Generic;
 /// <summary>
-/// <see cref=""A.M{T}(List{Nullable{T}}, T?})""/>
+/// <see cref=""A.M{T}(List{Nullable{T}}, T?)""/>
 /// </summary>
 class A
 {
@@ -2493,7 +2491,7 @@ class Program
 {
     static void Main()
     {
-        Program a = null;
+        Program a = null; 
     }
 }", parseOptions: null);
 
@@ -2548,7 +2546,7 @@ static class M
             await TestInRegularAndScriptAsync(source,
 @"class Preserve
 {
-    public static int Y;
+	public static int Y;
 }
 
 class Z<T> : Preserve
@@ -2557,10 +2555,10 @@ class Z<T> : Preserve
 
 static class M
 {
-    public static void Main()
-    {
-        int k = Preserve.Y;
-    }
+	public static void Main()
+	{
+		int k = Preserve.Y;
+	}
 }");
         }
 
@@ -2591,10 +2589,10 @@ class M
             await TestInRegularAndScriptAsync(source,
 @"class Preserve
 {
-    public class X
-    {
-        public static int Y;
-    }
+	public class X
+	{
+		public static int Y;
+	}
 }
 
 class Z<T> : Preserve
@@ -2603,10 +2601,10 @@ class Z<T> : Preserve
 
 class M
 {
-    public static void Main()
-    {
-        int k = Preserve.X.Y;
-    }
+	public static void Main()
+	{
+		int k = Preserve.X.Y;
+	}
 }");
         }
 

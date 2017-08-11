@@ -164,7 +164,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    int Goo { get { return Bar(); } }
+    int Goo
+    {
+        get
+        {
+            return Bar();
+        }
+    }
 }", parameters: new TestParameters(options: UseExpressionBodyForAccessors_ExpressionBodyForProperties));
         }
 
@@ -178,7 +184,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    int Goo { get { return Bar(); } }
+    int Goo
+    {
+        get
+        {
+            return Bar();
+        }
+    }
 }", parameters: new TestParameters(options: UseBlockBodyForAccessors_ExpressionBodyForProperties));
         }
 
@@ -193,7 +205,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    int Goo { get { return Bar(); } }
+    int Goo
+    {
+        get
+        {
+            return Bar();
+        }
+    }
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6),
     options: UseExpressionBodyForAccessors_ExpressionBodyForProperties);
         }

@@ -151,8 +151,8 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
 
     private static bool NewMethod(bool b)
     {
-        return b != 
-            true;
+        return b !=
+                    true;
     }
 }",
 options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
@@ -304,7 +304,8 @@ class C
 {
     static void Main(string[] args)
     {
-        del q = x => {
+        del q = x =>
+        {
             goto label2;
             return {|Rename:NewMethod|}(x);
         };
@@ -1291,6 +1292,7 @@ ignoreTrivia: false);
         int r;
         int y;
         {|Rename:NewMethod|}(out r, out y);
+
         System.Console.WriteLine(r + y);
     }
 
@@ -1331,6 +1333,7 @@ ignoreTrivia: false);
         int r;
         int y;
         {|Rename:NewMethod|}(out r, out y);
+
         System.Console.WriteLine(r + y);
     }
 

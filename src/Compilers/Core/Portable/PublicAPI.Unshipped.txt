@@ -41,6 +41,7 @@ Microsoft.CodeAnalysis.IOperation.IsInvalid.get -> bool
 Microsoft.CodeAnalysis.IOperation.Kind.get -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.IOperation.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.IOperation.Type.get -> Microsoft.CodeAnalysis.ITypeSymbol
+Microsoft.CodeAnalysis.ModuleMetadata.IsDisposed.get -> bool
 Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.AddressOfExpression = 515 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.Argument = 1031 -> Microsoft.CodeAnalysis.OperationKind
@@ -740,6 +741,7 @@ override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitVariableDeclarati
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitWhileUntilLoopStatement(Microsoft.CodeAnalysis.Semantics.IWhileUntilLoopStatement operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitWithStatement(Microsoft.CodeAnalysis.Semantics.IWithStatement operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitYieldBreakStatement(Microsoft.CodeAnalysis.Semantics.IReturnStatement operation) -> void
+static Microsoft.CodeAnalysis.Emit.EmitBaseline.CreateInitialBaseline(Microsoft.CodeAnalysis.ModuleMetadata module, System.Func<System.Reflection.Metadata.MethodDefinitionHandle, Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation> debugInformationProvider, System.Func<System.Reflection.Metadata.MethodDefinitionHandle, System.Reflection.Metadata.StandaloneSignatureHandle> localSignatureProvider, bool hasPortableDebugInformation) -> Microsoft.CodeAnalysis.Emit.EmitBaseline
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.Descendants(this Microsoft.CodeAnalysis.IOperation operation) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.IOperation>
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.DescendantsAndSelf(this Microsoft.CodeAnalysis.IOperation operation) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.IOperation>
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.GetDeclaredVariables(this Microsoft.CodeAnalysis.Semantics.IVariableDeclarationStatement declarationStatement) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>

@@ -37,6 +37,7 @@
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="CSharpVisualStudio" Path="|CSharpVisualStudio;PkgdefProjectOutputGroup|" />
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="BasicVisualStudio" Path="VisualBasicPackageRegistration.pkgdef" />
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="CSharpVisualStudio" Path="CSharpPackageRegistration.pkgdef" />
+    <Asset Type="DebuggerEngineExtension" d:Source="Project" d:ProjectName="ServicesVisualStudio" Path="|ServicesVisualStudio;VsdConfigOutputGroup|" />
     <Asset Type="Microsoft.VisualStudio.Analyzer" Path="Microsoft.CodeAnalysis.CSharp.dll" />
     <Asset Type="Microsoft.VisualStudio.Analyzer" Path="Microsoft.CodeAnalysis.VisualBasic.dll" />
     <Asset Type="Microsoft.VisualStudio.Analyzer" Path="Microsoft.CodeAnalysis.EditorFeatures.dll" />

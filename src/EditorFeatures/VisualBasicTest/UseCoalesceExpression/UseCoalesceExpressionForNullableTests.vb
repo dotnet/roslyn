@@ -26,7 +26,8 @@ Class C
         Dim z = [||]If (Not x.HasValue, y, x.Value)
     End Sub
 End Class",
-"Imports System
+"
+Imports System
 
 Class C
     Sub M(x as Integer?, y as Integer?)
@@ -46,7 +47,8 @@ Class C
         Dim z = [||]If(x.HasValue, x.Value, y)
     End Sub
 End Class",
-"Imports System
+"
+Imports System
 
 Class C
     Sub M(x as Integer?, y as Integer?)
@@ -66,7 +68,8 @@ Class C
         Dim z = [||]If (Not (x + y).HasValue, y, (x + y).Value)
     End Sub
 End Class",
-"Imports System
+"
+Imports System
 
 Class C
     Sub M(x as Integer?, y as Integer?)
@@ -86,7 +89,8 @@ Class C
         Dim z = [||]If ((Not x.HasValue), y, x.Value)
     End Sub
 End Class",
-"Imports System
+"
+Imports System
 
 Class C
     Sub M(x as Integer?, y as Integer?)
@@ -107,7 +111,8 @@ Class C
         Dim z2 = If(x.HasValue, x.Value, y)
     End Sub
 End Class",
-"Imports System
+"
+Imports System
 
 Class C
     Sub M(x as Integer?, y as Integer?)
@@ -128,7 +133,8 @@ Class C
         dim w = {|FixAllInDocument:If|} (x.HasValue, x.Value, If(y.HasValue, y.Value, z))
     End Sub
 End Class",
-"Imports System
+"
+Imports System
 
 Class C
     Sub M(x as Integer?, y as Integer?, z as Integer?)
@@ -156,7 +162,7 @@ Imports System.Linq.Expressions
 
 Class C
     Sub M(x as integer?, y as integer)
-        dim e as Expression(of Func(of integer)) = function() {|Warning:If (x, y)|}
+        dim e as Expression(of Func(of integer)) = function() {|Warning:If(x, y)|}
     End Sub
 End Class")
         End Function
