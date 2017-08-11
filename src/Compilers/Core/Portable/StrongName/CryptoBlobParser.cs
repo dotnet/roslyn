@@ -91,53 +91,45 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            return IsValidPublicKeyUnsafe(blob);
-        }
+            BinaryReader blobReader = new BinaryReader(new MemoryStream(blob.DangerousGetUnderlyingArray()));
 
-        private static unsafe bool IsValidPublicKeyUnsafe(ImmutableArray<byte> blob)
-        {
-            fixed (byte* ptr = blob.DangerousGetUnderlyingArray())
+            // Signature algorithm ID
+            var sigAlgId = blobReader.ReadUInt32();
+            // Hash algorithm ID
+            var hashAlgId = blobReader.ReadUInt32();
+            // Size of public key data in bytes, not including the header
+            var publicKeySize = blobReader.ReadUInt32();
+            // publicKeySize bytes of public key data
+            var publicKey = blobReader.ReadByte();
+
+            // The number of public key bytes must be the same as the size of the header plus the size of the public key data.
+            if (blob.Length != s_publicKeyHeaderSize + publicKeySize)
             {
-                var blobReader = new BlobReader(ptr, blob.Length);
+                return false;
+            }
 
-                // Signature algorithm ID
-                var sigAlgId = blobReader.ReadUInt32();
-                // Hash algorithm ID
-                var hashAlgId = blobReader.ReadUInt32();
-                // Size of public key data in bytes, not including the header
-                var publicKeySize = blobReader.ReadUInt32();
-                // publicKeySize bytes of public key data
-                var publicKey = blobReader.ReadByte();
+            // Check for the ECMA key, which does not obey the invariants checked below.
+            if (ByteSequenceComparer.Equals(blob, s_ecmaKey))
+            {
+                return true;
+            }
 
-                // The number of public key bytes must be the same as the size of the header plus the size of the public key data.
-                if (blob.Length != s_publicKeyHeaderSize + publicKeySize)
-                {
-                    return false;
-                }
+            // The public key must be in the wincrypto PUBLICKEYBLOB format
+            if (publicKey != PublicKeyBlobId)
+            {
+                return false;
+            }
 
-                // Check for the ECMA key, which does not obey the invariants checked below.
-                if (ByteSequenceComparer.Equals(blob, s_ecmaKey))
-                {
-                    return true;
-                }
+            var signatureAlgorithmId = new AlgorithmId(sigAlgId);
+            if (signatureAlgorithmId.IsSet && signatureAlgorithmId.Class != AlgorithmClass.Signature)
+            {
+                return false;
+            }
 
-                // The public key must be in the wincrypto PUBLICKEYBLOB format
-                if (publicKey != PublicKeyBlobId)
-                {
-                    return false;
-                }
-
-                var signatureAlgorithmId = new AlgorithmId(sigAlgId);
-                if (signatureAlgorithmId.IsSet && signatureAlgorithmId.Class != AlgorithmClass.Signature)
-                {
-                    return false;
-                }
-
-                var hashAlgorithmId = new AlgorithmId(hashAlgId);
-                if (hashAlgorithmId.IsSet && (hashAlgorithmId.Class != AlgorithmClass.Hash || hashAlgorithmId.SubId < AlgorithmSubId.Sha1Hash))
-                {
-                    return false;
-                }
+            var hashAlgorithmId = new AlgorithmId(hashAlgId);
+            if (hashAlgorithmId.IsSet && (hashAlgorithmId.Class != AlgorithmClass.Hash || hashAlgorithmId.SubId < AlgorithmSubId.Sha1Hash))
+            {
+                return false;
             }
 
             return true;
@@ -195,7 +187,7 @@ namespace Microsoft.CodeAnalysis
             privateKey = null;
             snKey = default(ImmutableArray<byte>);
 
-            var asArray = blob.ToArray();
+            var asArray = blob.DangerousGetUnderlyingArray();
 
             if (IsValidPublicKey(blob))
             {
