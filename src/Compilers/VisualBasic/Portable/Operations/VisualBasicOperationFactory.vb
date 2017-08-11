@@ -331,13 +331,13 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New LazyNameOfExpression(argument, _semanticModel, syntax, type, constantValue)
         End Function
 
-        Private Function CreateBoundLambdaOperation(boundLambda As BoundLambda) As ILambdaExpression
-            Dim signature As IMethodSymbol = boundLambda.LambdaSymbol
+        Private Function CreateBoundLambdaOperation(boundLambda As BoundLambda) As IAnonymousFunctionExpression
+            Dim symbol As IMethodSymbol = boundLambda.LambdaSymbol
             Dim body As Lazy(Of IBlockStatement) = New Lazy(Of IBlockStatement)(Function() DirectCast(Create(boundLambda.Body), IBlockStatement))
             Dim syntax As SyntaxNode = boundLambda.Syntax
             Dim type As ITypeSymbol = boundLambda.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundLambda.ConstantValueOpt)
-            Return New LazyLambdaExpression(signature, body, _semanticModel, syntax, type, constantValue)
+            Return New LazyAnonymousFunctionExpression(symbol, body, _semanticModel, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundCallOperation(boundCall As BoundCall) As IInvocationExpression

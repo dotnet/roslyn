@@ -98,8 +98,8 @@ namespace Microsoft.CodeAnalysis
         ConditionalChoiceExpression = 0x10f,
         /// <summary>Indicates an <see cref="INullCoalescingExpression"/>.</summary>
         NullCoalescingExpression = 0x110,
-        /// <summary>Indicates an <see cref="ILambdaExpression"/>.</summary>
-        LambdaExpression = 0x111,
+        /// <summary>Indicates an <see cref="IAnonymousFunctionExpression"/>.</summary>
+        AnonymousFunctionExpression = 0x111,
         /// <summary>Indicates an <see cref="IObjectCreationExpression"/>.</summary>
         ObjectCreationExpression = 0x112,
         /// <summary>Indicates an <see cref="ITypeParameterObjectCreationExpression"/>.</summary>

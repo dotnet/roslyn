@@ -398,11 +398,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitTypeOfExpression(operation);
         }
 
-        public override void VisitLambdaExpression(ILambdaExpression operation)
+        public override void VisitAnonymousFunctionExpression(IAnonymousFunctionExpression operation)
         {
-            var signature = operation.Signature;
+            var signature = operation.Symbol;
 
-            base.VisitLambdaExpression(operation);
+            base.VisitAnonymousFunctionExpression(operation);
         }
 
         public override void VisitLocalFunctionStatement(ILocalFunctionStatement operation)
