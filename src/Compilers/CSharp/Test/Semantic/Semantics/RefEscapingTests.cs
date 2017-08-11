@@ -451,5 +451,43 @@ class Program
                 Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(ref inner)").WithArguments("Program.MayWrap(ref int)", "arg").WithLocation(17, 23)
             );
         }
+
+        [Fact()]
+        public void RefLikeEscapeParamsAndTopLevel()
+        {
+            var text = @"
+    class Program
+    {
+        static void Main()
+        {
+        }
+
+        void Test1(int x)
+        {
+            int y = 1;
+
+            var rx = MayWrap(ref x);
+            var ry = MayWrap(ref y);
+
+            // valid. parameter scope and the top local scope are the same.
+            rx = ry;
+            
+            bool condition = true;
+            rx = condition ? rx: ry;
+        }
+
+        static S1 MayWrap(ref int arg)
+        {
+            return default;
+        }
+
+        ref struct S1
+        {
+        }
+    }
+";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+            );
+        }
     }
 }
