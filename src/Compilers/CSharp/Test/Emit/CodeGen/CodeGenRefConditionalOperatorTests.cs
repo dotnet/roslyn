@@ -663,9 +663,6 @@ class C
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "local1").WithArguments("local1").WithLocation(15, 27),
                 // (15,39): error CS8168: Cannot return local 'local2' by reference because it is not a ref local
                 //         return ref b? ref local1: ref local2;
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local2").WithArguments("local2").WithLocation(15, 39),
-                // (15,20): error CS8156: An expression cannot be used in this context because it may not be returned by reference
-                //         return ref b? ref local1: ref local2;
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "b? ref local1: ref local2").WithLocation(15, 20)
                );
         }
