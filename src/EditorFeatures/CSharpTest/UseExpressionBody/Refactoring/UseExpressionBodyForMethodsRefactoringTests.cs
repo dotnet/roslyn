@@ -86,7 +86,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    void Goo() { Bar(); }
+    void Goo()
+    {
+        Bar();
+    }
 }", parameters: new TestParameters(options: UseExpressionBody));
         }
     }

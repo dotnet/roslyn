@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
             string initialMarkup, string expectedMarkup,
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
-            int index = 0, bool ignoreTrivia = true,
+            int index = 0, bool ignoreTrivia = false,
             IDictionary<OptionKey, object> options = null)
         {
             options = options ?? new Dictionary<OptionKey, object>();
@@ -190,12 +190,7 @@ class goo
 {
     private int bar;
 
-    public int Bar
-    {
-        get => bar;
-
-        set => bar = value;
-    }
+    public int Bar { get => bar; set => bar = value; }
 
     void baz()
     {
@@ -999,7 +994,7 @@ partial class Program {
 partial class Program {}
 
 partial class Program {
-    private int x;
+   private int x;
 
     public int X
     {
@@ -1007,6 +1002,7 @@ partial class Program {
         {
             return x;
         }
+
         set
         {
             x = value;
@@ -1080,7 +1076,8 @@ namespace ConsoleApplication1
             }
         }
     }
-}";
+}
+";
 
             await TestAllOptionsOffAsync(text, expected);
         }

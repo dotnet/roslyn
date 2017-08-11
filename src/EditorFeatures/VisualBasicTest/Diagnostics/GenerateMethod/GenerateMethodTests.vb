@@ -21,10 +21,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
         Goo()
     End Sub
+
     Private Sub Goo()
         Throw New NotImplementedException()
     End Sub
@@ -42,8 +44,7 @@ End Class")
         End Sub
     End Module
 End Namespace",
-"
-Imports System
+"Imports System
 
 Namespace N
     Module Module1
@@ -67,10 +68,12 @@ End Namespace")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
         Me.Goo()
     End Sub
+
     Private Sub Goo()
         Throw New NotImplementedException()
     End Sub
@@ -86,10 +89,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
         C.Goo()
     End Sub
+
     Private Shared Sub Goo()
         Throw New NotImplementedException()
     End Sub
@@ -105,10 +110,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
         Goo(0)
     End Sub
+
     Private Sub Goo(v As Integer)
         Throw New NotImplementedException()
     End Sub
@@ -124,10 +131,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
         Goo(0, 0)
     End Sub
+
     Private Sub Goo(v1 As Integer, v2 As Integer)
         Throw New NotImplementedException()
     End Sub
@@ -143,10 +152,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M(i As Integer)
         Goo(i)
     End Sub
+
     Private Sub Goo(i As Integer)
         Throw New NotImplementedException()
     End Sub
@@ -162,10 +173,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M(i As Integer)
         Goo(bar:=i)
     End Sub
+
     Private Sub Goo(bar As Integer)
         Throw New NotImplementedException()
     End Sub
@@ -183,13 +196,16 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
         Goo()
     End Sub
+
     Private Sub Goo()
         Throw New NotImplementedException()
     End Sub
+
     Sub NextMethod()
     End Sub
 End Class")
@@ -206,13 +222,16 @@ End Class")
     End Function
 End Class",
 "Imports System
+
 Class C
     Sub M(i As Integer)
         Goo(NextMethod())
     End Sub
+
     Private Sub Goo(goo As IGoo)
         Throw New NotImplementedException()
     End Sub
+
     Function NextMethod() As IGoo
     End Function
 End Class")
@@ -229,13 +248,16 @@ End Class")
     End Function
 End Class",
 "Imports System
+
 Class C
     Sub M(i As Integer)
         Goo(NextMethod)
     End Sub
+
     Private Sub Goo(nextMethod As String)
         Throw New NotImplementedException()
     End Sub
+
     Function NextMethod() As String
     End Function
 End Class")
@@ -252,13 +274,16 @@ End Class")
     End Function
 End Class",
 "Imports System
+
 Class C
     Sub M(i As Integer)
         Goo(NextMethod)
     End Sub
+
     Private Sub Goo(nextMethod As Func(Of Integer, String))
         Throw New NotImplementedException()
     End Sub
+
     Function NextMethod(i As Integer) As String
     End Function
 End Class")
@@ -275,6 +300,7 @@ End Class")
     End Function
 End Class",
 "Imports System
+
 Class C
     Sub M(i As Integer)
         Goo(AddressOf NextMethod)
@@ -297,13 +323,14 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M(i As Integer)
-        Goo(NextMethod)
-    End Sub
-    Private Sub Goo(nextMethod As Object)
+        Goo(NextMethod) End Sub 
+Private Sub Goo(nextMethod As Object)
         Throw New NotImplementedException()
     End Sub
+
     Sub NextMethod()
     End Sub
 End Class")
@@ -320,13 +347,16 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M(i As Integer)
         Goo(NextMethod)
     End Sub
+
     Private Sub Goo(nextMethod As Action(Of Integer))
         Throw New NotImplementedException()
     End Sub
+
     Sub NextMethod(i As Integer)
     End Sub
 End Class")
@@ -342,11 +372,13 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
         If Goo()
         End If
     End Sub
+
     Private Function Goo() As Boolean
         Throw New NotImplementedException()
     End Function
@@ -363,13 +395,16 @@ End Class")
     Dim Bar As Integer
 End Class",
 "Imports System
+
 Class C
     Sub M()
         Goo(Me.Bar)
     End Sub
+
     Private Sub Goo(bar As Integer)
         Throw New NotImplementedException()
     End Sub
+
     Dim Bar As Integer
 End Class")
         End Function
@@ -384,13 +419,16 @@ End Class")
     Dim Bar As Integer
 End Class",
 "Imports System
+
 Class C
     Sub M()
         Goo((Bar))
     End Sub
+
     Private Sub Goo(bar As Integer)
         Throw New NotImplementedException()
     End Sub
+
     Dim Bar As Integer
 End Class")
         End Function
@@ -406,10 +444,12 @@ End Class
 Class Bar
 End Class",
 "Imports System
+
 Class C
     Sub M()
         Goo(DirectCast(Me.Baz, Bar))
     End Sub
+
     Private Sub Goo(baz As Bar)
         Throw New NotImplementedException()
     End Sub
@@ -430,13 +470,16 @@ End Class
 Class Bar
 End Class",
 "Imports System
+
 Class C
     Sub M()
         Goo(DirectCast(Me.Baz, Bar), Me.Baz)
     End Sub
+
     Private Sub Goo(baz1 As Bar, baz2 As Integer)
         Throw New NotImplementedException()
     End Sub
+
     Dim Baz As Integer
 End Class
 Class Bar
@@ -452,10 +495,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
         Goo(Of Integer)()
     End Sub
+
     Private Sub Goo(Of T)()
         Throw New NotImplementedException()
     End Sub
@@ -471,10 +516,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
         Goo(Of Integer, String)()
     End Sub
+
     Private Sub Goo(Of T1, T2)()
         Throw New NotImplementedException()
     End Sub
@@ -491,10 +538,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M(Of X, Y)(x As X, y As Y)
         Goo(x)
     End Sub
+
     Private Sub Goo(Of X)(x1 As X)
         Throw New NotImplementedException()
     End Sub
@@ -510,10 +559,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M(Of X)(y1 As X(), x1 As System.Func(Of X))
         Goo(Of X)(y1, x1)
     End Sub
+
     Private Sub Goo(Of X)(y1() As X, x1 As Func(Of X))
         Throw New NotImplementedException()
     End Sub
@@ -529,10 +580,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M(Of X, Y)(y1 As Y(), x1 As System.Func(Of X))
         Goo(Of X, Y)(y1, x1)
     End Sub
+
     Private Sub Goo(Of X, Y)(y1() As Y, x1 As Func(Of X))
         Throw New NotImplementedException()
     End Sub
@@ -549,10 +602,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M(Of X, Y)(x As X, y As Y)
         Goo(x, y)
     End Sub
+
     Private Sub Goo(Of X, Y)(x1 As X, y1 As Y)
         Throw New NotImplementedException()
     End Sub
@@ -569,10 +624,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M(Of X, Y)(y As Y(), x As System.Func(Of X))
         Goo(y, x)
     End Sub
+
     Private Sub Goo(Of Y, X)(y1() As Y, x1 As Func(Of X))
         Throw New NotImplementedException()
     End Sub
@@ -590,12 +647,14 @@ End Class")
     End Class
 End Class",
 "Imports System
+
 Class Outer
     Class C
         Sub M(o As Outer)
             o.Goo()
         End Sub
     End Class
+
     Private Sub Goo()
         Throw New NotImplementedException()
     End Sub
@@ -613,13 +672,16 @@ End Class")
     End Class
 End Class",
 "Imports System
+
 Class Outer
     Class C
         Sub M(o As Outer)
             Outer.Goo()
         End Sub
-    End Class Private Shared Sub Goo() 
- Throw New NotImplementedException()
+    End Class
+
+    Private Shared Sub Goo()
+        Throw New NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -635,6 +697,7 @@ End Class
 Class Sibling
 End Class",
 "Imports System
+
 Class C
     Sub M(s As Sibling)
         s.Goo()
@@ -658,6 +721,7 @@ End Class
 Class Sibling
 End Class",
 "Imports System
+
 Class C
     Sub M(s As Sibling)
         Sibling.Goo()
@@ -702,6 +766,7 @@ End Class",
     Sub M()
         Goo()
     End Sub
+
     Friend MustOverride Sub Goo()
 End Class",
 index:=1)
@@ -717,13 +782,16 @@ index:=1)
     End Sub
 End Module",
 "Imports System
+
 Module Class C 
  Sub M()
         Goo()
     End Sub
+
     Private Sub Goo()
-        Throw New NotImplementedException() End Sub 
- End Module")
+        Throw New NotImplementedException()
+    End Sub
+End Module")
         End Function
 
         <WorkItem(539506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539506")>
@@ -737,11 +805,13 @@ Module Class C
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
         Do While Goo()
         Loop
     End Sub
+
     Private Function Goo() As Boolean
         Throw New NotImplementedException()
     End Function
@@ -758,10 +828,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
         [Sub]()
     End Sub
+
     Private Sub [Sub]()
         Throw New NotImplementedException()
     End Sub
@@ -778,10 +850,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
         Call S
     End Sub
+
     Private Sub S()
         Throw New NotImplementedException()
     End Sub
@@ -798,10 +872,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
         S
     End Sub
+
     Private Sub S()
         Throw New NotImplementedException()
     End Sub
@@ -828,10 +904,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
         S%()
     End Sub
+
     Private Function S() As Integer
         Throw New NotImplementedException()
     End Function
@@ -848,10 +926,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
         S&()
     End Sub
+
     Private Function S() As Long
         Throw New NotImplementedException()
     End Function
@@ -868,10 +948,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
         S@()
     End Sub
+
     Private Function S() As Decimal
         Throw New NotImplementedException()
     End Function
@@ -888,10 +970,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
         S!()
     End Sub
+
     Private Function S() As Single
         Throw New NotImplementedException()
     End Function
@@ -908,10 +992,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
         S#()
     End Sub
+
     Private Function S() As Double
         Throw New NotImplementedException()
     End Function
@@ -928,10 +1014,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class C
     Sub M()
         S$()
     End Sub
+
     Private Function S() As String
         Throw New NotImplementedException()
     End Function
@@ -1005,6 +1093,7 @@ Module Program
         Dim v As Void
         Goo(v)
     End Sub
+
     Private Sub Goo(v As Object)
         Throw New NotImplementedException()
     End Sub
@@ -1043,9 +1132,11 @@ End Sub",
 Shared Sub Main(args As String())
     Goo()
 End Sub
+
 Private Shared Sub Goo()
     Throw New NotImplementedException()
-End Sub",
+End Sub
+",
             parseOptions:=GetScriptOptions())
         End Function
 
@@ -1060,9 +1151,11 @@ End Sub",
 Shared Sub Main(args As String())
     Goo()
 End Sub
+
 Private Shared Sub Goo()
     Throw New NotImplementedException()
-End Sub")
+End Sub
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
@@ -1079,6 +1172,7 @@ Namespace N
     Shared Sub Main(args As String())
         Goo()
     End Sub
+
     Private Shared Sub Goo()
         Throw New NotImplementedException()
     End Sub
@@ -1095,6 +1189,7 @@ End Namespace",
 "Imports System
 Namespace N
     Dim a As Integer = Goo()
+
     Private Function Goo() As Integer
         Throw New NotImplementedException()
     End Function
@@ -1239,11 +1334,13 @@ End Class")
     End Sub
 End Module",
 "Imports System
+
 Module Program
     Sub Main(args As String())
         Dim [string] As String = ""hello"" 
  [Me]([string])
     End Sub
+
     Private Sub [Me]([string] As String)
         Throw New NotImplementedException()
     End Sub
@@ -1260,10 +1357,12 @@ End Module")
     End Sub
 End Class",
 "Imports System
+
 Class Test
     Sub M(Of T)(x As T)
         Goo(Of Integer)(x)
     End Sub
+
     Private Sub Goo(Of T)(x As T)
         Throw New NotImplementedException()
     End Sub
@@ -1280,10 +1379,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Class Test(Of T)
     Sub M()
         Method(Of T)()
     End Sub
+
     Private Sub Method(Of T1)()
         Throw New NotImplementedException()
     End Sub
@@ -1304,6 +1405,7 @@ Class C
     Sub M()
         Goo()
     End Sub
+
     Private Sub Goo()
         Throw New NotImplementedException()
     End Sub
@@ -1354,11 +1456,13 @@ Class C
     End Sub
 End Class",
 "Imports System
+
 Delegate Sub D(x As Integer)
 Class C
     Public Sub Goo()
         Dim x As D = New D(AddressOf Method)
     End Sub
+
     Private Sub Method(x As Integer)
         Throw New NotImplementedException()
     End Sub
@@ -1389,11 +1493,13 @@ Class C
     End Sub
 End Class",
 "Imports System
+
 Delegate Sub D(x As Integer)
 Class C
     Private Sub M()
         Dim d As New D(AddressOf Test)
     End Sub
+
     Private Sub Test(x As Integer)
         Throw New NotImplementedException()
     End Sub
@@ -1436,10 +1542,12 @@ End Class")
 End Module",
 "Imports System
 Imports System.Collections.Generic
+
 Module Program
     Sub Main(args As String())
         For Each v As Integer In HERE() : Next
     End Sub
+
     Private Function HERE() As IEnumerable(Of Integer)
         Throw New NotImplementedException()
     End Function
@@ -1459,6 +1567,7 @@ End Module",
     Sub Main(args As String())
         For Each v As Integer In HERE() : Next
     End Sub
+
     Private Function HERE() As IEnumerable(Of Integer)
         Throw New NotImplementedException()
     End Function
@@ -1480,6 +1589,7 @@ End Module",
     Sub Main(args As String())
         For Each v In HERE : Next
     End Sub
+
     Private Function HERE() As IEnumerable(Of Object)
         Throw New NotImplementedException()
     End Function
@@ -1505,6 +1615,7 @@ End Module",
         ElseIf HERE Then
         End If
     End Sub
+
     Private Function HERE() As Boolean
         Throw New NotImplementedException()
     End Function
@@ -1526,6 +1637,7 @@ End Module",
     Sub Main(args As String())
         For x As Integer = 1 To HERE
  End Sub
+
     Private Function HERE() As Integer
         Throw New NotImplementedException()
     End Function
@@ -1559,9 +1671,11 @@ Module Program
         Dim products = ToList(product)
         HERE(products)
     End Sub
+
     Private Sub HERE(products As IEnumerable(Of Object))
         Throw New NotImplementedException()
     End Sub
+
     Function ToList(Of T)(a As T) As IEnumerable(Of T)
         Return Nothing
     End Function
@@ -1744,6 +1858,7 @@ Module Program
         Dim v As Func(Of String) = Nothing
         Dim a1 = If(False, v, AddressOf TestMethod)
     End Sub
+
     Private Function TestMethod() As String
         Throw New NotImplementedException()
     End Function
@@ -1761,6 +1876,7 @@ Class B
     End Sub
 End Class",
 "Imports System
+
 Class C
     Friend Shared Sub Bar()
         Throw New NotImplementedException()
@@ -1783,10 +1899,12 @@ End Class")
     End Sub
 End Module",
 "Imports System
+
 Module Program
     Sub Main(args As String())
         goo(,,)
     End Sub
+
     Private Sub goo(Optional p1 As Object = Nothing, Optional p2 As Object = Nothing, Optional p3 As Object = Nothing)
         Throw New NotImplementedException()
     End Sub
@@ -1803,10 +1921,12 @@ End Module")
     End Sub
 End Module",
 "Imports System
+
 Module Program
     Sub Main(args As String())
         goo(1,,)
     End Sub
+
     Private Sub goo(v As Integer, Optional p1 As Object = Nothing, Optional p2 As Object = Nothing)
         Throw New NotImplementedException()
     End Sub
@@ -1823,10 +1943,12 @@ End Module")
     End Sub
 End Module",
 "Imports System
+
 Module Program
     Sub Main(args As String())
         goo(, 1,)
     End Sub
+
     Private Sub goo(Optional p1 As Object = Nothing, Optional v As Integer = Nothing, Optional p2 As Object = Nothing)
         Throw New NotImplementedException()
     End Sub
@@ -1843,10 +1965,12 @@ End Module")
     End Sub
 End Module",
 "Imports System
+
 Module Program
     Sub Main(args As String())
         goo(,, 1)
     End Sub
+
     Private Sub goo(Optional p1 As Object = Nothing, Optional p2 As Object = Nothing, Optional v As Integer = Nothing)
         Throw New NotImplementedException()
     End Sub
@@ -1863,10 +1987,12 @@ End Module")
     End Sub
 End Module",
 "Imports System
+
 Module Program
     Sub Main(args As String())
         goo(1,, 1)
     End Sub
+
     Private Sub goo(v1 As Integer, Optional p As Object = Nothing, Optional v2 As Integer = Nothing)
         Throw New NotImplementedException()
     End Sub
@@ -1883,10 +2009,12 @@ End Module")
     End Sub
 End Module",
 "Imports System
+
 Module Program
     Sub Main(args As String())
         goo(1, 1, )
     End Sub
+
     Private Sub goo(v1 As Integer, v2 As Integer, Optional p As Object = Nothing)
         Throw New NotImplementedException()
     End Sub
@@ -1917,14 +2045,17 @@ End Class")
     End Class
 End Module",
 "Imports System
+
 Module Module1
     Sub Main()
         Dim c1 As New Class1
         AddHandler c1.AnEvent, AddressOf EventHandler1
     End Sub
+
     Private Sub EventHandler1()
         Throw New NotImplementedException()
     End Sub
+
     Public Class Class1
         Public Event AnEvent()
     End Class
@@ -1948,6 +2079,7 @@ Module M
     Sub Goo(Of T, S)(x As List(Of T), y As List(Of S))
         Bar(x, Function() y) ' Generate Bar 
     End Sub
+
     Private Sub Bar(Of T, S)(x As List(Of T), p As Func(Of List(Of S)))
         Throw New NotImplementedException()
     End Sub
@@ -2020,6 +2152,7 @@ Module Program
     Sub Main(args As String())
         Bar(1, {1})
     End Sub
+
     Private Sub Bar(v As Integer, p() As Integer)
         Throw New NotImplementedException()
     End Sub
@@ -2041,6 +2174,7 @@ Module M
     Sub Main()
         Goo({{1}})
     End Sub
+
     Private Sub Goo(p(,) As Integer)
         Throw New NotImplementedException()
     End Sub
@@ -2062,6 +2196,7 @@ Module Program
     Sub Main()
         Prop(1) = 2
     End Sub
+
     Private Function Prop(v As Integer) As Integer
         Throw New NotImplementedException()
     End Function
@@ -2083,6 +2218,7 @@ Module Program
     Sub Main()
         Prop(1) = 2
     End Sub
+
     Private Property Prop(v As Integer) As Integer
         Get
             Throw New NotImplementedException()
@@ -3134,10 +3270,12 @@ End Class
     End Sub
 End Class",
 "Imports System
+
 Public Class C
     Sub Main(a As C)
         Dim x As C = a?.B
     End Sub
+
     Private Function B() As C
         Throw New NotImplementedException()
     End Function
@@ -3154,10 +3292,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Public Class C
     Sub Main(a As C)
         Dim x = a?.B
     End Sub
+
     Private Function B() As Object
         Throw New NotImplementedException()
     End Function
@@ -3174,10 +3314,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Public Class C
     Sub Main(a As C)
         Dim x As Integer? = a?.B
     End Sub
+
     Private Function B() As Integer
         Throw New NotImplementedException()
     End Function
@@ -3194,10 +3336,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Public Class C
     Sub Main(a As C)
         Dim x As C? = a?.B
     End Sub
+
     Private Function B() As C
         Throw New NotImplementedException()
     End Function
@@ -3433,10 +3577,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Public Class C
     Sub Main(a As C)
         Dim x As C = a?.B()
     End Sub
+
     Private Function B() As C
         Throw New NotImplementedException()
     End Function
@@ -3453,10 +3599,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Public Class C
     Sub Main(a As C)
         Dim x = a?.B()
     End Sub
+
     Private Function B() As Object
         Throw New NotImplementedException()
     End Function
@@ -3473,10 +3621,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Public Class C
     Sub Main(a As C)
         Dim x As Integer? = a?.B()
     End Sub
+
     Private Function B() As Integer
         Throw New NotImplementedException()
     End Function
@@ -3493,10 +3643,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Public Class C
     Sub Main(a As C)
         Dim x As C? = a?.B()
     End Sub
+
     Private Function B() As C
         Throw New NotImplementedException()
     End Function
@@ -3513,10 +3665,12 @@ End Class")
     End Sub
 End Class",
 "Imports System
+
 Public Class C
     Sub Main(a As C)
         Dim x As C = a?.B()
     End Sub
+
     Private ReadOnly Property B As C
         Get
             Throw New NotImplementedException()
@@ -3536,10 +3690,12 @@ index:=1)
     End Sub
 End Class",
 "Imports System
+
 Public Class C
     Sub Main(a As C)
         Dim x = a?.B()
     End Sub
+
     Private ReadOnly Property B As Object
         Get
             Throw New NotImplementedException()
@@ -3559,10 +3715,12 @@ index:=1)
     End Sub
 End Class",
 "Imports System
+
 Public Class C
     Sub Main(a As C)
         Dim x As Integer? = a?.B()
     End Sub
+
     Private ReadOnly Property B As Integer
         Get
             Throw New NotImplementedException()
@@ -3582,10 +3740,12 @@ index:=1)
     End Sub
 End Class",
 "Imports System
+
 Public Class C
     Sub Main(a As C)
         Dim x As C? = a?.B()
     End Sub
+
     Private ReadOnly Property B As C
         Get
             Throw New NotImplementedException()
@@ -3639,11 +3799,13 @@ End Module")
     End Sub
 End Module",
 "Imports System
+
 Module C
     Sub Test()
         If TypeOf B Is String Then
         End If
     End Sub
+
     Private Function B() As String
         Throw New NotImplementedException()
     End Function
@@ -3660,11 +3822,13 @@ End Module")
     End Sub
 End Module",
 "Imports System
+
 Module C
     Sub Test()
         If TypeOf B() Is String Then
         End If
     End Sub
+
     Private Function B() As String
         Throw New NotImplementedException()
     End Function
@@ -3741,13 +3905,15 @@ Module M
         Dim x As Boolean = Await [|F|]().ConfigureAwait(False)
     End Sub 
 End Module",
-"Imports System 
-Imports System.Linq 
+"Imports System
+Imports System.Linq
 Imports System.Threading.Tasks
+
 Module M 
     Async Sub T() 
         Dim x As Boolean = Await F().ConfigureAwait(False)
-    End Sub 
+    End Sub
+
     Private Function F() As Task(Of Boolean)
         Throw New NotImplementedException()
     End Function
@@ -3775,6 +3941,7 @@ Module Program
         If TypeOf Prop IsNot TypeOfIsNotDerived Then
         End If
     End Sub
+
     Private Function Prop() As TypeOfIsNotDerived
         Throw New NotImplementedException()
     End Function
@@ -3798,6 +3965,7 @@ Module Program
     Sub M()
         Dim x = New List(Of Integer) From {T()}
     End Sub
+
     Private Function T() As Integer
         Throw New NotImplementedException()
     End Function
@@ -3821,6 +3989,7 @@ Module Program
     Sub M()
         Dim x = New Dictionary(Of Integer, Boolean) From {{1, T()}}
     End Sub
+
     Private Function T() As Boolean
         Throw New NotImplementedException()
     End Function
@@ -3902,7 +4071,8 @@ Class C
     Shared Sub TestError()
         Repository.AgreementType.NewFunction("", "")
     End Sub
-End Class</text>.Value.Replace(vbLf, vbCrLf))
+End Class
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>

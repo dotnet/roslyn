@@ -85,7 +85,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructor
 {
     private int v;
 
-    public C(int v) => this.v = v; void M()
+    public C(int v) => this.v = v;
+
+    void M()
     {
         new C(1);
     }
@@ -3260,18 +3262,20 @@ class P {
     }
 } ",
 @"class C {
-    public C ( int prop ) {
-        Prop = prop ;
-    } 
+    public C(int prop)
+    {
+        Prop = prop;
+    }
+
     public int Prop { get ; }
 }
 
-class P {
-    static void M ( ) {
+class P { 
+    static void M ( ) { 
         var prop = 42 ;
         var c = new C ( prop ) ;
     }
-}");
+} ");
         }
     }
 }

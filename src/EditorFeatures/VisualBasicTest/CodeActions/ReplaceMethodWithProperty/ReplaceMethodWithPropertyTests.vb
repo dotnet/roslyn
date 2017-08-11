@@ -92,7 +92,8 @@ End class")
     End function
 End class",
 "class C
-    <A> ReadOnly Property Goo as integer
+    <A>
+    ReadOnly Property Goo as integer
         Get
         End Get
     End Property
@@ -286,6 +287,7 @@ End class",
         Get
         End Get
     End Property
+
     sub Bar()
         dim x = Goo
     End sub
@@ -307,6 +309,7 @@ End class",
         Get
         End Get
     End Property
+
     sub Bar()
         dim x = me.Goo
     End sub
@@ -329,6 +332,7 @@ End class",
         Get
         End Get
     End Property
+
     sub Bar()
         dim x as C
         dim v = x?.Goo
@@ -395,6 +399,7 @@ End class",
         Get
         End Get
     End Property
+
     sub Bar()
         dim i = Goo
     End sub
@@ -442,6 +447,7 @@ class C
         Set(i as integer)
         End Set
     End Property
+
     sub Bar()
         dim i as Action(of integer) = addressof {|Conflict:Goo|}
     End sub
@@ -460,10 +466,11 @@ index:=1)
 End class",
 "class C
     public Property Goo as integer
-        Get End Get 
- Private Set(i as integer) 
- End Set
- End Property
+        Get
+        End Get
+        Private Set(i as integer)
+        End Set
+    End Property
 End class",
 index:=1)
         End Function
@@ -487,9 +494,9 @@ End class",
         Set(i as integer)
         End Set
     End Property
+
     sub Bar()
-        Goo = Goo + 1
-    End sub
+        Goo = Goo + 1    End sub
 End class",
 index:=1)
         End Function

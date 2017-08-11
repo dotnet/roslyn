@@ -425,7 +425,7 @@ class C
         {
             throw new ArgumentNullException(nameof(s));
         }
-        
+
         Init();
     }
 }");
@@ -454,7 +454,7 @@ class C
         {
             throw new ArgumentNullException(nameof(s));
         }
-        
+
         Init();
     }
 }", parameters: new TestParameters(options:
