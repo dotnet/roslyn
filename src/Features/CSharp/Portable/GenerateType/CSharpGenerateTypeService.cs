@@ -894,16 +894,16 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 name: propertyName.Identifier.ValueText,
                 type: propertyType,
                 returnsByRef: false,
-                parameters: default(ImmutableArray<IParameterSymbol>),
+                parameters: default,
                 getMethod: s_accessor,
                 setMethod: s_accessor,
                 isIndexer: false);
         }
 
         private static readonly IMethodSymbol s_accessor = CodeGenerationSymbolFactory.CreateAccessorSymbol(
-            attributes: default(ImmutableArray<AttributeData>),
+            attributes: default,
             accessibility: Accessibility.Public,
-            statements: default(ImmutableArray<SyntaxNode>));
+            statements: default);
 
         internal override bool TryGenerateProperty(
             SimpleNameSyntax propertyName,
