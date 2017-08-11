@@ -668,6 +668,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         private IOperation CreateBoundConversionOperation(BoundConversion boundConversion)
         {
             ConversionKind conversionKind = GetConversionKind(boundConversion.ConversionKind);
+            bool isImplicit = boundConversion.WasCompilerGenerated;
             if (boundConversion.ConversionKind == CSharp.ConversionKind.MethodGroup)
             {
                 IMethodSymbol method = boundConversion.SymbolOpt;
@@ -676,8 +677,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                 SyntaxNode syntax = boundConversion.Syntax;
                 ITypeSymbol type = boundConversion.Type;
                 Optional<object> constantValue = ConvertToOptional(boundConversion.ConstantValue);
-                bool isImplicit = boundConversion.WasCompilerGenerated;
-
                 return new LazyMethodBindingExpression(method, isVirtual, instance, method, _semanticModel, syntax, type, constantValue, isImplicit);
             }
             else
@@ -691,7 +690,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                 bool isChecked = conversion.IsNumeric && boundConversion.Checked;
                 ITypeSymbol type = boundConversion.Type;
                 Optional<object> constantValue = ConvertToOptional(boundConversion.ConstantValue);
-                bool isImplicit = boundConversion.WasCompilerGenerated;
                 return new LazyCSharpConversionExpression(operand, conversion, isExplicit, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
             }
         }
