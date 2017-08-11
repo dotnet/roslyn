@@ -163,8 +163,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 #Region "Feature Checking Extensions"
 
         ''' <summary>
-        ''' Check to see if the given <paramref name="feature"/> is available with the <see cref="LanguageVersion"/>
-        ''' of the parser.
+        ''' Check to see if the given <paramref name="feature"/> is available within the specific <see cref="LanguageVersion"/>
+        ''' used in the specified <paramref name="options"/> (<see cref="VisualBasicParseOptions"/>).
         ''' </summary>
         ''' <param name="feature">Language feature to check is available.</param>
         ''' <param name="options">The parse options being used.</param>
@@ -176,6 +176,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return required <= current
         End Function
 
+        ''' <summary>
+        ''' Check to see if a <paramref name="feature"/> is enable via <see cref="VisualBasicParseOptions.Features"/>.
+        ''' Via a feature flag.
+        ''' </summary>
+        ''' <param name="feature">Language feature to check is available.</param>
+        ''' <param name="options">The <see cref="VisualBasicParseOptions"/> to check.</param>
+        ''' <returns></returns>
         <Extension>
         Private Function CheckFeatures(feature As Feature, options As VisualBasicParseOptions) As Boolean
             Dim featureFlag = feature.GetFeatureFlag()
@@ -183,11 +190,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ''' <summary>Report the unavailability of a language feature.</summary>
-        ''' <typeparam name="TNode"></typeparam>
+        ''' <typeparam name="TNode">The <see cref="VisualBasicSyntaxNode"/> to use.</typeparam>
         ''' <param name="feature">Language feature to report as unavailable.</param>
         ''' <param name="options">The parse options being used.</param>
-        ''' <param name="node">The node to attach the diagnostic (Feature Unavailable).</param>
-        ''' <returns>Return the node with the diagnostic attached to it.</returns>
+        ''' <param name="node">The node to attach the diagnostic to, when feature is unavailable.</param>
+        ''' <returns>
+        ''' If Feature is unavaible return the <paramref name="node"/> with the unavailable diagnostic attached to it.</returns>
         <Extension>
         Friend Function ReportFeatureUnavailable(Of TNode As VisualBasicSyntaxNode)(feature As Feature, options As VisualBasicParseOptions, node As TNode) As TNode
             Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
@@ -196,9 +204,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ''' <summary>
-        ''' Check to see if the given <paramref name="feature"/> is available with the <see cref="LanguageVersion"/>
-        ''' of the parser.
+        ''' Check to see if the given <paramref name="feature"/> is available with the <paramref name="options"/>.
         ''' </summary>
+        ''' <remarks>
+        ''' Feature maybe enabled explicitly with a Feature Flag or enabled implicitly via a Language Version.
+        ''' </remarks>
         ''' <param name="feature">Language feature to check is available.</param>
         ''' <param name="options">The parse options being used.</param>
         <Extension>
@@ -207,9 +217,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ''' <summary>
-        '''  Check to see if the given <paramref name="feature"/> is available with the <see cref="LanguageVersion"/>
-        ''' of the parser.  If it is not available a diagnostic will be added to the returned value.
+        ''' Check to see if the given <paramref name="feature"/> is available with the <paramref name="options"/> being used.
+        ''' If unavailable the function return the node with an unavailable diagnostic attached to <paramref name="node"/>.
         ''' </summary>
+        ''' <returns>If <see cref="feature"/> is not available, returns node with unavailable diagnostic attached to it.</returns>
         ''' <param name="node">The node to attach the potential diagnostic (Feature Unavailable).</param>
         ''' <param name="feature">Language feature to check is available.</param>
         ''' <param name="options">The parse options being used.</param>
@@ -218,7 +229,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return If(feature.IsAvailable(options), node, feature.ReportFeatureUnavailable(options, node))
         End Function
 
-        ''' <summary>Returns false and reports an error if the feature is unavailable.</summary>
+        ''' <summary>
+        ''' Checks to see if <paramref name="feature"/> is avaible to use with the <paramref name="options"/>.
+        ''' If unavailable the function returns False and adds an unavailable diagnostic to the <paramref name="diagnostics"/> at <paramref name="location"/>.
+        ''' </summary>
+        ''' <returns>
+        '''  True: Feature is available.
+        ''' False: Feature is unavailable, and a unavailable diagnostic is add to <paramref name="diagnostics"/> at the <paramref name="location"/>.
+        ''' </returns>
         ''' <param name="feature">Language feature to check is available.</param>
         ''' <param name="options">The parse options being used.</param>
         ''' <param name="diagnostics">The diagnostics to which add this diagnostic.</param>
