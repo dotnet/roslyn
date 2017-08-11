@@ -1071,21 +1071,21 @@ End If]]>.Value,
         tk = ScanOnce(Str)
         Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
         Assert.Equal(LiteralBase.Hexadecimal, tk.GetBase())
-        Assert.Equal(&H1, tk.Value)
+        Assert.Equal(&H11L, tk.Value)
         Assert.Equal(" &H__1_1L ", tk.ToFullString())
 
         Str = " &B__1_1L "
         tk = ScanOnce(Str)
         Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
         Assert.Equal(LiteralBase.Binary, tk.GetBase())
-        Assert.Equal(&B11, tk.Value)
+        Assert.Equal(&B11L, tk.Value)
         Assert.Equal(" &B__1_1L ", tk.ToFullString())
 
         Str = " &O__1_1L "
         tk = ScanOnce(Str)
         Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
         Assert.Equal(LiteralBase.Octal, tk.GetBase())
-        Assert.Equal(&O11, tk.Value)
+        Assert.Equal(&O11L, tk.Value)
         Assert.Equal(" &O__1_1L ", tk.ToFullString())
 
         Str = " &H42L &H42& "
@@ -1309,6 +1309,15 @@ End If]]>.Value,
         Assert.Equal(1, errors.Count)
         Assert.Equal(36716, errors.First().Code)
         Assert.Equal(1, CInt(tk.Value))
+
+        Str = "&H_123_456_789_ABC_DEF_123"
+        tk = ScanOnce(Str, LanguageVersion.VisualBasic14)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        errors = tk.Errors()
+        Assert.Equal(2, errors.Count)
+        Assert.Equal(30036, errors.ElementAt(0).Code)
+        Assert.Equal(36716, errors.ElementAt(1).Code)
+        Assert.Equal(0, CInt(tk.Value))
     End Sub
 
     <Fact>
@@ -1809,5 +1818,18 @@ Module SyntaxDiagnosticInfoListExtensions
         Next
 
         Throw New InvalidOperationException()
+    End Function
+
+    <Extension>
+    Public Function ElementAt(list As SyntaxDiagnosticInfoList, index As Integer) As DiagnosticInfo
+        Dim i = 0
+        For Each v In list
+            If i = index Then
+                Return v
+            End If
+            i += 1
+        Next
+
+        Throw New IndexOutOfRangeException()
     End Function
 End Module

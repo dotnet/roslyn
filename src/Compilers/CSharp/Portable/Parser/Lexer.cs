@@ -971,15 +971,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 TextWindow.AdvanceChar();
             }
 
-            if (lastCharWasUnderscore && !firstCharWasUnderscore)
-            {
-                underscoreInWrongPlace = true;
-            }
-            else if (firstCharWasUnderscore)
+            if (firstCharWasUnderscore)
             {
                 CheckFeatureAvailability(MessageID.IDS_FeatureLeadingDigitSeparator);
                 // No need for cascading feature error
                 usedUnderscore = false;
+            }
+            else if (lastCharWasUnderscore)
+            {
+                underscoreInWrongPlace = true;
             }
         }
 

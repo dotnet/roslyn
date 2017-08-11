@@ -1696,7 +1696,7 @@ FullWidthRepeat:
                         IntegerLiteralStart = Here
                         Base = LiteralBase.Hexadecimal
 
-                        If (CanGet(Here) AndAlso Peek(Here) = "_"c) Then
+                        If CanGet(Here) AndAlso Peek(Here) = "_"c Then
                             LeadingUnderscoreUsed = True
                         End If
 
@@ -1717,7 +1717,7 @@ FullWidthRepeat:
                         IntegerLiteralStart = Here
                         Base = LiteralBase.Binary
 
-                        If (CanGet(Here) AndAlso Peek(Here) = "_"c) Then
+                        If CanGet(Here) AndAlso Peek(Here) = "_"c Then
                             LeadingUnderscoreUsed = True
                         End If
 
@@ -1738,7 +1738,7 @@ FullWidthRepeat:
                         IntegerLiteralStart = Here
                         Base = LiteralBase.Octal
 
-                        If (CanGet(Here) AndAlso Peek(Here) = "_"c) Then
+                        If CanGet(Here) AndAlso Peek(Here) = "_"c Then
                             LeadingUnderscoreUsed = True
                         End If
 
@@ -2095,7 +2095,9 @@ FullWidthRepeat2:
 
             If Overflows Then
                 result = DirectCast(result.AddError(ErrorFactory.ErrorInfo(ERRID.ERR_Overflow)), SyntaxToken)
-            ElseIf UnderscoreInWrongPlace Then
+            End If
+
+            If UnderscoreInWrongPlace Then
                 result = DirectCast(result.AddError(ErrorFactory.ErrorInfo(ERRID.ERR_Syntax)), SyntaxToken)
             ElseIf LeadingUnderscoreUsed Then
                 result = CheckFeatureAvailability(result, Feature.LeadingDigitSeparator)
@@ -2106,6 +2108,7 @@ FullWidthRepeat2:
             If Base = LiteralBase.Binary Then
                 result = CheckFeatureAvailability(result, Feature.BinaryLiterals)
             End If
+
             Return result
         End Function
 
