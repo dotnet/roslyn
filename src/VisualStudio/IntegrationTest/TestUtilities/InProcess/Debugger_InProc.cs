@@ -6,7 +6,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     internal class Debugger_InProc : InProcComponent
     {
-        private readonly Debugger _debugger;
+        private readonly EnvDTE.Debugger _debugger;
 
         private Debugger_InProc()
         {
