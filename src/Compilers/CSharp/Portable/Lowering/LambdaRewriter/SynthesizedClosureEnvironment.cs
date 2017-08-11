@@ -10,10 +10,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// A class that represents the set of variables in a scope that have been
-    /// captured by nested functions within that scope.
+    /// The synthesized type added to a compilation to hold captured variables for closures.
     /// </summary>
-    internal sealed class ClosureEnvironment : SynthesizedContainer, ISynthesizedMethodBodyImplementationSymbol
+    internal sealed class SynthesizedClosureEnvironment : SynthesizedContainer, ISynthesizedMethodBodyImplementationSymbol
     {
         private readonly MethodSymbol _topLevelMethod;
         internal readonly SyntaxNode ScopeSyntaxOpt;
@@ -25,13 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal readonly MethodSymbol OriginalContainingMethodOpt;
         internal readonly FieldSymbol SingletonCache;
         internal readonly MethodSymbol StaticConstructor;
-        public readonly IEnumerable<Symbol> CapturedVariables;
 
         public override TypeKind TypeKind { get; }
         internal override MethodSymbol Constructor { get; }
 
-        internal ClosureEnvironment(
-            IEnumerable<Symbol> capturedVariables,
+        internal SynthesizedClosureEnvironment(
             MethodSymbol topLevelMethod,
             MethodSymbol containingMethod,
             bool isStruct,
@@ -40,11 +37,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             DebugId closureId)
             : base(MakeName(scopeSyntaxOpt, methodId, closureId), containingMethod)
         {
-            CapturedVariables = capturedVariables;
             TypeKind = isStruct ? TypeKind.Struct : TypeKind.Class;
             _topLevelMethod = topLevelMethod;
             OriginalContainingMethodOpt = containingMethod;
-            Constructor = isStruct ? null : new LambdaFrameConstructor(this);
+            Constructor = isStruct ? null : new SynthesizedClosureEnvironmentConstructor(this);
             this.ClosureOrdinal = closureId.Ordinal;
 
             // static lambdas technically have the class scope so the scope syntax is null 

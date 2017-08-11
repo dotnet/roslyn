@@ -25,9 +25,6 @@
     <PackageReference Include="Microsoft.DiaSymReader">
       <Version>$(MicrosoftDiaSymReaderVersion)</Version>
     </PackageReference>
-    <PackageReference Include="Microsoft.DiaSymReader.Native">
-      <Version>$(MicrosoftDiaSymReaderNativeVersion)</Version>
-    </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.Elfie">
       <Version>$(MicrosoftCodeAnalysisElfieVersion)</Version>
     </PackageReference>

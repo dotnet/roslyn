@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _isThis = isThisParameter;
         }
 
-        public static LambdaCapturedVariable Create(ClosureEnvironment frame, Symbol captured, ref int uniqueId)
+        public static LambdaCapturedVariable Create(SynthesizedClosureEnvironment frame, Symbol captured, ref int uniqueId)
         {
             Debug.Assert(captured is LocalSymbol || captured is ParameterSymbol);
 
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)local != null)
             {
                 // if we're capturing a generic frame pointer, construct it with the new frame's type parameters
-                var lambdaFrame = local.Type.OriginalDefinition as ClosureEnvironment;
+                var lambdaFrame = local.Type.OriginalDefinition as SynthesizedClosureEnvironment;
                 if ((object)lambdaFrame != null)
                 {
                     // lambdaFrame may have less generic type parameters than frame, so trim them down (the first N will always match)
