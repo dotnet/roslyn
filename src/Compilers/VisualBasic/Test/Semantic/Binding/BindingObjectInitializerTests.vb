@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Linq.Enumerable
 Imports System.Xml.Linq
@@ -1244,8 +1244,6 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
                 Arguments(1):
                     IArgument (ArgumentKind.DefaultValue, Matching Parameter: p) (OperationKind.Argument) (Syntax: 'X')
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 23) (Syntax: 'X')
-                      InConversion: null
-                      OutConversion: null
             Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
 ]]>.Value
 
@@ -1293,16 +1291,12 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
                 Arguments(1):
                     IArgument (ArgumentKind.DefaultValue, Matching Parameter: p) (OperationKind.Argument) (Syntax: 'X')
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 23) (Syntax: 'X')
-                      InConversion: null
-                      OutConversion: null
             Right: IInvocationExpression ( Function C1.InstanceFunction(p As System.String) As System.String) (OperationKind.InvocationExpression, Type: System.String) (Syntax: '.InstanceFu ... on(.ROProp)')
                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C1() Wi ... n(.ROProp)}')
                 Arguments(1):
                     IArgument (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument) (Syntax: '.ROProp')
                       IPropertyReferenceExpression: ReadOnly Property C1.ROProp As System.String (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: '.ROProp')
                         Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C1() Wi ... n(.ROProp)}')
-                      InConversion: null
-                      OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1470,8 +1464,6 @@ IObjectCreationExpression (Constructor: Sub cust..ctor()) (OperationKind.ObjectC
                     Arguments(1):
                         IArgument (ArgumentKind.Explicit, Matching Parameter: arg) (OperationKind.Argument) (Syntax: 'a')
                           ILiteralExpression (Text: a) (OperationKind.LiteralExpression, Type: System.String, Constant: "a") (Syntax: 'a')
-                          InConversion: null
-                          OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

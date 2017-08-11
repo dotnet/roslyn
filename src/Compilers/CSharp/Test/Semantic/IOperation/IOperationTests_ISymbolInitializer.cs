@@ -326,8 +326,6 @@ IFieldInitializer (Field: System.Action C.e) (OperationKind.FieldInitializer) (S
     Arguments(1):
         IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
           ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-          InConversion: null
-          OutConversion: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -353,8 +351,6 @@ IFieldInitializer (Field: System.Action C.f) (OperationKind.FieldInitializer) (S
     Arguments(1):
         IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '2')
           ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
-          InConversion: null
-          OutConversion: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

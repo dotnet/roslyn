@@ -111,8 +111,6 @@ IOperation:  (OperationKind.None) (Syntax: 'From cust I ... t cust.Name')
                                 Children(1):
                                     IPropertyReferenceExpression: Property Customer.Name As System.String (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'cust.Name')
                                       Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'cust')
-                    InConversion: null
-                    OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -211,8 +209,6 @@ IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.Conve
                                     Children(1):
                                         IPropertyReferenceExpression: ReadOnly Property System.String.Length As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'y.Length')
                                           Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'y')
-                              InConversion: null
-                              OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -265,8 +261,6 @@ IOperation:  (OperationKind.None) (Syntax: 'From y In x ... nto Count()')
                                     IOperation:  (OperationKind.None) (Syntax: 'z = y')
                                       Children(1):
                                           IOperation:  (OperationKind.None) (Syntax: 'y')
-                    InConversion: null
-                    OutConversion: null
                   IArgument (ArgumentKind.DefaultValue, Matching Parameter: resultSelector) (OperationKind.Argument) (Syntax: 'Group By w  ... nto Count()')
                     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of <anonymous type: Key w As System.String(), Key z As System.String>, System.Collections.Generic.IEnumerable(Of System.String), <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) (Syntax: 'Group By w  ... nto Count()')
                       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -283,8 +277,6 @@ IOperation:  (OperationKind.None) (Syntax: 'From y In x ... nto Count()')
                                                 IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.String).Count() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Count()')
                                                   Instance Receiver: IParameterReferenceExpression: $VB$ItAnonymous (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.IEnumerable(Of System.String)) (Syntax: 'Group By w  ... nto Count()')
                                                   Arguments(0)
-                    InConversion: null
-                    OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

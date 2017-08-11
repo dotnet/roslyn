@@ -68,8 +68,6 @@ IInvocationExpression ( void Program.F(System.Int32 x)) (OperationKind.Invocatio
       IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'string.Empty')
         IFieldReferenceExpression: System.String System.String.Empty (Static) (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'string.Empty')
           Instance Receiver: null
-        InConversion: null
-        OutConversion: null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1503: Argument 1: cannot convert from 'string' to 'int'

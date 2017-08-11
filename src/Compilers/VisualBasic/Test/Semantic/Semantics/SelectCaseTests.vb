@@ -609,8 +609,6 @@ ISwitchStatement (2 cases) (OperationKind.SwitchStatement) (Syntax: 'Select Case
                       Arguments(1):
                           IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Failed"')
                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Failed") (Syntax: '"Failed"')
-                            InConversion: null
-                            OutConversion: null
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case Else ... Succeeded")')
           Clauses:
               IDefaultCaseClause (CaseKind.Default) (OperationKind.DefaultCaseClause) (Syntax: 'Case Else')
@@ -622,8 +620,6 @@ ISwitchStatement (2 cases) (OperationKind.SwitchStatement) (Syntax: 'Select Case
                       Arguments(1):
                           IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Succeeded"')
                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Succeeded") (Syntax: '"Succeeded"')
-                            InConversion: null
-                            OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

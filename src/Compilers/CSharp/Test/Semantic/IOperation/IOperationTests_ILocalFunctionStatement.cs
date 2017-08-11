@@ -151,8 +151,6 @@ ILocalFunctionStatement (Local Function: System.Int32 Local3(System.Int32 p1)) (
               Arguments(1):
                   IArgument (ArgumentKind.Explicit, Matching Parameter: p1) (OperationKind.Argument) (Syntax: 'p1')
                     IParameterReferenceExpression: p1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'p1')
-                    InConversion: null
-                    OutConversion: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -183,8 +181,6 @@ ILocalFunctionStatement (Local Function: System.Int32 Local(System.Int32 p1)) (O
                 IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + p1')
                   Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
                   Right: IParameterReferenceExpression: p1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'p1')
-                InConversion: null
-                OutConversion: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -222,8 +218,6 @@ ILocalFunctionStatement (Local Function: System.Threading.Tasks.Task<System.Int3
               Arguments(1):
                   IArgument (ArgumentKind.Explicit, Matching Parameter: millisecondsDelay) (OperationKind.Argument) (Syntax: '0')
                     ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-                    InConversion: null
-                    OutConversion: null
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return x + p1;')
       ReturnedValue: IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + p1')
           Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')

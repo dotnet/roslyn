@@ -27,12 +27,8 @@ IInvocationExpression ( Sub Program.M2(a As System.Int32, b As System.Double)) (
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument) (Syntax: '1')
         ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-        InConversion: null
-        OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument) (Syntax: '0.0')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 0) (Syntax: '0.0')
-        InConversion: null
-        OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -59,12 +55,8 @@ IInvocationExpression ( Sub Program.M2(a As System.Int32, [b As System.Double = 
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument) (Syntax: '1')
         ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-        InConversion: null
-        OutConversion: null
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: b) (OperationKind.Argument) (Syntax: 'M2')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 0) (Syntax: 'M2')
-        InConversion: null
-        OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -91,12 +83,8 @@ IInvocationExpression ( Sub Program.M2(a As System.Int32, [b As System.Double = 
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument) (Syntax: '1')
         ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-        InConversion: null
-        OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument) (Syntax: '1.0')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 1) (Syntax: '1.0')
-        InConversion: null
-        OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -123,12 +111,8 @@ IInvocationExpression ( Sub Program.M2(a As System.Int32, [b As System.Double = 
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument) (Syntax: '0')
         ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-        InConversion: null
-        OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument) (Syntax: '1.0')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 1) (Syntax: '1.0')
-        InConversion: null
-        OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -155,16 +139,10 @@ IInvocationExpression ( Sub Program.M2([a As System.Int32 = 0], [b As System.Dou
   Arguments(3):
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: a) (OperationKind.Argument) (Syntax: 'M2')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'M2')
-        InConversion: null
-        OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument) (Syntax: '1.0')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 1) (Syntax: '1.0')
-        InConversion: null
-        OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: c) (OperationKind.Argument) (Syntax: '2.0')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 2) (Syntax: '2.0')
-        InConversion: null
-        OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -191,16 +169,10 @@ IInvocationExpression ( Sub Program.M2([a As System.Int32 = 0], [b As System.Dou
   Arguments(3):
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: a) (OperationKind.Argument) (Syntax: 'M2')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'M2')
-        InConversion: null
-        OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument) (Syntax: '1.0')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 1) (Syntax: '1.0')
-        InConversion: null
-        OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: c) (OperationKind.Argument) (Syntax: '2.0')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 2) (Syntax: '2.0')
-        InConversion: null
-        OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -227,16 +199,10 @@ IInvocationExpression ( Sub Program.M2([a As System.Int32 = 0], [b As System.Dou
   Arguments(3):
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: a) (OperationKind.Argument) (Syntax: 'M2')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'M2')
-        InConversion: null
-        OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument) (Syntax: '2.0')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 2) (Syntax: '2.0')
-        InConversion: null
-        OutConversion: null
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: c) (OperationKind.Argument) (Syntax: 'M2')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 0) (Syntax: 'M2')
-        InConversion: null
-        OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -263,16 +229,10 @@ IInvocationExpression ( Sub Program.M2([a As System.Int32 = 0], [b As System.Dou
   Arguments(3):
       IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument) (Syntax: '1')
         ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-        InConversion: null
-        OutConversion: null
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: b) (OperationKind.Argument) (Syntax: 'M2')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 0) (Syntax: 'M2')
-        InConversion: null
-        OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: c) (OperationKind.Argument) (Syntax: '2.0')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 2) (Syntax: '2.0')
-        InConversion: null
-        OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -299,15 +259,12 @@ IInvocationExpression ( Sub Program.M2([ByRef a As System.Int32 = 0])) (Operatio
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument) (Syntax: '1')
         ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-        InConversion: null
-        OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
@@ -329,8 +286,6 @@ IInvocationExpression ( Sub Program.M2([ByRef a As System.Int32 = 0])) (Operatio
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument) (Syntax: 'x')
         ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-        InConversion: null
-        OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -359,12 +314,8 @@ IInvocationExpression ( Sub Program.M2([ByRef a As System.Int32 = 0], [ByRef b A
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument) (Syntax: 'x')
         ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-        InConversion: null
-        OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument) (Syntax: 'y')
         ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Double) (Syntax: 'y')
-        InConversion: null
-        OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -392,8 +343,6 @@ IInvocationExpression ( Sub Program.M2([ByRef a As System.Int32 = 0])) (Operatio
   Arguments(1):
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: a) (OperationKind.Argument) (Syntax: 'M2')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'M2')
-        InConversion: null
-        OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -422,8 +371,6 @@ IInvocationExpression ( Sub Program.M2([ByRef a As System.Int32 = 0])) (Operatio
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: '1.0')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 1) (Syntax: '1.0')
-        InConversion: null
-        OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -450,13 +397,9 @@ IInvocationExpression ( Sub Program.M2([ByRef a As System.Int32 = 0])) (Operatio
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M2')
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument) (Syntax: 'x')
+        InConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Double) (Syntax: 'x')
-        InConversion: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'x')
-            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand: IOperation:  (OperationKind.None) (Syntax: 'x')
-        OutConversion: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double) (Syntax: 'x')
-            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand: IPlaceholderExpression (OperationKind.PlaceholderExpression, Type: System.Int32) (Syntax: 'x')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -488,12 +431,8 @@ IInvocationExpression ( Sub P.E1([b As System.Int32 = 0], [c As System.Int32 = 0
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument) (Syntax: '1')
         ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-        InConversion: null
-        OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: c) (OperationKind.Argument) (Syntax: '2')
         ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
-        InConversion: null
-        OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -525,12 +464,8 @@ IInvocationExpression ( Sub P.E1([b As System.Int32 = 0], [c As System.Int32 = 0
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument) (Syntax: '2')
         ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
-        InConversion: null
-        OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: c) (OperationKind.Argument) (Syntax: '1')
         ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-        InConversion: null
-        OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -561,12 +496,8 @@ IInvocationExpression ( Sub P.M2(x As System.Int32, ParamArray y As System.Int32
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
         ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-        InConversion: null
-        OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'a')
         ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32()) (Syntax: 'a')
-        InConversion: null
-        OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -594,8 +525,6 @@ IInvocationExpression ( Sub P.M2(x As System.Int32, ParamArray y As System.Int32
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
         ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-        InConversion: null
-        OutConversion: null
       IArgument (ArgumentKind.ParamArray, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'M2(1, 2, 3)')
         IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'M2(1, 2, 3)')
           Dimension Sizes(1):
@@ -604,8 +533,6 @@ IInvocationExpression ( Sub P.M2(x As System.Int32, ParamArray y As System.Int32
               Element Values(2):
                   ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
                   ILiteralExpression (Text: 3) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
-        InConversion: null
-        OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -635,16 +562,12 @@ IInvocationExpression ( Sub P.M2(x As System.Int32, ParamArray y As System.Int32
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
         ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-        InConversion: null
-        OutConversion: null
       IArgument (ArgumentKind.ParamArray, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'M2(1)')
         IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'M2(1)')
           Dimension Sizes(1):
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'M2(1)')
           Initializer: IArrayInitializer (0 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(1)')
               Element Values(0)
-        InConversion: null
-        OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -835,5 +758,110 @@ BC30272: 'y' is not a parameter of 'Public Sub M2(x As Integer)'.
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub InOutConversion()
+            Dim source = <![CDATA[
+Class Program
+    Sub M1()
+        Dim x = 1.0
+        M2(x)'BIND:"M2(x)"
+    End Sub
+
+    Sub M2(ByRef Optional a As Integer = 0)
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IInvocationExpression ( Sub Program.M2([ByRef a As System.Int32 = 0])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(x)')
+  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M2')
+  Arguments(1):
+      IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument) (Syntax: 'x')
+        InConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Double) (Syntax: 'x')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub InOutConversionUserDefined()
+            Dim source = <![CDATA[
+Class C
+    Public Shared Widening Operator CType(ByVal c As C) As Integer
+        Return 0
+    End Operator
+
+
+    Public Shared Narrowing Operator CType(ByVal i As Integer) As C
+        Return New C()
+    End Operator
+End Class
+
+Class Program
+    Sub M1()
+        Dim x = New C()
+        M2(x)'BIND:"M2(x)"
+    End Sub
+
+    Sub M2(ByRef a As Integer)
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IInvocationExpression ( Sub Program.M2(ByRef a As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(x)')
+  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M2')
+  Arguments(1):
+      IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument) (Syntax: 'x')
+        InConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function C.op_Implicit(c As C) As System.Int32)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function C.op_Explicit(i As System.Int32) As C)
+        ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: C) (Syntax: 'x')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub InOutConversionUserDefinedMissingOperator()
+            Dim source = <![CDATA[
+Class C
+    Public Shared Widening Operator CType(ByVal c As C) As Integer
+        Return 0
+    End Operator
+End Class
+
+Class Program
+    Sub M1()
+        Dim x = New C()
+        M2(x)'BIND:"M2(x)"
+    End Sub
+
+    Sub M2(ByRef a As Integer)
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(x)')
+  Children(2):
+      IOperation:  (OperationKind.None) (Syntax: 'M2')
+      ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: C, IsInvalid) (Syntax: 'x')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC33037: Cannot copy the value of 'ByRef' parameter 'a' back to the matching argument because type 'Integer' cannot be converted to type 'C'.
+        M2(x)'BIND:"M2(x)"
+           ~
+]]>.Value
+            VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
     End Class
 End Namespace

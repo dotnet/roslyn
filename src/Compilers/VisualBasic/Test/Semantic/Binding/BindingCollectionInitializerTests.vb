@@ -1398,8 +1398,6 @@ IObjectCreationExpression (Constructor: Sub System.Collections.Generic.List(Of S
                   Arguments(1):
                       IArgument (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument) (Syntax: '0')
                         ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-                        InConversion: null
-                        OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

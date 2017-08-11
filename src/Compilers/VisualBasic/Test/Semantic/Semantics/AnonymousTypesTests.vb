@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -753,8 +753,6 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
         Arguments(1):
             IArgument (ArgumentKind.Explicit, Matching Parameter: key) (OperationKind.Argument, IsInvalid) (Syntax: 'x')
               ILiteralExpression (Text: x) (OperationKind.LiteralExpression, Type: System.String, Constant: "x", IsInvalid) (Syntax: 'x')
-              InConversion: null
-              OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

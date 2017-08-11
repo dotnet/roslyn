@@ -506,8 +506,6 @@ IInvocationExpression (virtual System.Boolean System.Object.Equals(System.Object
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <empty anonymous type>) (Syntax: 'new { }')
               Initializers(0)
-        InConversion: null
-        OutConversion: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
