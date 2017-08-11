@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        public override CommonConversion InConversion => default(CommonConversion);
+        public override Optional<CommonConversion> InConversion => default;
 
-        public override CommonConversion OutConversion => default(CommonConversion);
+        public override Optional<CommonConversion> OutConversion => default;
     }
 
     internal sealed partial class CSharpArgument : BaseCSharpArgument

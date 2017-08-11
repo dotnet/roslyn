@@ -26,11 +26,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Conversion applied to the argument value passing it into the target method. Applicable only to VB Reference arguments.
         /// </summary>
-        CommonConversion InConversion { get; }
+        Optional<CommonConversion> InConversion { get; }
         /// <summary>
         /// Conversion applied to the argument value after the invocation. Applicable only to VB Reference arguments.
         /// </summary>
-        CommonConversion OutConversion { get; }
+        Optional<CommonConversion> OutConversion { get; }
     }
 }
 

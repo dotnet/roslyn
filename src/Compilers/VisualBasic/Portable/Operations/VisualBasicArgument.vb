@@ -17,15 +17,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend ReadOnly Property OutConversionInternal As Conversion
 
-        Public Overrides ReadOnly Property InConversion As CommonConversion
+        Public Overrides ReadOnly Property InConversion As [Optional](Of CommonConversion)
             Get
-                Return InConversionInternal.ToCommonConversion()
+                Return If(InConversionInternal = Nothing, New [Optional](Of CommonConversion)(), InConversionInternal.ToCommonConversion())
             End Get
         End Property
 
-        Public Overrides ReadOnly Property OutConversion As CommonConversion
+        Public Overrides ReadOnly Property OutConversion As [Optional](Of CommonConversion)
             Get
-                Return OutConversionInternal.ToCommonConversion()
+                Return If(OutConversionInternal = Nothing, New [Optional](Of CommonConversion)(), OutConversionInternal.ToCommonConversion())
             End Get
         End Property
     End Class

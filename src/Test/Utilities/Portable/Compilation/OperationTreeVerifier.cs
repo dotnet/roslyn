@@ -623,15 +623,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
-            Indent();
-            LogConversion(operation.InConversion, "InConversion");
-            Unindent();
-            LogNewLine();
+            if (operation.InConversion.HasValue)
+            {
+                Indent();
+                LogConversion(operation.InConversion.Value, "InConversion");
+                Unindent();
+                LogNewLine();
+            }
 
-            Indent();
-            LogConversion(operation.OutConversion, "OutConversion");
-            Unindent();
-            LogNewLine();
+            if (operation.OutConversion.HasValue)
+            {
+                Indent();
+                LogConversion(operation.OutConversion.Value, "OutConversion");
+                Unindent();
+                LogNewLine();
+            }
 
             Visit(operation.Value);
         }

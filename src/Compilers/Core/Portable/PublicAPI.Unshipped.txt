@@ -345,8 +345,8 @@ Microsoft.CodeAnalysis.Semantics.IAnonymousObjectCreationExpression
 Microsoft.CodeAnalysis.Semantics.IAnonymousObjectCreationExpression.Initializers.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.Semantics.IArgument
 Microsoft.CodeAnalysis.Semantics.IArgument.ArgumentKind.get -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
-Microsoft.CodeAnalysis.Semantics.IArgument.InConversion.get -> Microsoft.CodeAnalysis.Semantics.CommonConversion
-Microsoft.CodeAnalysis.Semantics.IArgument.OutConversion.get -> Microsoft.CodeAnalysis.Semantics.CommonConversion
+Microsoft.CodeAnalysis.Semantics.IArgument.InConversion.get -> Microsoft.CodeAnalysis.Optional<Microsoft.CodeAnalysis.Semantics.CommonConversion>
+Microsoft.CodeAnalysis.Semantics.IArgument.OutConversion.get -> Microsoft.CodeAnalysis.Optional<Microsoft.CodeAnalysis.Semantics.CommonConversion>
 Microsoft.CodeAnalysis.Semantics.IArgument.Parameter.get -> Microsoft.CodeAnalysis.IParameterSymbol
 Microsoft.CodeAnalysis.Semantics.IArgument.Value.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IArrayCreationExpression
