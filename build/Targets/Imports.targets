@@ -462,7 +462,7 @@
     </PropertyGroup>
   </Target>
 
-  <Target Name="BeforeBuild" Condition="'$(OS)' == 'Windows_NT'">
+  <Target Name="BeforeBuild" Condition="'$(MSBuildRuntimeType)' != 'Core'">
     <ValidateBuildEnvironment
       MSBuildBinPath="$(MSBuildBinPath)"
       MSBuildMinimumFileVersion="15.1.1012"

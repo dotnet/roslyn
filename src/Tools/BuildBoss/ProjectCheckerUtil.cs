@@ -62,6 +62,7 @@ namespace BuildBoss
                 allGood &= CheckProjectReferences(textWriter);
                 allGood &= CheckPackageReferences(textWriter);
                 allGood &= CheckDeploymentSettings(textWriter);
+                // allGood &= CheckTargetFrameworks(textWriter);
             }
 
             return allGood;
@@ -425,6 +426,32 @@ namespace BuildBoss
             }
 
             return true;
+        }
+
+        private bool CheckTargetFrameworks(TextWriter textWriter)
+        {
+            var allGood = true;
+            foreach (var targetFramework in _projectUtil.GetAllTargetFrameworks())
+            {
+                switch (targetFramework)
+                {
+                    case "net20":
+                    case "net461":
+                    case "net462":
+                    case "netstandard1.3":
+                    case "netcoreapp1.1":
+                    case "netcoreapp2.0":
+                    case "$(RoslynPortableTargetFrameworks)":
+                        break;
+                    default:
+                        textWriter.WriteLine($"TargetFramework {targetFramework} is not supported in this build");
+                        allGood = false;
+                        break;
+                }
+
+            }
+
+            return allGood;
         }
     }
 }

@@ -19,7 +19,7 @@
     <UseRoslynAnalyzers Condition="!Exists('$(NuGetPackageRoot)\Microsoft.CodeQuality.Analyzers\$(RoslynDiagnosticsNugetPackageVersion)\analyzers\dotnet\cs\Analyzer.Utilities.dll')">False</UseRoslynAnalyzers>
     <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)/microsoft.net.roslyndiagnostics/$(RoslynDiagnosticsNugetPackageVersion)/roslyn/Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
     <RoslynRuntimeIdentifier Condition="'$(RoslynRuntimeIdentifier)' == '' AND '$(OS)' == 'Windows_NT'">win7-x64</RoslynRuntimeIdentifier>
-    <RoslynPortableTargetFrameworks>net46;netcoreapp2.0</RoslynPortableTargetFrameworks>
+    <RoslynPortableTargetFrameworks>net461;netcoreapp2.0</RoslynPortableTargetFrameworks>
  
     <Features>strict,IOperation</Features>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
