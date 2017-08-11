@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             if (!tree.IsEntirelyWithinCrefSyntax(position, cancellationToken))
             {
-                return (default(SyntaxToken), null, ImmutableArray<ISymbol>.Empty);
+                return (default, null, ImmutableArray<ISymbol>.Empty);
             }
 
             var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDocumentationComments: true)
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             _testSpeculativeNodeCallbackOpt?.Invoke(parentNode);
             if (parentNode == null)
             {
-                return (default(SyntaxToken), null, ImmutableArray<ISymbol>.Empty);
+                return (default, null, ImmutableArray<ISymbol>.Empty);
             }
 
             var semanticModel = await document.GetSemanticModelForNodeAsync(
