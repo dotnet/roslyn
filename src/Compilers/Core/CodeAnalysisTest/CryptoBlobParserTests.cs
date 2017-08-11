@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class CryptoBlobParserTests : TestBase
     {
-        const int HEADER_LEN = 20;
-        const int MOD_LEN = 128;
-        const int HALF_LEN = 64;
+        private const int HEADER_LEN = 20;
+        private const int MOD_LEN = 128;
+        private const int HALF_LEN = 64;
 
         [Fact]
         public void GetPrivateKeyFromKeyPair()

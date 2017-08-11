@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// Can be either a PUBLICKEYBLOB or PRIVATEKEYBLOB. The BLOB must be unencrypted.
         /// </remarks>
-        public unsafe static bool TryParseKey(ImmutableArray<byte> blob, out ImmutableArray<byte> snKey, out RSAParameters? privateKey)
+        public static bool TryParseKey(ImmutableArray<byte> blob, out ImmutableArray<byte> snKey, out RSAParameters? privateKey)
         {
             privateKey = null;
             snKey = default(ImmutableArray<byte>);

@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             _modules = moduleBuilder.ToImmutableAndFree()
 
             If Not compilation.Options.CryptoPublicKey.IsEmpty Then
-                ' FEATURE: Private key should likely not be null.
+                ' PROTOTYPE: Private key should likely not be null.
                 _lazyStrongNameKeys = StrongNameKeys.Create(compilation.Options.CryptoPublicKey, Nothing, MessageProvider.Instance)
             End If
         End Sub
