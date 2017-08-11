@@ -563,15 +563,15 @@ class Program
                 // (11,30): error CS8168: Cannot return local 'local' by reference because it is not a ref local
                 //             return ref M(ref local);
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(11, 30),
-                // (11,24): error CS8164: Cannot return by reference a result of 'Program.M(ref int)' because the argument passed to parameter 'x' cannot be returned by reference
+                // (11,24): error CS8521: Cannot use a result of 'Program.M(ref int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //             return ref M(ref local);
-                Diagnostic(ErrorCode.ERR_RefReturnCall, "M(ref local)").WithArguments("Program.M(ref int)", "x").WithLocation(11, 24),
+                Diagnostic(ErrorCode.ERR_EscapeCall, "M(ref local)").WithArguments("Program.M(ref int)", "x").WithLocation(11, 24),
                 // (15,31): error CS8168: Cannot return local 'local' by reference because it is not a ref local
                 //             return ref M1(out local).Alice;
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(15, 31),
-                // (15,24): error CS8165: Cannot return by reference a member of result of 'Program.M1(out int)' because the argument passed to parameter 'x' cannot be returned by reference
+                // (15,24): error CS8522: Cannot use a member of result of 'Program.M1(out int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //             return ref M1(out local).Alice;
-                Diagnostic(ErrorCode.ERR_RefReturnCall2, "M1(out local)").WithArguments("Program.M1(out int)", "x").WithLocation(15, 24)
+                Diagnostic(ErrorCode.ERR_EscapeCall2, "M1(out local)").WithArguments("Program.M1(out int)", "x").WithLocation(15, 24)
             );
         }
 
@@ -598,9 +598,9 @@ class Program
                 // (8,25): error CS8168: Cannot return local 'local' by reference because it is not a ref local
                 //         return ref this[local];
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(8, 25),
-                // (8,20): error CS8164: Cannot return by reference a result of 'Program.this[in int]' because the argument passed to parameter 'x' cannot be returned by reference
+                // (8,20): error CS8521: Cannot use a result of 'Program.this[in int]' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         return ref this[local];
-                Diagnostic(ErrorCode.ERR_RefReturnCall, "this[local]").WithArguments("Program.this[in int]", "x").WithLocation(8, 20)
+                Diagnostic(ErrorCode.ERR_EscapeCall, "this[local]").WithArguments("Program.this[in int]", "x").WithLocation(8, 20)
             );
         }
 
@@ -625,9 +625,9 @@ class Program
                 // (6,25): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         return ref this[42];
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "42").WithLocation(6, 25),
-                // (6,20): error CS8164: Cannot return by reference a result of 'Program.this[in int]' because the argument passed to parameter 'x' cannot be returned by reference
+                // (6,20): error CS8521: Cannot use a result of 'Program.this[in int]' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         return ref this[42];
-                Diagnostic(ErrorCode.ERR_RefReturnCall, "this[42]").WithArguments("Program.this[in int]", "x").WithLocation(6, 20)
+                Diagnostic(ErrorCode.ERR_EscapeCall, "this[42]").WithArguments("Program.this[in int]", "x").WithLocation(6, 20)
             );
         }
 
@@ -705,9 +705,9 @@ class Program
                 // (6,22): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         return ref M(42);
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "42").WithLocation(6, 22),
-                // (6,20): error CS8164: Cannot return by reference a result of 'Program.M(in int)' because the argument passed to parameter 'x' cannot be returned by reference
+                // (6,20): error CS8521: Cannot use a result of 'Program.M(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         return ref M(42);
-                Diagnostic(ErrorCode.ERR_RefReturnCall, "M(42)").WithArguments("Program.M(in int)", "x").WithLocation(6, 20)
+                Diagnostic(ErrorCode.ERR_EscapeCall, "M(42)").WithArguments("Program.M(in int)", "x").WithLocation(6, 20)
             );
         }
 
@@ -729,9 +729,9 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,20): error CS8164: Cannot return by reference a result of 'Program.M(in int)' because the argument passed to parameter 'x' cannot be returned by reference
+                // (6,20): error CS8521: Cannot use a result of 'Program.M(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         return ref M();
-                Diagnostic(ErrorCode.ERR_RefReturnCall, "M()").WithArguments("Program.M(in int)", "x").WithLocation(6, 20)
+                Diagnostic(ErrorCode.ERR_EscapeCall, "M()").WithArguments("Program.M(in int)", "x").WithLocation(6, 20)
             );
         }
 
@@ -757,9 +757,9 @@ class Program
                 // (7,22): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         return ref M(b);
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "b").WithLocation(7, 22),
-                // (7,20): error CS8164: Cannot return by reference a result of 'Program.M(in int)' because the argument passed to parameter 'x' cannot be returned by reference
+                // (7,20): error CS8521: Cannot use a result of 'Program.M(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         return ref M(b);
-                Diagnostic(ErrorCode.ERR_RefReturnCall, "M(b)").WithArguments("Program.M(in int)", "x").WithLocation(7, 20)
+                Diagnostic(ErrorCode.ERR_EscapeCall, "M(b)").WithArguments("Program.M(in int)", "x").WithLocation(7, 20)
             );
         }
     }

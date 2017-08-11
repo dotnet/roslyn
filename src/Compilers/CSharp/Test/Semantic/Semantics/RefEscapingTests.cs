@@ -49,12 +49,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 // (21,40): error CS8168: Cannot return local 'local' by reference because it is not a ref local
                 //             return ref Test1(Test2(ref local));
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(21, 40),
-                // (21,30): error CS8164: Cannot return by reference a result of 'Program.Test2(ref int)' because the argument passed to parameter 'arg' cannot be returned by reference
+                // (21,30): error CS8521: Cannot use a result of 'Program.Test2(ref int)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
                 //             return ref Test1(Test2(ref local));
-                Diagnostic(ErrorCode.ERR_RefReturnCall, "Test2(ref local)").WithArguments("Program.Test2(ref int)", "arg").WithLocation(21, 30),
-                // (21,24): error CS8164: Cannot return by reference a result of 'Program.Test1(Program.S1)' because the argument passed to parameter 'arg' cannot be returned by reference
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Test2(ref local)").WithArguments("Program.Test2(ref int)", "arg").WithLocation(21, 30),
+                // (21,24): error CS8521: Cannot use a result of 'Program.Test1(Program.S1)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
                 //             return ref Test1(Test2(ref local));
-                Diagnostic(ErrorCode.ERR_RefReturnCall, "Test1(Test2(ref local))").WithArguments("Program.Test1(Program.S1)", "arg").WithLocation(21, 24)
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Test1(Test2(ref local))").WithArguments("Program.Test1(Program.S1)", "arg").WithLocation(21, 24)
             );
         }
 
@@ -91,9 +91,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (22,30): error CS8156: An expression cannot be used in this context because it may not be returned by reference
+                // (22,30): error CS8520: Cannot use local 'sp' in this context because it may expose referenced variables outside of their declaration scope 
                 //             return ref Test1(sp);
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "sp").WithLocation(22, 30)
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "sp").WithArguments("sp").WithLocation(22, 30)
             );
         }
 
@@ -138,9 +138,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (30,30): error CS8156: An expression cannot be used in this context because it may not be returned by reference
+                // (30,30): error CS8520: Cannot use local 'sp' in this context because it may expose referenced variables outside of their declaration scope 
                 //             return ref Test1(sp);
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "sp").WithLocation(30, 30),
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "sp").WithArguments("sp").WithLocation(30, 30),
                 // (27,13): warning CS1717: Assignment made to same variable; did you mean to assign something else?
                 //             sp = sp;
                 Diagnostic(ErrorCode.WRN_AssignmentToSelf, "sp = sp").WithLocation(27, 13)
@@ -179,12 +179,62 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (21,30): error CS8164: Cannot return by reference a result of 'Program.Test2(in int)' because the argument passed to parameter 'arg' cannot be returned by reference
+                // (21,30): error CS8521: Cannot use a result of 'Program.Test2(in int)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
                 //             return ref Test1(Test2());
-                Diagnostic(ErrorCode.ERR_RefReturnCall, "Test2()").WithArguments("Program.Test2(in int)", "arg").WithLocation(21, 30),
-                // (21,24): error CS8164: Cannot return by reference a result of 'Program.Test1(Program.S1)' because the argument passed to parameter 'arg' cannot be returned by reference
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Test2()").WithArguments("Program.Test2(in int)", "arg").WithLocation(21, 30),
+                // (21,24): error CS8521: Cannot use a result of 'Program.Test1(Program.S1)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
                 //             return ref Test1(Test2());
-                Diagnostic(ErrorCode.ERR_RefReturnCall, "Test1(Test2())").WithArguments("Program.Test1(Program.S1)", "arg").WithLocation(21, 24)
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Test1(Test2())").WithArguments("Program.Test1(Program.S1)", "arg").WithLocation(21, 24)
+            );
+        }
+
+        [Fact()]
+        public void SimpleRefLikeScopeEscape()
+        {
+            var text = @"
+    class Program
+    {
+        static void Main()
+        {
+            S1 x = default;
+
+            int outer = 1;
+
+            {
+                int inner = 1;
+
+                // valid
+                x = Test1(ref outer);
+    
+                // error
+                x = Test1(ref inner);
+            }
+        }
+
+        static S1 Test1(ref int arg)
+        {
+            return default;
+        }
+
+        ref struct S1
+        {
+        }
+    }
+";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (14,31): error CS8168: Cannot return local 'outer' by reference because it is not a ref local
+                //                 x = Test1(ref outer);
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "outer").WithArguments("outer").WithLocation(14, 31),
+                // (14,21): error CS8521: Cannot use a result of 'Program.Test1(ref int)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
+                //                 x = Test1(ref outer);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Test1(ref outer)").WithArguments("Program.Test1(ref int)", "arg").WithLocation(14, 21),
+                // (17,31): error CS8168: Cannot return local 'inner' by reference because it is not a ref local
+                //                 x = Test1(ref inner);
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "inner").WithArguments("inner").WithLocation(17, 31),
+                // (17,21): error CS8521: Cannot use a result of 'Program.Test1(ref int)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
+                //                 x = Test1(ref inner);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Test1(ref inner)").WithArguments("Program.Test1(ref int)", "arg").WithLocation(17, 21)
+
             );
         }
     }

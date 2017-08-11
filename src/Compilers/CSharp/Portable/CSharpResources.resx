@@ -4841,12 +4841,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RefReturnCall" xml:space="preserve">
     <value>Cannot return by reference a result of '{0}' because the argument passed to parameter '{1}' cannot be returned by reference</value>
   </data>
-  <data name="ERR_RefReturnCall2" xml:space="preserve">
-    <value>Cannot return by reference a member of result of '{0}' because the argument passed to parameter '{1}' cannot be returned by reference</value>
-  </data>
-  <data name="ERR_RefReturnParameter" xml:space="preserve">
-    <value>Cannot return a parameter by reference '{0}' because it is not a ref or out parameter</value>
-  </data>
   <data name="ERR_RefReturnParameter2" xml:space="preserve">
     <value>Cannot return a member of parameter '{0}' by reference because it is not a ref or out parameter</value>
   </data>
@@ -4856,11 +4850,20 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RefReturnLocal2" xml:space="preserve">
     <value>Cannot return a member of local '{0}' by reference because it is not a ref local</value>
   </data>
-  <data name="ERR_RefReturnReceiver" xml:space="preserve">
-    <value>Cannot return '{0}' by reference because its receiver may not be returned by reference</value>
-  </data>
   <data name="ERR_RefReturnStructThis" xml:space="preserve">
     <value>Struct members cannot return 'this' or other instance members by reference</value>
+  </data>
+  <data name="ERR_EscapeOther" xml:space="preserve">
+    <value>Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope </value>
+  </data>
+  <data name="ERR_EscapeLocal" xml:space="preserve">
+    <value>Cannot use local '{0}' in this context because it may expose referenced variables outside of their declaration scope </value>
+  </data>
+  <data name="ERR_EscapeCall" xml:space="preserve">
+    <value>Cannot use a result of '{0}' in this context because it may expose variables referenced by parameter '{1}' outside of their declaration scope</value>
+  </data>
+  <data name="ERR_EscapeCall2" xml:space="preserve">
+    <value>Cannot use a member of result of '{0}' in this context because it may expose variables referenced by parameter '{1}' outside of their declaration scope</value>
   </data>
   <data name="ERR_InitializeByValueVariableWithReference" xml:space="preserve">
     <value>Cannot initialize a by-value variable with a reference</value>

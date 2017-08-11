@@ -1411,8 +1411,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefReturnReadonlyStatic = 8161,
         ERR_RefReturnReadonly2 = 8162,
         ERR_RefReturnReadonlyStatic2 = 8163,
-        ERR_RefReturnCall = 8164,
-        ERR_RefReturnCall2 = 8165,
+        //ERR_RefReturnCall = 8164,
+        //ERR_RefReturnCall2 = 8165,
         ERR_RefReturnParameter = 8166,
         ERR_RefReturnParameter2 = 8167,
         ERR_RefReturnLocal = 8168,
@@ -1526,5 +1526,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadSpecialByRefIterator = 8518,
         ERR_FieldAutoPropCantBeByRefLike = 8519,
         ERR_StackAllocConversionNotPossible = 8520,
+
+        ERR_EscapeCall = 8521,
+        ERR_EscapeCall2 = 8522,
+        ERR_EscapeOther = 8523,
+        ERR_EscapeLocal = 8524,
     }
 }

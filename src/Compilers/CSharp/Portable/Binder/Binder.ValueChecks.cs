@@ -497,8 +497,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            // TODO: VS NYI, escaping scope
-            throw ExceptionUtilities.Unreachable;
+            Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, localSymbol);
+            return false;
         }
 
         private bool CheckParameterValueKind(SyntaxNode node, BoundParameter parameter, BindValueKind valueKind, bool checkingReceiver, DiagnosticBag diagnostics)
@@ -949,7 +949,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (!valid)
                     {
-                        var errorCode = checkingReceiver ? ErrorCode.ERR_RefReturnCall2 : ErrorCode.ERR_RefReturnCall;
+                        ErrorCode errorCode = GetStandardCallEscapeError(checkingReceiver);
                         var paramIndex = argToParamsOpt.IsDefault ? argIndex : argToParamsOpt[argIndex];
                         var parameterName = parameters[paramIndex].Name;
                         Error(diagnostics, errorCode, syntax, symbol, parameterName);
@@ -972,7 +972,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (parameter.RefKind == RefKind.RefReadOnly && inParametersMatchedWithArgs?[i] != true)
                     {
                         // unmatched "in" parameter is an RValue 
-                        var errorCode = checkingReceiver ? ErrorCode.ERR_RefReturnCall2 : ErrorCode.ERR_RefReturnCall;
+                        var errorCode = GetStandardCallEscapeError(checkingReceiver);
                         var parameterName = parameters[i].Name;
                         Error(diagnostics, errorCode, syntax, symbol, parameterName);
 
@@ -984,6 +984,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             inParametersMatchedWithArgs?.Free();
             return true;
+        }
+
+        private static ErrorCode GetStandardCallEscapeError(bool checkingReceiver)
+        {
+            return checkingReceiver ? ErrorCode.ERR_EscapeCall2 : ErrorCode.ERR_EscapeCall;
         }
 
         private static uint GetInvocationEscape(
@@ -1204,7 +1209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ErrorCode.ERR_RefReturnLvalueExpected;
             }
 
-            throw ExceptionUtilities.UnexpectedValue(escapeTo);
+            return ErrorCode.ERR_EscapeOther;
         }
         
         private static void ReportReadOnlyFieldError(FieldSymbol field, SyntaxNode node, BindValueKind kind, bool checkingReceiver, DiagnosticBag diagnostics)
@@ -1669,10 +1674,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 case BoundKind.Local:
-                    if (((BoundLocal)expr).LocalSymbol.ValEscapeScope > escapeTo)
+                    var localSymbol = ((BoundLocal)expr).LocalSymbol;
+                    if (localSymbol.ValEscapeScope > escapeTo)
                     {
-                        //TODO: VS right error
-                        Error(diagnostics, GetStandardRValueRefEscapeError(escapeTo), node);
+                        Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, localSymbol);
                     }
                     return true;
 
@@ -1680,7 +1685,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var conditional = (BoundConditionalOperator)expr;
 
                     // byref conditional defers to its operands
-                    // TODO: VS when do we do with no-mixing? 
                     return CheckValEscape(conditional.Consequence.Syntax, conditional.Consequence, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics) &
                            CheckValEscape(conditional.Alternative.Syntax, conditional.Alternative, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
@@ -1762,9 +1766,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return escape;
             }
 
-            // At this point we should have covered all the possible cases for anything that is not a strict RValue.
-            Error(diagnostics, GetStandardRValueRefEscapeError(escapeTo), node);
-            return false;
+            // At this point we should have covered all the possible cases for anything that may return its operands.
+            //TODO: VS can we scan for value operands generically?
+            return true;
         }
 
         internal static uint GetValEscape(BoundExpression expr, uint scopeOfTheContainingExpression)
@@ -1868,8 +1872,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //TODO: VS other exprs with operands - binary, unary, parenthesized?, etc...
             }
 
-            // At this point we should have covered all the possible cases for anything that is not a strict RValue.
-            return scopeOfTheContainingExpression;
+            // At this point we should have covered all the possible cases for anything that may return its operands.
+            //TODO: VS can we scan for value operands generically?
+            return Binder.ExternalScope;
         }
 
     }
