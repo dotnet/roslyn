@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IOperation VisitLockStatement(ILockStatement operation, object argument)
         {
-            return new LockStatement(Visit(operation.LockedObject), Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
+            return new LockStatement(Visit(operation.Expression), Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
         }
 
         public override IOperation VisitTryStatement(ITryStatement operation, object argument)

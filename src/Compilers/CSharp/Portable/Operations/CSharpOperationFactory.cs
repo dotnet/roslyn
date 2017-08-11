@@ -1219,12 +1219,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private ILockStatement CreateBoundLockStatementOperation(BoundLockStatement boundLockStatement)
         {
-            Lazy<IOperation> lockedObject = new Lazy<IOperation>(() => Create(boundLockStatement.Argument));
+            Lazy<IOperation> expression = new Lazy<IOperation>(() => Create(boundLockStatement.Argument));
             Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundLockStatement.Body));
             SyntaxNode syntax = boundLockStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyLockStatement(lockedObject, body, _semanticModel, syntax, type, constantValue);
+            return new LazyLockStatement(expression, body, _semanticModel, syntax, type, constantValue);
         }
 
         private IInvalidStatement CreateBoundBadStatementOperation(BoundBadStatement boundBadStatement)
