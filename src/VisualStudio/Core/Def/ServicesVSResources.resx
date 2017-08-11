@@ -234,6 +234,9 @@
   <data name="Error_while_reading_0_colon_1" xml:space="preserve">
     <value>Error while reading '{0}': {1}</value>
   </data>
+  <data name="ErrorReadingFile" xml:space="preserve">
+    <value>Error while reading a file</value>
+  </data>
   <data name="Assembly" xml:space="preserve">
     <value>Assembly </value>
   </data>
@@ -961,5 +964,11 @@ Additional information: {1}</value>
   </data>
   <data name="Prefer_local_function_over_anonymous_function" xml:space="preserve">
     <value>Prefere local function over anonymous function</value>
+  </data>
+  <data name="ModuleHasBeenUnloaded" xml:space="preserve">
+    <value>Module has been unloaded.</value>
+  </data>
+  <data name="CantApplyChangesModuleHasBeenUnloaded" xml:space="preserve">
+    <value>Can't apply changes -- module '{0}' has been unloaded.</value>
   </data>
 </root>
