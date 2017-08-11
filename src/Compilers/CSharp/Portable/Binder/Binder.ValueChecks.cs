@@ -911,6 +911,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool CheckInvocationEscape(
             SyntaxNode syntax,
             Symbol symbol,
+            BoundExpression receiverOpt,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> args,
             ImmutableArray<RefKind> argRefKinds,
@@ -920,8 +921,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             uint escapeTo,
             DiagnosticBag diagnostics)
         {
-            //TODO: VS ref-like receiver
-
             ArrayBuilder<bool> inParametersMatchedWithArgs = null;
 
             // check all arguments that are not passed by value
@@ -981,8 +980,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-
             inParametersMatchedWithArgs?.Free();
+
+            // check receiver if ref-like
+            if (receiverOpt?.Type?.IsByRefLikeType == true)
+            {
+                return CheckValEscape(receiverOpt.Syntax, receiverOpt, escapeFrom, escapeTo, false, diagnostics);
+            }
+
             return true;
         }
 
@@ -992,14 +997,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static uint GetInvocationEscape(
+            BoundExpression receiverOpt,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> args,
             ImmutableArray<RefKind> argRefKinds,
             ImmutableArray<int> argToParamsOpt,
             uint scopeOfTheContainingExpression)
         {
-            //TODO: VS ref-like receiver
-
             ArrayBuilder<bool> inParametersMatchedWithArgs = null;
 
             //by default it is safe to escape
@@ -1059,6 +1063,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             inParametersMatchedWithArgs?.Free();
+
+            // check receiver if ref-like
+            if (receiverOpt?.Type?.IsByRefLikeType == true)
+            {
+                return GetValEscape(receiverOpt, scopeOfTheContainingExpression);
+            }
+
             return escapeScope;
         }
 
@@ -1417,6 +1428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CheckInvocationEscape(
                         call.Syntax,
                         methodSymbol,
+                        call.ReceiverOpt,
                         methodSymbol.Parameters,
                         call.Arguments,
                         call.ArgumentRefKindsOpt,
@@ -1438,6 +1450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CheckInvocationEscape(
                         indexerAccess.Syntax,
                         indexerSymbol,
+                        indexerAccess.ReceiverOpt,
                         indexerSymbol.Parameters,
                         indexerAccess.Arguments,
                         indexerAccess.ArgumentRefKindsOpt,
@@ -1460,6 +1473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CheckInvocationEscape(
                         propertyAccess.Syntax,
                         propertySymbol,
+                        propertyAccess.ReceiverOpt,
                         default,
                         default,
                         default,
@@ -1603,6 +1617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     return GetInvocationEscape(
+                        call.ReceiverOpt,
                         methodSymbol.Parameters,
                         call.Arguments,
                         call.ArgumentRefKindsOpt,
@@ -1614,6 +1629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var indexerSymbol = indexerAccess.Indexer;
 
                     return GetInvocationEscape(
+                        indexerAccess.ReceiverOpt,
                         indexerSymbol.Parameters,
                         indexerAccess.Arguments,
                         indexerAccess.ArgumentRefKindsOpt,
@@ -1626,6 +1642,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // not passing any arguments/parameters
                     return GetInvocationEscape(
+                        propertyAccess.ReceiverOpt,
                         default,
                         default,
                         default,
@@ -1704,6 +1721,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CheckInvocationEscape(
                         call.Syntax,
                         methodSymbol,
+                        call.ReceiverOpt,
                         methodSymbol.Parameters,
                         call.Arguments,
                         call.ArgumentRefKindsOpt,
@@ -1720,6 +1738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CheckInvocationEscape(
                         indexerAccess.Syntax,
                         indexerSymbol,
+                        indexerAccess.ReceiverOpt,
                         indexerSymbol.Parameters,
                         indexerAccess.Arguments,
                         indexerAccess.ArgumentRefKindsOpt,
@@ -1737,6 +1756,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CheckInvocationEscape(
                         propertyAccess.Syntax,
                         propertySymbol,
+                        propertyAccess.ReceiverOpt,
                         default,
                         default,
                         default,
@@ -1753,6 +1773,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var escape = CheckInvocationEscape(
                         objectCreation.Syntax,
                         constructorSymbol,
+                        null,
                         constructorSymbol.Parameters,
                         objectCreation.Arguments,
                         objectCreation.ArgumentRefKindsOpt,
@@ -1823,6 +1844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var methodSymbol = call.Method;
 
                     return GetInvocationEscape(
+                        call.ReceiverOpt,
                         methodSymbol.Parameters,
                         call.Arguments,
                         call.ArgumentRefKindsOpt,
@@ -1834,6 +1856,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var indexerSymbol = indexerAccess.Indexer;
 
                     return GetInvocationEscape(
+                        indexerAccess.ReceiverOpt,
                         indexerSymbol.Parameters,
                         indexerAccess.Arguments,
                         indexerAccess.ArgumentRefKindsOpt,
@@ -1846,6 +1869,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // not passing any arguments/parameters
                     return GetInvocationEscape(
+                        propertyAccess.ReceiverOpt,
                         default,
                         default,
                         default,
@@ -1857,6 +1881,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var constructorSymbol = objectCreation.Constructor;
 
                     var escape = GetInvocationEscape(
+                        null,
                         constructorSymbol.Parameters,
                         objectCreation.Arguments,
                         objectCreation.ArgumentRefKindsOpt,
