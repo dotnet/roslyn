@@ -1391,9 +1391,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var conditional = (BoundConditionalOperator)expr;
 
                     // byref conditional defers to its operands
-                    // TODO: VS when do we do with no-mixing? 
                     if (conditional.IsByRef &&
-                        (CheckRefEscape(conditional.Consequence.Syntax, conditional.Consequence, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics) &
+                        (CheckRefEscape(conditional.Consequence.Syntax, conditional.Consequence, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics) &&
                          CheckRefEscape(conditional.Alternative.Syntax, conditional.Alternative, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics)))
                     {
                         return true;
@@ -1565,7 +1564,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var conditional = (BoundConditionalOperator)expr;
 
                     // byref conditional defers to its operands
-                    // TODO: VS when do we do with no-mixing? 
                     if (conditional.IsByRef)
                     {
                         return Math.Max(GetRefEscape(conditional.Consequence, scopeOfTheContainingExpression),
@@ -1701,8 +1699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expr;
 
-                    // byref conditional defers to its operands
-                    return CheckValEscape(conditional.Consequence.Syntax, conditional.Consequence, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics) &
+                    return CheckValEscape(conditional.Consequence.Syntax, conditional.Consequence, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics) &&
                            CheckValEscape(conditional.Alternative.Syntax, conditional.Alternative, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
                 case BoundKind.FieldAccess:
@@ -1783,12 +1780,46 @@ namespace Microsoft.CodeAnalysis.CSharp
                         escapeTo,
                         diagnostics);
 
-                    //TODO: VS handle object initializers. (no neeed to worry about collection init, the obj must be IEnumerable)
+                    //PROTOTYPE(span):  handle object initializers. (no neeed to worry about collection init, the obj must be IEnumerable)
                     return escape;
+
+                //PROTOTYPE(span): add tests for the following cases
+
+                case BoundKind.UnaryOperator:
+                    var unary = (BoundUnaryOperator)expr;
+                    return CheckValEscape(node, unary.Operand, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+
+                case BoundKind.Conversion:
+                    var conversion = (BoundConversion)expr;
+                    return CheckValEscape(node, conversion.Operand, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+
+                case BoundKind.AssignmentOperator:
+                    var assignment = (BoundAssignmentOperator)expr;
+                    return CheckValEscape(node, assignment.Right, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+
+                case BoundKind.IncrementOperator:
+                    var increment = (BoundIncrementOperator)expr;
+                    return CheckValEscape(node, increment.Operand, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+
+                case BoundKind.CompoundAssignmentOperator:
+                    var compound = (BoundCompoundAssignmentOperator)expr;
+
+                    return CheckValEscape(compound.Left.Syntax, compound.Left, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics) &&
+                           CheckValEscape(compound.Right.Syntax, compound.Right, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+
+                case BoundKind.BinaryOperator:
+                    var binary = (BoundBinaryOperator)expr;
+
+                    return CheckValEscape(binary.Left.Syntax, binary.Left, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics) &&
+                           CheckValEscape(binary.Right.Syntax, binary.Right, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+
+                    //TODO: VS __refvalue. It is not possible to __makeref(span), but it is allowed to do __refvalue(tr, Span), perhaps it shoudl not be allowed, looks like a bug.
+
+                    //PROTOTYPE(span): handle remaining expressions with operands - ...
+                    //      Note that requirement that the result is ref-like makes many cases, like array access or tuple literals not applicable.
             }
 
             // At this point we should have covered all the possible cases for anything that may return its operands.
-            //TODO: VS can we scan for value operands generically?
             return true;
         }
 
@@ -1888,17 +1919,42 @@ namespace Microsoft.CodeAnalysis.CSharp
                         objectCreation.ArgsToParamsOpt,
                         scopeOfTheContainingExpression);
 
-                    //TODO: VS handle object initializers. (no neeed to worry about collection init, the obj must be IEnumerable)
+                    //PROTOTYPE(span): handle object initializers. (no neeed to worry about collection init, the obj must be IEnumerable)
                     return escape;
 
+                //PROTOTYPE(span): add tests for the following cases
 
-                    //TODO: __refvalue. It is not possible to __makeref(span), but it is allowed to do __refvalue(tr, Span), perhaps it shoudl not be allowed, looks like a bug.
+                case BoundKind.UnaryOperator:
+                    return GetValEscape(((BoundUnaryOperator)expr).Operand, scopeOfTheContainingExpression);
 
-                    //TODO: VS other exprs with operands - binary, unary, parenthesized?, etc...
+                case BoundKind.Conversion:
+                    return GetValEscape(((BoundConversion)expr).Operand, scopeOfTheContainingExpression);
+
+                case BoundKind.AssignmentOperator:
+                    return GetValEscape(((BoundAssignmentOperator)expr).Right, scopeOfTheContainingExpression);
+
+                case BoundKind.IncrementOperator:
+                    return GetValEscape(((BoundIncrementOperator)expr).Operand, scopeOfTheContainingExpression);
+
+                case BoundKind.CompoundAssignmentOperator:
+                    var compound = (BoundCompoundAssignmentOperator)expr;
+
+                    return Math.Max(GetValEscape(compound.Left, scopeOfTheContainingExpression),
+                                    GetValEscape(compound.Right, scopeOfTheContainingExpression));
+
+                case BoundKind.BinaryOperator:
+                    var binary = (BoundBinaryOperator)expr;
+
+                    return Math.Max(GetValEscape(binary.Left, scopeOfTheContainingExpression),
+                                    GetValEscape(binary.Right, scopeOfTheContainingExpression));
+
+                    //TODO: VS __refvalue. It is not possible to __makeref(span), but it is allowed to do __refvalue(tr, Span), perhaps it shoudl not be allowed, looks like a bug.
+
+                    //PROTOTYPE(span): handle remaining expressions with operands - ...
+                    //      Note that requirement that the result is ref-like makes many cases, like array access or tuple literals not applicable.
             }
 
             // At this point we should have covered all the possible cases for anything that may return its operands.
-            //TODO: VS can we scan for value operands generically?
             return Binder.ExternalScope;
         }
 
