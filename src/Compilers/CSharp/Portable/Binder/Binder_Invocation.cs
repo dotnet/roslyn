@@ -682,32 +682,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // If we call an unconstructed generic local function with a dynamic argument, we need to
-            // dynamically dispatch the call (as the function must be constructed at runtime).
-            // Check for the situation where a dynamic argument influences a type parameter,
-            // and disallow it.
+            // If we call an unconstructed generic local function with a dynamic argument in
+            // a place where it influences the type parameters, we need to dynamically dispatch the call
+            // (as the function must be constructed at runtime). We cannot do that, so disallow that.
+            // However, doing a specific analysis of each argument and its corresponding parameter
+            // to check if it's generic (and allow dynamic in non-generic parameters) may break
+            // overload resolution in the future, if we ever allow overloaded local functions.
+            // So, just disallow any mixing of dynamic and inferred generics.
+            // (Explicitly-provided generic arguments are fine)
             if (boundMethodGroup.TypeArgumentsOpt.IsDefaultOrEmpty && localFunction.IsGenericMethod)
             {
-                var originalLocalFunction = localFunction.OriginalDefinition;
-                for (int i = 0; i < args.Length; ++i)
-                {
-                    var argument = args[i];
-                    var parameter = originalLocalFunction.Parameters[methodResult.ParameterFromArgument(i)];
-                    if (argument.HasDynamicType() &&
-                        parameter.Type.ContainsTypeParameter(parameterContainer: originalLocalFunction))
-                    {
-                        Error(diagnostics,
-                            ErrorCode.ERR_DynamicLocalFunctionTypeParameter,
-                            syntax, parameter.Name, localFunction.Name);
-                        return BindDynamicInvocation(
-                            syntax,
-                            boundMethodGroup,
-                            resolution.AnalyzedArguments,
-                            resolution.OverloadResolutionResult.GetAllApplicableMembers(),
-                            diagnostics,
-                            queryClause);
-                    }
-                }
+                Error(diagnostics,
+                    ErrorCode.ERR_DynamicLocalFunctionTypeParameter,
+                    syntax, localFunction.Name);
+                return BindDynamicInvocation(
+                    syntax,
+                    boundMethodGroup,
+                    resolution.AnalyzedArguments,
+                    resolution.OverloadResolutionResult.GetAllApplicableMembers(),
+                    diagnostics,
+                    queryClause);
             }
 
             return BindInvocationExpressionContinued(
