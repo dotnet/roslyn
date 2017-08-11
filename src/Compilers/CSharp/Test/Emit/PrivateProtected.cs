@@ -452,5 +452,51 @@ public class Container
                 .VerifyDiagnostics(
                 );
         }
+
+        [Fact]
+        public void VerifyPrivateProtectedIL()
+        {
+            var text = @"
+class Program
+{
+    private protected void M() {}
+    private protected int F;
+}
+";
+            var verifier = CompileAndVerify(
+                text,
+                parseOptions: TestOptions.Regular7_2,
+                expectedSignatures: new[]
+                {
+                    Signature("Program", "M", ".method famandassem hidebysig instance System.Void M() cil managed"),
+                    Signature("Program", "F", ".field famandassem instance System.Int32 F"),
+                });
+        }
+
+        [Fact]
+        public void VerifyPartialPartsMatch()
+        {
+            var source =
+@"class Outer
+{
+    private protected partial class Inner {}
+    private           partial class Inner {}
+}";
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
+                .VerifyDiagnostics(
+                // (3,37): error CS0262: Partial declarations of 'Outer.Inner' have conflicting accessibility modifiers
+                //     private protected partial class Inner {}
+                Diagnostic(ErrorCode.ERR_PartialModifierConflict, "Inner").WithArguments("Outer.Inner").WithLocation(3, 37)
+                );
+            source =
+@"class Outer
+{
+    private protected partial class Inner {}
+    private protected partial class Inner {}
+}";
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
+                .VerifyDiagnostics(
+                );
+        }
     }
 }

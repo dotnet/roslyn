@@ -990,11 +990,18 @@ Public MustInherit Class PublicClass
     Friend Sub InternalMethod()
         System.Console.Write(""Hello"")
     End Sub
+    Protected Friend Sub ProtectedFriendMethod()
+        System.Console.Write(""Hello"")
+    End Sub
+    Private Protected Sub PrivateProtectedMethod()
+        System.Console.Write(""Hello"")
+    End Sub
     Public MustOverride Sub AbstractMethod()
     Public Event PublicEvent As System.Action
     Friend Event InternalEvent As System.Action
 End Class"
             Dim comp As Compilation = CreateCompilation(source, references:={MscorlibRef},
+                            parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5),
                             options:=TestOptions.DebugDll.WithDeterministic(True))
 
             Dim verifier = CompileAndVerify(comp, emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True), verify:=True)
@@ -1012,7 +1019,10 @@ End Class"
                 {"PublicClass.PublicEventEvent As System.Action", "PublicClass.InternalEventEvent As System.Action",
                     "Sub PublicClass..ctor()", "Sub PublicClass.PublicMethod()",
                     "Sub PublicClass.PrivateMethod()", "Sub PublicClass.ProtectedMethod()",
-                    "Sub PublicClass.InternalMethod()", "Sub PublicClass.AbstractMethod()",
+                    "Sub PublicClass.InternalMethod()",
+                    "Sub PublicClass.ProtectedFriendMethod()",
+                    "Sub PublicClass.PrivateProtectedMethod()",
+                    "Sub PublicClass.AbstractMethod()",
                     "Sub PublicClass.add_PublicEvent(obj As System.Action)", "Sub PublicClass.remove_PublicEvent(obj As System.Action)",
                     "Sub PublicClass.add_InternalEvent(obj As System.Action)", "Sub PublicClass.remove_InternalEvent(obj As System.Action)",
                     "Event PublicClass.PublicEvent As System.Action", "Event PublicClass.InternalEvent As System.Action"},
@@ -1041,7 +1051,10 @@ End Class"
                 {"PublicClass.PublicEventEvent As System.Action", "PublicClass.InternalEventEvent As System.Action",
                     "Sub PublicClass..ctor()", "Sub PublicClass.PublicMethod()",
                     "Sub PublicClass.PrivateMethod()", "Sub PublicClass.ProtectedMethod()",
-                    "Sub PublicClass.InternalMethod()", "Sub PublicClass.AbstractMethod()",
+                    "Sub PublicClass.InternalMethod()",
+                    "Sub PublicClass.ProtectedFriendMethod()",
+                    "Sub PublicClass.PrivateProtectedMethod()",
+                    "Sub PublicClass.AbstractMethod()",
                     "Sub PublicClass.add_PublicEvent(obj As System.Action)", "Sub PublicClass.remove_PublicEvent(obj As System.Action)",
                     "Sub PublicClass.add_InternalEvent(obj As System.Action)", "Sub PublicClass.remove_InternalEvent(obj As System.Action)",
                     "Event PublicClass.PublicEvent As System.Action", "Event PublicClass.InternalEvent As System.Action"},
@@ -1070,7 +1083,9 @@ End Class"
 
             AssertEx.SetEqual(
                 {"Sub PublicClass..ctor()", "Sub PublicClass.PublicMethod()",
-                    "Sub PublicClass.ProtectedMethod()", "Sub PublicClass.AbstractMethod()",
+                    "Sub PublicClass.ProtectedMethod()",
+                    "Sub PublicClass.ProtectedFriendMethod()",
+                    "Sub PublicClass.AbstractMethod()",
                     "Sub PublicClass.add_PublicEvent(obj As System.Action)", "Sub PublicClass.remove_PublicEvent(obj As System.Action)",
                     "Event PublicClass.PublicEvent As System.Action"},
                 compWithRef.GetMember(Of NamedTypeSymbol)("PublicClass").GetMembers().

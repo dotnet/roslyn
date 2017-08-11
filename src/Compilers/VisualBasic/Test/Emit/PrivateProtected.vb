@@ -561,6 +561,63 @@ BC36716: Visual Basic 15.0 does not support Private Protected.
             ~~~~~~~~~
 </errors>)
         End Sub
+
+        <Fact>
+        Public Sub VerifyPrivateProtectedIL()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Public Class Program
+    Private Protected Sub M() : End Sub
+    Private Protected F As Integer
+End Class
+]]>
+                             </file>
+                         </compilation>
+            CompileAndVerify(source,
+                             parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5),
+                             expectedSignatures:=
+                             {
+                                Signature("Program", "M", ".method famandassem instance System.Void M() cil managed"),
+                                Signature("Program", "F", ".field famandassem instance System.Int32 F")
+                             })
+        End Sub
+
+        <Fact>
+        Public Sub VerifyPartialPartsMatch()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Public Class Outer
+    Private Protected Partial Class Inner : End Class
+    Private           Partial Class Inner : End Class
+End Class
+]]>
+                             </file>
+                         </compilation>
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+                    source,
+                    parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<errors>
+</errors>)
+            source = <compilation>
+                         <file name="a.vb">
+                             <![CDATA[
+Public Class Outer
+    Private Protected Partial Class Inner : End Class
+    Private Protected Partial Class Inner : End Class
+End Class
+]]>
+                         </file>
+                     </compilation>
+            compilation = CreateCompilationWithMscorlibAndVBRuntime(
+                    source,
+                    parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<errors>
+</errors>)
+        End Sub
     End Class
 End Namespace
 

@@ -1562,11 +1562,14 @@ public class PublicClass
     private void PrivateMethod() { System.Console.Write(""Hello""); }
     protected void ProtectedMethod() { System.Console.Write(""Hello""); }
     internal void InternalMethod() { System.Console.Write(""Hello""); }
+    protected internal void ProtectedInternalMethod() { }
+    private protected void PrivateProtectedMethod() { }
     public event System.Action PublicEvent;
     internal event System.Action InternalEvent;
 }
 ";
             CSharpCompilation comp = CreateCompilation(source, references: new[] { MscorlibRef },
+                parseOptions: TestOptions.Regular7_2,
                 options: TestOptions.DebugDll.WithDeterministic(true));
 
             // verify metadata (types, members, attributes) of the regular assembly
@@ -1582,6 +1585,7 @@ public class PublicClass
             AssertEx.Equal(
                 new[] { "void PublicClass.PublicMethod()", "void PublicClass.PrivateMethod()",
                     "void PublicClass.ProtectedMethod()", "void PublicClass.InternalMethod()",
+                    "void PublicClass.ProtectedInternalMethod()", "void PublicClass.PrivateProtectedMethod()",
                     "void PublicClass.PublicEvent.add", "void PublicClass.PublicEvent.remove",
                     "void PublicClass.InternalEvent.add", "void PublicClass.InternalEvent.remove",
                     "PublicClass..ctor()",
@@ -1609,6 +1613,7 @@ public class PublicClass
             AssertEx.Equal(
                 new[] { "void PublicClass.PublicMethod()", "void PublicClass.PrivateMethod()",
                     "void PublicClass.ProtectedMethod()", "void PublicClass.InternalMethod()",
+                    "void PublicClass.ProtectedInternalMethod()", "void PublicClass.PrivateProtectedMethod()",
                     "void PublicClass.PublicEvent.add", "void PublicClass.PublicEvent.remove",
                     "void PublicClass.InternalEvent.add", "void PublicClass.InternalEvent.remove",
                     "PublicClass..ctor()",
@@ -1636,6 +1641,7 @@ public class PublicClass
 
             AssertEx.Equal(
                 new[] { "void PublicClass.PublicMethod()", "void PublicClass.ProtectedMethod()",
+                    "void PublicClass.ProtectedInternalMethod()",
                     "void PublicClass.PublicEvent.add", "void PublicClass.PublicEvent.remove",
                     "PublicClass..ctor()", "event System.Action PublicClass.PublicEvent"},
                 compWithRef.GetMember<NamedTypeSymbol>("PublicClass").GetMembers().Select(m => m.ToTestDisplayString()));
