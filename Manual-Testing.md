@@ -47,7 +47,7 @@ Critical IDE features in the areas of **Typing**, **Navigating**, and **Viewing*
 | **Typing** | **General Typing**<br />- Type and paste new constructs<br />- Nothing interferes with verbatim typing | | | |
 | | **Completion**<br />- Typing new keyword/construct names<br />- Dotting off of new constructs<br />- Matching part of the identifier is highlighted (including word prefix matches) [VS2015 Update 1+]<br />- Target type preselection [VS2017+]<br />IntelliSense filtering [VS2017+] | | | |
 | | **Formatting** <br />- Spacing in and around new constructs<br />- Spacing options<br />- Format Document command<br /> `Tools > Options` settings should be respected | | | |
-| | **Automatic Brace Completion** (*C# only*) <br />- Auto-insert close brace<br />- Shift+Enter commit of IntelliSense and any pending brace completion sessions (Known issue: https://github.com/dotnet/roslyn/issues/18065) | | | ? |
+| | **Automatic Brace Completion** (*C# only*) <br />- Auto-insert close brace<br />- Shift+Enter commit of IntelliSense and any pending brace completion sessions (Known issue: https://github.com/dotnet/roslyn/issues/18065) | | | N/A |
 | | **Indentation** <br />- Typing `Enter` in an unfinished statement indents the next line | | | |
 | **Navigating** | **Go To Definition** <br />- F12 from callsites to definition | | | |
 | | **Go To Implementation** <br />- Ctrl+F12 to jump from virtual members to their implementations<br />- Jump from inheritable types to their implementations | | | N/A |
