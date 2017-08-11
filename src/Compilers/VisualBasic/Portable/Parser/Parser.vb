@@ -181,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 result = SyntaxFactory.GlobalName(DirectCast(CurrentToken, KeywordSyntax))
 
                 If isNameInNamespaceDeclaration Then
-                    result = result.CheckFeatureAvailable(Feature.GlobalNamespace, Options)
+                    result = result.CheckFeatureAvailability(Feature.GlobalNamespace, Options)
                 End If
 
                 GetNextToken()
@@ -655,10 +655,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Debug.Assert(Not _hadLineContinuationComment OrElse _hadImplicitLineContinuation)
                 If _hadImplicitLineContinuation Then
                     Dim original = statementSyntax
-                    statementSyntax = statementSyntax.CheckFeatureAvailable(Feature.LineContinuation, Options)
+                    statementSyntax = statementSyntax.CheckFeatureAvailability(Feature.LineContinuation, Options)
 
                     If original Is statementSyntax AndAlso _hadLineContinuationComment Then
-                        statementSyntax = statementSyntax.CheckFeatureAvailable(Feature.LineContinuationComments, Options)
+                        statementSyntax = statementSyntax.CheckFeatureAvailability(Feature.LineContinuationComments, Options)
                     End If
                 End If
 
@@ -902,10 +902,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Debug.Assert(Not _hadLineContinuationComment OrElse _hadImplicitLineContinuation)
                 If _hadImplicitLineContinuation Then
                     Dim original = statementSyntax
-                    statementSyntax = statementSyntax.CheckFeatureAvailable(Feature.LineContinuation, Options)
+                    statementSyntax = statementSyntax.CheckFeatureAvailability(Feature.LineContinuation, Options)
 
                     If original Is statementSyntax AndAlso _hadLineContinuationComment Then
-                        statementSyntax = statementSyntax.CheckFeatureAvailable(Feature.LineContinuationComments, Options)
+                        statementSyntax = statementSyntax.CheckFeatureAvailability(Feature.LineContinuationComments, Options)
                     End If
                 End If
 
@@ -1622,7 +1622,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim statement As TypeStatementSyntax = InternalSyntaxFactory.TypeStatement(kind, attributes, modifiers, typeKeyword, ident, optionalTypeParameters)
 
             If (kind = SyntaxKind.ModuleStatement OrElse kind = SyntaxKind.InterfaceStatement) AndAlso statement.Modifiers.Any(SyntaxKind.PartialKeyword) Then
-                statement = statement.CheckFeatureAvailable(If(kind = SyntaxKind.ModuleStatement, Feature.PartialModules, Feature.PartialInterfaces), Options)
+                statement = statement.CheckFeatureAvailability(If(kind = SyntaxKind.ModuleStatement, Feature.PartialModules, Feature.PartialInterfaces), Options)
             End If
 
             Return statement
@@ -2051,7 +2051,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                    SyntaxFacts.CanStartSpecifierDeclaration(nextToken.Kind) Then
 
                                     t = possibleKeyword
-                                    t = t.CheckFeatureAvailable(If(possibleKeyword.Kind = SyntaxKind.AsyncKeyword, Feature.AsyncExpressions, Feature.Iterators), Options)
+                                    t = t.CheckFeatureAvailability(If(possibleKeyword.Kind = SyntaxKind.AsyncKeyword, Feature.AsyncExpressions, Feature.Iterators), Options)
                                     Exit Select
                                 End If
 
@@ -2575,7 +2575,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function ParseObjectCollectionInitializer(fromKeyword As KeywordSyntax) As ObjectCollectionInitializerSyntax
             Debug.Assert(fromKeyword IsNot Nothing)
 
-            fromKeyword = fromKeyword.CheckFeatureAvailable(Feature.CollectionInitializers, Options)
+            fromKeyword = fromKeyword.CheckFeatureAvailability(Feature.CollectionInitializers, Options)
 
             ' Allow implicit line continuation after FROM (dev10_508839) but only if followed by "{". 
             ' This is to avoid reporting an error at the beginning of then next line and then skipping the next statement.
@@ -3040,7 +3040,7 @@ checkNullable:
 
             Dim tupleType = SyntaxFactory.TupleType(openParen, tupleElements, closeParen)
 
-            tupleType = tupleType.CheckFeatureAvailable(Feature.Tuples, Options)
+            tupleType = tupleType.CheckFeatureAvailability(Feature.Tuples, Options)
             Return tupleType
         End Function
 
@@ -4236,10 +4236,10 @@ checkNullable:
                 If peek.Kind <> SyntaxKind.GetKeyword AndAlso peek.Kind <> SyntaxKind.SetKeyword Then
                     If Context.BlockKind <> SyntaxKind.InterfaceBlock AndAlso Not propertyStatement.Modifiers.Any(SyntaxKind.MustOverrideKeyword) Then
                         Dim originalStatement = propertyStatement
-                        propertyStatement = propertyStatement.CheckFeatureAvailable(Feature.AutoProperties, Options)
+                        propertyStatement = propertyStatement.CheckFeatureAvailability(Feature.AutoProperties, Options)
 
                         If propertyStatement Is originalStatement AndAlso propertyStatement.Modifiers.Any(SyntaxKind.ReadOnlyKeyword) Then
-                            propertyStatement = propertyStatement.CheckFeatureAvailable(Feature.ReadonlyAutoProperties, Options)
+                            propertyStatement = propertyStatement.CheckFeatureAvailability(Feature.ReadonlyAutoProperties, Options)
                         End If
                     End If
                 End If
@@ -4358,7 +4358,7 @@ checkNullable:
                 Dim optionalVarianceModifier As KeywordSyntax = Nothing
 
                 If CurrentToken.Kind = SyntaxKind.InKeyword Then
-                    optionalVarianceModifier = DirectCast(CurrentToken, KeywordSyntax).CheckFeatureAvailable(Feature.CoContraVariance, Options)
+                    optionalVarianceModifier = DirectCast(CurrentToken, KeywordSyntax).CheckFeatureAvailability(Feature.CoContraVariance, Options)
                     GetNextToken()
 
                 Else
@@ -4376,7 +4376,7 @@ checkNullable:
                             name = id
                             optionalVarianceModifier = Nothing
                         Else
-                            outKeyword = outKeyword.CheckFeatureAvailable(Feature.CoContraVariance, Options)
+                            outKeyword = outKeyword.CheckFeatureAvailability(Feature.CoContraVariance, Options)
                             optionalVarianceModifier = outKeyword
                         End If
                     End If

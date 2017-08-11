@@ -2090,10 +2090,10 @@ FullWidthRepeat2:
             End If
 
             If UnderscoreUsed Then
-                result = result.CheckFeatureAvailable(Feature.DigitSeparators, Options)
+                result = result.CheckFeatureAvailability(Feature.DigitSeparators, Options)
             End If
             If Base = LiteralBase.Binary Then
-                result = result.CheckFeatureAvailable(Feature.BinaryLiterals, Options)
+                result = result.CheckFeatureAvailability(Feature.BinaryLiterals, Options)
             End If
 
             Return result
@@ -2445,7 +2445,7 @@ FullWidthRepeat2:
                 Dim result = MakeDateLiteralToken(precedingTrivia, DateTimeValue, Here)
 
                 If yearIsFirst Then
-                    result = result.CheckFeatureAvailable(Feature.YearFirstDateLiterals, Options)
+                    result = result.CheckFeatureAvailability(Feature.YearFirstDateLiterals, Options)
                 End If
 
                 Return result
@@ -2546,7 +2546,7 @@ baddate:
                     Dim result As SyntaxToken = SyntaxFactory.StringLiteralToken(spelling, GetScratchText(scratch), precedingTrivia.Node, followingTrivia.Node)
 
                     If haveNewLine Then
-                        result = result.CheckFeatureAvailable(Feature.MultilineStringLiterals, Options)
+                        result = result.CheckFeatureAvailability(Feature.MultilineStringLiterals, Options)
                     End If
 
                     Return result

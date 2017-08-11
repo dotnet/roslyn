@@ -416,7 +416,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     If start.Kind = SyntaxKind.QuestionToken AndAlso CanStartConsequenceExpression(Me.PeekToken(1).Kind, qualified:=False) Then
                         ' This looks like ?. or ?! 
 
-                        Dim qToken = DirectCast(start, PunctuationSyntax).CheckFeatureAvailable(Feature.NullPropagatingOperator, Options)
+                        Dim qToken = DirectCast(start, PunctuationSyntax).CheckFeatureAvailability(Feature.NullPropagatingOperator, Options)
 
                         GetNextToken()
                         term = SyntaxFactory.ConditionalAccessExpression(term, qToken, ParsePostFixExpression(RedimOrNewParent, term:=Nothing))
@@ -481,7 +481,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ElseIf [Next].Kind = SyntaxKind.QuestionToken AndAlso CanStartConsequenceExpression(Me.PeekToken(1).Kind, qualified:=True) Then
                     ' This looks like ?. ?! or ?(
 
-                    Dim qToken = DirectCast([Next], PunctuationSyntax).CheckFeatureAvailable(Feature.NullPropagatingOperator, Options)
+                    Dim qToken = DirectCast([Next], PunctuationSyntax).CheckFeatureAvailability(Feature.NullPropagatingOperator, Options)
 
                     GetNextToken()
 
@@ -668,7 +668,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function ParseNameOf() As NameOfExpressionSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.NameOfKeyword, "should be at NameOf.")
 
-            Dim [nameOf] As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax).CheckFeatureAvailable(Feature.NameOfExpressions, Options)
+            Dim [nameOf] As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax).CheckFeatureAvailability(Feature.NameOfExpressions, Options)
 
             GetNextToken()
 
@@ -945,7 +945,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 operatorToken = DirectCast(current, KeywordSyntax)
 
                 If operatorToken.Kind = SyntaxKind.IsNotKeyword Then
-                    operatorToken = operatorToken.CheckFeatureAvailable(Feature.TypeOfIsNot, Options)
+                    operatorToken = operatorToken.CheckFeatureAvailability(Feature.TypeOfIsNot, Options)
                 End If
 
                 GetNextToken()
@@ -1299,7 +1299,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim arguments = argumentBuilder.ToList
             _pool.Free(argumentBuilder)
 
-            Dim tupleExpression = SyntaxFactory.TupleExpression(openParen, arguments, closeParen).CheckFeatureAvailable(Feature.Tuples, Options)
+            Dim tupleExpression = SyntaxFactory.TupleExpression(openParen, arguments, closeParen).CheckFeatureAvailability(Feature.Tuples, Options)
             Return tupleExpression
         End Function
 
@@ -1801,7 +1801,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
 
             If isMultiLine Then
-                value = value.CheckFeatureAvailable(Feature.StatementLambdas, Options)
+                value = value.CheckFeatureAvailability(Feature.StatementLambdas, Options)
             End If
 
             Return value

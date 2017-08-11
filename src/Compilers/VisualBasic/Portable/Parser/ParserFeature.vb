@@ -163,8 +163,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 #Region "Feature Checking Extensions"
 
         ''' <summary>
-        ''' Check to see if the given <paramref name="feature"/> is available within the specific <see cref="LanguageVersion"/>
-        ''' used in the specified <paramref name="options"/> (<see cref="VisualBasicParseOptions"/>).
+        ''' Check to see if a language <paramref name="feature"/> is available with the <see cref="LanguageVersion"/>
+        ''' specified in the <paramref name="options"/> (<see cref="VisualBasicParseOptions"/>).
         ''' </summary>
         ''' <param name="feature">Language feature to check is available.</param>
         ''' <param name="options">The parse options being used.</param>
@@ -177,7 +177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ''' <summary>
-        ''' Check to see if a <paramref name="feature"/> is enable via <see cref="VisualBasicParseOptions.Features"/>.
+        ''' Check to see if a language <paramref name="feature"/> is enabled via <see cref="VisualBasicParseOptions.Features"/>.
         ''' Via a feature flag.
         ''' </summary>
         ''' <param name="feature">Language feature to check is available.</param>
@@ -204,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ''' <summary>
-        ''' Check to see if the given <paramref name="feature"/> is available with the <paramref name="options"/>.
+        ''' Check to see if a language <paramref name="feature"/> is available with these <paramref name="options"/>.
         ''' </summary>
         ''' <remarks>
         ''' Feature maybe enabled explicitly with a Feature Flag or enabled implicitly via a Language Version.
@@ -217,7 +217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ''' <summary>
-        ''' Check to see if the given <paramref name="feature"/> is available with the <paramref name="options"/> being used.
+        ''' Check to see if a language <paramref name="feature"/> is available with the <paramref name="options"/> being used.
         ''' If unavailable the function return the node with an unavailable diagnostic attached to <paramref name="node"/>.
         ''' </summary>
         ''' <returns>If <see cref="feature"/> is not available, returns node with unavailable diagnostic attached to it.</returns>
@@ -225,12 +225,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="feature">Language feature to check is available.</param>
         ''' <param name="options">The parse options being used.</param>
         <Extension>
-        Friend Function CheckFeatureAvailable(Of TNode As VisualBasicSyntaxNode)(node As TNode, feature As Feature, options As VisualBasicParseOptions) As TNode
+        Friend Function CheckFeatureAvailability(Of TNode As VisualBasicSyntaxNode)(node As TNode, feature As Feature, options As VisualBasicParseOptions) As TNode
             Return If(feature.IsAvailable(options), node, feature.ReportFeatureUnavailable(options, node))
         End Function
 
         ''' <summary>
-        ''' Checks to see if <paramref name="feature"/> is avaible to use with the <paramref name="options"/>.
+        ''' Checks to see if a language <paramref name="feature"/> is available to use with the <paramref name="options"/> being used.
         ''' If unavailable the function returns False and adds an unavailable diagnostic to the <paramref name="diagnostics"/> at <paramref name="location"/>.
         ''' </summary>
         ''' <returns>
