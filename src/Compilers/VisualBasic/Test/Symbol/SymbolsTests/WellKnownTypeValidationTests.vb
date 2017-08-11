@@ -584,7 +584,7 @@ End Namespace
                         ' Not a real value.
                         Continue For
                     Case WellKnownMember.System_Array__Empty,
-                         WellKnownMember.System_Span__ctor
+                         WellKnownMember.System_Span_T__ctor
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
@@ -668,7 +668,7 @@ End Namespace
                         ' The type is not embedded, so the member is not available.
                         Continue For
                     Case WellKnownMember.System_Array__Empty,
-                         WellKnownMember.System_Span__ctor
+                         WellKnownMember.System_Span_T__ctor
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,

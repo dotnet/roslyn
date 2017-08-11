@@ -11,25 +11,28 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation stackAllocNode)
         {
-            BoundExpression rewrittenCount = VisitExpression(stackAllocNode.Count);
+            var rewrittenCount = VisitExpression(stackAllocNode.Count);
 
-            switch(stackAllocNode.ConversionKind)
+            var conversionKind = stackAllocNode.ConversionKind;
+            var elementType = stackAllocNode.ElementType;
+
+            switch (conversionKind)
             {
                 case ConversionKind.StackAllocToPointerType:
                     {
-                        var stackSize = RewriteStackAllocCountToSize(rewrittenCount, stackAllocNode.ElementType);
-                        var resultType = new PointerTypeSymbol(stackAllocNode.ElementType);
+                        var stackSize = RewriteStackAllocCountToSize(rewrittenCount, elementType);
+                        var resultType = new PointerTypeSymbol(elementType);
 
-                        return stackAllocNode.Update(stackAllocNode.ConversionKind, stackAllocNode.ElementType, stackSize, resultType);
+                        return stackAllocNode.Update(conversionKind, elementType, stackSize, resultType);
                     }
                 case ConversionKind.StackAllocToSpanType:
                     {
                         BoundLocal countTemp = _factory.StoreToTemp(rewrittenCount, out BoundAssignmentOperator countTempAssignment);
-                        BoundExpression stackSize = RewriteStackAllocCountToSize(countTemp, stackAllocNode.ElementType);
-                        stackAllocNode = stackAllocNode.Update(stackAllocNode.ConversionKind, stackAllocNode.ElementType, stackSize, stackAllocNode.Type);
+                        BoundExpression stackSize = RewriteStackAllocCountToSize(countTemp, elementType);
+                        stackAllocNode = stackAllocNode.Update(conversionKind, elementType, stackSize, stackAllocNode.Type);
 
-                        var spanType = _compilation.GetWellKnownType(WellKnownType.System_Span_T).Construct(stackAllocNode.ElementType);
-                        var spanCtor = (MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Span__ctor).SymbolAsMember(spanType);
+                        var spanType = _compilation.GetWellKnownType(WellKnownType.System_Span_T).Construct(elementType);
+                        var spanCtor = (MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Span_T__ctor).SymbolAsMember(spanType);
                         var ctorCall = _factory.New(spanCtor, stackAllocNode, countTemp);
 
                         return new BoundSequence(
@@ -41,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 default:
                     {
-                        throw ExceptionUtilities.UnexpectedValue(stackAllocNode.ConversionKind);
+                        throw ExceptionUtilities.UnexpectedValue(conversionKind);
                     }
             }
         }

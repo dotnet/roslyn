@@ -859,7 +859,7 @@ namespace System
                         // C# can't embed VB core.
                         continue;
                     case WellKnownMember.System_Array__Empty:
-                    case WellKnownMember.System_Span__ctor:
+                    case WellKnownMember.System_Span_T__ctor:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:

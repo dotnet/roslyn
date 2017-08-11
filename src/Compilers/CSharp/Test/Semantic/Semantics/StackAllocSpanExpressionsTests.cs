@@ -294,7 +294,6 @@ class Test
                 Diagnostic(ErrorCode.ERR_InvalidQM, "true ? stackalloc int [10] : a").WithArguments("stackalloc expression of type 'int'", "System.Span<short>").WithLocation(8, 17));
         }
 
-
         [Fact]
         public void BooleanOperatorOnSpan_NoTargetTyping()
         {
@@ -311,39 +310,6 @@ class Test
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "stackalloc int[10] == stackalloc int[10]").WithArguments("==", "stackalloc expression of type 'int'", "stackalloc expression of type 'int'").WithLocation(6, 12));
         }
 
-        [Fact]
-        public void BooleanOperatorOnSpan_TargetTyping()
-        {
-            CreateCompilationWithMscorlibAndSpan(@"
-using System;
-class Test
-{
-    void M()
-    {
-        if(stackalloc int[10] == (Span<int>)stackalloc int[10]) { }
-    }
-}", TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (7,12): error CS0019: Operator '==' cannot be applied to operands of type 'stackalloc expression of type 'int'' and 'Span<int>'
-                //         if(stackalloc int[10] == (Span<int>)stackalloc int[10]) { }
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "stackalloc int[10] == (Span<int>)stackalloc int[10]").WithArguments("==", "stackalloc expression of type 'int'", "System.Span<int>").WithLocation(7, 12));
-        }
-
-        [Fact]
-        public void BooleanOperatorOnSpan_InvalidTargetTyping()
-        {
-            CreateCompilationWithMscorlibAndSpan(@"
-unsafe class Test
-{
-    void M()
-    {
-        if(stackalloc int[10] == (int*)stackalloc int[10]) { }
-    }
-}", TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,34): error CS8520: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
-                //         if(stackalloc int[10] == (int*)stackalloc int[10]) { }
-                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "(int*)stackalloc int[10]").WithArguments("int", "int*").WithLocation(6, 34));
-        }
-        
         [Fact]
         public void NewStackAllocSpanSyntaxProducesErrorsOnEarlierVersions()
         {
@@ -422,6 +388,69 @@ unsafe public class Test
         }
 
         [Fact]
+        public void RefStackAllocAssignment_ValueToRef()
+        {
+            var test = @"
+using System;
+public class Test
+{
+    void M()
+    {
+        ref Span<int> p = stackalloc int[1];
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpan(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
+                // (7,23): error CS8172: Cannot initialize a by-reference variable with a value
+                //         ref Span<int> p = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_InitializeByReferenceVariableWithValue, "p = stackalloc int[1]").WithLocation(7, 23),
+                // (7,27): error CS1510: A ref or out value must be an assignable variable
+                //         ref Span<int> p = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "stackalloc int[1]").WithLocation(7, 27));
+        }
+
+        [Fact]
+        public void RefStackAllocAssignment_RefToRef()
+        {
+            var test = @"
+using System;
+public class Test
+{
+    void M()
+    {
+        ref Span<int> p = ref stackalloc int[1];
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpan(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
+                // (7,31): error CS1510: A ref or out value must be an assignable variable
+                //         ref Span<int> p = ref stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "stackalloc int[1]").WithLocation(7, 31));
+        }
+
+        [Fact]
+        public void InvalidPositionForStackAllocSpan()
+        {
+            var test = @"
+using System;
+public class Test
+{
+    void M()
+    {
+        N(stackalloc int[1]);
+    }
+    void N(Span<int> span)
+    {
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpan(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
+                // (7,9): error CS1525: Invalid expression term 'stackalloc'
+                //         N(stackalloc int[1]);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "N").WithArguments("stackalloc").WithLocation(7, 9));
+        }
+
+        [Fact]
         public void CannotDotIntoStackAllocExpression()
         {
             var test = @"
@@ -437,28 +466,6 @@ public class Test
                 // (6,22): error CS0023: Operator '.' cannot be applied to operand of type 'stackalloc expression of type 'int''
                 //         int length = (stackalloc int [10]).Length;
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "(stackalloc int [10]).Length").WithArguments(".", "stackalloc expression of type 'int'").WithLocation(6, 22));
-        }
-
-        [Fact]
-        public void OverloadResolution_Success()
-        {
-            var test = @"
-using System;
-unsafe public class Test
-{
-    static void Main()
-    {
-        Invoke(stackalloc int [10]);
-    }
-
-    static void Invoke(Span<int> intSpan) => Console.WriteLine(""intSpan"");
-    static void Invoke(Span<bool> boolSpan) => Console.WriteLine(""boolSpan"");
-    static void Invoke(int* intPointer) => Console.WriteLine(""intPointer"");
-    static void Invoke(void* voidPointer) => Console.WriteLine(""voidPointer"");
-}
-";
-            var comp = CreateCompilationWithMscorlibAndSpan(test, TestOptions.UnsafeReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "intSpan");
         }
 
         [Fact]

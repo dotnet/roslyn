@@ -20,16 +20,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.Flags.Includes(BinderFlags.UnsafeRegion); }
         }
 
-        /// <returns>True if a diagnostic was reported, or would have been reported if not for
-        /// the suppress flag.</returns>
+        /// <returns>True if a diagnostic was reported</returns>
         internal bool ReportUnsafeIfNotAllowed(SyntaxNode node, DiagnosticBag diagnostics, TypeSymbol sizeOfTypeOpt = null)
         {
             Debug.Assert((node.Kind() == SyntaxKind.SizeOfExpression) == ((object)sizeOfTypeOpt != null), "Should have a type for (only) sizeof expressions.");
             return ReportUnsafeIfNotAllowed(node.Location, diagnostics, sizeOfTypeOpt);
         }
-        
-        /// <returns>True if a diagnostic was reported, or would have been reported if not for
-        /// the suppress flag.</returns>
+
+        /// <returns>True if a diagnostic was reported</returns>
         internal bool ReportUnsafeIfNotAllowed(Location location, ref HashSet<DiagnosticInfo> useSiteDiagnostics, TypeSymbol sizeOfTypeOpt = null)
         {
             var diagnosticInfo = GetUnsafeDiagnosticInfo(sizeOfTypeOpt: sizeOfTypeOpt);
@@ -43,8 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        /// <returns>True if a diagnostic was reported, or would have been reported if not for
-        /// the suppress flag.</returns>
+        /// <returns>True if a diagnostic was reported</returns>
         internal bool ReportUnsafeIfNotAllowed(Location location, DiagnosticBag diagnostics, TypeSymbol sizeOfTypeOpt = null)
         {
             var diagnosticInfo = GetUnsafeDiagnosticInfo(sizeOfTypeOpt);

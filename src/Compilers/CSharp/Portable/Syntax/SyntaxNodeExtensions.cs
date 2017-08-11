@@ -104,10 +104,65 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node != null);
 
-            return node.Parent != null &&
-                node.Parent.IsKind(SyntaxKind.EqualsValueClause) &&
-                node.Parent.Parent.IsKind(SyntaxKind.VariableDeclarator) &&
-                node.Parent.Parent.Parent.IsKind(SyntaxKind.VariableDeclaration);
+            SyntaxNode equalsValueClause = node.Parent;
+
+            if (!equalsValueClause.IsKind(SyntaxKind.EqualsValueClause))
+            {
+                return false;
+            }
+
+            SyntaxNode variableDeclarator = equalsValueClause.Parent;
+
+            if (!variableDeclarator.IsKind(SyntaxKind.VariableDeclarator))
+            {
+                return false;
+            }
+
+            return variableDeclarator.Parent.IsKind(SyntaxKind.VariableDeclaration);
+        }
+
+        /// <summary>
+        /// PROTOTYPE(span):
+        /// short work around until we look into spilling stackalloc expressions
+        /// Because the instruction cannot have any values on the stack before CLR execution.
+        /// Limit it to assignments and conditional expressions for now.
+        /// </summary>
+        internal static bool IsLegalSpanStackAllocPosition(this SyntaxNode node)
+        {
+            Debug.Assert(node != null);
+
+            while (node.Parent.IsKind(SyntaxKind.CastExpression))
+            {
+                node = node.Parent;
+            }
+
+            if (node.Parent.IsKind(SyntaxKind.ConditionalExpression))
+            {
+                node = node.Parent;
+            }
+
+            SyntaxNode parentNode = node.Parent;
+
+            if (parentNode is null)
+            {
+                return false;
+            }
+
+            switch (parentNode.Kind())
+            {
+                case SyntaxKind.EqualsValueClause:
+                    {
+                        // In case of a declaration of a Span<T> variable
+                        return parentNode.Parent.IsKind(SyntaxKind.VariableDeclarator);
+                    }
+                case SyntaxKind.SimpleAssignmentExpression:
+                    {
+                        // In case of reassignment to a Span<T> variable
+                        return true;
+                    }
+            }
+
+            return false;
         }
 
         internal static CSharpSyntaxNode AnonymousFunctionBody(this SyntaxNode lambda)
