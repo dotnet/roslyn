@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // Couldn't read from the persistence service.  If we've been asked to only load
-                // data and not create new instances in their absense, then there's nothing left
+                // data and not create new instances in their absence, then there's nothing left
                 // to do at this point.
                 if (loadOnly)
                 {
