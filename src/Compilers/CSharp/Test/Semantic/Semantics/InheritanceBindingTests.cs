@@ -8,6 +8,7 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using System;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -4542,6 +4543,11 @@ public class Base
     public virtual void Method11() { }
     public virtual void Method12() { }
     public virtual void Method13() { }
+
+    private protected virtual void Method14() { }
+    private protected virtual void Method15() { }
+    private protected virtual void Method16() { }
+    private protected virtual void Method17() { }
 }
 
 public class Derived1 : Base
@@ -4562,26 +4568,63 @@ public class Derived1 : Base
     internal override void Method11() { }
     protected override void Method12() { }
     protected internal override void Method13() { }
+
+    internal override void Method14() { }
+    protected override void Method15() { }
+    protected internal override void Method16() { }
+    public override void Method17() { }
 }
 ";
-
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 24, Column = 29 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 25, Column = 38 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 26, Column = 26 },
-
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 28, Column = 28 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 29, Column = 38 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 30, Column = 26 },
-
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 32, Column = 28 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 33, Column = 29 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 35, Column = 26 },
-
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 37, Column = 28 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 38, Column = 29 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 39, Column = 38 },
-            });
+            CreateStandardCompilation(text, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
+                // (30,38): error CS0507: 'Derived1.Method2()': cannot change access modifiers when overriding 'internal' inherited member 'Base.Method2()'
+                //     protected internal override void Method2() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method2").WithArguments("Derived1.Method2()", "internal", "Base.Method2()").WithLocation(30, 38),
+                // (31,26): error CS0507: 'Derived1.Method3()': cannot change access modifiers when overriding 'internal' inherited member 'Base.Method3()'
+                //     public override void Method3() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method3").WithArguments("Derived1.Method3()", "internal", "Base.Method3()").WithLocation(31, 26),
+                // (33,28): error CS0507: 'Derived1.Method4()': cannot change access modifiers when overriding 'protected' inherited member 'Base.Method4()'
+                //     internal override void Method4() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method4").WithArguments("Derived1.Method4()", "protected", "Base.Method4()").WithLocation(33, 28),
+                // (34,38): error CS0507: 'Derived1.Method5()': cannot change access modifiers when overriding 'protected' inherited member 'Base.Method5()'
+                //     protected internal override void Method5() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method5").WithArguments("Derived1.Method5()", "protected", "Base.Method5()").WithLocation(34, 38),
+                // (35,26): error CS0507: 'Derived1.Method6()': cannot change access modifiers when overriding 'protected' inherited member 'Base.Method6()'
+                //     public override void Method6() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method6").WithArguments("Derived1.Method6()", "protected", "Base.Method6()").WithLocation(35, 26),
+                // (37,28): error CS0507: 'Derived1.Method7()': cannot change access modifiers when overriding 'protected internal' inherited member 'Base.Method7()'
+                //     internal override void Method7() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method7").WithArguments("Derived1.Method7()", "protected internal", "Base.Method7()").WithLocation(37, 28),
+                // (38,29): error CS0507: 'Derived1.Method8()': cannot change access modifiers when overriding 'protected internal' inherited member 'Base.Method8()'
+                //     protected override void Method8() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method8").WithArguments("Derived1.Method8()", "protected internal", "Base.Method8()").WithLocation(38, 29),
+                // (40,26): error CS0507: 'Derived1.Method10()': cannot change access modifiers when overriding 'protected internal' inherited member 'Base.Method10()'
+                //     public override void Method10() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method10").WithArguments("Derived1.Method10()", "protected internal", "Base.Method10()").WithLocation(40, 26),
+                // (42,28): error CS0507: 'Derived1.Method11()': cannot change access modifiers when overriding 'public' inherited member 'Base.Method11()'
+                //     internal override void Method11() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method11").WithArguments("Derived1.Method11()", "public", "Base.Method11()").WithLocation(42, 28),
+                // (43,29): error CS0507: 'Derived1.Method12()': cannot change access modifiers when overriding 'public' inherited member 'Base.Method12()'
+                //     protected override void Method12() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method12").WithArguments("Derived1.Method12()", "public", "Base.Method12()").WithLocation(43, 29),
+                // (44,38): error CS0507: 'Derived1.Method13()': cannot change access modifiers when overriding 'public' inherited member 'Base.Method13()'
+                //     protected internal override void Method13() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method13").WithArguments("Derived1.Method13()", "public", "Base.Method13()").WithLocation(44, 38),
+                // (46,28): error CS0507: 'Derived1.Method14()': cannot change access modifiers when overriding 'private protected' inherited member 'Base.Method14()'
+                //     internal override void Method14() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method14").WithArguments("Derived1.Method14()", "private protected", "Base.Method14()").WithLocation(46, 28),
+                // (47,29): error CS0507: 'Derived1.Method15()': cannot change access modifiers when overriding 'private protected' inherited member 'Base.Method15()'
+                //     protected override void Method15() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method15").WithArguments("Derived1.Method15()", "private protected", "Base.Method15()").WithLocation(47, 29),
+                // (48,38): error CS0507: 'Derived1.Method16()': cannot change access modifiers when overriding 'private protected' inherited member 'Base.Method16()'
+                //     protected internal override void Method16() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method16").WithArguments("Derived1.Method16()", "private protected", "Base.Method16()").WithLocation(48, 38),
+                // (49,26): error CS0507: 'Derived1.Method17()': cannot change access modifiers when overriding 'private protected' inherited member 'Base.Method17()'
+                //     public override void Method17() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method17").WithArguments("Derived1.Method17()", "private protected", "Base.Method17()").WithLocation(49, 26),
+                // (29,29): error CS0507: 'Derived1.Method1()': cannot change access modifiers when overriding 'internal' inherited member 'Base.Method1()'
+                //     protected override void Method1() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method1").WithArguments("Derived1.Method1()", "internal", "Base.Method1()").WithLocation(29, 29)
+                );
         }
 
         [Fact]
