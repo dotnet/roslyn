@@ -104,17 +104,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                     // Compare tokens and verify location relative to the generated tokens
                     expected = GetSpaceSeparatedTokens(expected);
                     actual = GetSpaceSeparatedTokens(actual.Insert(actualSpan.Start, "[|").Insert(actualSpan.End + 2, "|]"));
+                    Assert.Equal(expected, actual);
                 }
                 else
                 {
                     // Compare exact texts and verify that the location returned is exactly that
                     // indicated by expected
-                    MarkupTestFile.GetSpan(expected.TrimStart().TrimEnd(), out expected, out var expectedSpan);
+                    MarkupTestFile.GetSpan(expected, out expected, out var expectedSpan);
+                    Assert.Equal(expected, actual);
                     Assert.Equal(expectedSpan.Start, actualSpan.Start);
                     Assert.Equal(expectedSpan.End, actualSpan.End);
                 }
-
-                Assert.Equal(expected, actual);
             }
 
             public async Task GenerateAndVerifySourceAsync(string symbolMetadataName, string expected, bool ignoreTrivia = false, Project project = null)
