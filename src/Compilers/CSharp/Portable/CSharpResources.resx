@@ -4838,8 +4838,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RefReturnReadonlyStatic2" xml:space="preserve">
     <value>Fields of static readonly field '{0}' cannot be returned by writeable reference</value>
   </data>
-  <data name="ERR_RefReturnCall" xml:space="preserve">
-    <value>Cannot return by reference a result of '{0}' because the argument passed to parameter '{1}' cannot be returned by reference</value>
+  <data name="ERR_RefReturnParameter" xml:space="preserve">
+    <value>Cannot return a parameter by reference '{0}' because it is not a ref or out parameter</value>
   </data>
   <data name="ERR_RefReturnParameter2" xml:space="preserve">
     <value>Cannot return a member of parameter '{0}' by reference because it is not a ref or out parameter</value>

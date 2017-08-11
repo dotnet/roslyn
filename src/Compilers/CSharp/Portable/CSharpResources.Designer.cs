@@ -8378,15 +8378,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot return by reference a result of &apos;{0}&apos; because the argument passed to parameter &apos;{1}&apos; cannot be returned by reference.
-        /// </summary>
-        internal static string ERR_RefReturnCall {
-            get {
-                return ResourceManager.GetString("ERR_RefReturnCall", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &apos;await&apos; cannot be used in an expression containing a call to &apos;{0}&apos; because it returns by reference.
         /// </summary>
         internal static string ERR_RefReturningCallAndAwait {
@@ -8457,7 +8448,18 @@ namespace Microsoft.CodeAnalysis.CSharp {
                 return ResourceManager.GetString("ERR_RefReturnNonreturnableLocal2", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot return a parameter by reference &apos;{0}&apos; because it is not a ref or out parameter.
+        /// </summary>
+        internal static string ERR_RefReturnParameter
+        {
+            get
+            {
+                return ResourceManager.GetString("ERR_RefReturnParameter", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Cannot return a member of parameter &apos;{0}&apos; by reference because it is not a ref or out parameter.
         /// </summary>
