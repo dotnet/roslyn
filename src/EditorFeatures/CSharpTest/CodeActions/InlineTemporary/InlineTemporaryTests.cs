@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
 
         private async Task TestFixOneAsync(string initial, string expected, bool ignoreTrivia = false)
         {
-            await TestInRegularAndScriptAsync(GetTreeText(initial), GetTreeText(expected));
+            await TestInRegularAndScriptAsync(GetTreeText(initial), GetTreeText(expected), ignoreTrivia: ignoreTrivia);
         }
 
         private string GetTreeText(string initial)
