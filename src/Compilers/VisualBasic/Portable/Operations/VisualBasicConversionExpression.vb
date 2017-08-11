@@ -15,7 +15,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend ReadOnly Property ConversionInternal As Conversion
 
-        Public Overrides ReadOnly Property Conversion As CommonConversion = ConversionInternal.ToCommonConversion()
+        Public Overrides ReadOnly Property Conversion As CommonConversion
+            Get
+                Return ConversionInternal.ToCommonConversion()
+            End Get
+        End Property
     End Class
 
     Friend NotInheritable Class VisualBasicConversionExpression
