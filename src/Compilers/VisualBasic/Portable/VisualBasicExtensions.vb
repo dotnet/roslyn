@@ -1379,6 +1379,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
+        ''' <summary>
+        ''' Gets the underlying <see cref="Conversion"/> information for InConversion of <see cref="IArgument"/> that was created from Visual Basic code.
+        ''' </summary>
+        ''' <param name="argument">The argument to get original info from.</param>
+        ''' <returns>The underlying <see cref="Conversion"/> of the InConversion.</returns>
+        ''' <exception cref="InvalidCastException">If the <see cref="IArgument"/> was not created from Visual Basic code.</exception>
+        <Extension>
+        Public Function GetInConversion(argument As IArgument) As Conversion
+            Dim basicArgument = TryCast(argument, BaseVisualBasicArgument)
+            If basicArgument IsNot Nothing Then
+                Return basicArgument.InConversionInternal
+            Else
+                Throw New ArgumentException(String.Format(VBResources.IArgumentIsNotVisualBasicArgument,
+                                                          NameOf(IArgument)),
+                                            NameOf(argument))
+            End If
+        End Function
+
+        ''' <summary>
+        ''' Gets the underlying <see cref="Conversion"/> information for OutConversion of <see cref="IArgument"/> that was created from Visual Basic code.
+        ''' </summary>
+        ''' <param name="argument">The argument to get original info from.</param>
+        ''' <returns>The underlying <see cref="Conversion"/> of the OutConversion.</returns>
+        ''' <exception cref="InvalidCastException">If the <see cref="IArgument"/> was not created from Visual Basic code.</exception>
+        <Extension>
+        Public Function GetOutConversion(argument As IArgument) As Conversion
+            Dim basicArgument = TryCast(argument, BaseVisualBasicArgument)
+            If basicArgument IsNot Nothing Then
+                Return basicArgument.OutConversionInternal
+            Else
+                Throw New ArgumentException(String.Format(VBResources.IArgumentIsNotVisualBasicArgument,
+                                                          NameOf(IArgument)),
+                                            NameOf(argument))
+            End If
+        End Function
+
         <Extension>
         Public Function GetSpeculativeConversion(semanticModel As SemanticModel, position As Integer, expression As ExpressionSyntax, bindingOption As SpeculativeBindingOption) As Conversion
             Dim vbmodel = TryCast(semanticModel, VBSemanticModel)

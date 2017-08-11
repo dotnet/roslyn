@@ -12235,6 +12235,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to {0} is not a valid Visual Basic argument.
+        '''</summary>
+        Friend ReadOnly Property IArgumentIsNotVisualBasicArgument() As String
+            Get
+                Return ResourceManager.GetString("IArgumentIsNotVisualBasicArgument", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to {0} is not a valid Visual Basic conversion expression.
         '''</summary>
         Friend ReadOnly Property IConversionExpressionIsNotVisualBasicConversion() As String

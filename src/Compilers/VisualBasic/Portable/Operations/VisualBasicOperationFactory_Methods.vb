@@ -71,18 +71,31 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return arguments.ToImmutableAndFree()
         End Function
 
+        Private Function CreateConversion(expression As BoundExpression) As Conversion
+            If expression.Kind = BoundKind.Conversion Then
+                Dim conversion = DirectCast(expression, BoundConversion)
+                Dim method As MethodSymbol = Nothing
+                If conversion.Operand.Kind = BoundKind.UserDefinedConversion Then
+                    method = DirectCast(conversion.Operand, BoundUserDefinedConversion).Call.Method
+                End If
+                Return New Conversion(KeyValuePair.Create(conversion.ConversionKind, method))
+            End If
+            Return New Conversion(Nothing) 'NoConversion
+        End Function
+
         Private Function DeriveArgument(index As Integer, argument As BoundExpression, parameters As ImmutableArray(Of VisualBasic.Symbols.ParameterSymbol)) As IArgument
             Select Case argument.Kind
                 Case BoundKind.ByRefArgumentWithCopyBack
                     Dim byRefArgument = DirectCast(argument, BoundByRefArgumentWithCopyBack)
                     Dim parameter = parameters(index)
                     Dim value = Create(byRefArgument.OriginalArgument)
-                    Return New Argument(
+
+                    Return New VisualBasicArgument(
                         ArgumentKind.Explicit,
                         parameter,
                         value,
-                        Create(byRefArgument.InConversion),
-                        Create(byRefArgument.OutConversion),
+                        CreateConversion(byRefArgument.InConversion),
+                        CreateConversion(byRefArgument.OutConversion),
                         _semanticModel,
                         value.Syntax,
                         type:=Nothing,
@@ -98,12 +111,12 @@ Namespace Microsoft.CodeAnalysis.Semantics
                         Dim parameter = parameters(lastParameterIndex)
                         Dim value = Create(argument)
 
-                        Return New Argument(
+                        Return New VisualBasicArgument(
                             kind,
                             parameter,
                             value,
-                            inConversion:=Nothing,
-                            outConversion:=Nothing,
+                            inConversion:=New Conversion(Nothing), 'NoConversion,
+                            outConversion:=New Conversion(Nothing), 'NoConversion,
                             semanticModel:=_semanticModel,
                             syntax:=value.Syntax,
                             type:=Nothing,
@@ -117,12 +130,12 @@ Namespace Microsoft.CodeAnalysis.Semantics
                         Dim parameter = parameters(index)
                         Dim value = Create(argument)
 
-                        Return New Argument(
+                        Return New VisualBasicArgument(
                             kind,
                             parameter,
                             value,
-                            inConversion:=Nothing,
-                            outConversion:=Nothing,
+                            inConversion:=New Conversion(Nothing), 'NoConversion,
+                            outConversion:=New Conversion(Nothing), 'NoConversion,
                             semanticModel:=_semanticModel,
                             syntax:=value.Syntax,
                             type:=Nothing,

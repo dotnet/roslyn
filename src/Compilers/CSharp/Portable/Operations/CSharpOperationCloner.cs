@@ -8,6 +8,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public static OperationCloner Instance { get; } = new CSharpOperationCloner();
 
+        public override IOperation VisitArgument(IArgument operation, object argument)
+        {
+            return new CSharpArgument(operation.ArgumentKind, operation.Parameter, Visit(operation.Value), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
+        }
+
         public override IOperation VisitConversionExpression(IConversionExpression operation, object argument)
         {
             return new CSharpConversionExpression(Visit(operation.Operand), operation.GetConversion(), operation.IsExplicitInCode, operation.IsTryCast, operation.IsChecked, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);

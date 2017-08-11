@@ -179,11 +179,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new InvocationExpression(operation.TargetMethod, Visit(operation.Instance), operation.IsVirtual, VisitArray(operation.ArgumentsInEvaluationOrder), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
         }
 
-        public override IOperation VisitArgument(IArgument operation, object argument)
-        {
-            return new Argument(operation.ArgumentKind, operation.Parameter, Visit(operation.Value), Visit(operation.InConversion), Visit(operation.OutConversion), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
-        }
-
         public override IOperation VisitOmittedArgumentExpression(IOmittedArgumentExpression operation, object argument)
         {
             return new OmittedArgumentExpression(((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
