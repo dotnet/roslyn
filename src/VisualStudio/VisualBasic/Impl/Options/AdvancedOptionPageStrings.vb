@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Friend Module AdvancedOptionPageStrings
@@ -176,6 +176,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Performance As String
             Get
                 Return BasicVSResources.Performance
+            End Get
+        End Property
+
+        Public ReadOnly Property Option_Report_invalid_placeholders_in_string_dot_format_calls As String
+            Get
+                Return BasicVSResources.Report_invalid_placeholders_in_string_dot_format_calls
             End Get
         End Property
 

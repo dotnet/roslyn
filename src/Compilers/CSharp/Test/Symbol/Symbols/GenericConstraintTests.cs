@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -1570,11 +1570,11 @@ S[0]");
 }");
         }
 
-        [WorkItem(542277, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542277")]
         /// <summary>
         /// Access fields on constrained generic types.
         /// </summary>
         [ClrOnlyFact]
+        [WorkItem(542277, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542277")]
         public void Fields()
         {
             var source =

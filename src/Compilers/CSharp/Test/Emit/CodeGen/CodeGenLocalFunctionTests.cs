@@ -31,6 +31,189 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
         [Fact]
+        [WorkItem(18814, "https://github.com/dotnet/roslyn/issues/18814")]
+        [WorkItem(18918, "https://github.com/dotnet/roslyn/issues/18918")]
+        public void IntermediateStructClosures1()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+class C
+{
+    int _x = 0;
+
+    public static void Main() => new C().M();
+
+    public void M()
+    {
+        int var1 = 0;
+        void L1()
+        {
+            void L2()
+            {
+                void L3()
+                {   
+                    void L4()
+                    {
+                        int var2 = 0;
+                        void L5()
+                        {
+                            int L6() => var2 + _x++;
+                            L6();
+                        }
+                        L5();
+                    }
+                    L4();
+                }
+                L3();
+            }
+            L2();
+            int L8() => var1;
+        }
+        Console.WriteLine(_x);
+        L1();
+        Console.WriteLine(_x);
+    }
+}", expectedOutput: 
+@"0
+1");
+            // L1
+            verifier.VerifyIL("C.<M>g__L12_0(ref C.<>c__DisplayClass2_0)", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C C.<>c__DisplayClass2_0.<>4__this""
+  IL_0006:  ldarg.0
+  IL_0007:  call       ""void C.<M>g__L22_1(ref C.<>c__DisplayClass2_0)""
+  IL_000c:  ret
+}");
+            // L2
+            verifier.VerifyIL("C.<M>g__L22_1(ref C.<>c__DisplayClass2_0)", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""void C.<M>g__L32_2(ref C.<>c__DisplayClass2_0)""
+  IL_0007:  ret
+}");
+            // Skip some... L5
+            verifier.VerifyIL("C.<M>g__L52_4(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""int C.<M>g__L62_5(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)""
+  IL_0007:  pop
+  IL_0008:  ret
+}");
+            // L6
+            verifier.VerifyIL("C.<M>g__L62_5(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
+{
+  // Code size       35 (0x23)
+  .maxstack  4
+  .locals init (int V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass2_1.var2""
+  IL_0006:  ldarg.1
+  IL_0007:  ldfld      ""C C.<>c__DisplayClass2_1.<>4__this""
+  IL_000c:  ldarg.1
+  IL_000d:  ldfld      ""C C.<>c__DisplayClass2_1.<>4__this""
+  IL_0012:  ldfld      ""int C._x""
+  IL_0017:  stloc.0
+  IL_0018:  ldloc.0
+  IL_0019:  ldc.i4.1
+  IL_001a:  add
+  IL_001b:  stfld      ""int C._x""
+  IL_0020:  ldloc.0
+  IL_0021:  add
+  IL_0022:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(18814, "https://github.com/dotnet/roslyn/issues/18814")]
+        [WorkItem(18918, "https://github.com/dotnet/roslyn/issues/18918")]
+        public void IntermediateStructClosures2()
+        {
+            CompileAndVerify(@"
+class C
+{
+    int _x;
+    void M()
+    {
+        int y = 0;
+        void L1()
+        {
+            void L2()
+            {
+                int z = 0;
+                int L3() => z + _x;
+            }
+            y++;
+        }
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(18814, "https://github.com/dotnet/roslyn/issues/18814")]
+        public void Repro18814()
+        {
+            CompileAndVerify(@"
+class Program
+{
+    private void ResolvingPackages()
+    {
+        string outerScope(int a) => """";
+
+        void C1(int cabinetIdx)
+        {
+            void modifyState()
+            {
+                var no = outerScope(cabinetIdx);
+            }
+
+            modifyState();
+        }
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(18918, "https://github.com/dotnet/roslyn/issues/18918")]
+        public void Repro18918()
+        {
+            CompileAndVerify(@"
+public class Test
+{
+    private int _field;
+
+    public void OuterMethod(int outerParam)
+    {
+        void InnerMethod1()
+        {
+            void InnerInnerMethod(int innerInnerParam)
+            {
+                InnerInnerInnerMethod();
+                
+                bool InnerInnerInnerMethod()
+                {
+                    return innerInnerParam != _field;
+                }
+            }
+
+            void InnerMethod2()
+            {
+                var temp = outerParam;
+            }  
+        }
+    }
+}");
+        }
+
+        [Fact]
         [WorkItem(17719, "https://github.com/dotnet/roslyn/issues/17719")]
         public void Repro17719()
         {

@@ -639,7 +639,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return
                 typeSymbol.AllInterfaces.Any(i => i.SpecialType == SpecialType.System_Collections_IEnumerable) &&
-                typeSymbol.GetAccessibleMembersInThisAndBaseTypes<IMethodSymbol>(within ?? typeSymbol).Where(s => s.Name == WellKnownMemberNames.CollectionInitializerAddMethodName)
+                typeSymbol.GetBaseTypesAndThis()
+                    .Union(typeSymbol.GetOriginalInterfacesAndTheirBaseInterfaces())
+                    .SelectAccessibleMembers<IMethodSymbol>(WellKnownMemberNames.CollectionInitializerAddMethodName, within ?? typeSymbol)
                     .OfType<IMethodSymbol>()
                     .Any(m => m.Parameters.Any());
         }
@@ -682,9 +684,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return ImmutableArray<T>.Empty;
             }
 
-            var types = containingType.GetBaseTypesAndThis();
-            return types.SelectMany(x => x.GetMembers().OfType<T>().Where(m => m.IsAccessibleWithin(within)))
-                        .ToImmutableArray();
+            return containingType.GetBaseTypesAndThis().SelectAccessibleMembers<T>(within).ToImmutableArray();
         }
 
         public static bool? AreMoreSpecificThan(this IList<ITypeSymbol> t1, IList<ITypeSymbol> t2)
@@ -720,6 +720,26 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             return result;
+        }
+
+        private static IEnumerable<T> SelectAccessibleMembers<T>(this IEnumerable<ITypeSymbol> types, ISymbol within) where T : class, ISymbol
+        {
+            if (types == null)
+            {
+                return ImmutableArray<T>.Empty;
+            }
+
+            return types.SelectMany(x => x.GetMembers().OfType<T>().Where(m => m.IsAccessibleWithin(within)));
+        }
+
+        private static IEnumerable<T> SelectAccessibleMembers<T>(this IEnumerable<ITypeSymbol> types, string memberName, ISymbol within) where T : class, ISymbol
+        {
+            if (types == null)
+            {
+                return ImmutableArray<T>.Empty;
+            }
+
+            return types.SelectMany(x => x.GetMembers(memberName).OfType<T>().Where(m => m.IsAccessibleWithin(within)));
         }
 
         private static bool? IsMoreSpecificThan(this ITypeSymbol t1, ITypeSymbol t2)

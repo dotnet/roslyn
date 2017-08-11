@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
                     BlobHandle publicKeyHandle = assemblyDefinition.PublicKey;
                     ImmutableArray<byte> publicKeyOrToken = !publicKeyHandle.IsNil
                         ? metadataReader.GetBlobBytes(publicKeyHandle).AsImmutableOrNull()
-                        : default(ImmutableArray<byte>);
+                        : default;
                     return new AssemblyIdentity(name, version, cultureName, publicKeyOrToken, hasPublicKey);
                 }
             }

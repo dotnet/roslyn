@@ -141,11 +141,5 @@ End Module
             // It is better to use the Immediate Window but DTE does not provide an access to it.
             VisualStudio.Debugger.CheckExpression("GetType(T) = GetType(String)", "Boolean", "True");
         }
-
-        public new void Dispose()
-        {
-            VisualStudio.Debugger.StepOver(waitForBreakOrEnd: true);
-            base.Dispose();
-        }
     }
 }

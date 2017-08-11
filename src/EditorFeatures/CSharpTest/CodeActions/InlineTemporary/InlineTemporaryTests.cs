@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -4498,6 +4498,96 @@ class C
     }
 }";
             await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+        }
+
+        [WorkItem(19247, "https://github.com/dotnet/roslyn/issues/19247")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InlineTemporary_LocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+class C
+{
+    void M()
+    {
+        var [|testStr|] = ""test"";
+        expand(testStr);
+
+        void expand(string str)
+        {
+
+        }
+    }
+}",
+
+@"
+using System;
+class C
+{
+    void M()
+    {
+        expand(""test"");
+
+        void expand(string str)
+        {
+
+        }
+    }
+}",
+ignoreTrivia: false);
+        }
+
+        [WorkItem(11712, "https://github.com/dotnet/roslyn/issues/11712")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InlineTemporary_RefParams()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    bool M<T>(ref T x) 
+    {
+        var [||]b = M(ref x);
+        return b || b;
+    }
+}",
+
+@"
+class C
+{
+    bool M<T>(ref T x) 
+    {
+        return M(ref x) || M(ref x);
+    }
+}",
+ignoreTrivia: false);
+        }
+
+        [WorkItem(11712, "https://github.com/dotnet/roslyn/issues/11712")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InlineTemporary_OutParams()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    bool M<T>(out T x) 
+    {
+        var [||]b = M(out x);
+        return b || b;
+    }
+}",
+
+@"
+class C
+{
+    bool M<T>(out T x) 
+    {
+        return M(out x) || M(out x);
+    }
+}",
+ignoreTrivia: false);
         }
     }
 }

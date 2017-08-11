@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 AssertIsForeground();
 
                 var caretPosition = GetCaretPointInViewBuffer();
+                var document = Controller.GetDocument();
 
                 // Use an interlocked increment so that reads by existing filter tasks will see the
                 // change.
@@ -33,10 +34,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var localId = _filterId;
                 Computation.ChainTaskAndNotifyControllerWhenFinished(
                     model => FilterModelInBackground(
-                        model, localId, caretPosition, filterReason, filterState));
+                        document, model, localId, caretPosition, filterReason, filterState));
             }
 
             private Model FilterModelInBackground(
+                Document document,
                 Model model,
                 int id,
                 SnapshotPoint caretPosition,
@@ -46,11 +48,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 using (Logger.LogBlock(FunctionId.Completion_ModelComputation_FilterModelInBackground, CancellationToken.None))
                 {
                     return FilterModelInBackgroundWorker(
-                        model, id, caretPosition, filterReason, filterState);
+                        document, model, id, caretPosition, filterReason, filterState);
                 }
             }
 
             private Model FilterModelInBackgroundWorker(
+                Document document,
                 Model model,
                 int id,
                 SnapshotPoint caretPosition,
@@ -91,8 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var textSnapshot = caretPosition.Snapshot;
                 var textSpanToText = new Dictionary<TextSpan, string>();
 
-                var document = this.Controller.GetDocument();
-                var helper = this.Controller.GetCompletionHelper();
+                var helper = this.Controller.GetCompletionHelper(document);
 
                 var recentItems = this.Controller.GetRecentItems();
 
@@ -371,8 +373,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 if (bestFilterResult != null)
                 {
+                    // Only hard select this result if it's a prefix match
+                    // We need to do this so that 
+                    // * deleting and retyping a dot in a member access does not change the 
+                    //   text that originally appeared before the dot
+                    // * deleting through a word from the end keeps that word selected
+                    // This also preserves the behavior the VB had through Dev12.
+                    var hardSelect = bestFilterResult.Value.CompletionItem.FilterText.StartsWith(model.FilterText, StringComparison.CurrentCultureIgnoreCase);
                     return model.WithSelectedItem(bestFilterResult.Value.CompletionItem)
-                                .WithHardSelection(true)
+                                .WithHardSelection(hardSelect)
                                 .WithIsUnique(matchCount == 1);
                 }
                 else

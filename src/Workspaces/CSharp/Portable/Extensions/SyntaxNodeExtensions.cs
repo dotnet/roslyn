@@ -17,6 +17,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static partial class SyntaxNodeExtensions
     {
+        public static bool IsKind<TNode>(this SyntaxNode node, SyntaxKind kind, out TNode result)
+            where TNode : SyntaxNode
+        {
+            if (node.IsKind(kind))
+            {
+                result = (TNode)node;
+                return true;
+            }
+
+            result = null;
+            return false;
+        }
+
         public static bool IsParentKind(this SyntaxNode node, SyntaxKind kind)
         {
             return node != null && CodeAnalysis.CSharpExtensions.IsKind(node.Parent, kind);
@@ -680,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return (initializeExpressionNode.OpenBraceToken, initializeExpressionNode.CloseBraceToken);
             }
 
-            return default((SyntaxToken, SyntaxToken));
+            return default;
         }
 
         public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetParentheses(this SyntaxNode node)
@@ -710,7 +723,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case AttributeArgumentListSyntax n: return (n.OpenParenToken, n.CloseParenToken);
                 case ConstructorConstraintSyntax n: return (n.OpenParenToken, n.CloseParenToken);
                 case ParameterListSyntax n: return (n.OpenParenToken, n.CloseParenToken);
-                default: return default((SyntaxToken, SyntaxToken));
+                default: return default;
             }
         }
 
@@ -723,7 +736,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case ImplicitArrayCreationExpressionSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
                 case AttributeListSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
                 case BracketedParameterListSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
-                default: return default((SyntaxToken, SyntaxToken));
+                default: return default;
             }
         }
 
@@ -802,7 +815,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
-            return default(SyntaxTokenList);
+            return default;
         }
 
         public static SyntaxNode WithModifiers(this SyntaxNode member, SyntaxTokenList modifiers)

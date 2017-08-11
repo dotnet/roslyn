@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -886,7 +886,7 @@ Do you want to continue?</value>
     <value>Unable to load Analyzer assembly {0}: {1}</value>
   </data>
   <data name="Make_method_synchronous" xml:space="preserve">
-    <value>Make method synchronous.</value>
+    <value>Make method synchronous</value>
   </data>
   <data name="Add_this_or_Me_qualification" xml:space="preserve">
     <value>Add 'this' or 'Me' qualification.</value>
@@ -1043,11 +1043,8 @@ This version used in: {2}</value>
   <data name="Use_throw_expression" xml:space="preserve">
     <value>Use 'throw' expression</value>
   </data>
-  <data name="project_space" xml:space="preserve">
-    <value>project </value>
-  </data>
-  <data name="type_space" xml:space="preserve">
-    <value>type </value>
+  <data name="project_0" xml:space="preserve">
+    <value>project {0}</value>
   </data>
   <data name="Inline_variable_declaration" xml:space="preserve">
     <value>Inline variable declaration</value>
@@ -1247,6 +1244,18 @@ This version used in: {2}</value>
   <data name="default_expression_can_be_simplified" xml:space="preserve">
     <value>'default' expression can be simplified</value>
   </data>
+  <data name="Format_string_contains_invalid_placeholder" xml:space="preserve">
+    <value>Format string contains invalid placeholder</value>
+  </data>
+  <data name="Invalid_format_string" xml:space="preserve">
+    <value>Invalid format string</value>
+  </data>
+  <data name="Use_inferred_member_name" xml:space="preserve">
+    <value>Use inferred member name</value>
+  </data>
+  <data name="Member_name_can_be_simplified" xml:space="preserve">
+    <value>Member name can be simplified</value>
+  </data>
   <data name="Reported_diagnostic_0_has_a_source_location_in_file_1_which_is_not_part_of_the_compilation_being_analyzed" xml:space="preserve">
     <value>Reported diagnostic '{0}' has a source location in file '{1}', which is not part of the compilation being analyzed.</value>
   </data>
@@ -1258,5 +1267,32 @@ This version used in: {2}</value>
   </data>
   <data name="Remove_unreachable_code" xml:space="preserve">
     <value>Remove unreachable code</value>
+  </data>
+  <data name="Modifiers_are_not_ordered" xml:space="preserve">
+    <value>Modifiers are not ordered</value>
+  </data>
+  <data name="Order_modifiers" xml:space="preserve">
+    <value>Order modifiers</value>
+  </data>
+  <data name="in_0_project_1" xml:space="preserve">
+    <value>in {0} (project {1})</value>
+  </data>
+  <data name="Accessibility_modifiers_required" xml:space="preserve">
+    <value>Accessibility modifiers required</value>
+  </data>
+  <data name="Add_accessibility_modifiers" xml:space="preserve">
+    <value>Add accessibility modifiers</value>
+  </data>
+  <data name="Use_local_function" xml:space="preserve">
+    <value>Use local function</value>
+  </data>
+  <data name="Warning_colon_Declaration_changes_scope_and_may_change_meaning" xml:space="preserve">
+    <value>Warning: Declaration changes scope and may change meaning.</value>
+  </data>
+  <data name="Move_declaration_near_reference" xml:space="preserve">
+    <value>Move declaration near reference</value>
+  </data>
+  <data name="Generate_constructor_in_0_without_fields" xml:space="preserve">
+    <value>Generate constructor in '{0}' (without fields)</value>
   </data>
 </root>

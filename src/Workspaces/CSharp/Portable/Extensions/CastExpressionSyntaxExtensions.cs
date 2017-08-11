@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var speculatedExpressionOuterType = GetOuterCastType(speculatedExpression, speculationAnalyzer.SpeculativeSemanticModel, out var discarded) ?? typeInfo.ConvertedType;
             if (speculatedExpressionOuterType == null)
             {
-                return default(Conversion);
+                return default;
             }
 
             return speculationAnalyzer.SpeculativeSemanticModel.ClassifyConversion(speculatedExpression, speculatedExpressionOuterType);
@@ -206,6 +206,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (cast.WalkUpParentheses().IsParentKind(SyntaxKind.PointerIndirectionExpression) &&
                 cast.Expression.WalkDownParentheses().IsKind(SyntaxKind.NullLiteralExpression))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool EnumCastDefinitelyCantBeRemoved(CastExpressionSyntax cast, ITypeSymbol expressionType)
+        {
+            if (expressionType != null 
+                && expressionType.IsEnumType() 
+                && cast.WalkUpParentheses().IsParentKind(SyntaxKind.UnaryMinusExpression, SyntaxKind.UnaryPlusExpression))
             {
                 return true;
             }
@@ -311,6 +323,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             var expressionTypeInfo = semanticModel.GetTypeInfo(cast.Expression, cancellationToken);
             var expressionType = expressionTypeInfo.Type;
+
+            if (EnumCastDefinitelyCantBeRemoved(cast, expressionType))
+            {
+                return false;
+            }
 
             // We do not remove any cast on 
             // 1. Dynamic Expressions

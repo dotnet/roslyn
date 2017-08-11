@@ -12,10 +12,27 @@ namespace BuildBoss
 {
     internal class ProjectUtil
     {
-        private readonly ProjectKey _key;
-        private readonly XDocument _document;
-        private readonly XmlNamespaceManager _manager;
-        private readonly XNamespace _namespace;
+        internal ProjectKey Key { get; }
+        internal XDocument Document { get; }
+        internal XmlNamespaceManager Manager { get; }
+        internal XNamespace Namespace { get; }
+
+        public bool IsNewSdk => Document.XPathSelectElements("//mb:TargetFramework", Manager).FirstOrDefault() != null;
+        public bool IsDesktopProject => Document.XPathSelectElements("//mb:TargetFrameworkVersion", Manager).FirstOrDefault() != null;
+
+        public bool IsPclProject
+        {
+            get
+            {
+                var elem = Document.XPathSelectElements("//mb:TargetFrameworkIdentifier", Manager).FirstOrDefault();
+                if (elem == null)
+                {
+                    return false;
+                }
+
+                return StringComparer.OrdinalIgnoreCase.Equals(elem.Value, ".NETPortable");
+            }
+        }
 
         internal ProjectUtil(string filePath) : this(new ProjectKey(filePath), XDocument.Load(filePath))
         {
@@ -23,11 +40,11 @@ namespace BuildBoss
 
         internal ProjectUtil(ProjectKey key, XDocument document)
         {
-            _key = key;
-            _document = document;
-            _manager = new XmlNamespaceManager(new NameTable());
-            _manager.AddNamespace("mb", SharedUtil.MSBuildNamespaceUriRaw);
-            _namespace = SharedUtil.MSBuildNamespace;
+            Key = key;
+            Document = document;
+            Manager = new XmlNamespaceManager(new NameTable());
+            Manager.AddNamespace("mb", SharedUtil.MSBuildNamespaceUriRaw);
+            Namespace = SharedUtil.MSBuildNamespace;
         }
 
         internal RoslynProjectData GetRoslynProjectData()
@@ -82,7 +99,7 @@ namespace BuildBoss
 
         internal Guid? GetProjectGuid()
         {
-            var elem = _document.XPathSelectElements("//mb:ProjectGuid", _manager).FirstOrDefault();
+            var elem = Document.XPathSelectElements("//mb:ProjectGuid", Manager).FirstOrDefault();
             if (elem == null)
             {
                 return null;
@@ -105,7 +122,7 @@ namespace BuildBoss
 
         internal IEnumerable<XElement> GetAllPropertyGroupElements()
         {
-            var groups = _document.XPathSelectElements("//mb:PropertyGroup", _manager);
+            var groups = Document.XPathSelectElements("//mb:PropertyGroup", Manager);
             foreach (var group in groups)
             {
                 foreach (var element in group.Elements())
@@ -117,12 +134,12 @@ namespace BuildBoss
 
         internal IEnumerable<XElement> GetTargets()
         {
-            return _document.XPathSelectElements("//mb:Target", _manager);
+            return Document.XPathSelectElements("//mb:Target", Manager);
         }
 
         internal IEnumerable<XElement> GetImports()
         {
-            return _document.XPathSelectElements("//mb:Import", _manager);
+            return Document.XPathSelectElements("//mb:Import", Manager);
         }
 
         internal IEnumerable<string> GetImportProjects()
@@ -134,19 +151,19 @@ namespace BuildBoss
 
         internal IEnumerable<XElement> GetItemGroup()
         {
-            return _document.XPathSelectElements("//mb:ItemGroup", _manager);
+            return Document.XPathSelectElements("//mb:ItemGroup", Manager);
         }
 
         internal List<ProjectReferenceEntry> GetDeclaredProjectReferences()
         {
-            var references = _document.XPathSelectElements("//mb:ProjectReference", _manager);
+            var references = Document.XPathSelectElements("//mb:ProjectReference", Manager);
             var list = new List<ProjectReferenceEntry>();
-            var directory = Path.GetDirectoryName(_key.FilePath);
+            var directory = Path.GetDirectoryName(Key.FilePath);
             foreach (var r in references)
             {
                 // Make sure to check for references that exist only for ordering purposes.  They don't count as 
                 // actual references.
-                var refOutputAssembly = r.Element(_namespace.GetName("ReferenceOutputAssembly"));
+                var refOutputAssembly = r.Element(Namespace.GetName("ReferenceOutputAssembly"));
                 if (refOutputAssembly != null)
                 {
                     bool isRealReference;
@@ -157,7 +174,7 @@ namespace BuildBoss
                 }
 
                 Guid? project = null;
-                var projectElement = r.Element(_namespace.GetName("Project"));
+                var projectElement = r.Element(Namespace.GetName("Project"));
                 if (projectElement != null)
                 {
                     project = Guid.Parse(projectElement.Value.Trim());
@@ -175,7 +192,7 @@ namespace BuildBoss
         internal List<PackageReference> GetPackageReferences()
         {
             var list = new List<PackageReference>();
-            foreach (var packageRef in _document.XPathSelectElements("//mb:PackageReference", _manager))
+            foreach (var packageRef in Document.XPathSelectElements("//mb:PackageReference", Manager))
             {
                 list.Add(GetPackageReference(packageRef));
             }
@@ -192,7 +209,7 @@ namespace BuildBoss
                 return new PackageReference(name, version.Value);
             }
 
-            var elem = element.Element(_namespace.GetName("Version"));
+            var elem = element.Element(Namespace.GetName("Version"));
             if (element == null)
             {
                 throw new Exception($"Could not find a Version for package reference {name}");

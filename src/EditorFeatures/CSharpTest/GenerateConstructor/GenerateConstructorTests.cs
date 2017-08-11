@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -47,6 +47,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructor
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestWithSimpleArgument_NoFields()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        new [|C|](1);
+    }
+}",
+@"class C
+{
+    public C(int v)
+    {
+    }
+
+    void M()
+    {
+        new C(1);
+    }
+}", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithSimpleArgument_UseExpressionBody1()
         {
             await TestInRegularAndScriptAsync(
@@ -72,7 +96,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CShar
         [Fact, WorkItem(910589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910589"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithNoArgs()
         {
-            await TestInRegularAndScriptAsync(
+            var input =
 @"class C
 {
     public C(int v)
@@ -83,7 +107,11 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CShar
     {
         new [|C|]();
     }
-}",
+}";
+
+            await TestActionCountAsync(input, 1);
+            await TestInRegularAndScriptAsync(
+input,
 @"class C
 {
     public C()
@@ -131,7 +159,7 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CShar
         [Fact, WorkItem(910589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910589"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField1()
         {
-            await TestInRegularAndScriptAsync(
+            const string input =
 @"class C
 {
     void M()
@@ -143,7 +171,10 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CShar
 class D
 {
     private int foo;
-}",
+}";
+            await TestActionCountAsync(input, 1);
+            await TestInRegularAndScriptAsync(
+         input,
 @"class C
 {
     void M()
@@ -197,6 +228,40 @@ class D
         this.v1 = v1;
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestWithExistingField2_NoFields()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        new [|D|](1);
+    }
+}
+
+class D
+{
+    private string v;
+}",
+@"class C
+{
+    void M()
+    {
+        new D(1);
+    }
+}
+
+class D
+{
+    private string v;
+
+    public D(int v1)
+    {
+    }
+}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
@@ -953,7 +1018,7 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithBaseDelegatingConstructor1()
         {
-            await TestInRegularAndScriptAsync(
+            const string input =
 @"class C
 {
     void M()
@@ -971,7 +1036,11 @@ class B
 
 class D : B
 {
-}",
+}";
+
+            await TestActionCountAsync(input, 1);
+            await TestInRegularAndScriptAsync(
+         input,
 @"class C
 {
     void M()
@@ -1041,6 +1110,51 @@ class D : B
         this.v = v;
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestWithBaseDelegatingConstructor2_NoFields()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        new [|D|](1);
+    }
+}
+
+class B
+{
+    private B(int x)
+    {
+    }
+}
+
+class D : B
+{
+}",
+@"class C
+{
+    void M()
+    {
+        new D(1);
+    }
+}
+
+class B
+{
+    private B(int x)
+    {
+    }
+}
+
+class D : B
+{
+    public D(int v)
+    {
+    }
+}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
@@ -1298,6 +1412,56 @@ class Delta
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestDelegateToSmallerConstructor1_NoFields()
+        {
+            await TestInRegularAndScriptAsync(
+@"class A
+{
+    void M()
+    {
+        Delta d1 = new Delta(""ss"", 3);
+        Delta d2 = new [|Delta|](""ss"", 5, true);
+    }
+}
+
+class Delta
+{
+    private string v1;
+    private int v2;
+
+    public Delta(string v1, int v2)
+    {
+        this.v1 = v1;
+        this.v2 = v2;
+    }
+}",
+@"class A
+{
+    void M()
+    {
+        Delta d1 = new Delta(""ss"", 3);
+        Delta d2 = new Delta(""ss"", 5, true);
+    }
+}
+
+class Delta
+{
+    private string v1;
+    private int v2;
+
+    public Delta(string v1, int v2)
+    {
+        this.v1 = v1;
+        this.v2 = v2;
+    }
+
+    public Delta(string v1, int v2, bool v) : this(v1, v2)
+    {
+    }
+}", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestDelegateToSmallerConstructor2()
         {
             await TestInRegularAndScriptAsync(
@@ -1486,6 +1650,28 @@ class Delta
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestGenerateFromThisInitializer1_NoFields()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public C() [|: this(4)|]
+    {
+    }
+}",
+@"class C
+{
+    public C() : this(4)
+    {
+    }
+
+    public C(int v)
+    {
+    }
+}", index: 1);
+        }
+
         [Fact, WorkItem(910589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910589"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenerateFromThisInitializer2()
         {
@@ -1629,6 +1815,38 @@ internal class A
         this.t2 = t2;
     }
 }");
+        }
+
+        [WorkItem(539972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539972")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestUnavailableTypeParameters_NoFields()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C<T1, T2>
+{
+    public void Foo(T1 t1, T2 t2)
+    {
+        A a = new [|A|](t1, t2);
+    }
+}
+
+internal class A
+{
+}",
+@"class C<T1, T2>
+{
+    public void Foo(T1 t1, T2 t2)
+    {
+        A a = new A(t1, t2);
+    }
+}
+
+internal class A
+{
+    public A(object t1, object t2)
+    {
+    }
+}", index: 1);
         }
 
         [WorkItem(541020, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541020")]
@@ -1806,6 +2024,38 @@ class MyAttribute : Attribute
 class D
 {
 }");
+        }
+
+        [WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestAttributesWithArgument_NoFields()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+[AttributeUsage(AttributeTargets.Class)]
+class MyAttribute : Attribute
+{
+}
+
+[[|MyAttribute(123)|]]
+class D
+{
+}",
+@"using System;
+
+[AttributeUsage(AttributeTargets.Class)]
+class MyAttribute : Attribute
+{
+    public MyAttribute(int v)
+    {
+    }
+}
+
+[MyAttribute(123)]
+class D
+{
+}", index: 1);
         }
 
         [WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")]

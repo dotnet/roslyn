@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -4077,7 +4077,7 @@ class Program
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestAsync(code, expected, ignoreTrivia: false, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -4106,7 +4106,7 @@ class Program
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestAsync(code, expected, ignoreTrivia: false, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -4136,7 +4136,7 @@ class Program
         var t2 = (y: y1, x);
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, index: 1, ignoreTrivia: false);
+            await TestAsync(code, expected, index: 1, ignoreTrivia: false, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]

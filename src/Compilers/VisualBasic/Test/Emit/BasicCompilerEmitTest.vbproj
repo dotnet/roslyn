@@ -1,52 +1,26 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\..\build\Targets\Settings.props" />
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{190CE348-596E-435A-9E5B-12A689F9FC29}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Compilers.VisualBasic.Emit.UnitTests</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
-    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{F184B08F-C81C-45F6-A57F-5ABD9991F28F}</ProjectTypeGuids>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
-      <Project>{AFDE6BEA-5038-4A4A-A88E-DBD2E4088EED}</Project>
-      <Name>PdbUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
-      <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
-      <Name>TestUtilities.Desktop</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj">
-      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
-      <Name>TestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\CSharp\Portable\CSharpCodeAnalysis.csproj">
-      <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
-      <Name>CSharpCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Resources\Core\CompilerTestResources.csproj">
-      <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
-      <Name>CompilerTestResources</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Utilities\VisualBasic\BasicCompilerTestUtilities.vbproj">
-      <Project>{4371944A-D3BA-4B5B-8285-82E5FFC6D1F8}</Project>
-      <Name>BasicCompilerTestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Portable\BasicCodeAnalysis.vbproj">
-      <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
-      <Name>BasicCodeAnalysis</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj" />
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj" />
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj" />
+    <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\CSharp\Portable\CSharpCodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\Test\Resources\Core\CompilerTestResources.csproj" />
+    <ProjectReference Include="..\..\..\Test\Utilities\VisualBasic\BasicCompilerTestUtilities.vbproj" />
+    <ProjectReference Include="..\..\Portable\BasicCodeAnalysis.vbproj" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -55,130 +29,18 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="Microsoft.VisualBasic" />
-    <PackageReference Include="Microsoft.DiaSymReader">
-      <Version>$(MicrosoftDiaSymReaderVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="xunit">
-      <Version>$(xunitVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="xunit.runner.console">
-      <Version>$(xunitrunnerconsoleVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="xunit.runner.visualstudio">
-      <Version>$(xunitrunnervisualstudioVersion)</Version>
-    </PackageReference>
+    <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
+    <PackageReference Include="xunit" Version="$(xunitVersion)" />
+    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AssemblyAttributes.vb" />
-    <Compile Include="Attributes\AssemblyAttributes.vb" />
-    <Compile Include="Attributes\AttributeTests.vb" />
-    <Compile Include="Attributes\AttributeTests_Experimental.vb" />
-    <Compile Include="Attributes\AttributeTests_Tuples.vb" />
-    <Compile Include="Attributes\AttributeTests_Conditional.vb" />
-    <Compile Include="Attributes\AttributeTests_MarshalAs.vb" />
-    <Compile Include="Attributes\AttributeTests_ObsoleteAttribute.vb" />
-    <Compile Include="Attributes\AttributeTests_StructLayout.vb" />
-    <Compile Include="Attributes\AttributeTests_Synthesized.vb" />
-    <Compile Include="Attributes\AttributeTests_WellKnownAttributes.vb" />
-    <Compile Include="Attributes\EmitTestStrongNameProvider.vb" />
-    <Compile Include="Attributes\InternalsVisibleToAndStrongNameTests.vb" />
-    <Compile Include="BreakingChanges.vb" />
-    <Compile Include="CodeGen\AnonymousTypesCodeGenTests.vb" />
-    <Compile Include="CodeGen\CodeGenAsyncTests.vb" />
-    <Compile Include="CodeGen\CodeGenClosureLambdaTests.vb" />
-    <Compile Include="CodeGen\CodeGenCollectionInitializer.vb" />
-    <Compile Include="CodeGen\CodeGenTuples.vb" />
-    <Compile Include="CodeGen\CodeGenConstLocal.vb" />
-    <Compile Include="CodeGen\CodeGenDelegateCreation.vb" />
-    <Compile Include="CodeGen\CodeGenEvents.vb" />
-    <Compile Include="CodeGen\CodeGenFieldInitTests.vb" />
-    <Compile Include="CodeGen\CodeGenForeach.vb" />
-    <Compile Include="CodeGen\CodeGenForLoops.vb" />
-    <Compile Include="CodeGen\CodeGenGetTypeOperator.vb" />
-    <Compile Include="CodeGen\CodeGenCtorInitializers.vb" />
-    <Compile Include="CodeGen\CodeGenGoto.vb" />
-    <Compile Include="CodeGen\CodeGenIfOperator.vb" />
-    <Compile Include="CodeGen\CodeGenInterfaceImplementation.vb" />
-    <Compile Include="CodeGen\CodeGenIterators.vb" />
-    <Compile Include="CodeGen\CodeGenIterators_Dev11.vb" />
-    <Compile Include="CodeGen\CodeGenLateBound.vb" />
-    <Compile Include="CodeGen\CodeGenMultiDimensionalArray.vb" />
-    <Compile Include="CodeGen\CodeGenNullable.vb" />
-    <Compile Include="CodeGen\CodeGenObjectInitializer.vb" />
-    <Compile Include="CodeGen\CodeGenOverridingAndHiding.vb" />
-    <Compile Include="CodeGen\CodeGenRefReturnTests.vb" />
-    <Compile Include="CodeGen\CodeGenSelectCase.vb" />
-    <Compile Include="CodeGen\CodeGenSingleLineIf.vb" />
-    <Compile Include="CodeGen\CodeGenStaticLocals.vb" />
-    <Compile Include="CodeGen\CodeGenStopOrEnd.vb" />
-    <Compile Include="CodeGen\CodeGenStringConcat.vb" />
-    <Compile Include="CodeGen\CodeGenSyncLock.vb" />
-    <Compile Include="CodeGen\CodeGenTests.vb" />
-    <Compile Include="CodeGen\CodeGenTryCatchThrow.vb" />
-    <Compile Include="CodeGen\CodeGenUnstructuredErrorHandling.vb" />
-    <Compile Include="CodeGen\CodeGenUsingStatement.vb" />
-    <Compile Include="CodeGen\CodeGenVBCore.vb" />
-    <Compile Include="CodeGen\CodeGenVbRuntime.vb" />
-    <Compile Include="CodeGen\CodeGenWinMdDelegates.vb" />
-    <Compile Include="CodeGen\CodeGenWinMdEvents.vb" />
-    <Compile Include="CodeGen\CodeGenWithBlock.vb" />
-    <Compile Include="CodeGen\CodeGenWithEvents.vb" />
-    <Compile Include="CodeGen\WinRTCollectionTests.vb" />
-    <Compile Include="Emit\CompilationEmitTests.vb" />
-    <Compile Include="Emit\DeterministicTests.vb" />
-    <Compile Include="Emit\DynamicAnalysis\DynamicAnalysisResourceTests.vb" />
-    <Compile Include="Emit\DynamicAnalysis\DynamicInstrumentationTests.vb" />
-    <Compile Include="Emit\EditAndContinue\AssemblyReferencesTests.vb" />
-    <Compile Include="Emit\EditAndContinue\EditAndContinueClosureTests.vb" />
-    <Compile Include="Emit\EditAndContinue\EditAndContinuePdbTests.vb" />
-    <Compile Include="Emit\EditAndContinue\EditAndContinueStateMachineTests.vb" />
-    <Compile Include="Emit\EditAndContinue\EditAndContinueTestBase.vb" />
-    <Compile Include="Emit\EditAndContinue\EditAndContinueTests.vb" />
-    <Compile Include="Emit\EditAndContinue\SymbolMatcherTests.vb" />
-    <Compile Include="Emit\EmitCustomModifiers.vb" />
-    <Compile Include="Emit\EmitErrorTests.vb" />
-    <Compile Include="Emit\EmitMetadata.vb" />
-    <Compile Include="Emit\EntryPointTests.vb" />
-    <Compile Include="Emit\FieldInitializerTests.vb" />
-    <Compile Include="Emit\EditAndContinue\LocalSlotMappingTests.vb" />
-    <Compile Include="Emit\NoPiaEmbedTypes.vb" />
-    <Compile Include="Emit\OptionalArgumentsTests.vb" />
-    <Compile Include="Emit\ResourceTests.vb" />
-    <Compile Include="CodeGen\CodeGenScriptTests.vb" />
-    <Compile Include="ErrorHandling.vb" />
-    <Compile Include="ExpressionTrees\CodeGenExprLambda.vb" />
-    <Compile Include="ExpressionTrees\ExpTreeTestResources.Designer.vb" />
-    <Compile Include="ExpressionTrees\Sources\ExprLambdaUtils.vb" />
-    <Compile Include="ExpressionTrees\Sources\QueryHelper.vb" />
-    <Compile Include="PDB\ChecksumTests.vb" />
-    <Compile Include="PDB\PDBAsyncTests.vb" />
-    <Compile Include="PDB\PDBCollectionInitializerTests.vb" />
-    <Compile Include="PDB\PDBConstLocalTests.vb" />
-    <Compile Include="PDB\PDBExternalSourceDirectiveTests.vb" />
-    <Compile Include="PDB\PDBLambdaTests.vb" />
-    <Compile Include="PDB\PDBTupleTests.vb" />
-    <Compile Include="PDB\PDBVariableInitializerTests.vb" />
-    <Compile Include="PDB\PDBIteratorTests.vb" />
-    <Compile Include="PDB\PDBForEachTests.vb" />
-    <Compile Include="PDB\PDBNamespaceScopes.vb" />
-    <Compile Include="PDB\PDBObjectInitializerTests.vb" />
-    <Compile Include="PDB\PDBSyncLockTests.vb" />
-    <Compile Include="PDB\PDBTests.vb" />
-    <Compile Include="PDB\PDBUsingTests.vb" />
-    <Compile Include="PDB\PDBWinMdExpTests.vb" />
-    <Compile Include="Perf.vb" />
-    <Compile Include="Resource.Designer.vb">
+    <Compile Update="Resource.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resource.resx</DependentUpon>
     </Compile>
-    <Compile Include="Semantics\StaticLocalsSemanticTests.vb" />
-    <Compile Include="XmlLiteralTests.vb" />
     <Content Include="CodeGen\ConversionsILGenTestBaseline.txt" />
     <Content Include="CodeGen\ConversionsILGenTestBaseline1.txt" />
-    <Content Include="CodeGen\ConversionsILGenTestSource.vb" />
-    <Content Include="CodeGen\ConversionsILGenTestSource1.vb" />
-    <Content Include="CodeGen\ConversionsILGenTestSource2.vb" />
     <Content Include="ExpressionTrees\Results\CheckedAndOrXor.txt" />
     <Content Include="ExpressionTrees\Results\CheckedAndUncheckedIsIsNot.txt" />
     <Content Include="ExpressionTrees\Results\CheckedAndUncheckedIsIsNotNothing.txt" />
@@ -226,13 +88,26 @@
     <Content Include="ExpressionTrees\Results\XmlLiteralsInExprLambda01_Result.txt" />
     <Content Include="ExpressionTrees\Results\XmlLiteralsInExprLambda02_Result.txt" />
     <Content Include="ExpressionTrees\Results\XmlLiteralsInExprLambda03_Result.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="CodeGen\ConversionsILGenTestSource.vb" />
+    <Content Include="CodeGen\ConversionsILGenTestSource1.vb" />
+    <Content Include="CodeGen\ConversionsILGenTestSource2.vb" />
     <Content Include="ExpressionTrees\Sources\UserDefinedBinaryOperators.vb" />
     <Content Include="ExpressionTrees\Tests\TestConversion_Narrowing_UDC.vb" />
     <Content Include="ExpressionTrees\Tests\TestConversion_TypeMatrix_UserTypes.vb" />
     <Content Include="ExpressionTrees\Tests\TestConversion_Widening_UDC.vb" />
     <Content Include="ExpressionTrees\Tests\TestUnary_UDO_IsTrueIsFalse.vb" />
     <Content Include="ExpressionTrees\Tests\TestUnary_UDO_PlusMinusNot.vb" />
-    <Compile Include="PDB\PortablePdbTests.vb" />
+    <Compile Remove="CodeGen\ConversionsILGenTestSource.vb" />
+    <Compile Remove="CodeGen\ConversionsILGenTestSource1.vb" />
+    <Compile Remove="CodeGen\ConversionsILGenTestSource2.vb" />    
+    <Compile Remove="ExpressionTrees\Sources\UserDefinedBinaryOperators.vb" />
+    <Compile Remove="ExpressionTrees\Tests\TestConversion_Narrowing_UDC.vb" />
+    <Compile Remove="ExpressionTrees\Tests\TestConversion_TypeMatrix_UserTypes.vb" />
+    <Compile Remove="ExpressionTrees\Tests\TestConversion_Widening_UDC.vb" />
+    <Compile Remove="ExpressionTrees\Tests\TestUnary_UDO_IsTrueIsFalse.vb" />
+    <Compile Remove="ExpressionTrees\Tests\TestUnary_UDO_PlusMinusNot.vb" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="IdentifierComparison = Microsoft.CodeAnalysis.CaseInsensitiveComparison" />
@@ -240,10 +115,10 @@
     <Import Include="Xunit" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="ExpressionTrees\ExpTreeTestResources.resx">
+    <EmbeddedResource Update="ExpressionTrees\ExpTreeTestResources.resx">
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="Resource.resx">
+    <EmbeddedResource Update="Resource.resx">
       <CustomToolNamespace>Microsoft.CodeAnalysis.VisualBasic.UnitTests.My.Resources</CustomToolNamespace>
       <Generator>ResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>

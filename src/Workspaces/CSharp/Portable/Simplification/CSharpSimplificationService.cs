@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
         private static bool TryAddLeadingElasticTriviaIfNecessary(SyntaxToken token, SyntaxToken originalToken, out SyntaxToken tokenWithLeadingWhitespace)
         {
-            tokenWithLeadingWhitespace = default(SyntaxToken);
+            tokenWithLeadingWhitespace = default;
 
             if (token.HasLeadingTrivia)
             {
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             return false;
         }
 
-        private static readonly string s_CS8019_UnusedUsingDirective = "CS8019";
+        private const string s_CS8019_UnusedUsingDirective = "CS8019";
 
         protected override void GetUnusedNamespaceImports(SemanticModel model, HashSet<SyntaxNode> namespaceImports, CancellationToken cancellationToken)
         {
