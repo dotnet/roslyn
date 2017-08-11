@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return ImmutableArray.Create(Create(statement));
         }
 
-        internal IArgument CreateArgumentOperation(ArgumentKind kind, IParameterSymbol parameter, BoundExpression expression, bool isImplicit)
+        internal IArgument CreateArgumentOperation(ArgumentKind kind, IParameterSymbol parameter, BoundExpression expression)
         {
             var value = Create(expression);
 
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 syntax: value.Syntax,
                 type: value.Type,
                 constantValue: default,
-                isImplicit: isImplicit);
+                isImplicit: expression.WasCompilerGenerated);
         }
 
         private ImmutableArray<IArgument> DeriveArguments(
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 // optionalParametersMethod can be null if we are writing to a readonly indexer or reading from an writeonly indexer,
                 // in which case HasErrors property would be true, but we still want to treat this as invalid invocation.
-                return boundArguments.SelectAsArray(arg => CreateArgumentOperation(ArgumentKind.Explicit, null, arg, arg.WasCompilerGenerated));
+                return boundArguments.SelectAsArray(arg => CreateArgumentOperation(ArgumentKind.Explicit, null, arg));
             }
 
             return LocalRewriter.MakeArgumentsInEvaluationOrder(
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 SyntaxNode syntax = value.Syntax?.Parent ?? expression.Syntax;
                 ITypeSymbol type = target.Type;
                 Optional<object> constantValue = value.ConstantValue;
-                var assignment = new SimpleAssignmentExpression(target, value, _semanticModel, syntax, type, constantValue, target.IsImplicit);
+                var assignment = new SimpleAssignmentExpression(target, value, _semanticModel, syntax, type, constantValue, isImplicit: value.IsImplicit);
                 builder.Add(assignment);
             }
 

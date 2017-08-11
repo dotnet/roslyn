@@ -179,8 +179,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Dim syntax As SyntaxNode = If(value.Syntax?.Parent, expression.Syntax)
                 Dim type As ITypeSymbol = target.Type
                 Dim constantValue As [Optional](Of Object) = value.ConstantValue
-                Dim isImplicit As Boolean = expression.WasCompilerGenerated
-                Dim assignment = New SimpleAssignmentExpression(target, value, _semanticModel, syntax, type, constantValue, isImplicit)
+                Dim assignment = New SimpleAssignmentExpression(target, value, _semanticModel, syntax, type, constantValue, isImplicit:=value.IsImplicit)
                 builder.Add(assignment)
             Next i
 
@@ -268,11 +267,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
             limitValue As IOperation,
             stepValue As IOperation) As ImmutableArray(Of IOperation)
             Dim statements As ArrayBuilder(Of IOperation) = ArrayBuilder(Of IOperation).GetInstance()
-            Dim isImplicit As Boolean = controlVariable.WasCompilerGenerated
 
             ' ControlVariable = InitialValue
             If controlVariable IsNot Nothing Then
-                statements.Add(OperationFactory.CreateSimpleAssignmentExpressionStatement(Create(controlVariable), Create(initialValue), _semanticModel, initialValue.Syntax, isImplicit))
+                statements.Add(OperationFactory.CreateSimpleAssignmentExpressionStatement(Create(controlVariable), Create(initialValue), _semanticModel, initialValue.Syntax, isImplicit:=controlVariable.WasCompilerGenerated))
             End If
 
             ' T0 = LimitValue
@@ -437,7 +435,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                             syntax,
                             type:=Nothing,
                             constantValue:=Nothing,
-                            isImplicit:=Nothing) ' TODO
+                            isImplicit:=False) ' Declaration is always explicit
         End Function
 
         Private Function GetAddRemoveHandlerStatementExpression(statement As BoundAddRemoveHandlerStatement) As IOperation

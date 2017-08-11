@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 syntax,
                 type: null,
                 constantValue: default(Optional<object>),
-                isImplicit: initialValue.IsImplicit);
+                isImplicit: false); // variable declaration is always explicit
         }
 
         public static IConditionalChoiceExpression CreateConditionalChoiceExpression(IOperation condition, IOperation ifTrue, IOperation ifFalse, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
