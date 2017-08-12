@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.ReplaceDocCommentTextWithSeeElement
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
-    internal class ReplaceDocCommentTextWithSeeTagCodeRefactoringProvider : CodeRefactoringProvider
+    internal class CSharpReplaceDocCommentTextWithTagCodeRefactoringProvider : CodeRefactoringProvider
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
