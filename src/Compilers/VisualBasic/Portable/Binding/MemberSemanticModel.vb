@@ -816,15 +816,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function GetOperationWorker(method As MethodSymbol, bodySyntax As VisualBasicSyntaxNode, cancellationToken As CancellationToken) As IOperation
+            Dim result As IOperation = Nothing
             Dim node = GetBoundNode(bodySyntax, GetOperationOptions.Highest)
-            Dim body = DirectCast(node, BoundStatement)
-            Dim loweredBody = LowerMethodBody(method, body)
 
-            Return _operationFactory.Create(loweredBody)
+            If Not node.HasErrors Then
+                Dim body = DirectCast(node, BoundBlock)
+                Dim loweredBody = LowerMethodBody(method, body)
+
+                result = _operationFactory.Create(loweredBody)
+            End If
+
+            Return result
         End Function
 
-        Private Function LowerMethodBody(method As MethodSymbol, body As BoundStatement) As BoundStatement
-            Throw New NotImplementedException()
+        Private Function LowerMethodBody(method As MethodSymbol, body As BoundBlock) As BoundBlock
+            Dim diagnostics = DiagnosticBag.GetInstance()
+            Dim compilationState = New TypeCompilationState(Compilation, Nothing, Nothing)
+
+            Dim sawLambdas As Boolean
+            Dim symbolsCapturedWithoutCopyCtor As ISet(Of Symbol) = Nothing
+            Dim rewrittenNodes As HashSet(Of BoundNode) = Nothing
+            Dim flags = LocalRewriter.RewritingFlags.Default
+
+            Dim loweredBody = LocalRewriter.Rewrite(
+                    body,
+                    method,
+                    compilationState,
+                    Nothing,
+                    diagnostics,
+                    rewrittenNodes,
+                    sawLambdas,
+                    symbolsCapturedWithoutCopyCtor,
+                    flags,
+                    DebugInfoInjector.Singleton,
+                    currentMethod:=Nothing)
+
+            Return loweredBody
         End Function
 
         Friend Overrides Function GetExpressionTypeInfo(node As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As VisualBasicTypeInfo
