@@ -1659,7 +1659,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal abstract partial class BaseFixedStatement : Operation, IFixedStatement
     {
         protected BaseFixedStatement(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-                    base(OperationKind.FixedStatement, semanticModel, syntax, type, constantValue)
+                    // https://github.com/dotnet/roslyn/issues/21281
+                    //base(OperationKind.FixedStatement, semanticModel, syntax, type, constantValue)
+                    base(OperationKind.None, semanticModel, syntax, type, constantValue)
         {
         }
 

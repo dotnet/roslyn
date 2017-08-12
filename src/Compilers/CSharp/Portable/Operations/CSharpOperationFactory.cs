@@ -205,8 +205,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                     return CreateBoundTryStatementOperation((BoundTryStatement)boundNode);
                 case BoundKind.CatchBlock:
                     return CreateBoundCatchBlockOperation((BoundCatchBlock)boundNode);
-                case BoundKind.FixedStatement:
-                    return CreateBoundFixedStatementOperation((BoundFixedStatement)boundNode);
+                // https://github.com/dotnet/roslyn/issues/21281
+                //case BoundKind.FixedStatement:
+                //    return CreateBoundFixedStatementOperation((BoundFixedStatement)boundNode);
                 case BoundKind.UsingStatement:
                     return CreateBoundUsingStatementOperation((BoundUsingStatement)boundNode);
                 case BoundKind.ThrowStatement:
