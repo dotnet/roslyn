@@ -149,12 +149,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 End If
             End If
 
-            Dim trivia As IEnumerable(Of SyntaxTrivia) = getMethodStatement.GetLeadingTrivia()
-            If setMethodStatement IsNot Nothing Then
-                trivia = trivia.Concat(setMethodStatement.GetLeadingTrivia())
-            End If
-
-            newPropertyDeclaration = newPropertyDeclaration.WithLeadingTrivia(trivia)
+            newPropertyDeclaration = SetLeadingTrivia(
+                VisualBasicSyntaxFactsService.Instance, getAndSetMethods, newPropertyDeclaration)
 
             Return newPropertyDeclaration.WithAdditionalAnnotations(Formatter.Annotation)
         End Function

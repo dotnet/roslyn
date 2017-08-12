@@ -146,16 +146,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                 getMethodDeclaration.ReturnType, getMethodDeclaration.ExplicitInterfaceSpecifier,
                 nameToken, accessorList: null);
 
-            var finalLeadingTrivia = getMethodDeclaration.GetLeadingTrivia().ToList();
-            var setMethodDeclaration = getAndSetMethods.SetMethodDeclaration;
-            if (setMethodDeclaration != null)
-            {
-                finalLeadingTrivia.AddRange(
-                    setMethodDeclaration.GetLeadingTrivia()
-                                        .SkipWhile(t => t.Kind() == SyntaxKind.EndOfLineTrivia)
-                                        .Where(t => !t.IsDirective));
-            }
-            property = property.WithLeadingTrivia(finalLeadingTrivia);
+            property = SetLeadingTrivia(
+                CSharpSyntaxFactsService.Instance, getAndSetMethods, property);
 
             var accessorList = SyntaxFactory.AccessorList(SyntaxFactory.SingletonList(getAccessor));
             if (setAccessor != null)
