@@ -852,7 +852,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function CreateBoundBlockOperation(boundBlock As BoundBlock) As IBlockStatement
             Dim statements As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
                 Function()
-                    Return boundBlock.Statements.Select(Function(n) Create(n)).Where(Function(s) s.Kind <> OperationKind.None).ToImmutableArray()
+                    Return boundBlock.Statements.Select(Function(n) Create(n)).Where(Function(s) s IsNot Nothing AndAlso s.Kind <> OperationKind.None).ToImmutableArray()
                 End Function)
             Dim locals As ImmutableArray(Of ILocalSymbol) = boundBlock.Locals.As(Of ILocalSymbol)()
             Dim syntax As SyntaxNode = boundBlock.Syntax
@@ -1125,7 +1125,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function CreateBoundStatementListOperation(boundStatementList As BoundStatementList) As IOperation
             Dim statements As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
                 Function()
-                    Return boundStatementList.Statements.Select(Function(n) Create(n)).Where(Function(s) s.Kind <> OperationKind.None).ToImmutableArray()
+                    Return boundStatementList.Statements.Select(Function(n) Create(n)).Where(Function(s) s IsNot Nothing AndAlso s.Kind <> OperationKind.None).ToImmutableArray()
                 End Function)
 
             Dim locals As ImmutableArray(Of ILocalSymbol) = ImmutableArray(Of ILocalSymbol).Empty
@@ -1148,7 +1148,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function CreateBoundSequenceOperation(boundSequence As BoundSequence) As IOperation
             Dim expressions As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
                 Function()
-                    Return boundSequence.SideEffects.Select(Function(n) Create(n)).Where(Function(s) s.Kind <> OperationKind.None).ToImmutableArray()
+                    Return boundSequence.SideEffects.Select(Function(n) Create(n)).Where(Function(s) s IsNot Nothing AndAlso s.Kind <> OperationKind.None).ToImmutableArray()
                 End Function)
 
             Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundSequence.ValueOpt))
