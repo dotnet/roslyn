@@ -91,14 +91,25 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
             Select Case member.Kind
                 Case SyntaxKind.FunctionBlock,
                     SyntaxKind.OperatorBlock,
-                    SyntaxKind.PropertyBlock,
                     SyntaxKind.DelegateFunctionStatement,
                     SyntaxKind.OperatorStatement,
                     SyntaxKind.FunctionStatement,
                     SyntaxKind.DeclareFunctionStatement
                     Return True
-                Case SyntaxKind.PropertyStatement
-                    Return Not DirectCast(member, PropertyStatementSyntax).Modifiers.Any(SyntaxKind.WriteOnlyKeyword)
+                Case Else
+                    Return False
+            End Select
+        End Function
+
+        Private Function SupportsDocumentationCommentValueClause(member As DeclarationStatementSyntax) As Boolean
+            If member Is Nothing Then
+                Return False
+            End If
+
+            Select Case member.Kind
+                Case SyntaxKind.PropertyBlock,
+                    SyntaxKind.PropertyStatement
+                    Return True
                 Case Else
                     Return False
             End Select
@@ -144,6 +155,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
 
             If SupportsDocumentationCommentReturnsClause(member) Then
                 list.Add("''' <returns></returns>")
+            ElseIf SupportsDocumentationCommentValueClause(member) Then
+                list.Add("''' <value></value>")
             End If
 
             Return list

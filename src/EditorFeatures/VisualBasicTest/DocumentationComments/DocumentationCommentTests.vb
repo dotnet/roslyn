@@ -220,7 +220,7 @@ End Class
 
         <WorkItem(540004, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540004")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Sub TestTypingCharacter_NoReturnsOnWriteOnlyProperty()
+        Public Sub TestTypingCharacter_WriteOnlyPropertyStillHasValue()
             Const code = "
 Class C
     ''$$
@@ -235,6 +235,7 @@ Class C
     ''' <summary>
     ''' $$
     ''' </summary>
+    ''' <value></value>
     WriteOnly Property Prop As Integer
         Set(ByVal value As Integer
         End Set
@@ -986,7 +987,7 @@ Module M
     ''' <summary>
     ''' $$
     ''' </summary>
-    ''' <returns></returns>
+    ''' <value></value>
     Property i As Integer : Property j As Integer
 End Module
 "
