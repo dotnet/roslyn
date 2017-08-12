@@ -64,11 +64,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                 return;
             }
 
-            editor.ReplaceNode(getMethodDeclaration,
-                ConvertMethodsToProperty(
-                    documentOptions, parseOptions,
-                    semanticModel, editor.Generator,
-                    getAndSetMethods, propertyName, nameChanged));
+            var newProperty = ConvertMethodsToProperty(
+                documentOptions, parseOptions,
+                semanticModel, editor.Generator,
+                getAndSetMethods, propertyName, nameChanged);
+
+            // newProperty = newProperty.WithTriviaFrom(getMethodDeclaration);
+
+            editor.ReplaceNode(getMethodDeclaration, newProperty);
         }
 
         public SyntaxNode ConvertMethodsToProperty(
@@ -147,13 +150,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                 getMethodDeclaration.ReturnType, getMethodDeclaration.ExplicitInterfaceSpecifier,
                 nameToken, accessorList: null);
 
-            IEnumerable<SyntaxTrivia> trivia = getMethodDeclaration.GetLeadingTrivia();
+            var finalLeadingTrivia = getMethodDeclaration.GetLeadingTrivia().ToList();
             var setMethodDeclaration = getAndSetMethods.SetMethodDeclaration;
             if (setMethodDeclaration != null)
             {
-                trivia = trivia.Concat(setMethodDeclaration.GetLeadingTrivia());
+                finalLeadingTrivia.AddRange(
+                    setMethodDeclaration.GetLeadingTrivia()
+                                        .SkipWhile(t => t.Kind() == SyntaxKind.EndOfLineTrivia)
+                                        .Where(t => !t.IsDirective));
             }
-            property = property.WithLeadingTrivia(trivia.Where(t => !t.IsDirective));
+            property = property.WithLeadingTrivia(finalLeadingTrivia);
 
             var accessorList = SyntaxFactory.AccessorList(SyntaxFactory.SingletonList(getAccessor));
             if (setAccessor != null)
