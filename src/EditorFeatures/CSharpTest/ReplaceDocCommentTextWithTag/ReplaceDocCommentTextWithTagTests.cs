@@ -2,7 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.ReplaceDocCommentTextWithSeeElement;
+using Microsoft.CodeAnalysis.CSharp.ReplaceDocCommentTextWithTag;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Roslyn.Test.Utilities;
 using Xunit;
