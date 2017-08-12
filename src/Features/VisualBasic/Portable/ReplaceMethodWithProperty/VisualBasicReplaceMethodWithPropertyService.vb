@@ -15,10 +15,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
         Inherits AbstractReplaceMethodWithPropertyService
         Implements IReplaceMethodWithPropertyService
 
-        Public Function GetMethodName(methodNode As SyntaxNode) As String Implements IReplaceMethodWithPropertyService.GetMethodName
-            Return DirectCast(methodNode, MethodStatementSyntax).Identifier.ValueText
-        End Function
-
         Public Function GetMethodDeclaration(token As SyntaxToken) As SyntaxNode Implements IReplaceMethodWithPropertyService.GetMethodDeclaration
             Dim containingMethod = token.Parent.FirstAncestorOrSelf(Of MethodStatementSyntax)
             If containingMethod Is Nothing Then
