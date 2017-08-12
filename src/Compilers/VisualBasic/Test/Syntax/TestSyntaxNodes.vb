@@ -2360,8 +2360,37 @@ a + b
         End Sub
 
         <Fact>
+        Public Sub TestRemoveNodeInSeparatedList_KeepExteriorTrivia_2()
+            Dim expr = SyntaxFactory.ParseExpression("m(a, b, ' comment
+c)")
+
+            Dim n = expr.DescendantTokens().Where(Function(t) t.ToString() = "b").Select(Function(t) t.Parent.FirstAncestorOrSelf(Of ArgumentSyntax)()).FirstOrDefault()
+            Assert.NotNull(n)
+
+            Dim expr2 = expr.RemoveNode(n, SyntaxRemoveOptions.KeepExteriorTrivia)
+
+            Dim text = expr2.ToFullString()
+            Assert.Equal("m(a,  ' comment
+c)", text)
+        End Sub
+
+        <Fact>
         Public Sub TestRemoveNodeInSeparatedList_KeepNoTrivia()
             Dim expr = SyntaxFactory.ParseExpression("m(a, b, c)")
+
+            Dim b = expr.DescendantTokens().Where(Function(t) t.ToString() = "b").Select(Function(t) t.Parent.FirstAncestorOrSelf(Of ArgumentSyntax)()).FirstOrDefault()
+            Assert.NotNull(b)
+
+            Dim expr2 = expr.RemoveNode(b, SyntaxRemoveOptions.KeepNoTrivia)
+
+            Dim text = expr2.ToFullString()
+            Assert.Equal("m(a, c)", text)
+        End Sub
+
+        <Fact>
+        Public Sub TestRemoveNodeInSeparatedList_KeepNoTrivia_2()
+            Dim expr = SyntaxFactory.ParseExpression("m(a, b, ' comment
+c)")
 
             Dim b = expr.DescendantTokens().Where(Function(t) t.ToString() = "b").Select(Function(t) t.Parent.FirstAncestorOrSelf(Of ArgumentSyntax)()).FirstOrDefault()
             Assert.NotNull(b)

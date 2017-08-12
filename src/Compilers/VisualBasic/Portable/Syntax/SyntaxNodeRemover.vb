@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                             visited = Me.VisitListSeparator(item.AsToken())
                         End If
                     Else
-                        Dim node = DirectCast(DirectCast(item.AsNode(), SyntaxNode), TNode)
+                        Dim node = DirectCast(item.AsNode(), TNode)
 
                         If Me.IsForRemoval(node) Then
                             If alternate Is Nothing Then
@@ -162,13 +162,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                                 alternate.Add(withSeps, 0, i)
                             End If
 
-                            If alternate.Count > 0 AndAlso alternate(alternate.Count - 1).IsToken Then
-                                ' remove preceding separator if any
+                            ' remove preceding separator if any, except for the case where
+                            ' the following separator immediately touches the item in the list
+                            ' and is followed by a newline.
+                            '
+                            ' In that case, we consider the next token to be more closely
+                            ' associated with the item, And it should be removed.
+                            '
+                            ' For example, if you have:
+                            '
+                            '      Goo(a, ' a stuff
+                            '          b, ' b stuff
+                            '          c)
+                            '
+                            ' If we're removing 'b', we should remove the comma after it.
+                            '
+                            ' If there Is no next comma, Or the next comma Is Not on the 
+                            ' same line, then just remove the preceding comma if there Is 
+                            ' one.  If there Is no next Or previous comma there's nothing
+                            ' in the list that needs to be fixed up.
+
+                            Dim nextTokenIsSeparator = i + 1 < n AndAlso withSeps(i + 1).IsToken
+                            Dim nextSeparatorBelongsToNode =
+                                nextTokenIsSeparator AndAlso
+                                Not withSeps(i + 1).HasLeadingTrivia AndAlso
+                                Not ContainsEndOfLine(node.GetTrailingTrivia()) AndAlso
+                                ContainsEndOfLine(withSeps(i + 1).AsToken().TrailingTrivia)
+
+                            If Not nextSeparatorBelongsToNode AndAlso
+                               alternate.Count > 0 AndAlso
+                               alternate(alternate.Count - 1).IsToken Then
+
                                 Dim separator = alternate(alternate.Count - 1).AsToken()
                                 Me.AddTrivia(separator, node)
                                 alternate.RemoveLast()
-                            ElseIf i + 1 < n AndAlso withSeps(i + 1).IsToken Then
-                                ' otherwise remove trailing separator if any
+                            ElseIf nextTokenIsSeparator Then
                                 Dim separator = withSeps(i + 1).AsToken()
                                 Me.AddTrivia(node, separator)
                                 removeNextSeparator = True
@@ -197,6 +225,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 End If
 
                 Return list
+            End Function
+
+            Private Function ContainsEndOfLine(triviaList As SyntaxTriviaList) As Boolean
+                For Each trivia In triviaList
+                    If trivia.IsKind(SyntaxKind.EndOfLineTrivia) Then
+                        Return True
+                    End If
+                Next
+
+                Return False
             End Function
 
             Private Sub AddTrivia(node As SyntaxNode)

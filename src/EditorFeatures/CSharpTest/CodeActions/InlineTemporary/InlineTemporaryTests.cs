@@ -1360,8 +1360,7 @@ class C
         z;
 
         int a = 1;
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -1380,12 +1379,13 @@ ignoreTrivia: false);
 @"
 {
         int y,
+#if true
+
 #endif
         z;
 
         int a = 1;
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -1405,11 +1405,12 @@ ignoreTrivia: false);
 {
         int y,
 #if true
-        z;
+        z
+#endif
+        ;
 
         int a = 1;
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(540164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540164")]
