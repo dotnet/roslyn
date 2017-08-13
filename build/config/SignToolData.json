@@ -102,7 +102,7 @@
         "Vsix\\VisualStudioSetup.Next\\Roslyn.VisualStudio.Setup.Next.vsix",
         "Vsix\\VisualStudioSetup\\Roslyn.VisualStudio.Setup.vsix",
         "Vsix\\Roslyn\\RoslynDeployment.vsix",
-        "Vsix\\Templates\\Roslyn Templates\\Release\\Roslyn SDK.vsix"
+        "Vsix\\Templates\\Roslyn SDK.vsix"
       ]
     }
   ],
