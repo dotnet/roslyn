@@ -13,9 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
 {
-    internal abstract class AbstractReplaceDocCommentTextWithTagCodeRefactoringProvider<TMemberDeclarationSyntax>
-        : CodeRefactoringProvider
-        where TMemberDeclarationSyntax : SyntaxNode
+    internal abstract class AbstractReplaceDocCommentTextWithTagCodeRefactoringProvider : CodeRefactoringProvider
     {
         protected abstract bool IsAnyKeyword(string text);
         protected abstract bool IsXmlTextToken(SyntaxToken token);

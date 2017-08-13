@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDocCommentTextWithTag
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
     internal class CSharpReplaceDocCommentTextWithTagCodeRefactoringProvider :
-        AbstractReplaceDocCommentTextWithTagCodeRefactoringProvider<MemberDeclarationSyntax>
+        AbstractReplaceDocCommentTextWithTagCodeRefactoringProvider
     {
         protected override bool IsXmlTextToken(SyntaxToken token)
             => token.Kind() == SyntaxKind.XmlTextLiteralToken ||
