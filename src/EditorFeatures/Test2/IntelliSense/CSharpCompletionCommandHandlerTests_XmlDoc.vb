@@ -1161,7 +1161,7 @@ class c<T>
         End Function
 
         <WorkItem(638653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638653")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/21481"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function AllowTypingDoubleQuote() As Task
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
