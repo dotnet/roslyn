@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDocCommentTextWithTag
 
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            var expandedSpan = ExpandSpan(sourceText, span, includeDots: false);
+            var expandedSpan = ExpandSpan(sourceText, span, fullyQualifiedName: false);
             var text = sourceText.ToString(expandedSpan);
 
             if (SyntaxFacts.GetKeywordKind(text) != SyntaxKind.None ||
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDocCommentTextWithTag
                 return;
             }
 
-            expandedSpan = ExpandSpan(sourceText, span, includeDots: true);
+            expandedSpan = ExpandSpan(sourceText, span, fullyQualifiedName: true);
             text = sourceText.ToString(expandedSpan);
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDocCommentTextWithTag
             return document.WithText(newText);
         }
 
-        private TextSpan ExpandSpan(SourceText sourceText, TextSpan span, bool includeDots)
+        private TextSpan ExpandSpan(SourceText sourceText, TextSpan span, bool fullyQualifiedName)
         {
             if (span.Length != 0)
             {
@@ -116,12 +116,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDocCommentTextWithTag
 
             var start = span.Start;
             var end = span.Start;
-            while (start > 0 && ExpandBackward(sourceText, start, includeDots))
+            while (start > 0 && ExpandBackward(sourceText, start, fullyQualifiedName))
             {
                 start--;
             }
 
-            while (end < sourceText.Length && ExpandForward(sourceText, end, includeDots))
+            while (end < sourceText.Length && ExpandForward(sourceText, end, fullyQualifiedName))
             {
                 end++;
             }
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDocCommentTextWithTag
             return TextSpan.FromBounds(start, end);
         }
 
-        private bool ExpandForward(SourceText sourceText, int end, bool includeDots)
+        private bool ExpandForward(SourceText sourceText, int end, bool fullyQualifiedName)
         {
             var currentChar = sourceText[end];
 
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDocCommentTextWithTag
 
             // Only consume a dot in front of the current word if it is part of a dotted
             // word chain, and isn't just the end of a sentence.
-            if (includeDots && currentChar == '.' &&
+            if (fullyQualifiedName && currentChar == '.' &&
                 end + 1 < sourceText.Length && char.IsLetterOrDigit(sourceText[end + 1]))
             {
                 return true;
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDocCommentTextWithTag
         }
 
         private bool ExpandBackward(
-            SourceText sourceText, int start, bool includeDots)
+            SourceText sourceText, int start, bool fullyQualifiedName)
         {
             var previousCharacter = sourceText[start - 1];
             if (char.IsLetterOrDigit(previousCharacter))
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDocCommentTextWithTag
                 return true;
             }
 
-            if (includeDots && previousCharacter == '.')
+            if (fullyQualifiedName && previousCharacter == '.')
             {
                 return true;
             }
