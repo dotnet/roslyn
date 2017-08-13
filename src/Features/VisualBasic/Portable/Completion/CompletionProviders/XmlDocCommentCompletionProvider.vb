@@ -100,22 +100,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             If grandParent.IsKind(SyntaxKind.XmlElement) Then
                 items.AddRange(GetNestedTags(symbol))
 
-                If GetStartTagName(grandParent) = ListTagName Then
+                Dim startTagName As String = GetStartTagName(grandParent)
+                If startTagName = ListTagName Then
                     items.AddRange(GetListItems())
-                End If
-
-                If GetStartTagName(grandParent) = ListHeaderTagName Then
+                ElseIf startTagName = ListHeaderTagName Then
                     items.AddRange(GetListHeaderItems())
+                ElseIf startTagName = ItemTagName Then
+                    items.AddRange(GetItemTagItems())
                 End If
             ElseIf token.Parent.IsKind(SyntaxKind.XmlText) AndAlso token.Parent.Parent.IsKind(SyntaxKind.XmlElement) Then
                 items.AddRange(GetNestedTags(symbol))
 
-                If GetStartTagName(token.Parent.Parent) = ListTagName Then
+                Dim startTagName = GetStartTagName(token.Parent.Parent)
+                If startTagName = ListTagName Then
                     items.AddRange(GetListItems())
-                End If
-
-                If GetStartTagName(token.Parent.Parent) = ListHeaderTagName Then
+                ElseIf startTagName = ListHeaderTagName Then
                     items.AddRange(GetListHeaderItems())
+                ElseIf startTagName = ItemTagName Then
+                    items.AddRange(GetItemTagItems())
                 End If
             ElseIf grandParent.IsKind(SyntaxKind.DocumentationCommentTrivia) Then
                 items.AddRange(GetTagsForSymbol(symbol, parent))
@@ -125,12 +127,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             If token.Parent.IsKind(SyntaxKind.XmlElementStartTag, SyntaxKind.XmlName) Then
                 If parentElement.IsParentKind(SyntaxKind.XmlElement) Then
-                    If GetStartTagName(parentElement.Parent) = ListTagName Then
-                        items.AddRange(GetListItems())
-                    End If
+                    Dim startTagName As String = GetStartTagName(parentElement.Parent)
 
-                    If GetStartTagName(parentElement.Parent) = ListHeaderTagName Then
+                    If startTagName = ListTagName Then
+                        items.AddRange(GetListItems())
+                    ElseIf startTagName = ListHeaderTagName Then
                         items.AddRange(GetListHeaderItems())
+                    ElseIf startTagName = ItemTagName Then
+                        items.AddRange(GetItemTagItems())
                     End If
                 End If
             End If

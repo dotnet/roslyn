@@ -95,18 +95,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     items.AddRange(GetNestedTags(declaredSymbol));
                 }
 
-                if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement && ((XmlElementSyntax)token.Parent.Parent).StartTag.Name.LocalName.ValueText == ListTagName)
+                if (token.Parent.Parent is XmlElementSyntax xmlElement)
                 {
-                    items.AddRange(GetListItems());
+                    AddXmlElementItems(items, xmlElement);
                 }
 
-                if (token.Parent.IsParentKind(SyntaxKind.XmlEmptyElement) && token.Parent.Parent.IsParentKind(SyntaxKind.XmlElement))
+                if (token.Parent.IsParentKind(SyntaxKind.XmlEmptyElement) && 
+                    token.Parent.Parent.Parent is XmlElementSyntax nestedXmlElement)
                 {
-                    var element = (XmlElementSyntax)token.Parent.Parent.Parent;
-                    if (element.StartTag.Name.LocalName.ValueText == ListTagName)
-                    {
-                        items.AddRange(GetListItems());
-                    }
+                    AddXmlElementItems(items, nestedXmlElement);
                 }
 
                 if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement && ((XmlElementSyntax)token.Parent.Parent).StartTag.Name.LocalName.ValueText == ListHeaderTagName)
@@ -123,23 +120,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
             }
 
-            if (token.Parent.Kind() == SyntaxKind.XmlElementStartTag)
+            if (token.Parent is XmlElementStartTagSyntax startTag)
             {
-                var startTag = (XmlElementStartTagSyntax)token.Parent;
-
-                if (token == startTag.GreaterThanToken && startTag.Name.LocalName.ValueText == ListTagName)
+                if (token == startTag.GreaterThanToken)
                 {
-                    items.AddRange(GetListItems());
-                }
-
-                if (token == startTag.GreaterThanToken && startTag.Name.LocalName.ValueText == ListHeaderTagName)
-                {
-                    items.AddRange(GetListHeaderItems());
+                    var tagName = startTag.Name.LocalName.ValueText;
+                    if (tagName == ListTagName)
+                    {
+                        items.AddRange(GetListItems());
+                    }
+                    else if (tagName == ListHeaderTagName)
+                    {
+                        items.AddRange(GetListHeaderItems());
+                    }
+                    else if (tagName == ItemTagName)
+                    {
+                        items.AddRange(GetItemTagItems());
+                    }
                 }
             }
 
             items.AddRange(GetAlwaysVisibleItems());
             return items;
+        }
+
+        private void AddXmlElementItems(List<CompletionItem> items, XmlElementSyntax xmlElement)
+        {
+            var xmlElementName = xmlElement.StartTag.Name.LocalName.ValueText;
+            if (xmlElementName == ListTagName)
+            {
+                items.AddRange(GetListItems());
+            }
+            else if (xmlElementName == ItemTagName)
+            {
+                items.AddRange(GetItemTagItems());
+            }
         }
 
         private IEnumerable<CompletionItem> GetTopLevelSingleUseNames(DocumentationCommentTriviaSyntax parentTrivia)

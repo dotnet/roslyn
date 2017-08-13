@@ -163,6 +163,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return new[] { ExceptionTagName, IncludeTagName, PermissionTagName }.Select(GetItem);
         }
 
+        protected IEnumerable<CompletionItem> GetItemTagItems()
+        {
+            return new[] { TermTagName, DescriptionTagName }.Select(GetItem);
+        }
+
         protected IEnumerable<CompletionItem> GetListItems()
         {
             return new[] { ListHeaderTagName, TermTagName, ItemTagName, DescriptionTagName }.Select(GetItem);
