@@ -97,13 +97,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 if (token.Parent.Parent is XmlElementSyntax xmlElement)
                 {
-                    AddXmlElementItems(items, xmlElement);
+                    AddXmlElementItems(items, xmlElement.StartTag);
                 }
 
                 if (token.Parent.IsParentKind(SyntaxKind.XmlEmptyElement) && 
                     token.Parent.Parent.Parent is XmlElementSyntax nestedXmlElement)
                 {
-                    AddXmlElementItems(items, nestedXmlElement);
+                    AddXmlElementItems(items, nestedXmlElement.StartTag);
                 }
 
                 if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement && ((XmlElementSyntax)token.Parent.Parent).StartTag.Name.LocalName.ValueText == ListHeaderTagName)
@@ -125,18 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 if (token == startTag.GreaterThanToken)
                 {
                     var tagName = startTag.Name.LocalName.ValueText;
-                    if (tagName == ListTagName)
-                    {
-                        items.AddRange(GetListItems());
-                    }
-                    else if (tagName == ListHeaderTagName)
-                    {
-                        items.AddRange(GetListHeaderItems());
-                    }
-                    else if (tagName == ItemTagName)
-                    {
-                        items.AddRange(GetItemTagItems());
-                    }
+                    AddXmlElementItems(items, startTag);
                 }
             }
 
@@ -144,12 +133,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return items;
         }
 
-        private void AddXmlElementItems(List<CompletionItem> items, XmlElementSyntax xmlElement)
+        private void AddXmlElementItems(List<CompletionItem> items, XmlElementStartTagSyntax startTag)
         {
-            var xmlElementName = xmlElement.StartTag.Name.LocalName.ValueText;
+            var xmlElementName = startTag.Name.LocalName.ValueText;
             if (xmlElementName == ListTagName)
             {
                 items.AddRange(GetListItems());
+            }
+            else if (xmlElementName == ListHeaderTagName)
+            {
+                items.AddRange(GetListHeaderItems());
             }
             else if (xmlElementName == ItemTagName)
             {
