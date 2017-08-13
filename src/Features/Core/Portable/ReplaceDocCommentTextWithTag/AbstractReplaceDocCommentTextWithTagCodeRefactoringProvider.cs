@@ -147,29 +147,6 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
                 c => ReplaceTextAsync(context.Document, expandedSpan, replacement, c)));
         }
 
-        //private bool TryMatchTextAsSymbol(
-        //    CodeRefactoringContext context, TextSpan expandedSpan, 
-        //    string text, SemanticModel semanticModel, 
-        //    int speculativePosition, SpeculativeBindingOption binding)
-        //{
-        //    var parsed = ParseExpression(text);
-
-        //    var symbolInfo = semanticModel.GetSpeculativeSymbolInfo(speculativePosition, parsed, binding);
-        //    switch (symbolInfo.GetAnySymbol())
-        //    {
-        //        case IParameterSymbol parameter:
-                    
-        //            return true;
-        //        case ITypeParameterSymbol typeParameter:
-        //            return true;
-        //        case ISymbol symbol:
-        //            RegisterRefactoring(context, expandedSpan, $@"<see cref=""{text}""/>");
-        //            return true;
-        //        default:
-        //            return false;
-        //    }
-        //}
-
         private async Task<Document> ReplaceTextAsync(
             Document document, TextSpan span, string replacement, CancellationToken cancellationToken)
         {
