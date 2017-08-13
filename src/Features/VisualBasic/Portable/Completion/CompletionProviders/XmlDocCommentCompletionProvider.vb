@@ -99,48 +99,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             If grandParent.IsKind(SyntaxKind.XmlElement) Then
                 items.AddRange(GetNestedTags(symbol))
-
-                Dim startTagName As String = GetStartTagName(grandParent)
-                If startTagName = ListTagName Then
-                    items.AddRange(GetListItems())
-                ElseIf startTagName = ListHeaderTagName Then
-                    items.AddRange(GetListHeaderItems())
-                ElseIf startTagName = ItemTagName Then
-                    items.AddRange(GetItemTagItems())
-                End If
+                AddXmlElementItems(items, grandParent)
             ElseIf token.Parent.IsKind(SyntaxKind.XmlText) AndAlso token.Parent.Parent.IsKind(SyntaxKind.XmlElement) Then
                 items.AddRange(GetNestedTags(symbol))
+                Dim xmlElement = token.Parent.Parent
 
-                Dim startTagName = GetStartTagName(token.Parent.Parent)
-                If startTagName = ListTagName Then
-                    items.AddRange(GetListItems())
-                ElseIf startTagName = ListHeaderTagName Then
-                    items.AddRange(GetListHeaderItems())
-                ElseIf startTagName = ItemTagName Then
-                    items.AddRange(GetItemTagItems())
-                End If
+                AddXmlElementItems(items, xmlElement)
             ElseIf grandParent.IsKind(SyntaxKind.DocumentationCommentTrivia) Then
                 items.AddRange(GetTagsForSymbol(symbol, parent))
                 items.AddRange(GetSingleUseTopLevelItems(parent))
                 items.AddRange(GetTopLevelRepeatableItems())
             End If
 
-            If token.Parent.IsKind(SyntaxKind.XmlElementStartTag, SyntaxKind.XmlName) Then
-                If parentElement.IsParentKind(SyntaxKind.XmlElement) Then
-                    Dim startTagName As String = GetStartTagName(parentElement.Parent)
+            If token.Parent.IsKind(SyntaxKind.XmlElementStartTag, SyntaxKind.XmlName) AndAlso
+               parentElement.IsParentKind(SyntaxKind.XmlElement) Then
 
-                    If startTagName = ListTagName Then
-                        items.AddRange(GetListItems())
-                    ElseIf startTagName = ListHeaderTagName Then
-                        items.AddRange(GetListHeaderItems())
-                    ElseIf startTagName = ItemTagName Then
-                        items.AddRange(GetItemTagItems())
-                    End If
-                End If
+                AddXmlElementItems(items, parentElement.Parent)
             End If
 
             Return items
         End Function
+
+        Private Sub AddXmlElementItems(items As List(Of CompletionItem), xmlElement As SyntaxNode)
+            Dim startTagName = GetStartTagName(xmlElement)
+            If startTagName = ListTagName Then
+                items.AddRange(GetListItems())
+            ElseIf startTagName = ListHeaderTagName Then
+                items.AddRange(GetListHeaderItems())
+            ElseIf startTagName = ItemTagName Then
+                items.AddRange(GetItemTagItems())
+            End If
+        End Sub
 
         Private Function GetCloseTagItem(token As SyntaxToken) As IEnumerable(Of CompletionItem)
             Dim endTag = TryCast(token.Parent, XmlElementEndTagSyntax)
