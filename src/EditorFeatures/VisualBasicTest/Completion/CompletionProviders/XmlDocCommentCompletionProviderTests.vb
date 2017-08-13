@@ -786,7 +786,7 @@ Class C
     End Sub
 End Class
 "
-            Await VerifyItemsExistAsync(text, "Await", "Class")
+            Await VerifyItemsExistAsync(text, "Nothing", "True", "False", "Await")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>

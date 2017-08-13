@@ -135,6 +135,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                              .Concat(GetTypeParamRefItems(symbol));
             }
 
+            items = items.Concat(GetKeywordNames().Select(CreateLangwordCompletionItem));
+
             return items;
         }
 
@@ -294,6 +296,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return CreateCompletionItem(
                 displayText: displayText,
                 beforeCaretText: displayText,
+                afterCaretText: string.Empty);
+        }
+
+        private CompletionItem CreateLangwordCompletionItem(string displayText)
+        {
+            return CreateCompletionItem(
+                displayText: displayText,
+                beforeCaretText: "<see langword=\"" + displayText + "\"/>",
                 afterCaretText: string.Empty);
         }
 

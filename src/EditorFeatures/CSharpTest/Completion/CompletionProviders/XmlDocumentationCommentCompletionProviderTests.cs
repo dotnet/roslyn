@@ -666,7 +666,7 @@ class C
     static void Goo()
     {
     }
-}", "await", "class");
+}", "null", "true", "false", "await");
         }
 
         [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]

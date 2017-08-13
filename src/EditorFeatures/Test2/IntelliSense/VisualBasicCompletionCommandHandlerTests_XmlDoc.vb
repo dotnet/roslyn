@@ -600,6 +600,80 @@ End Class
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithNothingKeywordCommitSeeLangword() As Task
+            Return InvokeWithKeywordCommitSeeLangword("Nothing")
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithSharedKeywordCommitSeeLangword() As Task
+            Return InvokeWithKeywordCommitSeeLangword("Shared")
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithOverridableKeywordCommitSeeLangword() As Task
+            Return InvokeWithKeywordCommitSeeLangword("Overridable", unique:=False)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithTrueKeywordCommitSeeLangword() As Task
+            Return InvokeWithKeywordCommitSeeLangword("True")
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithFalseKeywordCommitSeeLangword() As Task
+            Return InvokeWithKeywordCommitSeeLangword("False")
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithMustInheritKeywordCommitSeeLangword() As Task
+            Return InvokeWithKeywordCommitSeeLangword("MustInherit")
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithNotOverridableKeywordCommitSeeLangword() As Task
+            Return InvokeWithKeywordCommitSeeLangword("NotOverridable")
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithAsyncKeywordCommitSeeLangword() As Task
+            Return InvokeWithKeywordCommitSeeLangword("Async")
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithAwaitKeywordCommitSeeLangword() As Task
+            Return InvokeWithKeywordCommitSeeLangword("Await")
+        End Function
+
+        Private Async Function InvokeWithKeywordCommitSeeLangword(keyword As String, Optional unique As Boolean = True) As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                <Document><![CDATA[
+Class C
+    ''' <summary>
+    ''' $$
+    ''' </summary>
+    Sub Goo()
+    End Sub
+End Class
+            ]]></Document>)
+
+                ' Omit the last letter of the keyword to make it easier to diagnose failures (inserted the wrong text,
+                ' or did not insert text at all).
+                state.SendTypeChars(keyword.Substring(0, keyword.Length - 1))
+                state.SendInvokeCompletionList()
+                If unique Then
+                    state.SendCommitUniqueCompletionListItem()
+                Else
+                    Await state.AssertSelectedCompletionItem(displayText:=keyword)
+                    state.SendTab()
+                End If
+                Await state.AssertNoCompletionSession()
+
+                ' ''' <see langword="keyword"/>$$
+                Await state.AssertLineTextAroundCaret("    ''' <see langword=""" + keyword + """/>", "")
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitSeealsoNoOpenAngle() As Task
 
             Using state = TestState.CreateVisualBasicTestState(

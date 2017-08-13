@@ -603,6 +603,75 @@ class c
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithNullKeywordCommitSeeLangword() As Task
+            Return InvokeWithKeywordCommitSeeLangword("null")
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithStaticKeywordCommitSeeLangword() As Task
+            Return InvokeWithKeywordCommitSeeLangword("static")
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithVirtualKeywordCommitSeeLangword() As Task
+            Return InvokeWithKeywordCommitSeeLangword("virtual")
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithTrueKeywordCommitSeeLangword() As Task
+            Return InvokeWithKeywordCommitSeeLangword("true")
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithFalseKeywordCommitSeeLangword() As Task
+            Return InvokeWithKeywordCommitSeeLangword("false")
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithAbstractKeywordCommitSeeLangword() As Task
+            Return InvokeWithKeywordCommitSeeLangword("abstract")
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithSealedKeywordCommitSeeLangword() As Task
+            Return InvokeWithKeywordCommitSeeLangword("sealed")
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithAsyncKeywordCommitSeeLangword() As Task
+            Return InvokeWithKeywordCommitSeeLangword("async")
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Function InvokeWithAwaitKeywordCommitSeeLangword() As Task
+            Return InvokeWithKeywordCommitSeeLangword("await")
+        End Function
+
+        Private Async Function InvokeWithKeywordCommitSeeLangword(keyword As String) As Task
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+class c
+{
+    /// <summary>
+    /// $$
+    /// </summary>
+    void goo() { }
+}
+            ]]></Document>)
+
+                ' Omit the last letter of the keyword to make it easier to diagnose failures (inserted the wrong text,
+                ' or did not insert text at all).
+                state.SendTypeChars(keyword.Substring(0, keyword.Length - 1))
+                state.SendInvokeCompletionList()
+                state.SendCommitUniqueCompletionListItem()
+                Await state.AssertNoCompletionSession()
+
+                ' /// <see langword="keyword"/>$$
+                Await state.AssertLineTextAroundCaret("    /// <see langword=""" + keyword + """/>", "")
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitSeealsoNoOpenAngle() As Task
 
             Using state = TestState.CreateCSharpTestState(

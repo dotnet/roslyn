@@ -280,8 +280,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return false;
         }
 
-        protected override IEnumerable<string> GetKeywordNames() =>
-            SyntaxFacts.GetKeywordKinds().Select(SyntaxFacts.GetText);
+        protected override IEnumerable<string> GetKeywordNames()
+        {
+            yield return SyntaxFacts.GetText(SyntaxKind.NullKeyword);
+            yield return SyntaxFacts.GetText(SyntaxKind.StaticKeyword);
+            yield return SyntaxFacts.GetText(SyntaxKind.VirtualKeyword);
+            yield return SyntaxFacts.GetText(SyntaxKind.TrueKeyword);
+            yield return SyntaxFacts.GetText(SyntaxKind.FalseKeyword);
+            yield return SyntaxFacts.GetText(SyntaxKind.AbstractKeyword);
+            yield return SyntaxFacts.GetText(SyntaxKind.SealedKeyword);
+            yield return SyntaxFacts.GetText(SyntaxKind.AsyncKeyword);
+            yield return SyntaxFacts.GetText(SyntaxKind.AwaitKeyword);
+        }
 
         protected override IEnumerable<string> GetExistingTopLevelElementNames(DocumentationCommentTriviaSyntax syntax) =>
             syntax.Content.Select(GetElementName).WhereNotNull();

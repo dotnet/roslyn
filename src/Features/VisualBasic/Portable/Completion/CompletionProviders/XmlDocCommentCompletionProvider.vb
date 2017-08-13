@@ -246,8 +246,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
         End Sub
 
-        Protected Overrides Function GetKeywordNames() As IEnumerable(Of String)
-            Return SyntaxFacts.GetKeywordKinds().Select(AddressOf SyntaxFacts.GetText)
+        Protected Overrides Iterator Function GetKeywordNames() As IEnumerable(Of String)
+            Yield SyntaxFacts.GetText(SyntaxKind.NothingKeyword)
+            Yield SyntaxFacts.GetText(SyntaxKind.SharedKeyword)
+            Yield SyntaxFacts.GetText(SyntaxKind.OverridableKeyword)
+            Yield SyntaxFacts.GetText(SyntaxKind.TrueKeyword)
+            Yield SyntaxFacts.GetText(SyntaxKind.FalseKeyword)
+            Yield SyntaxFacts.GetText(SyntaxKind.MustInheritKeyword)
+            Yield SyntaxFacts.GetText(SyntaxKind.NotOverridableKeyword)
+            Yield SyntaxFacts.GetText(SyntaxKind.AsyncKeyword)
+            Yield SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)
         End Function
 
         Protected Overrides Function GetExistingTopLevelElementNames(parentTrivia As DocumentationCommentTriviaSyntax) As IEnumerable(Of String)
