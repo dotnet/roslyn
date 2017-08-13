@@ -597,13 +597,8 @@ class c
                 Await state.AssertSelectedCompletionItem(displayText:="see")
                 state.SendTypeChars(" ")
 
-                ' /// <see $$/>
-                Await state.AssertLineTextAroundCaret("    /// <see ", "/>")
-
-                ' The completion list should now contain attribute suggestions
-                Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAll({"cref", "langword"}))
-                Assert.False(state.CompletionItemsContainsAny({"see"}))
+                ' /// <see cref="$$"/>
+                Await state.AssertLineTextAroundCaret("    /// <see cref=""", """/>")
             End Using
         End Function
 

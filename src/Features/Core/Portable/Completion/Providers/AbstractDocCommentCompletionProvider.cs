@@ -94,9 +94,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 return CreateCompletionItem(name,
                     beforeCaretText: values.tagOpen + values.textBeforeCaret,
-                    afterCaretText: values.textAfterCaret + values.tagClose,
-                    beforeCaretTextOnSpace: values.tagOpen,
-                    afterCaretTextOnSpace: values.tagClose);
+                    afterCaretText: values.textAfterCaret + values.tagClose);
             }
 
             return CreateCompletionItem(name);
