@@ -314,6 +314,25 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        public async Task TestMethodTypeParameter_SemicolonBody()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    /// value has type TKey[||] so we don't box primitives.
+    void WriteLine<TKey>(TKey value);
+}",
+
+@"
+class C
+{
+    /// value has type <typeparamref name=""TKey""/> so we don't box primitives.
+    void WriteLine<TKey>(TKey value);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
         public async Task TestMethodParameterSymbol()
         {
             await TestInRegularAndScriptAsync(
@@ -369,5 +388,25 @@ class C
     object WriteLine<TKey>(TKey value) => null;
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        public async Task TestMethodParameterSymbol_SemicolonBody()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    /// value[||] has type TKey so we don't box primitives.
+    void WriteLine<TKey>(TKey value);
+}",
+
+@"
+class C
+{
+    /// <paramref name=""value""/> has type TKey so we don't box primitives.
+    void WriteLine<TKey>(TKey value);
+}");
+        }
+
     }
 }
