@@ -65,8 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                 semanticModel, editor.Generator,
                 getAndSetMethods, propertyName, nameChanged);
 
-            // newProperty = newProperty.WithTriviaFrom(getMethodDeclaration);
-
             editor.ReplaceNode(getMethodDeclaration, newProperty);
         }
 
