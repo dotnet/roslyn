@@ -212,7 +212,9 @@ index: 2);
         {
             await TestAddDocumentInRegularAndScriptAsync(
 @"class Program { void Main ( ) { [|Goo|] f ; } } ",
-@"internal class Goo { } ",
+@"internal class Goo
+{
+}",
 expectedContainers: ImmutableArray<string>.Empty,
 expectedDocumentName: "Goo.cs");
         }
@@ -222,7 +224,12 @@ expectedDocumentName: "Goo.cs");
         {
             await TestAddDocumentInRegularAndScriptAsync(
 @"class Class { [|TestNamespace|].Goo f; }",
-@"namespace TestNamespace { internal class Goo { } }",
+@"namespace TestNamespace
+{
+    internal class Goo
+    {
+    }
+}",
 expectedContainers: ImmutableArray.Create("TestNamespace"),
 expectedDocumentName: "Goo.cs");
         }
@@ -916,7 +923,12 @@ index: 1);
         {
             await TestAddDocumentInRegularAndScriptAsync(
 @"class Class { static void Main(string[] args) { [|N|].C c; } }",
-@"namespace N { internal class C { } }",
+@"namespace N
+{
+    internal class C
+    {
+    }
+}",
 expectedContainers: ImmutableArray.Create("N"),
 expectedDocumentName: "C.cs");
         }
@@ -2904,7 +2916,15 @@ index: 1);
         {
             await TestAddDocumentInRegularAndScriptAsync(
 @"class Class { void F() { new [|Goo|].Bar(); } }",
-@"namespace Goo { internal class Bar { public Bar() { } } }",
+@"namespace Goo
+{
+    internal class Bar
+    {
+        public Bar()
+        {
+        }
+    }
+}",
 expectedContainers: ImmutableArray.Create("Goo"),
 expectedDocumentName: "Bar.cs");
         }
@@ -4178,7 +4198,9 @@ string.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Goo", Featur
         {
             await TestAddDocumentInRegularAndScriptAsync(
 @"class C : [|Goo|]",
-"internal class Goo { }",
+@"internal class Goo
+{
+}",
 ImmutableArray<string>.Empty,
 "Goo.cs");
         }
@@ -4230,7 +4252,8 @@ index: 1);
     x, x)private class x
     {
     }
-}",
+}
+",
 index: 2);
         }
 

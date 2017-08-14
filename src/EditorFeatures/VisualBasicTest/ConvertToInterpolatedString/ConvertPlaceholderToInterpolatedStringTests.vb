@@ -28,7 +28,7 @@ End Module</File>.ConvertTestSourceTag()
 Imports System
 Module T
     Sub M()
-        Dim a = $"{1}"
+        Dim a = $"{1 }"
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
@@ -49,7 +49,7 @@ End Module</File>.ConvertTestSourceTag()
 Imports System
 Module T
     Sub M()
-        Dim a = $"{1}{2}{3}"
+        Dim a = $"{1 }{2 }{3 }"
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
@@ -70,7 +70,7 @@ End Module</File>.ConvertTestSourceTag()
 Imports System
 Module T
     Sub M()
-        Dim a = $"{1}{3}{2}"
+        Dim a = $"{1 }{3 }{2 }"
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
@@ -91,7 +91,7 @@ End Module</File>.ConvertTestSourceTag()
 Imports System
 Module T
     Sub M()
-        Dim a = $"{1}{1}{1}"
+        Dim a = $"{1 }{1 }{1 }"
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
@@ -133,7 +133,7 @@ End Module</File>.ConvertTestSourceTag()
 Imports System
 Module T
     Sub M()
-        Dim a = $"{0.5}{"Hello"}{3}"
+        Dim a = $"{0.5 }{"Hello" }{3 }"
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
@@ -154,7 +154,7 @@ End Module</File>.ConvertTestSourceTag()
 Imports System
 Module T
     Sub M()
-        Dim a = $"{0.5}{"Hello"}{3}"
+        Dim a = $"{0.5 }{"Hello" }{3 }"
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
@@ -175,7 +175,7 @@ End Module</File>.ConvertTestSourceTag()
 Imports System
 Module T
     Sub M()
-        Dim a = $"{(New Object)}"
+        Dim a = $"{(New Object) }"
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
@@ -198,9 +198,7 @@ End Module</File>.ConvertTestSourceTag()
 Imports System
 Module T
     Sub M()
-        Dim a = $"{If(True,
-                              "Yes",
-                              TryCast(False, Object))}"
+        Dim a = $"{If(True, "Yes", TryCast(False, Object)) }"
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
@@ -276,7 +274,7 @@ Module T
         Dim population As Integer() = {1025632, 1105967, 1148203}
         Dim s = String.Format("{0,6} {1,15}\n\n", "Year", "Population")
         For index = 0 To years.Length - 1
-            s += $"{years(index),6} {population(index),15: N0}\n"
+            s += $"{years(index), 6} {population(index), 15: N0}\n"
         Next
     End Sub
 End Module</File>.ConvertTestSourceTag()
@@ -450,7 +448,7 @@ End Module</File>.ConvertTestSourceTag()
 Imports System
 Module T
     Sub M()
-        Dim a = $"This {"test"} {"also"} works"
+        Dim a = $"This {"test" } {"also" } works"
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
@@ -472,7 +470,7 @@ End Module</File>.ConvertTestSourceTag()
 Imports System
 Module T
     Sub M()
-        Dim a = $"This {"test"} {"also"} works"
+        Dim a = $"This {"test" } {"also" } works"
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
@@ -494,7 +492,7 @@ End Module</File>.ConvertTestSourceTag()
 Imports System
 Module T
     Sub M()
-        Dim a = $"{"10"} {"11"} {"12"}"
+        Dim a = $"{"10" } {"11" } {"12" }"
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
@@ -516,7 +514,7 @@ End Module</File>.ConvertTestSourceTag()
 Imports System
 Module T
     Sub M()
-        Dim a = $"{"10"} {"11"} {"12"}"
+        Dim a = $"{"10" } {"11" } {"12" }"
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
@@ -538,7 +536,7 @@ End Module</File>.ConvertTestSourceTag()
 Imports System
 Module T
     Sub M()
-        Dim a = $"{"10"} {"11"} {"12"} {3}"
+        Dim a = $"{"10" } {"11" } {"12" } {3}"
     End Sub
 End Module</File>.ConvertTestSourceTag()
 
@@ -560,7 +558,7 @@ End Module</File>.ConvertTestSourceTag()
 Imports System
 Module T
     Sub M()
-        Dim a = $"{"10"} {"11"} {"12"}"
+        Dim a = $"{"10" } {"11" } {"12" }"
     End Sub
 End Module</File>.ConvertTestSourceTag()
 

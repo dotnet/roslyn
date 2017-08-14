@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
 }";
 
             var codeWithTypeRenamedToMatchFileName =
-@"class [|test1|] 
+@"class [|test1|]
 { 
     class Inner { }
 }";

@@ -26,7 +26,13 @@ class Program1
 {
     static void Main()
     {
-        if (true) { if (true) { return; } }
+        if (true)
+        {
+            if (true)
+            {
+                return;
+            }
+        }
     }
 }
 ";
@@ -53,7 +59,13 @@ class Program1
 {
     static void Main()
     {
-        if (true) { if (true) { return; } }
+        if (true)
+        {
+            if (true)
+            {
+                return;
+            }
+        }
     }
 }
 ";

@@ -89,7 +89,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    int Goo { get => Bar(); }
+    int Goo
+    {
+        get => Bar();
+    }
 }", parameters: new TestParameters(options: UseBlockBodyForAccessors_ExpressionBodyForProperties));
         }
 
