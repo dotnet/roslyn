@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!compilation.Options.CryptoPublicKey.IsEmpty)
             {
-                // PROTOTYPE: private key should likely not be null.
+                // PROTOTYPE(strongname): private key should likely not be null.
                 _lazyStrongNameKeys = StrongNameKeys.Create(compilation.Options.CryptoPublicKey, null, MessageProvider.Instance);
             }
         }
