@@ -21,6 +21,8 @@
 
 ### Testing tags
 
+When doing a test pass, consider using these status indicators:
+
 :white_check_mark: = Tested & Approved (possibly with linked bugs)
 
 :x: = Merge blocking
