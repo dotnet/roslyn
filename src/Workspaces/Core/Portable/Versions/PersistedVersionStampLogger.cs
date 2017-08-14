@@ -11,6 +11,12 @@ namespace Microsoft.CodeAnalysis.Versions
         private const string SyntaxTree = nameof(SyntaxTree);
         private const string Project = nameof(Project);
         private const string DependentProject = nameof(DependentProject);
+        private const string Semantic = nameof(Semantic);
+        private const string DependentSemantic = nameof(DependentSemantic);
+
+        private const string ProjectCount = nameof(ProjectCount);
+        private const string InitialSemanticVersionCount = nameof(InitialSemanticVersionCount);
+        private const string InitialDependentSemanticVersionCount = nameof(InitialDependentSemanticVersionCount);
 
         private static readonly LogAggregator s_logAggregator = new LogAggregator();
 
@@ -54,14 +60,55 @@ namespace Microsoft.CodeAnalysis.Versions
             s_logAggregator.IncreaseCount(DependentProject);
         }
 
+        public static void LogPersistedSemanticVersionUsage(bool succeeded)
+        {
+            if (!succeeded)
+            {
+                return;
+            }
+
+            s_logAggregator.IncreaseCount(Semantic);
+        }
+
+        public static void LogPersistedDependentSemanticVersionUsage(bool succeeded)
+        {
+            if (!succeeded)
+            {
+                return;
+            }
+
+            s_logAggregator.IncreaseCount(DependentSemantic);
+        }
+
+        public static void LogProject()
+        {
+            s_logAggregator.IncreaseCount(ProjectCount);
+        }
+
+        public static void LogInitialSemanticVersion()
+        {
+            s_logAggregator.IncreaseCount(InitialSemanticVersionCount);
+        }
+
+        public static void LogInitialDependentSemanticVersion()
+        {
+            s_logAggregator.IncreaseCount(InitialDependentSemanticVersionCount);
+        }
+
         public static void LogSummary()
         {
             Logger.Log(FunctionId.PersistedSemanticVersion_Info, KeyValueLogMessage.Create(m =>
             {
+                m[ProjectCount] = s_logAggregator.GetCount(ProjectCount);
+                m[InitialSemanticVersionCount] = s_logAggregator.GetCount(InitialSemanticVersionCount);
+                m[InitialDependentSemanticVersionCount] = s_logAggregator.GetCount(InitialDependentSemanticVersionCount);
+
                 m[Text] = s_logAggregator.GetCount(Text);
                 m[SyntaxTree] = s_logAggregator.GetCount(SyntaxTree);
                 m[Project] = s_logAggregator.GetCount(Project);
                 m[DependentProject] = s_logAggregator.GetCount(DependentProject);
+                m[Semantic] = s_logAggregator.GetCount(Semantic);
+                m[DependentSemantic] = s_logAggregator.GetCount(DependentSemantic);
             }));
         }
     }
