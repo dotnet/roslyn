@@ -23,7 +23,7 @@
 
 :star: = Scenarios that are regularly tested against internal builds
 
-When doing a test pass, consider using these status indicators:
+When doing a test pass, copy this page and consider using these status indicators:
 
 :white_check_mark: = Tested & Approved (possibly with linked bugs)
 
