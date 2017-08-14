@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Linq.Enumerable
 Imports System.Xml.Linq
@@ -760,7 +760,7 @@ IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement, IsInvali
                               IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Unknown')
                                 Children(0)
   ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
-    LabeledStatement: null
+    Statement: null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
     ReturnedValue: null
 ]]>.Value
@@ -1132,7 +1132,7 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
                         ReturnedValue: IFieldReferenceExpression: C1.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: '.Field')
                             Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C1 With ... d Function}')
                       ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
-                        LabeledStatement: null
+                        Statement: null
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
                         ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Function')
 ]]>.Value
@@ -1404,7 +1404,7 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
                             Operand: IFieldReferenceExpression: C2.Field As System.Func(Of System.Object) (OperationKind.FieldReferenceExpression, Type: System.Func(Of System.Object)) (Syntax: '.Field')
                                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'As New C2 W ... d Function}')
                       ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
-                        LabeledStatement: null
+                        Statement: null
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
                         ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'End Function')
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Func(Of System.Object)) (Syntax: '.Field2 = F ... nd Function')
@@ -1421,7 +1421,7 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
                             Operand: IFieldReferenceExpression: C2.Field As System.Func(Of System.Object) (OperationKind.FieldReferenceExpression, Type: System.Func(Of System.Object)) (Syntax: '.Field')
                                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'As New C2 W ... d Function}')
                       ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
-                        LabeledStatement: null
+                        Statement: null
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
                         ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'End Function')
 ]]>.Value
