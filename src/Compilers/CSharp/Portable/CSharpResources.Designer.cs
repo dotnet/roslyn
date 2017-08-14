@@ -8470,7 +8470,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Cannot return a member of parameter &apos;{0}&apos; by reference because it is not a ref or out parameter.
+        ///   Looks up a localized string similar to Cannot return by reference a member of parameter &apos;{0}&apos; because it is not a ref or out parameter.
         /// </summary>
         internal static string ERR_RefReturnParameter2 {
             get {

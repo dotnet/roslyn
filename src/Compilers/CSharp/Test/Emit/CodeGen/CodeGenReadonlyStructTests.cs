@@ -632,10 +632,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this").WithArguments("this").WithLocation(32, 26),
                 // (37,26): error CS0192: A readonly field cannot be used as a ref or out value (except in a constructor)
                 //             TakesRef(ref this.x); // error
-                Diagnostic(ErrorCode.ERR_RefReadonly, "this.x").WithLocation(37, 26),
-                // (37,26): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
-                //             TakesRef(ref this.x); // error
-                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this.x").WithArguments("this").WithLocation(37, 26)
+                Diagnostic(ErrorCode.ERR_RefReadonly, "this.x").WithLocation(37, 26)
                 );
 
         }

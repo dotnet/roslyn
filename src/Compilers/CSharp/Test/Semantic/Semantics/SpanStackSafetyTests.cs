@@ -200,10 +200,10 @@ class Program
     {
     }
 
-    // OK
+    // Not OK
     static ref Span<string> M4(ref Span<string> ss) { return ref ss; }
 
-    // OK
+    // Not OK
     static ref readonly Span<string> M5(ref Span<string> ss) => ref ss;
 
     // Not OK
@@ -220,7 +220,14 @@ class Program
                 Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference ss").WithArguments("System.TypedReference").WithLocation(39, 34),
                 // (39,12): error CS1599: Method or delegate cannot return type 'TypedReference'
                 //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
-                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref TypedReference").WithArguments("System.TypedReference").WithLocation(39, 12));
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref TypedReference").WithArguments("System.TypedReference").WithLocation(38, 12),
+                // (31,66): error CS8166: Cannot return a parameter by reference 'ss' because it is not a ref or out parameter
+                //     static ref Span<string> M4(ref Span<string> ss) { return ref ss; }
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "ss").WithArguments("ss").WithLocation(31, 66),
+                // (34,69): error CS8166: Cannot return a parameter by reference 'ss' because it is not a ref or out parameter
+                //     static ref readonly Span<string> M5(ref Span<string> ss) => ref ss;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "ss").WithArguments("ss").WithLocation(34, 69)
+            );
         }
 
         [Fact]

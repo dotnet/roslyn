@@ -93,7 +93,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (22,30): error CS8520: Cannot use local 'sp' in this context because it may expose referenced variables outside of their declaration scope 
                 //             return ref Test1(sp);
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "sp").WithArguments("sp").WithLocation(22, 30)
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "sp").WithArguments("sp").WithLocation(22, 30),
+                // (22,24): error CS8521: Cannot use a result of 'Program.Test1(Program.S1)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
+                //             return ref Test1(sp);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Test1(sp)").WithArguments("Program.Test1(Program.S1)", "arg").WithLocation(22, 24)
             );
         }
 
@@ -141,6 +144,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 // (30,30): error CS8520: Cannot use local 'sp' in this context because it may expose referenced variables outside of their declaration scope 
                 //             return ref Test1(sp);
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "sp").WithArguments("sp").WithLocation(30, 30),
+                // (30,24): error CS8521: Cannot use a result of 'Program.Test1(Program.S1)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
+                //             return ref Test1(sp);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Test1(sp)").WithArguments("Program.Test1(Program.S1)", "arg").WithLocation(30, 24),
                 // (27,13): warning CS1717: Assignment made to same variable; did you mean to assign something else?
                 //             sp = sp;
                 Diagnostic(ErrorCode.WRN_AssignmentToSelf, "sp = sp").WithLocation(27, 13)
@@ -398,7 +404,10 @@ class Program
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(27, 50),
                 // (27,38): error CS8521: Cannot use a result of 'Program.MayWrap(ref int)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
                 //             x.ReturnsRefArg(ref x) = MayWrap(ref inner).Slice(1)[0];
-                Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(ref inner)").WithArguments("Program.MayWrap(ref int)", "arg").WithLocation(27, 38)
+                Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(ref inner)").WithArguments("Program.MayWrap(ref int)", "arg").WithLocation(27, 38),
+                // (42,56): error CS8166: Cannot return a parameter by reference 'arg' because it is not a ref or out parameter
+                //         public ref S1 ReturnsRefArg(ref S1 arg) => ref arg;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "arg").WithArguments("arg").WithLocation(42, 56)
             );
         }
 
@@ -533,12 +542,12 @@ class Program
     }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (16,27): error CS8168: Cannot return local 'rOuter' by reference because it is not a ref local
-                //             MayAssign(ref rOuter);
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "rOuter").WithArguments("rOuter").WithLocation(16, 27),
-                // (16,13): error CS8524: This combination of arguments to 'Program.MayAssign(ref Program.S1)' is disallowed because it may expose variables referenced by parameter 'arg1' outside of their declaration scope
-                //             MayAssign(ref rOuter);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssign(ref rOuter)").WithArguments("Program.MayAssign(ref Program.S1)", "arg1").WithLocation(16, 13)
+                // (25,32): error CS8167: Cannot return by reference a member of parameter 'arg1' because it is not a ref or out parameter
+                //             arg1 = MayWrap(ref arg1.field);
+                Diagnostic(ErrorCode.ERR_RefReturnParameter2, "arg1").WithArguments("arg1").WithLocation(25, 32),
+                // (25,20): error CS8521: Cannot use a result of 'Program.MayWrap(ref int)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
+                //             arg1 = MayWrap(ref arg1.field);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(ref arg1.field)").WithArguments("Program.MayWrap(ref int)", "arg").WithLocation(25, 20)
             );
         }
 
@@ -590,18 +599,12 @@ class Program
     }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (16,27): error CS8168: Cannot return local 'rOuter' by reference because it is not a ref local
-                //             MayAssign(ref rOuter, ref rOuter);
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "rOuter").WithArguments("rOuter").WithLocation(16, 27),
-                // (16,13): error CS8524: This combination of arguments to 'Program.MayAssign(ref Program.S1, ref Program.S1)' is disallowed because it may expose variables referenced by parameter 'arg1' outside of their declaration scope
-                //             MayAssign(ref rOuter, ref rOuter);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssign(ref rOuter, ref rOuter)").WithArguments("Program.MayAssign(ref Program.S1, ref Program.S1)", "arg1").WithLocation(16, 13),
-                // (19,27): error CS8168: Cannot return local 'rOuter' by reference because it is not a ref local
+                // (19,39): error CS8520: Cannot use local 'rInner' in this context because it may expose referenced variables outside of their declaration scope 
                 //             MayAssign(ref rOuter, ref rInner);
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "rOuter").WithArguments("rOuter").WithLocation(19, 27),
-                // (19,13): error CS8524: This combination of arguments to 'Program.MayAssign(ref Program.S1, ref Program.S1)' is disallowed because it may expose variables referenced by parameter 'arg1' outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "rInner").WithArguments("rInner").WithLocation(19, 39),
+                // (19,13): error CS8524: This combination of arguments to 'Program.MayAssign(ref Program.S1, ref Program.S1)' is disallowed because it may expose variables referenced by parameter 'arg2' outside of their declaration scope
                 //             MayAssign(ref rOuter, ref rInner);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssign(ref rOuter, ref rInner)").WithArguments("Program.MayAssign(ref Program.S1, ref Program.S1)", "arg1").WithLocation(19, 13),
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssign(ref rOuter, ref rInner)").WithArguments("Program.MayAssign(ref Program.S1, ref Program.S1)", "arg2").WithLocation(19, 13),
                 // (22,27): error CS8168: Cannot return local 'inner' by reference because it is not a ref local
                 //             MayAssign(ref inner, ref rOuter);
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "inner").WithArguments("inner").WithLocation(22, 27),
@@ -717,6 +720,7 @@ class Program
         {
             get
             {
+                // should be an error, arg1 is not ref-returnable, 'this' is val-returnable
                 this = MayWrap(arg1);
                 return 0;
             }
@@ -726,8 +730,12 @@ class Program
         {
             get
             {
+                // should be an error, arg1 is not ref-returnable, 'this' is val-returnable
                 this = MayWrap(arg1.field);
+
+                // this is actually OK and thus the errors in corresponding Test1 scenarios.
                 this = arg1;
+
                 return 0;
             }
         }
@@ -735,15 +743,9 @@ class Program
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (17,29): error CS8168: Cannot return local 'rOuter' by reference because it is not a ref local
-                //         int dummy1 = rOuter[rOuter];
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "rOuter").WithArguments("rOuter").WithLocation(17, 29),
-                // (17,22): error CS8524: This combination of arguments to 'Program.S1.this[in Program.S1]' is disallowed because it may expose variables referenced by parameter 'arg1' outside of their declaration scope
-                //         int dummy1 = rOuter[rOuter];
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "rOuter[rOuter]").WithArguments("Program.S1.this[in Program.S1]", "arg1").WithLocation(17, 22),
-                // (23,29): error CS8168: Cannot return local 'rInner' by reference because it is not a ref local
+                // (23,29): error CS8520: Cannot use local 'rInner' in this context because it may expose referenced variables outside of their declaration scope 
                 //         int dummy3 = rOuter[rInner];
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "rInner").WithArguments("rInner").WithLocation(23, 29),
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "rInner").WithArguments("rInner").WithLocation(23, 29),
                 // (23,22): error CS8524: This combination of arguments to 'Program.S1.this[in Program.S1]' is disallowed because it may expose variables referenced by parameter 'arg1' outside of their declaration scope
                 //         int dummy3 = rOuter[rInner];
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "rOuter[rInner]").WithArguments("Program.S1.this[in Program.S1]", "arg1").WithLocation(23, 22),
@@ -752,7 +754,13 @@ class Program
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "inner").WithArguments("inner").WithLocation(26, 29),
                 // (26,22): error CS8524: This combination of arguments to 'Program.S1.this[in int]' is disallowed because it may expose variables referenced by parameter 'arg1' outside of their declaration scope
                 //         int dummy4 = rOuter[inner];
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "rOuter[inner]").WithArguments("Program.S1.this[in int]", "arg1").WithLocation(26, 22)
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "rOuter[inner]").WithArguments("Program.S1.this[in int]", "arg1").WithLocation(26, 22),
+                // (53,32): error CS8167: Cannot return by reference a member of parameter 'arg1' because it is not a ref or out parameter
+                //                 this = MayWrap(arg1.field);
+                Diagnostic(ErrorCode.ERR_RefReturnParameter2, "arg1").WithArguments("arg1").WithLocation(53, 32),
+                // (53,24): error CS8521: Cannot use a result of 'Program.MayWrap(in int)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
+                //                 this = MayWrap(arg1.field);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(arg1.field)").WithArguments("Program.MayWrap(in int)", "arg").WithLocation(53, 24)
             );
         }
 
@@ -810,18 +818,12 @@ class Program
     }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (22,31): error CS8168: Cannot return local 'rOuter' by reference because it is not a ref local
-                //             MayAssignDel1(ref rOuter, ref rOuter);
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "rOuter").WithArguments("rOuter").WithLocation(22, 31),
-                // (22,13): error CS8524: This combination of arguments to 'Program.D1.Invoke(ref Program.S1, ref Program.S1)' is disallowed because it may expose variables referenced by parameter 'arg1' outside of their declaration scope
-                //             MayAssignDel1(ref rOuter, ref rOuter);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssignDel1(ref rOuter, ref rOuter)").WithArguments("Program.D1.Invoke(ref Program.S1, ref Program.S1)", "arg1").WithLocation(22, 13),
-                // (25,31): error CS8168: Cannot return local 'rOuter' by reference because it is not a ref local
+                // (25,43): error CS8520: Cannot use local 'rInner' in this context because it may expose referenced variables outside of their declaration scope 
                 //             MayAssignDel1(ref rOuter, ref rInner);
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "rOuter").WithArguments("rOuter").WithLocation(25, 31),
-                // (25,13): error CS8524: This combination of arguments to 'Program.D1.Invoke(ref Program.S1, ref Program.S1)' is disallowed because it may expose variables referenced by parameter 'arg1' outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "rInner").WithArguments("rInner").WithLocation(25, 43),
+                // (25,13): error CS8524: This combination of arguments to 'Program.D1.Invoke(ref Program.S1, ref Program.S1)' is disallowed because it may expose variables referenced by parameter 'arg2' outside of their declaration scope
                 //             MayAssignDel1(ref rOuter, ref rInner);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssignDel1(ref rOuter, ref rInner)").WithArguments("Program.D1.Invoke(ref Program.S1, ref Program.S1)", "arg1").WithLocation(25, 13),
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssignDel1(ref rOuter, ref rInner)").WithArguments("Program.D1.Invoke(ref Program.S1, ref Program.S1)", "arg2").WithLocation(25, 13),
                 // (28,31): error CS8168: Cannot return local 'inner' by reference because it is not a ref local
                 //             MayAssignDel2(ref inner, ref rOuter);
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "inner").WithArguments("inner").WithLocation(28, 31),
@@ -879,18 +881,12 @@ class Program
     }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (16,42): error CS8168: Cannot return local 'rOuter' by reference because it is not a ref local
-                //             var dummy1 = new Program(ref rOuter, ref rOuter);
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "rOuter").WithArguments("rOuter").WithLocation(16, 42),
-                // (16,26): error CS8524: This combination of arguments to 'Program.Program(ref Program.S1, ref Program.S1)' is disallowed because it may expose variables referenced by parameter 'arg1' outside of their declaration scope
-                //             var dummy1 = new Program(ref rOuter, ref rOuter);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "new Program(ref rOuter, ref rOuter)").WithArguments("Program.Program(ref Program.S1, ref Program.S1)", "arg1").WithLocation(16, 26),
-                // (19,42): error CS8168: Cannot return local 'rOuter' by reference because it is not a ref local
+                // (19,54): error CS8520: Cannot use local 'rInner' in this context because it may expose referenced variables outside of their declaration scope 
                 //             var dummy2 = new Program(ref rOuter, ref rInner);
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "rOuter").WithArguments("rOuter").WithLocation(19, 42),
-                // (19,26): error CS8524: This combination of arguments to 'Program.Program(ref Program.S1, ref Program.S1)' is disallowed because it may expose variables referenced by parameter 'arg1' outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "rInner").WithArguments("rInner").WithLocation(19, 54),
+                // (19,26): error CS8524: This combination of arguments to 'Program.Program(ref Program.S1, ref Program.S1)' is disallowed because it may expose variables referenced by parameter 'arg2' outside of their declaration scope
                 //             var dummy2 = new Program(ref rOuter, ref rInner);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "new Program(ref rOuter, ref rInner)").WithArguments("Program.Program(ref Program.S1, ref Program.S1)", "arg1").WithLocation(19, 26),
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "new Program(ref rOuter, ref rInner)").WithArguments("Program.Program(ref Program.S1, ref Program.S1)", "arg2").WithLocation(19, 26),
                 // (22,42): error CS8168: Cannot return local 'inner' by reference because it is not a ref local
                 //             var dummy3 = new Program(ref inner, ref rOuter);
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "inner").WithArguments("inner").WithLocation(22, 42),
@@ -940,12 +936,9 @@ class Program
     }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (16,27): error CS8168: Cannot return local 'rOuter' by reference because it is not a ref local
+                // (16,13): error CS8524: This combination of arguments to 'Program.MayAssign(ref Program.S1, in int)' is disallowed because it may expose variables referenced by parameter 'arg2' outside of their declaration scope
                 //             MayAssign(ref rOuter);
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "rOuter").WithArguments("rOuter").WithLocation(16, 27),
-                // (16,13): error CS8524: This combination of arguments to 'Program.MayAssign(ref Program.S1, in int)' is disallowed because it may expose variables referenced by parameter 'arg1' outside of their declaration scope
-                //             MayAssign(ref rOuter);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssign(ref rOuter)").WithArguments("Program.MayAssign(ref Program.S1, in int)", "arg1").WithLocation(16, 13)
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssign(ref rOuter)").WithArguments("Program.MayAssign(ref Program.S1, in int)", "arg2").WithLocation(16, 13)
             );
         }
     }

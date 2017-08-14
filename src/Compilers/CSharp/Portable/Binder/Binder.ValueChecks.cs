@@ -531,18 +531,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParameterSymbol parameterSymbol = parameter.ParameterSymbol;
             var paramKind = parameterSymbol.RefKind;
 
-            // byval parameters are not ref-returnable
-            if (escapeTo == Binder.ExternalScope && parameterSymbol.RefKind == RefKind.None)
+            // byval parameters can escape to method's top level.
+            // others can be escape further, unless they are ref-like.
+            if (escapeTo == Binder.ExternalScope)
             {
-                if (checkingReceiver)
+                if (parameterSymbol.RefKind == RefKind.None)
                 {
-                    Error(diagnostics, ErrorCode.ERR_RefReturnParameter2, parameter.Syntax, parameterSymbol.Name);
+                    if (checkingReceiver)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RefReturnParameter2, parameter.Syntax, parameterSymbol.Name);
+                    }
+                    else
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RefReturnParameter, node, parameterSymbol.Name);
+                    }
+                    return false;
                 }
-                else
+
+                if (parameterSymbol?.Type.IsByRefLikeType == true)
                 {
-                    Error(diagnostics, ErrorCode.ERR_RefReturnParameter, node, parameterSymbol.Name);
+                    if (checkingReceiver)
+                    {
+                        //TODO: VS better error
+                        Error(diagnostics, ErrorCode.ERR_RefReturnParameter2, parameter.Syntax, parameterSymbol.Name);
+                    }
+                    else
+                    {
+                        //TODO: VS better error
+                        Error(diagnostics, ErrorCode.ERR_RefReturnParameter, node, parameterSymbol.Name);
+                    }
+                    return false;
                 }
-                return false;
             }
 
             // can ref-escape to any scope otherwise
@@ -591,6 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!canModifyReadonly)
                     {
                         ReportReadOnlyFieldError(fieldSymbol, node, valueKind, checkingReceiver, diagnostics);
+                        return false;
                     }
                 }
 
@@ -1125,9 +1145,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    // if ref is passed, check ref escape, since it is the same or narrower than val escape
+                    // if ref is passed and it is not a ref-like, check ref escape, 
+                    // since it is the same or narrower than val escape and callee may wrap the ref into a val
                     var argument = args[argIndex];
-                    var valid = effectiveRefKind != RefKind.None ?
+                    var valid = effectiveRefKind != RefKind.None && argument.Type.IsByRefLikeType == false?
                                         CheckRefEscape(argument.Syntax, argument, scopeOfTheContainingExpression, escapeTo, false, diagnostics) :
                                         CheckValEscape(argument.Syntax, argument, scopeOfTheContainingExpression, escapeTo, false, diagnostics);
 
@@ -1154,7 +1175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (parameter.RefKind == RefKind.RefReadOnly && inParametersMatchedWithArgs?[i] != true)
                     {
-                        // unmatched "in" parameter is an RValue 
+                        // unmatched "in" parameter is an RValue, its val-escape is scopeOfTheContainingExpression
                         var parameterName = parameters[i].Name;
                         Error(diagnostics, ErrorCode.ERR_CallArgMixing, syntax, symbol, parameterName);
 
@@ -1488,6 +1509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (escapeTo == Binder.ExternalScope)
                     {
                         Error(diagnostics, ErrorCode.ERR_RefReturnStructThis, node, ThisParameterSymbol.SymbolName);
+                        return false;
                     }
 
                     // can ref escape to any other level
@@ -1645,8 +1667,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var parameter = ((BoundParameter)expr).ParameterSymbol;
 
                     // byval parameters can escape to method's top level.
-                    // others can be escape further.
-                    return parameter.RefKind == RefKind.None ?
+                    // others can be escape further, unless they are ref-like.
+                    return parameter.RefKind == RefKind.None || parameter.Type?.IsByRefLikeType == true ?
                         Binder.TopLevelScope :
                         Binder.ExternalScope;
 
@@ -1799,6 +1821,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (localSymbol.ValEscapeScope > escapeTo)
                     {
                         Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, localSymbol);
+                        return false;
                     }
                     return true;
 

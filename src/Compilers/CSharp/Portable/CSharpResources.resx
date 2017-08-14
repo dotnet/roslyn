@@ -4842,7 +4842,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Cannot return a parameter by reference '{0}' because it is not a ref or out parameter</value>
   </data>
   <data name="ERR_RefReturnParameter2" xml:space="preserve">
-    <value>Cannot return a member of parameter '{0}' by reference because it is not a ref or out parameter</value>
+    <value>Cannot return by reference a member of parameter '{0}' because it is not a ref or out parameter</value>
   </data>
   <data name="ERR_RefReturnLocal" xml:space="preserve">
     <value>Cannot return local '{0}' by reference because it is not a ref local</value>
