@@ -2910,16 +2910,16 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LazyLockStatement : BaseLockStatement, ILockStatement
     {
-        private readonly Lazy<IOperation> _lazyLockedObject;
+        private readonly Lazy<IOperation> _lazyExpression;
         private readonly Lazy<IOperation> _lazyBody;
 
         public LazyLockStatement(Lazy<IOperation> lockedObject, Lazy<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(semanticModel, syntax, type, constantValue)
         {
-            _lazyLockedObject = lockedObject ?? throw new System.ArgumentNullException(nameof(lockedObject));
+            _lazyExpression = lockedObject ?? throw new System.ArgumentNullException(nameof(lockedObject));
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }
 
-        protected override IOperation ExpressionImpl => _lazyLockedObject.Value;
+        protected override IOperation ExpressionImpl => _lazyExpression.Value;
 
         protected override IOperation BodyImpl => _lazyBody.Value;
     }
