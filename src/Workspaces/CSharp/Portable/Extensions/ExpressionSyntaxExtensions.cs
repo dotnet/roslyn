@@ -678,7 +678,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             CancellationToken cancellationToken)
         {
             replacementNode = null;
-            issueSpan = default(TextSpan);
+            issueSpan = default;
 
             if (expression.ContainsInterleavedDirective(cancellationToken))
             {
@@ -711,7 +711,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             CancellationToken cancellationToken)
         {
             replacementNode = null;
-            issueSpan = default(TextSpan);
+            issueSpan = default;
 
             if (memberAccess.Name == null || memberAccess.Expression == null)
             {
@@ -1256,7 +1256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             CancellationToken cancellationToken)
         {
             replacementNode = null;
-            issueSpan = default(TextSpan);
+            issueSpan = default;
 
             if (name.IsVar)
             {
@@ -1669,8 +1669,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             out TextSpan issueSpan,
             CancellationToken cancellationToken)
         {
-            issueSpan = default(TextSpan);
-            replacementNode = default(TypeSyntax);
+            issueSpan = default;
+            replacementNode = default;
 
             // we can try to remove the Attribute suffix if this is the attribute name
             if (SyntaxFacts.IsAttributeName(name))
@@ -1755,7 +1755,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             out TextSpan issueSpan)
         {
             replacementNode = null;
-            issueSpan = default(TextSpan);
+            issueSpan = default;
 
             switch (expression.Kind())
             {
@@ -1816,7 +1816,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             out TextSpan issueSpan)
         {
             replacementNode = null;
-            issueSpan = default(TextSpan);
+            issueSpan = default;
 
             if (left != null && right != null)
             {
@@ -2185,7 +2185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             CancellationToken cancellationToken)
         {
             replacementNode = null;
-            issueSpan = default(TextSpan);
+            issueSpan = default;
 
             if (!optionSet.GetOption(SimplificationOptions.PreferImplicitTypeInLocalDeclaration))
             {
@@ -2563,6 +2563,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.GreaterThanOrEqualExpression:
                 case SyntaxKind.IsExpression:
                 case SyntaxKind.AsExpression:
+                case SyntaxKind.IsPatternExpression:
                     // From C# spec, 7.3.1:
                     // Relational and type testing: <  >  <=  >=  is  as
 

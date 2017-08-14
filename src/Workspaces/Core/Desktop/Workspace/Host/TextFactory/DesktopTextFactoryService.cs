@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.Host
     [ExportWorkspaceService(typeof(ITextFactoryService), ServiceLayer.Desktop), Shared]
     internal class DesktopTextFactoryService : ITextFactoryService
     {
-        public SourceText CreateText(Stream stream, Encoding defaultEncoding, CancellationToken cancellationToken = default(CancellationToken))
+        public SourceText CreateText(Stream stream, Encoding defaultEncoding, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             return EncodedStringText.Create(stream, defaultEncoding);
         }
 
-        public SourceText CreateText(TextReader reader, Encoding encoding, CancellationToken cancellationToken = default(CancellationToken))
+        public SourceText CreateText(TextReader reader, Encoding encoding, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 

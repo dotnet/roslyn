@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace RunTests
 {
@@ -81,7 +82,13 @@ namespace RunTests
                 // an empty log just in case, so our runner will still fail.
                 File.Create(resultsFilePath).Close();
 
-                var dumpOutputFilePath = Path.Combine(resultsDir, $"{assemblyInfo.DisplayName}.dmp");
+                // Define environment variables for processes started via ProcessRunner.
+                var environmentVariables = new Dictionary<string, string>();
+                environmentVariables.Add(ProcDumpRunner.ProcDumpPathEnvironmentVariableKey, _options.ProcDumpPath);
+
+                var outputDirectory = _options.LogFilePath != null
+                    ? Path.GetDirectoryName(_options.LogFilePath)
+                    : Directory.GetCurrentDirectory();
 
                 var start = DateTime.UtcNow;
                 var xunitPath = _options.XunitPath;
@@ -91,7 +98,9 @@ namespace RunTests
                     lowPriority: false,
                     displayWindow: false,
                     captureOutput: true,
-                    cancellationToken: cancellationToken);
+                    cancellationToken: cancellationToken,
+                    environmentVariables: environmentVariables,
+                    onProcessStartHandler: (process) => ProcDumpRunner.StartProcDump(_options.ProcDumpPath, process.Id, process.ProcessName, outputDirectory, Logger.Log));
                 var span = DateTime.UtcNow - start;
 
                 if (processOutput.ExitCode != 0)

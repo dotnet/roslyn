@@ -21,7 +21,7 @@ namespace Roslyn.MSBuild.Util
 
         public override bool Execute()
         {
-            if (String.IsNullOrEmpty(Language))
+            if (string.IsNullOrEmpty(Language))
             {
                 Log.LogError($"The {nameof(Language)} parameter is required");
                 return false;

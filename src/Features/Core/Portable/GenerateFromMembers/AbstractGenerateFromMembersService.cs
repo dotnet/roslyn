@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
                     : ((IPropertySymbol)symbol).Type;
 
                 parameters.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
-                    attributes: default(ImmutableArray<AttributeData>),
+                    attributes: default,
                     refKind: RefKind.None,
                     isParams: false,
                     type: type,

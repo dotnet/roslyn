@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -7411,6 +7411,188 @@ class C
         IEnumerable < Int32
         return ImmutableArray.CreateRange();
     }
+}");
+        }
+
+        [WorkItem(18988, "https://github.com/dotnet/roslyn/issues/18988")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task GroupNonReadonlyFieldsTogether()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    public bool isDisposed;
+
+    public readonly int x;
+    public readonly int m;
+
+    public C()
+    {
+        this.[|y|] = 0;
+    }
+}",
+@"
+class C
+{
+    public bool isDisposed;
+    private int y;
+
+    public readonly int x;
+    public readonly int m;
+
+    public C()
+    {
+        this.y = 0;
+    }
+}");
+        }
+
+        [WorkItem(18988, "https://github.com/dotnet/roslyn/issues/18988")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task GroupReadonlyFieldsTogether()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    public readonly int x;
+    public readonly int m;
+
+    public bool isDisposed;
+
+    public C()
+    {
+        this.[|y|] = 0;
+    }
+}",
+@"
+class C
+{
+    public readonly int x;
+    public readonly int m;
+    private readonly int y;
+
+    public bool isDisposed;
+
+    public C()
+    {
+        this.y = 0;
+    }
+}", index: 1);
+        }
+
+        [WorkItem(20791, "https://github.com/dotnet/roslyn/issues/20791")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestWithOutOverload1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method()
+    {
+        Foo(out [|foo|]);
+    }
+
+    void Foo(int i) { }
+    void Foo(out bool b) { }
+}",
+@"class Class
+{
+    private bool foo;
+
+    void Method()
+    {
+        Foo(out foo);
+    }
+
+    void Foo(int i) { }
+    void Foo(out bool b) { }
+}");
+        }
+
+        [WorkItem(20791, "https://github.com/dotnet/roslyn/issues/20791")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestWithOutOverload2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method()
+    {
+        Foo([|foo|]);
+    }
+
+    void Foo(out bool b) { }
+    void Foo(int i) { }
+}",
+@"class Class
+{
+    private int foo;
+
+    void Method()
+    {
+        Foo(foo);
+    }
+
+    void Foo(out bool b) { }
+    void Foo(int i) { }
+}");
+        }
+
+        [WorkItem(20791, "https://github.com/dotnet/roslyn/issues/20791")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestWithRefOverload1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method()
+    {
+        Foo(ref [|foo|]);
+    }
+
+    void Foo(int i) { }
+    void Foo(ref bool b) { }
+}",
+@"class Class
+{
+    private bool foo;
+
+    void Method()
+    {
+        Foo(ref foo);
+    }
+
+    void Foo(int i) { }
+    void Foo(ref bool b) { }
+}");
+        }
+
+        [WorkItem(20791, "https://github.com/dotnet/roslyn/issues/20791")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestWithRefOverload2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method()
+    {
+        Foo([|foo|]);
+    }
+
+    void Foo(ref bool b) { }
+    void Foo(int i) { }
+}",
+@"class Class
+{
+    private int foo;
+
+    void Method()
+    {
+        Foo(foo);
+    }
+
+    void Foo(ref bool b) { }
+    void Foo(int i) { }
 }");
         }
     }

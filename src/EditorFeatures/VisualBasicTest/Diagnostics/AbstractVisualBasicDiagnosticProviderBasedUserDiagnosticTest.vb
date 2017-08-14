@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -10,8 +10,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
     Public MustInherit Class AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
         Inherits AbstractDiagnosticProviderBasedUserDiagnosticTest
 
-        Private ReadOnly _compilationOptions As CompilationOptions =
-            New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionInfer(True)
+        Private ReadOnly _compilationOptions As VisualBasicCompilationOptions =
+            New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionInfer(True).WithParseOptions(New VisualBasicParseOptions(LanguageVersion.Latest))
 
         Protected Overrides Function GetScriptOptions() As ParseOptions
             Return TestOptions.Script
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
             Dim expectedStr = expected.ConvertTestSourceTag()
 
             Await MyBase.TestAsync(initialMarkupStr, expectedStr,
-                                   parseOptions:=Nothing, compilationOptions:=_compilationOptions,
+                                   parseOptions:=_compilationOptions.ParseOptions, compilationOptions:=_compilationOptions,
                                    index:=index, ignoreTrivia:=ignoreTrivia,
                                    priority:=priority)
         End Function

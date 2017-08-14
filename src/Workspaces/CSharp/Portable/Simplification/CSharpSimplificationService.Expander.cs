@@ -278,7 +278,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 var argumentType = _semanticModel.GetTypeInfo(node.Expression).ConvertedType;
                 if (argumentType != null &&
                     !IsPassedToDelegateCreationExpression(node, argumentType) &&
-                    node.Expression.Kind() != SyntaxKind.DeclarationExpression)
+                    node.Expression.Kind() != SyntaxKind.DeclarationExpression &&
+                    node.RefOrOutKeyword.Kind() == SyntaxKind.None)
                 {
                     if (TryCastTo(argumentType, node.Expression, newArgument.Expression, out var newArgumentExpressionWithCast))
                     {
@@ -1055,7 +1056,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
 
                 Debug.Assert(false, "This method is used only replacing the '<' and '>' to '{' and '}' respectively");
-                return default(SyntaxToken);
+                return default;
             }
 
             private bool IsTypeOfUnboundGenericType(SemanticModel semanticModel, TypeOfExpressionSyntax typeOfExpression)
@@ -1082,6 +1083,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax originalNode)
             {
+                if (this._semanticModel.GetSymbolInfo(originalNode).Symbol.IsLocalFunction())
+                {
+                    return originalNode;
+                }
+
                 var rewrittenNode = (InvocationExpressionSyntax)base.VisitInvocationExpression(originalNode);
                 if (originalNode.Expression.IsKind(SyntaxKind.SimpleMemberAccessExpression))
                 {

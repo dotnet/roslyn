@@ -513,7 +513,16 @@
   <data name="When_possible" xml:space="preserve">
     <value>When possible</value>
   </data>
+  <data name="Indent_case_contents_when_block" xml:space="preserve">
+    <value>Indent case contents (when block)</value>
+  </data>
   <data name="Fade_out_unused_usings" xml:space="preserve">
     <value>Fade out unused usings</value>
+  </data>
+  <data name="Prefer_is_null_over_ReferenceEquals" xml:space="preserve">
+    <value>Prefer 'is null' over 'object.ReferenceEquals(..., null)'</value>
+  </data>
+  <data name="Report_invalid_placeholders_in_string_dot_format_calls" xml:space="preserve">
+    <value>Report invalid placeholders in 'string.Format' calls</value>
   </data>
 </root>

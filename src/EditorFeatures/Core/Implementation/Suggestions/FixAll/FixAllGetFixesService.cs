@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             string fixAllTopLevelHeader,
             string languageOpt,
             Workspace workspace,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesPreviewChanges, cancellationToken))

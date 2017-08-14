@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.DocumentHighlighting
@@ -9,7 +10,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
     internal interface IRemoteDocumentHighlights
     {
         Task<ImmutableArray<SerializableDocumentHighlights>> GetDocumentHighlightsAsync(
-            DocumentId documentId, int position, DocumentId[] documentIdsToSearch);
+            DocumentId documentId, int position, DocumentId[] documentIdsToSearch, CancellationToken cancellationToken);
     }
 
     internal struct SerializableDocumentHighlights
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         public ImmutableArray<HighlightSpan> HighlightSpans;
 
         public DocumentHighlights Rehydrate(Solution solution)
-            => new DocumentHighlights(solution.GetDocument(DocumentId), HighlightSpans.ToImmutableArray());
+            => new DocumentHighlights(solution.GetDocument(DocumentId), HighlightSpans);
 
         public static SerializableDocumentHighlights Dehydrate(DocumentHighlights highlights)
             => new SerializableDocumentHighlights

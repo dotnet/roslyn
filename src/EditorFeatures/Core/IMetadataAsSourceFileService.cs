@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor
         /// from.</param>
         /// <param name="symbol">The symbol whose interface to generate source for</param>
         /// <param name="cancellationToken">To cancel project and document operations</param>
-        Task<MetadataAsSourceFile> GetGeneratedFileAsync(Project project, ISymbol symbol, CancellationToken cancellationToken = default(CancellationToken));
+        Task<MetadataAsSourceFile> GetGeneratedFileAsync(Project project, ISymbol symbol, CancellationToken cancellationToken = default);
 
         bool TryAddDocumentToWorkspace(string filePath, ITextBuffer buffer);
 

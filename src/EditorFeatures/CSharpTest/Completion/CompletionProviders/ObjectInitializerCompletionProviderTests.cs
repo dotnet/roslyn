@@ -701,6 +701,58 @@ class Program
             await VerifyItemIsAbsentAsync(markup, "D");
         }
 
+        [WorkItem(13158, "https://github.com/dotnet/roslyn/issues/13158")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CollectionInitializerForInterfaceType1()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Foo
+{
+    public IList<int> Items { get; } = new List<int>();
+    public int Bar;
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var y = new Foo { $$ };
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "Items");
+            await VerifyItemExistsAsync(markup, "Bar");
+        }
+
+        [WorkItem(13158, "https://github.com/dotnet/roslyn/issues/13158")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CollectionInitializerForInterfaceType2()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public interface ICustomCollection<T> : ICollection<T> { }
+
+public class Foo
+{
+    public ICustomCollection<int> Items { get; } = new List<int>();
+    public int Bar;
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var y = new Foo { $$ };
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "Items");
+            await VerifyItemExistsAsync(markup, "Bar");
+        }
+
         [WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CollectionInitializerPatternFromBaseTypeAccessible()

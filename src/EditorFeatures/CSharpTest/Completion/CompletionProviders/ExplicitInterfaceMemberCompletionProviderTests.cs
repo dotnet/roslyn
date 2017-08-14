@@ -98,5 +98,36 @@ class Bar : IFoo
 
             await VerifyProviderCommitAsync(markup, "Foo()", expected, '(', "");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(19947, "https://github.com/dotnet/roslyn/issues/19947")]
+        public async Task ExplicitInterfaceMemberCompletionContainsOnlyValidValues()
+        {
+            var markup = @"
+interface I1
+{
+    void Foo();
+}
+
+interface I2 : I1
+{
+    void Foo2();
+    int Prop { get; }
+}
+
+class Bar : I2
+{
+     void I2.$$
+}";
+
+            await VerifyItemIsAbsentAsync(markup, "Equals(object obj)");
+            await VerifyItemIsAbsentAsync(markup, "Foo()");
+            await VerifyItemIsAbsentAsync(markup, "GetHashCode()");
+            await VerifyItemIsAbsentAsync(markup, "GetType()");
+            await VerifyItemIsAbsentAsync(markup, "ToString()");
+
+            await VerifyItemExistsAsync(markup, "Foo2()");
+            await VerifyItemExistsAsync(markup, "Prop");
+        }
     }
 }

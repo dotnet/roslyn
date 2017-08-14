@@ -328,27 +328,36 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void MakeFrames(ArrayBuilder<ClosureDebugInfo> closureDebugInfo)
         {
-            var closures = _analysis.CapturedVariablesByLambda.Keys;
-
-            foreach (var closure in closures)
+            Analysis.VisitClosures(_analysis.ScopeTree, (scope, closure) =>
             {
-                var capturedVars = _analysis.CapturedVariablesByLambda[closure];
+                var capturedVars = closure.CapturedVariables;
+                MethodSymbol closureSymbol = closure.OriginalMethodSymbol;
+                bool canTakeRefParams = _analysis.CanTakeRefParameters(closureSymbol);
 
-                if (closure.MethodKind == MethodKind.LocalFunction &&
-                    OnlyCapturesThis((LocalFunctionSymbol)closure, capturedVars))
+                if (canTakeRefParams && OnlyCapturesThis(closure, scope))
                 {
-                    continue;
+                    return;
                 }
 
                 foreach (var captured in capturedVars)
                 {
-                    BoundNode scope;
-                    if (!_analysis.VariableScope.TryGetValue(captured, out scope))
+                    if (!_analysis.VariableScope.TryGetValue(captured, out BoundNode captureScope))
                     {
                         continue;
                     }
 
-                    LambdaFrame frame = GetFrameForScope(scope, closureDebugInfo);
+                    // If this is a local function that can take ref params, skip
+                    // frame creation for local function calls. This is semantically
+                    // important because otherwise we may create a struct frame which
+                    // is empty, which crashes in emit.
+                    // This is not valid for lambdas or local functions which can't take
+                    // take ref params since they will be lowered into their own frames.
+                    if (canTakeRefParams && captured.Kind == SymbolKind.Method)
+                    {
+                        continue;
+                    }
+
+                    LambdaFrame frame = GetFrameForScope(captureScope, closureDebugInfo);
 
                     if (captured.Kind != SymbolKind.Method && !proxies.ContainsKey(captured))
                     {
@@ -366,22 +375,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
-            }
+            });
         }
 
-
-        private SmallDictionary<LocalFunctionSymbol, bool> _onlyCapturesThisMemoTable;
+        private SmallDictionary<Analysis.Closure, bool> _onlyCapturesThisMemoTable;
         /// <summary>
         /// Helper for determining whether a local function transitively
         /// only captures this (only captures this or other local functions
         /// which only capture this).
         /// </summary>
-        private bool OnlyCapturesThis<T>(
-            LocalFunctionSymbol closure,
-            T capturedVars, 
+        private bool OnlyCapturesThis(
+            Analysis.Closure closure,
+            Analysis.Scope scope,
             PooledHashSet<LocalFunctionSymbol> localFuncsInProgress = null)
-            where T : IEnumerable<Symbol>
         {
+            Debug.Assert(closure != null);
+            Debug.Assert(scope != null);
+
             bool result = false;
             if (_onlyCapturesThisMemoTable?.TryGetValue(closure, out result) == true)
             {
@@ -389,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             result = true;
-            foreach (var captured in capturedVars)
+            foreach (var captured in closure.CapturedVariables)
             {
                 var param = captured as ParameterSymbol;
                 if (param != null && param.IsThis)
@@ -412,10 +422,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     localFuncsInProgress.Add(localFunc);
-                    bool transitivelyTrue = OnlyCapturesThis(
-                          localFunc,
-                          _analysis.CapturedVariablesByLambda[localFunc],
-                          localFuncsInProgress);
+                    var (found, foundScope) = Analysis.GetVisibleClosure(scope, localFunc);
+                    bool transitivelyTrue = OnlyCapturesThis(found, foundScope, localFuncsInProgress);
 
                     if (freePool)
                     {
@@ -435,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_onlyCapturesThisMemoTable == null)
             {
-                _onlyCapturesThisMemoTable = new SmallDictionary<LocalFunctionSymbol, bool>();
+                _onlyCapturesThisMemoTable = new SmallDictionary<Analysis.Closure, bool>();
             }
 
             _onlyCapturesThisMemoTable[closure] = result;
@@ -463,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 frame = new LambdaFrame(_topLevelMethod, containingMethod, canBeStruct, syntax, methodId, closureId);
                 _frames.Add(scope, frame);
 
-                CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(this.ContainingType, frame);
+                CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(ContainingType, frame);
                 if (frame.Constructor != null)
                 {
                     AddSynthesizedMethod(
@@ -1324,7 +1332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     closureOrdinal = containerAsFrame.ClosureOrdinal;
                 }
             }
-            else if (_analysis.CapturedVariablesByLambda[node.Symbol].Count == 0)
+            else if (Analysis.GetClosureInTree(_analysis.ScopeTree, node.Symbol).CapturedVariables.Count == 0)
             {
                 if (_analysis.MethodsConvertedToDelegates.Contains(node.Symbol))
                 {
@@ -1339,15 +1347,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                     closureKind = ClosureKind.Static;
                     closureOrdinal = LambdaDebugInfo.StaticClosureOrdinal;
                 }
-                structClosures = default(ImmutableArray<TypeSymbol>);
+                structClosures = default;
             }
             else
             {
+                // GetStructClosures is currently overly aggressive in gathering
+                // closures since the only information it has at this point is
+                // NeedsParentFrame, which doesn't say what exactly is needed from
+                // the parent frame. If `this` is captured, that's enough to mark
+                // NeedsParentFrame for the current closure, so we need to gather
+                // struct closures for all intermediate frames, even if they only
+                // strictly need `this`.
+                if (_analysis.CanTakeRefParameters(node.Symbol))
+                {
+                    lambdaScope = _analysis.ScopeParent[node.Body];
+                    _ = _frames.TryGetValue(lambdaScope, out containerAsFrame);
+                    structClosures = GetStructClosures(containerAsFrame, lambdaScope);
+                }
+                else
+                {
+                    structClosures = default;
+                }
+
                 containerAsFrame = null;
                 translatedLambdaContainer = _topLevelMethod.ContainingType;
                 closureKind = ClosureKind.ThisOnly;
                 closureOrdinal = LambdaDebugInfo.ThisOnlyClosureOrdinal;
-                structClosures = default(ImmutableArray<TypeSymbol>);
             }
 
             // Move the body of the lambda to a freshly generated synthetic method on its frame.

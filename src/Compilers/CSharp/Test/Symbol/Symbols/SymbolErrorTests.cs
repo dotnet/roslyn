@@ -7943,7 +7943,7 @@ public class cly : clx
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantOverrideNonVirtual, Line = 13, Column = 29 });
         }
 
-        private static readonly string s_typeWithMixedProperty = @"
+        private const string s_typeWithMixedProperty = @"
 .class public auto ansi beforefieldinit Base_VirtGet_Set
        extends [mscorlib]System.Object
 {
@@ -13461,7 +13461,7 @@ namespace NS
         }
 
         [Fact]
-        public void CS0753ERR_PartialMethodOnlyMethods()
+        public void CS067ERR_ERR_PartialMisplaced()
         {
             var text = @"
 partial class C
@@ -13477,18 +13477,18 @@ partial class C
 ";
             var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
-                   // (5,17): error CS0753: Only methods, classes, structs, or interfaces may be partial
-                   //     partial int f;
-                   Diagnostic(ErrorCode.ERR_PartialMethodOnlyMethods, "f"),
-                   // (6,20): error CS0753: Only methods, classes, structs, or interfaces may be partial
-                   //     partial object P { get { return null; } }
-                   Diagnostic(ErrorCode.ERR_PartialMethodOnlyMethods, "P"),
-                  // (7,17): error CS0753: Only methods, classes, structs, or interfaces may be partial
-                  //     partial int this[int index]
-                  Diagnostic(ErrorCode.ERR_PartialMethodOnlyMethods, "this"),
-                   // (5,17): warning CS0169: The field 'C.f' is never used
-                   //     partial int f;
-                   Diagnostic(ErrorCode.WRN_UnreferencedField, "f").WithArguments("C.f"));
+                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                //     partial int f;
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
+                // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                //     partial object P { get { return null; } }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5),
+                // (6,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                //     partial int this[int index]
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(6, 5),
+                // (4,17): warning CS0169: The field 'C.f' is never used
+                //     partial int f;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "f").WithArguments("C.f").WithLocation(4, 17));
         }
 
         [Fact]
@@ -19328,11 +19328,13 @@ static class A
     public static int f1 { get { return 1; } }
 }
 ";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, Line = 3, Column = 22 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_InvalidExprTerm, Line = 3, Column = 25 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_InvalidExprTerm, Line = 3, Column = 30 }
-            );
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (3,22): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                //     object F = new { f1<int> = 1 };
+                Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "f1<int> = 1").WithLocation(3, 22),
+                // (3,22): error CS0307: The property 'ClassA.f1' cannot be used with type arguments
+                //     object F = new { f1<int> = 1 };
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "f1<int>").WithArguments("ClassA.f1", "property").WithLocation(3, 22));
         }
 
         [Fact]

@@ -261,8 +261,8 @@ class C
 @"
 class C
 {
-    private int s;
     private readonly string s1;
+    private int s;
 
     public C(string s)
     {

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private void AddSwitchIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet)
         {
             var section = node as SwitchSectionSyntax;
-            if (section == null || !optionSet.GetOption(CSharpFormattingOptions.IndentSwitchCaseSection))
+            if (section == null)
             {
                 return;
             }
@@ -58,6 +59,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 section.Statements.Count == 0)
             {
                 return;
+            }
+
+            var indentSwitchCase = optionSet.GetOption(CSharpFormattingOptions.IndentSwitchCaseSection);
+            var indentSwitchCaseWhenBlock = optionSet.GetOption(CSharpFormattingOptions.IndentSwitchCaseSectionWhenBlock);
+            if (!indentSwitchCase && !indentSwitchCaseWhenBlock)
+            {
+                // Never indent
+                return;
+            }
+
+            var alwaysIndent = indentSwitchCase && indentSwitchCaseWhenBlock;
+            if (!alwaysIndent)
+            {
+                // Only one of these values can be true at this point.
+                Debug.Assert(indentSwitchCase != indentSwitchCaseWhenBlock);
+
+                var firstStatementIsBlock =
+                    section.Statements.Count > 0 &&
+                    section.Statements[0].IsKind(SyntaxKind.Block);
+
+                if (indentSwitchCaseWhenBlock != firstStatementIsBlock)
+                {
+                    return;
+                }
             }
 
             // see whether we are the last statement

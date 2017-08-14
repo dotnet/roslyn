@@ -150,7 +150,7 @@ namespace Roslyn.Test.Utilities
         /// <summary>
         /// Find all of the <see cref="Compilation"/> values reachable from this instance.
         /// </summary>
-        /// <param name="compilation"></param>
+        /// <param name="original"></param>
         /// <returns></returns>
         private static List<Compilation> FindReferencedCompilations(Compilation original)
         {

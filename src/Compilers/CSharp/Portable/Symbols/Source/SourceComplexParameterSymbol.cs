@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // The metadata parameter name should be the name used in the partial definition.
 
-                var sourceMethod = this.ContainingSymbol as SourceMemberMethodSymbol;
+                var sourceMethod = this.ContainingSymbol as SourceOrdinaryMethodSymbol;
                 if ((object)sourceMethod == null)
                 {
                     return base.MetadataName;
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var sourceMethod = this.ContainingSymbol as SourceMemberMethodSymbol;
+                var sourceMethod = this.ContainingSymbol as SourceOrdinaryMethodSymbol;
                 if ((object)sourceMethod == null)
                 {
                     return null;
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             SyntaxList<AttributeListSyntax> attributes = AttributeDeclarationList;
 
-            var sourceMethod = this.ContainingSymbol as SourceMemberMethodSymbol;
+            var sourceMethod = this.ContainingSymbol as SourceOrdinaryMethodSymbol;
             if ((object)sourceMethod == null)
             {
                 return OneOrMany.Create(attributes);
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxList<AttributeListSyntax> otherAttributes;
 
             // if this is a definition get the implementation and vice versa
-            SourceMemberMethodSymbol otherPart = sourceMethod.OtherPartOfPartial;
+            SourceOrdinaryMethodSymbol otherPart = sourceMethod.OtherPartOfPartial;
             if ((object)otherPart != null)
             {
                 otherAttributes = ((SourceParameterSymbol)otherPart.Parameters[this.Ordinal]).AttributeDeclarationList;

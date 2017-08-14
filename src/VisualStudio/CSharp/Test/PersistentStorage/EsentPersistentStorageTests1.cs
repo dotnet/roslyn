@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Esent;
 using Microsoft.CodeAnalysis.Host;
@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
     /// </remarks>
     public class EsentPersistentStorageTests : AbstractPersistentStorageTests
     {
-        protected override IPersistentStorageService GetStorageService()
+        internal override IPersistentStorageService GetStorageService(IPersistentStorageFaultInjector faultInjector)
             => new EsentPersistentStorageService(_persistentEnabledOptionService, testing: true);
     }
 }

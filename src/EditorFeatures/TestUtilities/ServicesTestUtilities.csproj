@@ -1,106 +1,43 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\build\Targets\Settings.props" />
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{76C6F005-C89D-4348-BB4A-39189DDBEB52}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Test.Utilities</RootNamespace>
     <AssemblyName>Roslyn.Services.Test.Utilities</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1ee8cad3-55f9-4d91-96b2-084641da9a6c}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
-      <Project>{b501a547-c911-4a05-ac6e-274a50dff30e}</Project>
-      <Name>CSharpCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
-      <Project>{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}</Project>
-      <Name>BasicCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj">
-      <Project>{edc68a0e-c68d-4a74-91b7-bf38ec909888}</Project>
-      <Name>Features</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Features\CSharp\Portable\CSharpFeatures.csproj">
-      <Project>{3973b09a-4fbf-44a5-8359-3d22ceb71f71}</Project>
-      <Name>CSharpFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Features\VisualBasic\Portable\BasicFeatures.vbproj">
-      <Project>{a1bcd0ce-6c2f-4f8c-9a48-d9d93928e26d}</Project>
-      <Name>BasicFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Interactive\EditorFeatures\CSharp\CSharpInteractiveEditorFeatures.csproj">
-      <Project>{fe2cbea6-d121-4faa-aa8b-fc9900bf8c83}</Project>
-      <Name>CSharpInteractiveEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Interactive\EditorFeatures\VisualBasic\BasicInteractiveEditorFeatures.vbproj">
-      <Project>{849e516a-595f-474b-adb4-e099f921cedf}</Project>
-      <Name>BasicInteractiveEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
-      <Project>{76c6f005-c89d-4348-bb4a-391898dbeb52}</Project>
-      <Name>TestUtilities.Desktop</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Test\Utilities\Portable\TestUtilities.csproj">
-      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
-      <Name>TestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\CoreTestUtilities\WorkspacesTestUtilities.csproj">
-      <Project>{3f2fdc1c-dc6f-44cb-b4a1-a9026f25d66e}</Project>
-      <Name>WorkspacesTestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
-      <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
-      <Name>Workspaces.Desktop</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
+    <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj" />
+    <ProjectReference Include="..\..\Features\CSharp\Portable\CSharpFeatures.csproj" />
+    <ProjectReference Include="..\..\Features\VisualBasic\Portable\BasicFeatures.vbproj" />
+    <ProjectReference Include="..\..\Interactive\EditorFeatures\CSharp\CSharpInteractiveEditorFeatures.csproj" />
+    <ProjectReference Include="..\..\Interactive\EditorFeatures\VisualBasic\BasicInteractiveEditorFeatures.vbproj" />
+    <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj" />
+    <ProjectReference Include="..\..\Test\Utilities\Portable\TestUtilities.csproj" />
+    <ProjectReference Include="..\..\Workspaces\CoreTestUtilities\WorkspacesTestUtilities.csproj" />
+    <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj" />
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj">
-      <Project>{5f8d2414-064a-4b3a-9b42-8e2a04246be5}</Project>
-      <Name>Workspaces</Name>
       <Aliases>global,WORKSPACES</Aliases>
     </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj">
-      <Project>{21b239d0-d144-430f-a394-c066d58ee267}</Project>
-      <Name>CSharpWorkspace</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\Remote\Core\RemoteWorkspaces.csproj">
-      <Project>{f822f72a-cc87-4e31-b57d-853f65cbebf3}</Project>
-      <Name>RemoteWorkspaces</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\ServiceHub.csproj">
-      <Project>{80fddd00-9393-47f7-8baf-7e87ce011068}</Project>
-      <Name>ServiceHub</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj">
-      <Project>{57ca988d-f010-4bf2-9a2e-07d6dcd2ff2c}</Project>
-      <Name>BasicWorkspace</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Core\EditorFeatures.csproj">
-      <Project>{3CDEEAB7-2256-418A-BEB2-620B5CB16302}</Project>
-      <Name>EditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CSharp\CSharpEditorFeatures.csproj">
-      <Project>{b0ce9307-ffdb-4838-a5ec-ce1f7cdc4ac2}</Project>
-      <Name>CSharpEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Text\TextEditorFeatures.csproj">
-      <Project>{18f5fbb8-7570-4412-8cc7-0a86ff13b7ba}</Project>
-      <Name>TextEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\VisualBasic\BasicEditorFeatures.vbproj">
-      <Project>{49bfae50-1bce-48ae-bc89-78b7d90a3ecd}</Project>
-      <Name>BasicEditorFeatures</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj" />
+    <ProjectReference Include="..\..\Workspaces\Remote\Core\RemoteWorkspaces.csproj" />
+    <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\ServiceHub.csproj" />
+    <ProjectReference Include="..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj" />
+    <ProjectReference Include="..\Core\EditorFeatures.csproj" />
+    <ProjectReference Include="..\CSharp\CSharpEditorFeatures.csproj" />
+    <ProjectReference Include="..\Text\TextEditorFeatures.csproj" />
+    <ProjectReference Include="..\VisualBasic\BasicEditorFeatures.vbproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />
@@ -114,60 +51,26 @@
     <Reference Include="System.XML" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
-    <PackageReference Include="xunit">
-      <Version>$(xunitVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="xunit.runner.console">
-      <Version>$(xunitrunnerconsoleVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="xunit.runner.visualstudio">
-      <Version>$(xunitrunnervisualstudioVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Moq">
-      <Version>$(MoqVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Newtonsoft.Json">
-      <Version>$(NewtonsoftJsonVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Nerdbank.FullDuplexStream">
-      <Version>$(NerdbankFullDuplexStreamVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="BasicUndo">
-      <Version>$(BasicUndoVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.ServiceHub.Client">
-      <Version>$(MicrosoftServiceHubClientVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor">
-      <Version>$(MicrosoftVisualStudioPlatformVSEditorVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor.Interop">
-      <Version>$(MicrosoftVisualStudioPlatformVSEditorInteropVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Composition">
-      <Version>$(MicrosoftVisualStudioCompositionVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Text.Internal">
-      <Version>$(MicrosoftVisualStudioTextInternalVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification">
-      <Version>$(MicrosoftVisualStudioLanguageStandardClassificationVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense">
-      <Version>$(MicrosoftVisualStudioLanguageIntellisenseVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy">
-      <Version>$(MicrosoftVisualStudioLanguageCallHierarchyVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces">
-      <Version>$(MicrosoftVisualStudioLanguageNavigateToInterfacesVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Text.UI">
-      <Version>$(MicrosoftVisualStudioTextUIVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf">
-      <Version>$(MicrosoftVisualStudioTextUIWpfVersion)</Version>
-    </PackageReference>
+    <PackageReference Include="xunit" Version="$(xunitVersion)" />
+    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
+    <PackageReference Include="Moq" Version="$(MoqVersion)" />
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+    <PackageReference Include="Nerdbank.FullDuplexStream" Version="$(NerdbankFullDuplexStreamVersion)" />
+    <PackageReference Include="BasicUndo" Version="$(BasicUndoVersion)" />
+    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
+    <PackageReference Include="Microsoft.ServiceHub.Client" Version="$(MicrosoftServiceHubClientVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor" Version="$(MicrosoftVisualStudioPlatformVSEditorVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor.Interop" Version="$(MicrosoftVisualStudioPlatformVSEditorInteropVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Internal" Version="$(MicrosoftVisualStudioTextInternalVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(MicrosoftVisualStudioLanguageStandardClassificationVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy" Version="$(MicrosoftVisualStudioLanguageCallHierarchyVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="$(MicrosoftVisualStudioLanguageNavigateToInterfacesVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="$(MicrosoftVisualStudioTextUIVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioTextUIWpfVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\visualstudio\core\next\remote\JsonRpcClient.cs">
@@ -176,125 +79,9 @@
     <Compile Include="..\..\VisualStudio\Core\Next\Remote\JsonRpcConnection.cs">
       <Link>Remote\JsonRpcConnection.cs</Link>
     </Compile>
-    <Compile Include="AbstractCommandHandlerTestState.cs" />
-    <Compile Include="Async\AsynchronousOperationBlocker.cs" />
-    <Compile Include="Async\Checkpoint.cs" />
-    <Compile Include="Async\WaitHelper.cs" />
-    <Compile Include="AutomaticCompletion\AbstractAutomaticBraceCompletionTests.cs" />
-    <Compile Include="AutomaticCompletion\AbstractAutomaticLineEnderTests.cs" />
-    <Compile Include="BlindAggregatorFactory.cs" />
-    <Compile Include="BlockCommentEditing\AbstractBlockCommentEditingTests.cs" />
-    <Compile Include="BraceHighlighting\AbstractBraceHighlightingTests.cs" />
-    <Compile Include="BraceHighlighting\MultiCharacterBraceHighlightingTests.cs" />
-    <Compile Include="BraceMatching\AbstractBraceMatcherTests.cs" />
-    <Compile Include="CallHierarchy\CallHierarchyTestState.cs" />
-    <Compile Include="ChangeSignature\AbstractChangeSignatureTests.cs" />
-    <Compile Include="ChangeSignature\ChangeSignatureTestState.cs" />
-    <Compile Include="ChangeSignature\TestChangeSignatureOptionsService.cs" />
-    <Compile Include="Classification\AbstractClassifierTests.cs" />
-    <Compile Include="Classification\ClassificationBuilder.cs" />
-    <Compile Include="Classification\ClassificationBuilder.OperatorClassificationTypes.cs" />
-    <Compile Include="Classification\ClassificationBuilder.PunctuationClassificationTypes.cs" />
-    <Compile Include="Classification\ClassificationBuilder.XmlDocClassificationTypes.cs" />
-    <Compile Include="Classification\ClassificationTestHelper.cs" />
-    <Compile Include="CodeActions\AbstractCodeActionOrUserDiagnosticTest.cs" />
-    <Compile Include="CodeActions\AbstractCodeActionTest.cs" />
-    <Compile Include="CodeLens\AbstractCodeLensTest.cs" />
-    <Compile Include="Completion\AbstractCompletionProviderTests.cs" />
-    <Compile Include="Diagnostics\AbstractDiagnosticProviderBasedUserDiagnosticTest.cs" />
-    <Compile Include="Diagnostics\AbstractSuppressionAllCodeTests.cs" />
-    <Compile Include="Diagnostics\AbstractSuppressionDiagnosticTest.cs" />
-    <Compile Include="Diagnostics\AbstractUserDiagnosticTest.cs" />
-    <Compile Include="Diagnostics\DiagnosticProviderTestUtilities.cs" />
-    <Compile Include="Diagnostics\DiagnosticTaggerWrapper.cs" />
-    <Compile Include="Diagnostics\GenerateType\GenerateTypeTestState.cs" />
-    <Compile Include="Diagnostics\GenerateType\TestGenerateTypeOptionsService.cs" />
-    <Compile Include="Diagnostics\GenerateType\TestProjectManagementService.cs" />
-    <Compile Include="Diagnostics\MockDiagnosticUpdateSourceRegistrationService.cs" />
-    <Compile Include="Diagnostics\TestAnalyzerReferenceByLanguage.cs" />
-    <Compile Include="Diagnostics\TestDiagnosticAnalyzerDriver.cs" />
-    <Compile Include="Diagnostics\TestDiagnosticAnalyzerService.cs" />
-    <Compile Include="Diagnostics\TestHostDiagnosticUpdateSource.cs" />
-    <Compile Include="DispatcherExtensions.cs" />
-    <Compile Include="DirectoryExtensions.cs" />
-    <Compile Include="DocumentationComments\AbstractDocumentationCommentTests.cs" />
-    <Compile Include="DocumentationComments\AbstractXmlTagCompletionTests.cs" />
-    <Compile Include="EditAndContinue\ActiveStatementDescription.cs" />
-    <Compile Include="EditAndContinue\DeclaratorMapDescription.cs" />
-    <Compile Include="EditAndContinue\EditAndContinueTestHelpers.cs" />
-    <Compile Include="EditAndContinue\Extensions.cs" />
-    <Compile Include="EditAndContinue\MatchingPair.cs" />
-    <Compile Include="EditAndContinue\RudeEditDiagnosticDescription.cs" />
-    <Compile Include="EditAndContinue\SemanticEditDescription.cs" />
-    <Compile Include="EditAndContinue\TestActiveStatementTrackingService.cs" />
-    <Compile Include="EditorFactory.cs" />
-    <Compile Include="EventHookup\EventHookupWaiter.cs" />
-    <Compile Include="ExceptionUtilities.cs" />
-    <Compile Include="Extensions\WorkspaceExtensions.cs" />
-    <Compile Include="Extensions\XElementExtensions.cs" />
-    <Compile Include="ExtractInterface\AbstractExtractInterfaceTests.cs" />
-    <Compile Include="ExtractInterface\ExtractInterfaceTestState.cs" />
-    <Compile Include="ExtractInterface\TestExtractInterfaceOptions.cs" />
-    <Compile Include="GoToAdjacentMember\AbstractGoToAdjacentMemberTests.cs" />
-    <Compile Include="InProcRemoteHostClientFactory.cs" />
-    <Compile Include="KeywordHighlighting\AbstractKeywordHighlighterTests.cs" />
-    <Compile Include="MinimalTestExportProvider.cs" />
-    <Compile Include="MoveType\AbstractMoveTypeTest.cs" />
-    <Compile Include="NavigateTo\AbstractNavigateToTests.cs" />
-    <Compile Include="NavigateTo\NavigateToTestAggregator.Callback.cs" />
-    <Compile Include="NavigateTo\NavigateToTestAggregator.cs" />
-    <Compile Include="Preview\MockPreviewPaneService.cs" />
-    <Compile Include="QuickInfo\AbstractQuickInfoSourceTests.cs" />
-    <Compile Include="QuickInfo\AbstractSemanticQuickInfoSourceTests.cs" />
-    <Compile Include="RenameTracking\MockPreviewDialogService.cs" />
-    <Compile Include="RenameTracking\MockRefactorNotifyService.cs" />
-    <Compile Include="Semantics\SpeculationAnalyzerTestsBase.cs" />
-    <Compile Include="ServiceTestExportProvider.cs" />
-    <Compile Include="SignatureHelp\AbstractSignatureHelpProviderTests.cs" />
-    <Compile Include="SignatureHelp\SignatureHelpTestItem.cs" />
-    <Compile Include="Squiggles\AbstractSquiggleProducerTests.cs" />
-    <Compile Include="Structure\AbstractSyntaxNodeStructureProviderTests.cs" />
-    <Compile Include="Structure\AbstractSyntaxStructureProviderTests.cs" />
-    <Compile Include="Structure\AbstractSyntaxTriviaStructureProviderTests.cs" />
-    <Compile Include="TestExportJoinableTaskContext.cs" />
-    <Compile Include="TestExportProvider.cs" />
-    <Compile Include="TestExtensionErrorHandler.cs" />
-    <Compile Include="TestOptionsServiceFactory.cs" />
-    <Compile Include="TestWaitIndicator.cs" />
-    <Compile Include="Remote\InProcRemostHostClient.cs" />
-    <Compile Include="TestWorkspaceName.cs" />
-    <Compile Include="TextEditorFactoryExtensions.cs" />
-    <Compile Include="Threading\ConditionalWpfFactAttribute.cs" />
-    <Compile Include="Threading\StaTaskScheduler.cs" />
-    <Compile Include="Threading\WpfFactAttribute.cs" />
-    <Compile Include="Threading\WpfFactDiscoverer.cs" />
-    <Compile Include="Threading\WpfTestCase.cs" />
-    <Compile Include="Traits.cs" />
-    <Compile Include="TypeInferrer\TypeInferrerTestBase.cs" />
-    <Compile Include="Utilities\Options.cs" />
-    <Compile Include="Utilities\TestEditorOptions.cs" />
-    <Compile Include="Utilities\TestWaitContext.cs" />
-    <Compile Include="VisualStudioSendKeys.cs" />
-    <Compile Include="Workspaces\CSharpTestWorkspaceFixture.cs" />
-    <Compile Include="Workspaces\MefTestWorkspace.cs" />
-    <Compile Include="Workspaces\NoCompilationConstants.cs" />
-    <Compile Include="Workspaces\NoCompilationContentTypeDefinitions.cs" />
-    <Compile Include="Workspaces\NoCompilationContentTypeLanguageService.cs" />
-    <Compile Include="Workspaces\NoCompilationDocumentDiagnosticAnalyzer.cs" />
-    <Compile Include="Workspaces\NoCompilationLanguageServiceFactory.cs" />
-    <Compile Include="Workspaces\TestAddMetadataReferenceCodeActionOperationFactoryWorkspaceService.cs" />
-    <Compile Include="Workspaces\TestForegroundNotificationService.cs" />
-    <Compile Include="Workspaces\TestFormattingRuleFactoryServiceFactory.cs" />
-    <Compile Include="Workspaces\TestHostDocument.cs" />
-    <Compile Include="Workspaces\TestHostProject.cs" />
-    <Compile Include="Workspaces\TestHostSolution.cs" />
-    <Compile Include="Workspaces\TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.cs" />
-    <Compile Include="Workspaces\TestWorkspace.cs" />
-    <Compile Include="Workspaces\TestWorkspaceFixture.cs" />
-    <Compile Include="Workspaces\TestWorkspace_Create.cs" />
-    <Compile Include="Workspaces\TestWorkspace_XmlConsumption.cs" />
-    <Compile Include="Workspaces\TestWorkspace_XmlCreation.cs" />
-    <Compile Include="Workspaces\VisualBasicTestWorkspaceFixture.cs" />
+    <Compile Include="..\..\VisualStudio\Core\Next\Remote\RemotableDataJsonRpcEx.cs">
+      <Link>Remote\RemotableDataJsonRpcEx.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Roslyn.VisualStudio.RemoteHostClientMock" />

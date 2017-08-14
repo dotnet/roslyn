@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports System.Threading.Tasks
@@ -2870,6 +2870,27 @@ End Class
                 Await state.WaitForAsynchronousOperationsAsync()
                 state.SendTab()
                 Assert.Contains("IComparable(Of TestClass)", state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
+        <WorkItem(18785, "https://github.com/dotnet/roslyn/issues/18785")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function BackspaceSoftSelectionIfNotPrefixMatch() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                            <Document><![CDATA[
+Class C
+    Sub Do()
+        Dim x = new System.Collections.Generic.List(Of String)()
+        x.$$Add("stuff")
+    End Sub
+End Class
+]]></Document>)
+
+                state.SendBackspace()
+                Await state.AssertSelectedCompletionItem("x", isSoftSelected:=True)
+                state.SendTypeChars(".")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.Contains("x.Add", state.GetLineTextFromCaretPosition())
             End Using
         End Function
 

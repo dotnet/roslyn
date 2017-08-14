@@ -44,7 +44,7 @@ namespace BuildBoss
             return new ProjectEntry(
                 relativeFilePath: filePath,
                 name: name,
-                guid: Guid.Parse(guid),
+                projectGuid: Guid.Parse(guid),
                 typeGuid: Guid.Parse(typeGuid));
         }
 

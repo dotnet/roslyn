@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var flowDiagnostics = DiagnosticBag.GetInstance();
             foreach (var method in AllMethods(compilation.SourceModule.GlobalNamespace))
             {
-                var sourceSymbol = method as SourceMethodSymbol;
+                var sourceSymbol = method as SourceMemberMethodSymbol;
                 if (sourceSymbol == null)
                 {
                     continue;

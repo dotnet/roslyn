@@ -5,10 +5,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Client;
@@ -27,9 +25,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private static int s_instanceId = 0;
 
         private readonly HubClient _hubClient;
-        private readonly JsonRpc _rpc;
         private readonly HostGroup _hostGroup;
         private readonly TimeSpan _timeout;
+
+        private readonly JsonRpc _rpc;
+        private readonly ReferenceCountedDisposable<RemotableDataJsonRpc> _remotableDataRpc;
 
         public static async Task<RemoteHostClient> CreateAsync(
             Workspace workspace, CancellationToken cancellationToken)
@@ -46,7 +46,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var timeout = TimeSpan.FromMilliseconds(workspace.Options.GetOption(RemoteHostOptions.RequestServiceTimeoutInMS));
                 var remoteHostStream = await RequestServiceAsync(primary, WellKnownRemoteHostServices.RemoteHostService, hostGroup, timeout, cancellationToken).ConfigureAwait(false);
 
-                var instance = new ServiceHubRemoteHostClient(workspace, primary, hostGroup, remoteHostStream);
+                var remotableDataRpc = new RemotableDataJsonRpc(workspace, await RequestServiceAsync(primary, WellKnownServiceHubServices.SnapshotService, hostGroup, timeout, cancellationToken).ConfigureAwait(false));
+                var instance = new ServiceHubRemoteHostClient(workspace, primary, hostGroup, new ReferenceCountedDisposable<RemotableDataJsonRpc>(remotableDataRpc), remoteHostStream);
 
                 // make sure connection is done right
                 var host = await instance._rpc.InvokeAsync<string>(nameof(IRemoteHostService.Connect), current, TelemetryService.DefaultSession.SerializeSettings()).ConfigureAwait(false);
@@ -73,13 +74,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return;
             }
 
+            // Create a connection to the host in the BG to avoid taking the hit of loading service 
+            // hub on the UI thread.  We'll initially set its ref count to 1, and we will decrement 
+            // that ref-count at the end of the using block.  During this time though, when the 
+            // projectTracker is sending events, the workspace host can then use that connection 
+            // instead of having to expensively spin up a fresh one.
+            var session = await client.TryCreateKeepAliveSessionAsync(WellKnownRemoteHostServices.RemoteHostService, CancellationToken.None).ConfigureAwait(false);
+            var host = new WorkspaceHost(vsWorkspace, session);
+
             // RegisterWorkspaceHost is required to be called from UI thread so push the code
             // to UI thread to run. 
             await Task.Factory.SafeStartNew(() =>
             {
                 var projectTracker = vsWorkspace.GetProjectTrackerAndInitializeIfNecessary(Shell.ServiceProvider.GlobalProvider);
-
-                var host = new WorkspaceHost(vsWorkspace, client);
 
                 projectTracker.RegisterWorkspaceHost(host);
                 projectTracker.StartSendingEventsToWorkspaceHost(host);
@@ -87,12 +94,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         }
 
         private ServiceHubRemoteHostClient(
-            Workspace workspace, HubClient hubClient, HostGroup hostGroup, Stream stream) :
+            Workspace workspace,
+            HubClient hubClient,
+            HostGroup hostGroup,
+            ReferenceCountedDisposable<RemotableDataJsonRpc> remotableDataRpc,
+            Stream stream) :
             base(workspace)
         {
+            Contract.ThrowIfNull(remotableDataRpc);
+
             _hubClient = hubClient;
             _hostGroup = hostGroup;
             _timeout = TimeSpan.FromMilliseconds(workspace.Options.GetOption(RemoteHostOptions.RequestServiceTimeoutInMS));
+            _remotableDataRpc = remotableDataRpc;
 
             _rpc = new JsonRpc(new JsonRpcMessageHandler(stream, stream), target: this);
             _rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
@@ -105,15 +119,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         public override async Task<Connection> TryCreateConnectionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
         {
-            // get stream from service hub to communicate snapshot/asset related information
-            // this is the back channel the system uses to move data between VS and remote host for solution related information
-            var snapshotStream = await RequestServiceAsync(_hubClient, WellKnownServiceHubServices.SnapshotService, _hostGroup, _timeout, cancellationToken).ConfigureAwait(false);
+            var dataRpc = _remotableDataRpc.TryAddReference();
+            if (dataRpc == null)
+            {
+                // dataRpc is disposed. this can happen if someone killed remote host process while there is
+                // no other one holding the data connection.
+                // in those error case, don't crash but return null. this method is TryCreate since caller expects it to return null
+                // on such error situation.
+                return null;
+            }
 
             // get stream from service hub to communicate service specific information
             // this is what consumer actually use to communicate information
             var serviceStream = await RequestServiceAsync(_hubClient, serviceName, _hostGroup, _timeout, cancellationToken).ConfigureAwait(false);
 
-            return new ServiceHubJsonRpcConnection(callbackTarget, serviceStream, snapshotStream, cancellationToken);
+            return new JsonRpcConnection(callbackTarget, serviceStream, dataRpc);
         }
 
         protected override void OnStarted()
@@ -129,6 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // we don't need the event, otherwise, Disconnected event will be called twice.
             _rpc.Disconnected -= OnRpcDisconnected;
             _rpc.Dispose();
+            _remotableDataRpc.Dispose();
         }
 
         private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
@@ -141,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             string serviceName,
             HostGroup hostGroup,
             TimeSpan timeout,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             const int max_retry = 10;
             const int retry_delayInMS = 50;
@@ -184,7 +205,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             throw ExceptionUtilities.Unreachable;
         }
 
-        private static async Task<Stream> RequestServiceAsync(HubClient client, ServiceDescriptor descriptor, TimeSpan timeout, CancellationToken cancellationToken = default(CancellationToken))
+        private static async Task<Stream> RequestServiceAsync(HubClient client, ServiceDescriptor descriptor, TimeSpan timeout, CancellationToken cancellationToken = default)
         {
             // we are wrapping HubClient.RequestServiceAsync since we can't control its internal timeout value ourselves.
             // we have bug opened to track the issue.

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var preferThrowExpression = options.GetOption(CodeStyleOptions.PreferThrowExpression).Value;
 
                 var compilation = await _document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var members = factory.CreateFieldDelegatingConstructor(
+                var (fields, constructor) = factory.CreateFieldDelegatingConstructor(
                     compilation,
                     _state.ContainingType.Name,
                     _state.ContainingType,
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var result = await CodeGenerator.AddMemberDeclarationsAsync(
                     _document.Project.Solution,
                     _state.ContainingType,
-                    members,
+                    fields.Concat(constructor),
                     new CodeGenerationOptions(
                         contextLocation: syntaxTree.GetLocation(_state.TextSpan),
                         afterThisLocation: afterThisLocation),

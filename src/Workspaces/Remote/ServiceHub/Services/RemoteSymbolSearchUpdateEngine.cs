@@ -3,12 +3,14 @@
 using System;
 using System.Collections.Immutable;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class RemoteSymbolSearchUpdateEngine : ServiceHubServiceBase, IRemoteSymbolSearchUpdateEngine
+    internal partial class RemoteSymbolSearchUpdateEngine : 
+        ServiceHubServiceBase, IRemoteSymbolSearchUpdateEngine, ISymbolSearchLogService, ISymbolSearchProgressService
     {
         private readonly SymbolSearchUpdateEngine _updateEngine;
 
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Remote
             : base(serviceProvider, stream)
         {
             _updateEngine = new SymbolSearchUpdateEngine(
-                new LogService(this), updateCancellationToken: this.CancellationToken);
+                logService: this, progressService: this);
 
             Rpc.StartListening();
         }
@@ -26,44 +28,50 @@ namespace Microsoft.CodeAnalysis.Remote
             return _updateEngine.UpdateContinuouslyAsync(sourceName, localSettingsDirectory);
         }
 
-        public async Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity)
+        public async Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity, CancellationToken cancellationToken)
         {
             var results = await _updateEngine.FindPackagesWithTypeAsync(
-                source, name, arity).ConfigureAwait(false);
+                source, name, arity, cancellationToken).ConfigureAwait(false);
 
             return results;
         }
 
-        public async Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName)
+        public async Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName, CancellationToken cancellationToken)
         {
             var results = await _updateEngine.FindPackagesWithAssemblyAsync(
-                source, assemblyName).ConfigureAwait(false);
+                source, assemblyName, cancellationToken).ConfigureAwait(false);
 
             return results;
         }
 
-        public async Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity)
+        public async Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity, CancellationToken cancellationToken)
         {
             var results = await _updateEngine.FindReferenceAssembliesWithTypeAsync(
-                name, arity).ConfigureAwait(false);
+                name, arity, cancellationToken).ConfigureAwait(false);
 
             return results;
         }
 
-        private class LogService : ISymbolSearchLogService
-        {
-            private readonly RemoteSymbolSearchUpdateEngine _service;
+        #region Messages to forward from here to VS
 
-            public LogService(RemoteSymbolSearchUpdateEngine service)
-            {
-                _service = service;
-            }
+        public Task LogExceptionAsync(string exception, string text)
+            => this.Rpc.InvokeAsync(nameof(LogExceptionAsync), exception, text);
 
-            public Task LogExceptionAsync(string exception, string text)
-                => _service.Rpc.InvokeAsync(nameof(LogExceptionAsync), exception, text);
+        public Task LogInfoAsync(string text)
+            => this.Rpc.InvokeAsync(nameof(LogInfoAsync), text);
 
-            public Task LogInfoAsync(string text)
-                => _service.Rpc.InvokeAsync(nameof(LogInfoAsync), text);
-        }
+        public Task OnDownloadFullDatabaseStartedAsync(string title)
+            => this.Rpc.InvokeAsync(nameof(OnDownloadFullDatabaseStartedAsync), title);
+
+        public Task OnDownloadFullDatabaseSucceededAsync()
+            => this.Rpc.InvokeAsync(nameof(OnDownloadFullDatabaseSucceededAsync));
+
+        public Task OnDownloadFullDatabaseCanceledAsync()
+            => this.Rpc.InvokeAsync(nameof(OnDownloadFullDatabaseCanceledAsync));
+
+        public Task OnDownloadFullDatabaseFailedAsync(string message)
+            => this.Rpc.InvokeAsync(nameof(OnDownloadFullDatabaseFailedAsync), message);
+
+        #endregion
     }
 }

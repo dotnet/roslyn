@@ -124,7 +124,13 @@ public class C
     }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_BadMemberProtection, "internal"));
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (4,13): error CS0107: More than one protection modifier
+                //     private internal void f() {}
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "internal").WithLocation(4, 13),
+                // (4,27): error CS0107: More than one protection modifier
+                //     private internal void f() {}
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "f").WithLocation(4, 27));
         }
 
         [Fact, WorkItem(543622, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543622")]
@@ -367,7 +373,7 @@ public class Test
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial"));
+            CreateStandardCompilation(test).VerifyDiagnostics();
         }
 
         [Fact]
@@ -377,39 +383,59 @@ public class Test
 partial enum E { }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial"));
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // partial enum E { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(2, 14));
         }
 
         [Fact]
-        public void CS0267ERR_PartialMisplaced_Delegate()
+        public void CS0267ERR_PartialMisplaced_Delegate1()
         {
             var test = @"
 partial delegate E { }
 ";
 
             // Extra errors
-            ParseAndValidate(test,
-    // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
-    // partial delegate E { }
-    Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial"),
-    // (2,20): error CS1001: Identifier expected
-    // partial delegate E { }
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, "{"),
-    // (2,20): error CS1003: Syntax error, '(' expected
-    // partial delegate E { }
-    Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("(", "{"),
-    // (2,20): error CS1026: ) expected
-    // partial delegate E { }
-    Diagnostic(ErrorCode.ERR_CloseParenExpected, "{"),
-    // (2,20): error CS1002: ; expected
-    // partial delegate E { }
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "{"),
-    // (2,20): error CS1022: Type or namespace definition, or end-of-file expected
-    // partial delegate E { }
-    Diagnostic(ErrorCode.ERR_EOFExpected, "{"),
-    // (2,22): error CS1022: Type or namespace definition, or end-of-file expected
-    // partial delegate E { }
-    Diagnostic(ErrorCode.ERR_EOFExpected, "}"));
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (2,20): error CS1001: Identifier expected
+                // partial delegate E { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(2, 20),
+                // (2,20): error CS1003: Syntax error, '(' expected
+                // partial delegate E { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("(", "{").WithLocation(2, 20),
+                // (2,20): error CS1026: ) expected
+                // partial delegate E { }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(2, 20),
+                // (2,20): error CS1002: ; expected
+                // partial delegate E { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(2, 20),
+                // (2,20): error CS1022: Type or namespace definition, or end-of-file expected
+                // partial delegate E { }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(2, 20),
+                // (2,22): error CS1022: Type or namespace definition, or end-of-file expected
+                // partial delegate E { }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(2, 22),
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // partial delegate E { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "").WithLocation(2, 20),
+                // (2,18): error CS0246: The type or namespace name 'E' could not be found (are you missing a using directive or an assembly reference?)
+                // partial delegate E { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "E").WithArguments("E").WithLocation(2, 18));
+        }
+
+        [Fact]
+        public void CS0267ERR_PartialMisplaced_Delegate2()
+        {
+            var test = @"
+partial delegate void E();
+";
+
+            // Extra errors
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // partial delegate void E();
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(2, 23));
         }
 
         // TODO: Extra errors
@@ -1391,7 +1417,211 @@ namespace x {
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public"));
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (6,16): error CS1004: Duplicate 'public' modifier
+                //         public public static int Main()    // CS1004, two public keywords
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(6, 16),
+                // (5,13): warning CS0169: The field 'clx.i' is never used
+                //         int i;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("x.clx.i").WithLocation(5, 13));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier1()
+        {
+            var test = @"
+class C 
+{
+    public public C()
+    {
+    }
+}";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (4,12): error CS1004: Duplicate 'public' modifier
+                //     public public C()
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(4, 12));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier2()
+        {
+            var test = @"
+class C 
+{
+    public public ~C()
+    {
+    }
+}";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (4,12): error CS1004: Duplicate 'public' modifier
+                //     public public ~C()
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(4, 12),
+                // (4,20): error CS0106: The modifier 'public' is not valid for this item
+                //     public public ~C()
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("public").WithLocation(4, 20));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier3()
+        {
+            var test = @"
+class C 
+{
+    public public int x;
+}";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (4,12): error CS1004: Duplicate 'public' modifier
+                //     public public int x;
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(4, 12),
+                // (4,23): warning CS0649: Field 'C.x' is never assigned to, and will always have its default value 0
+                //     public public int x;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("C.x", "0").WithLocation(4, 23));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier4()
+        {
+            var test = @"
+class C 
+{
+    public public int P { get; }
+}";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (4,12): error CS1004: Duplicate 'public' modifier
+                //     public public int P { get; }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(4, 12));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier5()
+        {
+            var test = @"
+class C 
+{
+    public public static implicit operator int(C c) => 0;
+}";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (4,12): error CS1004: Duplicate 'public' modifier
+                //     public public static implicit operator int(C c) => 0;
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(4, 12));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier6()
+        {
+            var test = @"
+class C 
+{
+    public public static int operator +(C c1, C c2) => 0;
+}";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (4,12): error CS1004: Duplicate 'public' modifier
+                //     public public static int operator +(C c1, C c2) => 0;
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(4, 12));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier7()
+        {
+            var test = @"
+class C 
+{
+    public int P { get; private private set; }
+}";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (4,33): error CS1004: Duplicate 'private' modifier
+                //     public int P { get; private private set; }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "private").WithArguments("private").WithLocation(4, 33));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier8()
+        {
+            var test = @"
+class C 
+{
+    public public int this[int i] => 0;
+}";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (4,12): error CS1004: Duplicate 'public' modifier
+                //     public public int this[int i] => 0;
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(4, 12));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier9()
+        {
+            var test = @"
+public public class C 
+{
+}";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (2,8): error CS1004: Duplicate 'public' modifier
+                // public public class C 
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(2, 8));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier10()
+        {
+            var test = @"
+public public interface I
+{
+}";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (2,8): error CS1004: Duplicate 'public' modifier
+                // public public interface I
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(2, 8));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier11()
+        {
+            var test = @"
+public public enum E
+{
+}";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (2,8): error CS1004: Duplicate 'public' modifier
+                // public public enum E
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(2, 8));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier12()
+        {
+            var test = @"
+public public struct S
+{
+}";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (2,8): error CS1004: Duplicate 'public' modifier
+                // public public struct S
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(2, 8));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier13()
+        {
+            var test = @"
+public public delegate void D();";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (2,8): error CS1004: Duplicate 'public' modifier
+                // public public delegate void D();
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(2, 8));
         }
 
         [Fact]
@@ -4715,13 +4945,22 @@ namespace N1
 ";
 
             // Native compiler : CS1003
-            ParseAndValidate(test,
-    // (6,15): error CS7000: Unexpected use of an aliased name
-    //     namespace N1Alias::N2 {}
-    Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "N1Alias::N2"),
-    // (12,22): error CS7000: Unexpected use of an aliased name
-    //             N1.global::Test.M1();
-    Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "::"));
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (12,22): error CS7000: Unexpected use of an aliased name
+                //             N1.global::Test.M1();
+                Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "::").WithLocation(12, 22),
+                // (6,15): error CS7000: Unexpected use of an aliased name
+                //     namespace N1Alias::N2 {}
+                Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "N1Alias::N2").WithLocation(6, 15),
+                // (12,13): error CS0234: The type or namespace name 'global' does not exist in the namespace 'N1' (are you missing an assembly reference?)
+                //             N1.global::Test.M1();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "N1.global").WithArguments("global", "N1").WithLocation(12, 13),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using N1Alias = N1;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N1Alias = N1;").WithLocation(2, 1),
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(1, 1));
         }
 
         [Fact]
