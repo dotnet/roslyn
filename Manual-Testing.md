@@ -21,6 +21,8 @@
 
 ### Testing tags
 
+:star: Scenarios that are regularly tested against internal builds
+
 When doing a test pass, consider using these status indicators:
 
 :white_check_mark: = Tested & Approved (possibly with linked bugs)
