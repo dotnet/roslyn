@@ -3341,17 +3341,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     ReportDiagnosticsIfObsolete(diagnostics, resultMember, nonNullSyntax, hasBaseReceiver: isBaseConstructorInitializer);
 
+                    var arguments = analyzedArguments.Arguments.ToImmutable();
+                    var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
+                    var argsToParamsOpt = memberResolutionResult.Result.ArgsToParamsOpt;
+
+                    hasErrors |= !CheckInvocationArgMixing(
+                        nonNullSyntax,
+                        resultMember,
+                        receiver,
+                        resultMember.Parameters, 
+                        arguments, 
+                        refKinds, 
+                        argsToParamsOpt, 
+                        this.LocalScopeDepth, 
+                        diagnostics);
+
                     return new BoundCall(
                         nonNullSyntax,
                         receiver,
                         resultMember,
-                        analyzedArguments.Arguments.ToImmutable(),
+                        arguments,
                         analyzedArguments.GetNames(),
-                        analyzedArguments.RefKinds.ToImmutableOrNull(),
+                        refKinds,
                         isDelegateCall: false,
                         expanded: memberResolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm,
                         invokedAsExtensionMethod: false,
-                        argsToParamsOpt: memberResolutionResult.Result.ArgsToParamsOpt,
+                        argsToParamsOpt: argsToParamsOpt,
                         resultKind: LookupResultKind.Viable,
                         binderOpt: this,
                         type: constructorReturnType,
@@ -4436,15 +4451,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                     FoldParameterlessValueTypeConstructor(type) :
                     null;
 
+                var arguments = analyzedArguments.Arguments.ToImmutable();
+                var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
+                var argToParams = memberResolutionResult.Result.ArgsToParamsOpt;
+                hasError |= !CheckInvocationArgMixing(
+                            node,
+                            method,
+                            null,
+                            method.Parameters,
+                            arguments,
+                            refKinds,
+                            argToParams,
+                            this.LocalScopeDepth,
+                            diagnostics);
+
                 result = new BoundObjectCreationExpression(
                     node,
                     method,
                     candidateConstructors,
-                    analyzedArguments.Arguments.ToImmutable(),
+                    arguments,
                     analyzedArguments.GetNames(),
-                    analyzedArguments.RefKinds.ToImmutableOrNull(),
+                    refKinds,
                     memberResolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm,
-                    memberResolutionResult.Result.ArgsToParamsOpt,
+                    argToParams,
                     constantValueOpt,
                     boundInitializerOpt,
                     this,
@@ -6747,11 +6776,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     gotError = IsRefOrOutThisParameterCaptured(syntax, diagnostics);
                 }
 
+                var arguments = analyzedArguments.Arguments.ToImmutable();
+                gotError |= !CheckInvocationArgMixing(
+                            syntax,
+                            property,
+                            receiver,
+                            property.Parameters,
+                            arguments,
+                            argumentRefKinds,
+                            argsToParams,
+                            this.LocalScopeDepth,
+                            diagnostics);
+
                 propertyAccess = new BoundIndexerAccess(
                     syntax,
                     receiver,
                     property,
-                    analyzedArguments.Arguments.ToImmutable(),
+                    arguments,
                     argumentNames,
                     argumentRefKinds,
                     isExpanded,

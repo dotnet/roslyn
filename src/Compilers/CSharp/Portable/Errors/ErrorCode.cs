@@ -1530,6 +1530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EscapeCall = 8521,
         ERR_EscapeCall2 = 8522,
         ERR_EscapeOther = 8523,
-        ERR_EscapeLocal = 8524,
+        ERR_CallArgMixing = 8524,
+        ERR_EscapeLocal = 8525,
     }
 }

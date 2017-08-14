@@ -2384,6 +2384,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This combination of arguments to &apos;{0}&apos; is disallowed because it may expose variables referenced by parameter &apos;{1}&apos; outside of their declaration scope.
+        /// </summary>
+        internal static string ERR_CallArgMixing {
+            get {
+                return ResourceManager.GetString("ERR_CallArgMixing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Do not directly call your base class Finalize method. It is called automatically from your destructor..
         /// </summary>
         internal static string ERR_CallingBaseFinalizeDeprecated {

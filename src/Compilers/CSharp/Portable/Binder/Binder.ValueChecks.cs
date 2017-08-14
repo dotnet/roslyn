@@ -915,7 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> args,
             ImmutableArray<RefKind> argRefKinds,
-            ImmutableArray<int> argToParamsOpt,
+            ImmutableArray<int> argsToParamsOpt,
             bool checkingReceiver,
             uint escapeFrom,
             uint escapeTo,
@@ -923,7 +923,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ArrayBuilder<bool> inParametersMatchedWithArgs = null;
 
-            // check all arguments that are not passed by value
             if (!args.IsDefault)
             {
                 for (var argIndex = 0; argIndex < args.Length; argIndex++)
@@ -931,7 +930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var effectiveRefKind = argRefKinds.IsDefault ? RefKind.None : argRefKinds[argIndex];
                     if (effectiveRefKind == RefKind.None && argIndex < parameters.Length)
                     {
-                        var paramIndex = argToParamsOpt.IsDefault ? argIndex : argToParamsOpt[argIndex];
+                        var paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
                         if (parameters[paramIndex].RefKind == RefKind.RefReadOnly)
                         {
                             effectiveRefKind = RefKind.RefReadOnly;
@@ -949,7 +948,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!valid)
                     {
                         ErrorCode errorCode = GetStandardCallEscapeError(checkingReceiver);
-                        var paramIndex = argToParamsOpt.IsDefault ? argIndex : argToParamsOpt[argIndex];
+                        var paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
                         var parameterName = parameters[paramIndex].Name;
                         Error(diagnostics, errorCode, syntax, symbol, parameterName);
                         return false;
@@ -991,17 +990,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private static ErrorCode GetStandardCallEscapeError(bool checkingReceiver)
-        {
-            return checkingReceiver ? ErrorCode.ERR_EscapeCall2 : ErrorCode.ERR_EscapeCall;
-        }
-
         private static uint GetInvocationEscape(
             BoundExpression receiverOpt,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> args,
             ImmutableArray<RefKind> argRefKinds,
-            ImmutableArray<int> argToParamsOpt,
+            ImmutableArray<int> argsToParamsOpt,
             uint scopeOfTheContainingExpression)
         {
             ArrayBuilder<bool> inParametersMatchedWithArgs = null;
@@ -1016,7 +1010,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var effectiveRefKind = argRefKinds.IsDefault ? RefKind.None : argRefKinds[argIndex];
                     if (effectiveRefKind == RefKind.None && argIndex < parameters.Length)
                     {
-                        var paramIndex = argToParamsOpt.IsDefault ? argIndex : argToParamsOpt[argIndex];
+                        var paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
 
                         if (parameters[paramIndex].RefKind == RefKind.RefReadOnly)
                         {
@@ -1071,6 +1065,118 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return escapeScope;
+        }
+
+        private static bool CheckInvocationArgMixing(
+            SyntaxNode syntax,
+            Symbol symbol,
+            BoundExpression receiverOpt,
+            ImmutableArray<ParameterSymbol> parameters,
+            ImmutableArray<BoundExpression> args,
+            ImmutableArray<RefKind> argRefKinds,
+            ImmutableArray<int> argsToParamsOpt,
+            uint scopeOfTheContainingExpression,
+            DiagnosticBag diagnostics)
+        {
+            // widest possible escape via writeble ref-like receiver or ref/out argument.
+            uint escapeTo = scopeOfTheContainingExpression;
+
+            // collect all writeable ref-like arguments, including receiver
+            if (receiverOpt?.Type?.IsByRefLikeType == true)
+            {
+                escapeTo = GetValEscape(receiverOpt, scopeOfTheContainingExpression);
+            }
+
+            if (!args.IsDefault)
+            {
+                for (var argIndex = 0; argIndex < args.Length; argIndex++)
+                {
+                    var argument = args[argIndex];
+                    var refKind = argRefKinds.IsDefault ? RefKind.None : argRefKinds[argIndex];
+                    if (refKind != RefKind.None && argument.Type?.IsByRefLikeType == true)
+                    {
+                        Debug.Assert(refKind == RefKind.Ref || refKind == RefKind.None);
+                        escapeTo = Math.Min(escapeTo, GetValEscape(argument, scopeOfTheContainingExpression));
+                    }
+                }
+            }
+
+            if (escapeTo == scopeOfTheContainingExpression)
+            {
+                // cannot fail. common case.
+                return true;
+            }
+
+            // check that no ref/out/in or ref-like can be captured from a narrower scope
+            ArrayBuilder<bool> inParametersMatchedWithArgs = null;
+            if (!args.IsDefault)
+            {
+                for (var argIndex = 0; argIndex < args.Length; argIndex++)
+                {
+                    var effectiveRefKind = argRefKinds.IsDefault ? RefKind.None : argRefKinds[argIndex];
+                    if (effectiveRefKind == RefKind.None && argIndex < parameters.Length)
+                    {
+                        var paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
+                        if (parameters[paramIndex].RefKind == RefKind.RefReadOnly)
+                        {
+                            effectiveRefKind = RefKind.RefReadOnly;
+                            inParametersMatchedWithArgs = inParametersMatchedWithArgs ?? ArrayBuilder<bool>.GetInstance(parameters.Length, fillWithValue: false);
+                            inParametersMatchedWithArgs[paramIndex] = true;
+                        }
+                    }
+
+                    // if ref is passed, check ref escape, since it is the same or narrower than val escape
+                    var argument = args[argIndex];
+                    var valid = effectiveRefKind != RefKind.None ?
+                                        CheckRefEscape(argument.Syntax, argument, scopeOfTheContainingExpression, escapeTo, false, diagnostics) :
+                                        CheckValEscape(argument.Syntax, argument, scopeOfTheContainingExpression, escapeTo, false, diagnostics);
+
+                    if (!valid)
+                    {
+                        var paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
+                        var parameterName = parameters[paramIndex].Name;
+                        Error(diagnostics, ErrorCode.ERR_CallArgMixing, syntax, symbol, parameterName);
+                        return false;
+                    }
+                }
+            }
+
+            // handle omitted optional "in" parameters if there are any
+            if (!parameters.IsDefault)
+            {
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    var parameter = parameters[i];
+                    if (parameter.IsParams)
+                    {
+                        break;
+                    }
+
+                    if (parameter.RefKind == RefKind.RefReadOnly && inParametersMatchedWithArgs?[i] != true)
+                    {
+                        // unmatched "in" parameter is an RValue 
+                        var parameterName = parameters[i].Name;
+                        Error(diagnostics, ErrorCode.ERR_CallArgMixing, syntax, symbol, parameterName);
+
+                        inParametersMatchedWithArgs?.Free();
+                        return false;
+                    }
+                }
+            }
+            inParametersMatchedWithArgs?.Free();
+
+            // check receiver if ref-like
+            if (receiverOpt?.Type?.IsByRefLikeType == true)
+            {
+                return CheckValEscape(receiverOpt.Syntax, receiverOpt, scopeOfTheContainingExpression, escapeTo, false, diagnostics);
+            }
+
+            return true;
+        }
+
+        private static ErrorCode GetStandardCallEscapeError(bool checkingReceiver)
+        {
+            return checkingReceiver ? ErrorCode.ERR_EscapeCall2 : ErrorCode.ERR_EscapeCall;
         }
 
         private static void ReportReadonlyLocalError(SyntaxNode node, LocalSymbol local, BindValueKind kind, bool checkingReceiver, DiagnosticBag diagnostics)
