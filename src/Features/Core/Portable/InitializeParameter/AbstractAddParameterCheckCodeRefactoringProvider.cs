@@ -55,6 +55,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // people do strange things in their constructors.
             if (blockStatementOpt != null)
             {
+                if (!CanOffer(blockStatementOpt.Syntax))
+                { 
+                    return ImmutableArray<CodeAction>.Empty;
+                }
+
                 foreach (var statement in blockStatementOpt.Statements)
                 {
                     if (IsIfNullCheck(statement, parameter))
@@ -92,6 +97,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             return result.ToImmutableAndFree();
         }
+
+        protected abstract bool CanOffer(SyntaxNode blockStatement);
 
         private bool ContainsNullCoalesceCheck(
             ISyntaxFactsService syntaxFacts, SemanticModel semanticModel,
