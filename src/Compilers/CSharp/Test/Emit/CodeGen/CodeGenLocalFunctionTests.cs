@@ -31,6 +31,98 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
         [Fact]
+        public void EnvironmentChainContainsStructEnvironment()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    void M(int x)
+    {
+        {
+            int y = 10;
+            void L() => Console.WriteLine(y);
+
+            {
+                int z = 5;
+                Action f2 = () => Console.WriteLine(z + x);
+                f2();
+            }
+            L();
+        }
+    }
+    public static void Main() => new C().M(3);
+}", expectedOutput: @"8
+10");
+        }
+
+        [Fact]
+        public void Repro20577()
+        {
+            var comp = CreateStandardCompilation(@"
+using System.Linq;
+
+public class Program {
+    public static void Main(string[] args) {
+        object v;
+
+        void AAA() {
+            object BBB(object v2) {
+                var a = v;
+                ((object[])v2).Select(i => BBB(i));
+                return null;
+            }
+        }
+    }
+}", references: new[] { LinqAssemblyRef });
+            CompileAndVerify(comp);
+        }
+
+        [Fact]
+        public void Repro19033()
+        {
+            CompileAndVerify(@"
+using System;
+
+class Program
+{
+    void Q(int n = 0)
+    {
+        {
+            object mc;
+
+            string B(object map)
+            {
+                Action<int> a = _ => B(new object());
+                return n.ToString();
+            }
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public void Repro19033_2()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    static void F(Action a)
+    {
+        object x = null;
+        {
+            object y = null;
+            void G(object z)
+            {
+                F(() => G(x));
+            }
+        }
+    }
+}");
+        }
+
+        [Fact]
         [WorkItem(18814, "https://github.com/dotnet/roslyn/issues/18814")]
         [WorkItem(18918, "https://github.com/dotnet/roslyn/issues/18918")]
         public void IntermediateStructClosures1()
@@ -76,16 +168,38 @@ class C
 }", expectedOutput: 
 @"0
 1");
+            verifier.VerifyIL("C.M()", @"
+{
+  // Code size       47 (0x2f)
+  .maxstack  2
+  .locals init (C.<>c__DisplayClass2_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldarg.0
+  IL_0003:  stfld      ""C C.<>c__DisplayClass2_0.<>4__this""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldc.i4.0
+  IL_000b:  stfld      ""int C.<>c__DisplayClass2_0.var1""
+  IL_0010:  ldarg.0
+  IL_0011:  ldfld      ""int C._x""
+  IL_0016:  call       ""void System.Console.WriteLine(int)""
+  IL_001b:  ldarg.0
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  call       ""void C.<M>g__L12_0(ref C.<>c__DisplayClass2_0)""
+  IL_0023:  ldarg.0
+  IL_0024:  ldfld      ""int C._x""
+  IL_0029:  call       ""void System.Console.WriteLine(int)""
+  IL_002e:  ret
+}");
+
             // L1
             verifier.VerifyIL("C.<M>g__L12_0(ref C.<>c__DisplayClass2_0)", @"
 {
-  // Code size       13 (0xd)
+  // Code size        8 (0x8)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""C C.<>c__DisplayClass2_0.<>4__this""
-  IL_0006:  ldarg.0
-  IL_0007:  call       ""void C.<M>g__L22_1(ref C.<>c__DisplayClass2_0)""
-  IL_000c:  ret
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""void C.<M>g__L22_1(ref C.<>c__DisplayClass2_0)""
+  IL_0007:  ret
 }");
             // L2
             verifier.VerifyIL("C.<M>g__L22_1(ref C.<>c__DisplayClass2_0)", @"
@@ -100,35 +214,34 @@ class C
             // Skip some... L5
             verifier.VerifyIL("C.<M>g__L52_4(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
 {
-  // Code size        9 (0x9)
-  .maxstack  2
+  // Code size       10 (0xa)
+  .maxstack  3
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""int C.<M>g__L62_5(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)""
-  IL_0007:  pop
-  IL_0008:  ret
+  IL_0002:  ldarg.2
+  IL_0003:  call       ""int C.<M>g__L62_5(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)""
+  IL_0008:  pop
+  IL_0009:  ret
 }");
             // L6
             verifier.VerifyIL("C.<M>g__L62_5(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
 {
-  // Code size       35 (0x23)
+  // Code size       25 (0x19)
   .maxstack  4
   .locals init (int V_0)
-  IL_0000:  ldarg.1
+  IL_0000:  ldarg.2
   IL_0001:  ldfld      ""int C.<>c__DisplayClass2_1.var2""
-  IL_0006:  ldarg.1
-  IL_0007:  ldfld      ""C C.<>c__DisplayClass2_1.<>4__this""
-  IL_000c:  ldarg.1
-  IL_000d:  ldfld      ""C C.<>c__DisplayClass2_1.<>4__this""
-  IL_0012:  ldfld      ""int C._x""
-  IL_0017:  stloc.0
-  IL_0018:  ldloc.0
-  IL_0019:  ldc.i4.1
-  IL_001a:  add
-  IL_001b:  stfld      ""int C._x""
-  IL_0020:  ldloc.0
-  IL_0021:  add
-  IL_0022:  ret
+  IL_0006:  ldarg.0
+  IL_0007:  ldarg.0
+  IL_0008:  ldfld      ""int C._x""
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  ldc.i4.1
+  IL_0010:  add
+  IL_0011:  stfld      ""int C._x""
+  IL_0016:  ldloc.0
+  IL_0017:  add
+  IL_0018:  ret
 }");
         }
 

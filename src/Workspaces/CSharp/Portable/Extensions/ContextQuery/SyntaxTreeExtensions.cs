@@ -2497,15 +2497,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // if the nameof expression has a missing close paren, it is parsed as an invocation expression.
             if (token.Parent.IsKind(SyntaxKind.ArgumentList) &&
-                token.Parent.IsParentKind(SyntaxKind.InvocationExpression))
+                token.Parent.Parent is InvocationExpressionSyntax invocationExpression &&
+                invocationExpression.IsNameOfInvocation())
             {
-                var invocationExpression = (InvocationExpressionSyntax)token.Parent.Parent;
-                if (!invocationExpression.IsRightSideOfDotOrArrowOrColonColon() &&
-                    invocationExpression.Expression.IsKind(SyntaxKind.IdentifierName) &&
-                    ((IdentifierNameSyntax)invocationExpression.Expression).Identifier.IsKindOrHasMatchingText(SyntaxKind.NameOfKeyword))
-                {
-                    parentExpression = invocationExpression;
-                }
+                parentExpression = invocationExpression;
             }
 
             if (parentExpression != null)

@@ -206,9 +206,9 @@ Imports System.Threading.Tasks
 
 Module Program
     Sub MySub()
-        Dim a = Async Sub() 
-                        Await Task.Delay(1)
-                      End Sub
+        Dim a = Async Sub()
+                    Await Task.Delay(1)
+                End Sub
     End Sub
 End Module
 </File>

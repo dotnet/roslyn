@@ -875,5 +875,485 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     }
 }", ignoreTrivia: false);
         }
+
+        [WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestCompoundLogicalAnd1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if (i == 1 && i == 2)
+            return;
+        else if (i == 10)
+            return;
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case 1 when i == 2:
+                return;
+            case 10:
+                return;
+        }
+    }
+}");
+        }
+
+        [WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestCompoundLogicalAnd2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if (i == 1 && i == 2 && i == 3)
+            return;
+        else if (i == 10)
+            return;
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case 1 when i == 2 && i == 3:
+                return;
+            case 10:
+                return;
+        }
+    }
+}");
+        }
+
+        [WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestCompoundLogicalAnd3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if (i == 1 && i == 2 && (i == 3))
+            return;
+        else if (i == 10)
+            return;
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case 1 when i == 2 && (i == 3):
+                return;
+            case 10:
+                return;
+        }
+    }
+}");
+        }
+
+        [WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestCompoundLogicalAnd4()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if (i == 1 && (i == 2) && i == 3)
+            return;
+        else if (i == 10)
+            return;
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case 1 when (i == 2) && i == 3:
+                return;
+            case 10:
+                return;
+        }
+    }
+}");
+        }
+
+        [WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestCompoundLogicalAnd5()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if (i == 1 && (i == 2) && (i == 3))
+            return;
+        else if (i == 10)
+            return;
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case 1 when (i == 2) && (i == 3):
+                return;
+            case 10:
+                return;
+        }
+    }
+}");
+        }
+
+        [WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestCompoundLogicalAnd6()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if ((i == 1) && i == 2 && i == 3)
+            return;
+        else if (i == 10)
+            return;
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case 1 when i == 2 && i == 3:
+                return;
+            case 10:
+                return;
+        }
+    }
+}");
+        }
+
+        [WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestCompoundLogicalAnd7()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if ((i == 1) && i == 2 && (i == 3))
+            return;
+        else if (i == 10)
+            return;
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case 1 when i == 2 && (i == 3):
+                return;
+            case 10:
+                return;
+        }
+    }
+}");
+        }
+
+        [WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestCompoundLogicalAnd8()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if ((i == 1) && (i == 2) && i == 3)
+            return;
+        else if (i == 10)
+            return;
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case 1 when (i == 2) && i == 3:
+                return;
+            case 10:
+                return;
+        }
+    }
+}");
+        }
+
+        [WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestCompoundLogicalAnd9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if ((i == 1) && (i == 2) && (i == 3))
+            return;
+        else if (i == 10)
+            return;
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case 1 when (i == 2) && (i == 3):
+                return;
+            case 10:
+                return;
+        }
+    }
+}");
+        }
+
+        [WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestCompoundLogicalAnd10()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if (i == 1 && (i == 2 && i == 3))
+            return;
+        else if (i == 10)
+            return;
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case 1 when i == 2 && i == 3:
+                return;
+            case 10:
+                return;
+        }
+    }
+}");
+        }
+
+        [WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestCompoundLogicalAnd11()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if ((i == 1 && i == 2) && i == 3)
+            return;
+        else if (i == 10)
+            return;
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case 1 when i == 2 && i == 3:
+                return;
+            case 10:
+                return;
+        }
+    }
+}");
+        }
+
+        [WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestCompoundLogicalAnd12()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if (((i == 1) && i == 2) && i == 3)
+            return;
+        else if (i == 10)
+            return;
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case 1 when i == 2 && i == 3:
+                return;
+            case 10:
+                return;
+        }
+    }
+}");
+        }
+
+        [WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestCompoundLogicalAnd13()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if ((i == 1 && (i == 2)) && i == 3)
+            return;
+        else if (i == 10)
+            return;
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case 1 when (i == 2) && i == 3:
+                return;
+            case 10:
+                return;
+        }
+    }
+}");
+        }
+
+        [WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestCompoundLogicalAnd14()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if ((i == 1 && (i == 2)) && (i == 3))
+            return;
+        else if (i == 10)
+            return;
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case 1 when (i == 2) && (i == 3):
+                return;
+            case 10:
+                return;
+        }
+    }
+}");
+        }
+
+        [WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestCompoundLogicalAnd15()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if ((i == 1) && ((i == 2) && i == 3))
+            return;
+        else if (i == 10)
+            return;
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case 1 when (i == 2) && i == 3:
+                return;
+            case 10:
+                return;
+        }
+    }
+}");
+        }
+
+        [WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestCompoundLogicalAnd16()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if ((i == 1) && (i == 2 && (i == 3)))
+            return;
+        else if (i == 10)
+            return;
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case 1 when i == 2 && (i == 3):
+                return;
+            case 10:
+                return;
+        }
+    }
+}");
+        }
     }
 }

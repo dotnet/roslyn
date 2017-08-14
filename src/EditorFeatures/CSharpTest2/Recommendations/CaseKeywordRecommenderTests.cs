@@ -95,6 +95,15 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterPatternCase()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"switch (expr) {
+    case String s:
+    $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterOneStatement()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -103,6 +112,17 @@ $$");
       Console.WriteLine();
     $$"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterOneStatementPatternCase()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"switch (expr) {
+    case String s:
+      Console.WriteLine();
+    $$"));
+        }
+
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterTwoStatements()
@@ -121,6 +141,16 @@ $$");
             await VerifyKeywordAsync(AddInsideMethod(
 @"switch (expr) {
     default: {
+    }
+    $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterBlockPatternCase()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"switch (expr) {
+    case String s: {
     }
     $$"));
         }

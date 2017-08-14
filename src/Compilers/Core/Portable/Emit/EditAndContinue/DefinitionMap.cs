@@ -151,14 +151,14 @@ namespace Microsoft.CodeAnalysis.Emit
             out IReadOnlyDictionary<Cci.ITypeReference, int> awaiterMap,
             out int awaiterSlotCount);
 
-        protected abstract ImmutableArray<EncLocalInfo> TryGetLocalSlotMapFromMetadata(MethodDefinitionHandle handle, EditAndContinueMethodDebugInformation debugInfo);
+        protected abstract ImmutableArray<EncLocalInfo> GetLocalSlotMapFromMetadata(StandaloneSignatureHandle handle, EditAndContinueMethodDebugInformation debugInfo);
         protected abstract ITypeSymbol TryGetStateMachineType(EntityHandle methodHandle);
 
         internal VariableSlotAllocator TryCreateVariableSlotAllocator(EmitBaseline baseline, Compilation compilation, IMethodSymbolInternal method, IMethodSymbol topLevelMethod, DiagnosticBag diagnostics)
         {
             // Top-level methods are always included in the semantic edit list. Lambda methods are not.
             MappedMethod mappedMethod;
-            if (!this.mappedMethods.TryGetValue(topLevelMethod, out mappedMethod))
+            if (!mappedMethods.TryGetValue(topLevelMethod, out mappedMethod))
             {
                 return null;
             }
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Emit
             // Handle cases when the previous method doesn't exist.
 
             MethodDefinitionHandle previousHandle;
-            if (!this.TryGetMethodHandle(baseline, (Cci.IMethodDefinition)method, out previousHandle))
+            if (!TryGetMethodHandle(baseline, (Cci.IMethodDefinition)method, out previousHandle))
             {
                 // Unrecognized method. Must have been added in the current compilation.
                 return null;
@@ -227,11 +227,13 @@ namespace Microsoft.CodeAnalysis.Emit
                 // Method has not changed since initial generation. Generate a map
                 // using the local names provided with the initial metadata.
                 EditAndContinueMethodDebugInformation debugInfo;
+                StandaloneSignatureHandle localSignature;
                 try
                 {
                     debugInfo = baseline.DebugInformationProvider(previousHandle);
+                    localSignature = baseline.LocalSignatureProvider(previousHandle);
                 }
-                catch (InvalidDataException)
+                catch (Exception e) when (e is InvalidDataException || e is IOException)
                 {
                     diagnostics.Add(MessageProvider.CreateDiagnostic(
                         MessageProvider.ERR_InvalidDebugInfo,
@@ -292,10 +294,21 @@ namespace Microsoft.CodeAnalysis.Emit
                         }
                     }
 
-                    previousLocals = TryGetLocalSlotMapFromMetadata(previousHandle, debugInfo);
-                    if (previousLocals.IsDefault)
+                    try
                     {
-                        // TODO: Report error that metadata is not supported.
+                        previousLocals = localSignature.IsNil ? ImmutableArray<EncLocalInfo>.Empty : 
+                            GetLocalSlotMapFromMetadata(localSignature, debugInfo);
+                    }
+                    catch (Exception e) when (e is UnsupportedSignatureContent || e is BadImageFormatException || e is IOException)
+                    {
+                        diagnostics.Add(MessageProvider.CreateDiagnostic(
+                            MessageProvider.ERR_InvalidDebugInfo,
+                            method.Locations.First(),
+                            method,
+                            MetadataTokens.GetToken(localSignature),
+                            method.ContainingAssembly
+                        ));
+
                         return null;
                     }
                 }

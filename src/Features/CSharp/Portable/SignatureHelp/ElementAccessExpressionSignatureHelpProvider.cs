@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 }
 
                 identifier = null;
-                openBrace = default(SyntaxToken);
+                openBrace = default;
                 return false;
             }
         }
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 }
 
                 identifier = null;
-                openBrace = default(SyntaxToken);
+                openBrace = default;
                 return false;
             }
         }
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 }
 
                 identifier = null;
-                openBrace = default(SyntaxToken);
+                openBrace = default;
                 return false;
             }
         }

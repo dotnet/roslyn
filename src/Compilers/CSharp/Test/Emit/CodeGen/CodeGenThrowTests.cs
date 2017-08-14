@@ -81,7 +81,7 @@ class C
 ");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21079")]
+        [Fact]
         public void TestRethrowImplicit()
         {
             var source = @"
@@ -91,6 +91,7 @@ class C
     {
         try
         {
+            System.Console.WriteLine();
         }
         catch
         {
@@ -101,28 +102,24 @@ class C
             var compilation = CompileAndVerify(source);
 
             compilation.VerifyIL("C.Main", @"{
-  // Code size        11 (0xb)
+  // Code size       11 (0xb)
   .maxstack  1
-  IL_0000:  nop
   .try
   {
-    IL_0001:  nop
-    IL_0002:  nop
-    IL_0003:  leave.s    IL_0009
-  }  // end .try
-  catch [mscorlib]System.Object 
+    IL_0000:  call       ""void System.Console.WriteLine()""
+    IL_0005:  leave.s    IL_000a
+  }
+  catch object
   {
-    IL_0005:  pop
-    IL_0006:  nop
-    IL_0007:  rethrow
-  }  // end handler
-  IL_0009:  nop
-  IL_000a:  ret 
+    IL_0007:  pop
+    IL_0008:  rethrow
+  }
+  IL_000a:  ret
 }
 ");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21079")]
+        [Fact]
         public void TestRethrowTyped()
         {
             var source = @"
@@ -142,28 +139,52 @@ class C
             var compilation = CompileAndVerify(source);
 
             compilation.VerifyIL("C.Main", @"{
-  // Code size        11 (0xb)
-  .maxstack  1
-  IL_0000:  nop
-  .try
-  {
-    IL_0001:  nop
-    IL_0002:  nop
-    IL_0003:  leave.s    IL_0009
-  }  // end .try
-  catch [mscorlib]System.Exception 
-  {
-    IL_0005:  pop
-    IL_0006:  nop
-    IL_0007:  rethrow
-  }  // end handler
-  IL_0009:  nop
-  IL_000a:  ret 
+ // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
 }
 ");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21079")]
+        [Fact]
+        public void TestRethrowTyped2()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            System.Console.WriteLine();
+        }
+        catch (System.Exception)
+        {
+            throw;
+        }
+    }
+}";
+            var compilation = CompileAndVerify(source);
+
+            compilation.VerifyIL("C.Main", @"{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .try
+  {
+    IL_0000:  call       ""void System.Console.WriteLine()""
+    IL_0005:  leave.s    IL_000a
+  }
+  catch System.Exception
+  {
+    IL_0007:  pop
+    IL_0008:  rethrow
+  }
+  IL_000a:  ret
+}
+");
+        }
+
+        [Fact]
         public void TestRethrowNamed()
         {
             var source = @"
@@ -183,23 +204,47 @@ class C
             var compilation = CompileAndVerify(source);
 
             compilation.VerifyIL("C.Main", @"{
-  // Code size        11 (0xb)
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestRethrowNamed2()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            System.Console.WriteLine();
+        }
+        catch (System.Exception e)
+        {
+            throw;
+        }
+    }
+}";
+            var compilation = CompileAndVerify(source);
+
+            compilation.VerifyIL("C.Main", @"{
+  // Code size       11 (0xb)
   .maxstack  1
-  IL_0000:  nop
   .try
   {
-    IL_0001:  nop
-    IL_0002:  nop
-    IL_0003:  leave.s    IL_0009
-  }  // end .try
-  catch [mscorlib]System.Exception 
+    IL_0000:  call       ""void System.Console.WriteLine()""
+    IL_0005:  leave.s    IL_000a
+  }
+  catch System.Exception
   {
-    IL_0005:  stloc.0
-    IL_0006:  nop
-    IL_0007:  rethrow
-  }  // end handler
-  IL_0009:  nop
-  IL_000a:  ret 
+    IL_0007:  pop
+    IL_0008:  rethrow
+  }
+  IL_000a:  ret
 }
 ");
         }

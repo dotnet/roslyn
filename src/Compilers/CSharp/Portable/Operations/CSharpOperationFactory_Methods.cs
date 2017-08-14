@@ -44,7 +44,8 @@ namespace Microsoft.CodeAnalysis.Semantics
                 semanticModel: _semanticModel,
                 syntax: value.Syntax,
                 type: value.Type,
-                constantValue: default);
+                constantValue: default,
+                isImplicit: expression.WasCompilerGenerated);
         }
 
         private ImmutableArray<IArgument> DeriveArguments(
@@ -116,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 SyntaxNode syntax = value.Syntax?.Parent ?? expression.Syntax;
                 ITypeSymbol type = target.Type;
                 Optional<object> constantValue = value.ConstantValue;
-                var assignment = new SimpleAssignmentExpression(target, value, _semanticModel, syntax, type, constantValue);
+                var assignment = new SimpleAssignmentExpression(target, value, _semanticModel, syntax, type, constantValue, isImplicit: value.IsImplicit);
                 builder.Add(assignment);
             }
 
@@ -188,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 var clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClause)Create(s));
                 var body = switchSection.Statements.SelectAsArray(s => Create(s));
 
-                return (ISwitchCase)new SwitchCase(clauses, body, _semanticModel, switchSection.Syntax, type: null, constantValue: default(Optional<object>));
+                return (ISwitchCase)new SwitchCase(clauses, body, _semanticModel, switchSection.Syntax, type: null, constantValue: default(Optional<object>), isImplicit: switchSection.WasCompilerGenerated);
             });
         }
 
@@ -199,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 var clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClause)Create(s));
                 var body = switchSection.Statements.SelectAsArray(s => Create(s));
 
-                return (ISwitchCase)new SwitchCase(clauses, body, _semanticModel, switchSection.Syntax, type: null, constantValue: default(Optional<object>));
+                return (ISwitchCase)new SwitchCase(clauses, body, _semanticModel, switchSection.Syntax, type: null, constantValue: default(Optional<object>), isImplicit: switchSection.WasCompilerGenerated);
             });
         }
 
