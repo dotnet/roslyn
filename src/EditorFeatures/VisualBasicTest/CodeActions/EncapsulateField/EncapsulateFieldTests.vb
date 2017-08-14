@@ -525,7 +525,8 @@ Public Class Class1
     Sub goo()
         Name = ""
     End Sub
-End Class</File>.ConvertTestSourceTag()
+End Class
+</File>.ConvertTestSourceTag()
 
             Await TestInRegularAndScriptAsync(text, expected, ignoreTrivia:=False)
         End Function

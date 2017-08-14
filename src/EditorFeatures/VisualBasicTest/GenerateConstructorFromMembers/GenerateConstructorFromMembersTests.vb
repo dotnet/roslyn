@@ -21,6 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructo
 End Class",
 "Class Program
     Private i As Integer
+
     Public Sub New(i As Integer{|Navigation:)|}
         Me.i = i
     End Sub
@@ -37,6 +38,7 @@ End Class",
 "Class Program
     Private i As Integer
     Private b As String
+
     Public Sub New(i As Integer, b As String{|Navigation:)|}
         Me.i = i
         Me.b = b
@@ -60,6 +62,7 @@ End Class",
     Public Sub New(i As Integer)
         Me.i = i
     End Sub
+
     Public Sub New(b As String{|Navigation:)|}
         Me.b = b
     End Sub
@@ -82,6 +85,7 @@ End Class",
     Public Sub New(i As Integer)
         Me.i = i
     End Sub
+
     Public Sub New(i As Integer, b As String{|Navigation:)|}
         Me.i = i
         Me.b = b
@@ -113,6 +117,7 @@ End Class")
 End Structure",
 "Structure S
     Private i As Integer
+
     Public Sub New(i As Integer{|Navigation:)|}
         Me.i = i
     End Sub
@@ -127,6 +132,7 @@ End Structure")
 End Class",
 "Class Program(Of T)
     Private i As Integer
+
     Public Sub New(i As Integer{|Navigation:)|}
         Me.i = i
     End Sub
@@ -150,6 +156,7 @@ End Class",
     Public Sub New(i As Integer)
         Me.i = i
     End Sub
+
     Public Sub New(i As Integer, b As String{|Navigation:)|}
         Me.New(i)
         Me.b = b
@@ -171,6 +178,7 @@ End Class",
         Me.A = a
         Me.B = b
     End Sub
+
     Public Property A As Integer
     Public Property B As String
 End Class")
@@ -214,6 +222,7 @@ End Class")
 End Class",
 "Class Program
     Private i As Integer
+
     Public Sub New(i As Integer{|Navigation:)|}
         Me.i = i
     End Sub
@@ -229,6 +238,7 @@ End Class", chosenSymbols:={"i"})
 End Class",
 "Class Program
     Private i As Integer
+
     Public Sub New({|Navigation:)|}
     End Sub
 End Class", chosenSymbols:={})
@@ -245,6 +255,7 @@ End Class",
 "Class Program
     Private i As Integer
     Private j As String
+
     Public Sub New(j As String, i As Integer{|Navigation:)|}
         Me.j = j
         Me.i = i
@@ -260,6 +271,7 @@ End Class", chosenSymbols:={"j", "i"})
 End Class",
 "Class Program
     Private i As Integer
+
     Public Sub New(i As Integer{|Navigation:)|}
         Me.i = i
     End Sub

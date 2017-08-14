@@ -101,8 +101,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     int this[int i]
     {
         get => Bar();
-        }
-    }", options: UseExpressionBody);
+    }
+}", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -144,8 +144,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     int Goo
     {
         set => [|Bar|]();
-        }
-    }", options: UseExpressionBody);
+    }
+}", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -180,8 +180,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     int Goo
     {
         get => throw new NotImplementedException();
-        }
-    }", options: UseExpressionBody);
+    }
+}", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -361,7 +361,7 @@ class C
 using System;
 class C
 {
-    int Goo 
+    int Goo
     {
         get
         {
@@ -387,15 +387,14 @@ class C
 using System;
 class C
 {
-    int Goo 
+    int Goo
     {
         get
         {
             throw new NotImplementedException();
         }
     }
-
-    int Bar 
+    int Bar
     {
         get
         {

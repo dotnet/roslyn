@@ -39,7 +39,7 @@ class C
     void M()
     {
         int a = 1;
-        var t = (a, 2);
+        var t = ( a, 2);
     }
 }", parseOptions: s_parseOptions);
         }

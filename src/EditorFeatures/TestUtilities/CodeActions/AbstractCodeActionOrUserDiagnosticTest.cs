@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             ImmutableArray<string> expectedContainers,
             string expectedDocumentName,
             int index = 0,
-            bool ignoreTrivia = true,
+            bool ignoreTrivia = false,
             TestParameters parameters = default(TestParameters))
         {
             await TestAddDocument(
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             int index,
             string expectedDocumentName,
             ImmutableArray<string> expectedContainers,
-            bool ignoreTrivia = true)
+            bool ignoreTrivia = false)
         {
             var codeActions = await GetCodeActionsAsync(workspace, parameters);
             return await TestAddDocument(
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             ImmutableArray<string> expectedContainers,
             string expectedDocumentName,
             int index = 0,
-            bool ignoreTrivia = true,
+            bool ignoreTrivia = false,
             TestParameters parameters = default(TestParameters))
         {
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string initialMarkup,
             string expectedMarkup,
             int index = 0,
-            bool ignoreTrivia = true,
+            bool ignoreTrivia = false,
             CodeActionPriority? priority = null,
             CompilationOptions compilationOptions = null,
             IDictionary<OptionKey, object> options = null,
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string initialMarkup,
             string expectedMarkup,
             int index = 0,
-            bool ignoreTrivia = true,
+            bool ignoreTrivia = false,
             CodeActionPriority? priority = null,
             TestParameters parameters = default(TestParameters))
         {
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string initialMarkup, string expectedMarkup,
             ParseOptions parseOptions,
             CompilationOptions compilationOptions = null,
-            int index = 0, bool ignoreTrivia = true,
+            int index = 0, bool ignoreTrivia = false,
             IDictionary<OptionKey, object> options = null,
             string fixAllActionEquivalenceKey = null,
             object fixProviderData = null,
