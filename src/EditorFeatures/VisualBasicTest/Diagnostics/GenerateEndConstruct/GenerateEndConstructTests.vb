@@ -45,7 +45,7 @@ End Using</MethodBody>
             Dim text = <File>
 Structure Goo[||]</File>
 
-            Dim expected = StringFromLines("Structure Goo", "End Structure", "")
+            Dim expected = StringFromLines("", "Structure Goo", "End Structure", "")
 
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected, ignoreTrivia:=False)
         End Function
@@ -56,7 +56,7 @@ Structure Goo[||]</File>
 Module Goo[||]
 </File>
 
-            Dim expected = StringFromLines("Module Goo", "End Module", "")
+            Dim expected = StringFromLines("", "Module Goo", "", "End Module", "")
 
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected, ignoreTrivia:=False)
         End Function
@@ -67,7 +67,7 @@ Module Goo[||]
 Namespace Goo[||]
 </File>
 
-            Dim expected = StringFromLines("Namespace Goo", "End Namespace", "")
+            Dim expected = StringFromLines("", "Namespace Goo", "", "End Namespace", "")
 
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected, ignoreTrivia:=False)
         End Function
@@ -78,7 +78,7 @@ Namespace Goo[||]
 Class Goo[||]
 </File>
 
-            Dim expected = StringFromLines("Class Goo", "End Class", "")
+            Dim expected = StringFromLines("", "Class Goo", "", "End Class", "")
 
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected, ignoreTrivia:=False)
         End Function
@@ -89,7 +89,7 @@ Class Goo[||]
 Interface Goo[||]
 </File>
 
-            Dim expected = StringFromLines("Interface Goo", "End Interface", "")
+            Dim expected = StringFromLines("", "Interface Goo", "", "End Interface", "")
 
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected, ignoreTrivia:=False)
         End Function
@@ -100,7 +100,7 @@ Interface Goo[||]
 Enum Goo[||]
 </File>
 
-            Dim expected = StringFromLines("Enum Goo", "End Enum", "")
+            Dim expected = StringFromLines("", "Enum Goo", "", "End Enum", "")
 
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected, ignoreTrivia:=False)
         End Function

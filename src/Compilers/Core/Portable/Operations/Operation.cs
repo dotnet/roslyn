@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
         // but once initialized, will never change
         private IOperation _parentDoNotAccessDirectly;
 
-        public Operation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue)
+        public Operation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
         {
             SemanticModel = semanticModel;
 
@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis
             Syntax = syntax;
             Type = type;
             ConstantValue = constantValue;
+            IsImplicit = isImplicit;
         }
 
         /// <summary>
@@ -49,6 +50,11 @@ namespace Microsoft.CodeAnalysis
                 return _parentDoNotAccessDirectly;
             }
         }
+
+        /// <summary>
+        /// Set to True if compiler generated /implicitly computed by compiler code
+        /// </summary>
+        public bool IsImplicit { get; }
 
         /// <summary>
         /// Identifies the kind of the operation.
@@ -104,9 +110,9 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// Use this to create IOperation when we don't have proper specific IOperation yet for given language construct
         /// </summary>
-        public static IOperation CreateOperationNone(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren)
+        public static IOperation CreateOperationNone(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren, bool isImplicit)
         {
-            return new NoneOperation(semanticModel, node, constantValue, getChildren);
+            return new NoneOperation(semanticModel, node, constantValue, getChildren, isImplicit);
         }
 
         public static T SetParentOperation<T>(T operation, IOperation parent) where T : IOperation
@@ -160,8 +166,8 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly Func<ImmutableArray<IOperation>> _getChildren;
 
-            public NoneOperation(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren) :
-                base(OperationKind.None, semanticModel, node, type: null, constantValue: constantValue)
+            public NoneOperation(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren, bool isImplicit) :
+                base(OperationKind.None, semanticModel, node, type: null, constantValue: constantValue, isImplicit: isImplicit)
             {
                 _getChildren = getChildren;
             }

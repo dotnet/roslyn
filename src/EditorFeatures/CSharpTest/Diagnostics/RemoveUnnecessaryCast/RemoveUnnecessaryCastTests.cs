@@ -4050,7 +4050,7 @@ enum Sign
         void Goo()
         {
             Sign mySign = Sign.Positive;
-            Sign invertedSign = (Sign) ( ~mySign );
+            Sign invertedSign = (Sign) ( ~mySign);
         }
     }");
         }

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
     {
         internal static async Task GenerateAndVerifySourceAsync(
             string metadataSource, string symbolName, string projectLanguage, string expected,
-            bool ignoreTrivia = true, bool includeXmlDocComments = false, string languageVersion = null)
+            bool ignoreTrivia = false, bool includeXmlDocComments = false, string languageVersion = null)
         {
             using (var context = TestContext.Create(projectLanguage, SpecializedCollections.SingletonEnumerable(metadataSource), includeXmlDocComments, languageVersion: languageVersion))
             {

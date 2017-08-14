@@ -1243,14 +1243,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 embeddedFiles.AddRange(sourceFiles);
             }
 
-            if (embeddedFiles.Count > 0)
+            if (embeddedFiles.Count > 0 && !emitPdb)
             {
-                // Restricted to portable PDBs for now, but the IsPortable condition should be removed
-                // and the error message adjusted accordingly when native PDB support is added.
-                if (!emitPdb || !debugInformationFormat.IsPortable())
-                {
-                    AddDiagnostic(diagnostics, ErrorCode.ERR_CannotEmbedWithoutPdb);
-                }
+                AddDiagnostic(diagnostics, ErrorCode.ERR_CannotEmbedWithoutPdb);
             }
 
             var parsedFeatures = ParseFeatures(features);

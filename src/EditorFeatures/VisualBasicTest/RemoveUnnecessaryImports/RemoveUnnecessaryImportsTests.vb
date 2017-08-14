@@ -417,8 +417,7 @@ Namespace goo
     Class bar
     End Class
 End Namespace|]",
-"Imports System, System.Collections.Generic
-Module Program
+"Imports System, System.Collections.Generic Module Program
     Sub Main(args As String())
         Console.WriteLine(""TEST"")
         Dim q As List(Of Integer)
@@ -516,7 +515,7 @@ Namespace B
     Public Class CB
     End Class
 End Namespace|]",
-"Imports A
+"Imports A _
 Module Program
     Sub Main(args As String())
         Dim q As CA

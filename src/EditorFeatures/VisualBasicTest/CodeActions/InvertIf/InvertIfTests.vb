@@ -880,7 +880,7 @@ End Module",
     Sub Main(args As String())
         Dim x() As String
         If x.Length = 0x0 Then 
- EqualsZero()
+            EqualsZero()
         Else
             GreaterThanZero()
         End If
@@ -1360,6 +1360,7 @@ Module Program
         End Select
     End Sub
 End Module
+
 </File>
 
             Await TestAsync(markup, expected, ignoreTrivia:=False)

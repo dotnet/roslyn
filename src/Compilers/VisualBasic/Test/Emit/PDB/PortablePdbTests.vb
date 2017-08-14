@@ -1,13 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Roslyn.Test.Utilities
 Imports System.IO
 Imports System.Reflection.Metadata
-Imports Microsoft.CodeAnalysis.Emit
-Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports System.Reflection.PortableExecutable
 Imports System.Text
 Imports Microsoft.CodeAnalysis.Debugging
+Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PortablePdbTests
@@ -249,85 +249,6 @@ End Class
 
             result.Diagnostics.Verify(
                 Diagnostic(ERRID.ERR_PDBWritingFailed).WithArguments("Error!").WithLocation(1, 1))
-        End Sub
-
-        <Fact>
-        Public Sub EmbeddedSource()
-            Const source = "
-Imports System
-
-Class C
-    Public Shared Sub Main()
-        Console.WriteLine()
-    End Sub
-End Class
-"
-            Dim tree = Parse(source, "f:/build/goo.cs")
-            Dim c = CreateCompilationWithMscorlib(tree, options:=TestOptions.DebugDll)
-
-            Dim pdbStream = New MemoryStream()
-            c.EmitToArray(
-                EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
-                pdbStream:=pdbStream,
-                embeddedTexts:={EmbeddedText.FromSource(tree.FilePath, tree.GetText())})
-            pdbStream.Position = 0
-
-            Using provider As MetadataReaderProvider = MetadataReaderProvider.FromPortablePdbStream(pdbStream)
-                Dim pdbReader = provider.GetMetadataReader()
-
-                Dim embeddedSource =
-                    (From documentHandle In pdbReader.Documents
-                     Let document = pdbReader.GetDocument(documentHandle)
-                     Select New With
-                     {
-                         .FilePath = pdbReader.GetString(document.Name),
-                         .Text = pdbReader.GetEmbeddedSource(documentHandle)
-                     }).Single()
-
-                Assert.Equal(embeddedSource.FilePath, "f:/build/goo.cs")
-                Assert.Equal(source, embeddedSource.Text.ToString())
-            End Using
-        End Sub
-
-        <Fact>
-        Public Sub EmbeddedSource_InEmbeddedPdb()
-            Const source = "
-Imports System
-
-Class C
-    Public Shared Sub Main()
-        Console.WriteLine()
-    End Sub
-End Class
-"
-            Dim tree = Parse(source, "f:/build/goo.cs")
-            Dim c = CreateCompilationWithMscorlib(tree, options:=TestOptions.DebugDll)
-
-            Dim pdbStream = New MemoryStream()
-            Dim peBlob = c.EmitToArray(
-                EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded),
-                embeddedTexts:={EmbeddedText.FromSource(tree.FilePath, tree.GetText())})
-            pdbStream.Position = 0
-
-            Using peReader As New PEReader(peBlob)
-                Dim embeddedEntry = peReader.ReadDebugDirectory().Single(Function(e) e.Type = DebugDirectoryEntryType.EmbeddedPortablePdb)
-
-                Using embeddedMetadataProvider As MetadataReaderProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(embeddedEntry)
-                    Dim pdbReader = embeddedMetadataProvider.GetMetadataReader()
-
-                    Dim embeddedSource =
-                        (From documentHandle In pdbReader.Documents
-                         Let document = pdbReader.GetDocument(documentHandle)
-                         Select New With
-                         {
-                             .FilePath = pdbReader.GetString(document.Name),
-                             .Text = pdbReader.GetEmbeddedSource(documentHandle)
-                         }).Single()
-
-                    Assert.Equal(embeddedSource.FilePath, "f:/build/goo.cs")
-                    Assert.Equal(source, embeddedSource.Text.ToString())
-                End Using
-            End Using
         End Sub
     End Class
 End Namespace
