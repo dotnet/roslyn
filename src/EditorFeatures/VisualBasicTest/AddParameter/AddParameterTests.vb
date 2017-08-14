@@ -179,7 +179,8 @@ class D
     sub M()
         dim a = new C(1, true)
     end sub
-end class")
+end class
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
@@ -209,7 +210,8 @@ class D
     sub M()
         dim a = new C(true, 1)
     end sub
-end class")
+end class
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>

@@ -412,9 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsInsideNameOf(this ExpressionSyntax expression)
-        {
-            return expression.SyntaxTree.IsNameOfContext(expression.SpanStart);
-        }
+            => expression.SyntaxTree.IsNameOfContext(expression.SpanStart);
 
         private static bool CanReplace(ISymbol symbol)
         {
@@ -1114,6 +1112,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             var aliasName = aliasReplacement.Name;
 
+            // If we're the argument of a nameof(X.Y) call, then we can't simplify to an
+            // alias unless the alias has the same name as us (i.e. 'Y').
+            if (node.IsNameOfArgumentExpression())
+            {
+                var nameofValueOpt = semanticModel.GetConstantValue(node.Parent.Parent.Parent);
+                if (!nameofValueOpt.HasValue)
+                {
+                    return false;
+                }
+
+                if (nameofValueOpt.Value is string existingVal &&
+                    existingVal != aliasName)
+                {
+                    return false;
+                }
+            }
+
             var boundSymbols = semanticModel.LookupNamespacesAndTypes(node.SpanStart, name: aliasName);
 
             if (boundSymbols.Length == 1)
@@ -1126,6 +1141,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return false;
+        }
+
+        public static bool IsNameOfArgumentExpression(this ExpressionSyntax expression)
+        {
+            return expression.IsParentKind(SyntaxKind.Argument) &&
+                expression.Parent.IsParentKind(SyntaxKind.ArgumentList) &&
+                expression.Parent.Parent.Parent is InvocationExpressionSyntax invocation &&
+                invocation.IsNameOfInvocation();
+        }
+
+        public static bool IsNameOfInvocation(this InvocationExpressionSyntax invocation)
+        {
+            return invocation.Expression is IdentifierNameSyntax identifierName &&
+                   identifierName.Identifier.IsKindOrHasMatchingText(SyntaxKind.NameOfKeyword);
         }
 
         public static IAliasSymbol GetAliasForSymbol(INamespaceOrTypeSymbol symbol, SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
