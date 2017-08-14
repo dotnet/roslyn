@@ -108,6 +108,7 @@ For the remaining set of IDE features, only crashes and asserts are considered b
 | | **Change base for numeric literals** [Visual Studio 2017 version 15.3] | | | N/A |
 | | **Convert if to switch** [Visual Studio 2017 version 15.3] | | | N/A |
 | | **Resolve git merge conflicts** [Visual Studio 2017 version 15.3] | | | N/A |
+| | **Add argument name** [Visual Studio 2017 version 15.3 | | | N/A |
 | | **Fade and remove unreachable code** [Visual Studio 2017 version 15.5] | | | N/A |
 
 ### IDE Features
