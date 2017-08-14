@@ -1518,15 +1518,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expr;
 
-                    // byref conditional defers to its operands
+                    // byref conditional defers to one operand. Since are here without errors, both operands must match.
                     if (conditional.IsByRef &&
-                        (CheckRefEscape(conditional.Consequence.Syntax, conditional.Consequence, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics) &&
-                         CheckRefEscape(conditional.Alternative.Syntax, conditional.Alternative, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics)))
+                        CheckRefEscape(conditional.Consequence.Syntax, conditional.Consequence, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics))
                     {
                         return true;
                     }
 
-                    // reprot standard lvalue error
+                    // report standard lvalue error
                     break;
 
                 case BoundKind.FieldAccess:
@@ -1691,14 +1690,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expr;
 
-                    // byref conditional defers to its operands
+                    // byref conditional defers to one operand. Since are here without errors, both operands must match.
                     if (conditional.IsByRef)
                     {
-                        return Math.Max(GetRefEscape(conditional.Consequence, scopeOfTheContainingExpression),
-                                        GetRefEscape(conditional.Alternative, scopeOfTheContainingExpression));
+                        return GetRefEscape(conditional.Consequence, scopeOfTheContainingExpression);
                     }
 
-                    // report standard lvalue error
+                    // otherwise it is an RValue
                     break;
 
                 case BoundKind.FieldAccess:

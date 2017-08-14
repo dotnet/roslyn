@@ -941,5 +941,101 @@ class Program
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssign(ref rOuter)").WithArguments("Program.MayAssign(ref Program.S1, in int)", "arg2").WithLocation(16, 13)
             );
         }
+
+        [Fact()]
+        public void MismatchedRefTernaryEscape()
+        {
+            var text = @"
+class Program
+{
+    static void Main()
+    {
+    }
+
+    public static int field = 1;
+
+    void Test1()
+    {
+        var local = 42;
+        ref var ternary1 = ref true ? ref field : ref local;
+
+        ref var lr = ref local;
+        ref var fr = ref field;
+
+        ref var ternary2 = ref true ? ref field : ref local;
+    }
+}
+";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (13,55): error CS8168: Cannot return local 'local' by reference because it is not a ref local
+                //         ref var ternary1 = ref true ? ref field : ref local;
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(13, 55),
+                // (13,32): error CS8525: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes.
+                //         ref var ternary1 = ref true ? ref field : ref local;
+                Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "true ? ref field : ref local").WithLocation(13, 32),
+                // (18,55): error CS8168: Cannot return local 'local' by reference because it is not a ref local
+                //         ref var ternary2 = ref true ? ref field : ref local;
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(18, 55),
+                // (18,32): error CS8525: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes.
+                //         ref var ternary2 = ref true ? ref field : ref local;
+                Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "true ? ref field : ref local").WithLocation(18, 32));
+        }
+        
+        [Fact()]
+        public void MismatchedRefTernaryEscapeBlock()
+        {
+            var text = @"
+class Program
+{
+    static void Main()
+    {
+    }
+
+    public static int field = 1;
+
+    void Test1()
+    {
+        var outer = 42;
+        var sOuter = MayWrap(ref outer);
+
+        {
+            var inner = 42;
+            var sInner = MayWrap(ref inner);
+
+            ref var ternary1 = ref true ? ref sOuter[1] : ref sInner[1];
+
+            ref var ir = ref sInner[1];
+            ref var or = ref sOuter[1];
+
+            ref var ternary2 = ref true ? ref ir : ref or;
+        }
+    }
+
+    static S1 MayWrap(ref int arg)
+    {
+        return default;
+    }
+
+    ref struct S1
+    {
+        public ref int this[int i] => throw null;
+    }
+}
+";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (19,63): error CS8520: Cannot use local 'sInner' in this context because it may expose referenced variables outside of their declaration scope 
+                //             ref var ternary1 = ref true ? ref sOuter[1] : ref sInner[1];
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "sInner").WithArguments("sInner").WithLocation(19, 63),
+                // (19,36): error CS8525: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes.
+                //             ref var ternary1 = ref true ? ref sOuter[1] : ref sInner[1];
+                Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "true ? ref sOuter[1] : ref sInner[1]").WithLocation(19, 36),
+                // (24,47): error CS8520: Cannot use local 'ir' in this context because it may expose referenced variables outside of their declaration scope 
+                //             ref var ternary2 = ref true ? ref ir : ref or;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "ir").WithArguments("ir").WithLocation(24, 47),
+                // (24,36): error CS8525: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes.
+                //             ref var ternary2 = ref true ? ref ir : ref or;
+                Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "true ? ref ir : ref or").WithLocation(24, 36)
+            );
+        }
     }
 }
