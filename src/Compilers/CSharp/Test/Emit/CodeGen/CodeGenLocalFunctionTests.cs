@@ -3462,7 +3462,7 @@ L1<dynamic>(val);
 L1<dynamic>(4);
 
 void L2<T>(int x, T y) => Console.WriteLine($""{x}, {y}: {typeof(T)}"");
-L2<double>(val, 3.0f);
+L2<float>(val, 3.0f);
 
 List<dynamic> listOfDynamic = new List<dynamic> { 1, 2, 3 };
 void L3<T>(List<T> x) => Console.WriteLine($""{string.Join("", "", x)}: {typeof(T)}"");

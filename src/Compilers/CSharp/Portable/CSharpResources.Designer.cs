@@ -3725,7 +3725,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot pass argument with dynamic type to generic local function &apos;{0}&apos;. Try specifying the type arguments explicitly..
+        ///   Looks up a localized string similar to Cannot pass argument with dynamic type to generic local function &apos;{0}&apos; with inferred type arguments..
         /// </summary>
         internal static string ERR_DynamicLocalFunctionTypeParameter {
             get {
