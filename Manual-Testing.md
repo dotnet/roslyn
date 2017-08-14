@@ -49,7 +49,7 @@ Critical IDE features in the areas of **Typing**, **Navigating**, and **Viewing*
 | | **Formatting** <br />- Spacing in and around new constructs<br />- Spacing options<br />- Format Document command<br /> `Tools > Options` settings should be respected | | | |
 | | **Automatic Brace Completion** (*C# only*) <br />- Auto-insert close brace<br />- Shift+Enter commit of IntelliSense and any pending brace completion sessions (Known issue: https://github.com/dotnet/roslyn/issues/18065) | | | N/A |
 | | **Indentation** <br />- Typing `Enter` in an unfinished statement indents the next line | | | |
-| **Navigating** | **Go To Definition** <br />- F12 from callsites to definition | | | |
+| **Navigating** | **Go To Definition** <br />- F12 from callsites to definition<br />- Ctrl+click [Visual Studio 2017 version 15.4] | | | |
 | | **Go To Implementation** <br />- Ctrl+F12 to jump from virtual members to their implementations<br />- Jump from inheritable types to their implementations | | | N/A |
 | | **Find All References** <br />- Lists references to a symbol in "Find Symbol Results" window<br />- Shows results in hierarchy grouped by definition [VS2015+]<br />- Results should be groupable/filterable/classified appropriately [VS2017+] <br />- Find All References on literals [VS2017 Update 3] | | | |
 | **Viewing** | **Colorization** <br />- Keywords, literals, and identifiers colored appropriately in code | | | |
@@ -74,6 +74,13 @@ For the remaining set of IDE features, only crashes and asserts are considered b
 | | **Organize Usings**<br />- Honors "Place 'System' namespace first" option | | | N/A |
 | | **Convert `Get*` Methods to Properties**<br />*Add Description* | | | N/A |
 | | **Encapsulate Field**<br />- Select a field and convert it to a property backed by the field<br />- Try selecting multiple fields at once | | | N/A |
+| | **Modifier Ordering** [Visual Studio 2017 version 15.5] | | | N/A |
+| | **`Reference.Equals` to `is null`** [Visual Studio 2017 version 15.5] | | | N/A |
+| | **Add Missing Modifiers** [Visual Studio 2017 version 15.5] | | | N/A |
+| | **Convert Lambda to Local Function** [Visual Studio 2017 version 15.5] | | | N/A |
+| | **Move Declaration Near Reference** [Visual Studio 2017 version 15.5] | | | N/A |
+| | **Introduce Pattern Matching** [Visual Studio 2017 version 15.5] | | | N/A |
+| | **Simplify Inferred Tuple Names** [Visual Studio 2017 version 15.5] | | | N/A |
 | **Fixes** | **Add Using**<br />- Triggers on appropriate constructs<br />- Including NuGet references<br />- Including Referenced Assemblies<br />- Includes spelling fixes | | | |
 | | **Generate Local**<br />- Select an expression and introduce a local variable to represent it<br />- This should start an Inline Rename session | | | N/A |
 | | **Generate Field**<br />- Select an expression and introduce a field to represent it<br />- This should start an Inline Rename session | | | N/A |
@@ -101,6 +108,7 @@ For the remaining set of IDE features, only crashes and asserts are considered b
 | | **Change base for numeric literals** [VS2017 Update 3] | | | N/A |
 | | **Convert if to switch** [VS2017 Update 3] | | | N/A |
 | | **Resolve git merge conflicts** [VS2017 Update 3] | | | N/A |
+| | **Fade and remove unreachable code** [Visual Studio 2017 version 15.5] | | | N/A |
 
 ### IDE Features
 | Category | Feature/Description | C# Signoff/Notes | VB Signoff/Notes | F# Signoff/Notes |
@@ -123,7 +131,7 @@ For the remaining set of IDE features, only crashes and asserts are considered b
 | | **Breakpoint Spans**<br />- The span highlighted when a breakpoint is set should be logical | | | |
 | | **Code Model / Class Designer**<br />- Right click a file in Solution Explorer & choose View Class Diagram.<br />- This shows the "Class Details" window where you can add/remove members, change their type/accessibility/name, parameter info, etc. | | | N/A |
 | | **Object Browser / Class View**<br />- Open object browser and classview and verify that project contents are represented live.<br />- Should be able to invoke find all references, navigate to the definition, and do searches. | | | N/A |
-| | **Lightbulb**<br />- Should work with `Ctrl+.` and the right-click menu<br />- Should include a diff view<br />- Should include options to fix all in Document/Project/Solution, and to Preview Changes | | | |
+| | **Lightbulb**<br />- Should work with `Ctrl+.` and the right-click menu<br />- Should include a diff view<br />- Should include options to fix all in Document/Project/Solution, and to Preview Changes<br />Varying icons for lightbulb items [Visual Studio 2017 version 15.4] | | | |
 | | **Line Separators**<br />- Turn the option on under `Tools > Options`<br />- Ensure there's a line between methods. | | | N/A |
 | | **Indent Guides**<br />- Vertical dotted lines appear between braces for declaration-level things<br />- Hovering on the line shows context | | | |
 | **Code Style** | **Naming Rules** | | | N/A |
