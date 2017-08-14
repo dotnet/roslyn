@@ -927,16 +927,15 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function CreateBoundBlockOperation(boundBlock As BoundBlock) As IBlockStatement
             Dim statements As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
                 Function()
-                    Return boundBlock.Statements.Select(Function(n) Create(n)).Where(
-                        Function(statement)
-                            ' Don't include the method/operator/accessor declaration in the block
-                            Return statement.Syntax.Kind() <> SyntaxKind.OperatorStatement AndAlso
-                                   statement.Syntax.Kind() <> SyntaxKind.SubStatement AndAlso
-                                   statement.Syntax.Kind() <> SyntaxKind.FunctionStatement AndAlso
-                                   statement.Syntax.Kind() <> SyntaxKind.GetAccessorStatement AndAlso
-                                   statement.Syntax.Kind() <> SyntaxKind.SetAccessorStatement
-                        End Function
-                    ).ToImmutableArray()
+                    Return boundBlock.Statements.Where(
+                            Function(statement)
+                                ' Don't include the method/operator/accessor declaration in the block
+                                Return statement.Syntax.Kind() <> SyntaxKind.OperatorStatement AndAlso
+                                       statement.Syntax.Kind() <> SyntaxKind.FunctionStatement AndAlso
+                                       statement.Syntax.Kind() <> SyntaxKind.GetAccessorStatement AndAlso
+                                       statement.Syntax.Kind() <> SyntaxKind.SetAccessorStatement
+                            End Function
+                        ).Select(Function(n) Create(n)).ToImmutableArray()
                 End Function)
             Dim locals As ImmutableArray(Of ILocalSymbol) = boundBlock.Locals.As(Of ILocalSymbol)()
             Dim syntax As SyntaxNode = boundBlock.Syntax
