@@ -902,9 +902,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                             var errorTask = Task.Run(
                                 () => GetFixLevelAsync(provider, document, range, linkedToken), linkedToken);
 
-                            var refactoringTask = Task.Run(
-                                () => TryGetRefactoringSuggestedActionCategoryAsync(provider, document, selection, linkedToken),
-                                linkedToken);
+                            var refactoringTask = requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring)
+                                ? Task.Run(
+                                    () => TryGetRefactoringSuggestedActionCategoryAsync(provider, document, selection, linkedToken),
+                                    linkedToken)
+                                : Task.FromResult((string)null);
 
                             // If we happen to get the result of the error task before the refactoring task,
                             // and that result is non-null, we can just cancel the refactoring task.
