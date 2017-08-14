@@ -45,13 +45,13 @@ Critical IDE features in the areas of **Typing**, **Navigating**, and **Viewing*
 | --- | --- | --- | --- | --- | 
 | **Enable/Disable** | **Feature Flag** <br />Completely enables/disables the feature in the compiler & IDE | | | N/A |
 | **Typing** | **General Typing**<br />- Type and paste new constructs<br />- Nothing interferes with verbatim typing | | | |
-| | **Completion**<br />- Typing new keyword/construct names<br />- Dotting off of new constructs<br />- Matching part of the identifier is highlighted (including word prefix matches) [VS2015 Update 1+]<br />- Target type preselection [VS2017+]<br />IntelliSense filtering [VS2017+] | | | |
+| | **Completion**<br />- Typing new keyword/construct names<br />- Dotting off of new constructs<br />- Matching part of the identifier is highlighted (including word prefix matches) [Visual Studio 2015 Update 1]<br />- Target type preselection [Visual Studio 2017]<br />IntelliSense filtering [Visual Studio 2017] | | | |
 | | **Formatting** <br />- Spacing in and around new constructs<br />- Spacing options<br />- Format Document command<br /> `Tools > Options` settings should be respected | | | |
 | | **Automatic Brace Completion** (*C# only*) <br />- Auto-insert close brace<br />- Shift+Enter commit of IntelliSense and any pending brace completion sessions (Known issue: https://github.com/dotnet/roslyn/issues/18065) | | | N/A |
 | | **Indentation** <br />- Typing `Enter` in an unfinished statement indents the next line | | | |
 | **Navigating** | **Go To Definition** <br />- F12 from callsites to definition<br />- Ctrl+click [Visual Studio 2017 version 15.4] | | | |
 | | **Go To Implementation** <br />- Ctrl+F12 to jump from virtual members to their implementations<br />- Jump from inheritable types to their implementations | | | N/A |
-| | **Find All References** <br />- Lists references to a symbol in "Find Symbol Results" window<br />- Shows results in hierarchy grouped by definition [VS2015+]<br />- Results should be groupable/filterable/classified appropriately [VS2017+] <br />- Find All References on literals [VS2017 Update 3] | | | |
+| | **Find All References** <br />- Lists references to a symbol in "Find Symbol Results" window<br />- Shows results in hierarchy grouped by definition [Visual Studio 2015]<br />- Results should be groupable/filterable/classified appropriately [Visual Studio 2017] <br />- Find All References on literals [Visual Studio 2017 version 15.3] | | | |
 | **Viewing** | **Colorization** <br />- Keywords, literals, and identifiers colored appropriately in code | | | |
 | | **Error Squiggles** <br />- Squiggles appear as expected on reasonable spans | | | |
 
@@ -63,11 +63,11 @@ For the remaining set of IDE features, only crashes and asserts are considered b
 | Category | Feature/Description | C# Signoff/Notes | VB Signoff/Notes | F# Signoff/Notes |
 | --- | --- | --- | --- | --- |
 | **Refactoring with UI** | **Inline Rename (with UI)**<br />- Dashboard shows correct information<br />- Highlighted spans are updated appropriately<br />- Rename operation updates the correct set of symbols | | | |
-| | **Change Signature (with UI)**<br />- Updates all direct & cascaded definitions/callsites<br />- Shows appropriate signature & parameter previews in UI<br />- Reorder and Remove in the same session [VS2015+] | | | N/A |
+| | **Change Signature (with UI)**<br />- Updates all direct & cascaded definitions/callsites<br />- Shows appropriate signature & parameter previews in UI<br />- Reorder and Remove in the same session [Visual Studio 2015] | | | N/A |
 | | **Extract Interface (with UI)**<br />- Generated Interface has expected shape<br />- UI shows appropriate method previews | | | N/A |
 | | **Generate Type (with UI)**<br />- Dialog gives all valid options<br /> | | | N/A |
-| | **Generate Overrides** [VS2017 Update 3] | | | N/A |
-| **Refactorings** | **Rename Tracking**<br />- Tracking span tracks & dismisses as expected<br />- Invokable from references [VS2015+]| | | N/A |
+| | **Generate Overrides** [Visual Studio 2017 version 15.3] | | | N/A |
+| **Refactorings** | **Rename Tracking**<br />- Tracking span tracks & dismisses as expected<br />- Invokable from references [Visual Studio 2015] | | | N/A |
 | | **Extract Method**<br />- Extracted method has the expected signature<br />- All arguments/return values handled correctly<br />- Extracted code block is reasonable<br />- Automatically starts Inline Rename | | | N/A |
 | | **Introduce Variable**<br />- Introduced variable has the expected signature and initializer expression<br />- "Introduce for All" correctly finds dupes | | | N/A |
 | | **Inline Temporary Variable**<br />- Inlined values are appropriately expanded/reduced | | | N/A |
@@ -84,18 +84,18 @@ For the remaining set of IDE features, only crashes and asserts are considered b
 | **Fixes** | **Add Using**<br />- Triggers on appropriate constructs<br />- Including NuGet references<br />- Including Referenced Assemblies<br />- Includes spelling fixes | | | |
 | | **Generate Local**<br />- Select an expression and introduce a local variable to represent it<br />- This should start an Inline Rename session | | | N/A |
 | | **Generate Field**<br />- Select an expression and introduce a field to represent it<br />- This should start an Inline Rename session | | | N/A |
-| | **Generate Method/Constructor**<br />- Call a nonexistent method or constructor to generate it from its usage<br />- Generated method has the expected signature and accessibility<br />- Add parameter to existing constructor from callsite [VS2017 Update 3] | | | N/A |
+| | **Generate Method/Constructor**<br />- Call a nonexistent method or constructor to generate it from its usage<br />- Generated method has the expected signature and accessibility<br />- Add parameter to existing constructor from callsite [Visual Studio 2017 version 15.3] | | | N/A |
 | | **Generate Constructor from members**<br />- Select fields/properties to generate a constructor accepting corresponding arguments<br />- Generated constructor has the expected signature and accessibility | | | N/A |
 | | **Implement Interface**<br />- Only missing methods added<br />- All added methods have the expected signature and accessibility | | | N/A |
 | | **Implement IDisposable**<br />- Implement IDisposable and you should see a large block of code properly implementing that particular interface | | | N/A |
 | | **Implement Abstract Class**<br />- Inherit from an abstract class, and you should be able to auto-generate all of the missing members | | | N/A |
-| | **Remove Unused Variables** [VS2017 Update 3]| | | N/A |
+| | **Remove Unused Variables** [Visual Studio 2017 version 15.3]| | | N/A |
 | | **Remove Unused Usings** | | | |
 | | **Sort Usings** | | | N/A |
 | | **Convert Get Methods to Properties**<br />- Name a method `GetStuff` and convert it to a property called `Stuff` | | | N/A |
 | | **Make Method Async/Sync**<br />- Add an `await` to a synchronous method, you should be offered to add the async keyword<br />- Remove all `await` keywords from an async method, you should be offered to remove the async keyword | | | N/A |
 | | **Use Object Initializer Over Property Assignment**<br />- Create a new instance of a type and then assign each of its properties on subsequent lines<br />- You should be offered to convert that to an object initializer | | | N/A |
-| | **Insert Digit Separators** [VS2017 Update 3] | | | N/A |
+| | **Insert Digit Separators** [Visual Studio 2017 version 15.3] | | | N/A |
 | **Code Gen** | **Snippets**<br />- Tab completion, presence in completion list<br />- Insertion via Snippet Picker UI (Ctrl + K, Ctrl + X) or (Ctrl + K, Ctrl + S)<br />- (VB) Snippet Picker UI via `?<Tab>`<br />- (VB) Special snippet completion list (`p?<esc><tab>`) | | | N/A |
 | | **Event Hookup on Tab** (*C# only*)<br />- Type "+=" after an event name and QuickInfo shows<br />- Invoking should pick good name & launch Inline Rename | | N/A | N/A |
 | | **End Construct Generation** (*VB only*)<br />- Type `Sub Test()` and hit enter, the `End Sub` should be generated automatically | N/A | | N/A |
@@ -104,10 +104,10 @@ For the remaining set of IDE features, only crashes and asserts are considered b
 | | **Move type to file**<br />- Lightbulb to move type to another file when the type name doesn't match the filename<br />- Option to change the file name if the type doesn't match the file name | | | N/A |
 | | **Convert between properties and Get methods**<br />- Offers to change a method named `GetStuff` to a property named `Stuff` | | | N/A |
 | | **Add missing cases**<br />Use a `switch` on a strict subset of an Enum's members<br />- It should offer to generate the rest of the cases | | | N/A |
-| | **Add null checks for parameters** [VS2017 Update 3] | | | N/A |
-| | **Change base for numeric literals** [VS2017 Update 3] | | | N/A |
-| | **Convert if to switch** [VS2017 Update 3] | | | N/A |
-| | **Resolve git merge conflicts** [VS2017 Update 3] | | | N/A |
+| | **Add null checks for parameters** [Visual Studio 2017 version 15.3] | | | N/A |
+| | **Change base for numeric literals** [Visual Studio 2017 version 15.3] | | | N/A |
+| | **Convert if to switch** [Visual Studio 2017 version 15.3] | | | N/A |
+| | **Resolve git merge conflicts** [Visual Studio 2017 version 15.3] | | | N/A |
 | | **Fade and remove unreachable code** [Visual Studio 2017 version 15.5] | | | N/A |
 
 ### IDE Features
@@ -121,7 +121,7 @@ For the remaining set of IDE features, only crashes and asserts are considered b
 | | **Peek**<br />Press Alt + F12 after placing the cursor on a predefined Type or predefined member and expect to see to a temporary window showing the appropriate definition | | | |
 | | **Navigation Bars**<br />- Open some existing source files, make sure you can navigate around the file choosing classes or methods.<br />- In VB, the NavBar can do code generation for events and for New/Finalize methods | | | |
 | | **Metadata As Source**<br />- Press F12 on a predefined type and expect the cursor to move the predefined type definition inside a Metadata-As-Source Generated document.<br />- Expect to see the xml doc comments collapsed above the method. | | | N/A |
-| | **Navigate To**<br />- Place caret on a user defined Type reference and press "ctrl + ,"<br />- This should list the User Defined Type in the drop down on the Upper Right corner of the editor and selecting this item will move the cursor to the User Reference Definition<br />- Filters per kind of symbol [VS2017] | | | |
+| | **Navigate To**<br />- Place caret on a user defined Type reference and press "ctrl + ,"<br />- This should list the User Defined Type in the drop down on the Upper Right corner of the editor and selecting this item will move the cursor to the User Reference Definition<br />- Filters per kind of symbol [Visual Studio 2017] | | | |
 | | **Go to Next/Previous Method**<br />- `Edit.NextMethod` and `Edit.PreviousMethod` should work<br />- You may need to set up keyboard bindings for these commands under `Tools > Options > Environment > Keyboard` | | | N/A |
 | | **Solution Explorer Pivots**<br />- Define a Type and some members in a sample Document.<br />- Expand the Document listed in the Solution Explorer window and expect to see the Type and Members defined<br />- Right-click types and try Base Types / Derived Types / Is Used By / Implements<br /> - Right-click methods and try Calls / Is Called By / Is Used By / Implements | | | N/A |
 | | **Call Hierarchy**<br />- Place the caret over a method, right click & select View Hierarchy<br />- This should open the "Call Hierarchy window" listing the methods that call the original method and also the callsites within each calling method. | | | N/A |
