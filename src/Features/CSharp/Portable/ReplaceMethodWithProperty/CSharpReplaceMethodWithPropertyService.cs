@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -20,9 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
     [ExportLanguageService(typeof(IReplaceMethodWithPropertyService), LanguageNames.CSharp), Shared]
     internal class CSharpReplaceMethodWithPropertyService : AbstractReplaceMethodWithPropertyService, IReplaceMethodWithPropertyService
     {
-        public string GetMethodName(SyntaxNode methodNode)
-            => ((MethodDeclarationSyntax)methodNode).Identifier.ValueText;
-
         public SyntaxNode GetMethodDeclaration(SyntaxToken token)
         {
             var containingMethod = token.Parent.FirstAncestorOrSelf<MethodDeclarationSyntax>();
@@ -64,11 +60,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                 return;
             }
 
-            editor.ReplaceNode(getMethodDeclaration,
-                ConvertMethodsToProperty(
-                    documentOptions, parseOptions,
-                    semanticModel, editor.Generator,
-                    getAndSetMethods, propertyName, nameChanged));
+            var newProperty = ConvertMethodsToProperty(
+                documentOptions, parseOptions,
+                semanticModel, editor.Generator,
+                getAndSetMethods, propertyName, nameChanged);
+
+            editor.ReplaceNode(getMethodDeclaration, newProperty);
         }
 
         public SyntaxNode ConvertMethodsToProperty(
@@ -147,13 +144,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                 getMethodDeclaration.ReturnType, getMethodDeclaration.ExplicitInterfaceSpecifier,
                 nameToken, accessorList: null);
 
-            IEnumerable<SyntaxTrivia> trivia = getMethodDeclaration.GetLeadingTrivia();
-            var setMethodDeclaration = getAndSetMethods.SetMethodDeclaration;
-            if (setMethodDeclaration != null)
-            {
-                trivia = trivia.Concat(setMethodDeclaration.GetLeadingTrivia());
-            }
-            property = property.WithLeadingTrivia(trivia.Where(t => !t.IsDirective));
+            property = SetLeadingTrivia(
+                CSharpSyntaxFactsService.Instance, getAndSetMethods, property);
 
             var accessorList = SyntaxFactory.AccessorList(SyntaxFactory.SingletonList(getAccessor));
             if (setAccessor != null)
