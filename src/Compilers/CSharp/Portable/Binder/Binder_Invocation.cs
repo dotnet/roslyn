@@ -682,6 +682,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // If we call an unconstructed generic local function with a dynamic argument in
+            // a place where it influences the type parameters, we need to dynamically dispatch the call
+            // (as the function must be constructed at runtime). We cannot do that, so disallow that.
+            // However, doing a specific analysis of each argument and its corresponding parameter
+            // to check if it's generic (and allow dynamic in non-generic parameters) may break
+            // overload resolution in the future, if we ever allow overloaded local functions.
+            // So, just disallow any mixing of dynamic and inferred generics.
+            // (Explicitly-provided generic arguments are fine)
+            if (boundMethodGroup.TypeArgumentsOpt.IsDefaultOrEmpty && localFunction.IsGenericMethod)
+            {
+                Error(diagnostics,
+                    ErrorCode.ERR_DynamicLocalFunctionTypeParameter,
+                    syntax, localFunction.Name);
+                return BindDynamicInvocation(
+                    syntax,
+                    boundMethodGroup,
+                    resolution.AnalyzedArguments,
+                    resolution.OverloadResolutionResult.GetAllApplicableMembers(),
+                    diagnostics,
+                    queryClause);
+            }
+
             return BindInvocationExpressionContinued(
                 node: syntax,
                 expression: expression,
