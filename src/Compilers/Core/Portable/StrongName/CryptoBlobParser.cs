@@ -202,49 +202,50 @@ namespace Microsoft.CodeAnalysis
 
             try
             {
-                BinaryReader br = new BinaryReader(new MemoryStream(asArray));
+                using (MemoryStream memStream = new MemoryStream(asArray))
+                using (BinaryReader br = new BinaryReader(new MemoryStream(asArray))) {
+                    byte bType = br.ReadByte();    // BLOBHEADER.bType: Expected to be 0x6 (PUBLICKEYBLOB) or 0x7 (PRIVATEKEYBLOB), though there's no check for backward compat reasons. 
+                    byte bVersion = br.ReadByte(); // BLOBHEADER.bVersion: Expected to be 0x2, though there's no check for backward compat reasons.
+                    br.ReadUInt16();               // BLOBHEADER.wReserved
+                    uint algId = br.ReadUInt32();  // BLOBHEADER.aiKeyAlg
+                    uint magic = br.ReadUInt32();  // RSAPubKey.magic: Expected to be 0x31415352 ('RSA1') or 0x32415352 ('RSA2') 
+                    var bitLen = br.ReadUInt32();  // Bit Length for Modulus
+                    var pubExp = br.ReadUInt32();  // Exponent 
+                    var modulusLength = (int) (bitLen / 8);
 
-                byte bType = br.ReadByte();    // BLOBHEADER.bType: Expected to be 0x6 (PUBLICKEYBLOB) or 0x7 (PRIVATEKEYBLOB), though there's no check for backward compat reasons. 
-                byte bVersion = br.ReadByte(); // BLOBHEADER.bVersion: Expected to be 0x2, though there's no check for backward compat reasons.
-                br.ReadUInt16();               // BLOBHEADER.wReserved
-                uint algId = br.ReadUInt32();  // BLOBHEADER.aiKeyAlg
-                uint magic = br.ReadUInt32();  // RSAPubKey.magic: Expected to be 0x31415352 ('RSA1') or 0x32415352 ('RSA2') 
-                var bitLen = br.ReadUInt32();  // Bit Length for Modulus
-                var pubExp = br.ReadUInt32();  // Exponent 
-                var modulusLength = (int) (bitLen / 8);
 
-
-                if (blob.Length - s_offsetToKeyData < modulusLength)
-                {
-                    return false;
-                }
-
-                var modulus = br.ReadBytes((int) bitLen / 8);
-
-                if (!(bType == PrivateKeyBlobId && magic == RSA2) && !(bType == PublicKeyBlobId && magic == RSA1))
-                {
-                    return false;
-                }
-
-                if (bType == PrivateKeyBlobId)
-                {
-                    RSAParameters rsaParameters;
-                    using (var rsa = new RSACryptoServiceProvider())
+                    if (blob.Length - s_offsetToKeyData < modulusLength)
                     {
-                        rsa.ImportCspBlob(asArray);
-                        rsaParameters = rsa.ExportParameters(true);
+                        return false;
                     }
-                    privateKey = rsaParameters;
 
-                    // For snKey, rewrite some of the the parameters
-                    algId = AlgorithmId.RsaSign;
-                    magic = RSA1;
-                } 
+                    var modulus = br.ReadBytes((int) bitLen / 8);
 
-                snKey = CreateSnPublicKeyBlob(PublicKeyBlobId, bVersion, algId, RSA1, bitLen, pubExp, modulus);
-                return true;
+                    if (!(bType == PrivateKeyBlobId && magic == RSA2) && !(bType == PublicKeyBlobId && magic == RSA1))
+                    {
+                        return false;
+                    }
+
+                    if (bType == PrivateKeyBlobId)
+                    {
+                        RSAParameters rsaParameters;
+                        using (var rsa = new RSACryptoServiceProvider())
+                        {
+                            rsa.ImportCspBlob(asArray);
+                            rsaParameters = rsa.ExportParameters(true);
+                        }
+                        privateKey = rsaParameters;
+
+                        // For snKey, rewrite some of the the parameters
+                        algId = AlgorithmId.RsaSign;
+                        magic = RSA1;
+                    } 
+
+                    snKey = CreateSnPublicKeyBlob(PublicKeyBlobId, bVersion, algId, RSA1, bitLen, pubExp, modulus);
+                    return true;
+                }
             }
-            catch (EndOfStreamException)
+            catch (Exception)
             {
                 return false;
             }
