@@ -1264,24 +1264,24 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyVariableDeclarationStatement(declarations, _semanticModel, syntax, type, constantValue);
         }
 
-        private ILabelStatement CreateBoundLabelStatementOperation(BoundLabelStatement boundLabelStatement)
+        private ILabeledStatement CreateBoundLabelStatementOperation(BoundLabelStatement boundLabelStatement)
         {
             ILabelSymbol label = boundLabelStatement.Label;
-            Lazy<IOperation> labeledStatement = new Lazy<IOperation>(() => Create(null));
+            Lazy<IOperation> statement = new Lazy<IOperation>(() => Create(null));
             SyntaxNode syntax = boundLabelStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyLabelStatement(label, labeledStatement, _semanticModel, syntax, type, constantValue);
+            return new LazyLabeledStatement(label, statement, _semanticModel, syntax, type, constantValue);
         }
 
-        private ILabelStatement CreateBoundLabeledStatementOperation(BoundLabeledStatement boundLabeledStatement)
+        private ILabeledStatement CreateBoundLabeledStatementOperation(BoundLabeledStatement boundLabeledStatement)
         {
             ILabelSymbol label = boundLabeledStatement.Label;
             Lazy<IOperation> labeledStatement = new Lazy<IOperation>(() => Create(boundLabeledStatement.Body));
             SyntaxNode syntax = boundLabeledStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyLabelStatement(label, labeledStatement, _semanticModel, syntax, type, constantValue);
+            return new LazyLabeledStatement(label, labeledStatement, _semanticModel, syntax, type, constantValue);
         }
 
         private IExpressionStatement CreateBoundExpressionStatementOperation(BoundExpressionStatement boundExpressionStatement)

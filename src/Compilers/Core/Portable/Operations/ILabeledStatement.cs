@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface ILabelStatement : IOperation
+    public interface ILabeledStatement : IOperation
     {
         /// <summary>
         ///  Label that can be the target of branches.
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Statement that has been labeled.
         /// </summary>
-        IOperation LabeledStatement { get; }
+        IOperation Statement { get; }
     }
 }
 

@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis
         IfStatement = 0x5,
         /// <summary>Indicates an <see cref="ILoopStatement"/>.</summary>
         LoopStatement = 0x6,
-        /// <summary>Indicates an <see cref="ILabelStatement"/>.</summary>
-        LabelStatement = 0x7,
+        /// <summary>Indicates an <see cref="ILabeledStatement"/>.</summary>
+        LabeledStatement = 0x7,
         /// <summary>Indicates an <see cref="IBranchStatement"/>.</summary>
         BranchStatement = 0x8,
         /// <summary>Indicates an <see cref="IEmptyStatement"/>.</summary>

@@ -764,8 +764,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: ILambdaExpression (Signature: Sub (i As System.Int32)) (OperationKind.LambdaExpression, Type: null) (Syntax: 'Sub(i As In ... End Sub')
             IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'Sub(i As In ... End Sub')
-              ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Sub')
-                LabeledStatement: null
+              ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
+                Statement: null
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
                 ReturnedValue: null
 ]]>.Value
@@ -797,8 +797,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: ILambdaExpression (Signature: Sub ()) (OperationKind.LambdaExpression, Type: null) (Syntax: 'Sub()'BIND: ... End Sub')
             IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'Sub()'BIND: ... End Sub')
-              ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Sub')
-                LabeledStatement: null
+              ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
+                Statement: null
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
                 ReturnedValue: null
 ]]>.Value
@@ -830,8 +830,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: ILambdaExpression (Signature: Sub (i As System.Int32)) (OperationKind.LambdaExpression, Type: null, IsInvalid) (Syntax: 'Sub(i As In ... End Sub')
             IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Sub(i As In ... End Sub')
-              ILabelStatement (Label: exit) (OperationKind.LabelStatement, IsInvalid) (Syntax: 'End Sub')
-                LabeledStatement: null
+              ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid) (Syntax: 'End Sub')
+                Statement: null
               IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'End Sub')
                 ReturnedValue: null
 ]]>.Value
@@ -871,8 +871,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
               Locals: Local_1: <anonymous local> As System.Int32
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return 1')
                 ReturnedValue: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-              ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Function')
-                LabeledStatement: null
+              ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
+                Statement: null
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
                 ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Function')
 ]]>.Value
@@ -908,8 +908,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
               Locals: Local_1: <anonymous local> As System.Int32
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return 1')
                 ReturnedValue: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-              ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Function')
-                LabeledStatement: null
+              ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
+                Statement: null
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
                 ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Function')
 ]]>.Value
@@ -941,8 +941,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: ILambdaExpression (Signature: Sub ()) (OperationKind.LambdaExpression, Type: null, IsInvalid) (Syntax: 'Sub()'BIND: ... End Sub')
             IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Sub()'BIND: ... End Sub')
-              ILabelStatement (Label: exit) (OperationKind.LabelStatement, IsInvalid) (Syntax: 'End Sub')
-                LabeledStatement: null
+              ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid) (Syntax: 'End Sub')
+                Statement: null
               IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'End Sub')
                 ReturnedValue: null
 ]]>.Value
@@ -2104,8 +2104,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 ReturnedValue: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'num < 5')
                     Left: IParameterReferenceExpression: num (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'num')
                     Right: ILiteralExpression (Text: 5) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
-              ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'Function(num) num < 5')
-                LabeledStatement: null
+              ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'Function(num) num < 5')
+                Statement: null
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Function(num) num < 5')
                 ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'Function(num) num < 5')
 ]]>.Value
@@ -2144,8 +2144,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 ReturnedValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'num')
                     Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: IParameterReferenceExpression: num (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'num')
-              ILabelStatement (Label: exit) (OperationKind.LabelStatement, IsInvalid) (Syntax: 'Function(num) num')
-                LabeledStatement: null
+              ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid) (Syntax: 'Function(num) num')
+                Statement: null
               IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Function(num) num')
                 ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Boolean, IsInvalid) (Syntax: 'Function(num) num')
 ]]>.Value

@@ -126,8 +126,8 @@ IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
                                 IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{tr}')
                                   Element Values(1):
                                       IParameterReferenceExpression: tr (OperationKind.ParameterReferenceExpression, Type: System.TypedReference, IsInvalid) (Syntax: 'tr')
-  ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Sub')
-    LabeledStatement: null
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
+    Statement: null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
     ReturnedValue: null
 ]]>.Value
@@ -628,8 +628,8 @@ IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
       Initializer: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: __ As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>) (Syntax: 'New With {<a/>.<__>}')
           Initializers(1):
               IOperation:  (OperationKind.None) (Syntax: '<a/>.<__>')
-  ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Sub')
-    LabeledStatement: null
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
+    Statement: null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
     ReturnedValue: null
 ]]>.Value
@@ -835,8 +835,8 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
                             Instance Receiver: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.String, Key a As System.String>.x As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String, IsInvalid) (Syntax: '.x')
                                 Instance Receiver: null
                             Arguments(0)
-                      ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Function')
-                        LabeledStatement: null
+                      ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
+                        Statement: null
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
                         ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
             Arguments(0)
@@ -889,8 +889,8 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
                                             Children(1):
                                                 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.a')
                                                   Children(0)
-                      ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Function')
-                        LabeledStatement: null
+                      ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
+                        Statement: null
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
                         ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
             Arguments(0)
@@ -943,8 +943,8 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
                                             Children(1):
                                                 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.x')
                                                   Children(0)
-                      ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Function')
-                        LabeledStatement: null
+                      ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
+                        Statement: null
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
                         ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
             Arguments(0)
@@ -1006,13 +1006,13 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
                                                             Children(1):
                                                                 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.x')
                                                                   Children(0)
-                                      ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Function')
-                                        LabeledStatement: null
+                                      ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
+                                        Statement: null
                                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
                                         ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
                             Arguments(0)
-                      ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Function')
-                        LabeledStatement: null
+                      ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
+                        Statement: null
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
                         ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
             Arguments(0)

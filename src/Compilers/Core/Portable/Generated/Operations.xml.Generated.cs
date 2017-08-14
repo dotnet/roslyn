@@ -2583,10 +2583,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# or VB label statement.
     /// </summary>
-    internal abstract partial class BaseLabelStatement : Operation, ILabelStatement
+    internal abstract partial class BaseLabeledStatement : Operation, ILabeledStatement
     {
-        protected BaseLabelStatement(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-                    base(OperationKind.LabelStatement, semanticModel, syntax, type, constantValue)
+        protected BaseLabeledStatement(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.LabeledStatement, semanticModel, syntax, type, constantValue)
         {
             Label = label;
         }
@@ -2594,55 +2594,55 @@ namespace Microsoft.CodeAnalysis.Semantics
         ///  Label that can be the target of branches.
         /// </summary>
         public ILabelSymbol Label { get; }
-        protected abstract IOperation LabeledStatementImpl { get; }
+        protected abstract IOperation StatementImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                yield return LabeledStatement;
+                yield return Statement;
             }
         }
         /// <summary>
         /// Statement that has been labeled.
         /// </summary>
-        public IOperation LabeledStatement => Operation.SetParentOperation(LabeledStatementImpl, this);
+        public IOperation Statement => Operation.SetParentOperation(StatementImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitLabelStatement(this);
+            visitor.VisitLabeledStatement(this);
         }
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitLabelStatement(this, argument);
+            return visitor.VisitLabeledStatement(this, argument);
         }
     }
 
     /// <summary>
     /// Represents a C# or VB label statement.
     /// </summary>
-    internal sealed partial class LabelStatement : BaseLabelStatement, ILabelStatement
+    internal sealed partial class LabeledStatement : BaseLabeledStatement, ILabeledStatement
     {
-        public LabelStatement(ILabelSymbol label, IOperation labeledStatement, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public LabeledStatement(ILabelSymbol label, IOperation labeledStatement, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(label, semanticModel, syntax, type, constantValue)
         {
-            LabeledStatementImpl = labeledStatement;
+            StatementImpl = labeledStatement;
         }
 
-        protected override IOperation LabeledStatementImpl { get; }
+        protected override IOperation StatementImpl { get; }
     }
 
     /// <summary>
     /// Represents a C# or VB label statement.
     /// </summary>
-    internal sealed partial class LazyLabelStatement : BaseLabelStatement, ILabelStatement
+    internal sealed partial class LazyLabeledStatement : BaseLabeledStatement, ILabeledStatement
     {
-        private readonly Lazy<IOperation> _lazyLabeledStatement;
+        private readonly Lazy<IOperation> _lazyStatement;
 
-        public LazyLabelStatement(ILabelSymbol label, Lazy<IOperation> labeledStatement, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(label, semanticModel, syntax, type, constantValue)
+        public LazyLabeledStatement(ILabelSymbol label, Lazy<IOperation> statement, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(label, semanticModel, syntax, type, constantValue)
         {
-            _lazyLabeledStatement = labeledStatement ?? throw new System.ArgumentNullException(nameof(labeledStatement));
+            _lazyStatement = statement ?? throw new System.ArgumentNullException(nameof(statement));
         }
 
-        protected override IOperation LabeledStatementImpl => _lazyLabeledStatement.Value;
+        protected override IOperation StatementImpl => _lazyStatement.Value;
     }
 
     /// <summary>

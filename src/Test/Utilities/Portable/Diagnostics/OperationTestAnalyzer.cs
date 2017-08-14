@@ -1468,13 +1468,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             context.RegisterOperationAction(
                 (operationContext) =>
                 {
-                    ILabelSymbol label = ((ILabelStatement)operationContext.Operation).Label;
+                    ILabelSymbol label = ((ILabeledStatement)operationContext.Operation).Label;
                     if (label.Name == "Wilma" || label.Name == "Betty")
                     {
                         operationContext.ReportDiagnostic(Diagnostic.Create(LabelDescriptor, operationContext.Operation.Syntax.GetLocation()));
                     }
                 },
-                OperationKind.LabelStatement);
+                OperationKind.LabeledStatement);
 
             context.RegisterOperationAction(
                 (operationContext) =>

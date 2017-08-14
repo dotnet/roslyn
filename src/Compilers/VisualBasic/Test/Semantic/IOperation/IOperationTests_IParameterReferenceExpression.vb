@@ -385,8 +385,8 @@ IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.Conve
         Locals: Local_1: <anonymous local> As System.Object
         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x')
           ReturnedValue: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
-        ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'Function() x')
-          LabeledStatement: null
+        ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'Function() x')
+          Statement: null
         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Function() x')
           ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'Function() x')
 ]]>.Value
