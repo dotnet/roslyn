@@ -43,7 +43,7 @@ Critical IDE features in the areas of **Typing**, **Navigating**, and **Viewing*
 
 | Category | Feature/Description | C# Signoff/Notes | VB Signoff/Notes | F# Signoff/Notes |
 | --- | --- | --- | --- | --- | 
-| **Enable/Disable** | **Feature Flag** <br />Completely enables/disables the feature in the compiler & IDE | | | N/A |
+| **Enable/Disable** | **Feature Flags** <br />To completely enables/disable new compiler features in the compiler & IDE | | | N/A |
 | **Typing** | **General Typing**<br />- Type and paste new constructs<br />- Nothing interferes with verbatim typing | | | |
 | | **Completion**<br />- Typing new keyword/construct names<br />- Dotting off of new constructs<br />- Matching part of the identifier is highlighted (including word prefix matches) [Visual Studio 2015 Update 1]<br />- Target type preselection [Visual Studio 2017]<br />IntelliSense filtering [Visual Studio 2017] | | | |
 | | **Formatting** <br />- Spacing in and around new constructs<br />- Spacing options<br />- Format Document command<br /> `Tools > Options` settings should be respected | | | |
