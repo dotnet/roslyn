@@ -2,12 +2,14 @@
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub PositionalArgument()
             Dim source = <![CDATA[
@@ -39,6 +41,7 @@ IInvocationExpression ( Sub Program.M2(a As System.Int32, b As System.Double)) (
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub PositionalArgumentWithDefaultValue()
             Dim source = <![CDATA[
@@ -70,6 +73,7 @@ IInvocationExpression ( Sub Program.M2(a As System.Int32, [b As System.Double = 
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub NamedArgumentListedInParameterOrder()
             Dim source = <![CDATA[
@@ -101,6 +105,7 @@ IInvocationExpression ( Sub Program.M2(a As System.Int32, [b As System.Double = 
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub NamedArgumentListedOutOfParameterOrder()
             Dim source = <![CDATA[
@@ -132,6 +137,7 @@ IInvocationExpression ( Sub Program.M2(a As System.Int32, [b As System.Double = 
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub NamedArgumentInParameterOrderWithDefaultValue()
             Dim source = <![CDATA[
@@ -167,6 +173,7 @@ IInvocationExpression ( Sub Program.M2([a As System.Int32 = 0], [b As System.Dou
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub NamedArgumentInParameterOrderWithDefaultValueUsingOmittedSyntax()
             Dim source = <![CDATA[
@@ -202,6 +209,7 @@ IInvocationExpression ( Sub Program.M2([a As System.Int32 = 0], [b As System.Dou
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub NamedArgumentOutOfParameterOrderWithDefaultValue()
             Dim source = <![CDATA[
@@ -237,6 +245,7 @@ IInvocationExpression ( Sub Program.M2([a As System.Int32 = 0], [b As System.Dou
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub NamedAndPositionalArgumentsWithDefaultValue()
             Dim source = <![CDATA[
@@ -272,6 +281,7 @@ IInvocationExpression ( Sub Program.M2([a As System.Int32 = 0], [b As System.Dou
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub PositionalByRefNonModifiableArgument()
             Dim source = <![CDATA[
@@ -300,6 +310,7 @@ IInvocationExpression ( Sub Program.M2([ByRef a As System.Int32 = 0])) (Operatio
         End Sub
 
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub PositionalByRefModifiableArgument()
             Dim source = <![CDATA[
@@ -328,6 +339,7 @@ IInvocationExpression ( Sub Program.M2([ByRef a As System.Int32 = 0])) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub NamedByRefModifiableArgumentsOutOfParameterOrder()
             Dim source = <![CDATA[
@@ -361,6 +373,7 @@ IInvocationExpression ( Sub Program.M2([ByRef a As System.Int32 = 0], [ByRef b A
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub DefaultValueForByRefParameter()
             Dim source = <![CDATA[
@@ -389,6 +402,7 @@ IInvocationExpression ( Sub Program.M2([ByRef a As System.Int32 = 0])) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub PositionalByRefNonModifiableArgumentWithConversion()
             Dim source = <![CDATA[
@@ -406,7 +420,8 @@ IInvocationExpression ( Sub Program.M2([ByRef a As System.Int32 = 0])) (Operatio
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M2')
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument) (Syntax: '1.0')
-        IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: '1.0')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: '1.0')
+          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 1) (Syntax: '1.0')
         InConversion: null
         OutConversion: null
@@ -417,6 +432,7 @@ IInvocationExpression ( Sub Program.M2([ByRef a As System.Int32 = 0])) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub PositionalByRefModifiableArgumentWithConversion()
             Dim source = <![CDATA[
@@ -436,9 +452,11 @@ IInvocationExpression ( Sub Program.M2([ByRef a As System.Int32 = 0])) (Operatio
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument) (Syntax: 'x')
         ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Double) (Syntax: 'x')
-        InConversion: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'x')
+        InConversion: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'x')
+            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: IOperation:  (OperationKind.None) (Syntax: 'x')
-        OutConversion: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Double) (Syntax: 'x')
+        OutConversion: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double) (Syntax: 'x')
+            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: IPlaceholderExpression (OperationKind.PlaceholderExpression, Type: System.Int32) (Syntax: 'x')
 ]]>.Value
 
@@ -447,6 +465,7 @@ IInvocationExpression ( Sub Program.M2([ByRef a As System.Int32 = 0])) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub PositionalArgumentForExtensionMethod()
             Dim source = <![CDATA[
@@ -483,6 +502,7 @@ IInvocationExpression ( Sub P.E1([b As System.Int32 = 0], [c As System.Int32 = 0
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub NamedArgumentOutOfParameterOrderForExtensionMethod()
             Dim source = <![CDATA[
@@ -521,6 +541,7 @@ IInvocationExpression ( Sub P.E1([b As System.Int32 = 0], [c As System.Int32 = 0
 
 
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ParamsArrayArgumentInNormalForm()
             Dim source = <![CDATA[
@@ -554,6 +575,7 @@ IInvocationExpression ( Sub P.M2(x As System.Int32, ParamArray y As System.Int32
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ParamsArrayArgumentInExpandedForm()
             Dim source = <![CDATA[
@@ -592,6 +614,7 @@ IInvocationExpression ( Sub P.M2(x As System.Int32, ParamArray y As System.Int32
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ParamsArrayArgumentInExpandedFormWithNoArgument()
             Dim source = <![CDATA[
@@ -630,6 +653,7 @@ IInvocationExpression ( Sub P.M2(x As System.Int32, ParamArray y As System.Int32
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub Error_MissingRequiredArgument()
             Dim source = <![CDATA[
@@ -657,6 +681,7 @@ BC30455: Argument not specified for parameter 'x' of 'Public Sub M2(x As Integer
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub Error_TooManyArguments()
             Dim source = <![CDATA[
@@ -686,6 +711,7 @@ BC30057: Too many arguments to 'Public Sub M2(x As Integer)'.
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub Error_ExtraOmittedArgument()
             Dim source = <![CDATA[
@@ -717,6 +743,7 @@ BC30057: Too many arguments to 'Public Sub M2(x As Integer, [y As Integer = 0], 
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub Error_OmittingParamArrayArgument()
             Dim source = <![CDATA[
@@ -746,6 +773,7 @@ BC30588: Omitted argument cannot match a ParamArray parameter.
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub Error_NamedArgumentMatchingParamArray()
             Dim source = <![CDATA[
@@ -776,6 +804,7 @@ BC30587: Named argument cannot match a ParamArray parameter.
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub Error_NamedArgumenNotExist()
             Dim source = <![CDATA[

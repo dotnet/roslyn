@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document>
         class C
         {
-            void Foo()
+            void Goo()
             {
                 int {|Definition:$$i|} = 0;
                 Console.WriteLine([|i|]);
@@ -37,8 +37,8 @@ class Program
 {
     public Action&lt;object&gt; Test { get; set; } = test =>
     {
-        var $${|Definition:foo|} = 1;
-        [|foo|] = 3;
+        var $${|Definition:goo|} = 1;
+        [|goo|] = 3;
     };
 }
         </Document>
@@ -97,7 +97,7 @@ class Program
         <Document>
         class C
         {
-            void Foo()
+            void Goo()
             {
                 int {|Definition:$$i|} = 0;
                 Console.WriteLine(I);
@@ -116,7 +116,7 @@ class Program
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
         class C
-            sub Foo()
+            sub Goo()
                 dim {|Definition:$$i|} = 0
                 Console.WriteLine([|i|])
                 Console.WriteLine([|I|])

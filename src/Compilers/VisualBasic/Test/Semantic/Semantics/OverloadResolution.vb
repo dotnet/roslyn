@@ -3157,14 +3157,14 @@ Option Strict On
 Module Program
     Sub Main()
         Dim a As A(Of Long, Integer)
-        a.Foo(y:=1, x:=1)
+        a.Goo(y:=1, x:=1)
     End Sub
 End Module
  
 Class A(Of T, S)
-    Sub Foo(x As Integer, y As T)
+    Sub Goo(x As Integer, y As T)
     End Sub
-    Sub Foo(y As Long, x As S)
+    Sub Goo(y As Long, x As S)
     End Sub
 End Class
     </file>
@@ -3175,12 +3175,12 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC42104: Variable 'a' is used before it has been assigned a value. A null reference exception could result at runtime.
-        a.Foo(y:=1, x:=1)
+        a.Goo(y:=1, x:=1)
         ~
-BC30521: Overload resolution failed because no accessible 'Foo' is most specific for these arguments:
-    'Public Sub Foo(x As Integer, y As Long)': Not most specific.
-    'Public Sub Foo(y As Long, x As Integer)': Not most specific.
-        a.Foo(y:=1, x:=1)
+BC30521: Overload resolution failed because no accessible 'Goo' is most specific for these arguments:
+    'Public Sub Goo(x As Integer, y As Long)': Not most specific.
+    'Public Sub Goo(y As Long, x As Integer)': Not most specific.
+        a.Goo(y:=1, x:=1)
           ~~~
 </expected>)
         End Sub
@@ -3202,10 +3202,10 @@ Public Class Bar
         Console.Write("B;")
     End Sub
 End Class
-Public Module Foo
+Public Module Goo
     Sub Main()
-        Dim foo As IEnumerable(Of Integer) = Nothing
-        Bar.Equal(foo, foo)
+        Dim goo As IEnumerable(Of Integer) = Nothing
+        Bar.Equal(goo, goo)
     End Sub
 End Module
     </file>
@@ -3228,10 +3228,10 @@ Public Class Bar
     Shared Sub Equal(Of T)(exp As T, act As IEnumerable(Of T))
     End Sub
 End Class
-Public Module Foo
+Public Module Goo
     Sub Main()
-        Dim foo As IEnumerable(Of Integer) = Nothing
-        Bar.Equal(foo, foo)
+        Dim goo As IEnumerable(Of Integer) = Nothing
+        Bar.Equal(goo, goo)
     End Sub
 End Module
     </file>
@@ -3244,7 +3244,7 @@ End Module
 BC30518: Overload resolution failed because no accessible 'Equal' can be called with these arguments:
     'Public Shared Sub Equal(Of T)(exp As IEnumerable(Of T), act As T)': Data type(s) of the type parameter(s) cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
     'Public Shared Sub Equal(Of T)(exp As T, act As IEnumerable(Of T))': Data type(s) of the type parameter(s) cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.
-        Bar.Equal(foo, foo)
+        Bar.Equal(goo, goo)
             ~~~~~
 </expected>)
         End Sub
@@ -3269,10 +3269,10 @@ End Interface
 Class P(Of T)
     Implements I1(Of T), I2(Of T)
 End Class
-Public Module Foo
+Public Module Goo
     Sub Main()
-        Dim foo As New P(Of Integer)
-        Bar.Equal(foo)
+        Dim goo As New P(Of Integer)
+        Bar.Equal(goo)
     End Sub
 End Module
     </file>
@@ -3285,7 +3285,7 @@ End Module
 BC30521: Overload resolution failed because no accessible 'Equal' is most specific for these arguments:
     'Public Shared Sub Equal(Of Integer)(exp As I1(Of Integer))': Not most specific.
     'Public Shared Sub Equal(Of Integer)(exp As I2(Of Integer))': Not most specific.
-        Bar.Equal(foo)
+        Bar.Equal(goo)
             ~~~~~
 </expected>)
         End Sub
@@ -3311,13 +3311,13 @@ End Interface
 Class P(Of T)
     Implements I2(Of I2(Of T)), I2(Of T)
 End Class
-Public Module Foo
+Public Module Goo
     Sub Main()
-        Dim foo As New P(Of Integer)
-        Dim foo2 As I2(Of Integer) = foo
-        Bar.Equal(foo2)
-        Dim foo3 As I2(Of I2(Of Integer)) = foo
-        Bar.Equal(foo3)
+        Dim goo As New P(Of Integer)
+        Dim goo2 As I2(Of Integer) = goo
+        Bar.Equal(goo2)
+        Dim goo3 As I2(Of I2(Of Integer)) = goo
+        Bar.Equal(goo3)
     End Sub
 End Module
     </file>
@@ -3344,10 +3344,10 @@ Public Class Bar
 End Class
 Public Interface I2(Of T)
 End Interface
-Public Module Foo
+Public Module Goo
     Sub Main()
-        Dim foo() As I2(Of Integer) = Nothing
-        Bar.Equal(foo)
+        Dim goo() As I2(Of Integer) = Nothing
+        Bar.Equal(goo)
     End Sub
 End Module
     </file>
@@ -3599,10 +3599,10 @@ Imports System.Console
 Module Module1
 
     Sub Main()
-        Foo(Of Integer, Integer)()
-        Foo(Of Integer, Integer)(1, 2)
-        Foo(Of Integer)()
-        Foo(Of Integer)(1, 2)
+        Goo(Of Integer, Integer)()
+        Goo(Of Integer, Integer)(1, 2)
+        Goo(Of Integer)()
+        Goo(Of Integer)(1, 2)
 
         Dim g As System.Guid = Nothing
 
@@ -3615,13 +3615,13 @@ Module Module1
         F3(1, , z:=1)
         F3(1, 1, x:=1)
 
-        Foo(1)
+        Goo(1)
     End Sub
 
-    Sub Foo(Of T)(x As Integer)
+    Sub Goo(Of T)(x As Integer)
     End Sub
 
-    Sub Foo(Of S)(x As Long)
+    Sub Goo(Of S)(x As Long)
     End Sub
 
     Sub F1(x As Integer)
@@ -3649,17 +3649,17 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC32087: Overload resolution failed because no accessible 'Foo' accepts this number of type arguments.
-        Foo(Of Integer, Integer)()
+BC32087: Overload resolution failed because no accessible 'Goo' accepts this number of type arguments.
+        Goo(Of Integer, Integer)()
         ~~~~~~~~~~~~~~~~~~~~~~~~
-BC32087: Overload resolution failed because no accessible 'Foo' accepts this number of type arguments.
-        Foo(Of Integer, Integer)(1, 2)
+BC32087: Overload resolution failed because no accessible 'Goo' accepts this number of type arguments.
+        Goo(Of Integer, Integer)(1, 2)
         ~~~~~~~~~~~~~~~~~~~~~~~~
-BC30516: Overload resolution failed because no accessible 'Foo' accepts this number of arguments.
-        Foo(Of Integer)()
+BC30516: Overload resolution failed because no accessible 'Goo' accepts this number of arguments.
+        Goo(Of Integer)()
         ~~~~~~~~~~~~~~~
-BC30516: Overload resolution failed because no accessible 'Foo' accepts this number of arguments.
-        Foo(Of Integer)(1, 2)
+BC30516: Overload resolution failed because no accessible 'Goo' accepts this number of arguments.
+        Goo(Of Integer)(1, 2)
         ~~~~~~~~~~~~~~~
 BC30518: Overload resolution failed because no accessible 'F1' can be called with these arguments:
     'Public Sub F1(x As Integer)': Value of type 'Guid' cannot be converted to 'Integer'.
@@ -3697,10 +3697,10 @@ BC30518: Overload resolution failed because no accessible 'F3' can be called wit
     'Public Sub F3(x As Long, z As Long, y As Integer)': Argument not specified for parameter 'y'.
         F3(1, 1, x:=1)
         ~~
-BC30518: Overload resolution failed because no accessible 'Foo' can be called with these arguments:
-    'Public Sub Foo(Of T)(x As Integer)': Type parameter 'T' cannot be inferred.
-    'Public Sub Foo(Of S)(x As Long)': Type parameter 'S' cannot be inferred.
-        Foo(1)
+BC30518: Overload resolution failed because no accessible 'Goo' can be called with these arguments:
+    'Public Sub Goo(Of T)(x As Integer)': Type parameter 'T' cannot be inferred.
+    'Public Sub Goo(Of S)(x As Long)': Type parameter 'S' cannot be inferred.
+        Goo(1)
         ~~~
 </expected>)
         End Sub
@@ -3961,14 +3961,14 @@ Module M
   Sub Main()
     Dim x As String 
     Dim y As Object = Nothing
-    x = Foo(y).ToLower()
-    x = Foo((y)).ToLower()
+    x = Goo(y).ToLower()
+    x = Goo((y)).ToLower()
   End Sub
 
-  Sub Foo(ByVal x As String)
+  Sub Goo(ByVal x As String)
   End Sub
 
-  Function Foo(ByVal ParamArray x As String()) As String
+  Function Goo(ByVal ParamArray x As String()) As String
     return Nothing
   End Function
 End Module
@@ -3981,10 +3981,10 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30491: Expression does not produce a value.
-    x = Foo(y).ToLower()
+    x = Goo(y).ToLower()
         ~~~~~~
 BC30491: Expression does not produce a value.
-    x = Foo((y)).ToLower()
+    x = Goo((y)).ToLower()
         ~~~~~~~~
 </expected>)
 
@@ -3998,22 +3998,22 @@ Imports System
 Module M
   Sub Main()
     Dim x As String 
-    x = Foo(CObj(Nothing)).ToLower()
-    x = Foo(CObj((Nothing))).ToLower()
-    x = Foo(CType(Nothing, Object)).ToLower()
-    x = Foo(DirectCast(Nothing, Object)).ToLower()
-    x = Foo(TryCast(Nothing, Object)).ToLower()
-    x = Foo(CType(CStr(Nothing), Object)).ToLower()
-    x = Foo(CType(CType(Nothing, ValueType), Object)).ToLower()
-    x = Foo(CType(CType(CType(Nothing, Derived()), Base()), Object)).ToLower()
-    x = Foo(CType(CType(CType(Nothing, Derived), Derived), Object)).ToLower()
-    x = Foo(CType(Nothing, String())).ToLower()
+    x = Goo(CObj(Nothing)).ToLower()
+    x = Goo(CObj((Nothing))).ToLower()
+    x = Goo(CType(Nothing, Object)).ToLower()
+    x = Goo(DirectCast(Nothing, Object)).ToLower()
+    x = Goo(TryCast(Nothing, Object)).ToLower()
+    x = Goo(CType(CStr(Nothing), Object)).ToLower()
+    x = Goo(CType(CType(Nothing, ValueType), Object)).ToLower()
+    x = Goo(CType(CType(CType(Nothing, Derived()), Base()), Object)).ToLower()
+    x = Goo(CType(CType(CType(Nothing, Derived), Derived), Object)).ToLower()
+    x = Goo(CType(Nothing, String())).ToLower()
   End Sub
 
-  Sub Foo(ByVal x As String)
+  Sub Goo(ByVal x As String)
   End Sub
 
-  Function Foo(ByVal ParamArray x As String()) As String
+  Function Goo(ByVal ParamArray x As String()) As String
         System.Console.WriteLine("Function")
         Return ""
   End Function
@@ -4051,13 +4051,13 @@ Imports System
 
 Module M
   Sub Main()
-    Foo(CObj(Nothing))
+    Goo(CObj(Nothing))
   End Sub
 
-  Sub Foo(ByVal x As String)
+  Sub Goo(ByVal x As String)
   End Sub
 
-  Function Foo(ByVal ParamArray x As String()) As String
+  Function Goo(ByVal ParamArray x As String()) As String
         System.Console.WriteLine("Function")
         Return ""
   End Function
@@ -4071,10 +4071,10 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30518: Overload resolution failed because no accessible 'Foo' can be called with these arguments:
-    'Public Sub Foo(x As String)': Option Strict On disallows implicit conversions from 'Object' to 'String'.
-    'Public Function Foo(ParamArray x As String()) As String': Option Strict On disallows implicit conversions from 'Object' to 'String()'.
-    Foo(CObj(Nothing))
+BC30518: Overload resolution failed because no accessible 'Goo' can be called with these arguments:
+    'Public Sub Goo(x As String)': Option Strict On disallows implicit conversions from 'Object' to 'String'.
+    'Public Function Goo(ParamArray x As String()) As String': Option Strict On disallows implicit conversions from 'Object' to 'String()'.
+    Goo(CObj(Nothing))
     ~~~
 </expected>)
 
@@ -4085,7 +4085,7 @@ BC30518: Overload resolution failed because no accessible 'Foo' can be called wi
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC42016: Implicit conversion from 'Object' to 'String()'.
-    Foo(CObj(Nothing))
+    Goo(CObj(Nothing))
         ~~~~~~~~~~~~~
 </expected>)
 
@@ -4126,13 +4126,13 @@ Imports System
 
 Module Program
   Sub Main()
-    Console.WriteLine(Foo(0).ToLower())
+    Console.WriteLine(Goo(0).ToLower())
   End Sub
 
-  Sub Foo(x As DayOfWeek)
+  Sub Goo(x As DayOfWeek)
   End Sub
 
-  Function Foo(x As Object) As String
+  Function Goo(x As Object) As String
     Return "ABC"
   End Function
 End Module
@@ -4160,10 +4160,10 @@ Imports System
 
 Module Program
     Sub Main()
-        Console.WriteLine(Foo(0).ToLower())
+        Console.WriteLine(Goo(0).ToLower())
     End Sub
 
-    Function Foo(x As DayOfWeek?) As String
+    Function Goo(x As DayOfWeek?) As String
         Return "ABC"
     End Function
 End Module
@@ -4184,29 +4184,29 @@ End Module
 Imports System
 
 Class B
-  Sub Foo(x As Integer, ParamArray z As Integer())
-     System.Console.WriteLine("B.Foo")
+  Sub Goo(x As Integer, ParamArray z As Integer())
+     System.Console.WriteLine("B.Goo")
   End Sub
 End Class
 
 Class C
   Inherits B
-  Overloads Sub Foo(y As Integer)
-     System.Console.WriteLine("C.Foo")
+  Overloads Sub Goo(y As Integer)
+     System.Console.WriteLine("C.Goo")
   End Sub
 End Class
 
 Module M
   Sub Main()
     Dim p as New C()
-    p.Foo(x:=1) ' This fails to compile in Dev10, but works in Roslyn
+    p.Goo(x:=1) ' This fails to compile in Dev10, but works in Roslyn
   End Sub
 End Module
     </file>
       </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
-            CompileAndVerify(compilation, expectedOutput:="B.Foo")
+            CompileAndVerify(compilation, expectedOutput:="B.Goo")
 
             compilationDef =
       <compilation name="TestInvocationWithNamedArgumentInLambda">
@@ -4214,24 +4214,24 @@ End Module
 Imports System
 
 Class B
-  Sub Foo(x As Integer, ParamArray z As Integer())
+  Sub Goo(x As Integer, ParamArray z As Integer())
   End Sub
 End Class
 
 Class C
   Inherits B
-  Overloads Sub Foo(y As Integer)
+  Overloads Sub Goo(y As Integer)
   End Sub
 End Class
 
 Class D
-  Overloads Sub Foo(x As Integer)
+  Overloads Sub Goo(x As Integer)
   End Sub
 End Class
 
 Module M
   Sub Main()
-    Console.WriteLine(Bar(Sub(p) p.Foo(x:=1)).ToLower())
+    Console.WriteLine(Bar(Sub(p) p.Goo(x:=1)).ToLower())
   End Sub
 
   Sub Bar(a As Action(Of C))
@@ -4248,7 +4248,7 @@ End Module
 BC30521: Overload resolution failed because no accessible 'Bar' is most specific for these arguments:
     'Public Sub Bar(a As Action(Of C))': Not most specific.
     'Public Function Bar(a As Action(Of D)) As String': Not most specific.
-    Console.WriteLine(Bar(Sub(p) p.Foo(x:=1)).ToLower())
+    Console.WriteLine(Bar(Sub(p) p.Goo(x:=1)).ToLower())
                       ~~~]]>)
 
             compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Off))
@@ -4256,7 +4256,7 @@ BC30521: Overload resolution failed because no accessible 'Bar' is most specific
 BC30521: Overload resolution failed because no accessible 'Bar' is most specific for these arguments:
     'Public Sub Bar(a As Action(Of C))': Not most specific.
     'Public Function Bar(a As Action(Of D)) As String': Not most specific.
-    Console.WriteLine(Bar(Sub(p) p.Foo(x:=1)).ToLower())
+    Console.WriteLine(Bar(Sub(p) p.Goo(x:=1)).ToLower())
                       ~~~]]>)
         End Sub
 
@@ -4481,23 +4481,23 @@ BC30389: 'Module2.P2(x As Integer)' is not accessible in this context because it
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A
-    Shared Sub Foo(x As Integer)
+    Shared Sub Goo(x As Integer)
     End Sub
 End Class
  
 Class B
     Inherits A
-    Shadows Property Foo As Integer
+    Shadows Property Goo As Integer
 End Class
  
 Class C
     Inherits B
-    Overloads Shared Function Foo(x As Object) As Object
+    Overloads Shared Function Goo(x As Object) As Object
         Return Nothing
     End Function
 
     Shared Sub Bar()
-        Foo(1).ToString()
+        Goo(1).ToString()
     End Sub
 End Class
 
@@ -4505,8 +4505,8 @@ End Class
 </compilation>)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected>
-BC40004: function 'Foo' conflicts with property 'Foo' in the base class 'B' and should be declared 'Shadows'.
-    Overloads Shared Function Foo(x As Object) As Object
+BC40004: function 'Goo' conflicts with property 'Goo' in the base class 'B' and should be declared 'Shadows'.
+    Overloads Shared Function Goo(x As Object) As Object
                               ~~~
                                                             </expected>)
         End Sub
@@ -4517,23 +4517,23 @@ BC40004: function 'Foo' conflicts with property 'Foo' in the base class 'B' and 
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A
-    Shared Sub Foo(x As Integer)
+    Shared Sub Goo(x As Integer)
     End Sub
 End Class
  
 Class B
     Inherits A
-    Overloads Property Foo As Integer
+    Overloads Property Goo As Integer
 End Class
  
 Class C
     Inherits B
-    Overloads Shared Function Foo(x As Object) As Object
+    Overloads Shared Function Goo(x As Object) As Object
         Return Nothing
     End Function
 
     Shared Sub Bar()
-        Foo(1).ToString()
+        Goo(1).ToString()
     End Sub
 End Class
 
@@ -4541,11 +4541,11 @@ End Class
 </compilation>)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected>
-BC40004: property 'Foo' conflicts with sub 'Foo' in the base class 'A' and should be declared 'Shadows'.
-    Overloads Property Foo As Integer
+BC40004: property 'Goo' conflicts with sub 'Goo' in the base class 'A' and should be declared 'Shadows'.
+    Overloads Property Goo As Integer
                        ~~~
-BC40004: function 'Foo' conflicts with property 'Foo' in the base class 'B' and should be declared 'Shadows'.
-    Overloads Shared Function Foo(x As Object) As Object
+BC40004: function 'Goo' conflicts with property 'Goo' in the base class 'B' and should be declared 'Shadows'.
+    Overloads Shared Function Goo(x As Object) As Object
                               ~~~
                                                             </expected>)
         End Sub
@@ -4556,24 +4556,24 @@ BC40004: function 'Foo' conflicts with property 'Foo' in the base class 'B' and 
 <compilation>
     <file name="a.vb"><![CDATA[
 Interface A
-    Sub Foo(x As Integer)
+    Sub Goo(x As Integer)
 End Interface
 
 Interface B
     Inherits A
-    Shadows Property Foo As Integer
+    Shadows Property Goo As Integer
 End Interface
 
 Interface C
     Inherits B
-    Overloads Function Foo(x As Object) As Object
+    Overloads Function Goo(x As Object) As Object
 
 End Interface
 
 Class D
     Shared Sub Bar()
         Dim q As C = Nothing
-        q.Foo(1).ToString()
+        q.Goo(1).ToString()
     End Sub
 
 End Class
@@ -4581,8 +4581,8 @@ End Class
 </compilation>)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected>
-BC40004: function 'Foo' conflicts with property 'Foo' in the base interface 'B' and should be declared 'Shadows'.
-    Overloads Function Foo(x As Object) As Object
+BC40004: function 'Goo' conflicts with property 'Goo' in the base interface 'B' and should be declared 'Shadows'.
+    Overloads Function Goo(x As Object) As Object
                        ~~~
                                                             </expected>)
         End Sub
@@ -4595,24 +4595,24 @@ BC40004: function 'Foo' conflicts with property 'Foo' in the base interface 'B' 
 Option Strict On
  
 Class A
-    Shared Function Foo() As Integer()
+    Shared Function Goo() As Integer()
         Return Nothing
     End Function
 End Class
  
 Class B
     Inherits A
-    Overloads Shared Sub Foo() 
+    Overloads Shared Sub Goo() 
     End Sub
     Sub Main()
-        Foo(1).ToString()
+        Goo(1).ToString()
     End Sub
 End Class    ]]></file>
 </compilation>)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected>
-BC32016: 'Public Shared Overloads Sub Foo()' has no parameters and its return type cannot be indexed.
-        Foo(1).ToString()
+BC32016: 'Public Shared Overloads Sub Goo()' has no parameters and its return type cannot be indexed.
+        Goo(1).ToString()
         ~~~
                                                             </expected>)
         End Sub
@@ -4625,27 +4625,27 @@ BC32016: 'Public Shared Overloads Sub Foo()' has no parameters and its return ty
 Option Strict On
  
 Class A
-    Shared Function Foo() As Integer()
+    Shared Function Goo() As Integer()
         Return Nothing
     End Function
 End Class
  
 Class B
     Inherits A
-    Overloads Shared Sub Foo(optional a as integer = 3) 
+    Overloads Shared Sub Goo(optional a as integer = 3) 
     End Sub
     Sub Main()
-        Foo(1).ToString()
+        Goo(1).ToString()
     End Sub
 End Class    ]]></file>
 </compilation>)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected>
-BC32016: 'Public Shared Overloads Sub Foo([a As Integer = 3])' has no parameters and its return type cannot be indexed.
-        Foo(1).ToString()
+BC32016: 'Public Shared Overloads Sub Goo([a As Integer = 3])' has no parameters and its return type cannot be indexed.
+        Goo(1).ToString()
         ~~~
 BC30491: Expression does not produce a value.
-        Foo(1).ToString()
+        Goo(1).ToString()
         ~~~~~~
                                                             </expected>)
         End Sub
@@ -4658,17 +4658,17 @@ BC30491: Expression does not produce a value.
 Option Strict On
  
 Class A
-    Shared Function Foo() As Integer()
+    Shared Function Goo() As Integer()
         Return Nothing
     End Function
 End Class
  
 Class B
     Inherits A
-    Overloads Shared Sub Foo(ParamArray a as Integer()) 
+    Overloads Shared Sub Goo(ParamArray a as Integer()) 
     End Sub
     Sub Main()
-        Foo(1).ToString()
+        Goo(1).ToString()
     End Sub
 End Class    ]]></file>
 </compilation>)
@@ -4685,11 +4685,11 @@ End Class    ]]></file>
 Option Strict On
 
 Interface A
-    Function Foo() As Integer()
+    Function Goo() As Integer()
 End Interface
 
 Interface B
-    Sub Foo()
+    Sub Goo()
 End Interface
 
 Interface C
@@ -4699,15 +4699,15 @@ End Interface
 Module M1
     Sub Main()
         Dim c As C = Nothing
-        c.Foo(1).ToString()
+        c.Goo(1).ToString()
     End Sub
 End Module
 ]]></file>
 </compilation>)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected>
-BC30516: Overload resolution failed because no accessible 'Foo' accepts this number of arguments.
-        c.Foo(1).ToString()
+BC30516: Overload resolution failed because no accessible 'Goo' accepts this number of arguments.
+        c.Goo(1).ToString()
           ~~~
                                                                  </expected>)
         End Sub
@@ -4937,7 +4937,7 @@ End Module
                     <file name="a.vb">
                         <![CDATA[
 Imports System.Runtime.CompilerServices
-<Assembly: InternalsVisibleTo("Foo")>
+<Assembly: InternalsVisibleTo("Goo")>
 
 Public Class Test(Of t1, t2)
     Public Sub Add(x As t1)
@@ -4951,7 +4951,7 @@ End Class
                 </compilation>
 
             Dim source2 =
-                <compilation name="Foo">
+                <compilation name="Goo">
                     <file name="b.vb">
 Public Class Test2
     Public Sub Main()
@@ -5037,7 +5037,7 @@ Imports System
 
 Module Module1
     Sub Main()
-        C2.foo(New C2)
+        C2.goo(New C2)
     End Sub
 
     Class C2
@@ -5045,9 +5045,9 @@ Module Module1
             Return New C2() {}
         End Operator
 
-        Public Shared Sub foo(x As String)
+        Public Shared Sub goo(x As String)
         End Sub
-        Public Shared Sub foo(ParamArray y As C2())
+        Public Shared Sub goo(ParamArray y As C2())
             Console.WriteLine(y.Length)
         End Sub
     End Class
@@ -5074,7 +5074,7 @@ Imports System.Collections
 Module Module1
 
     Sub Main()
-        cls2.Foo("qq", New cls2)
+        cls2.Goo("qq", New cls2)
     End Sub
 End Module
 
@@ -5103,12 +5103,12 @@ End Class
 Class cls2
     Inherits cls1
 
-    Public Shared Function Foo(x As String) As String
+    Public Shared Function Goo(x As String) As String
         Return x
     End Function
 
-    Public Shared Function Foo(x As String, ByVal ParamArray params() As IGetExpression) As String
-        System.Console.WriteLine("Foo")
+    Public Shared Function Goo(x As String, ByVal ParamArray params() As IGetExpression) As String
+        System.Console.WriteLine("Goo")
         Return Nothing
     End Function
 End Class
@@ -5118,9 +5118,9 @@ End Class
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
-BC30521: Overload resolution failed because no accessible 'Foo' is most specific for these arguments:
-    'Public Shared Function Foo(x As String, ParamArray params As IGetExpression()) As String': Not most specific.
-        cls2.Foo("qq", New cls2)
+BC30521: Overload resolution failed because no accessible 'Goo' is most specific for these arguments:
+    'Public Shared Function Goo(x As String, ParamArray params As IGetExpression()) As String': Not most specific.
+        cls2.Goo("qq", New cls2)
              ~~~
 ]]></expected>)
         End Sub
@@ -5135,7 +5135,7 @@ Imports System
 
 Module Module1
     Sub Main()
-        C2.foo(New C2)
+        C2.goo(New C2)
     End Sub
 
     Interface i1
@@ -5149,10 +5149,10 @@ Module Module1
         End Operator
 
         ' uncommenting this will change results in VBC
-        ' Public Shared Sub foo(x as string)
+        ' Public Shared Sub goo(x as string)
         ' End Sub
 
-        Public Shared Sub foo(ParamArray y As i1())
+        Public Shared Sub goo(ParamArray y As i1())
             Console.WriteLine(y.Length)
         End Sub
     End Class
@@ -5164,9 +5164,9 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
-BC30521: Overload resolution failed because no accessible 'foo' is most specific for these arguments:
-    'Public Shared Sub foo(ParamArray y As Module1.i1())': Not most specific.
-        C2.foo(New C2)
+BC30521: Overload resolution failed because no accessible 'goo' is most specific for these arguments:
+    'Public Shared Sub goo(ParamArray y As Module1.i1())': Not most specific.
+        C2.goo(New C2)
            ~~~
 ]]></expected>)
         End Sub

@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
         protected override bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken, out TextSpan issueSpan)
         {
-            issueSpan = default(TextSpan);
+            issueSpan = default;
 
             // If it is currently not var, explicit typing exists, return. 
             // this also takes care of cases where var is mapped to a named type via an alias or a class declaration.

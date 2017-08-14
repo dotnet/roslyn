@@ -348,6 +348,7 @@ Module Module1
                                                           End Function
     End Sub
 End Module
+
 </File>
 
             Await TestAsync(markup, expected, ignoreTrivia:=False)
@@ -627,7 +628,7 @@ End Module
 Option Strict Off
 
 Public Class X
-    Sub Foo()
+    Sub Goo()
         Dim x As New X()
         Dim y As Integer = [|CDbl(x)|]
     End Sub
@@ -723,10 +724,10 @@ Option Strict Off
 
 Module M
     Sub Main()
-        Foo([|CType(1000000000000000, Double)|]) ' Prints 1E+15
-        Foo(1000000000000000) ' Prints 1000000000000000
+        Goo([|CType(1000000000000000, Double)|]) ' Prints 1E+15
+        Goo(1000000000000000) ' Prints 1000000000000000
     End Sub
-    Sub Foo(x As String)
+    Sub Goo(x As String)
         Console.WriteLine(x)
     End Sub
 End Module
@@ -743,10 +744,10 @@ End Module
 Module Program
     Sub Main()
         Dim a = {[|CLng(Nothing)|]}
-        Foo(a)
+        Goo(a)
     End Sub
 
-    Sub Foo(a() As Long)
+    Sub Goo(a() As Long)
     End Sub
 End Module
 </File>
@@ -760,7 +761,7 @@ End Module
             Dim markup =
 <File>
 Imports System
-Class FooAttribute
+Class GooAttribute
     Inherits Attribute
 
     Sub New(o As Object)
@@ -768,7 +769,7 @@ Class FooAttribute
 
 End Class
 
-&lt;Foo([|CObj(1)|])&gt;
+&lt;Goo([|CObj(1)|])&gt;
 Class C
 End Class
 </File>
@@ -776,7 +777,7 @@ End Class
             Dim expected =
 <File>
 Imports System
-Class FooAttribute
+Class GooAttribute
     Inherits Attribute
 
     Sub New(o As Object)
@@ -784,7 +785,7 @@ Class FooAttribute
 
 End Class
 
-&lt;Foo(1)&gt;
+&lt;Goo(1)&gt;
 Class C
 End Class
 </File>
@@ -800,10 +801,10 @@ End Class
 Module M
     Sub Main()
         Dim x = 1
-        Foo([|CInt(x)|])
+        Goo([|CInt(x)|])
         Console.WriteLine(x)
     End Sub
-    Sub Foo(ByRef x As Integer)
+    Sub Goo(ByRef x As Integer)
         x = 2
     End Sub
 End Module
@@ -814,10 +815,10 @@ End Module
 Module M
     Sub Main()
         Dim x = 1
-        Foo((x))
+        Goo((x))
         Console.WriteLine(x)
     End Sub
-    Sub Foo(ByRef x As Integer)
+    Sub Goo(ByRef x As Integer)
         x = 2
     End Sub
 End Module
@@ -834,10 +835,10 @@ End Module
 Module M
     Private x As Integer = 1
     Sub Main()
-        Foo([|CInt(x)|])
+        Goo([|CInt(x)|])
         Console.WriteLine(x)
     End Sub
-    Sub Foo(ByRef x As Integer)
+    Sub Goo(ByRef x As Integer)
         x = 2
     End Sub
 End Module
@@ -848,10 +849,10 @@ End Module
 Module M
     Private x As Integer = 1
     Sub Main()
-        Foo((x))
+        Goo((x))
         Console.WriteLine(x)
     End Sub
-    Sub Foo(ByRef x As Integer)
+    Sub Goo(ByRef x As Integer)
         x = 2
     End Sub
 End Module
@@ -868,10 +869,10 @@ End Module
 Module M
     Private Property x As Integer = 1
     Sub Main()
-        Foo([|CInt(x)|])
+        Goo([|CInt(x)|])
         Console.WriteLine(x)
     End Sub
-    Sub Foo(ByRef x As Integer)
+    Sub Goo(ByRef x As Integer)
         x = 2
     End Sub
 End Module
@@ -882,10 +883,10 @@ End Module
 Module M
     Private Property x As Integer = 1
     Sub Main()
-        Foo((x))
+        Goo((x))
         Console.WriteLine(x)
     End Sub
-    Sub Foo(ByRef x As Integer)
+    Sub Goo(ByRef x As Integer)
         x = 2
     End Sub
 End Module
@@ -901,9 +902,9 @@ End Module
 <File>
 Module M
     Sub Main()
-        Foo([|CObj(Nothing)|])
+        Goo([|CObj(Nothing)|])
     End Sub
-    Sub Foo(ParamArray x As Object())
+    Sub Goo(ParamArray x As Object())
         Console.WriteLine(x.Length)
     End Sub
 End Module
@@ -919,9 +920,9 @@ End Module
 <File>
 Module M
     Sub Main()
-        Foo([|CStr(Nothing)|])
+        Goo([|CStr(Nothing)|])
     End Sub
-    Sub Foo(ParamArray x As Object())
+    Sub Goo(ParamArray x As Object())
         Console.WriteLine(x.Length)
     End Sub
 End Module
@@ -937,9 +938,9 @@ End Module
 <File>
 Module M
     Sub Main()
-        Foo([|CObj(New Object)|])
+        Goo([|CObj(New Object)|])
     End Sub
-    Sub Foo(ParamArray x As Object())
+    Sub Goo(ParamArray x As Object())
         Console.WriteLine(x.Length)
     End Sub
 End Module
@@ -949,9 +950,9 @@ End Module
 <File>
 Module M
     Sub Main()
-        Foo(New Object)
+        Goo(New Object)
     End Sub
-    Sub Foo(ParamArray x As Object())
+    Sub Goo(ParamArray x As Object())
         Console.WriteLine(x.Length)
     End Sub
 End Module
@@ -967,9 +968,9 @@ End Module
 <File>
 Module M
     Sub Main()
-        Foo([|CStr("")|])
+        Goo([|CStr("")|])
     End Sub
-    Sub Foo(ParamArray x As Object())
+    Sub Goo(ParamArray x As Object())
         Console.WriteLine(x.Length)
     End Sub
 End Module
@@ -979,9 +980,9 @@ End Module
 <File>
 Module M
     Sub Main()
-        Foo("")
+        Goo("")
     End Sub
-    Sub Foo(ParamArray x As Object())
+    Sub Goo(ParamArray x As Object())
         Console.WriteLine(x.Length)
     End Sub
 End Module
@@ -998,9 +999,9 @@ End Module
 Imports System
 Module M
     Sub Main()
-        Foo([|DirectCast(New Exception, Object)|])
+        Goo([|DirectCast(New Exception, Object)|])
     End Sub
-    Sub Foo(ParamArray x As Object())
+    Sub Goo(ParamArray x As Object())
         Console.WriteLine(x.GetType)
     End Sub
 End Module
@@ -1011,9 +1012,9 @@ End Module
 Imports System
 Module M
     Sub Main()
-        Foo(New Exception)
+        Goo(New Exception)
     End Sub
-    Sub Foo(ParamArray x As Object())
+    Sub Goo(ParamArray x As Object())
         Console.WriteLine(x.GetType)
     End Sub
 End Module
@@ -1030,9 +1031,9 @@ End Module
 Imports System
 Module M
     Sub Main()
-        Foo([|DirectCast(Nothing, Object())|])
+        Goo([|DirectCast(Nothing, Object())|])
     End Sub
-    Sub Foo(ParamArray x As Object())
+    Sub Goo(ParamArray x As Object())
         Console.WriteLine(x.GetType)
     End Sub
 End Module
@@ -1043,9 +1044,9 @@ End Module
 Imports System
 Module M
     Sub Main()
-        Foo(Nothing)
+        Goo(Nothing)
     End Sub
-    Sub Foo(ParamArray x As Object())
+    Sub Goo(ParamArray x As Object())
         Console.WriteLine(x.GetType)
     End Sub
 End Module
@@ -1062,9 +1063,9 @@ End Module
 Imports System
 Module M
     Sub Main()
-        Foo([|DirectCast(Nothing, String())|])
+        Goo([|DirectCast(Nothing, String())|])
     End Sub
-    Sub Foo(ParamArray x As Object())
+    Sub Goo(ParamArray x As Object())
         Console.WriteLine(x.GetType)
     End Sub
 End Module
@@ -1075,9 +1076,9 @@ End Module
 Imports System
 Module M
     Sub Main()
-        Foo(Nothing)
+        Goo(Nothing)
     End Sub
-    Sub Foo(ParamArray x As Object())
+    Sub Goo(ParamArray x As Object())
         Console.WriteLine(x.GetType)
     End Sub
 End Module
@@ -1116,10 +1117,10 @@ End Module
 Module Program
     Sub Main()
         Dim a = {[|CLng(Nothing)|]}
-        Foo(a)
+        Goo(a)
     End Sub
  
-    Sub Foo(a() As Long)
+    Sub Goo(a() As Long)
     End Sub
 End Module
 </File>
@@ -1256,10 +1257,10 @@ Option Strict Off
 
 Module M
     Sub Main()
-        Foo([|CType(1000000000000000, Double)|]) ' Prints 1E+15
-        Foo(1000000000000000) ' Prints 1000000000000000
+        Goo([|CType(1000000000000000, Double)|]) ' Prints 1E+15
+        Goo(1000000000000000) ' Prints 1000000000000000
     End Sub
-    Sub Foo(x As String)
+    Sub Goo(x As String)
         Console.WriteLine(x)
     End Sub
 End Module
@@ -1510,6 +1511,7 @@ Module Program
         If True Then : Dim x As Action = (Sub() If True Then) : Else : Return : End If
     End Sub
 End Module
+
 </File>
 
             Await TestAsync(markup, expected, ignoreTrivia:=False)
@@ -1571,6 +1573,7 @@ Module Program
         x() : Console.WriteLine() 
     End Sub
 End Module
+
 </File>
 
             Await TestAsync(markup, expected, ignoreTrivia:=False)
@@ -1584,9 +1587,9 @@ End Module
 
 Module M
     Sub Main()
-        Foo()
+        Goo()
     End Sub
-    Sub Foo(Optional x As Object = [|CStr|](Chr(1)))
+    Sub Goo(Optional x As Object = [|CStr|](Chr(1)))
         Console.WriteLine(x.GetType())
     End Sub
 End Module
@@ -1600,7 +1603,7 @@ End Module
             Dim markup =
 <File>
 Interface I
-    [|Sub Foo(Optional x As Object = CByte(1))|]
+    [|Sub Goo(Optional x As Object = CByte(1))|]
 End Interface
 </File>
             Await TestMissingAsync(markup)
@@ -1614,7 +1617,7 @@ End Interface
 Option Strict On
 
 Interface I
-    [|Sub Foo(Optional x As DayOfWeek = CType(-1, DayOfWeek))|]
+    [|Sub Goo(Optional x As DayOfWeek = CType(-1, DayOfWeek))|]
 End Interface
 </File>
             Await TestMissingAsync(markup)
@@ -1724,15 +1727,15 @@ End Module
             Dim markup =
 <File>
 Interface I1
-Sub Foo()
+Sub Goo()
 End Interface
 Class M
     Implements I1
     Shared Sub Main()
-        [|CType(New M(), I1).Foo()|]
+        [|CType(New M(), I1).Goo()|]
     End Sub
  
-    Public Sub Foo() Implements I1.Foo
+    Public Sub Goo() Implements I1.Goo
     End Sub
 End Class
 </File>
@@ -1740,15 +1743,15 @@ End Class
             Dim expected =
 <File>
 Interface I1
-Sub Foo()
+Sub Goo()
 End Interface
 Class M
     Implements I1
     Shared Sub Main()
-        Call New M().Foo()
+        Call New M().Goo()
     End Sub
  
-    Public Sub Foo() Implements I1.Foo
+    Public Sub Goo() Implements I1.Goo
     End Sub
 End Class
 </File>
@@ -1791,7 +1794,7 @@ End Class
 Namespace ConsoleApplication23
     Class Program
         Public Shared Sub Main(args As String())
-            Dim foo As Integer = 0
+            Dim goo As Integer = 0
             Select Case [|CType(0, Short)|]
                 Case New A
                     Return
@@ -1836,7 +1839,7 @@ End Namespace]]>
 Namespace ConsoleApplication23
     Class Program
         Public Shared Sub Main(args As String())
-            Dim foo As Integer = 0
+            Dim goo As Integer = 0
             Select Case [|CType(0, Short)|]
                 Case < New A
                     Return
@@ -1881,7 +1884,7 @@ End Namespace]]>
 Namespace ConsoleApplication23
     Class Program
         Public Shared Sub Main(args As String())
-            Dim foo As Integer = 0
+            Dim goo As Integer = 0
             Select Case [|CType(0, Short)|]
                 Case New A To New A
                     Return
@@ -1951,7 +1954,7 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Async Function TestRemoveCastToInterfaceForSealedType1() As Task
             ' Note: The cast below can be removed because C is sealed and the
-            ' unspecified optional parameters of I.Foo() and C.Foo() have the
+            ' unspecified optional parameters of I.Goo() and C.Goo() have the
             ' same default values.
 
             Dim markup =
@@ -1959,17 +1962,17 @@ End Class
 Imports System
 
 Interface I
-    Sub Foo(Optional x As Integer = 0)
+    Sub Goo(Optional x As Integer = 0)
 End Interface
 
 NotInheritable Class C
     Implements I
-    Public Sub Foo(Optional x As Integer = 0) Implements I.Foo
+    Public Sub Goo(Optional x As Integer = 0) Implements I.Goo
         Console.WriteLine(x)
     End Sub
 
     Private Shared Sub Main()
-        [|DirectCast(New C(), I)|].Foo()
+        [|DirectCast(New C(), I)|].Goo()
     End Sub
 End Class
 </File>
@@ -1979,17 +1982,17 @@ End Class
 Imports System
 
 Interface I
-    Sub Foo(Optional x As Integer = 0)
+    Sub Goo(Optional x As Integer = 0)
 End Interface
 
 NotInheritable Class C
     Implements I
-    Public Sub Foo(Optional x As Integer = 0) Implements I.Foo
+    Public Sub Goo(Optional x As Integer = 0) Implements I.Goo
         Console.WriteLine(x)
     End Sub
 
     Private Shared Sub Main()
-        Call New C().Foo()
+        Call New C().Goo()
     End Sub
 End Class
 </File>
@@ -2007,19 +2010,19 @@ End Class
 Imports System
 
 Interface I
-    ReadOnly Property Foo() As String
+    ReadOnly Property Goo() As String
 End Interface
 
 NotInheritable Class C
     Implements I
-    Public ReadOnly Property Foo() As String Implements I.Foo
+    Public ReadOnly Property Goo() As String Implements I.Goo
         Get
             Return "Nikov Rules"
         End Get
     End Property
 
     Private Shared Sub Main()
-        Console.WriteLine([|DirectCast(New C(), I)|].Foo)
+        Console.WriteLine([|DirectCast(New C(), I)|].Goo)
     End Sub
 End Class
 </File>
@@ -2029,19 +2032,19 @@ End Class
 Imports System
 
 Interface I
-    ReadOnly Property Foo() As String
+    ReadOnly Property Goo() As String
 End Interface
 
 NotInheritable Class C
     Implements I
-    Public ReadOnly Property Foo() As String Implements I.Foo
+    Public ReadOnly Property Goo() As String Implements I.Goo
         Get
             Return "Nikov Rules"
         End Get
     End Property
 
     Private Shared Sub Main()
-        Console.WriteLine(New C().Foo)
+        Console.WriteLine(New C().Goo)
     End Sub
 End Class
 </File>
@@ -2059,7 +2062,7 @@ End Class
 Imports System
 
 Interface I
-    ReadOnly Property Foo() As String
+    ReadOnly Property Goo() As String
 End Interface
 
 NotInheritable Class C
@@ -2070,14 +2073,14 @@ NotInheritable Class C
         End Get
     End Property
 
-    Public ReadOnly Property Foo() As String Implements I.Foo
+    Public ReadOnly Property Goo() As String Implements I.Goo
         Get
             Return "Nikov Rules"
         End Get
     End Property
 
     Private Shared Sub Main()
-        Console.WriteLine([|DirectCast(Instance, I)|].Foo)
+        Console.WriteLine([|DirectCast(Instance, I)|].Goo)
     End Sub
 End Class
 </File>
@@ -2087,7 +2090,7 @@ End Class
 Imports System
 
 Interface I
-    ReadOnly Property Foo() As String
+    ReadOnly Property Goo() As String
 End Interface
 
 NotInheritable Class C
@@ -2098,14 +2101,14 @@ NotInheritable Class C
         End Get
     End Property
 
-    Public ReadOnly Property Foo() As String Implements I.Foo
+    Public ReadOnly Property Goo() As String Implements I.Goo
         Get
             Return "Nikov Rules"
         End Get
     End Property
 
     Private Shared Sub Main()
-        Console.WriteLine(Instance.Foo)
+        Console.WriteLine(Instance.Goo)
     End Sub
 End Class
 </File>
@@ -2123,17 +2126,17 @@ End Class
 Imports System
 
 Interface I
-    Sub Foo(Optional x As Integer = 0)
+    Sub Goo(Optional x As Integer = 0)
 End Interface
 
 NotInheritable Class C
     Implements I
-    Public Sub Foo(Optional x As Integer = 1) Implements I.Foo
+    Public Sub Goo(Optional x As Integer = 1) Implements I.Goo
         Console.WriteLine(x)
     End Sub
 
     Private Shared Sub Main()
-        [|DirectCast(New C(), I)|].Foo()
+        [|DirectCast(New C(), I)|].Goo()
     End Sub
 End Class
 </File>
@@ -2153,17 +2156,17 @@ End Class
 Imports System
 
 Interface I
-    Sub Foo(Optional x As Integer = 0)
+    Sub Goo(Optional x As Integer = 0)
 End Interface
 
 NotInheritable Class C
     Implements I
-    Public Sub Foo(Optional x As Integer = 1) Implements I.Foo
+    Public Sub Goo(Optional x As Integer = 1) Implements I.Goo
         Console.WriteLine(x)
     End Sub
 
     Private Shared Sub Main()
-        [|DirectCast(New C(), I)|].Foo(2)
+        [|DirectCast(New C(), I)|].Goo(2)
     End Sub
 End Class
 </File>
@@ -2183,17 +2186,17 @@ End Class
 Imports System
 
 Interface I
-    Sub Foo(Optional x As Integer = 0, Optional y As Integer = 0)
+    Sub Goo(Optional x As Integer = 0, Optional y As Integer = 0)
 End Interface
 
 NotInheritable Class C
     Implements I
-    Public Sub Foo(Optional y As Integer = 0, Optional x As Integer = 0) Implements I.Foo
+    Public Sub Goo(Optional y As Integer = 0, Optional x As Integer = 0) Implements I.Goo
         Console.WriteLine(x)
     End Sub
 
     Private Shared Sub Main()
-        [|DirectCast(New C(), I)|].Foo(x:=1)
+        [|DirectCast(New C(), I)|].Goo(x:=1)
     End Sub
 End Class
 </File>
@@ -2213,17 +2216,17 @@ End Class
 Imports System
 
 Interface I
-    Function Foo(Optional x As Integer = 0, Optional y As Integer = 0) As Integer
+    Function Goo(Optional x As Integer = 0, Optional y As Integer = 0) As Integer
 End Interface
 
 NotInheritable Class C
     Implements I
-    Public Function Foo(Optional x As Integer = 0, Optional y As Integer = 0) As Integer Implements I.Foo
+    Public Function Goo(Optional x As Integer = 0, Optional y As Integer = 0) As Integer Implements I.Goo
         Return x * 2
     End Function
 
     Private Shared Sub Main()
-        Console.WriteLine([|DirectCast(New C(), I)|].Foo(x:=1))
+        Console.WriteLine([|DirectCast(New C(), I)|].Goo(x:=1))
     End Sub
 End Class
 </File>
@@ -2233,17 +2236,17 @@ End Class
 Imports System
 
 Interface I
-    Function Foo(Optional x As Integer = 0, Optional y As Integer = 0) As Integer
+    Function Goo(Optional x As Integer = 0, Optional y As Integer = 0) As Integer
 End Interface
 
 NotInheritable Class C
     Implements I
-    Public Function Foo(Optional x As Integer = 0, Optional y As Integer = 0) As Integer Implements I.Foo
+    Public Function Goo(Optional x As Integer = 0, Optional y As Integer = 0) As Integer Implements I.Goo
         Return x * 2
     End Function
 
     Private Shared Sub Main()
-        Console.WriteLine(New C().Foo(x:=1))
+        Console.WriteLine(New C().Goo(x:=1))
     End Sub
 End Class
 </File>

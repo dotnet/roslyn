@@ -6,6 +6,7 @@ using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Semantics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -841,6 +842,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Creates a <seealso cref="CommonConversion"/> from this C# conversion.
+        /// </summary>
+        /// <returns>The <see cref="CommonConversion"/> that represents this conversion.</returns>
+        /// <remarks>
+        /// This is a lossy conversion; it is not possible to recover the original <see cref="Conversion"/>
+        /// from the <see cref="CommonConversion"/> struct.
+        /// </remarks>
+        public CommonConversion ToCommonConversion()
+        {
+            // The MethodSymbol of CommonConversion only refers to UserDefined conversions, not method groups
+            var methodSymbol = IsUserDefined ? MethodSymbol : null;
+            return new CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, methodSymbol);
         }
 
         /// <summary>

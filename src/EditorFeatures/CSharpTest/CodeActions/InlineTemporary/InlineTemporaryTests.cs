@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new InlineTemporaryCodeRefactoringProvider();
 
-        private async Task TestFixOneAsync(string initial, string expected, bool ignoreTrivia = true)
+        private async Task TestFixOneAsync(string initial, string expected, bool ignoreTrivia = false)
         {
             await TestInRegularAndScriptAsync(GetTreeText(initial), GetTreeText(expected));
         }
@@ -117,7 +117,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
 @"{ int [||]x = 0;
 
 Console.WriteLine(x); }",
-                       @"{ Console.WriteLine(0); }");
+@"{
+        Console.WriteLine(0); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -127,7 +128,8 @@ Console.WriteLine(x); }",
 @"{ int [||]@x = 0;
 
 Console.WriteLine(x); }",
-                       @"{ Console.WriteLine(0); }");
+@"{
+        Console.WriteLine(0); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -137,7 +139,8 @@ Console.WriteLine(x); }",
 @"{ int [||]@x = 0;
 
 Console.WriteLine(@x); }",
-                       @"{ Console.WriteLine(0); }");
+@"{
+        Console.WriteLine(0); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -147,7 +150,8 @@ Console.WriteLine(@x); }",
 @"{ int [||]x = 0;
 
 Console.WriteLine(@x); }",
-                       @"{ Console.WriteLine(0); }");
+@"{
+        Console.WriteLine(0); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -361,7 +365,8 @@ class C
 @"{ var [||]x = 0;
 
 Console.WriteLine(x); }",
-                       @"{ Console.WriteLine(0); }");
+@"{
+        Console.WriteLine(0); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -413,25 +418,25 @@ int y = x * 2; }",
             var code = @"
 class C
 {
-    void Foo(object o) { }
-    void Foo(int i) { }
+    void Goo(object o) { }
+    void Goo(int i) { }
 
     void M()
     {
         object [||]x = 1 + 1;
-        Foo(x);
+        Goo(x);
     }
 }";
 
             var expected = @"
 class C
 {
-    void Foo(object o) { }
-    void Foo(int i) { }
+    void Goo(object o) { }
+    void Goo(int i) { }
 
     void M()
     {
-        Foo((object)(1 + 1));
+        Goo((object)(1 + 1));
     }
 }";
 
@@ -448,7 +453,7 @@ class C
     {
         int [||]x = 1;
         { Unrelated(); }
-        Foo(x);
+        Goo(x);
     }
 }";
 
@@ -458,7 +463,7 @@ class C
     void M()
     {
         { Unrelated(); }
-        Foo(1);
+        Goo(1);
     }
 }";
 
@@ -646,7 +651,12 @@ class Program
     5
 };
 int a = Array.IndexOf(x, 3); }",
-                       @"{ int a = Array.IndexOf(new int[] { 3, 4, 5 }, 3);  }");
+@"{
+        int a = Array.IndexOf(new int[] {
+        3,
+        4,
+        5
+    }, 3); }");
         }
 
         [WorkItem(545657, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545657")]
@@ -719,15 +729,15 @@ class Program
     void Main()
     {
         int [||]x = 0;
-        Foo(ref x);
-        Foo(x);
+        Goo(ref x);
+        Goo(x);
     }
 
-    void Foo(int x)
+    void Goo(int x)
     {
     }
 
-    void Foo(ref int x)
+    void Goo(ref int x)
     {
     }
 }";
@@ -739,15 +749,15 @@ class Program
     void Main()
     {
         int x = 0;
-        Foo(ref {|Conflict:x|});
-        Foo(0);
+        Goo(ref {|Conflict:x|});
+        Goo(0);
     }
 
-    void Foo(int x)
+    void Goo(int x)
     {
     }
 
-    void Foo(ref int x)
+    void Goo(ref int x)
     {
     }
 }";
@@ -765,10 +775,10 @@ class Program
     void Main()
     {
         int [||]x = 0;
-        Foo(x, ref x);
+        Goo(x, ref x);
     }
 
-    void Foo(int x, ref int y)
+    void Goo(int x, ref int y)
     {
     }
 }";
@@ -780,10 +790,10 @@ class Program
     void Main()
     {
         int x = 0;
-        Foo(0, ref {|Conflict:x|});
+        Goo(0, ref {|Conflict:x|});
     }
 
-    void Foo(int x, ref int y)
+    void Goo(int x, ref int y)
     {
     }
 }";
@@ -1341,15 +1351,16 @@ class C
 
     int a = x;
 }",
-                       @"{
+@"
+{
         int
 #if true
-            y,
+        y,
 #endif
-            z;
+        z;
 
         int a = 1;
-    }",
+}",
 ignoreTrivia: false);
         }
 
@@ -1366,15 +1377,14 @@ ignoreTrivia: false);
 
     int a = x;
 }",
-                       @"{
+@"
+{
         int y,
-#if true
-
 #endif
-            z;
+        z;
 
         int a = 1;
-    }",
+}",
 ignoreTrivia: false);
         }
 
@@ -1391,15 +1401,14 @@ ignoreTrivia: false);
 
     int a = x;
 }",
-                       @"{
+@"
+{
         int y,
 #if true
-            z
-#endif
-            ;
+        z;
 
         int a = 1;
-    }",
+}",
 ignoreTrivia: false);
         }
 
@@ -1413,7 +1422,7 @@ ignoreTrivia: false);
     void M()
     {
         int[] [||]a = /**/{ 1 };
-        Foo(a);
+        Goo(a);
     }
 }";
 
@@ -1422,7 +1431,7 @@ ignoreTrivia: false);
 {
     void M()
     {
-        Foo(new int[]/**/{ 1 });
+        Goo(new int[]/**/{ 1 });
     }
 }";
 
@@ -2081,12 +2090,12 @@ class C
 {
     static void Main()
     {
-        Action<string> f[||] = Foo<string>;
+        Action<string> f[||] = Goo<string>;
         Action<string> g = null;
         var h = f + g;
     }
 
-    static void Foo<T>(T y) { }
+    static void Goo<T>(T y) { }
 }",
             @"
 using System;
@@ -2095,10 +2104,10 @@ class C
     static void Main()
     {
         Action<string> g = null;
-        var h = Foo + g;
+        var h = Goo + g;
     }
 
-    static void Foo<T>(T y) { }
+    static void Goo<T>(T y) { }
 }",
             ignoreTrivia: false);
         }
@@ -2327,11 +2336,11 @@ class C
 {
     static void Main()
     {
-        Foo(x => { int [||]y = x[0]; x[1] = y; });
+        Goo(x => { int [||]y = x[0]; x[1] = y; });
     }
  
-    static void Foo(Action<int[]> x) { }
-    static void Foo(Action<string[]> x) { }
+    static void Goo(Action<int[]> x) { }
+    static void Goo(Action<string[]> x) { }
 }",
             @"
 using System;
@@ -2340,11 +2349,11 @@ class C
 {
     static void Main()
     {
-        Foo((Action<int[]>)(x => { x[1] = x[0]; }));
+        Goo((Action<int[]>)(x => { x[1] = x[0]; }));
     }
  
-    static void Foo(Action<int[]> x) { }
-    static void Foo(Action<string[]> x) { }
+    static void Goo(Action<int[]> x) { }
+    static void Goo(Action<string[]> x) { }
 }",
             ignoreTrivia: false);
         }
@@ -2518,7 +2527,7 @@ class A<T>
     static T x;
     class B<U>
     {
-        static void Foo()
+        static void Goo()
         {
             var y[||] = x;
             var z = y;
@@ -2532,7 +2541,7 @@ class A<T>
     static T x;
     class B<U>
     {
-        static void Foo()
+        static void Goo()
         {
             var z = x;
         }
@@ -2718,12 +2727,12 @@ class Program
 using System;
 class C
 {
-    static T Foo<T>(T x, T y) { return default(T); }
+    static T Goo<T>(T x, T y) { return default(T); }
 
     static void M()
     {
         long [||]x = 1;
-        IComparable<long> c = Foo(x, x);
+        IComparable<long> c = Goo(x, x);
     }
 }
 ",
@@ -2732,11 +2741,11 @@ class C
 using System;
 class C
 {
-    static T Foo<T>(T x, T y) { return default(T); }
+    static T Goo<T>(T x, T y) { return default(T); }
 
     static void M()
     {
-        IComparable<long> c = Foo<long>(1, 1);
+        IComparable<long> c = Goo<long>(1, 1);
     }
 }
 ",
@@ -2755,10 +2764,10 @@ class C
     {
         object x[||] = null;
         var a = new[] { x, x };
-        Foo(a);
+        Goo(a);
     }
 
-    static void Foo(object[] o) { }
+    static void Goo(object[] o) { }
 }
 ",
 
@@ -2768,10 +2777,10 @@ class C
     static void M()
     {
         var a = new[] { null, (object)null };
-        Foo(a);
+        Goo(a);
     }
 
-    static void Foo(object[] o) { }
+    static void Goo(object[] o) { }
 }
 ",
             ignoreTrivia: false);
@@ -2788,11 +2797,11 @@ class C
     static void M()
     {
         long x[||] = 42;
-        Foo(x, x);
+        Goo(x, x);
     }
 
-    static void Foo(int x, int y) { }
-    static void Foo(long x, long y) { }
+    static void Goo(int x, int y) { }
+    static void Goo(long x, long y) { }
 }",
 
             @"
@@ -2800,11 +2809,11 @@ class C
 {
     static void M()
     {
-        Foo(42, (long)42);
+        Goo(42, (long)42);
     }
 
-    static void Foo(int x, int y) { }
-    static void Foo(long x, long y) { }
+    static void Goo(int x, int y) { }
+    static void Goo(long x, long y) { }
 }",
             ignoreTrivia: false);
         }
@@ -2821,11 +2830,11 @@ class C
     static void M()
     {
         long x[||] = 42;
-        Foo(() => { return x; }, () => { return x; });
+        Goo(() => { return x; }, () => { return x; });
     }
 
-    static void Foo(Func<int> x, Func<int> y) { }
-    static void Foo(Func<long> x, Func<long> y) { }
+    static void Goo(Func<int> x, Func<int> y) { }
+    static void Goo(Func<long> x, Func<long> y) { }
 }",
 
             @"
@@ -2834,11 +2843,11 @@ class C
 {
     static void M()
     {
-        Foo(() => { return 42; }, (Func<long>)(() => { return 42; }));
+        Goo(() => { return 42; }, (Func<long>)(() => { return 42; }));
     }
 
-    static void Foo(Func<int> x, Func<int> y) { }
-    static void Foo(Func<long> x, Func<long> y) { }
+    static void Goo(Func<int> x, Func<int> y) { }
+    static void Goo(Func<long> x, Func<long> y) { }
 }",
             ignoreTrivia: false);
         }
@@ -2919,13 +2928,13 @@ using System;
 
 class X
 {
-    static int Foo(Func<int?, byte> x, object y) { return 1; }
-    static int Foo(Func<X, byte> x, string y) { return 2; }
+    static int Goo(Func<int?, byte> x, object y) { return 1; }
+    static int Goo(Func<X, byte> x, string y) { return 2; }
 
     const int Value = 1000;
     static void Main()
     {
-        var a[||] = Foo(X => (byte)X.Value, null);
+        var a[||] = Goo(X => (byte)X.Value, null);
         unchecked
         {
             Console.WriteLine(a);
@@ -2938,15 +2947,15 @@ using System;
 
 class X
 {
-    static int Foo(Func<int?, byte> x, object y) { return 1; }
-    static int Foo(Func<X, byte> x, string y) { return 2; }
+    static int Goo(Func<int?, byte> x, object y) { return 1; }
+    static int Goo(Func<X, byte> x, string y) { return 2; }
 
     const int Value = 1000;
     static void Main()
     {
         unchecked
         {
-            Console.WriteLine(Foo(X => (byte)X.Value, (object)null));
+            Console.WriteLine(Goo(X => (byte)X.Value, (object)null));
         }
     }
 }",
@@ -3011,12 +3020,12 @@ using System;
 
 class C
 {
-    static void Foo(Action<object> a) { }
-    static void Foo(Action<string> a) { }
+    static void Goo(Action<object> a) { }
+    static void Goo(Action<string> a) { }
 
     static void Main()
     {
-        Foo(x =>
+        Goo(x =>
         {
             string s[||] = x;
             var y = s;
@@ -3029,12 +3038,12 @@ using System;
 
 class C
 {
-    static void Foo(Action<object> a) { }
-    static void Foo(Action<string> a) { }
+    static void Goo(Action<object> a) { }
+    static void Goo(Action<string> a) { }
 
     static void Main()
     {
-        Foo((Action<string>)(x =>
+        Goo((Action<string>)(x =>
         {
             var y = x;
         }));
@@ -3072,7 +3081,7 @@ class C
         int [|x|] = 0;
 
 #line hidden
-        Foo(x);
+        Goo(x);
 #line default
     }
 }");
@@ -3087,9 +3096,9 @@ class C
     void Main()
     {
         int [|x|] = 0;
-        Foo(x);
+        Goo(x);
 #line hidden
-        Foo(x);
+        Goo(x);
 #line default
     }
 }");
@@ -3106,9 +3115,9 @@ class Program
     {
         int [|x|] = 0;
 
-        Foo(x);
+        Goo(x);
         #line hidden
-        Foo();
+        Goo();
         #line default
     }
 }",
@@ -3118,9 +3127,9 @@ class Program
     void Main()
     {
 
-        Foo(0);
+        Goo(0);
         #line hidden
-        Foo();
+        Goo();
         #line default
     }
 }",
@@ -3138,11 +3147,11 @@ class Program
     {
         int [||]x = 0;
 
-        Foo(x);
+        Goo(x);
 #line hidden
-        Foo();
+        Goo();
 #line default
-        Foo(x);
+        Goo(x);
     }
 }",
 @"#line default
@@ -3151,11 +3160,11 @@ class Program
     void Main()
     {
 
-        Foo(0);
+        Goo(0);
 #line hidden
-        Foo();
+        Goo();
 #line default
-        Foo(0);
+        Goo(0);
     }
 }",
 ignoreTrivia: false);
@@ -3170,11 +3179,11 @@ ignoreTrivia: false);
     void Main()
     {
         int [||]x = 0;
-        Foo(x);
+        Goo(x);
 #line hidden
-        Foo(x);
+        Goo(x);
 #line default
-        Foo(x);
+        Goo(x);
     }
 }");
         }
@@ -3437,10 +3446,10 @@ class A
     static void Main()
     {
         var a[||] = new A(); // Inline a
-        Foo(a);
+        Goo(a);
     }
  
-    static void Foo(long x)
+    static void Goo(long x)
     {
         Console.WriteLine(x);
     }
@@ -3465,10 +3474,10 @@ class A
     static void Main()
     {
         // Inline a
-        Foo(new A());
+        Goo(new A());
     }
  
-    static void Foo(long x)
+    static void Goo(long x)
     {
         Console.WriteLine(x);
     }
@@ -4095,7 +4104,7 @@ class Program
 {
     static void Main()
     {
-        var(x1, x2) = KVP.Create(42, ""hello"");
+        var (x1, x2) = KVP.Create(42, ""hello"");
     }
 }
 public static class KVP

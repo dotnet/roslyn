@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         // Very subtle logic here.  When checking if two parameters are the same, we can end up with
         // a tricky infinite loop.  Specifically, consider the case if the parameter refers to a
-        // method type parameter.  i.e. "void Foo<T>(IList<T> arg)".  If we compare two method type
+        // method type parameter.  i.e. "void Goo<T>(IList<T> arg)".  If we compare two method type
         // parameters for equality, then we'll end up asking if their methods are the same.  And that
         // will cause us to check if their parameters are the same.  And then we'll be right back
         // here.  So, instead, when asking if parameters are equal, we pass an appropriate flag so

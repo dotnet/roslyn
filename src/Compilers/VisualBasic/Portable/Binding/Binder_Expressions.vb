@@ -251,7 +251,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' e.g. SyntaxKind.MidExpression is handled elsewhere
                     ' NOTE: There were too many "else" cases to justify listing them explicitly and throwing on
                     ' anything unexpected.
-                    Debug.Assert(node.ContainsDiagnostics, String.Format("Unexpected {0} syntax does not have diagnostics", node.Kind))
+                    '
+                    ' PROTOTYPE(IOperation)
+                    ' re-enable the assert once this issue is fixed
+                    ' https://github.com/dotnet/roslyn/issues/21180
+                    ' Debug.Assert(node.ContainsDiagnostics, String.Format("Unexpected {0} syntax does not have diagnostics", node.Kind))
                     Return BadExpression(node, ImmutableArray(Of BoundExpression).Empty, ErrorTypeSymbol.UnknownResultType)
 
             End Select
@@ -1820,7 +1824,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Dev10 comment:
                 ' Note that this is needed so that we can determine whether the structure
-                ' is not an LValue (eg: RField.m_x = 20 where foo is a readonly field of a
+                ' is not an LValue (eg: RField.m_x = 20 where goo is a readonly field of a
                 ' structure type). In such cases, the structure's field m_x cannot be modified.
                 '
                 ' This does not apply to type params because for type params we do want to
@@ -3572,7 +3576,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim arguments = typeArgumentsOpt.Arguments
 
             'TODO: What should we do if count is 0? Can we get in a situation like this?
-            '      Perhaps for a missing type argument case [Foo(Of )].
+            '      Perhaps for a missing type argument case [Goo(Of )].
 
             Dim boundArguments(arguments.Count - 1) As TypeSymbol
 

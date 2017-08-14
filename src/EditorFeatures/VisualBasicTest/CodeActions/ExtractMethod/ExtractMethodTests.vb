@@ -34,6 +34,7 @@ End Class",
                               Return {|Rename:GetArg|}(arg)
                           End Function
     End Sub
+
     Private Shared Function GetArg(arg As Integer) As Integer
         Return arg
     End Function
@@ -60,6 +61,7 @@ Module Program
     Sub Main(args As String())
         If True Then Dim q As Action = {|Rename:GetQ|}()
     End Sub
+
     Private Function GetQ() As Action
         Return Sub()
                End Sub
@@ -81,9 +83,11 @@ End Class",
     Sub Main()
         {|Rename:NewMethod|}()
     End Sub
+
     Private Shared Sub NewMethod()
         Dim x As New List(Of Program) From {New Program}
     End Sub
+
     Public Property Name As String
 End Class")
         End Function
@@ -111,6 +115,7 @@ Module Program
         Dim q As Object
         If True Then q = {|Rename:NewMethod|}()
     End Sub
+
     Private Function NewMethod() As Object
         Return Sub()
                End Sub
@@ -128,7 +133,7 @@ End Module")
     End Sub
 
     &lt;Obsolete&gt;
-    Sub Foo
+    Sub Goo
     End Sub
 End Module
 </Text>.Value.Replace(vbLf, vbCrLf),
@@ -142,7 +147,7 @@ End Module
     End Function
 
     &lt;Obsolete&gt;
-    Sub Foo
+    Sub Goo
     End Sub
 End Module
 </Text>.Value.Replace(vbLf, vbCrLf),
@@ -164,6 +169,7 @@ End Module",
         Dim p As Object = Nothing
         Dim Obj1 = If(New With {.a = True}.a, p, {|Rename:NewMethod|}())
     End Sub
+
     Private Function NewMethod() As Object
         Return Nothing
     End Function
@@ -183,6 +189,7 @@ End Module",
     Sub Main()
         Dim x(0 To {|Rename:NewMethod|}()) ' Extract method 
     End Sub
+
     Private Function NewMethod() As Integer
         Return 1 + 2
     End Function
@@ -208,6 +215,7 @@ End Module",
             x += 1
         Loop
     End Sub
+
     Private Function NewMethod(x As Integer) As Boolean
         Return x * x < 100
     End Function
@@ -277,6 +285,7 @@ End Module",
     Sub Main()
         {|Rename:NewMethod|}()
     End Sub
+
     Private Sub NewMethod()
         With """"""""
             Dim x = .GetHashCode Xor &H7F3E ' Introduce Local 
@@ -455,9 +464,11 @@ End Namespace",
         Dim x As (Integer, Integer) = {|Rename:NewMethod|}()
         M(x)
     End Sub
+
     Private Shared Function NewMethod() As (Integer, Integer)
         Return (1, 2)
     End Function
+
     Private Sub M(x As (Integer, Integer))
     End Sub
 End Class
@@ -488,6 +499,7 @@ End Namespace",
         Dim x As (a As Integer, b As Integer) = {|Rename:NewMethod|}()
         System.Console.WriteLine(x.a)
     End Sub
+
     Private Shared Function NewMethod() As (a As Integer, b As Integer)
         Return (1, 2)
     End Function
@@ -519,6 +531,7 @@ End Namespace",
         Dim x As (a As Integer, Integer) = {|Rename:NewMethod|}()
         System.Console.WriteLine(x.a)
     End Sub
+
     Private Shared Function NewMethod() As (a As Integer, Integer)
         Return (1, 2)
     End Function

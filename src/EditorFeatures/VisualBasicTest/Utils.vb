@@ -220,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests
 
                 Case "EnumDeclaration"
                     Return importStatements & vbCrLf &
-                        "Enum Foo" & vbCrLf &
+                        "Enum Goo" & vbCrLf &
                         SurroundAndJoinLines(lines, "    ", vbCrLf) &
                         "End Enum"
 
@@ -327,7 +327,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests
                         "End Structure"
 
                 Case "File"
-                    Return String.Join(vbCrLf, lines)
+                    Return testSource.NormalizedValue
 
                 Case Else
                     Throw New ArgumentException("Unexpected testSource XML tag.", NameOf(testSource))

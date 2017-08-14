@@ -115,13 +115,13 @@ Ehd Module
             <file name="a.vb"><![CDATA[
 Imports System
 Module M1
-    Function Foo() As Integer
-        Console.WriteLine("Foo")
+    Function Goo() As Integer
+        Console.WriteLine("Goo")
         Return 0
     End Function
 
     Sub SelectCaseExpression()
-        Select Case Foo()'BIND:"Foo()"
+        Select Case Goo()'BIND:"Goo()"
         End Select
     End Sub
 End Module
@@ -136,7 +136,7 @@ End Module
             Assert.Equal(TypeKind.Structure, semanticSummary.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.Identity, semanticSummary.ImplicitConversion.Kind)
 
-            Assert.Equal("Function M1.Foo() As System.Int32", semanticSummary.Symbol.ToTestDisplayString())
+            Assert.Equal("Function M1.Goo() As System.Int32", semanticSummary.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, semanticSummary.Symbol.Kind)
             Assert.Equal(0, semanticSummary.CandidateSymbols.Length)
 
@@ -154,13 +154,13 @@ End Module
             <file name="a.vb"><![CDATA[
 Imports System
 Module M1
-    Function Foo() As Integer
-        Console.WriteLine("Foo")
+    Function Goo() As Integer
+        Console.WriteLine("Goo")
         Return 0
     End Function
 
     Sub SelectCaseExpression()
-        Select Case Foo()'BIND:"Foo"
+        Select Case Goo()'BIND:"Goo"
         End Select
     End Sub
 End Module
@@ -173,7 +173,7 @@ End Module
             Assert.Null(semanticSummary.ConvertedType)
             Assert.Equal(ConversionKind.Identity, semanticSummary.ImplicitConversion.Kind)
 
-            Assert.Equal("Function M1.Foo() As System.Int32", semanticSummary.Symbol.ToTestDisplayString())
+            Assert.Equal("Function M1.Goo() As System.Int32", semanticSummary.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, semanticSummary.Symbol.Kind)
             Assert.Equal(0, semanticSummary.CandidateSymbols.Length)
 
@@ -181,7 +181,7 @@ End Module
 
             Assert.Equal(1, semanticSummary.MemberGroup.Length)
             Dim sortedMethodGroup = semanticSummary.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Function M1.Foo() As System.Int32", sortedMethodGroup(0).ToTestDisplayString())
+            Assert.Equal("Function M1.Goo() As System.Int32", sortedMethodGroup(0).ToTestDisplayString())
 
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
@@ -258,11 +258,11 @@ End Module
             <file name="a.vb"><![CDATA[
 Imports System
 Module M1
-    Sub Foo()
+    Sub Goo()
     End Sub
 
     Sub SelectCaseExpression(number As Integer)
-        Select Case Foo()'BIND:"Foo()"
+        Select Case Goo()'BIND:"Goo()"
         End Select
     End Sub
 End Module
@@ -281,7 +281,7 @@ End Module
             Assert.Equal(CandidateReason.NotAValue, semanticSummary.CandidateReason)
             Assert.Equal(1, semanticSummary.CandidateSymbols.Length)
             Dim sortedCandidates = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Sub M1.Foo()", sortedCandidates(0).ToTestDisplayString())
+            Assert.Equal("Sub M1.Goo()", sortedCandidates(0).ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, sortedCandidates(0).Kind)
 
             Assert.Null(semanticSummary.Alias)
@@ -298,11 +298,11 @@ End Module
             <file name="a.vb"><![CDATA[
 Imports System
 Module M1
-    Sub Foo()
+    Sub Goo()
     End Sub
 
     Sub SelectCaseExpression(number As Integer)
-        Select Case Foo'BIND:"Foo"
+        Select Case Goo'BIND:"Goo"
         End Select
     End Sub
 End Module
@@ -321,7 +321,7 @@ End Module
             Assert.Equal(CandidateReason.NotAValue, semanticSummary.CandidateReason)
             Assert.Equal(1, semanticSummary.CandidateSymbols.Length)
             Dim sortedCandidates = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Sub M1.Foo()", sortedCandidates(0).ToTestDisplayString())
+            Assert.Equal("Sub M1.Goo()", sortedCandidates(0).ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, sortedCandidates(0).Kind)
 
             Assert.Null(semanticSummary.Alias)
@@ -338,11 +338,11 @@ End Module
             <file name="a.vb"><![CDATA[
 Imports System
 Module M1
-    Sub Foo(i As Integer)
+    Sub Goo(i As Integer)
     End Sub
 
     Sub SelectCaseExpression(number As Integer)
-        Select Case Foo'BIND:"Foo"
+        Select Case Goo'BIND:"Goo"
         End Select
     End Sub
 End Module
@@ -360,14 +360,14 @@ End Module
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticSummary.CandidateReason)
             Assert.Equal(1, semanticSummary.CandidateSymbols.Length)
             Dim sortedCandidates = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Sub M1.Foo(i As System.Int32)", sortedCandidates(0).ToTestDisplayString())
+            Assert.Equal("Sub M1.Goo(i As System.Int32)", sortedCandidates(0).ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, sortedCandidates(0).Kind)
 
             Assert.Null(semanticSummary.Alias)
 
             Assert.Equal(1, semanticSummary.MemberGroup.Length)
             Dim sortedMethodGroup = semanticSummary.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Sub M1.Foo(i As System.Int32)", sortedMethodGroup(0).ToTestDisplayString())
+            Assert.Equal("Sub M1.Goo(i As System.Int32)", sortedMethodGroup(0).ToTestDisplayString())
 
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
@@ -415,13 +415,13 @@ End Module
             <file name="a.vb"><![CDATA[
 Imports System
 Module M1
-    Function Foo() As Integer
+    Function Goo() As Integer
         Return 0
     End Function
 
     Sub RangeCaseClauseExpression(number As Integer)
         Select Case number
-            Case Foo() To 1'BIND:"Foo()"
+            Case Goo() To 1'BIND:"Goo()"
         End Select
     End Sub
 End Module
@@ -436,7 +436,7 @@ End Module
             Assert.Equal(TypeKind.Structure, semanticSummary.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.Identity, semanticSummary.ImplicitConversion.Kind)
 
-            Assert.Equal("Function M1.Foo() As System.Int32", semanticSummary.Symbol.ToTestDisplayString())
+            Assert.Equal("Function M1.Goo() As System.Int32", semanticSummary.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, semanticSummary.Symbol.Kind)
             Assert.Equal(0, semanticSummary.CandidateSymbols.Length)
 
@@ -454,7 +454,7 @@ End Module
             <file name="a.vb"><![CDATA[
 Imports System
 Module M1
-    Function Foo() As Integer
+    Function Goo() As Integer
         Return 0
     End Function
 
@@ -581,14 +581,17 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ISwitchStatement (2 cases) (OperationKind.SwitchStatement) (Syntax: 'Select Case ... End Select')
-  Switch expression: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Object, Constant: null) (Syntax: 'Nothing')
+  Switch expression: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null) (Syntax: 'Nothing')
+      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
   Sections:
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case Functi ... e("Failed")')
           Clauses:
               ISingleValueCaseClause (Equality operator kind: BinaryOperationKind.Invalid) (CaseKind.SingleValue) (OperationKind.SingleValueCaseClause) (Syntax: 'Function() 5')
-                Value: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'Function() 5')
-                    Operand: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: Function <generated method>() As System.Int32) (Syntax: 'Function() 5')
+                Value: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'Function() 5')
+                    Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Function <generated method>() As System.Int32) (Syntax: 'Function() 5')
+                        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         Operand: ILambdaExpression (Signature: Function () As System.Int32) (OperationKind.LambdaExpression, Type: null) (Syntax: 'Function() 5')
                             IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Function() 5')
                               Locals: Local_1: <anonymous local> As System.Int32
@@ -639,7 +642,7 @@ Class C
         Dim day2 = day
         Select Case day 'BIND:"day"
             Case DayOfWeek.A
-            Case 
+            Case
         End Select
     End Sub
     Enum DayOfWeek

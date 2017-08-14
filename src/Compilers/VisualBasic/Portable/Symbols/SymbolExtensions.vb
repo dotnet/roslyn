@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Case TypeKind.Module
                             Return "module"
                         Case TypeKind.Delegate
-                            ' Dev10 error message format "... delegate Class foo ..." instead of "... delegate foo ..."               
+                            ' Dev10 error message format "... delegate Class goo ..." instead of "... delegate goo ..."               
                             Return "delegate Class"
                         Case Else
                             'TODO: do we need string s for ByRef, Array, TypeParameter etc?

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             // report an error, rather then silently ignoring the directory
             // (see cli partition II 22.30) 
-            CSharpCompilation.Create(@"C:/foo/Test.exe").VerifyEmitDiagnostics(
+            CSharpCompilation.Create(@"C:/goo/Test.exe").VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
                 // error CS8203: Invalid assembly name: Name contains invalid characters.
@@ -58,12 +58,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1)
                 );
-            CSharpCompilation.Create(@"C:\foo\Test.exe").GetDeclarationDiagnostics().Verify(
+            CSharpCompilation.Create(@"C:\goo\Test.exe").GetDeclarationDiagnostics().Verify(
                 // error CS8203: Invalid assembly name: Name contains invalid characters.
                 Diagnostic(ErrorCode.ERR_BadAssemblyName).WithArguments("Name contains invalid characters.").WithLocation(1, 1)
                 );
             var compilationOptions = TestOptions.DebugDll.WithWarningLevel(0);
-            CSharpCompilation.Create(@"\foo/Test.exe", options: compilationOptions).VerifyEmitDiagnostics(
+            CSharpCompilation.Create(@"\goo/Test.exe", options: compilationOptions).VerifyEmitDiagnostics(
                 // error CS8203: Invalid assembly name: Name contains invalid characters.
                 Diagnostic(ErrorCode.ERR_BadAssemblyName).WithArguments("Name contains invalid characters.").WithLocation(1, 1)
                 );
@@ -102,9 +102,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             // other characters than directory and volume separators are ok:
             CSharpCompilation.Create(@";,*?<>#!@&", options: compilationOptions).VerifyEmitDiagnostics();
-            CSharpCompilation.Create("foo", options: compilationOptions).VerifyEmitDiagnostics();
-            CSharpCompilation.Create(".foo", options: compilationOptions).VerifyEmitDiagnostics();
-            CSharpCompilation.Create("foo ", options: compilationOptions).VerifyEmitDiagnostics(); // can end with whitespace
+            CSharpCompilation.Create("goo", options: compilationOptions).VerifyEmitDiagnostics();
+            CSharpCompilation.Create(".goo", options: compilationOptions).VerifyEmitDiagnostics();
+            CSharpCompilation.Create("goo ", options: compilationOptions).VerifyEmitDiagnostics(); // can end with whitespace
             CSharpCompilation.Create("....", options: compilationOptions).VerifyEmitDiagnostics();
             CSharpCompilation.Create(null, options: compilationOptions).VerifyEmitDiagnostics();
         }
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var listSyntaxTree = new List<SyntaxTree>();
             var listRef = new List<MetadataReference>();
 
-            var s1 = @"using Foo; 
+            var s1 = @"using Goo; 
 namespace A.B { 
    class C { 
      class D { 
@@ -212,8 +212,8 @@ namespace A.B {
 
             Assert.Throws<ArgumentException>("embeddedTexts", () => comp.Emit(
                 peStream: new MemoryStream(),
-                pdbStream: new MemoryStream(),
-                options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb),
+                pdbStream: null,
+                options: null,
                 embeddedTexts: new[] { EmbeddedText.FromStream("_", new MemoryStream()) }));
 
             Assert.Throws<ArgumentException>("embeddedTexts", () => comp.Emit(
@@ -523,7 +523,7 @@ namespace NA.NB
             var s5 = @"
 class D 
 {
-    public static int Foo()
+    public static int Goo()
     {
         long l = 25l;   
         return 0;
@@ -1081,8 +1081,8 @@ var a = new C2();
         [Fact]
         public void NegCreateCompilation()
         {
-            Assert.Throws<ArgumentNullException>(() => CSharpCompilation.Create("foo", syntaxTrees: new SyntaxTree[] { null }));
-            Assert.Throws<ArgumentNullException>(() => CSharpCompilation.Create("foo", references: new MetadataReference[] { null }));
+            Assert.Throws<ArgumentNullException>(() => CSharpCompilation.Create("goo", syntaxTrees: new SyntaxTree[] { null }));
+            Assert.Throws<ArgumentNullException>(() => CSharpCompilation.Create("goo", references: new MetadataReference[] { null }));
         }
 
         [WorkItem(537637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537637")]
@@ -1305,7 +1305,7 @@ var a = new C2();
         public void NegSynTree()
         {
             var comp = CSharpCompilation.Create("Compilation");
-            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree("Using Foo;");
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree("Using Goo;");
             // Throw exception when add null SyntaxTree
             Assert.Throws<ArgumentNullException>(
             delegate
@@ -1338,7 +1338,7 @@ var a = new C2();
             var t3 = t2;
 
             var vbComp = VB.VisualBasicCompilation.Create("CompilationVB");
-            vbComp = vbComp.AddSyntaxTrees(t1, VB.VisualBasicSyntaxTree.ParseText("Using Foo;"));
+            vbComp = vbComp.AddSyntaxTrees(t1, VB.VisualBasicSyntaxTree.ParseText("Using Goo;"));
             // Throw exception when cast SyntaxTree
             foreach (var item in vbComp.SyntaxTrees)
             {
@@ -1815,7 +1815,7 @@ class C { }", options: TestOptions.Script);
 class D { }");
 
             var tr = Parse(@"
-#r ""foo""
+#r ""goo""
 class C { }", options: TestOptions.Script);
 
             var ts = Parse(@"
@@ -1938,7 +1938,7 @@ class C { }", options: TestOptions.Script);
             {
                 using (var mdModule = ModuleMetadata.CreateFromMetadata((IntPtr)ptr, h.MetadataSize))
                 {
-                    var c = CSharpCompilation.Create("Foo", references: new[] { MscorlibRef, mdModule.GetReference(display: "ModuleCS00") }, options: TestOptions.ReleaseDll);
+                    var c = CSharpCompilation.Create("Goo", references: new[] { MscorlibRef, mdModule.GetReference(display: "ModuleCS00") }, options: TestOptions.ReleaseDll);
                     c.VerifyDiagnostics(
                         // error CS7098: Linked netmodule metadata must provide a full PE image: 'ModuleCS00'.
                         Diagnostic(ErrorCode.ERR_LinkedNetmoduleMetadataMustProvideFullPEImage).WithArguments("ModuleCS00").WithLocation(1, 1));
@@ -1991,7 +1991,7 @@ class C { }", options: TestOptions.Script);
             // Create a dll with a reference to .net system
             string libSource = @"
 using System.Runtime.Versioning;
-public class C { public static FrameworkName Foo() { return null; }}";
+public class C { public static FrameworkName Goo() { return null; }}";
             var libComp = CreateCompilation(
                 libSource,
                 references: new[] { MscorlibRef, TestReferences.NetFx.v4_0_30319.System },
@@ -2011,7 +2011,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
             };
 
             // Source references the type in the dll
-            string src1 = @"class A { public static void Main(string[] args) { C.Foo(); } }";
+            string src1 = @"class A { public static void Main(string[] args) { C.Goo(); } }";
 
             var c1 = CreateCompilation(
                 new[] { Parse(src1) },
@@ -2022,7 +2022,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
                 // error CS1703: Multiple assemblies with equivalent identity have been imported: 'System.dll' and 'System.v5.0.5.0_silverlight.dll'. Remove one of the duplicate references.
                 Diagnostic(ErrorCode.ERR_DuplicateImport).WithArguments("System.dll", "System.v5.0.5.0_silverlight.dll"),
                 // error CS7069: Reference to type 'System.Runtime.Versioning.FrameworkName' claims it is defined in 'System', but it could not be found
-                Diagnostic(ErrorCode.ERR_MissingTypeInAssembly, "C.Foo").WithArguments(
+                Diagnostic(ErrorCode.ERR_MissingTypeInAssembly, "C.Goo").WithArguments(
                     "System.Runtime.Versioning.FrameworkName", "System"));
 
             var appConfig = new MemoryStream(Encoding.UTF8.GetBytes(
@@ -2037,7 +2037,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
 
             var comparer = DesktopAssemblyIdentityComparer.LoadFromXml(appConfig);
 
-            var src2 = @"class A { public static void Main(string[] args) { C.Foo(); } }";
+            var src2 = @"class A { public static void Main(string[] args) { C.Goo(); } }";
             var c2 = CreateCompilation(
                 new[] { Parse(src2) },
                 references,
@@ -2108,8 +2108,8 @@ public class C { public static FrameworkName Foo() { return null; }}";
             Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeMetadata)));
             Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeApplication)));
             Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsApplication)));
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", options: TestOptions.ReleaseDll.WithCryptoKeyContainer("foo")));
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", options: TestOptions.ReleaseDll.WithCryptoKeyFile("foo.snk")));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", options: TestOptions.ReleaseDll.WithCryptoKeyContainer("goo")));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", options: TestOptions.ReleaseDll.WithCryptoKeyFile("goo.snk")));
             Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", options: TestOptions.ReleaseDll.WithDelaySign(true)));
             Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", options: TestOptions.ReleaseDll.WithDelaySign(false)));
         }
@@ -2120,7 +2120,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
             Assert.False(CSharpCompilation.CreateScriptCompilation("sub").HasSubmissionResult());
             Assert.True(CreateSubmission("1", parseOptions: TestOptions.Script).HasSubmissionResult());
             Assert.False(CreateSubmission("1;", parseOptions: TestOptions.Script).HasSubmissionResult());
-            Assert.False(CreateSubmission("void foo() { }", parseOptions: TestOptions.Script).HasSubmissionResult());
+            Assert.False(CreateSubmission("void goo() { }", parseOptions: TestOptions.Script).HasSubmissionResult());
             Assert.False(CreateSubmission("using System;", parseOptions: TestOptions.Script).HasSubmissionResult());
             Assert.False(CreateSubmission("int i;", parseOptions: TestOptions.Script).HasSubmissionResult());
             Assert.False(CreateSubmission("System.Console.WriteLine();", parseOptions: TestOptions.Script).HasSubmissionResult());

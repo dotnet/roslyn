@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 service.AddMembers(declaration, GetMembers(namedType), options, cancellationToken),
                 declaration)
 
-            Return AddCleanupAnnotationsTo(ConditionallyAddDocumentationCommentTo(declaration, namedType, options))
+            Return AddFormatterAndCodeGeneratorAnnotationsTo(ConditionallyAddDocumentationCommentTo(declaration, namedType, options))
         End Function
 
         Public Function UpdateNamedTypeDeclaration(service As ICodeGenerationService,
@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                                           cancellationToken As CancellationToken) As StatementSyntax
             declaration = RemoveAllMembers(declaration)
             declaration = service.AddMembers(declaration, newMembers, options, cancellationToken)
-            Return AddCleanupAnnotationsTo(declaration)
+            Return AddFormatterAndCodeGeneratorAnnotationsTo(declaration)
         End Function
 
         Private Function GetDeclarationSyntaxWithoutMembers(namedType As INamedTypeSymbol, options As CodeGenerationOptions) As StatementSyntax

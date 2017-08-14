@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // By contrast:
             //
-            // Foo(z: this.p, y: this.Q(), x: (object)10)
+            // Goo(z: this.p, y: this.Q(), x: (object)10)
             //
             // The boxing of 10 can be reordered, but the fetch of this.p has to happen before the
             // call to this.Q() because the call could change the value of this.p. 
@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int i = 0;
                 for (; i < parameters.Length; ++i)
                 {
-                    argumentsBuilder.Add(CSharpOperationFactory.CreateArgumentOperation(ArgumentKind.Explicit, parameters[i], operationFactory.Create(arguments[i])));
+                    argumentsBuilder.Add(operationFactory.CreateArgumentOperation(ArgumentKind.Explicit, parameters[i], arguments[i]));
                 }
 
                 // TODO: In case of __arglist, we will have more arguments than parameters, 
@@ -536,13 +536,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //       https://github.com/dotnet/roslyn/issues/19673
                 for (; i < arguments.Length; ++i)
                 {
-                    argumentsBuilder.Add(CSharpOperationFactory.CreateArgumentOperation(ArgumentKind.Explicit, null, operationFactory.Create(arguments[i])));
+                    argumentsBuilder.Add(operationFactory.CreateArgumentOperation(ArgumentKind.Explicit, null, arguments[i]));
                 }
 
                 Debug.Assert(methodOrIndexer.GetIsVararg() ^ parameters.Length == arguments.Length);
 
                 return argumentsBuilder.ToImmutableAndFree();
-            }                                                                                                                   
+            }
 
             return BuildArgumentsInEvaluationOrder(
                 operationFactory,
@@ -713,7 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argument = CreateParamArrayArgument(syntax, parameter.Type, paramArray.ToImmutableAndFree(), null, binder);
                 }
 
-                argumentsInEvaluationBuilder.Add(CSharpOperationFactory.CreateArgumentOperation(kind, parameter, operationFactory.Create(argument)));
+                argumentsInEvaluationBuilder.Add(operationFactory.CreateArgumentOperation(kind, parameter, argument));
             }
 
             // Collect parameters with missing arguments.   
@@ -1065,7 +1065,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     unusedDiagnostics.Free();
                 }
 
-                argumentsBuilder.Add(CSharpOperationFactory.CreateArgumentOperation(kind, parameter, operationFactory.Create(argument)));
+                argumentsBuilder.Add(operationFactory.CreateArgumentOperation(kind, parameter, argument));
             }
         }
 

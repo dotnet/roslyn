@@ -162,6 +162,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add file banner.
+        /// </summary>
+        internal static string Add_file_banner {
+            get {
+                return ResourceManager.GetString("Add_file_banner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add missing cases.
         /// </summary>
         internal static string Add_missing_cases {
@@ -1311,6 +1320,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Generate_constructor_in_0 {
             get {
                 return ResourceManager.GetString("Generate_constructor_in_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate constructor in &apos;{0}&apos; (without fields).
+        /// </summary>
+        internal static string Generate_constructor_in_0_without_fields {
+            get {
+                return ResourceManager.GetString("Generate_constructor_in_0_without_fields", resourceCulture);
             }
         }
         
@@ -3577,6 +3595,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Warning_colon_Declaration_changes_scope_and_may_change_meaning {
             get {
                 return ResourceManager.GetString("Warning_colon_Declaration_changes_scope_and_may_change_meaning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning: Method overrides symbol from metadata.
+        /// </summary>
+        internal static string Warning_Method_overrides_symbol_from_metadata {
+            get {
+                return ResourceManager.GetString("Warning_Method_overrides_symbol_from_metadata", resourceCulture);
             }
         }
         

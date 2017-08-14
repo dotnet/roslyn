@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -8,6 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub VerifyLiftedBinaryOperators1()
             Dim source = <![CDATA[
@@ -26,6 +28,7 @@ IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd-IsLifted) (OperationKi
             VerifyOperationTreeForTest(Of BinaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub VerifyNonLiftedBinaryOperators1()
             Dim source = <![CDATA[
@@ -45,6 +48,7 @@ IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.Binary
             VerifyOperationTreeForTest(Of BinaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub VerifyLiftedUserDefinedShortCircuitBinaryOperators1()
             Dim source = <![CDATA[
@@ -70,6 +74,7 @@ IBinaryOperatorExpression (BinaryOperationKind.OperatorMethodAnd-IsLifted) (Oper
             VerifyOperationTreeForTest(Of BinaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub VerifyLiftedUserDefinedShortCircuitBinaryOperators2()
             Dim source = <![CDATA[
@@ -95,6 +100,7 @@ IBinaryOperatorExpression (BinaryOperationKind.OperatorMethodConditionalAnd-IsLi
             VerifyOperationTreeForTest(Of BinaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub VerifyNonLiftedUserDefinedShortCircuitBinaryOperators1()
             Dim source = <![CDATA[
@@ -120,6 +126,7 @@ IBinaryOperatorExpression (BinaryOperationKind.OperatorMethodAnd) (OperatorMetho
             VerifyOperationTreeForTest(Of BinaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub VerifyNonLiftedUserDefinedShortCircuitBinaryOperators2()
             Dim source = <![CDATA[
@@ -144,6 +151,7 @@ IBinaryOperatorExpression (BinaryOperationKind.OperatorMethodConditionalAnd) (Op
             VerifyOperationTreeForTest(Of BinaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub VerifyLiftedUserDefinedBinaryOperators1()
             Dim source = <![CDATA[
@@ -166,6 +174,7 @@ IBinaryOperatorExpression (BinaryOperationKind.OperatorMethodAdd-IsLifted) (Oper
             VerifyOperationTreeForTest(Of BinaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub VerifyNonLiftedUserDefinedBinaryOperators1()
             Dim source = <![CDATA[

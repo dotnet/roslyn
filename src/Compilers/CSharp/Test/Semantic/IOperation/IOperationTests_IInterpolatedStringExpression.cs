@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
         public void InterpolatedStringExpression_Empty()
         {
@@ -23,7 +24,7 @@ internal class Class
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""""')
   Parts(0)
 ";
@@ -32,6 +33,7 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
             VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
         public void InterpolatedStringExpression_OnlyTextPart()
         {
@@ -46,7 +48,7 @@ internal class Class
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""Only text part""')
   Parts(1):
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'Only text part')
@@ -57,6 +59,7 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
             VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
         public void InterpolatedStringExpression_OnlyInterpolationPart()
         {
@@ -71,7 +74,7 @@ internal class Class
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""{1}""')
   Parts(1):
       IInterpolation (OperationKind.Interpolation) (Syntax: '{1}')
@@ -84,6 +87,7 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
             VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
         public void InterpolatedStringExpression_EmptyInterpolationPart()
         {
@@ -98,7 +102,7 @@ internal class Class
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, IsInvalid) (Syntax: '$""{}""')
   Parts(1):
       IInterpolation (OperationKind.Interpolation, IsInvalid) (Syntax: '{}')
@@ -116,6 +120,7 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
             VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
         public void InterpolatedStringExpression_TextAndInterpolationParts()
         {
@@ -130,7 +135,7 @@ internal class Class
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""String {x ... nstant {1}""')
   Parts(4):
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
@@ -151,6 +156,7 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
             VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
         public void InterpolatedStringExpression_FormatAndAlignment()
         {
@@ -168,7 +174,7 @@ internal class Class
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""String {x ... nstant {1}""')
   Parts(6):
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
@@ -197,6 +203,7 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
             VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
         public void InterpolatedStringExpression_InterpolationAndFormatAndAlignment()
         {
@@ -214,7 +221,7 @@ internal class Class
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""String {x,y:D3}""')
   Parts(2):
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
@@ -231,6 +238,7 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
             VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
         public void InterpolatedStringExpression_InvocationInInterpolation()
         {
@@ -249,7 +257,7 @@ internal class Class
     private string M2(int z) => z.ToString();
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""String {x ... nstant {1}""')
   Parts(6):
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
@@ -282,6 +290,7 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
             VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
         public void InterpolatedStringExpression_NestedInterpolation()
         {
@@ -300,7 +309,7 @@ internal class Class
     private int M2(string z) => Int32.Parse(z);
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""String {M2($""{y}"")}""')
   Parts(2):
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
@@ -326,6 +335,7 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
             VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
         public void InterpolatedStringExpression_InvalidExpressionInInterpolation()
         {
@@ -340,7 +350,7 @@ internal class Class
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, IsInvalid) (Syntax: '$""String {x ... nt {Class}""')
   Parts(4):
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')

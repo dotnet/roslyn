@@ -134,8 +134,6 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal EmitBaseline GetDelta(EmitBaseline baseline, Compilation compilation, Guid encId, MetadataSizes metadataSizes)
         {
-            var moduleBuilder = (CommonPEModuleBuilder)this.module;
-
             var addedOrChangedMethodsByIndex = new Dictionary<int, AddedOrChangedMethodInfo>();
             foreach (var pair in _addedOrChangedMethods)
             {
@@ -143,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             var previousTableSizes = _previousGeneration.TableEntriesAdded;
-            var deltaTableSizes = this.GetDeltaTableSizes(metadataSizes.RowCounts);
+            var deltaTableSizes = GetDeltaTableSizes(metadataSizes.RowCounts);
             var tableSizes = new int[MetadataTokens.TableCount];
 
             for (int i = 0; i < tableSizes.Length; i++)
@@ -153,11 +151,11 @@ namespace Microsoft.CodeAnalysis.Emit
 
             // If the previous generation is 0 (metadata) get the synthesized members from the current compilation's builder,
             // otherwise members from the current compilation have already been merged into the baseline.
-            var synthesizedMembers = (baseline.Ordinal == 0) ? moduleBuilder.GetSynthesizedMembers() : baseline.SynthesizedMembers;
+            var synthesizedMembers = (baseline.Ordinal == 0) ? module.GetSynthesizedMembers() : baseline.SynthesizedMembers;
 
             return baseline.With(
                 compilation,
-                moduleBuilder,
+                module,
                 baseline.Ordinal + 1,
                 encId,
                 typesAdded: AddRange(_previousGeneration.TypesAdded, _typeDefs.GetAdded()),
@@ -177,10 +175,11 @@ namespace Microsoft.CodeAnalysis.Emit
                 userStringStreamLengthAdded: metadataSizes.GetAlignedHeapSize(HeapIndex.UserString) + _previousGeneration.UserStringStreamLengthAdded,
                 // Guid stream accumulates on the GUID heap unlike other heaps, so the previous generations are already included.
                 guidStreamLengthAdded: metadataSizes.HeapSizes[(int)HeapIndex.Guid],
-                anonymousTypeMap: ((IPEDeltaAssemblyBuilder)moduleBuilder).GetAnonymousTypeMap(),
+                anonymousTypeMap: ((IPEDeltaAssemblyBuilder)module).GetAnonymousTypeMap(),
                 synthesizedMembers: synthesizedMembers,
                 addedOrChangedMethods: AddRange(_previousGeneration.AddedOrChangedMethods, addedOrChangedMethodsByIndex, replace: true),
-                debugInformationProvider: baseline.DebugInformationProvider);
+                debugInformationProvider: baseline.DebugInformationProvider,
+                localSignatureProvider: baseline.LocalSignatureProvider);
         }
 
         private static IReadOnlyDictionary<K, V> AddRange<K, V>(IReadOnlyDictionary<K, V> previous, IReadOnlyDictionary<K, V> current, bool replace = false)
@@ -663,23 +662,19 @@ namespace Microsoft.CodeAnalysis.Emit
             }
             else
             {
-                localSignatureHandle = default(StandaloneSignatureHandle);
+                localSignatureHandle = default;
             }
 
-            var method = body.MethodDefinition;
-            if (!method.IsImplicitlyDeclared)
-            {
-                var info = new AddedOrChangedMethodInfo(
-                    body.MethodId,
-                    encInfos.ToImmutable(),
-                    body.LambdaDebugInfo,
-                    body.ClosureDebugInfo,
-                    body.StateMachineTypeName,
-                    body.StateMachineHoistedLocalSlots,
-                    body.StateMachineAwaiterSlots);
+            var info = new AddedOrChangedMethodInfo(
+                body.MethodId,
+                encInfos.ToImmutable(),
+                body.LambdaDebugInfo,
+                body.ClosureDebugInfo,
+                body.StateMachineTypeName,
+                body.StateMachineHoistedLocalSlots,
+                body.StateMachineAwaiterSlots);
 
-                _addedOrChangedMethods.Add(method, info);
-            }
+            _addedOrChangedMethods.Add(body.MethodDefinition, info);
 
             encInfos.Free();
             return localSignatureHandle;

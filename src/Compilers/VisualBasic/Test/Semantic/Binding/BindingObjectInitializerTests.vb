@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Linq.Enumerable
 Imports System.Xml.Linq
@@ -199,7 +199,8 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: '.Field')
             Left: IFieldReferenceExpression: C2.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'Field')
                 Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C2() With {.Field}')
-            Right: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '')
+            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
                     Children(0)
 ]]>.Value
@@ -241,7 +242,8 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: '.Field =')
             Left: IFieldReferenceExpression: C2.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field')
                 Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C2() With {.Field =}')
-            Right: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '')
+            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
                     Children(0)
 ]]>.Value
@@ -406,7 +408,7 @@ Class C1
         Dim c1 as New C1() With {.Field2 = .Field1}
         Console.WriteLine(c1.Field2)
     End Sub
-End Class        
+End Class
     </file>
 </compilation>
 
@@ -531,7 +533,8 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
                     IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: 'Field')
                       Children(1):
                           IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C2() Wi ... Field = 23}')
-            Right: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: ?) (Syntax: '23')
+            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: ?) (Syntax: '23')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (Text: 23) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 23) (Syntax: '23')
 ]]>.Value
 
@@ -552,11 +555,11 @@ Option Strict On
 Imports System
 
 Class C1
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 
     Public Shared Sub Main()
-        Dim c1 As New C1() With {.Foo = "Hello World!"}'BIND:"New C1() With {.Foo = "Hello World!"}"
+        Dim c1 As New C1() With {.Goo = "Hello World!"}'BIND:"New C1() With {.Goo = "Hello World!"}"
     End Sub
 
 End Class]]>.Value
@@ -564,19 +567,20 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreationExpression, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ... lo World!"}')
   Arguments(0)
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C1, IsInvalid) (Syntax: 'With {.Foo  ... lo World!"}')
+  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C1, IsInvalid) (Syntax: 'With {.Goo  ... lo World!"}')
       Initializers(1):
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.Foo = "Hello World!"')
-            Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.Foo = "Hello World!"')
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.Goo = "Hello World!"')
+            Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.Goo = "Hello World!"')
                 Children(1):
-                    IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Foo')
-            Right: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: ?) (Syntax: '"Hello World!"')
+                    IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Goo')
+            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: ?) (Syntax: '"Hello World!"')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
-BC30990: Member 'Foo' cannot be initialized in an object initializer expression because it is not a field or property.
-        Dim c1 As New C1() With {.Foo = "Hello World!"}'BIND:"New C1() With {.Foo = "Hello World!"}"
+BC30990: Member 'Goo' cannot be initialized in an object initializer expression because it is not a field or property.
+        Dim c1 As New C1() With {.Goo = "Hello World!"}'BIND:"New C1() With {.Goo = "Hello World!"}"
                                   ~~~
 ]]>.Value
 
@@ -593,7 +597,7 @@ Imports System
 Class C1
     Public ReadOnly Property X As String
         Get
-            Return "foo"
+            Return "goo"
         End Get
     End Property
 
@@ -647,7 +651,8 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
                 Children(1):
                     IFieldReferenceExpression: C1.X As System.String (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'X')
                       Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C1() Wi ... lo World!"}')
-            Right: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: ?) (Syntax: '"Hello World!"')
+            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: ?) (Syntax: '"Hello World!"')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
 ]]>.Value
 
@@ -666,7 +671,7 @@ BC30064: 'ReadOnly' variable cannot be the target of an assignment.
 Class C1
     Public Property X As String
         Get
-            Return "foo"
+            Return "goo"
         End Get
         Private Set
         End Set
@@ -676,25 +681,25 @@ End Class
 Module Module1
 
     Sub Main()
-        Dim x As New C1() With {.X = "foo"}'BIND:"New C1() With {.X = "foo"}"
+        Dim x As New C1() With {.X = "goo"}'BIND:"New C1() With {.X = "goo"}"
     End Sub
 
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreationExpression, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ... .X = "foo"}')
+IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreationExpression, Type: C1, IsInvalid) (Syntax: 'New C1() Wi ... .X = "goo"}')
   Arguments(0)
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C1, IsInvalid) (Syntax: 'With {.X = "foo"}')
+  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C1, IsInvalid) (Syntax: 'With {.X = "goo"}')
       Initializers(1):
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void, IsInvalid) (Syntax: '.X = "foo"')
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void, IsInvalid) (Syntax: '.X = "goo"')
             Left: IPropertyReferenceExpression: Property C1.X As System.String (OperationKind.PropertyReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'X')
-                Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C1() Wi ... .X = "foo"}')
-            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "foo", IsInvalid) (Syntax: '"foo"')
+                Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C1() Wi ... .X = "goo"}')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "goo", IsInvalid) (Syntax: '"goo"')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
 BC31102: 'Set' accessor of property 'X' is not accessible.
-        Dim x As New C1() With {.X = "foo"}'BIND:"New C1() With {.X = "foo"}"
+        Dim x As New C1() With {.X = "goo"}'BIND:"New C1() With {.X = "goo"}"
                                 ~~~~~~~~~~
 ]]>.Value
 
@@ -712,7 +717,7 @@ End Class
 Module Module1
 
     Sub Main()'BIND:"Sub Main()"
-        Dim x As New C3() With {.X = "foo"}
+        Dim x As New C3() With {.X = "goo"}
         x = New C3() With {.X = Unknown()}
     End Sub
 
@@ -721,21 +726,22 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Sub Main()' ... End Sub')
   Locals: Local_1: x As C3
-  IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim x As Ne ... .X = "foo"}')
+  IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim x As Ne ... .X = "goo"}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x')
       Variables: Local_1: x As C3
-      Initializer: IObjectCreationExpression (Constructor: Sub C3..ctor()) (OperationKind.ObjectCreationExpression, Type: C3, IsInvalid) (Syntax: 'New C3() Wi ... .X = "foo"}')
+      Initializer: IObjectCreationExpression (Constructor: Sub C3..ctor()) (OperationKind.ObjectCreationExpression, Type: C3, IsInvalid) (Syntax: 'New C3() Wi ... .X = "goo"}')
           Arguments(0)
-          Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C3, IsInvalid) (Syntax: 'With {.X = "foo"}')
+          Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C3, IsInvalid) (Syntax: 'With {.X = "goo"}')
               Initializers(1):
-                  ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.X = "foo"')
-                    Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.X = "foo"')
+                  ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.X = "goo"')
+                    Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.X = "goo"')
                         Children(1):
                             IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'X')
                               Children(1):
-                                  IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C3() Wi ... .X = "foo"}')
-                    Right: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: ?) (Syntax: '"foo"')
-                        Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "foo") (Syntax: '"foo"')
+                                  IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C3() Wi ... .X = "goo"}')
+                    Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: ?) (Syntax: '"goo"')
+                        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "goo") (Syntax: '"goo"')
   IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x = New C3( ...  Unknown()}')
     Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: C3, IsInvalid) (Syntax: 'x = New C3( ...  Unknown()}')
         Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: C3) (Syntax: 'x')
@@ -761,10 +767,10 @@ IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement, IsInvali
 
             Dim expectedDiagnostics = <![CDATA[
 BC30517: Overload resolution failed because no 'New' is accessible.
-        Dim x As New C3() With {.X = "foo"}
+        Dim x As New C3() With {.X = "goo"}
                      ~~
 BC30456: 'X' is not a member of 'C3'.
-        Dim x As New C3() With {.X = "foo"}
+        Dim x As New C3() With {.X = "goo"}
                                  ~
 BC30517: Overload resolution failed because no 'New' is accessible.
         x = New C3() With {.X = Unknown()}
@@ -785,14 +791,14 @@ BC30451: 'Unknown' is not declared. It may be inaccessible due to its protection
             Dim source = <![CDATA[
 Imports System
 
-Interface IFoo
+Interface IGoo
     Property Bar As Integer
 End Interface
 
 Class C2
-    Implements IFoo
+    Implements IGoo
 
-    Public Property Bar As Integer Implements IFoo.Bar
+    Public Property Bar As Integer Implements IGoo.Bar
 End Class
 
 Class C1
@@ -800,7 +806,7 @@ Class C1
         DoStuff(Of C2)()
     End Sub
 
-    Public Shared Sub DoStuff(Of T As {IFoo, New})()
+    Public Shared Sub DoStuff(Of T As {IGoo, New})()
         Dim x As New T() With {.Bar = 23}'BIND:"New T() With {.Bar = 23}"
         x = New T() With {.Bar = 23}
 
@@ -832,10 +838,10 @@ Class C2
     Public Shared Sub Main()
         Dim x As New C1(Of Integer) With {.Field = 23}
 
-        Foo(Of C1)()
+        Goo(Of C1)()
     End Sub
 
-    Public Shared Sub Foo(Of T As New)()
+    Public Shared Sub Goo(Of T As New)()
         Dim x As New C1(Of T) With {.Field = New T}'BIND:"New C1(Of T) With {.Field = New T}"
     End Sub
 
@@ -883,7 +889,7 @@ Class C2
             Console.WriteLine(y.Field) ' should be 42
         End With
     End Sub
-End Class   
+End Class
     </file>
 </compilation>
 
@@ -941,7 +947,8 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: '.Field = .Field2')
             Left: IFieldReferenceExpression: C1.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field')
                 Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C1() Wi ...  = .Field2}')
-            Right: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '.Field2')
+            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '.Field2')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.Field2')
                     Children(1):
                         IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C1() Wi ...  = .Field2}')
@@ -980,7 +987,7 @@ Class C3
         Console.WriteLine(x.Field)
         Console.WriteLine(x.FieldC2.Field)
     End Sub
-End Class   
+End Class
     </file>
 </compilation>
 
@@ -1057,7 +1064,8 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
                         ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: '.Field1 = .Field2')
                           Left: IFieldReferenceExpression: C2.Field1 As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field1')
                               Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C2() Wi ...  = .Field2}')
-                          Right: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '.Field2')
+                          Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '.Field2')
+                              Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.Field2')
                                   Children(1):
                                       IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C2() Wi ...  = .Field2}')
@@ -1099,7 +1107,7 @@ Class C2
         x.Field = 42
         Console.WriteLine(x.Field2.Invoke())
     End Sub
-End Class 
+End Class
     </file>
 </compilation>
 
@@ -1115,7 +1123,8 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Func(Of System.Int32)) (Syntax: '.Field2 = F ... nd Function')
             Left: IFieldReferenceExpression: C1.Field2 As System.Func(Of System.Int32) (OperationKind.FieldReferenceExpression, Type: System.Func(Of System.Int32)) (Syntax: 'Field2')
                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C1 With ... d Function}')
-            Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Func(Of System.Int32)) (Syntax: 'Function()  ... nd Function')
+            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.Int32)) (Syntax: 'Function()  ... nd Function')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILambdaExpression (Signature: Function () As System.Int32) (OperationKind.LambdaExpression, Type: null) (Syntax: 'Function()  ... nd Function')
                     IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Function()  ... nd Function')
                       Locals: Local_1: <anonymous local> As System.Int32
@@ -1201,7 +1210,7 @@ End Class
             AssertTheseDiagnostics(compilation, <expected>
 BC42104: Variable 'y' is used before it has been assigned a value. A null reference exception could result at runtime.
         Dim x As New C1 With {.RefTypeField = y.CreateC2}
-                                              ~                                                   
+                                              ~
                                                </expected>)
             ' Yeah! We did not have this in Dev10 :)
         End Sub
@@ -1325,8 +1334,8 @@ End Structure
 Class C1
 
     Public Shared Sub Main()
-        Dim foo As New s1()
-        foo.x = 23
+        Dim goo As New s1()
+        goo.x = 23
 
         Dim s1 As New s1 With {.x = s1.x}'BIND:"New s1 With {.x = s1.x}"
     End Sub
@@ -1384,12 +1393,14 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Func(Of System.Object)) (Syntax: '.Field = Fu ... nd Function')
             Left: IFieldReferenceExpression: C2.Field As System.Func(Of System.Object) (OperationKind.FieldReferenceExpression, Type: System.Func(Of System.Object)) (Syntax: 'Field')
                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'As New C2 W ... d Function}')
-            Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Func(Of System.Object)) (Syntax: 'Function()' ... nd Function')
+            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.Object)) (Syntax: 'Function()' ... nd Function')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILambdaExpression (Signature: Function () As System.Object) (OperationKind.LambdaExpression, Type: null) (Syntax: 'Function()' ... nd Function')
                     IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Function()' ... nd Function')
                       Locals: Local_1: <anonymous local> As System.Object
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return .Field')
-                        ReturnedValue: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '.Field')
+                        ReturnedValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '.Field')
+                            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             Operand: IFieldReferenceExpression: C2.Field As System.Func(Of System.Object) (OperationKind.FieldReferenceExpression, Type: System.Func(Of System.Object)) (Syntax: '.Field')
                                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'As New C2 W ... d Function}')
                       ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Function')
@@ -1399,12 +1410,14 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Func(Of System.Object)) (Syntax: '.Field2 = F ... nd Function')
             Left: IFieldReferenceExpression: C2.Field2 As System.Func(Of System.Object) (OperationKind.FieldReferenceExpression, Type: System.Func(Of System.Object)) (Syntax: 'Field2')
                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'As New C2 W ... d Function}')
-            Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Func(Of System.Object)) (Syntax: 'Function() ... nd Function')
+            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.Object)) (Syntax: 'Function() ... nd Function')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILambdaExpression (Signature: Function () As System.Object) (OperationKind.LambdaExpression, Type: null) (Syntax: 'Function() ... nd Function')
                     IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Function() ... nd Function')
                       Locals: Local_1: <anonymous local> As System.Object
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return .Field')
-                        ReturnedValue: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '.Field')
+                        ReturnedValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '.Field')
+                            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             Operand: IFieldReferenceExpression: C2.Field As System.Func(Of System.Object) (OperationKind.FieldReferenceExpression, Type: System.Func(Of System.Object)) (Syntax: '.Field')
                                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'As New C2 W ... d Function}')
                       ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Function')
@@ -1437,7 +1450,7 @@ End Class
 
 Class C1
     Public Shared Sub Main()
-        Dim a As String = "foo"
+        Dim a As String = "goo"
         Dim c As New cust With {.x = !a}'BIND:"New cust With {.x = !a}"
     End Sub
 End Class]]>.Value
@@ -1450,7 +1463,8 @@ IObjectCreationExpression (Constructor: Sub cust..ctor()) (OperationKind.ObjectC
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int64) (Syntax: '.x = !a')
             Left: IFieldReferenceExpression: cust.x As System.Int64 (OperationKind.FieldReferenceExpression, Type: System.Int64) (Syntax: 'x')
                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New cust With {.x = !a}')
-            Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int64) (Syntax: '!a')
+            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64) (Syntax: '!a')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: IPropertyReferenceExpression: ReadOnly Property cust.scen5(arg As System.String) As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: '!a')
                     Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New cust With {.x = !a}')
                     Arguments(1):
@@ -1494,7 +1508,8 @@ Class C2
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'New scen2 W ... .Scen2 = 5}')
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'New scen2 W ... .Scen2 = 5}')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: IObjectCreationExpression (Constructor: Sub scen2..ctor()) (OperationKind.ObjectCreationExpression, Type: scen2) (Syntax: 'New scen2 W ... .Scen2 = 5}')
       Arguments(0)
       Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: scen2) (Syntax: 'With {.Scen2 = 5}')
@@ -1502,7 +1517,8 @@ IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionE
               ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void) (Syntax: '.Scen2 = 5')
                 Left: IPropertyReferenceExpression: Property scen2.Scen2 As System.Int16 (OperationKind.PropertyReferenceExpression, Type: System.Int16) (Syntax: 'Scen2')
                     Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New scen2 W ... .Scen2 = 5}')
-                Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int16, Constant: 5) (Syntax: '5')
+                Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int16, Constant: 5) (Syntax: '5')
+                    Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: ILiteralExpression (Text: 5) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
 ]]>.Value
 
@@ -1526,7 +1542,7 @@ End Class
 
 Class C2
     Public Shared Sub Main()
-       Dim c As Cust = New Cust With {.y = 1, 
+       Dim c As Cust = New Cust With {.y = 1,
                         .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1,
                         .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1,
                         .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1,
@@ -1557,7 +1573,7 @@ Class C2
 }}}}}}}}}}
 }}}}}}}}}}
     End Sub
-End Class       
+End Class
     </file>
 </compilation>
 
@@ -1575,77 +1591,77 @@ End Class
 Structure NonEmptyStructure
     Public RefField1 As String
     Public ValField1 As Integer
-    Public Property Foo As String
+    Public Property Goo As String
 End Structure
 
 Structure EmptyStructure
-    Public Property Foo1 As Integer
-    Public Property Foo2 As String
+    Public Property Goo1 As Integer
+    Public Property Goo2 As String
 End Structure
 
 Class RefClass
     Public RefField1 As String
     Public ValField1 As Integer
-    Public Property Foo As String
-    Public Property Foo1 As Integer
-    Public Property Foo2 As String
+    Public Property Goo As String
+    Public Property Goo1 As Integer
+    Public Property Goo2 As String
 End Class
 
 Interface IMissingStuff2
-    Property Foo1 As Integer
-    Property Foo2 As String
+    Property Goo1 As Integer
+    Property Goo2 As String
 End Interface
 
 Class ObjectInitializerClass
     Public Sub TypeParameterNotDefined(Of T As {IMissingStuff2, New})()
-        Dim var20 As New T() With {.Foo1 = .Foo2.Length}                        ' Receiver type unknown, no warning
-        Dim var21 As New T() With {.Foo1 = var21.Foo2.Length}                   ' Receiver type unknown, no warning
-        Dim var22 As T = New T() With {.Foo1 = .Foo2.Length}                    ' Receiver type unknown, no warning
-        Dim var23 As T = New T() With {.Foo1 = var23.Foo2.Length}               ' Receiver type unknown, no warning
+        Dim var20 As New T() With {.Goo1 = .Goo2.Length}                        ' Receiver type unknown, no warning
+        Dim var21 As New T() With {.Goo1 = var21.Goo2.Length}                   ' Receiver type unknown, no warning
+        Dim var22 As T = New T() With {.Goo1 = .Goo2.Length}                    ' Receiver type unknown, no warning
+        Dim var23 As T = New T() With {.Goo1 = var23.Goo2.Length}               ' Receiver type unknown, no warning
     End Sub
 
     Public Sub TypeParameterAsStructure(Of T As {Structure, IMissingStuff2})()
-        Dim var24 As New T() With {.Foo1 = .Foo2.Length}                        ' no local referenced, no warning
-        Dim var25 As New T() With {.Foo1 = var25.Foo2.Length}                   ' inplace initialized, no warning
-        Dim var26 As T = New T() With {.Foo1 = .Foo2.Length}                    ' no local referenced, no warning
-        Dim var27 As T = New T() With {.Foo1 = var27.Foo2.Length}               ' temporary used, warning
+        Dim var24 As New T() With {.Goo1 = .Goo2.Length}                        ' no local referenced, no warning
+        Dim var25 As New T() With {.Goo1 = var25.Goo2.Length}                   ' inplace initialized, no warning
+        Dim var26 As T = New T() With {.Goo1 = .Goo2.Length}                    ' no local referenced, no warning
+        Dim var27 As T = New T() With {.Goo1 = var27.Goo2.Length}               ' temporary used, warning
 
-        Dim var28, var29 As New T() With {.Foo1 = var28.Foo2.Length}            ' no local referenced, no warning
-        Dim var30, var31 As New T() With {.Foo1 = var31.Foo2.Length}            ' Receiver type unknown, no warning
+        Dim var28, var29 As New T() With {.Goo1 = var28.Goo2.Length}            ' no local referenced, no warning
+        Dim var30, var31 As New T() With {.Goo1 = var31.Goo2.Length}            ' Receiver type unknown, no warning
     End Sub
 
     Public Sub DoStuff_3(Of T As {RefClass, New})()
-        Dim var32 As New T() With {.Foo1 = .Foo2.Length}                        ' no local referenced, no warning
-        Dim var33 As New T() With {.Foo1 = var33.Foo2.Length}                   ' not yet initialized, warning
-        Dim var34 As T = New T() With {.Foo1 = .Foo2.Length}                    ' no local referenced, no warning
-        Dim var35 As T = New T() With {.Foo1 = var35.Foo2.Length}               ' not yet initialized, warning
-        Dim var36, var37 As New T() With {.Foo1 = var36.Foo2.Length}            ' not yet initialized, warning
-        Dim var38, var39 As New T() With {.Foo1 = var39.Foo2.Length}            ' not yet initialized, warning
+        Dim var32 As New T() With {.Goo1 = .Goo2.Length}                        ' no local referenced, no warning
+        Dim var33 As New T() With {.Goo1 = var33.Goo2.Length}                   ' not yet initialized, warning
+        Dim var34 As T = New T() With {.Goo1 = .Goo2.Length}                    ' no local referenced, no warning
+        Dim var35 As T = New T() With {.Goo1 = var35.Goo2.Length}               ' not yet initialized, warning
+        Dim var36, var37 As New T() With {.Goo1 = var36.Goo2.Length}            ' not yet initialized, warning
+        Dim var38, var39 As New T() With {.Goo1 = var39.Goo2.Length}            ' not yet initialized, warning
     End Sub
 
     Public Shared Sub Main()
-        Dim var01 As New NonEmptyStructure() With {.ValField1 = var01.RefField1.Length, .RefField1 = var01.Foo} ' no warnings
-        Dim var02, var03 As New NonEmptyStructure() With {.ValField1 = var03.RefField1.Length, .RefField1 = var03.Foo} ' warnings
-        Dim var04, var05 As New NonEmptyStructure() With {.RefField1 = var04.Foo} ' no warnings
+        Dim var01 As New NonEmptyStructure() With {.ValField1 = var01.RefField1.Length, .RefField1 = var01.Goo} ' no warnings
+        Dim var02, var03 As New NonEmptyStructure() With {.ValField1 = var03.RefField1.Length, .RefField1 = var03.Goo} ' warnings
+        Dim var04, var05 As New NonEmptyStructure() With {.RefField1 = var04.Goo} ' no warnings
 
-        Dim var06 As NonEmptyStructure = New NonEmptyStructure() With {.ValField1 = var06.RefField1.Length, .RefField1 = var06.Foo} ' warnings
-
-
-        Dim var07 As New EmptyStructure() With {.Foo1 = var07.Foo2.Length} ' no warnings
-        Dim var08, var09 As New EmptyStructure() With {.Foo1 = var09.Foo2.Length} ' warnings
-        Dim var10, var11 As New EmptyStructure() With {.Foo1 = var10.Foo2.Length} ' no warnings
-
-        Dim var12 As EmptyStructure = New EmptyStructure() With {.Foo1 = var12.Foo2.Length} ' warnings
+        Dim var06 As NonEmptyStructure = New NonEmptyStructure() With {.ValField1 = var06.RefField1.Length, .RefField1 = var06.Goo} ' warnings
 
 
-        Dim var13 As New RefClass() With {.ValField1 = var13.RefField1.Length, .RefField1 = var13.Foo} ' no warnings
-        Dim var14, var15 As New RefClass() With {.ValField1 = var15.RefField1.Length, .RefField1 = var15.Foo} ' warnings
-        Dim var16, var17 As New RefClass() With {.ValField1 = var16.RefField1.Length, .RefField1 = var16.Foo} ' no warnings
+        Dim var07 As New EmptyStructure() With {.Goo1 = var07.Goo2.Length} ' no warnings
+        Dim var08, var09 As New EmptyStructure() With {.Goo1 = var09.Goo2.Length} ' warnings
+        Dim var10, var11 As New EmptyStructure() With {.Goo1 = var10.Goo2.Length} ' no warnings
 
-        Dim var18 As RefClass = New RefClass() With {.ValField1 = var18.RefField1.Length, .RefField1 = var18.Foo} ' warnings
+        Dim var12 As EmptyStructure = New EmptyStructure() With {.Goo1 = var12.Goo2.Length} ' warnings
 
 
-        Dim var19 = New RefClass() With {.ValField1 = var18.RefField1.Length, .RefField1 = var18.Foo} ' warnings
+        Dim var13 As New RefClass() With {.ValField1 = var13.RefField1.Length, .RefField1 = var13.Goo} ' no warnings
+        Dim var14, var15 As New RefClass() With {.ValField1 = var15.RefField1.Length, .RefField1 = var15.Goo} ' warnings
+        Dim var16, var17 As New RefClass() With {.ValField1 = var16.RefField1.Length, .RefField1 = var16.Goo} ' no warnings
+
+        Dim var18 As RefClass = New RefClass() With {.ValField1 = var18.RefField1.Length, .RefField1 = var18.Goo} ' warnings
+
+
+        Dim var19 = New RefClass() With {.ValField1 = var18.RefField1.Length, .RefField1 = var18.Goo} ' warnings
     End Sub
 End Class
 
@@ -1658,8 +1674,8 @@ Class CObjInitDerived
     Inherits CObjInitBase(Of NonEmptyStructure)
 
     Public Overrides Sub TypeParameterValueTypeAsClassConstraint(Of U As {NonEmptyStructure, IMissingStuff2})()
-        Dim uinst1 As New U() With {.Foo1 = uinst1.Foo2.Length}
-        Dim uinst2 As U = New U() With {.Foo1 = uinst2.Foo2.Length}
+        Dim uinst1 As New U() With {.Goo1 = uinst1.Goo2.Length}
+        Dim uinst2 As U = New U() With {.Goo1 = uinst2.Goo2.Length}
     End Sub
 End Class
     </file>
@@ -1668,55 +1684,55 @@ End Class
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected>
 BC42109: Variable 'var27' is used before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use
-        Dim var27 As T = New T() With {.Foo1 = var27.Foo2.Length}               ' temporary used, warning
+        Dim var27 As T = New T() With {.Goo1 = var27.Goo2.Length}               ' temporary used, warning
                                                ~~~~~
 BC42109: Variable 'var31' is used before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use
-        Dim var30, var31 As New T() With {.Foo1 = var31.Foo2.Length}            ' Receiver type unknown, no warning
+        Dim var30, var31 As New T() With {.Goo1 = var31.Goo2.Length}            ' Receiver type unknown, no warning
                                                   ~~~~~
 BC42104: Variable 'var33' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim var33 As New T() With {.Foo1 = var33.Foo2.Length}                   ' not yet initialized, warning
+        Dim var33 As New T() With {.Goo1 = var33.Goo2.Length}                   ' not yet initialized, warning
                                            ~~~~~
 BC42104: Variable 'var35' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim var35 As T = New T() With {.Foo1 = var35.Foo2.Length}               ' not yet initialized, warning
+        Dim var35 As T = New T() With {.Goo1 = var35.Goo2.Length}               ' not yet initialized, warning
                                                ~~~~~
 BC42104: Variable 'var36' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim var36, var37 As New T() With {.Foo1 = var36.Foo2.Length}            ' not yet initialized, warning
+        Dim var36, var37 As New T() With {.Goo1 = var36.Goo2.Length}            ' not yet initialized, warning
                                                   ~~~~~
 BC42104: Variable 'var39' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim var38, var39 As New T() With {.Foo1 = var39.Foo2.Length}            ' not yet initialized, warning
+        Dim var38, var39 As New T() With {.Goo1 = var39.Goo2.Length}            ' not yet initialized, warning
                                                   ~~~~~
 BC42104: Variable 'RefField1' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim var02, var03 As New NonEmptyStructure() With {.ValField1 = var03.RefField1.Length, .RefField1 = var03.Foo} ' warnings
+        Dim var02, var03 As New NonEmptyStructure() With {.ValField1 = var03.RefField1.Length, .RefField1 = var03.Goo} ' warnings
                                                                        ~~~~~~~~~~~~~~~
 BC42109: Variable 'var03' is used before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use
-        Dim var02, var03 As New NonEmptyStructure() With {.ValField1 = var03.RefField1.Length, .RefField1 = var03.Foo} ' warnings
+        Dim var02, var03 As New NonEmptyStructure() With {.ValField1 = var03.RefField1.Length, .RefField1 = var03.Goo} ' warnings
                                                                                                             ~~~~~
 BC42104: Variable 'RefField1' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim var06 As NonEmptyStructure = New NonEmptyStructure() With {.ValField1 = var06.RefField1.Length, .RefField1 = var06.Foo} ' warnings
+        Dim var06 As NonEmptyStructure = New NonEmptyStructure() With {.ValField1 = var06.RefField1.Length, .RefField1 = var06.Goo} ' warnings
                                                                                     ~~~~~~~~~~~~~~~
 BC42109: Variable 'var06' is used before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use
-        Dim var06 As NonEmptyStructure = New NonEmptyStructure() With {.ValField1 = var06.RefField1.Length, .RefField1 = var06.Foo} ' warnings
+        Dim var06 As NonEmptyStructure = New NonEmptyStructure() With {.ValField1 = var06.RefField1.Length, .RefField1 = var06.Goo} ' warnings
                                                                                                                          ~~~~~
 BC42109: Variable 'var09' is used before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use
-        Dim var08, var09 As New EmptyStructure() With {.Foo1 = var09.Foo2.Length} ' warnings
+        Dim var08, var09 As New EmptyStructure() With {.Goo1 = var09.Goo2.Length} ' warnings
                                                                ~~~~~
 BC42109: Variable 'var12' is used before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use
-        Dim var12 As EmptyStructure = New EmptyStructure() With {.Foo1 = var12.Foo2.Length} ' warnings
+        Dim var12 As EmptyStructure = New EmptyStructure() With {.Goo1 = var12.Goo2.Length} ' warnings
                                                                          ~~~~~
 BC42104: Variable 'var13' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim var13 As New RefClass() With {.ValField1 = var13.RefField1.Length, .RefField1 = var13.Foo} ' no warnings
+        Dim var13 As New RefClass() With {.ValField1 = var13.RefField1.Length, .RefField1 = var13.Goo} ' no warnings
                                                        ~~~~~
 BC42104: Variable 'var15' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim var14, var15 As New RefClass() With {.ValField1 = var15.RefField1.Length, .RefField1 = var15.Foo} ' warnings
+        Dim var14, var15 As New RefClass() With {.ValField1 = var15.RefField1.Length, .RefField1 = var15.Goo} ' warnings
                                                               ~~~~~
 BC42104: Variable 'var16' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim var16, var17 As New RefClass() With {.ValField1 = var16.RefField1.Length, .RefField1 = var16.Foo} ' no warnings
+        Dim var16, var17 As New RefClass() With {.ValField1 = var16.RefField1.Length, .RefField1 = var16.Goo} ' no warnings
                                                               ~~~~~
 BC42104: Variable 'var18' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim var18 As RefClass = New RefClass() With {.ValField1 = var18.RefField1.Length, .RefField1 = var18.Foo} ' warnings
+        Dim var18 As RefClass = New RefClass() With {.ValField1 = var18.RefField1.Length, .RefField1 = var18.Goo} ' warnings
                                                                   ~~~~~
 BC42109: Variable 'uinst2' is used before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use
-        Dim uinst2 As U = New U() With {.Foo1 = uinst2.Foo2.Length}
+        Dim uinst2 As U = New U() With {.Goo1 = uinst2.Goo2.Length}
                                                 ~~~~~~
                                            </expected>)
         End Sub
@@ -1781,7 +1797,7 @@ Public Module Module1
             Try
                 '<><%= ======================================================================================= %=></>
              Dim cust = New Cust With {.Cust = 1, .Name = .Value, .e = .<e>(0)}
-                    Dim cust2 = New Cust With {.Cust = 1, .Name = .Name, .e = ...<e>(0)}         
+                    Dim cust2 = New Cust With {.Cust = 1, .Name = .Name, .e = ...<e>(0)}
 Console.writeline("Scenario 8")
 Console.writeline(<e><e/></>.ToString)
 Console.writeline( cust.e.ToString)

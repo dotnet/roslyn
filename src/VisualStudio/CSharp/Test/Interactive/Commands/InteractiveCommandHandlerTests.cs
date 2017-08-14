@@ -7,7 +7,7 @@ using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 {
-    internal class InteractiveCommandHandlerTests
+    public class InteractiveCommandHandlerTests
     {
         private const string Caret = "$$";
         private const string ExampleCode1 = @"var x = 1;";
@@ -22,7 +22,7 @@ Task.Run(() => { return 1; });";
 
         private const string ExampleMultiline =
 @"namespace N {
-    void foo() {
+    void goo() {
         Console.WriteLine(
             $$""LLL"");
     }

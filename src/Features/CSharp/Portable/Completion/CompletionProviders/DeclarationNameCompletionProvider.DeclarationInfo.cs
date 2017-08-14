@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return result;
                 }
 
-                return default(NameDeclarationInfo);
+                return default;
             }
 
             private static bool IsPossibleOutVariableDeclaration(SyntaxToken token, SemanticModel semanticModel, int position,
@@ -74,9 +74,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return false;
                 }
 
-                var argument = token.Parent.Parent as ArgumentSyntax // var is child of ArgumentSyntax, eg. Foo(out var $$
+                var argument = token.Parent.Parent as ArgumentSyntax // var is child of ArgumentSyntax, eg. Goo(out var $$
                     ?? token.Parent.Parent.Parent as ArgumentSyntax; // var is child of DeclarationExpression 
-                                                                     // under ArgumentSyntax, eg. Foo(out var a$$
+                                                                     // under ArgumentSyntax, eg. Goo(out var a$$
 
                 if (argument == null || !argument.RefOrOutKeyword.IsKind(SyntaxKind.OutKeyword))
                 {
@@ -150,24 +150,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 if (!IsPossibleTypeToken(token) && !token.IsKind(SyntaxKind.CommaToken))
                 {
-                    return default(NameDeclarationInfo);
+                    return default;
                 }
 
                 var target = token.GetAncestor<TSyntaxNode>();
                 if (target == null)
                 {
-                    return default(NameDeclarationInfo);
+                    return default;
                 }
 
                 if (token.IsKind(SyntaxKind.CommaToken) && token.Parent != target)
                 {
-                    return default(NameDeclarationInfo);
+                    return default;
                 }
 
                 var typeSyntax = typeSyntaxGetter(target);
                 if (typeSyntax == null)
                 {
-                    return default(NameDeclarationInfo);
+                    return default;
                 }
 
                 if (!token.IsKind(SyntaxKind.CommaToken) && token != typeSyntax.GetLastToken())
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 if (modifiers == null)
                 {
-                    return default(NameDeclarationInfo);
+                    return default;
                 }
 
                 var alias = semanticModel.GetAliasInfo(typeSyntax, cancellationToken);
@@ -203,25 +203,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 if (!IsPossibleTypeToken(token))
                 {
-                    return default(NameDeclarationInfo);
+                    return default;
                 }
 
                 var target = token.GetAncestor<TSyntaxNode>();
                 if (target == null)
                 {
-                    return default(NameDeclarationInfo);
+                    return default;
                 }
 
                 var typeSyntax = typeSyntaxGetter(target);
                 if (typeSyntax == null || token != typeSyntax.GetLastToken())
                 {
-                    return default(NameDeclarationInfo);
+                    return default;
                 }
 
                 var modifiers = modifierGetter(target);
                 if (modifiers == null)
                 {
-                    return default(NameDeclarationInfo);
+                    return default;
                 }
 
                 return new NameDeclarationInfo(
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return true;
                 }
 
-                result = default(NameDeclarationInfo);
+                result = default;
                 return false;
             }
 

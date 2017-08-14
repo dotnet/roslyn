@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                                      cancellationToken)
                 : declaration;
 
-            return AddCleanupAnnotationsTo(ConditionallyAddDocumentationCommentTo(declaration, namedType, options));
+            return AddFormatterAndCodeGeneratorAnnotationsTo(ConditionallyAddDocumentationCommentTo(declaration, namedType, options));
         }
 
         public static MemberDeclarationSyntax UpdateNamedTypeDeclaration(
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             declaration = RemoveAllMembers(declaration);
             declaration = service.AddMembers(declaration, newMembers, options, cancellationToken);
-            return AddCleanupAnnotationsTo(declaration);
+            return AddFormatterAndCodeGeneratorAnnotationsTo(declaration);
         }
 
         private static MemberDeclarationSyntax GetDeclarationSyntaxWithoutMembers(

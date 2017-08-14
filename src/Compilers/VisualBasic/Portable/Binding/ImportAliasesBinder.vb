@@ -14,7 +14,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     ''' <summary>
-    ''' A ImportAliasesBinder provides lookup for looking up import aliases (A = Foo.Bar),
+    ''' A ImportAliasesBinder provides lookup for looking up import aliases (A = Goo.Bar),
     ''' either at file level or project level.
     ''' </summary>
     Friend Class ImportAliasesBinder

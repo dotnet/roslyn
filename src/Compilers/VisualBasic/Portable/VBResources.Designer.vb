@@ -1784,7 +1784,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to /embed switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded)..
+        '''  Looks up a localized string similar to /embed switch is only supported when emitting a PDB..
         '''</summary>
         Friend ReadOnly Property ERR_CannotEmbedWithoutPdb() As String
             Get
@@ -12231,6 +12231,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property HDN_UnusedImportStatement_Title() As String
             Get
                 Return ResourceManager.GetString("HDN_UnusedImportStatement_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to {0} is not a valid Visual Basic conversion expression.
+        '''</summary>
+        Friend ReadOnly Property IConversionExpressionIsNotVisualBasicConversion() As String
+            Get
+                Return ResourceManager.GetString("IConversionExpressionIsNotVisualBasicConversion", resourceCulture)
             End Get
         End Property
         

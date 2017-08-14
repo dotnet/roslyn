@@ -75,10 +75,10 @@ End Class
     <file name="fi.vb">
 Class C
     Shared s1 As String
-    Dim i1 As Integer = 1 + Foo()
+    Dim i1 As Integer = 1 + Goo()
     Dim i2 As New C()
 
-    Shared Function Foo() As Integer
+    Shared Function Goo() As Integer
         Return 1
     End Function
 End Class
@@ -87,7 +87,7 @@ End Class
 
             Dim expectedStaticInitializers As IEnumerable(Of ExpectedInitializer) = Nothing
             Dim expectedInstanceInitializers As IEnumerable(Of ExpectedInitializer) =
-                New ExpectedInitializer() {New ExpectedInitializer("i1", "1 + Foo()", lineNumber:=2),
+                New ExpectedInitializer() {New ExpectedInitializer("i1", "1 + Goo()", lineNumber:=2),
                                            New ExpectedInitializer("i2", "As New C()", lineNumber:=3)}
 
             CompileAndCheckInitializers(source, expectedInstanceInitializers, expectedStaticInitializers)
@@ -99,10 +99,10 @@ End Class
 <compilation name="ExpressionStaticInitializer">
     <file name="fi.vb">
 Class C
-    Shared s1 As Integer = 1 + Foo()
+    Shared s1 As Integer = 1 + Goo()
     Dim i1 As Integer
 
-    Shared Function Foo() As Integer
+    Shared Function Goo() As Integer
         Return 1
     End Function
 End Class
@@ -110,7 +110,7 @@ End Class
 </compilation>
 
             Dim expectedStaticInitializers As IEnumerable(Of ExpectedInitializer) =
-                New ExpectedInitializer() {New ExpectedInitializer("s1", "1 + Foo()", lineNumber:=1)}
+                New ExpectedInitializer() {New ExpectedInitializer("s1", "1 + Goo()", lineNumber:=1)}
             Dim expectedInstanceInitializers As IEnumerable(Of ExpectedInitializer) = Nothing
 
             CompileAndCheckInitializers(source, expectedInstanceInitializers, expectedStaticInitializers)
@@ -228,7 +228,7 @@ End Class
 Class C
     Dim i1 As Integer
 
-    Shared Sub Foo()
+    Shared Sub Goo()
     End Sub
 End Class
     </file>
@@ -249,7 +249,7 @@ Class C
     Dim i1 As Integer
     Shared s1 As Integer
 
-    Shared Sub Foo()
+    Shared Sub Goo()
     End Sub
 End Class
     </file>
@@ -271,7 +271,7 @@ Class C
     Dim i1 As Integer
     Shared s1 As Integer = 1
 
-    Shared Sub Foo()
+    Shared Sub Goo()
     End Sub
 End Class
     </file>
@@ -293,7 +293,7 @@ Class C
     Dim i1 As Integer
     Const s1 As Integer = 1
 
-    Shared Sub Foo()
+    Shared Sub Goo()
     End Sub
 End Class
     </file>
@@ -336,7 +336,7 @@ Class C
 
     Dim i1 As Integer
 
-    Shared Sub Foo()
+    Shared Sub Goo()
     End Sub
 End Class
     </file>
@@ -359,7 +359,7 @@ Class C
     Dim i1 As Integer
     Shared s1 As Integer
 
-    Shared Sub Foo()
+    Shared Sub Goo()
     End Sub
 End Class
     </file>
@@ -382,7 +382,7 @@ Class C
     Dim i1 As Integer
     Shared s1 As Integer = 1
 
-    Shared Sub Foo()
+    Shared Sub Goo()
     End Sub
 End Class
     </file>
@@ -405,7 +405,7 @@ Class C
     Dim i1 As Integer
     Const s1 As Integer = 1
 
-    Shared Sub Foo()
+    Shared Sub Goo()
     End Sub
 End Class
     </file>
@@ -656,14 +656,14 @@ End Module
         <Fact()>
         Public Sub StaticLocalFields()
             'As we can't easily get at fields which are non callable by user code such as
-            'the $STATIC$Foo$001$a  we can simply determine that the count of items which
+            'the $STATIC$Goo$001$a  we can simply determine that the count of items which
             'we expect is present
             Dim source = <compilation name="StaticLocals">
                              <file name="a.vb">
         Class C
             Private _Field as integer = 1
 
-            Shared Sub Foo()
+            Shared Sub Goo()
                 static a as integer = 1
             End Sub
         End Class
@@ -682,7 +682,7 @@ End Module
 
             Assert.Contains("Private _Field As Integer", Lst_members)
             Assert.Contains("Public Sub New()", Lst_members)
-            Assert.Contains("Public Shared Sub Foo()", Lst_members)
+            Assert.Contains("Public Shared Sub Goo()", Lst_members)
         End Sub
 
         <Fact>
@@ -1412,12 +1412,12 @@ BC30799: Field 'Clazz.b' has an invalid constant value.
         Public Sub WriteOfReadonlySharedMemberOfAnotherInstantiation01()
             Dim source = <compilation>
                              <file name="a.vb">
-Class Foo(Of T)
+Class Goo(Of T)
     Shared Sub New()
-        Foo(Of Integer).X = 12
-        Foo(Of Integer).Y = 12
-        Foo(Of T).X = 12
-        Foo(Of T).Y = 12
+        Goo(Of Integer).X = 12
+        Goo(Of Integer).Y = 12
+        Goo(Of T).X = 12
+        Goo(Of T).Y = 12
     End Sub
 
     Public Shared ReadOnly X As Integer
@@ -1432,16 +1432,16 @@ End Class
 
             CompilationUtils.AssertTheseDiagnostics(standardCompilation, <expected>
 BC30526: Property 'Y' is 'ReadOnly'.
-        Foo(Of Integer).Y = 12
+        Goo(Of Integer).Y = 12
         ~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
 
             CompilationUtils.AssertTheseDiagnostics(strictCompilation, <expected>
 BC30064: 'ReadOnly' variable cannot be the target of an assignment.
-        Foo(Of Integer).X = 12
+        Goo(Of Integer).X = 12
         ~~~~~~~~~~~~~~~~~
 BC30526: Property 'Y' is 'ReadOnly'.
-        Foo(Of Integer).Y = 12
+        Goo(Of Integer).Y = 12
         ~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
         End Sub
@@ -1455,17 +1455,17 @@ Imports System
 
 Module M1
     Sub Main()
-        Console.WriteLine(Foo(Of Long).X)
-        Console.WriteLine(Foo(Of Integer).X)
-        Console.WriteLine(Foo(Of String).X)
-        Console.WriteLine(Foo(Of Integer).X)
+        Console.WriteLine(Goo(Of Long).X)
+        Console.WriteLine(Goo(Of Integer).X)
+        Console.WriteLine(Goo(Of String).X)
+        Console.WriteLine(Goo(Of Integer).X)
     End Sub
 End Module
 
-Public Class Foo(Of T)
+Public Class Goo(Of T)
     Shared Sub New()
         Console.WriteLine("Initializing for {0}", GetType(T))
-        Foo(Of Integer).X = GetType(T).Name
+        Goo(Of Integer).X = GetType(T).Name
     End Sub
 
     Public Shared ReadOnly X As String

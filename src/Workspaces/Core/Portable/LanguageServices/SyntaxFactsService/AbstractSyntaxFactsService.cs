@@ -373,8 +373,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public ImmutableArray<SyntaxTrivia> GetFileBanner(SyntaxNode root)
         {
             Debug.Assert(root.FullSpan.Start == 0);
+            return GetFileBanner(root.GetFirstToken(includeZeroWidth: true));
+        }
 
-            var leadingTrivia = root.GetLeadingTrivia();
+        public ImmutableArray<SyntaxTrivia> GetFileBanner(SyntaxToken firstToken)
+        {
+            Debug.Assert(firstToken.FullSpan.Start == 0);
+
+            var leadingTrivia = firstToken.LeadingTrivia;
             var index = 0;
             _fileBannerMatcher.TryMatch(leadingTrivia.ToList(), ref index);
 
@@ -421,8 +427,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         protected abstract bool ContainsInterleavedDirective(TextSpan span, SyntaxToken token, CancellationToken cancellationToken);
 
-        public string GetBannerText(SyntaxNode documentationCommentTriviaSyntax, CancellationToken cancellationToken)
-            => DocumentationCommentService.GetBannerText(documentationCommentTriviaSyntax, cancellationToken);
+        public string GetBannerText(SyntaxNode documentationCommentTriviaSyntax, int bannerLength, CancellationToken cancellationToken)
+            => DocumentationCommentService.GetBannerText(documentationCommentTriviaSyntax, bannerLength, cancellationToken);
 
         protected abstract IDocumentationCommentService DocumentationCommentService { get; }
     }

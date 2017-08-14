@@ -1,6 +1,7 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -8,6 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")>
         Public Sub InterpolatedStringExpression_Empty()
             Dim source = <![CDATA[
@@ -19,7 +21,7 @@ Friend Class [Class]
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""')
   Parts(0)
 ]]>.Value
@@ -29,6 +31,7 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
             VerifyOperationTreeAndDiagnosticsForTest(Of InterpolatedStringExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")>
         Public Sub InterpolatedStringExpression_OnlyTextPart()
             Dim source = <![CDATA[
@@ -40,7 +43,7 @@ Friend Class [Class]
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"Only text part"')
   Parts(1):
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'Only text part')
@@ -52,6 +55,7 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
             VerifyOperationTreeAndDiagnosticsForTest(Of InterpolatedStringExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")>
         Public Sub InterpolatedStringExpression_OnlyInterpolationPart()
             Dim source = <![CDATA[
@@ -63,7 +67,7 @@ Friend Class [Class]
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"{1}"')
   Parts(1):
       IInterpolation (OperationKind.Interpolation) (Syntax: '{1}')
@@ -77,6 +81,7 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
             VerifyOperationTreeAndDiagnosticsForTest(Of InterpolatedStringExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")>
         Public Sub InterpolatedStringExpression_EmptyInterpolationPart()
             Dim source = <![CDATA[
@@ -88,7 +93,7 @@ Friend Class [Class]
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, IsInvalid) (Syntax: '$"{}"')
   Parts(1):
       IInterpolation (OperationKind.Interpolation, IsInvalid) (Syntax: '{}')
@@ -107,6 +112,7 @@ BC30201: Expression expected.
             VerifyOperationTreeAndDiagnosticsForTest(Of InterpolatedStringExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")>
         Public Sub InterpolatedStringExpression_TextAndInterpolationParts()
             Dim source = <![CDATA[
@@ -118,7 +124,7 @@ Friend Class [Class]
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {x ... nstant {1}"')
   Parts(4):
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
@@ -140,6 +146,7 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
             VerifyOperationTreeAndDiagnosticsForTest(Of InterpolatedStringExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")>
         Public Sub InterpolatedStringExpression_FormatAndAlignment()
             Dim source = <![CDATA[
@@ -154,7 +161,7 @@ Friend Class [Class]
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {x ... nstant {1}"')
   Parts(6):
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
@@ -184,6 +191,7 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
             VerifyOperationTreeAndDiagnosticsForTest(Of InterpolatedStringExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")>
         Public Sub InterpolatedStringExpression_InterpolationAndFormatAndAlignment()
             Dim source = <![CDATA[
@@ -197,7 +205,7 @@ Friend Class [Class]
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {x,20:D3}"')
   Parts(2):
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
@@ -214,6 +222,7 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
             VerifyOperationTreeAndDiagnosticsForTest(Of InterpolatedStringExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")>
         Public Sub InterpolatedStringExpression_InvocationInInterpolation()
             Dim source = <![CDATA[
@@ -231,7 +240,7 @@ Friend Class [Class]
     End Function
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {x ... nstant {1}"')
   Parts(6):
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
@@ -265,6 +274,7 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
             VerifyOperationTreeAndDiagnosticsForTest(Of InterpolatedStringExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")>
         Public Sub InterpolatedStringExpression_NestedInterpolation()
             Dim source = <![CDATA[
@@ -282,7 +292,7 @@ Friend Class [Class]
     End Function
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {M2($"{y}")}"')
   Parts(2):
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
@@ -309,6 +319,7 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
             VerifyOperationTreeAndDiagnosticsForTest(Of InterpolatedStringExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")>
         Public Sub InterpolatedStringExpression_InvalidExpressionInInterpolation()
             Dim source = <![CDATA[
@@ -320,7 +331,7 @@ Friend Class [Class]
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, IsInvalid) (Syntax: '$"String {x ...  {[Class]}"')
   Parts(4):
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')

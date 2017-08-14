@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis
     public interface IOperation
     {
         /// <summary>
+        /// IOperation that has this operation as a child
+        /// </summary>
+        IOperation Parent { get; }
+
+        /// <summary>
         /// Identifies the kind of the operation.
         /// </summary>
         OperationKind Kind { get; }
@@ -40,6 +45,11 @@ namespace Microsoft.CodeAnalysis
         /// An array of child operations for this operation.
         /// </summary>
         IEnumerable<IOperation> Children { get; }
+
+        /// <summary>
+        /// The source language of the IOperation. Possible values are <see cref="LanguageNames.CSharp"/> and <see cref="LanguageNames.VisualBasic"/>.
+        /// </summary>
+        string Language { get; }
 
         void Accept(OperationVisitor visitor);
 

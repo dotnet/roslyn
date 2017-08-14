@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -166,15 +167,43 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+        private static string ConstantToString(object constant, bool quoteString = true)
+        {
+            switch (constant)
+            {
+                case null:
+                    return "null";
+                case string s:
+                    if (quoteString)
+                    {
+                        return @"""" + s + @"""";
+                    }
+                    return s;
+                case IFormattable formattable:
+                    return formattable.ToString(null, CultureInfo.InvariantCulture);
+                default:
+                    return constant.ToString();
+            }
+        }
+
         private void LogConstant(object constant, string header = "Constant")
         {
-            var valueStr = constant != null ? constant.ToString() : "null";
-            if (constant is string)
-            {
-                valueStr = @"""" + valueStr + @"""";
-            }
+            string valueStr = ConstantToString(constant);
 
             LogString($"{header}: {valueStr}");
+        }
+
+        private void LogConversion(CommonConversion conversion, string header = "Conversion")
+        {
+            var exists = FormatBoolProperty(nameof(conversion.Exists), conversion.Exists);
+            var isIdentity = FormatBoolProperty(nameof(conversion.IsIdentity), conversion.IsIdentity);
+            var isNumeric = FormatBoolProperty(nameof(conversion.IsNumeric), conversion.IsNumeric);
+            var isReference = FormatBoolProperty(nameof(conversion.IsReference), conversion.IsReference);
+            var isUserDefined = FormatBoolProperty(nameof(conversion.IsUserDefined), conversion.IsUserDefined);
+
+            LogString($"{header}: {nameof(CommonConversion)} ({exists}, {isIdentity}, {isNumeric}, {isReference}, {isUserDefined}) (");
+            LogSymbol(conversion.MethodSymbol, nameof(conversion.MethodSymbol));
+            LogString(")");
         }
 
         private void LogSymbol(ISymbol symbol, string header, bool logDisplayString = true)
@@ -193,6 +222,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var typeStr = type != null ? type.ToTestDisplayString() : "null";
             LogString($"{header}: {typeStr}");
         }
+
+        private static string FormatBoolProperty(string propertyName, bool value) => $"{propertyName}: {(value ? "True" : "False")}";
 
         #endregion
 
@@ -725,11 +756,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var kindStr = operation.Adds ? "EventAdd" : "EventRemove";
             LogString($"{nameof(IEventAssignmentExpression)} ({kindStr})");
-            LogSymbol(operation.Event, header: " (Event: ");
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.EventInstance, header: "Event Instance");
+            Visit(operation.EventReference, header: "Event Reference");
             Visit(operation.HandlerValue, header: "Handler");
         }
 
@@ -810,12 +840,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IConversionExpression));
 
-            var kindStr = $"{nameof(ConversionKind)}.{operation.ConversionKind}";
-            var isExplicitStr = operation.IsExplicit ? "Explicit" : "Implicit";
-            LogString($" ({kindStr}, {isExplicitStr})");
+            var isExplicitStr = operation.IsExplicitInCode ? "Explicit" : "Implicit";
+            var isTryCast = $"TryCast: {(operation.IsTryCast ? "True" : "False")}";
+            var isChecked = operation.IsChecked ? "Checked" : "Unchecked";
+            LogString($" ({isExplicitStr}, {isTryCast}, {isChecked})");
 
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);
+            Indent();
+            LogConversion(operation.Conversion);
+            Unindent();
+            LogNewLine();
 
             Visit(operation.Operand, "Operand");
         }
@@ -886,8 +921,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(ILiteralExpression));
 
-            object value;
-            if (operation.ConstantValue.HasValue && ((value = operation.ConstantValue.Value) == null ? "null" : value.ToString()) == operation.Text)
+            if (operation.ConstantValue.HasValue && ConstantToString(operation.ConstantValue.Value, quoteString: false) == operation.Text)
             {
                 LogString($" (Text: {operation.Text})");
             }
@@ -1128,7 +1162,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitDefaultValueExpression(IDefaultValueExpression operation)
         {
             LogString(nameof(IDefaultValueExpression));
-            LogCommonPropertiesAndNewLine(operation);            
+            LogCommonPropertiesAndNewLine(operation);
         }
 
         public override void VisitTypeParameterObjectCreationExpression(ITypeParameterObjectCreationExpression operation)

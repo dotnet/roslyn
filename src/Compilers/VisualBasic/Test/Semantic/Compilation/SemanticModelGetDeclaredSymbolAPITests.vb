@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                     <file name="C.vb">
 Namespace MyNS2
 End Namespace
-Sub foo()
+Sub goo()
 End Sub
                     </file>
                 </compilation>
@@ -69,7 +69,7 @@ End Sub
             Dim memberSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType(Of MethodStatementSyntax)().First()
             Dim symbol1 = model1.GetDeclaredSymbol(memberSyntax)
             Assert.NotNull(symbol1)
-            Assert.Equal("foo", symbol1.Name)
+            Assert.Equal("goo", symbol1.Name)
         End Sub
 
         <Fact()>
@@ -79,7 +79,7 @@ End Sub
                 <compilation name="TST">
                     <file name="C.vb">
 Namespace MyNS2
-Sub foo()
+Sub goo()
 End Sub
 End Namespace
                     </file>
@@ -91,7 +91,7 @@ End Namespace
 
             Dim memberSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType(Of MethodStatementSyntax)().First()
             Dim symbol1 = model1.GetDeclaredSymbol(memberSyntax)
-            Assert.Equal("foo", symbol1.Name)
+            Assert.Equal("goo", symbol1.Name)
         End Sub
 
         <Fact()>
@@ -101,7 +101,7 @@ End Namespace
                 <compilation name="TST">
                     <file name="C.vb">
 Namespace MyNS2
-Sub foo()
+Sub goo()
 End Sub
 End Namespace
                     </file>
@@ -113,7 +113,7 @@ End Namespace
 
             Dim memberSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType(Of MethodStatementSyntax)().First()
             Dim symbol1 = model1.GetDeclaredSymbol(memberSyntax)
-            Assert.Equal("foo", symbol1.Name)
+            Assert.Equal("goo", symbol1.Name)
         End Sub
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
@@ -568,7 +568,7 @@ End Class
 
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromTypeDeclaration()
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
@@ -629,22 +629,22 @@ End Class
 </compilation>, options)
 
             Dim expectedErrors = <errors>
-BC30179: class 'Q' and structure 'Q' conflict in namespace 'Foo.Bar.N1.N2'.
+BC30179: class 'Q' and structure 'Q' conflict in namespace 'Goo.Bar.N1.N2'.
                 public partial class Q'first
                                      ~
-BC30179: class 'Q' and structure 'Q' conflict in namespace 'Foo.Bar.N1.N2'.
+BC30179: class 'Q' and structure 'Q' conflict in namespace 'Goo.Bar.N1.N2'.
                 public class Q'second
                              ~
-BC30179: structure 'Q' and class 'Q' conflict in namespace 'Foo.Bar.N1.N2'.
+BC30179: structure 'Q' and class 'Q' conflict in namespace 'Goo.Bar.N1.N2'.
                 public structure Q'third
                                  ~
-BC30179: interface 'Q' and class 'Q' conflict in namespace 'Foo.Bar.N1.N2'.
+BC30179: interface 'Q' and class 'Q' conflict in namespace 'Goo.Bar.N1.N2'.
             Public Interface Q
                              ~
 BC30481: 'Class' statement must end with a matching 'End Class'.
         Class N1'class
         ~~~~~~~~
-BC30179: class 'N1' and namespace 'N1' conflict in namespace 'Foo.Bar'.
+BC30179: class 'N1' and namespace 'N1' conflict in namespace 'Goo.Bar'.
         Class N1'class
               ~~
 BC30618: 'Namespace' statements can occur only at file or namespace level.
@@ -668,33 +668,33 @@ BC30460: 'End Class' must be preceded by a matching 'Class'.
 
             typeSymbol = CompilationUtils.GetTypeSymbol(compilation, bindingsA, "a.vb", "C1")
             Assert.NotNull(typeSymbol)
-            Assert.Equal("Foo.Bar.N1.C1", typeSymbol.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.C1", typeSymbol.ToTestDisplayString())
 
             typeSymbol = CompilationUtils.GetTypeSymbol(compilation, bindingsA, "a.vb", "C2")
             Assert.NotNull(typeSymbol)
-            Assert.Equal("Foo.Bar.N1.N2.C2", typeSymbol.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.N2.C2", typeSymbol.ToTestDisplayString())
 
             typeSymbol2 = CompilationUtils.GetTypeSymbol(compilation, bindingsB, "b.vb", "C2")
             Assert.NotNull(typeSymbol2)
-            Assert.Equal("Foo.Bar.N1.N2.C2", typeSymbol2.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.N2.C2", typeSymbol2.ToTestDisplayString())
             Assert.Equal(typeSymbol, typeSymbol2)
 
             typeSymbol = CompilationUtils.GetTypeSymbol(compilation, bindingsA, "a.vb", "Q'first")
             Assert.NotNull(typeSymbol)
-            Assert.Equal("Foo.Bar.N1.N2.Q", typeSymbol.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.N2.Q", typeSymbol.ToTestDisplayString())
             Assert.Equal(0, typeSymbol.Arity)
             Assert.Equal(TypeKind.Class, typeSymbol.TypeKind)
 
             typeSymbol2 = CompilationUtils.GetTypeSymbol(compilation, bindingsA, "a.vb", "Q'second")
             Assert.NotNull(typeSymbol2)
-            Assert.Equal("Foo.Bar.N1.N2.Q", typeSymbol2.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.N2.Q", typeSymbol2.ToTestDisplayString())
             Assert.Equal(TypeKind.Class, typeSymbol2.TypeKind)
             Assert.Equal(0, typeSymbol2.Arity)
             Assert.Equal(typeSymbol, typeSymbol2)
 
             typeSymbol3 = CompilationUtils.GetTypeSymbol(compilation, bindingsA, "a.vb", "Q'third")
             Assert.NotNull(typeSymbol3)
-            Assert.Equal("Foo.Bar.N1.N2.Q", typeSymbol3.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.N2.Q", typeSymbol3.ToTestDisplayString())
             Assert.Equal(TypeKind.Structure, typeSymbol3.TypeKind)
             Assert.Equal(0, typeSymbol3.Arity)
             Assert.NotEqual(typeSymbol, typeSymbol3)
@@ -702,7 +702,7 @@ BC30460: 'End Class' must be preceded by a matching 'Class'.
 
             typeSymbol4 = CompilationUtils.GetTypeSymbol(compilation, bindingsB, "b.vb", "Q")
             Assert.NotNull(typeSymbol4)
-            Assert.Equal("Foo.Bar.N1.N2.Q", typeSymbol4.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.N2.Q", typeSymbol4.ToTestDisplayString())
             Assert.Equal(TypeKind.Interface, typeSymbol4.TypeKind)
             Assert.Equal(0, typeSymbol4.Arity)
             Assert.NotEqual(typeSymbol4, typeSymbol3)
@@ -711,7 +711,7 @@ BC30460: 'End Class' must be preceded by a matching 'Class'.
 
             typeSymbol5 = CompilationUtils.GetTypeSymbol(compilation, bindingsA, "a.vb", "Q(Of T)")
             Assert.NotNull(typeSymbol5)
-            Assert.Equal("Foo.Bar.N1.N2.Q(Of T)", typeSymbol5.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.N2.Q(Of T)", typeSymbol5.ToTestDisplayString())
             Assert.Equal(TypeKind.Class, typeSymbol5.TypeKind)
             Assert.Equal(1, typeSymbol5.Arity)
             Assert.NotEqual(typeSymbol5, typeSymbol4)
@@ -727,22 +727,22 @@ BC30460: 'End Class' must be preceded by a matching 'Class'.
 
             Dim typeSymbol7 = CompilationUtils.GetTypeSymbol(compilation, bindingsB, "b.vb", "N1'class")
             Assert.NotNull(typeSymbol7)
-            Assert.Equal("Foo.Bar.N1", typeSymbol7.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1", typeSymbol7.ToTestDisplayString())
             Assert.Equal(TypeKind.Class, typeSymbol7.TypeKind)
 
             Dim typeSymbol8 = CompilationUtils.GetTypeSymbol(compilation, bindingsB, "b.vb", "Wack")
             Assert.NotNull(typeSymbol8)
-            Assert.Equal("Foo.Bar.N2.Wack", typeSymbol8.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N2.Wack", typeSymbol8.ToTestDisplayString())
             Assert.Equal(TypeKind.Class, typeSymbol8.TypeKind)
 
             Dim typeSymbol9 = CompilationUtils.GetEnumSymbol(compilation, bindingsB, "b.vb", "Wack2")
             Assert.NotNull(typeSymbol9)
-            Assert.Equal("Foo.Bar.N2.Wack2", typeSymbol9.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N2.Wack2", typeSymbol9.ToTestDisplayString())
             Assert.Equal(TypeKind.Enum, typeSymbol9.TypeKind)
 
             Dim typeSymbol10 = CompilationUtils.GetDelegateSymbol(compilation, bindingsB, "b.vb", "Wack3")
             Assert.NotNull(typeSymbol10)
-            Assert.Equal("Foo.Bar.N2.Wack3", typeSymbol10.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N2.Wack3", typeSymbol10.ToTestDisplayString())
             Assert.Equal(TypeKind.Delegate, typeSymbol10.TypeKind)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, expectedErrors)
@@ -764,7 +764,7 @@ BC30460: 'End Class' must be preceded by a matching 'Class'.
 
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromNamespaceDeclaration()
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
@@ -816,7 +816,7 @@ BC30460: 'End Class' must be preceded by a matching 'Class'.
 </compilation>, options)
 
             Dim expectedErrors = <errors>
-BC30179: class 'N4' and namespace 'N4' conflict in namespace 'Foo.Bar'.
+BC30179: class 'N4' and namespace 'N4' conflict in namespace 'Goo.Bar'.
         Class N4
               ~~
 BC30481: 'Class' statement must end with a matching 'End Class'.
@@ -838,38 +838,38 @@ BC30460: 'End Class' must be preceded by a matching 'Class'.
 
             Dim nsSymbol0 = GetNamespaceSymbol(compilation, bindingsA, "a.vb", "N1")
             Assert.NotNull(nsSymbol0)
-            Assert.Equal("Foo.Bar.N1", nsSymbol0.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1", nsSymbol0.ToTestDisplayString())
 
             Dim nsSymbol1 = GetNamespaceSymbol(compilation, bindingsA, "a.vb", "N2.N3")
             Assert.NotNull(nsSymbol1)
-            Assert.Equal("Foo.Bar.N1.N2.N3", nsSymbol1.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.N2.N3", nsSymbol1.ToTestDisplayString())
 
             Dim nsSymbol2 = GetNamespaceSymbol(compilation, bindingsA, "a.vb", "N4'first")
             Assert.NotNull(nsSymbol2)
-            Assert.Equal("Foo.Bar.N4", nsSymbol2.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N4", nsSymbol2.ToTestDisplayString())
 
             Dim nsSymbol3 = GetNamespaceSymbol(compilation, bindingsA, "a.vb", "N4'second")
             Assert.NotNull(nsSymbol3)
-            Assert.Equal("Foo.Bar.N4", nsSymbol3.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N4", nsSymbol3.ToTestDisplayString())
             Assert.Equal(nsSymbol2, nsSymbol3)
 
             Dim nsSymbol4 = GetNamespaceSymbol(compilation, bindingsB, "b.vb", "N1.N2")
             Assert.NotNull(nsSymbol4)
-            Assert.Equal("Foo.Bar.N1.N2", nsSymbol4.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.N2", nsSymbol4.ToTestDisplayString())
 
             Dim nsSymbol5 = GetNamespaceSymbol(compilation, bindingsB, "b.vb", "N3")
             Assert.NotNull(nsSymbol5)
-            Assert.Equal("Foo.Bar.N1.N2.N3", nsSymbol5.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.N2.N3", nsSymbol5.ToTestDisplayString())
             Assert.Equal(nsSymbol1, nsSymbol5)
 
             Dim nsSymbol6 = GetNamespaceSymbol(compilation, bindingsB, "b.vb", "N4")
             Assert.NotNull(nsSymbol6)
-            Assert.Equal("Foo.Bar.N4", nsSymbol6.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N4", nsSymbol6.ToTestDisplayString())
             Assert.Equal(nsSymbol2, nsSymbol6)
 
             Dim nsSymbol7 = GetNamespaceSymbol(compilation, bindingsB, "b.vb", "N1'bad")
             Assert.NotNull(nsSymbol7)
-            Assert.Equal("Foo.Bar.N1", nsSymbol7.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1", nsSymbol7.ToTestDisplayString())
 
             Dim nsSymbol8 = GetNamespaceSymbol(compilation, bindingsB, "b.vb", "Global.N1")
             Assert.NotNull(nsSymbol8)
@@ -921,7 +921,7 @@ BC30460: 'End Class' must be preceded by a matching 'Class'.
 
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromMethodDeclaration()
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
@@ -933,12 +933,12 @@ BC30460: 'End Class' must be preceded by a matching 'Class'.
         Namespace N1
             Namespace N2.N3
                 Partial Class C1
-                    Public Sub Foo(x as Integer)
+                    Public Sub Goo(x as Integer)
                     End Sub
 
-                    Public MustOverride Function Foo() As String
+                    Public MustOverride Function Goo() As String
 
-                    Private Function Foo(a as Integer, y As String) As Long
+                    Private Function Goo(a as Integer, y As String) As Long
                     End Function
 
                     Public Sub New()
@@ -956,7 +956,7 @@ BC30460: 'End Class' must be preceded by a matching 'Class'.
                     Shared Sub New()
                     End Sub
 
-                    Private Function Foo(b as Integer, y As String) As Long
+                    Private Function Goo(b as Integer, y As String) As Long
                     End Function
             End Class
 
@@ -982,8 +982,8 @@ BC30460: 'End Class' must be preceded by a matching 'Class'.
 BC31411: 'C1' must be declared 'MustInherit' because it contains methods declared 'MustOverride'.
                 Partial Class C1
                               ~~
-BC30269: 'Private Function Foo(a As Integer, y As String) As Long' has multiple definitions with identical signatures.
-                    Private Function Foo(a as Integer, y As String) As Long
+BC30269: 'Private Function Goo(a As Integer, y As String) As Long' has multiple definitions with identical signatures.
+                    Private Function Goo(a as Integer, y As String) As Long
                                      ~~~
 BC30001: Statement is not valid in a namespace.
             Public Sub Bar()
@@ -1011,39 +1011,39 @@ BC30460: 'End Class' must be preceded by a matching 'Class'.
 
             Dim syntax As MethodBaseSyntax = Nothing
 
-            Dim methSymbol1 = GetMethodSymbol(compilation, bindingsA, "a.vb", "Sub Foo(x as Integer)", syntax)
+            Dim methSymbol1 = GetMethodSymbol(compilation, bindingsA, "a.vb", "Sub Goo(x as Integer)", syntax)
             Assert.NotNull(methSymbol1)
-            Assert.Equal("Sub Foo.Bar.N1.N2.N3.C1.Foo(x As System.Int32)", methSymbol1.ToTestDisplayString())
+            Assert.Equal("Sub Goo.Bar.N1.N2.N3.C1.Goo(x As System.Int32)", methSymbol1.ToTestDisplayString())
             Assert.Equal(treeA.GetLineSpan(syntax.Span).StartLinePosition.Line,
                          methSymbol1.Locations.Single().GetLineSpan().StartLinePosition.Line)
 
-            Dim methSymbol2 = GetMethodSymbol(compilation, bindingsA, "a.vb", "Function Foo() As String", syntax)
+            Dim methSymbol2 = GetMethodSymbol(compilation, bindingsA, "a.vb", "Function Goo() As String", syntax)
             Assert.NotNull(methSymbol2)
-            Assert.Equal("Function Foo.Bar.N1.N2.N3.C1.Foo() As System.String", methSymbol2.ToTestDisplayString())
+            Assert.Equal("Function Goo.Bar.N1.N2.N3.C1.Goo() As System.String", methSymbol2.ToTestDisplayString())
             Assert.Equal(treeA.GetLineSpan(syntax.Span).StartLinePosition.Line,
                          methSymbol2.Locations.Single().GetLineSpan().StartLinePosition.Line)
 
-            Dim methSymbol3 = GetMethodSymbol(compilation, bindingsA, "a.vb", "Foo(a as Integer, y As String)", syntax)
+            Dim methSymbol3 = GetMethodSymbol(compilation, bindingsA, "a.vb", "Goo(a as Integer, y As String)", syntax)
             Assert.NotNull(methSymbol3)
-            Assert.Equal("Function Foo.Bar.N1.N2.N3.C1.Foo(a As System.Int32, y As System.String) As System.Int64", methSymbol3.ToTestDisplayString())
+            Assert.Equal("Function Goo.Bar.N1.N2.N3.C1.Goo(a As System.Int32, y As System.String) As System.Int64", methSymbol3.ToTestDisplayString())
             Assert.Equal(treeA.GetLineSpan(syntax.Span).StartLinePosition.Line,
                          methSymbol3.Locations.Single().GetLineSpan().StartLinePosition.Line)
 
             Dim methSymbol4 = GetMethodSymbol(compilation, bindingsA, "a.vb", "Sub New", syntax)
             Assert.NotNull(methSymbol4)
-            Assert.Equal("Sub Foo.Bar.N1.N2.N3.C1..ctor()", methSymbol4.ToTestDisplayString())
+            Assert.Equal("Sub Goo.Bar.N1.N2.N3.C1..ctor()", methSymbol4.ToTestDisplayString())
             Assert.Equal(treeA.GetLineSpan(syntax.Span).StartLinePosition.Line,
                          methSymbol4.Locations.Single().GetLineSpan().StartLinePosition.Line)
 
             Dim methSymbol5 = GetMethodSymbol(compilation, bindingsB, "b.vb", "Sub New", syntax)
             Assert.NotNull(methSymbol5)
-            Assert.Equal("Sub Foo.Bar.N1.N2.N3.C1..cctor()", methSymbol5.ToTestDisplayString())
+            Assert.Equal("Sub Goo.Bar.N1.N2.N3.C1..cctor()", methSymbol5.ToTestDisplayString())
             Assert.Equal(treeB.GetLineSpan(syntax.Span).StartLinePosition.Line,
                          methSymbol5.Locations.Single().GetLineSpan().StartLinePosition.Line)
 
-            Dim methSymbol6 = GetMethodSymbol(compilation, bindingsB, "b.vb", "Foo(b as Integer, y As String)", syntax)
+            Dim methSymbol6 = GetMethodSymbol(compilation, bindingsB, "b.vb", "Goo(b as Integer, y As String)", syntax)
             Assert.NotNull(methSymbol6)
-            Assert.Equal("Function Foo.Bar.N1.N2.N3.C1.Foo(b As System.Int32, y As System.String) As System.Int64", methSymbol6.ToTestDisplayString())
+            Assert.Equal("Function Goo.Bar.N1.N2.N3.C1.Goo(b As System.Int32, y As System.String) As System.Int64", methSymbol6.ToTestDisplayString())
             Assert.Equal(treeB.GetLineSpan(syntax.Span).StartLinePosition.Line,
                          methSymbol6.Locations.Single().GetLineSpan().StartLinePosition.Line)
 
@@ -1052,7 +1052,7 @@ BC30460: 'End Class' must be preceded by a matching 'Class'.
 
             Dim methSymbol8 = GetMethodSymbol(compilation, bindingsB, "b.vb", "Wackadoodle()", syntax)
             Assert.NotNull(methSymbol8)
-            Assert.Equal("Sub Foo.Bar.N1.Wack.Wackadoodle()", methSymbol8.ToTestDisplayString())
+            Assert.Equal("Sub Goo.Bar.N1.Wack.Wackadoodle()", methSymbol8.ToTestDisplayString())
             Assert.Equal(treeB.GetLineSpan(syntax.Span).StartLinePosition.Line,
                          methSymbol8.Locations.Single().GetLineSpan().StartLinePosition.Line)
 
@@ -1062,7 +1062,7 @@ BC30460: 'End Class' must be preceded by a matching 'Class'.
 
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromPropertyDeclaration()
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
     <file name="c.vb">
@@ -1194,7 +1194,7 @@ End Class
 
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromParameter()
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
@@ -1205,10 +1205,10 @@ End Class
 
         Namespace N1
             Partial Class C1
-                Public Sub Foo(x as Integer, Optional yopt as String = "hi")
+                Public Sub Goo(x as Integer, Optional yopt as String = "hi")
                 End Sub
 
-                Public MustOverride Function Foo(a as Long, a as integer) As String
+                Public MustOverride Function Goo(a as Long, a as integer) As String
 
                 Public Sub New(c as string, d as string)
                 End Sub
@@ -1239,7 +1239,7 @@ BC31411: 'C1' must be declared 'MustInherit' because it contains methods declare
             Partial Class C1
                           ~~
 BC30237: Parameter already declared with name 'a'.
-                Public MustOverride Function Foo(a as Long, a as integer) As String
+                Public MustOverride Function Goo(a as Long, a as integer) As String
                                                             ~
 BC30001: Statement is not valid in a namespace.
             Public Sub Bar(aaa as integer)
@@ -1258,7 +1258,7 @@ BC30001: Statement is not valid in a namespace.
             Assert.NotNull(paramSymbol1)
             Assert.Equal("x", paramSymbol1.Name)
             Assert.Equal("System.Int32", paramSymbol1.Type.ToTestDisplayString())
-            Assert.Equal("Sub Foo.Bar.N1.C1.Foo(x As System.Int32, [yopt As System.String = ""hi""])", paramSymbol1.ContainingSymbol.ToTestDisplayString())
+            Assert.Equal("Sub Goo.Bar.N1.C1.Goo(x As System.Int32, [yopt As System.String = ""hi""])", paramSymbol1.ContainingSymbol.ToTestDisplayString())
             Assert.Equal(syntax.SpanStart,
                          paramSymbol1.Locations.Single().SourceSpan.Start)
 
@@ -1266,7 +1266,7 @@ BC30001: Statement is not valid in a namespace.
             Assert.NotNull(paramSymbol2)
             Assert.Equal("yopt", paramSymbol2.Name)
             Assert.Equal("System.String", paramSymbol2.Type.ToTestDisplayString())
-            Assert.Equal("Sub Foo.Bar.N1.C1.Foo(x As System.Int32, [yopt As System.String = ""hi""])", paramSymbol2.ContainingSymbol.ToTestDisplayString())
+            Assert.Equal("Sub Goo.Bar.N1.C1.Goo(x As System.Int32, [yopt As System.String = ""hi""])", paramSymbol2.ContainingSymbol.ToTestDisplayString())
             Assert.Equal(syntax.SpanStart,
                          paramSymbol2.Locations.Single().SourceSpan.Start - "Optional ".Length)
 
@@ -1274,7 +1274,7 @@ BC30001: Statement is not valid in a namespace.
             Assert.NotNull(paramSymbol3)
             Assert.Equal("a", paramSymbol3.Name)
             Assert.Equal("System.Int64", paramSymbol3.Type.ToTestDisplayString())
-            Assert.Equal("Function Foo.Bar.N1.C1.Foo(a As System.Int64, a As System.Int32) As System.String", paramSymbol3.ContainingSymbol.ToTestDisplayString())
+            Assert.Equal("Function Goo.Bar.N1.C1.Goo(a As System.Int64, a As System.Int32) As System.String", paramSymbol3.ContainingSymbol.ToTestDisplayString())
             Assert.Equal(syntax.SpanStart,
                          paramSymbol3.Locations.Single().SourceSpan.Start)
 
@@ -1282,7 +1282,7 @@ BC30001: Statement is not valid in a namespace.
             Assert.NotNull(paramSymbol4)
             Assert.Equal("a", paramSymbol4.Name)
             Assert.Equal("System.Int32", paramSymbol4.Type.ToTestDisplayString())
-            Assert.Equal("Function Foo.Bar.N1.C1.Foo(a As System.Int64, a As System.Int32) As System.String", paramSymbol4.ContainingSymbol.ToTestDisplayString())
+            Assert.Equal("Function Goo.Bar.N1.C1.Goo(a As System.Int64, a As System.Int32) As System.String", paramSymbol4.ContainingSymbol.ToTestDisplayString())
             Assert.Equal(syntax.SpanStart,
                          paramSymbol4.Locations.Single().SourceSpan.Start)
 
@@ -1290,7 +1290,7 @@ BC30001: Statement is not valid in a namespace.
             Assert.NotNull(paramSymbol5)
             Assert.Equal("d", paramSymbol5.Name)
             Assert.Equal("System.String", paramSymbol5.Type.ToTestDisplayString())
-            Assert.Equal("Sub Foo.Bar.N1.C1..ctor(c As System.String, d As System.String)", paramSymbol5.ContainingSymbol.ToTestDisplayString())
+            Assert.Equal("Sub Goo.Bar.N1.C1..ctor(c As System.String, d As System.String)", paramSymbol5.ContainingSymbol.ToTestDisplayString())
             Assert.Equal(syntax.SpanStart,
                          paramSymbol5.Locations.Single().SourceSpan.Start)
 
@@ -1404,7 +1404,7 @@ End Namespace
 
         <Fact()>
         Public Sub TestGetDeclaredSymbolLambdaParam()
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
@@ -1566,17 +1566,17 @@ Import System
 
 Class Program
 Shared Sub Main()
-On Error Goto Foo
+On Error Goto Goo
 
 Exit Sub
-Foo:
+Goo:
     Resume next
 End Sub
 
 Shared Sub ResumeNext()
 On Error Resume Next
 Exit Sub
-Foo:
+Goo:
     Resume next
 End Sub
 
@@ -1601,7 +1601,7 @@ End Class
 
             Dim LabelSymbol = DirectCast(model.GetDeclaredSymbol(Labels), LabelSymbol)
             Assert.NotNull(LabelSymbol)
-            Assert.Equal("Foo", LabelSymbol.Name)
+            Assert.Equal("Goo", LabelSymbol.Name)
 
             Dim OnErrorGoto = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.OnErrorGoToLabelStatement, 1).AsNode(), OnErrorGoToStatementSyntax)
             Assert.NotNull(OnErrorGoto)
@@ -1620,7 +1620,7 @@ End Class
         <WorkItem(541238, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541238")>
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromAliasDecl()
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
@@ -1801,7 +1801,7 @@ End Namespace
 
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromTypeParameter()
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
@@ -1851,7 +1851,7 @@ BC30001: Statement is not valid in a namespace.
             Dim tpSymbol1 = GetTypeParameterSymbol(compilation, bindingsA, "a.vb", "TTT", syntax)
             Assert.NotNull(tpSymbol1)
             Assert.Equal("TTT", tpSymbol1.Name)
-            Assert.Equal("Foo.Bar.N1.C1(Of TTT, UUU)", tpSymbol1.ContainingSymbol.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.C1(Of TTT, UUU)", tpSymbol1.ContainingSymbol.ToTestDisplayString())
             Assert.Equal(2, tpSymbol1.Locations.Length())
             Assert.True(syntax.SpanStart = tpSymbol1.Locations.Item(0).SourceSpan.Start OrElse
                         syntax.SpanStart = tpSymbol1.Locations.Item(1).SourceSpan.Start,
@@ -1860,7 +1860,7 @@ BC30001: Statement is not valid in a namespace.
             Dim tpSymbol2 = GetTypeParameterSymbol(compilation, bindingsA, "a.vb", "UUU", syntax)
             Assert.NotNull(tpSymbol2)
             Assert.Equal("UUU", tpSymbol2.Name)
-            Assert.Equal("Foo.Bar.N1.C1(Of TTT, UUU)", tpSymbol2.ContainingSymbol.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.C1(Of TTT, UUU)", tpSymbol2.ContainingSymbol.ToTestDisplayString())
             Assert.Equal(2, tpSymbol2.Locations.Length())
             Assert.True(syntax.SpanStart = tpSymbol2.Locations.Item(0).SourceSpan.Start OrElse
                         syntax.SpanStart = tpSymbol2.Locations.Item(1).SourceSpan.Start,
@@ -1869,7 +1869,7 @@ BC30001: Statement is not valid in a namespace.
             Dim tpSymbol3 = GetTypeParameterSymbol(compilation, bindingsB, "b.vb", "TTT", syntax)
             Assert.NotNull(tpSymbol3)
             Assert.Equal("TTT", tpSymbol3.Name)
-            Assert.Equal("Foo.Bar.N1.C1(Of TTT, UUU)", tpSymbol3.ContainingSymbol.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.C1(Of TTT, UUU)", tpSymbol3.ContainingSymbol.ToTestDisplayString())
             Assert.Equal(2, tpSymbol3.Locations.Length())
             Assert.True(syntax.SpanStart = tpSymbol3.Locations.Item(0).SourceSpan.Start OrElse
                         syntax.SpanStart = tpSymbol3.Locations.Item(1).SourceSpan.Start,
@@ -1878,7 +1878,7 @@ BC30001: Statement is not valid in a namespace.
             Dim tpSymbol4 = GetTypeParameterSymbol(compilation, bindingsB, "b.vb", "UUU", syntax)
             Assert.NotNull(tpSymbol4)
             Assert.Equal("UUU", tpSymbol4.Name)
-            Assert.Equal("Foo.Bar.N1.C1(Of TTT, UUU)", tpSymbol4.ContainingSymbol.ToTestDisplayString())
+            Assert.Equal("Goo.Bar.N1.C1(Of TTT, UUU)", tpSymbol4.ContainingSymbol.ToTestDisplayString())
             Assert.Equal(2, tpSymbol4.Locations.Length())
             Assert.True(syntax.SpanStart = tpSymbol4.Locations.Item(0).SourceSpan.Start OrElse
                         syntax.SpanStart = tpSymbol4.Locations.Item(1).SourceSpan.Start,
@@ -1887,7 +1887,7 @@ BC30001: Statement is not valid in a namespace.
             Dim tpSymbol5 = GetTypeParameterSymbol(compilation, bindingsA, "a.vb", "VVV", syntax)
             Assert.NotNull(tpSymbol5)
             Assert.Equal("VVV", tpSymbol5.Name)
-            Assert.Equal("Sub Foo.Bar.N1.C1(Of TTT, UUU).K(Of VVV)(a As VVV)", tpSymbol5.ContainingSymbol.ToTestDisplayString())
+            Assert.Equal("Sub Goo.Bar.N1.C1(Of TTT, UUU).K(Of VVV)(a As VVV)", tpSymbol5.ContainingSymbol.ToTestDisplayString())
             Assert.Equal(1, tpSymbol5.Locations.Length())
             Assert.Equal(syntax.SpanStart, tpSymbol5.Locations.Single().SourceSpan.Start)
 
@@ -1915,7 +1915,7 @@ BC30001: Statement is not valid in a namespace.
 
         <Fact()>
         Public Sub TestGetDeclaredFromLabel()
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
@@ -1955,7 +1955,7 @@ End Module
 
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromVariableName()
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
@@ -2483,7 +2483,7 @@ End Namespace
         <WorkItem(541244, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541244")>
         <Fact()>
         Public Sub GetDeclaredSymbolDelegateStatementSyntax()
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
@@ -2504,28 +2504,28 @@ End Namespace
             Dim node = treeA.GetCompilationUnitRoot().FindToken(treeA.GetCompilationUnitRoot().ToFullString().IndexOf("Delegate", StringComparison.Ordinal)).Parent
             Assert.Equal(SyntaxKind.DelegateFunctionStatement, node.Kind)
             Dim symbol = bindingsA.GetDeclaredSymbol(node)
-            Assert.Equal("Foo.Bar.Server.FD", symbol.ToString())
+            Assert.Equal("Goo.Bar.Server.FD", symbol.ToString())
 
             node = treeA.GetCompilationUnitRoot().FindToken(treeA.GetCompilationUnitRoot().ToFullString().IndexOf("Delegate", 30, StringComparison.Ordinal)).Parent
             Assert.Equal(SyntaxKind.DelegateSubStatement, node.Kind)
             symbol = bindingsA.GetDeclaredSymbol(node)
-            Assert.Equal("Foo.Bar.Server.FD2", symbol.ToString())
+            Assert.Equal("Goo.Bar.Server.FD2", symbol.ToString())
 
             node = treeA.GetCompilationUnitRoot().FindToken(treeA.GetCompilationUnitRoot().ToFullString().IndexOf("Delegate", 140, StringComparison.Ordinal)).Parent
             Assert.Equal(SyntaxKind.DelegateFunctionStatement, node.Kind)
             symbol = bindingsA.GetDeclaredSymbol(node)
-            Assert.Equal("Foo.Bar.Server.C1.FD3", symbol.ToString())
+            Assert.Equal("Goo.Bar.Server.C1.FD3", symbol.ToString())
 
             node = treeA.GetCompilationUnitRoot().FindToken(treeA.GetCompilationUnitRoot().ToFullString().IndexOf("Delegate", 160, StringComparison.Ordinal)).Parent
             Assert.Equal(SyntaxKind.DelegateSubStatement, node.Kind)
             symbol = bindingsA.GetDeclaredSymbol(node)
-            Assert.Equal("Foo.Bar.Server.C1.FD4", symbol.ToString())
+            Assert.Equal("Goo.Bar.Server.C1.FD4", symbol.ToString())
         End Sub
 
         <WorkItem(541379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541379")>
         <Fact()>
         Public Sub GetDeclaredSymbolLambdaParamError()
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
