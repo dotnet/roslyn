@@ -45,12 +45,13 @@
     <MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>14.3.25407-alpha</MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>
     <MicrosoftMetadataVisualizerVersion>1.0.0-beta1-61531-03</MicrosoftMetadataVisualizerVersion>
     <MicrosoftMSXMLVersion>8.0.0.0-alpha</MicrosoftMSXMLVersion>
+    <MicrosoftNETTestSdkVersion>15.3.0</MicrosoftNETTestSdkVersion>
     <MicrosoftNetCompilersVersion>2.3.1</MicrosoftNetCompilersVersion>
     <MicrosoftNetRoslynDiagnosticsVersion>2.3.0-beta1</MicrosoftNetRoslynDiagnosticsVersion>
     <MicrosoftNetCoreILAsmVersion>1.1.0</MicrosoftNetCoreILAsmVersion>
     <MicrosoftNETCoreCompilersVersion>2.3.1-beta1-61919-13</MicrosoftNETCoreCompilersVersion>
     <MicrosoftNETCoreVersion>5.0.0</MicrosoftNETCoreVersion>
-    <MicrosoftNETCoreAppVersion>1.1.0</MicrosoftNETCoreAppVersion>
+    <MicrosoftNETCoreAppVersion>2.0.0</MicrosoftNETCoreAppVersion>
     <MicrosoftNETCorePlatformsVersion>1.1.0</MicrosoftNETCorePlatformsVersion>
     <MicrosoftNETCorePortableCompatibilityVersion>1.0.1</MicrosoftNETCorePortableCompatibilityVersion>
     <MicrosoftNETCoreRuntimeCoreCLRVersion>1.1.0</MicrosoftNETCoreRuntimeCoreCLRVersion>
@@ -224,11 +225,10 @@
     <VSSDKComponentModelHostVersion>12.0.4</VSSDKComponentModelHostVersion>
     <VsWebsiteInteropVersion>8.0.0.0-alpha</VsWebsiteInteropVersion>
     <vswhereVersion>1.0.71</vswhereVersion>
-    <xunitVersion>2.2.0-beta4-build3444</xunitVersion>
+    <xunitVersion>2.2.0</xunitVersion>
     <xunitanalyzersVersion>0.5.0</xunitanalyzersVersion>
-    <xunitassertVersion>2.2.0-beta4-build3444</xunitassertVersion>
-    <xunitconsolenetcoreVersion>1.0.2-prerelease-00104</xunitconsolenetcoreVersion>
-    <xunitrunnerconsoleVersion>2.2.0-beta4-build3444</xunitrunnerconsoleVersion>
+    <xunitassertVersion>2.2.0</xunitassertVersion>
+    <xunitrunnerconsoleVersion>2.2.0</xunitrunnerconsoleVersion>
     <xunitrunnerwpfVersion>1.0.41</xunitrunnerwpfVersion>
   </PropertyGroup>
 

@@ -1,4 +1,4 @@
-﻿#if NET46
+﻿#if NET461
 using System.Collections.Generic;
 using Roslyn.Test.Utilities;
 

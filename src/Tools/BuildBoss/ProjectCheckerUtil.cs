@@ -62,7 +62,6 @@ namespace BuildBoss
                 allGood &= CheckProjectReferences(textWriter);
                 allGood &= CheckPackageReferences(textWriter);
                 allGood &= CheckDeploymentSettings(textWriter);
-                // allGood &= CheckTargetFrameworks(textWriter);
             }
 
             return allGood;
@@ -97,6 +96,7 @@ namespace BuildBoss
             allGood &= IsVsixCorrectlySpecified(textWriter, data);
             allGood &= IsUnitTestNameCorrectlySpecified(textWriter, data);
             allGood &= IsUnitTestPortableCorrectlySpecified(textWriter, data);
+            allGood &= CheckTargetFrameworks(textWriter, data);
 
             return allGood;
         }
@@ -428,8 +428,13 @@ namespace BuildBoss
             return true;
         }
 
-        private bool CheckTargetFrameworks(TextWriter textWriter)
+        private bool CheckTargetFrameworks(TextWriter textWriter, RoslynProjectData data)
         {
+            if (!data.IsAnyUnitTest)
+            {
+                return true;
+            }
+
             var allGood = true;
             foreach (var targetFramework in _projectUtil.GetAllTargetFrameworks())
             {

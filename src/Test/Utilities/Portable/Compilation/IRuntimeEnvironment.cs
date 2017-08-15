@@ -27,7 +27,7 @@ namespace Roslyn.Test.Utilities
 
         private static IRuntimeEnvironmentFactory GetFactoryImplementation()
         {
-#if NET46
+#if NET461
             return new Roslyn.Test.Utilities.Desktop.DesktopRuntimeEnvironmentFactory();
 #elif NETCOREAPP2_0
             return new Roslyn.Test.Utilities.CoreClr.CoreCLRRuntimeEnvironmentFactory();
