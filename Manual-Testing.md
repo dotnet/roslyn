@@ -5,7 +5,7 @@ This document is meant to be a comprehensive list of Roslyn features for use in 
 - Release testing (all features)
 - New language feature testing (think about all features, test relevant ones)
 
-## Test plan
+## Using this 
 - Read the **feature specification** and related conversations
 - Think about how the new language feature **interacts with each IDE feature**
     - Are new keywords visualized appropriately?
