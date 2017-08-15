@@ -31,13 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Scope to which the local can "escape" via aliasing/ref assignment.
-        /// Unfortunately we can only know escape values after binding the initializer.
+        /// Not readonly because we can only know escape values after binding the initializer.
         /// </summary>
         protected uint _refEscapeScope;
 
         /// <summary>
         /// Scope to which the local's values can "escape" via ordinary assignemnts.
-        /// Unfortunately we can only know escape values after binding the initializer.
+        /// Not readonly because we can only know escape values after binding the initializer.
         /// </summary>
         protected uint _valEscapeScope;
 
