@@ -212,6 +212,7 @@ namespace Microsoft.CodeAnalysis
                     var bitLen = br.ReadUInt32();  // Bit Length for Modulus
                     var pubExp = br.ReadUInt32();  // Exponent 
                     var modulusLength = (int) (bitLen / 8);
+                    var halfModulusLength = (modulusLength + 1) / 2;
 
 
                     if (blob.Length - s_offsetToKeyData < modulusLength)
@@ -228,12 +229,18 @@ namespace Microsoft.CodeAnalysis
 
                     if (bType == PrivateKeyBlobId)
                     {
-                        RSAParameters rsaParameters;
-                        using (var rsa = new RSACryptoServiceProvider())
-                        {
-                            rsa.ImportCspBlob(asArray);
-                            rsaParameters = rsa.ExportParameters(true);
-                        }
+                        RSAParameters rsaParameters = default(RSAParameters);
+
+                        rsaParameters.Exponent = ExponentAsBytes(pubExp);
+                        // RsaParameters wants the bytes in reverse order, so we clone the reversed sequence.
+                        rsaParameters.Modulus = modulus.Reverse().ToArray();
+                        rsaParameters.P = br.ReadReversed(halfModulusLength);
+                        rsaParameters.Q = br.ReadReversed(halfModulusLength);
+                        rsaParameters.DP = br.ReadReversed(halfModulusLength);
+                        rsaParameters.DQ = br.ReadReversed(halfModulusLength);
+                        rsaParameters.InverseQ = br.ReadReversed(halfModulusLength);
+                        rsaParameters.D = br.ReadReversed(modulusLength);
+
                         privateKey = rsaParameters;
 
                         // For snKey, rewrite some of the the parameters
@@ -250,5 +257,61 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
         }
+
+        /// <summary>
+        /// Helper for converting a UInt32 exponent to bytes.
+        /// </summary>
+        private static byte[] ExponentAsBytes(uint exponent)
+        {
+            if (exponent <= 0xFF)
+            {
+                return new[] { (byte)exponent };
+            }
+            else if (exponent <= 0xFFFF)
+            {
+                unchecked
+                {
+                    return new[]
+                    {
+                        (byte)(exponent >> 8),
+                        (byte)(exponent)
+                    };
+                }
+            }
+            else if (exponent <= 0xFFFFFF)
+            {
+                unchecked
+                {
+                    return new[]
+                    {
+                        (byte)(exponent >> 16),
+                        (byte)(exponent >> 8),
+                        (byte)(exponent)
+                    };
+                }
+            }
+            else
+            {
+                return new[]
+                {
+                    (byte)(exponent >> 24),
+                    (byte)(exponent >> 16),
+                    (byte)(exponent >> 8),
+                    (byte)(exponent)
+                };
+            }
+}
+
+
+        /// <summary>
+        /// Read in a byte array in reverse order.
+        /// Copied from https://github.com/dotnet/corefx/blob/5fe5f9aae7b2987adc7082f90712b265bee5eefc/src/System.Security.Cryptography.Csp/src/System/Security/Cryptography/CapiHelper.Shared.cs
+        /// </summary>
+        private static byte[] ReadReversed(this BinaryReader br, int count)
+        {
+            byte[] data = br.ReadBytes(count);
+            Array.Reverse(data);
+            return data;
+}
     }
 }
