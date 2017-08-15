@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -387,7 +388,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     DocumentAnalysisResults.Log.Write("{0}: experimental features enabled", document.Name);
 
                     return DocumentAnalysisResults.SyntaxErrors(ImmutableArray.Create(
-                        new RudeEditDiagnostic(RudeEditKind.ExperimentalFeaturesEnabled, default(TextSpan))));
+                        new RudeEditDiagnostic(RudeEditKind.ExperimentalFeaturesEnabled, default)));
                 }
 
                 // We do calculate diffs even if there are semantic errors for the following reasons: 
@@ -431,7 +432,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     DocumentAnalysisResults.Log.Write("A new file added: {0}", document.Name);
                     return DocumentAnalysisResults.SyntaxErrors(ImmutableArray.Create(
-                        new RudeEditDiagnostic(RudeEditKind.InsertFile, default(TextSpan))));
+                        new RudeEditDiagnostic(RudeEditKind.InsertFile, default)));
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -612,7 +613,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (!editedActiveStatements[i])
                 {
                     Contract.ThrowIfFalse(newExceptionRegions[i].IsDefault);
-                    TextSpan trackedSpan = default(TextSpan);
+                    TextSpan trackedSpan = default;
                     bool isTracked = trackingService != null &&
                                      trackingService.TryGetSpan(new ActiveStatementId(documentId, i), newText, out trackedSpan);
                     if (!TryGetTextSpan(oldText.Lines, oldActiveStatements[i].Span, out var oldStatementSpan))
@@ -739,7 +740,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 newActiveStatements[i] = newText.Lines.GetLinePositionSpan(newStatementSpan);
                 // Update tracking span if we found a matching active statement whose span is different.
-                TextSpan trackedSpan = default(TextSpan);
+                TextSpan trackedSpan = default;
                 bool isTracked = trackingService != null &&
                                  trackingService.TryGetSpan(new ActiveStatementId(documentId, i), newText, out trackedSpan);
 
@@ -924,7 +925,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var newSpan = FindClosestActiveSpan(edit.NewNode, 0);
                     for (int i = start; i < end; i++)
                     {
-                        Debug.Assert(newActiveStatements[i] == default(LinePositionSpan) && newSpan != default(TextSpan));
+                        Debug.Assert(newActiveStatements[i] == default && newSpan != default);
                         newActiveStatements[i] = newText.Lines.GetLinePositionSpan(newSpan);
                         editedActiveStatements[i] = true;
                         newExceptionRegions[i] = ImmutableArray.Create<LinePositionSpan>();
@@ -972,7 +973,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // Tracking spans corresponding to the active statements from the tracking service.
                 // We seed the method body matching algorithm with tracking spans (unless they were deleted)
                 // to get precise matching.
-                TextSpan trackedSpan = default(TextSpan);
+                TextSpan trackedSpan = default;
                 bool isTracked = trackingService?.TryGetSpan(new ActiveStatementId(documentId, ordinal), newText, out trackedSpan) ?? false;
 
                 if (isTracked)
@@ -1103,7 +1104,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     newExceptionRegions,
                     diagnostics);
 
-                Debug.Assert(newActiveStatements[ordinal] == default(LinePositionSpan) && newSpan != default(TextSpan));
+                Debug.Assert(newActiveStatements[ordinal] == default && newSpan != default);
                 newActiveStatements[ordinal] = newText.Lines.GetLinePositionSpan(newSpan);
                 editedActiveStatements[ordinal] = true;
 
@@ -1915,7 +1916,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 bool requiresUpdate = false;
                 bool isFirstToken = true;
                 int firstTokenLineDelta = 0;
-                LineChange firstTokenLineChange = default(LineChange);
+                LineChange firstTokenLineChange = default;
                 bool oldHasToken;
                 bool newHasToken;
                 while (true)
@@ -1948,7 +1949,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     {
                         isFirstToken = false;
                         firstTokenLineDelta = lineDelta;
-                        firstTokenLineChange = (lineDelta != 0) ? new LineChange(oldPosition.Line, newPosition.Line) : default(LineChange);
+                        firstTokenLineChange = (lineDelta != 0) ? new LineChange(oldPosition.Line, newPosition.Line) : default;
                     }
                     else if (firstTokenLineDelta != lineDelta)
                     {
@@ -2687,7 +2688,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SemanticModel newModel,
             Func<SyntaxNode, SyntaxNode> ctorSyntaxMapOpt)
         {
-            return newNode => ctorSyntaxMapOpt?.Invoke(newNode) ?? FindPartnerInMemberInitializer(newModel, newType, newNode, oldType, default(CancellationToken));
+            return newNode => ctorSyntaxMapOpt?.Invoke(newNode) ?? FindPartnerInMemberInitializer(newModel, newType, newNode, oldType, default);
         }
 
         private Func<SyntaxNode, SyntaxNode> CreateAggregateSyntaxMap(
@@ -3348,7 +3349,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             // no mapping
-            mappedParameterKey = default(ValueTuple<SyntaxNode, int>);
+            mappedParameterKey = default;
             return false;
         }
 
@@ -3785,7 +3786,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             if (lineSpan.Start.Line >= lines.Count || lineSpan.End.Line >= lines.Count)
             {
-                span = default(TextSpan);
+                span = default;
                 return false;
             }
 

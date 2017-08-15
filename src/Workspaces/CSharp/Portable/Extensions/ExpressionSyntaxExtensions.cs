@@ -412,9 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsInsideNameOf(this ExpressionSyntax expression)
-        {
-            return expression.SyntaxTree.IsNameOfContext(expression.SpanStart);
-        }
+            => expression.SyntaxTree.IsNameOfContext(expression.SpanStart);
 
         private static bool CanReplace(ISymbol symbol)
         {
@@ -436,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             this ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             // An RValue can't be written into. 
-            // i.e. you can't replace "a" in "a = b" with "Foo() = b".
+            // i.e. you can't replace "a" in "a = b" with "Goo() = b".
             return
                 expression != null &&
                 !expression.IsWrittenTo() &&
@@ -501,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             switch (expression.Parent.Kind())
             {
                 case SyntaxKind.InvocationExpression:
-                    // Technically, you could introduce an LValue for "Foo" in "Foo()" even if "Foo" binds
+                    // Technically, you could introduce an LValue for "Goo" in "Goo()" even if "Goo" binds
                     // to a method.  (i.e. by assigning to a Func<...> type).  However, this is so contrived
                     // and none of the features that use this extension consider this replaceable.
                     if (expression.IsKind(SyntaxKind.IdentifierName) || expression is MemberAccessExpressionSyntax)
@@ -678,7 +676,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             CancellationToken cancellationToken)
         {
             replacementNode = null;
-            issueSpan = default(TextSpan);
+            issueSpan = default;
 
             if (expression.ContainsInterleavedDirective(cancellationToken))
             {
@@ -711,7 +709,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             CancellationToken cancellationToken)
         {
             replacementNode = null;
-            issueSpan = default(TextSpan);
+            issueSpan = default;
 
             if (memberAccess.Name == null || memberAccess.Expression == null)
             {
@@ -1114,6 +1112,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             var aliasName = aliasReplacement.Name;
 
+            // If we're the argument of a nameof(X.Y) call, then we can't simplify to an
+            // alias unless the alias has the same name as us (i.e. 'Y').
+            if (node.IsNameOfArgumentExpression())
+            {
+                var nameofValueOpt = semanticModel.GetConstantValue(node.Parent.Parent.Parent);
+                if (!nameofValueOpt.HasValue)
+                {
+                    return false;
+                }
+
+                if (nameofValueOpt.Value is string existingVal &&
+                    existingVal != aliasName)
+                {
+                    return false;
+                }
+            }
+
             var boundSymbols = semanticModel.LookupNamespacesAndTypes(node.SpanStart, name: aliasName);
 
             if (boundSymbols.Length == 1)
@@ -1126,6 +1141,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return false;
+        }
+
+        public static bool IsNameOfArgumentExpression(this ExpressionSyntax expression)
+        {
+            return expression.IsParentKind(SyntaxKind.Argument) &&
+                expression.Parent.IsParentKind(SyntaxKind.ArgumentList) &&
+                expression.Parent.Parent.Parent is InvocationExpressionSyntax invocation &&
+                invocation.IsNameOfInvocation();
+        }
+
+        public static bool IsNameOfInvocation(this InvocationExpressionSyntax invocation)
+        {
+            return invocation.Expression is IdentifierNameSyntax identifierName &&
+                   identifierName.Identifier.IsKindOrHasMatchingText(SyntaxKind.NameOfKeyword);
         }
 
         public static IAliasSymbol GetAliasForSymbol(INamespaceOrTypeSymbol symbol, SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
@@ -1256,7 +1285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             CancellationToken cancellationToken)
         {
             replacementNode = null;
-            issueSpan = default(TextSpan);
+            issueSpan = default;
 
             if (name.IsVar)
             {
@@ -1669,8 +1698,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             out TextSpan issueSpan,
             CancellationToken cancellationToken)
         {
-            issueSpan = default(TextSpan);
-            replacementNode = default(TypeSyntax);
+            issueSpan = default;
+            replacementNode = default;
 
             // we can try to remove the Attribute suffix if this is the attribute name
             if (SyntaxFacts.IsAttributeName(name))
@@ -1755,7 +1784,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             out TextSpan issueSpan)
         {
             replacementNode = null;
-            issueSpan = default(TextSpan);
+            issueSpan = default;
 
             switch (expression.Kind())
             {
@@ -1816,7 +1845,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             out TextSpan issueSpan)
         {
             replacementNode = null;
-            issueSpan = default(TextSpan);
+            issueSpan = default;
 
             if (left != null && right != null)
             {
@@ -2185,7 +2214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             CancellationToken cancellationToken)
         {
             replacementNode = null;
-            issueSpan = default(TextSpan);
+            issueSpan = default;
 
             if (!optionSet.GetOption(SimplificationOptions.PreferImplicitTypeInLocalDeclaration))
             {
@@ -2366,7 +2395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static bool IsAmbiguousCast(ExpressionSyntax expression, ExpressionSyntax simplifiedNode)
         {
             // Can't simplify a type name in a cast expression if it would then cause the cast to be
-            // parsed differently.  For example:  (Foo::Bar)+1  is a cast.  But if that simplifies to
+            // parsed differently.  For example:  (Goo::Bar)+1  is a cast.  But if that simplifies to
             // (Bar)+1  then that's an arithmetic expression.
             if (expression.IsParentKind(SyntaxKind.CastExpression))
             {
@@ -2563,6 +2592,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.GreaterThanOrEqualExpression:
                 case SyntaxKind.IsExpression:
                 case SyntaxKind.AsExpression:
+                case SyntaxKind.IsPatternExpression:
                     // From C# spec, 7.3.1:
                     // Relational and type testing: <  >  <=  >=  is  as
 

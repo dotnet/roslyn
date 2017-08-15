@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -122,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (int V_0)
-  IL_0000:  ldarg.0
+  IL_0000:  ldarg.1
   IL_0001:  ldfld      ""C C.<>c__DisplayClass1_0.<>4__this""
   IL_0006:  ret
 }");
@@ -131,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (int V_0)
-  IL_0000:  ldarg.0
+  IL_0000:  ldarg.1
   IL_0001:  ldfld      ""int C.<>c__DisplayClass1_0.y""
   IL_0006:  ret
 }");
@@ -145,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
   // Code size       13 (0xd)
   .maxstack  2
   .locals init (int V_0)
-  IL_0000:  ldarg.0
+  IL_0000:  ldarg.1
   IL_0001:  ldfld      ""C C.<>c__DisplayClass1_0.<>4__this""
   IL_0006:  ldc.i4.1
   IL_0007:  callvirt   ""void C.F(int)""

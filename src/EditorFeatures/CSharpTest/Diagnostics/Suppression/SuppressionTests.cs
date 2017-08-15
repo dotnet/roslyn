@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -378,13 +378,13 @@ class C2 { } /// <summary><see [|cref=""abc""|]/></summary>
 class C3 { } // comment
   // comment
 // comment",
-        @"class C1 { }
-class C2 { }
-#pragma warning disable CS1574
-/// <summary><see cref=""abc""/></summary>
-class C3 { } // comment
-#pragma warning enable CS1574
-// comment
+$@"class C1 {{ }}
+#pragma warning disable CS1574 // {CSharpResources.WRN_BadXMLRef_Title}
+class C2 {{ }} /// <summary><see cref=""abc""/></summary>
+class
+#pragma warning restore CS1574 // {CSharpResources.WRN_BadXMLRef_Title}
+C3 {{ }} // comment
+  // comment
 // comment", CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose));
                 }
             }

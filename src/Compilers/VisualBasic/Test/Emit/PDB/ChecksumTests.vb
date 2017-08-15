@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     <compilation>
         <file name="a.vb"><![CDATA[
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 
@@ -80,7 +80,7 @@ End Class
     <compilation>
         <file name="a.vb"><![CDATA[
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 
@@ -116,7 +116,7 @@ End Class
     <compilation>
         <file name="a.vb"><![CDATA[
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 
@@ -129,7 +129,7 @@ End Class
         </file>
         <file name="a.vb"><![CDATA[
 Public Class D
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 
@@ -158,7 +158,7 @@ End Class
     <compilation>
         <file name="a.vb"><![CDATA[
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 

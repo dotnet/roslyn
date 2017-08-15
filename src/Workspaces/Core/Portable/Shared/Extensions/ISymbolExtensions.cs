@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -217,6 +218,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol.Kind == SymbolKind.Method && ((IMethodSymbol)symbol).IsExtensionMethod;
         }
 
+        public static bool IsLocalFunction(this ISymbol symbol)
+        {
+            return symbol != null && symbol.Kind == SymbolKind.Method && ((IMethodSymbol)symbol).MethodKind == MethodKind.LocalFunction;
+        }
+
         public static bool IsModuleMember(this ISymbol symbol)
         {
             return symbol != null && symbol.ContainingSymbol is INamedTypeSymbol && symbol.ContainingType.TypeKind == TypeKind.Module;
@@ -284,9 +290,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool IsAnonymousTypeProperty(this ISymbol symbol)
-        {
-            return symbol is IPropertySymbol && symbol.ContainingType.IsNormalAnonymousType();
-        }
+            => symbol is IPropertySymbol && symbol.ContainingType.IsNormalAnonymousType();
+
+        public static bool IsTupleField(this ISymbol symbol)
+            => symbol is IFieldSymbol && symbol.ContainingType.IsTupleType;
 
         public static bool IsIndexer(this ISymbol symbol)
         {
@@ -457,7 +464,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         /// <summary>
         /// Returns true if this symbol contains anything unsafe within it.  for example
-        /// List&lt;int*[]&gt; is unsafe, as it "int* Foo { get; }"
+        /// List&lt;int*[]&gt; is unsafe, as it "int* Goo { get; }"
         /// </summary>
         public static bool IsUnsafe(this ISymbol member)
         {
@@ -565,7 +572,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return true;
             }
 
-            return namespaceOrType.GetMembers().Any(nt => nt.IsOrContainsAccessibleAttribute(withinType, withinAssembly));
+            // PERF: Avoid allocating a lambda capture as this method is recursive
+            foreach (var namedType in namespaceOrType.GetTypeMembers())
+            {
+                if (namedType.IsOrContainsAccessibleAttribute(withinType, withinAssembly))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public static IEnumerable<IPropertySymbol> GetValidAnonymousTypeProperties(this ISymbol symbol)
@@ -698,7 +714,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static bool IsBrowsingProhibitedByHideModuleNameAttribute(
-            ISymbol symbol, Compilation compilation, INamedTypeSymbol hideModuleNameAttribute, ImmutableArray<AttributeData> attributes = default(ImmutableArray<AttributeData>))
+            ISymbol symbol, Compilation compilation, INamedTypeSymbol hideModuleNameAttribute, ImmutableArray<AttributeData> attributes = default)
         {
             if (!symbol.IsModuleType())
             {
@@ -892,7 +908,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol as ITypeSymbol;
         }
 
-        public static DocumentationComment GetDocumentationComment(this ISymbol symbol, CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
+        public static DocumentationComment GetDocumentationComment(this ISymbol symbol, CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)
         {
             string xmlText = symbol.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
             return string.IsNullOrEmpty(xmlText) ? DocumentationComment.Empty : DocumentationComment.FromXmlFragment(xmlText);

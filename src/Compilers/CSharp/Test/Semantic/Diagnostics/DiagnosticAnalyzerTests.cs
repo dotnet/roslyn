@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -1071,14 +1072,14 @@ namespace ConsoleApplication1
         public void TestNamespaceDeclarationAnalyzer()
         {
             var source = @"
-namespace Foo.Bar.FooBar { }
+namespace Goo.Bar.GooBar { }
 ";
             var analyzers = new DiagnosticAnalyzer[] { new CSharpNamespaceDeclarationAnalyzer() };
 
             // Verify, no duplicate diagnostics on qualified name.
             CreateCompilationWithMscorlib45(source)
                 .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false,
-                    expected: Diagnostic(CSharpNamespaceDeclarationAnalyzer.DiagnosticId, @"namespace Foo.Bar.FooBar { }").WithLocation(2, 1));
+                    expected: Diagnostic(CSharpNamespaceDeclarationAnalyzer.DiagnosticId, @"namespace Goo.Bar.GooBar { }").WithLocation(2, 1));
         }
 
         [Fact, WorkItem(2980, "https://github.com/dotnet/roslyn/issues/2980")]

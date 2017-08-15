@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -53,19 +54,38 @@ namespace Microsoft.CodeAnalysis.CSharp
         // We need an indexable collection of mappings from method candidates to their up-to-date
         // overload resolution status. It must be fast and memory efficient, but it will very often
         // contain just 1 candidate.      
-        private static int RemainingCandidatesCount<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> list)
+        private static bool AnyValidResult<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results)
             where TMember : Symbol
         {
-            var count = 0;
-            for (int i = 0; i < list.Count; i++)
+            foreach (var result in results)
             {
-                if (list[i].Result.IsValid)
+                if (result.IsValid)
                 {
-                    count += 1;
+                    return true;
                 }
             }
 
-            return count;
+            return false;
+        }
+
+        private static bool SingleValidResult<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results)
+            where TMember : Symbol
+        {
+            bool oneValid = false;
+            foreach (var result in results)
+            {
+                if (result.IsValid)
+                {
+                    if (oneValid)
+                    {
+                        return false;
+                    }
+
+                    oneValid = true;
+                }
+            }
+
+            return oneValid;
         }
 
         // Perform overload resolution on the given method group, with the given arguments and
@@ -175,22 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            bool oneValid = false;
-
-            foreach (var curResult in results)
-            {
-                if (curResult.Result.IsValid)
-                {
-                    if (oneValid)
-                    {
-                        // We somehow have two valid results.
-                        return false;
-                    }
-                    oneValid = true;
-                }
-            }
-
-            return oneValid;
+            return SingleValidResult(results);
         }
 
         // Perform method/indexer overload resolution, storing the results into "results". If
@@ -254,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: If the resulting set of candidate methods is empty, then further processing along the following steps are abandoned,
             // SPEC: and instead an attempt is made to process the invocation as an extension method invocation. If this fails, then no
             // SPEC: applicable methods exist, and a binding-time error occurs.
-            if (RemainingCandidatesCount(results) == 0)
+            if (!AnyValidResult(results))
             {
                 return;
             }
@@ -548,6 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         allowRefOmittedArguments: allowRefOmittedArguments,
                         completeResults: completeResults,
                         useSiteDiagnostics: ref useSiteDiagnostics);
+
                     if (PreferExpandedFormOverNormalForm(normalResult.Result, expandedResult.Result))
                     {
                         result = expandedResult;
@@ -565,8 +571,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         // If the normal form is invalid and the expanded form is valid then obviously we prefer
         // the expanded form. However, there may be error-reporting situations where we
         // prefer to report the error on the expanded form rather than the normal form. 
-        // For example, if you have something like Foo<T>(params T[]) and a call
-        // Foo(1, "") then the error for the normal form is "too many arguments"
+        // For example, if you have something like Goo<T>(params T[]) and a call
+        // Goo(1, "") then the error for the normal form is "too many arguments"
         // and the error for the expanded form is "failed to infer T". Clearly the
         // expanded form error is better.
         private static bool PreferExpandedFormOverNormalForm(MemberAnalysisResult normalResult, MemberAnalysisResult expandedResult)
@@ -898,21 +904,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Consider the following case:
             // 
-            // interface IFoo { string ToString(); }
+            // interface IGoo { string ToString(); }
             // class C { public override string ToString() { whatever } }
-            // class D : C, IFoo 
+            // class D : C, IGoo 
             // { 
             //     public override string ToString() { whatever }
-            //     string IFoo.ToString() { whatever }
+            //     string IGoo.ToString() { whatever }
             // }
             // ...
-            // void M<U>(U u) where U : C, IFoo { u.ToString(); } // ???
+            // void M<U>(U u) where U : C, IGoo { u.ToString(); } // ???
             // ...
             // M(new D());
             //
             // What should overload resolution do on the call to u.ToString()?
             // 
-            // We will have IFoo.ToString and C.ToString (which is an override of object.ToString)
+            // We will have IGoo.ToString and C.ToString (which is an override of object.ToString)
             // in the candidate set. Does the rule apply to eliminate all interface methods?  NO.  The
             // rule only applies if the candidate set contains a method which originally came from a
             // class type other than object. The method C.ToString is the "slot" for
@@ -1009,6 +1015,66 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private int GetTheBestCandidateIndex<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, AnalyzedArguments arguments, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            where TMember : Symbol
+        {
+            int currentBestIndex = -1;
+            for (int index = 0; index < results.Count; index++)
+            {
+                if (!results[index].IsValid)
+                {
+                    continue;
+                }
+
+                // Assume that the current candidate is the best if we don't have any
+                if (currentBestIndex == -1)
+                {
+                    currentBestIndex = index;
+                }
+                else if (results[currentBestIndex].Member == results[index].Member)
+                {
+                    currentBestIndex = -1;
+                }
+                else
+                {
+                    var better = BetterFunctionMember(results[currentBestIndex], results[index], arguments.Arguments, ref useSiteDiagnostics);
+                    if (better == BetterResult.Right)
+                    {
+                        // The current best is worse
+                        currentBestIndex = index;
+                    }
+                    else if (better != BetterResult.Left)
+                    {
+                        // The current best is not better
+                        currentBestIndex = -1;
+                    }
+                }
+            }
+
+            // Make sure that every candidate up to the current best is worse
+            for (int index = 0; index < currentBestIndex; index++)
+            {
+                if (!results[index].IsValid)
+                {
+                    continue;
+                }
+
+                if (results[currentBestIndex].Member == results[index].Member)
+                {
+                    return -1;
+                }
+
+                var better = BetterFunctionMember(results[currentBestIndex], results[index], arguments.Arguments, ref useSiteDiagnostics);
+                if (better != BetterResult.Left)
+                {
+                    // The current best is not better
+                    return -1;
+                }
+            }
+
+            return currentBestIndex;
+        }
+
         private void RemoveWorseMembers<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, AnalyzedArguments arguments, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
             where TMember : Symbol
         {
@@ -1032,90 +1098,84 @@ namespace Microsoft.CodeAnalysis.CSharp
             // then we need to do no more work; we know it cannot win. But it is also possible that
             // it is not worse than anything but not better than everything. 
 
+            if (SingleValidResult(results))
+            {
+                return;
+            }
+
+            // See if we have a winner, otherwise we might need to perform additional analysis
+            // in order to improve diagnostics
+            int bestIndex = GetTheBestCandidateIndex(results, arguments, ref useSiteDiagnostics);
+            if (bestIndex != -1)
+            {
+                // Mark all other candidates as worse
+                for (int index = 0; index < results.Count; index++)
+                {
+                    if (results[index].IsValid && index != bestIndex)
+                    {
+                        results[index] = results[index].Worse();
+                    }
+                }
+
+                return;
+            }
+
             const int unknown = 0;
             const int worseThanSomething = 1;
             const int notBetterThanEverything = 2;
-            const int betterThanEverything = 3;
 
             var worse = ArrayBuilder<int>.GetInstance(results.Count, unknown);
 
+            int countOfNotBestCandidates = 0;
+            int notBestIdx = -1;
+
             for (int c1Idx = 0; c1Idx < results.Count; c1Idx++)
             {
-                var c1result = results[c1Idx];
+                var c1Result = results[c1Idx];
 
                 // If we already know this is worse than something else, no need to check again.
-                if (!c1result.Result.IsValid || worse[c1Idx] == worseThanSomething)
+                if (!c1Result.IsValid || worse[c1Idx] == worseThanSomething)
                 {
                     continue;
                 }
 
-                bool c1IsBetterThanEverything = true;
                 for (int c2Idx = 0; c2Idx < results.Count; c2Idx++)
                 {
-                    var c2result = results[c2Idx];
-
-                    if (!c2result.Result.IsValid)
+                    var c2Result = results[c2Idx];
+                    if (!c2Result.IsValid || c1Idx == c2Idx || c1Result.Member == c2Result.Member)
                     {
                         continue;
                     }
 
-                    if (c1result.Member == c2result.Member)
-                    {
-                        continue;
-                    }
-
-                    var better = BetterFunctionMember(c1result, c2result, arguments.Arguments, ref useSiteDiagnostics);
+                    var better = BetterFunctionMember(c1Result, c2Result, arguments.Arguments, ref useSiteDiagnostics);
                     if (better == BetterResult.Left)
                     {
                         worse[c2Idx] = worseThanSomething;
                     }
-                    else
+                    else if (better == BetterResult.Right)
                     {
-                        c1IsBetterThanEverything = false;
-                        if (better == BetterResult.Right)
-                        {
-                            worse[c1Idx] = worseThanSomething;
-                            break;
-                        }
+                        worse[c1Idx] = worseThanSomething;
+                        break;
                     }
                 }
+
                 if (worse[c1Idx] == unknown)
                 {
-                    // c1 was not worse than anything. Was it better than everything?
-                    worse[c1Idx] = c1IsBetterThanEverything ? betterThanEverything : notBetterThanEverything;
-                }
-            }
-
-            // See we have a winner, otherwise we might need to perform additional analysis
-            // in order to improve diagnostics
-            bool haveBestCandidate = false;
-            int countOfNotBestCandidates = 0;
-            int notBestIdx = -1;
-            for (int i = 0; i < worse.Count; ++i)
-            {
-                Debug.Assert(!results[i].Result.IsValid || worse[i] != unknown);
-                if (worse[i] == betterThanEverything)
-                {
-                    haveBestCandidate = true;
-                    break;
-                }
-                else if (worse[i] == notBetterThanEverything)
-                {
+                    // c1 was not worse than anything
+                    worse[c1Idx] = notBetterThanEverything;
                     countOfNotBestCandidates++;
-                    notBestIdx = i;
+                    notBestIdx = c1Idx;
                 }
             }
 
-            Debug.Assert(countOfNotBestCandidates == 0 || !haveBestCandidate);
-
-            if (haveBestCandidate || countOfNotBestCandidates == 0)
+            if (countOfNotBestCandidates == 0)
             {
                 for (int i = 0; i < worse.Count; ++i)
                 {
-                    Debug.Assert(!results[i].Result.IsValid || worse[i] != unknown);
-                    if (worse[i] == worseThanSomething || worse[i] == notBetterThanEverything)
+                    Debug.Assert(!results[i].IsValid || worse[i] != unknown);
+                    if (worse[i] == worseThanSomething)
                     {
-                        results[i] = new MemberResolutionResult<TMember>(results[i].Member, results[i].LeastOverriddenMember, MemberAnalysisResult.Worse());
+                        results[i] = results[i].Worse();
                     }
                 }
             }
@@ -1123,14 +1183,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 for (int i = 0; i < worse.Count; ++i)
                 {
-                    Debug.Assert(!results[i].Result.IsValid || worse[i] != unknown);
+                    Debug.Assert(!results[i].IsValid || worse[i] != unknown);
                     if (worse[i] == worseThanSomething)
                     {
                         // Mark those candidates, that are worse than the single notBest candidate, as Worst in order to improve error reporting.
-                        var analysisResult = BetterFunctionMember(results[notBestIdx], results[i], arguments.Arguments, ref useSiteDiagnostics) == BetterResult.Left ?
-                                                MemberAnalysisResult.Worst() :
-                                                MemberAnalysisResult.Worse();
-                        results[i] = new MemberResolutionResult<TMember>(results[i].Member, results[i].LeastOverriddenMember, analysisResult);
+                        results[i] = BetterResult.Left == BetterFunctionMember(results[notBestIdx], results[i], arguments.Arguments, ref useSiteDiagnostics)
+                            ? results[i].Worst() : results[i].Worse();
                     }
                     else
                     {
@@ -1139,7 +1197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 Debug.Assert(worse[notBestIdx] == notBetterThanEverything);
-                results[notBestIdx] = new MemberResolutionResult<TMember>(results[notBestIdx].Member, results[notBestIdx].LeastOverriddenMember, MemberAnalysisResult.Worse());
+                results[notBestIdx] = results[notBestIdx].Worse();
             }
             else
             {
@@ -1147,15 +1205,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 for (int i = 0; i < worse.Count; ++i)
                 {
-                    Debug.Assert(!results[i].Result.IsValid || worse[i] != unknown);
+                    Debug.Assert(!results[i].IsValid || worse[i] != unknown);
                     if (worse[i] == worseThanSomething)
                     {
                         // Mark those candidates, that are worse than something, as Worst in order to improve error reporting.
-                        results[i] = new MemberResolutionResult<TMember>(results[i].Member, results[i].LeastOverriddenMember, MemberAnalysisResult.Worst());
+                        results[i] = results[i].Worst();
                     }
                     else if (worse[i] == notBetterThanEverything)
                     {
-                        results[i] = new MemberResolutionResult<TMember>(results[i].Member, results[i].LeastOverriddenMember, MemberAnalysisResult.Worse());
+                        results[i] = results[i].Worse();
                     }
                 }
             }
@@ -1724,8 +1782,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             //   argument is more specific and no type argument is less specific than the
             //   corresponding type argument in the other. 
 
-            var n1 = t1 as NamedTypeSymbol;
-            var n2 = t2 as NamedTypeSymbol;
+            var n1 = t1.TupleUnderlyingTypeOrSelf() as NamedTypeSymbol;
+            var n2 = t2.TupleUnderlyingTypeOrSelf() as NamedTypeSymbol;
             Debug.Assert(((object)n1 == null) == ((object)n2 == null));
 
             if ((object)n1 == null)

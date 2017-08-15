@@ -275,9 +275,9 @@ public class Test
             const string template = @"
 class C
 {{
-    static void Foo({1} v) {{ }}
+    static void Goo({1} v) {{ }}
 
-    static void Main() {{ {0} v = default({0}); Foo({2}v); }}
+    static void Main() {{ {0} v = default({0}); Goo({2}v); }}
 }}
 ";
 
@@ -820,7 +820,7 @@ class C {
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="binding"></param>
+        /// <param name="semanticModel"></param>
         /// <param name="expr"></param>
         /// <param name="ept1">expr -> TypeInParent</param>
         /// <param name="ept2">Type(expr) -> TypeInParent</param>
@@ -1570,12 +1570,12 @@ this[double E] { get { return /*<bind>*/E/*</bind>*/; } }
             var text = @"
 interface I<T>
 {
-    void Foo<T>();
+    void Goo<T>();
 }
  
 class A<T> : I<T>
 {
-    void I</*<bind>*/T/*</bind>*/>.Foo<T>() { }
+    void I</*<bind>*/T/*</bind>*/>.Goo<T>() { }
 }
 ";
             var tree = Parse(text);
@@ -1611,10 +1611,10 @@ namespace N { }
             var bindInfo = model.GetSemanticInfoSummary(exprSyntaxToBind);
         }
 
-        [WorkItem(542634, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542634")]
         /// Test that binding a local declared with var binds the same way when localSymbol.Type is called before BindVariableDeclaration.
         /// Assert occurs if the two do not compute the same type.
         [Fact]
+        [WorkItem(542634, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542634")]
         public void VarInitializedWithStaticType()
         {
             var text =
@@ -2224,7 +2224,7 @@ using System;
 
 interface IA
 {
-    [System.Runtime.CompilerServices.IndexerName(""Foo"")]
+    [System.Runtime.CompilerServices.IndexerName(""Goo"")]
     string this[int index] { get; }
 }
  
@@ -2365,8 +2365,8 @@ class C
         /*<bind1>*/C.B/*</bind1>*/();
         /*<bind2>*/C.D/*</bind2>*/;
         /*<bind3>*/C.B()/*</bind3>*/;
-        int foo = /*<bind4>*/C.B()/*</bind4>*/;
-        foo = /*<bind5>*/C.B/*</bind5>*/();
+        int goo = /*<bind4>*/C.B()/*</bind4>*/;
+        goo = /*<bind5>*/C.B/*</bind5>*/();
     }
 }
 ";
@@ -4635,15 +4635,15 @@ class Program
             var source = @"
 class A
 {
-    protected void Foo() { }
+    protected void Goo() { }
 }
 
 class C : A
 {
     public void Bar<T>(T t, C c) where T : C
     {
-        t.Foo();
-        c.Foo();
+        t.Goo();
+        c.Goo();
     }
 }
 ";
@@ -4656,7 +4656,7 @@ class C : A
 
             var global = comp.GlobalNamespace;
             var classA = global.GetMember<NamedTypeSymbol>("A");
-            var methodFoo = classA.GetMember<MethodSymbol>("Foo");
+            var methodGoo = classA.GetMember<MethodSymbol>("Goo");
             var classC = global.GetMember<NamedTypeSymbol>("C");
             var methodBar = classC.GetMember<MethodSymbol>("Bar");
 
@@ -4667,8 +4667,8 @@ class C : A
 
             int position = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First().SpanStart;
 
-            Assert.Contains("Foo", model.LookupNames(position, paramType0));
-            Assert.Contains("Foo", model.LookupNames(position, paramType1));
+            Assert.Contains("Goo", model.LookupNames(position, paramType0));
+            Assert.Contains("Goo", model.LookupNames(position, paramType1));
         }
 
         [Fact]
@@ -4678,7 +4678,7 @@ class C : A
             var source = @"
 class A
 {
-    protected void Foo() { }
+    protected void Goo() { }
 }
 
 class C : A
@@ -4687,8 +4687,8 @@ class C : A
         where T : U
         where U : C
     {
-        t.Foo();
-        c.Foo();
+        t.Goo();
+        c.Goo();
     }
 }
 ";
@@ -4701,7 +4701,7 @@ class C : A
 
             var global = comp.GlobalNamespace;
             var classA = global.GetMember<NamedTypeSymbol>("A");
-            var methodFoo = classA.GetMember<MethodSymbol>("Foo");
+            var methodGoo = classA.GetMember<MethodSymbol>("Goo");
             var classC = global.GetMember<NamedTypeSymbol>("C");
             var methodBar = classC.GetMember<MethodSymbol>("Bar");
 
@@ -4712,8 +4712,8 @@ class C : A
 
             int position = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First().SpanStart;
 
-            Assert.Contains("Foo", model.LookupNames(position, paramType0));
-            Assert.Contains("Foo", model.LookupNames(position, paramType1));
+            Assert.Contains("Goo", model.LookupNames(position, paramType0));
+            Assert.Contains("Goo", model.LookupNames(position, paramType1));
         }
 
         [Fact]
@@ -4723,7 +4723,7 @@ class C : A
             var source = @"
 class A
 {
-    protected void Foo(bool b, = true
+    protected void Goo(bool b, = true
 ";
 
             var comp = CreateStandardCompilation(source);
@@ -4872,7 +4872,7 @@ public class D : C
         public void MethodGroupFromMetadata()
         {
             var source = @"
-class Foo
+class Goo
 {
 delegate int D(int i);
 void M()
@@ -4968,7 +4968,7 @@ void M()
 
 public class T
 {
-    public int Foo(int A)
+    public int Goo(int A)
     {
         return A; //bind
     }
@@ -5819,7 +5819,7 @@ partial class C
 using X = System.Collections.Generic.List<dynamic>;
 class Test
 {
-    void Foo(ref X. x) { }
+    void Goo(ref X. x) { }
 }";
 
             var comp = CreateStandardCompilation(source, new[] { SystemCoreRef });
@@ -5847,6 +5847,52 @@ class C
             var expr = tokens.Single(t => t.Kind() == SyntaxKind.TrueKeyword).Parent;
             Assert.Null(model.GetSymbolInfo(expr).Symbol);
             Assert.Equal(SpecialType.System_Boolean, model.GetTypeInfo(expr).Type.SpecialType);
+        }
+
+        [Fact]
+        public void GetSpecialType_ThrowsOnLessThanZero()
+        {
+            var source = "class C1 { }";
+            var comp = CreateStandardCompilation(source);
+
+            var specialType = (SpecialType)(-1);
+
+            var exceptionThrown = false;
+
+            try
+            {
+                comp.GetSpecialType(specialType);
+            }
+            catch (ArgumentOutOfRangeException e)
+            {
+                exceptionThrown = true;
+                Assert.StartsWith(expectedStartString: $"Unexpected SpecialType: '{(int)specialType}'.", actualString: e.Message);
+            }
+
+            Assert.True(exceptionThrown, $"{nameof(comp.GetSpecialType)} did not throw when it should have.");
+        }
+
+        [Fact]
+        public void GetSpecialType_ThrowsOnGreaterThanCount()
+        {
+            var source = "class C1 { }";
+            var comp = CreateStandardCompilation(source);
+
+            var specialType = SpecialType.Count + 1;
+
+            var exceptionThrown = false;
+
+            try
+            {
+                comp.GetSpecialType(specialType);
+            }
+            catch (ArgumentOutOfRangeException e)
+            {
+                exceptionThrown = true;
+                Assert.StartsWith(expectedStartString: $"Unexpected SpecialType: '{(int)specialType}'.", actualString: e.Message);
+            }
+
+            Assert.True(exceptionThrown, $"{nameof(comp.GetSpecialType)} did not throw when it should have.");
         }
     }
 }

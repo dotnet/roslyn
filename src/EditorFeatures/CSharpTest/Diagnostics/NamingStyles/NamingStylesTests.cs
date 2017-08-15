@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -322,6 +322,7 @@ namespace Microsoft.CodeAnalysis.Host
 ", new TestParameters(options: InterfaceNamesStartWithI));
         }
         
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         [WorkItem(16562, "https://github.com/dotnet/roslyn/issues/16562")]
         public async Task TestRefactorNotify()
         {

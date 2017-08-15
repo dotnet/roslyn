@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -416,7 +417,7 @@ class C
                     }
                     else
                     {
-                        Marshal.ThrowExceptionForHR(unchecked((int)MetadataUtilities.CORDBG_E_MISSING_METADATA));
+                        Marshal.ThrowExceptionForHR(DkmExceptionUtilities.CORDBG_E_MISSING_METADATA);
                         throw ExceptionUtilities.Unreachable;
                     }
                 };
@@ -443,7 +444,7 @@ class C
             ShouldTryAgain_False(
                 (AssemblyIdentity assemblyIdentity, out uint uSize) =>
                 {
-                    Marshal.ThrowExceptionForHR(unchecked((int)MetadataUtilities.CORDBG_E_MISSING_METADATA));
+                    Marshal.ThrowExceptionForHR(DkmExceptionUtilities.CORDBG_E_MISSING_METADATA);
                     throw ExceptionUtilities.Unreachable;
                 });
         }
@@ -454,7 +455,7 @@ class C
             ShouldTryAgain_False(
                 (AssemblyIdentity assemblyIdentity, out uint uSize) =>
                 {
-                    Marshal.ThrowExceptionForHR(unchecked((int)MetadataUtilities.COR_E_BADIMAGEFORMAT));
+                    Marshal.ThrowExceptionForHR(DkmExceptionUtilities.COR_E_BADIMAGEFORMAT);
                     throw ExceptionUtilities.Unreachable;
                 });
         }

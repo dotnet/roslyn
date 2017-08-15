@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialMethodInvalidModifier = 750,
         ERR_PartialMethodOnlyInPartialClass = 751,
         ERR_PartialMethodCannotHaveOutParameters = 752,
-        ERR_PartialMethodOnlyMethods = 753,
+        // ERR_PartialMethodOnlyMethods = 753, Removed as it is subsumed by ERR_PartialMisplaced
         ERR_PartialMethodNotExplicit = 754,
         ERR_PartialMethodExtensionDifference = 755,
         ERR_PartialMethodOnlyOneLatent = 756,
@@ -1240,9 +1240,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidAssemblyCulture = 7100,
         ERR_EncReferenceToAddedMember = 7101,
         ERR_MutuallyExclusiveOptions = 7102,
+        ERR_InvalidDebugInfo = 7103,
         #endregion diagnostics introduced in C# 6
 
-        // huge gap here; unused 7103-8000
+        // huge gap here; unused 7104-8000
 
         #region more diagnostics introduced in Roslyn (C# 6)
         WRN_UnimplementedCommandLineSwitch = 8001,
@@ -1351,7 +1352,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
-        // Available = 8112, 8113, 8114, 8115
+        ERR_LocalFunctionMissingBody = 8112,
+
+        // Available = 8113, 8114, 8115
 
         #region diagnostics for pattern-matching introduced in C# 7
         ERR_ThrowMisplaced = 8115,
@@ -1489,5 +1492,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AmbigBinaryOpsOnDefault = 8315,
 
         #endregion diagnostics introduced for C# 7.1
+
+        #region diagnostics introduced for C# 7.2
+        ERR_FeatureNotAvailableInVersion7_2 = 8320,
+        WRN_UnreferencedLocalFunction = 8321,
+        ERR_DynamicLocalFunctionTypeParameter = 8322,
+        #endregion diagnostics introduced for C# 7.2
     }
 }

@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -778,7 +779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            var sourceMethod = selectedMethod as SourceMemberMethodSymbol;
+            var sourceMethod = selectedMethod as SourceOrdinaryMethodSymbol;
             if ((object)sourceMethod != null && sourceMethod.IsPartialWithoutImplementation)
             {
                 // CS0762: Cannot create delegate from method '{0}' because it is a partial method without an implementing declaration

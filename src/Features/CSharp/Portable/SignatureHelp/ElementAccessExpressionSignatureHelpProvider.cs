@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var expressionSymbol = semanticModel.GetSymbolInfo(expression, cancellationToken).GetAnySymbol();
-            // foo?[$$]
+            // goo?[$$]
             if (expressionSymbol is INamedTypeSymbol namedType)
             {
                 if (namedType.ConstructedFrom.SpecialType == SpecialType.System_Nullable_T &&
@@ -302,13 +302,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 }
 
                 identifier = null;
-                openBrace = default(SyntaxToken);
+                openBrace = default;
                 return false;
             }
         }
 
         /// Error tolerance case for
-        ///     "foo[$$]" or "foo?[$$]"
+        ///     "goo[$$]" or "goo?[$$]"
         /// which is parsed as an ArrayTypeSyntax variable declaration instead of an ElementAccessExpression  
         private static class IncompleteElementAccessExpression
         {
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 }
 
                 identifier = null;
-                openBrace = default(SyntaxToken);
+                openBrace = default;
                 return false;
             }
         }
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 }
 
                 identifier = null;
-                openBrace = default(SyntaxToken);
+                openBrace = default;
                 return false;
             }
         }

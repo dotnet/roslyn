@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!--
-    Microsoft ResX Schema
-
+  <!-- 
+    Microsoft ResX Schema 
+    
     Version 2.0
-
-    The primary goals of this format is to allow a simple XML format
-    that is mostly human readable. The generation and parsing of the
-    various data types are done through the TypeConverter classes
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
     associated with the data types.
-
+    
     Example:
-
+    
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,36 +26,36 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-
-    There are any number of "resheader" rows that contain simple
+                
+    There are any number of "resheader" rows that contain simple 
     name/value pairs.
-
-    Each data row contains a name, and value. The row also contains a
-    type or mimetype. Type corresponds to a .NET class that support
-    text/value conversion through the TypeConverter architecture.
-    Classes that don't support this are serialized and stored with the
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
     mimetype set.
-
-    The mimetype is used for serialized objects, and tells the
-    ResXResourceReader how to depersist the object. This is currently not
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
     extensible. For a given mimetype the value must be set accordingly:
-
-    Note - application/x-microsoft.net.object.binary.base64 is the format
-    that the ResXResourceWriter will generate, however the reader can
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
     read any of the formats listed below.
-
+    
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with
+    value   : The object must be serialized with 
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-
+    
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with
+    value   : The object must be serialized with 
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array
+    value   : The object must be serialized into a byte array 
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
@@ -1422,7 +1422,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>'{0}' cannot be both abstract and sealed</value>
   </data>
   <data name="ERR_AbstractNotVirtual" xml:space="preserve">
-    <value>The abstract method '{0}' cannot be marked virtual</value>
+    <value>The abstract {0} '{1}' cannot be marked virtual</value>
   </data>
   <data name="ERR_StaticConstant" xml:space="preserve">
     <value>The constant '{0}' cannot be marked static</value>
@@ -1467,7 +1467,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Predefined type '{0}' is not defined or imported</value>
   </data>
   <data name="ERR_PredefinedValueTupleTypeNotFound" xml:space="preserve">
-    <value>Predefined type '{0}' is not defined or imported</value>
+    <value>Predefined type '{0}' is not defined or imported, or is declared in multiple referenced assemblies</value>
   </data>
   <data name="ERR_StructWithBaseConstructorCall" xml:space="preserve">
     <value>'{0}': structs cannot call base class constructors</value>
@@ -2062,9 +2062,6 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="ERR_PartialMethodCannotHaveOutParameters" xml:space="preserve">
     <value>A partial method cannot have out parameters</value>
-  </data>
-  <data name="ERR_PartialMethodOnlyMethods" xml:space="preserve">
-    <value>Only methods, classes, structs, or interfaces may be partial</value>
   </data>
   <data name="ERR_PartialMethodNotExplicit" xml:space="preserve">
     <value>A partial method may not explicitly implement an interface method</value>
@@ -2711,7 +2708,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>This warning occurs if the assembly attributes AssemblyKeyFileAttribute or AssemblyKeyNameAttribute found in source conflict with the /keyfile or /keycontainer command line option or key file name or key container specified in the Project Properties.</value>
   </data>
   <data name="ERR_BadCompatMode" xml:space="preserve">
-    <value>Invalid option '{0}' for /langversion; must be ISO-1, ISO-2, Default, Latest or a valid version in range 1 to 7.1.</value>
+    <value>Invalid option '{0}' for /langversion. Use '/langversion:?' to list supported values.</value>
   </data>
   <data name="ERR_DelegateOnConditional" xml:space="preserve">
     <value>Cannot create delegate with '{0}' because it or a method it overrides has a Conditional attribute</value>
@@ -3909,7 +3906,7 @@ You should consider suppressing the warning only if you're sure that you don't w
     <value>Indexed property '{0}' must have all arguments optional</value>
   </data>
   <data name="ERR_SpecialByRefInLambda" xml:space="preserve">
-    <value>Instance of type '{0}' cannot be used inside an anonymous function, query expression, iterator block or async method</value>
+    <value>Instance of type '{0}' cannot be used inside a nested function, query expression, iterator block or async method</value>
   </data>
   <data name="ERR_SecurityAttributeMissingAction" xml:space="preserve">
     <value>First argument to a security attribute must be a valid SecurityAction</value>
@@ -4392,6 +4389,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_LogoLine2" xml:space="preserve">
     <value>Copyright (C) Microsoft Corporation. All rights reserved.</value>
   </data>
+  <data name="IDS_LangVersions" xml:space="preserve">
+    <value>Supported language versions:</value>
+  </data>
   <data name="IDS_CSCHelp" xml:space="preserve">
     <value>
                               Visual C# Compiler Options
@@ -4477,8 +4477,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /unsafe[+|-]                  Allow 'unsafe' code
  /define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
                                form: /d)
- /langversion:&lt;string&gt;         Specify language version mode: ISO-1, ISO-2, 3,
-                               4, 5, 6, 7, 7.1, Default, or Latest
+ /langversion:?                Display the allowed values for language version
+ /langversion:&lt;string&gt;         Specify language version such as
+                               `default` (latest major version), or
+                               `latest` (latest version, including minor versions),
+                               or specific versions like `6` or `7.1`
 
                         - SECURITY -
  /delaysign[+|-]               Delay-sign the assembly using only the public
@@ -4815,7 +4818,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Cannot return a parameter by reference '{0}' because it is not a ref or out parameter</value>
   </data>
   <data name="ERR_RefReturnParameter2" xml:space="preserve">
-    <value>Cannot return or a member of parameter '{0}' by reference because it is not a ref or out parameter</value>
+    <value>Cannot return a member of parameter '{0}' by reference because it is not a ref or out parameter</value>
   </data>
   <data name="ERR_RefReturnLocal" xml:space="preserve">
     <value>Cannot return local '{0}' by reference because it is not a ref local</value>
@@ -4983,7 +4986,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>/sourcelink switch is only supported when emitting PDB.</value>
   </data>
   <data name="ERR_CannotEmbedWithoutPdb" xml:space="preserve">
-    <value>/embed switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded).</value>
+    <value>/embed switch is only supported when emitting a PDB.</value>
   </data>
   <data name="ERR_InvalidInstrumentationKind" xml:space="preserve">
     <value>Invalid instrumentation kind: {0}</value>
@@ -5054,6 +5057,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FeatureNotAvailableInVersion7_1" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 7.1. Please use language version {1} or greater.</value>
   </data>
+  <data name="ERR_FeatureNotAvailableInVersion7_2" xml:space="preserve">
+    <value>Feature '{0}' is not available in C# 7.2. Please use language version {1} or greater.</value>
+  </data>
   <data name="ERR_LanguageVersionCannotHaveLeadingZeroes" xml:space="preserve">
     <value>Specified language version '{0}' cannot have leading zeroes</value>
   </data>
@@ -5089,5 +5095,20 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_PatternWrongGenericTypeInVersion" xml:space="preserve">
     <value>An expression of type '{0}' cannot be handled by a pattern of type '{1}' in C# {2}. Please use language version {3} or greater.</value>
+  </data>
+  <data name="WRN_UnreferencedLocalFunction" xml:space="preserve">
+    <value>The local function '{0}' is declared but never used</value>
+  </data>
+  <data name="WRN_UnreferencedLocalFunction_Title" xml:space="preserve">
+    <value>Local function is declared but never used</value>
+  </data>
+  <data name="ERR_LocalFunctionMissingBody" xml:space="preserve">
+    <value>'{0}' is a local function and must therefore always have a body.</value>
+  </data>
+  <data name="ERR_InvalidDebugInfo" xml:space="preserve">
+    <value>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}'</value>
+  </data>
+  <data name="ERR_DynamicLocalFunctionTypeParameter" xml:space="preserve">
+    <value>Cannot pass argument with dynamic type to generic local function '{0}' with inferred type arguments.</value>
   </data>
 </root>

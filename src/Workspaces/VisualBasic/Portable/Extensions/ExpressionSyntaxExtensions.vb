@@ -536,14 +536,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End If
             End If
 
-            ' Technically, you could introduce an LValue for "Foo" in "Foo()" even if "Foo" binds
+            ' Technically, you could introduce an LValue for "Goo" in "Goo()" even if "Goo" binds
             ' to a method.  (i.e. by assigning to a Func<...> type).  However, this is so contrived
             ' and none of the features that use this extension consider this replaceable.
             If TypeOf expression.Parent Is InvocationExpressionSyntax Then
 
-                ' If something is being invoked, then it's either something like Foo(), Foo.Bar(), or
+                ' If something is being invoked, then it's either something like Goo(), Goo.Bar(), or
                 ' SomeExpr() (i.e. Blah[1]()).  In the first and second case, we only allow
-                ' replacement if Foo and Foo.Bar didn't bind to a method.  If we can't bind it, we'll
+                ' replacement if Goo and Goo.Bar didn't bind to a method.  If we can't bind it, we'll
                 ' assume it's a method and we don't allow it to be replaced either.  However, if it's
                 ' an arbitrary expression, we do allow replacement.
                 If expression.IsKind(SyntaxKind.IdentifierName) OrElse expression.IsKind(SyntaxKind.SimpleMemberAccessExpression) Then
@@ -1761,6 +1761,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         ' It's possible there is another symbol with the same name as the alias that binds first
         Private Function ValidateAliasForTarget(aliasReplacement As IAliasSymbol, semanticModel As SemanticModel, node As ExpressionSyntax, symbol As ISymbol) As Boolean
             Dim aliasName = aliasReplacement.Name
+
+            ' If we're the argument of a NameOf(X.Y) call, then we can't simplify to an
+            ' alias unless the alias has the same name as us (i.e. 'Y').
+            If node.IsNameOfArgumentExpression() Then
+                Dim nameofValueOpt = semanticModel.GetConstantValue(node.Parent.Parent.Parent)
+                If Not nameofValueOpt.HasValue Then
+                    Return False
+                End If
+
+                Dim existingValue = TryCast(nameofValueOpt.Value, String)
+                If existingValue Is Nothing OrElse existingValue <> aliasName Then
+                    Return False
+                End If
+            End If
+
             Dim boundSymbols = semanticModel.LookupNamespacesAndTypes(node.SpanStart, name:=aliasName)
             If boundSymbols.Length = 1 Then
                 Dim boundAlias = TryCast(boundSymbols(0), IAliasSymbol)
@@ -1774,6 +1789,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End If
             End If
             Return False
+        End Function
+
+        <Extension>
+        Public Function IsNameOfArgumentExpression(expression As ExpressionSyntax) As Boolean
+            Return expression.IsParentKind(SyntaxKind.NameOfExpression)
         End Function
 
         <Extension()>

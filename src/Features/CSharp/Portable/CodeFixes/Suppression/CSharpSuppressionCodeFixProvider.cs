@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Composition;
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             var isFirst = !compilationRoot.AttributeLists.Any();
             var leadingTriviaForAttributeList = isFirst && !compilationRoot.HasLeadingTrivia ?
                 SyntaxFactory.TriviaList(SyntaxFactory.Comment(GlobalSuppressionsFileHeaderComment)) :
-                default(SyntaxTriviaList);
+                default;
             var attributeList = CreateAttributeList(targetSymbol, diagnostic, leadingTrivia: leadingTriviaForAttributeList, needsLeadingEndOfLine: !isFirst);
             attributeList = (AttributeListSyntax)await Formatter.FormatAsync(attributeList, workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
             return compilationRoot.AddAttributeLists(attributeList);

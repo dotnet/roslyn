@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections;
@@ -729,7 +729,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             /// <summary>
             /// Evaluate a format string with possible member references enclosed in braces. 
-            /// E.g. "foo = {GetFooString(),nq}, bar = {Bar}".
+            /// E.g. "goo = {GetGooString(),nq}, bar = {Bar}".
             /// </summary>
             /// <remarks>
             /// Although in theory any expression is allowed to be embedded in the string such behavior is in practice fundamentally broken.

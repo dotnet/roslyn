@@ -3,6 +3,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
@@ -28,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             ' REM should always be escaped
             ' e.g.
             ' Dim [Rem] = 23
-            ' Call Foo.[Rem]()
+            ' Call Goo.[Rem]()
             If SyntaxFacts.GetKeywordKind(unescapedIdentifier) = SyntaxKind.REMKeyword Then
                 Return identifier
             End If

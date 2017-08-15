@@ -159,6 +159,86 @@ class C
         }
 
         [Fact]
+        public void TestIsNullPatternNullable()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static void M(Nullable<int> obj)
+    {
+        Console.Write(obj is null);
+        if (obj is null) {
+            Console.Write("" Branch taken"");
+        } else {
+            Console.Write("" Branch not taken"");
+        }
+    }
+    public static void Main()
+    {
+        M(5);
+        Console.Write(""-"");
+        M(null);
+    }
+}
+";
+
+            // Release
+            var compilation = CompileAndVerify(source, expectedOutput: "False Branch not taken-True Branch taken", options: TestOptions.ReleaseExe);
+            compilation.VerifyIL("C.M", @"{
+    // Code size       46 (0x2e)
+    .maxstack  2
+    IL_0000:  ldarga.s   V_0
+    IL_0002:  call       ""bool int?.HasValue.get""
+    IL_0007:  ldc.i4.0
+    IL_0008:  ceq
+    IL_000a:  call       ""void System.Console.Write(bool)""
+    IL_000f:  ldarga.s   V_0
+    IL_0011:  call       ""bool int?.HasValue.get""
+    IL_0016:  brtrue.s   IL_0023
+    IL_0018:  ldstr      "" Branch taken""
+    IL_001d:  call       ""void System.Console.Write(string)""
+    IL_0022:  ret
+    IL_0023:  ldstr      "" Branch not taken""
+    IL_0028:  call       ""void System.Console.Write(string)""
+    IL_002d:  ret
+}");
+            // Debug
+            compilation = CompileAndVerify(source, expectedOutput: "False Branch not taken-True Branch taken", options: TestOptions.DebugExe);
+            compilation.VerifyIL("C.M", @"{
+    // Code size       60 (0x3c)
+    .maxstack  2
+    .locals init (bool V_0)
+    IL_0000:  nop
+    IL_0001:  ldarga.s   V_0
+    IL_0003:  call       ""bool int?.HasValue.get""
+    IL_0008:  ldc.i4.0
+    IL_0009:  ceq
+    IL_000b:  call       ""void System.Console.Write(bool)""
+    IL_0010:  nop
+    IL_0011:  ldarga.s   V_0
+    IL_0013:  call       ""bool int?.HasValue.get""
+    IL_0018:  ldc.i4.0
+    IL_0019:  ceq
+    IL_001b:  stloc.0
+    IL_001c:  ldloc.0
+    IL_001d:  brfalse.s  IL_002e
+    IL_001f:  nop
+    IL_0020:  ldstr      "" Branch taken""
+    IL_0025:  call       ""void System.Console.Write(string)""
+    IL_002a:  nop
+    IL_002b:  nop
+    IL_002c:  br.s       IL_003b
+    IL_002e:  nop
+    IL_002f:  ldstr      "" Branch not taken""
+    IL_0034:  call       ""void System.Console.Write(string)""
+    IL_0039:  nop
+    IL_003a:  nop
+    IL_003b:  ret
+}");
+        }
+
+        [Fact]
         public void TestIsNullPatternObjectLiteral()
         {
             var source = @"
@@ -400,7 +480,7 @@ namespace TestIsOperator
         static void Main()
         {
 
-            string myStr = ""foo"";
+            string myStr = ""goo"";
 
             object o = myStr;
             bool b = o is string;
@@ -762,7 +842,7 @@ namespace TestAsOperator
     {
         static void Main()
         {
-            string myStr = ""foo"";
+            string myStr = ""goo"";
             object o = myStr;
             object b = o as string;            
 
@@ -1294,7 +1374,7 @@ static class Program
     {
     }
  
-    static void Foo<T>(T x)
+    static void Goo<T>(T x)
     {
         var y = default(T) ?? x;
     }
@@ -1307,7 +1387,7 @@ static class Program
         }
 
         [Fact]
-        public void TestNullCoalesce_NoDuplicateCallsToFoo()
+        public void TestNullCoalesce_NoDuplicateCallsToGoo()
         {
             var source = @"
 // a ?? b
@@ -1316,12 +1396,12 @@ public class Test
 {
     static void Main()
     {
-        object o = Foo() ?? Bar();
+        object o = Goo() ?? Bar();
     }
 
-    static object Foo()
+    static object Goo()
     {
-        System.Console.Write(""Foo"");
+        System.Console.Write(""Goo"");
         return new object();
     }
 
@@ -1332,12 +1412,12 @@ public class Test
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: "Foo");
+            var compilation = CompileAndVerify(source, expectedOutput: "Goo");
             compilation.VerifyIL("Test.Main", @"
 {
   // Code size       14 (0xe)
   .maxstack  1
-  IL_0000:  call       ""object Test.Foo()""
+  IL_0000:  call       ""object Test.Goo()""
   IL_0005:  brtrue.s   IL_000d
   IL_0007:  call       ""object Test.Bar()""
   IL_000c:  pop
@@ -1385,10 +1465,10 @@ public class Test
         List<int> b = new List<int>();
 
         IEnumerable<int> c = a ?? (IEnumerable<int>)b;
-        Foo(c);
+        Goo(c);
     }
 
-    static void Foo<T>(T x)
+    static void Goo<T>(T x)
     {
         System.Console.WriteLine(typeof(T));
     }
@@ -1413,7 +1493,7 @@ public class Test
   IL_000f:  brtrue.s   IL_0013
   IL_0011:  pop
   IL_0012:  ldloc.0
-  IL_0013:  call       ""void Test.Foo<System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>)""
+  IL_0013:  call       ""void Test.Goo<System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>)""
   IL_0018:  ret
 }
 ");
@@ -1433,10 +1513,10 @@ public class Test
         IEnumerable<int> b = new List<int>();
 
         IEnumerable<int> c = b ?? a;
-        Foo(c);
+        Goo(c);
     }
 
-    static void Foo<T>(T x)
+    static void Goo<T>(T x)
     {
         System.Console.WriteLine(typeof(T));
     }
@@ -1460,7 +1540,7 @@ public class Test
   IL_000f:  brtrue.s   IL_0013
   IL_0011:  pop
   IL_0012:  ldloc.0
-  IL_0013:  call       ""void Test.Foo<System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>)""
+  IL_0013:  call       ""void Test.Goo<System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>)""
   IL_0018:  ret
 }");
         }
@@ -1479,11 +1559,11 @@ public class Test
         IEnumerable<int> b;
 
         IEnumerable<int> c = (b = (IEnumerable<int>)new List<int>()) ?? a;
-        Foo(c);
-        Foo(b);
+        Goo(c);
+        Goo(b);
     }
 
-    static void Foo<T>(T x)
+    static void Goo<T>(T x)
     {
         System.Console.Write(typeof(T));
     }
@@ -1508,8 +1588,8 @@ public class Test
   IL_0010:  brtrue.s   IL_0014
   IL_0012:  pop
   IL_0013:  ldloc.0
-  IL_0014:  call       ""void Test.Foo<System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>)""
-  IL_0019:  call       ""void Test.Foo<System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>)""
+  IL_0014:  call       ""void Test.Goo<System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>)""
+  IL_0019:  call       ""void Test.Goo<System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>)""
   IL_001e:  ret
 }");
         }
@@ -1527,10 +1607,10 @@ public class Test
         int[] a = new int[] { };
         IEnumerable<int> b = new List<int>();
 
-        Foo(b, b ?? a);
+        Goo(b, b ?? a);
     }
 
-    static void Foo<T, U>(T x, U y)
+    static void Goo<T, U>(T x, U y)
     {
         System.Console.Write(typeof(T));
     }
@@ -1555,7 +1635,7 @@ public class Test
   IL_0010:  brtrue.s   IL_0014
   IL_0012:  pop
   IL_0013:  ldloc.0
-  IL_0014:  call       ""void Test.Foo<System.Collections.Generic.IEnumerable<int>, System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>, System.Collections.Generic.IEnumerable<int>)""
+  IL_0014:  call       ""void Test.Goo<System.Collections.Generic.IEnumerable<int>, System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>, System.Collections.Generic.IEnumerable<int>)""
   IL_0019:  ret
 }
 ");
@@ -2008,14 +2088,14 @@ using System;
 
 public class Parent
 {
-    public System.Guid Foo(int d = 0, System.Guid g = default(System.Guid)) { return g; }
+    public System.Guid Goo(int d = 0, System.Guid g = default(System.Guid)) { return g; }
 }
 
 public class Test
 {
     public static void Main()
     {
-        var x = new Parent().Foo();
+        var x = new Parent().Goo();
         var ret = x == default(System.Guid); 
         Console.Write(ret);
     }
@@ -3924,10 +4004,10 @@ public class Test
         IEnumerable<int> b = new List<int>();
 
         IEnumerable<int> c = C()? b : a;
-        Foo(c);
+        Goo(c);
     }
 
-    static void Foo<T>(T x)
+    static void Goo<T>(T x)
     {
         System.Console.WriteLine(typeof(T));
     }
@@ -3954,7 +4034,7 @@ public class Test
   IL_0016:  ldloc.2
   IL_0017:  br.s       IL_001a
   IL_0019:  ldloc.1
-  IL_001a:  call       ""void Test.Foo<System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>)""
+  IL_001a:  call       ""void Test.Goo<System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>)""
   IL_001f:  ret
 }");
         }
@@ -3975,11 +4055,11 @@ public class Test
         IEnumerable<int> b = null;
 
         IEnumerable<int> c = C()? (b = (IEnumerable<int>)new List<int>()) : a;
-        Foo(c);
-        Foo(b);
+        Goo(c);
+        Goo(b);
     }
 
-    static void Foo<T>(T x)
+    static void Goo<T>(T x)
     {
         System.Console.Write(typeof(T));
     }
@@ -4010,9 +4090,9 @@ public class Test
   IL_001b:  stloc.1
   IL_001c:  stloc.2
   IL_001d:  ldloc.2
-  IL_001e:  call       ""void Test.Foo<System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>)""
+  IL_001e:  call       ""void Test.Goo<System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>)""
   IL_0023:  ldloc.1
-  IL_0024:  call       ""void Test.Foo<System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>)""
+  IL_0024:  call       ""void Test.Goo<System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>)""
   IL_0029:  ret
 }");
         }
@@ -4030,10 +4110,10 @@ public class Test
         int[] a = new int[] { };
         IEnumerable<int> b = new List<int>();
 
-        Foo(b, b != null ? b : a);
+        Goo(b, b != null ? b : a);
     }
 
-    static void Foo<T, U>(T x, U y)
+    static void Goo<T, U>(T x, U y)
     {
         System.Console.Write(typeof(T));
     }
@@ -4061,7 +4141,7 @@ public class Test
   IL_0013:  ldloc.2
   IL_0014:  br.s       IL_0017
   IL_0016:  ldloc.1
-  IL_0017:  call       ""void Test.Foo<System.Collections.Generic.IEnumerable<int>, System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>, System.Collections.Generic.IEnumerable<int>)""
+  IL_0017:  call       ""void Test.Goo<System.Collections.Generic.IEnumerable<int>, System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>, System.Collections.Generic.IEnumerable<int>)""
   IL_001c:  ret
 }
 ");
@@ -4813,12 +4893,12 @@ class c0
         set { x = value; }
     }
 
-    public static int Foo(c0 arg)
+    public static int Goo(c0 arg)
     {
         return 1;
     }
 
-    public int Foo()
+    public int Goo()
     {
         return 1;
     }
@@ -4835,8 +4915,8 @@ class test<T> where T : c0
 
     public static void Repro2(T arg)
     {
-        arg.x = c0.Foo(arg);
-        arg.x = arg.Foo();
+        arg.x = c0.Goo(arg);
+        arg.x = arg.Goo();
     }
 }
 ";
@@ -4886,13 +4966,13 @@ class test<T> where T : c0
   IL_0001:  box        ""T""
   IL_0006:  ldarg.0
   IL_0007:  box        ""T""
-  IL_000c:  call       ""int c0.Foo(c0)""
+  IL_000c:  call       ""int c0.Goo(c0)""
   IL_0011:  stfld      ""int c0.x""
   IL_0016:  ldarg.0
   IL_0017:  box        ""T""
   IL_001c:  ldarg.0
   IL_001d:  box        ""T""
-  IL_0022:  callvirt   ""int c0.Foo()""
+  IL_0022:  callvirt   ""int c0.Goo()""
   IL_0027:  stfld      ""int c0.x""
   IL_002c:  ret
 }

@@ -1,1 +1,11 @@
-
+Microsoft.CodeAnalysis.Editing.SyntaxGenerator.TupleElementExpression(Microsoft.CodeAnalysis.ITypeSymbol type, string name = null) -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.Editing.SyntaxGenerator.TupleTypeExpression(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ITypeSymbol> elementTypes, System.Collections.Generic.IEnumerable<string> elementNames = null) -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.Editing.SyntaxGenerator.TupleTypeExpression(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> elements) -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.Editing.SyntaxGenerator.TupleTypeExpression(params Microsoft.CodeAnalysis.SyntaxNode[] elements) -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.Editing.SyntaxGenerator.WithAccessorDeclarations(Microsoft.CodeAnalysis.SyntaxNode declaration, params Microsoft.CodeAnalysis.SyntaxNode[] accessorDeclarations) -> Microsoft.CodeAnalysis.SyntaxNode
+abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.GetAccessorDeclaration(Microsoft.CodeAnalysis.Accessibility accessibility = Microsoft.CodeAnalysis.Accessibility.NotApplicable, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> statements = null) -> Microsoft.CodeAnalysis.SyntaxNode
+abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.SetAccessorDeclaration(Microsoft.CodeAnalysis.Accessibility accessibility = Microsoft.CodeAnalysis.Accessibility.NotApplicable, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> statements = null) -> Microsoft.CodeAnalysis.SyntaxNode
+abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.TupleElementExpression(Microsoft.CodeAnalysis.SyntaxNode type, string name = null) -> Microsoft.CodeAnalysis.SyntaxNode
+abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.TupleExpression(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> arguments) -> Microsoft.CodeAnalysis.SyntaxNode
+abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.WithAccessorDeclarations(Microsoft.CodeAnalysis.SyntaxNode declaration, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> accessorDeclarations) -> Microsoft.CodeAnalysis.SyntaxNode
+static Microsoft.CodeAnalysis.Editing.SyntaxEditorExtensions.InsertParameter(this Microsoft.CodeAnalysis.Editing.SyntaxEditor editor, Microsoft.CodeAnalysis.SyntaxNode declaration, int index, Microsoft.CodeAnalysis.SyntaxNode parameter) -> void

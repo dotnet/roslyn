@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Composition;
@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 _assemblyIdentity = assemblyIdentity;
             }
 
-            public override void Apply(Workspace workspace, CancellationToken cancellationToken = default(CancellationToken))
+            public override void Apply(Workspace workspace, CancellationToken cancellationToken = default)
             {
                 var visualStudioWorkspace = (VisualStudioWorkspaceImpl)workspace;
                 if (!visualStudioWorkspace.TryAddReferenceToProject(_projectId, "*" + _assemblyIdentity.GetDisplayName()))

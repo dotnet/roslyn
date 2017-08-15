@@ -947,5 +947,48 @@ Bang!
 Bang!",
                 runner.Console.Error.ToString());
         }
+
+        [Fact]
+        [WorkItem(21327, "https://github.com/dotnet/roslyn/issues/21327")]
+        public void DefaultLiteral()
+        {
+            var runner = CreateRunner(input:
+@"int i = default;
+Print(i);
+");
+            runner.RunInteractive();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+$@"Microsoft (R) Visual C# Interactive Compiler version {s_compilerVersion}
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Type ""#help"" for more information.
+> int i = default;
+> Print(i);
+0
+> ", runner.Console.Out.ToString());
+        }
+
+        [Fact]
+        [WorkItem(21327, "https://github.com/dotnet/roslyn/issues/21327")]
+        public void InferredTupleNames()
+        {
+            var runner = CreateRunner(input:
+@"var a = 1;
+var t = (a, 2);
+Print(t.a);
+");
+            runner.RunInteractive();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+$@"Microsoft (R) Visual C# Interactive Compiler version {s_compilerVersion}
+Copyright (C) Microsoft Corporation. All rights reserved.
+Type ""#help"" for more information.
+> var a = 1;
+> var t = (a, 2);
+> Print(t.a);
+1
+> ", runner.Console.Out.ToString());
+        }
     }
 }

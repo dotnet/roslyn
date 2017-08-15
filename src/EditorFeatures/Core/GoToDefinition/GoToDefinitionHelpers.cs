@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             // So, if we only have a single location to go to, this does no unnecessary work.  And,
             // if we do have multiple locations to show, it will just be done in the BG, unblocking
             // this command thread so it can return the user faster.
-            var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
+            var definitionItem = symbol.ToNonClassifiedDefinitionItem(project, includeHiddenLocations: true);
 
             if (thirdPartyNavigationAllowed)
             {

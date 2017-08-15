@@ -4,11 +4,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class LambdaSymbol : MethodSymbol
+    internal sealed class LambdaSymbol : SourceMethodSymbol
     {
         private readonly Symbol _containingSymbol;
         private readonly MessageID _messageID;
@@ -403,6 +404,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return true; }
         }
+
+        public override ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraintClauses => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {

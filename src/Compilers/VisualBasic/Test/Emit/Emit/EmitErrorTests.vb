@@ -232,12 +232,12 @@ End Module
         <file name="a.vb">
 Imports System
 MustInherit Class cls1
-    MustOverride Sub Foo()
+    MustOverride Sub Goo()
 End Class
 
 Class cls2
     Inherits cls1
-    Overrides Sub foo()
+    Overrides Sub goo()
     End Sub
     Shared Sub Main()
     End Sub
@@ -292,9 +292,9 @@ Module M1
     Sub Main()
         Exit Sub
     End Sub
-    Overloads Sub foo(ByVal arg As Byte)
+    Overloads Sub goo(ByVal arg As Byte)
     End Sub
-    Overloads Sub foo(ByVal arg As System.Byte)
+    Overloads Sub goo(ByVal arg As System.Byte)
     End Sub
 End Module
         </file>
@@ -361,18 +361,18 @@ Hello Bug 7002
         <file name="a.vb">
 Imports System
 Module M1
-    Sub Foo(Of T)(ByVal x As T, ByVal y As T)
+    Sub Goo(Of T)(ByVal x As T, ByVal y As T)
     End Sub
     Function Bar(Of T)(ByVal x As T) As T
     End Function
     Event ev(ByVal x As Integer, ByVal y As Integer)
     Sub Main()
-        Dim x = New Func(Of String, String)(AddressOf Foo)
+        Dim x = New Func(Of String, String)(AddressOf Goo)
         Dim x1 = New Func(Of String, String)(AddressOf Bar)
-        Dim x2 = Function() AddressOf Foo
-        Dim x21 = Sub() Call Function() Sub() AddressOf Foo
-        Dim x22 = Sub() Call Function() Sub() AddHandler ev, AddressOf Foo
-        Dim x3 As Func(Of Func(Of String, String)) = Function() AddressOf Foo
+        Dim x2 = Function() AddressOf Goo
+        Dim x21 = Sub() Call Function() Sub() AddressOf Goo
+        Dim x22 = Sub() Call Function() Sub() AddHandler ev, AddressOf Goo
+        Dim x3 As Func(Of Func(Of String, String)) = Function() AddressOf Goo
         Dim x31 As Func(Of Func(Of String, String)) = Function() AddressOf Bar
     End Sub
 End Module
@@ -380,17 +380,17 @@ End Module
     </compilation>)
             AssertTheseDiagnostics(comp1,
 <expected>
-BC31143: Method 'Public Sub Foo(Of T)(x As T, y As T)' does not have a signature compatible with delegate 'Delegate Function Func(Of String, String)(arg As String) As String'.
-        Dim x = New Func(Of String, String)(AddressOf Foo)
+BC31143: Method 'Public Sub Goo(Of T)(x As T, y As T)' does not have a signature compatible with delegate 'Delegate Function Func(Of String, String)(arg As String) As String'.
+        Dim x = New Func(Of String, String)(AddressOf Goo)
                                                       ~~~
 BC30581: 'AddressOf' expression cannot be converted to 'Object' because 'Object' is not a delegate type.
-        Dim x2 = Function() AddressOf Foo
+        Dim x2 = Function() AddressOf Goo
                             ~~~~~~~~~~~~~
 BC30035: Syntax error.
-        Dim x21 = Sub() Call Function() Sub() AddressOf Foo
+        Dim x21 = Sub() Call Function() Sub() AddressOf Goo
                                               ~~~~~~~~~
-BC31143: Method 'Public Sub Foo(Of T)(x As T, y As T)' does not have a signature compatible with delegate 'Delegate Function Func(Of String, String)(arg As String) As String'.
-        Dim x3 As Func(Of Func(Of String, String)) = Function() AddressOf Foo
+BC31143: Method 'Public Sub Goo(Of T)(x As T, y As T)' does not have a signature compatible with delegate 'Delegate Function Func(Of String, String)(arg As String) As String'.
+        Dim x3 As Func(Of Func(Of String, String)) = Function() AddressOf Goo
                                                                           ~~~
 
 </expected>)
@@ -450,10 +450,10 @@ BC36673: Multiline lambda expression is missing 'End Sub'.
         <file name="a.vb">
 Imports System
 Module M1
-    Sub Foo(ByVal x)
+    Sub Goo(ByVal x)
     End Sub
     Class C1
-        Public Shared y As Action(Of Integer) = Sub(c) Call (Sub(b) M1.Foo(b))(c)
+        Public Shared y As Action(Of Integer) = Sub(c) Call (Sub(b) M1.Goo(b))(c)
     End Class
     Sub Main()
     End Sub
@@ -498,7 +498,7 @@ End Module
         <file name="a.vb">
 Module M1
     Const Curr1 = 5@
-    Sub FOO()
+    Sub GOO()
         If Curr1 &lt;&gt; 5 Then
         End If
     End Sub

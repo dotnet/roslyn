@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
@@ -18,11 +18,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
         Public Sub TestCodeElements1()
             Dim code =
 <code>
-Class Foo
+Class Goo
 End Class
 </code>
 
-            TestChildren(code, "MS", "My", "Microsoft", "System", "Foo", "Windows")
+            TestChildren(code, "MS", "My", "Microsoft", "System", "Goo", "Windows")
         End Sub
 
         ' This test depends On the version Of mscorlib used by the TestWorkspace And may 
@@ -31,11 +31,11 @@ End Class
         Public Sub TestCodeElements2()
             Dim code =
 <code>
-Module Foo
+Module Goo
 End Module
 </code>
 
-            TestChildren(code, "MS", "My", "Microsoft", "System", "Foo", "Windows")
+            TestChildren(code, "MS", "My", "Microsoft", "System", "Goo", "Windows")
         End Sub
 
 #End Region

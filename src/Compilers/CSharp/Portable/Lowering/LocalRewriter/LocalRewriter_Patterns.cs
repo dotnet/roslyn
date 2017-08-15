@@ -101,14 +101,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Produce a 'logical and' operation that is clearly irrefutable (<see cref="IsIrrefutablePatternTest(BoundExpression)"/>) when it can be.
-        /// </summary>
-        BoundExpression LogicalAndForPatterns(BoundExpression left, BoundExpression right)
-        {
-            return IsIrrefutablePatternTest(left) ? _factory.MakeSequence(left, right) : _factory.LogicalAnd(left, right);
-        }
-
-        /// <summary>
         /// Is the test, produced as a result of a pattern-matching operation, always true?
         /// Knowing that enables us to construct slightly more efficient code.
         /// </summary>
@@ -151,6 +143,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return _factory.ObjectEqual(_factory.Convert(systemObject, input), boundConstant);
                 }
+            }
+            else if (input.Type.IsNullableType() && boundConstant.NullableNeverHasValue())
+            {
+                return _factory.Not(MakeNullableHasValue(_factory.Syntax, input));
             }
             else
             {

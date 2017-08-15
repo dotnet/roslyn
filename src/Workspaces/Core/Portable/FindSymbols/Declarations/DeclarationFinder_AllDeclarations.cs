@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -93,32 +95,31 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<(bool, ImmutableArray<SymbolAndProjectId>)> TryFindAllDeclarationsWithNormalQueryInRemoteProcessAsync(
             Project project, SearchQuery query, SymbolFilter criteria, CancellationToken cancellationToken)
         {
-            if (RemoteSupportedLanguages.IsSupported(project.Language))
+            if (!RemoteSupportedLanguages.IsSupported(project.Language))
             {
-                using (var session = await SymbolFinder.TryGetRemoteSessionAsync(
-                    project.Solution, cancellationToken).ConfigureAwait(false))
-                {
-                    if (session != null)
-                    {
-                        var result = await session.InvokeAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
-                            nameof(IRemoteSymbolFinder.FindAllDeclarationsWithNormalQueryAsync),
-                            project.Id, query.Name, query.Kind, criteria).ConfigureAwait(false);
-
-                        var rehydrated = await RehydrateAsync(
-                            project.Solution, result, cancellationToken).ConfigureAwait(false);
-
-                        return (true, rehydrated);
-                    }
-                }
+                return (false, ImmutableArray<SymbolAndProjectId>.Empty);
             }
 
-            return (false, ImmutableArray<SymbolAndProjectId>.Empty);
+            var result = await project.Solution.TryRunCodeAnalysisRemoteAsync<IList<SerializableSymbolAndProjectId>>(
+                RemoteFeatureOptions.SymbolFinderEnabled,
+                nameof(IRemoteSymbolFinder.FindAllDeclarationsWithNormalQueryAsync),
+                new object[] { project.Id, query.Name, query.Kind, criteria }, cancellationToken).ConfigureAwait(false);
+
+            if (result == null)
+            {
+                return (false, ImmutableArray<SymbolAndProjectId>.Empty);
+            }
+
+            var rehydrated = await RehydrateAsync(
+                project.Solution, result, cancellationToken).ConfigureAwait(false);
+
+            return (true, rehydrated);
         }
 
         private static async Task<ImmutableArray<SymbolAndProjectId>> RehydrateAsync(
-            Solution solution, ImmutableArray<SerializableSymbolAndProjectId> array, CancellationToken cancellationToken)
+            Solution solution, IList<SerializableSymbolAndProjectId> array, CancellationToken cancellationToken)
         {
-            var result = ArrayBuilder<SymbolAndProjectId>.GetInstance(array.Length);
+            var result = ArrayBuilder<SymbolAndProjectId>.GetInstance(array.Count);
 
             foreach (var dehydrated in array)
             {

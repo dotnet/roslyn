@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -29,8 +29,8 @@ Imports System.Collections.Generic
 
 Module Module1
     Iterator Function M() As IEnumerable(Of Integer)
-        Yield 1
-    End Function
+        Yield 1 
+ End Function
 End Module")
         End Function
 
@@ -63,8 +63,8 @@ Imports System.Collections.Generic
 Module Module1
     Sub M()
         Dim a As Func(Of IEnumerable(Of Integer)) = Iterator Function()
-                                                        Yield 0
-                                                    End Function
+                                                        Yield 0 
+ End Function
     End Sub
 End Module")
         End Function

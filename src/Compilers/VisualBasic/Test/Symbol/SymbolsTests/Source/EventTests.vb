@@ -24,13 +24,190 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class EventSymbolTests
         Inherits BasicTestBase
 
+        <WorkItem(20335, "https://github.com/dotnet/roslyn/issues/20335")>
+        <Fact()>
+        Public Sub IlEventVisibility()
+            Dim ilSource = <![CDATA[
+.class public auto ansi beforefieldinit A
+{
+  .method assembly hidebysig newslot specialname virtual instance void 
+          add_E(class [mscorlib]System.Action`1<int32> 'value') cil managed
+  {
+    ret
+  }
+  .method public hidebysig newslot specialname virtual instance void 
+          remove_E(class [mscorlib]System.Action`1<int32> 'value') cil managed
+  {
+    ret
+  }
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+  .event class [mscorlib]System.Action`1<int32> E
+  {
+    .addon instance void A::add_E(class [mscorlib]System.Action`1<int32>)
+    .removeon instance void A::remove_E(class [mscorlib]System.Action`1<int32>)
+  }
+}]]>
+            Dim vbSource = <compilation name="F">
+                               <file name="F.vb">
+Class B
+    Inherits A
+    Sub M()
+        AddHandler E, Nothing
+        RemoveHandler E, Nothing
+        AddHandler MyBase.E, Nothing
+        RemoveHandler MyBase.E, Nothing
+    End Sub 
+End Class
+                               </file>
+                           </compilation>
+
+            Dim comp1 = CreateCompilationWithCustomILSource(vbSource, ilSource.Value, TestOptions.DebugDll)
+            CompilationUtils.AssertTheseCompileDiagnostics(comp1,
+<Expected>
+BC30390: 'A.Friend Overridable Overloads AddHandler Event E(value As Action(Of Integer))' is not accessible in this context because it is 'Friend'.
+        AddHandler E, Nothing
+                   ~
+BC30390: 'A.Friend Overridable Overloads AddHandler Event E(value As Action(Of Integer))' is not accessible in this context because it is 'Friend'.
+        AddHandler MyBase.E, Nothing
+                   ~~~~~~~~
+</Expected>)
+
+        End Sub
+
+        <WorkItem(20335, "https://github.com/dotnet/roslyn/issues/20335")>
+        <Fact()>
+        Public Sub CustomEventVisibility()
+            Dim source = <compilation name="F">
+                             <file name="F.vb">
+Imports System
+
+Public Class C
+    Protected Custom Event Click As EventHandler
+        AddHandler(ByVal value As EventHandler)
+            Console.Write("add")
+        End AddHandler
+
+        RemoveHandler(ByVal value As EventHandler)
+			Console.Write("remove")
+        End RemoveHandler
+
+        RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
+			Console.Write("raise")
+        End RaiseEvent
+    End Event
+End Class
+
+Public Class D
+	Inherits C
+
+	Public Sub F()
+		AddHandler Click, Nothing
+		RemoveHandler Click, Nothing
+		AddHandler MyBase.Click, Nothing
+		RemoveHandler MyBase.Click, Nothing
+	End Sub
+End Class
+                             </file>
+                         </compilation>
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
+            CompilationUtils.AssertTheseCompileDiagnostics(comp, <Expected></Expected>)
+        End Sub
+
+        <WorkItem(20335, "https://github.com/dotnet/roslyn/issues/20335")>
+        <Fact()>
+        Public Sub ProtectedHandlerDefinedInCSharp()
+            Dim csharpCompilation = CreateCSharpCompilation("
+public class C {
+	protected delegate void Handle();
+    protected event Handle MyEvent;
+}
+
+public class D: C {
+  public D() {
+    MyEvent += () => {};
+  }
+}
+")
+            Dim source = Parse("
+Public Class E
+    Inherits C
+    Public Sub S()
+        AddHandler MyBase.MyEvent, Nothing
+    End Sub
+End Class
+")
+            Dim vbCompilation = CompilationUtils.CreateCompilationWithMscorlib45AndVBRuntime(
+                sourceTrees:={source},
+                references:={csharpCompilation.EmitToImageReference()},
+                options:=TestOptions.DebugDll.WithOptionStrict(OptionStrict.On))
+            CompilationUtils.AssertTheseCompileDiagnostics(vbCompilation, <Expected></Expected>)
+
+        End Sub
+
+        <WorkItem(20335, "https://github.com/dotnet/roslyn/issues/20335")>
+        <Fact()>
+        Public Sub EventVisibility()
+            Dim source = <compilation name="F">
+                             <file name="F.vb">
+ Public Class Form1
+    Protected Event EventA As System.Action
+    Private Event EventB As System.Action
+    Friend Event EventC As System.Action
+End Class
+
+Public Class Form2
+    Inherits Form1
+
+    Public Sub New()
+        AddHandler MyBase.EventA, Nothing
+        RemoveHandler MyBase.EventA, Nothing
+        AddHandler EventA, Nothing
+        RemoveHandler EventA, Nothing
+
+        AddHandler MyBase.EventB, Nothing
+        RemoveHandler MyBase.EventB, Nothing
+        AddHandler EventB, Nothing
+        RemoveHandler EventB, Nothing
+
+        AddHandler MyBase.EventC, Nothing
+        RemoveHandler MyBase.EventC, Nothing
+        AddHandler EventC, Nothing
+        RemoveHandler EventC, Nothing
+    End Sub
+End Class
+                             </file>
+                         </compilation>
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
+            CompilationUtils.AssertTheseCompileDiagnostics(comp,
+<Expected>
+BC30389: 'Form1.EventB' is not accessible in this context because it is 'Private'.
+        AddHandler MyBase.EventB, Nothing
+                   ~~~~~~~~~~~~~
+BC30389: 'Form1.EventB' is not accessible in this context because it is 'Private'.
+        RemoveHandler MyBase.EventB, Nothing
+                      ~~~~~~~~~~~~~
+BC30389: 'Form1.EventB' is not accessible in this context because it is 'Private'.
+        AddHandler EventB, Nothing
+                   ~~~~~~
+BC30389: 'Form1.EventB' is not accessible in this context because it is 'Private'.
+        RemoveHandler EventB, Nothing
+                      ~~~~~~
+</Expected>)
+        End Sub
+
         <WorkItem(542806, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542806")>
         <Fact()>
         Public Sub EmptyCustomEvent()
             Dim source = <compilation name="F">
                              <file name="F.vb">
 Class C
-    Public Custom Event Foo
+    Public Custom Event Goo
 End Class
 
                              </file>
@@ -41,7 +218,7 @@ End Class
             CompilationUtils.AssertTheseParseDiagnostics(comp2,
 <expected>
 BC31122: 'Custom' modifier is not valid on events declared without explicit delegate types.
-    Public Custom Event Foo
+    Public Custom Event Goo
     ~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
         End Sub
@@ -326,7 +503,7 @@ Class cls1
     Event e1()
     Event e2()
 
-    Sub foo()
+    Sub goo()
         System.Console.WriteLine(e1)
         System.Console.WriteLine(e1 + (e2))
     End Sub
@@ -620,11 +797,11 @@ Class C
 End Class
 
 Module Program
-    Sub Foo()
+    Sub Goo()
     End Sub
     Sub Main(args As String())
         Dim x As C
-        AddHandler x.Hello, Foo
+        AddHandler x.Hello, Goo
     End Sub
 End Module
 
@@ -636,10 +813,10 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(comp2,
 <expected>
 BC42104: Variable 'x' is used before it has been assigned a value. A null reference exception could result at runtime.
-        AddHandler x.Hello, Foo
+        AddHandler x.Hello, Goo
                    ~
 BC30491: Expression does not produce a value.
-        AddHandler x.Hello, Foo
+        AddHandler x.Hello, Goo
                             ~~~
 </expected>)
         End Sub
@@ -1052,50 +1229,50 @@ Module Module1
     Sub Main()
     End Sub
 
-    ' Expect compiler catch that Foo1 does not implement AnEvent or method()
+    ' Expect compiler catch that Goo1 does not implement AnEvent or method()
 
-    Class Foo1
+    Class Goo1
         Inherits Base
     End Class
 
-    ' Expect compiler catch Foo2 does not implement AnEvent
+    ' Expect compiler catch Goo2 does not implement AnEvent
 
-    Class Foo2
+    Class Goo2
         Inherits Base
         Public Overrides Sub method()
         End Sub
     End Class
 
-    ' Expect compiler catch that Foo3 does not implement AnEvent
+    ' Expect compiler catch that Goo3 does not implement AnEvent
 
-    Class Foo3
+    Class Goo3
         Inherits base2
     End Class
 
     ' Expect no compiler error
 
-    Class Foo4
+    Class Goo4
         Inherits base1
     End Class
 
-    ' Expect no compiler error, since both Foo5 and base2 are abstract
+    ' Expect no compiler error, since both Goo5 and base2 are abstract
 
-    MustInherit Class Foo5
+    MustInherit Class Goo5
         Inherits base2
     End Class
 
     '
     ' Testing Type Parameter Printing
     '
-    Class GenFoo1(Of T)
+    Class GenGoo1(Of T)
         Inherits GenBase(Of T)
     End Class
 
-    Class GenFoo2
+    Class GenGoo2
         Inherits GenBase(Of Integer)
     End Class
 
-    MustInherit Class Foo6
+    MustInherit Class Goo6
         Inherits base2
         Shadows Public AnEvent As Integer
     End Class
@@ -1105,24 +1282,24 @@ End Module
                 additionalRefs:={csCompilation.EmitToImageReference()})
 
             vbCompilation.AssertTheseDiagnostics(<errors>
-BC30610: Class 'Foo1' must either be declared 'MustInherit' or override the following inherited 'MustOverride' member(s): 
+BC30610: Class 'Goo1' must either be declared 'MustInherit' or override the following inherited 'MustOverride' member(s): 
     Base: Public MustOverride Overloads Sub method().
-    Class Foo1
+    Class Goo1
           ~~~~
-BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.Base'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'Foo1' MustInherit.
-    Class Foo1
+BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.Base'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'Goo1' MustInherit.
+    Class Goo1
           ~~~~
-BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.Base'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'Foo2' MustInherit.
-    Class Foo2
+BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.Base'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'Goo2' MustInherit.
+    Class Goo2
           ~~~~
-BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.Base'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'Foo3' MustInherit.
-    Class Foo3
+BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.Base'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'Goo3' MustInherit.
+    Class Goo3
           ~~~~
-BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.GenBase(Of T)'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'GenFoo1' MustInherit.
-    Class GenFoo1(Of T)
+BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.GenBase(Of T)'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'GenGoo1' MustInherit.
+    Class GenGoo1(Of T)
           ~~~~~~~
-BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.GenBase(Of Integer)'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'GenFoo2' MustInherit.
-    Class GenFoo2
+BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.GenBase(Of Integer)'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'GenGoo2' MustInherit.
+    Class GenGoo2
           ~~~~~~~
 BC31404: 'Public AnEvent As Integer' cannot shadow a method declared 'MustOverride'.
         Shadows Public AnEvent As Integer
@@ -1263,50 +1440,50 @@ Module Module1
     Sub Main()
     End Sub
 
-    ' Expect compiler catch that Foo1 does not implement AnEvent or method()
+    ' Expect compiler catch that Goo1 does not implement AnEvent or method()
 
-    Class Foo1
+    Class Goo1
         Inherits Base
     End Class
 
-    ' Expect compiler catch Foo2 does not implement AnEvent
+    ' Expect compiler catch Goo2 does not implement AnEvent
 
-    Class Foo2
+    Class Goo2
         Inherits Base
         Public Overrides Sub method()
         End Sub
     End Class
 
-    ' Expect compiler catch that Foo3 does not implement AnEvent
+    ' Expect compiler catch that Goo3 does not implement AnEvent
 
-    Class Foo3
+    Class Goo3
         Inherits base2
     End Class
 
     ' Expect no compiler error
 
-    Class Foo4
+    Class Goo4
         Inherits base1
     End Class
 
-    ' Expect no compiler error, since both Foo5 and base2 are abstract
+    ' Expect no compiler error, since both Goo5 and base2 are abstract
 
-    MustInherit Class Foo5
+    MustInherit Class Goo5
         Inherits base2
     End Class
 
     '
     ' Testing Type Parameter Printing
     '
-    Class GenFoo1(Of T)
+    Class GenGoo1(Of T)
         Inherits GenBase(Of T)
     End Class
 
-    Class GenFoo2
+    Class GenGoo2
         Inherits GenBase(Of Integer)
     End Class
 
-    MustInherit Class Foo6
+    MustInherit Class Goo6
         Inherits base2
         Shadows Public AnEvent As Integer
     End Class
@@ -1317,24 +1494,24 @@ End Module
             Dim vbCompilation = CreateCompilationWithCustomILSource(vbSource, ilSource, includeVbRuntime:=True)
 
             vbCompilation.AssertTheseDiagnostics(<errors>
-BC30610: Class 'Foo1' must either be declared 'MustInherit' or override the following inherited 'MustOverride' member(s): 
+BC30610: Class 'Goo1' must either be declared 'MustInherit' or override the following inherited 'MustOverride' member(s): 
     Base: Public MustOverride Overloads Sub method().
-    Class Foo1
+    Class Goo1
           ~~~~
-BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.Base'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'Foo1' MustInherit.
-    Class Foo1
+BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.Base'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'Goo1' MustInherit.
+    Class Goo1
           ~~~~
-BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.Base'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'Foo2' MustInherit.
-    Class Foo2
+BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.Base'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'Goo2' MustInherit.
+    Class Goo2
           ~~~~
-BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.Base'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'Foo3' MustInherit.
-    Class Foo3
+BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.Base'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'Goo3' MustInherit.
+    Class Goo3
           ~~~~
-BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.GenBase(Of T)'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'GenFoo1' MustInherit.
-    Class GenFoo1(Of T)
+BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.GenBase(Of T)'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'GenGoo1' MustInherit.
+    Class GenGoo1(Of T)
           ~~~~~~~
-BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.GenBase(Of Integer)'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'GenFoo2' MustInherit.
-    Class GenFoo2
+BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.GenBase(Of Integer)'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'GenGoo2' MustInherit.
+    Class GenGoo2
           ~~~~~~~
 BC31404: 'Public AnEvent As Integer' cannot shadow a method declared 'MustOverride'.
         Shadows Public AnEvent As Integer

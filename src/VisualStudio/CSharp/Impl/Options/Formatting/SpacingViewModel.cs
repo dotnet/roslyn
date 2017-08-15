@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.CodeAnalysis;
@@ -13,31 +13,31 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
     /// </summary>
     internal class SpacingViewModel : AbstractOptionPreviewViewModel
     {
-        private static readonly string s_methodPreview = @"
+        private const string s_methodPreview = @"
 class C {
 //[
-    void Foo(){
-        Foo(1);
+    void Goo(){
+        Goo(1);
     }
 
-    void Foo(int x){
-        Foo();
+    void Goo(int x){
+        Goo();
     }
 //]
-    void Foo(int x, int y){
-        Foo();
+    void Goo(int x, int y){
+        Goo();
     }
 }";
 
-        private static readonly string s_bracketPreview = @"class C {
-    void Foo(){
+        private const string s_bracketPreview = @"class C {
+    void Goo(){
 //[
         int[] x = new int[10];
 //]
     }
 }";
-        private static readonly string s_forDelimiterPreview = @"class C{
-    void Foo(int x, object y) {
+        private const string s_forDelimiterPreview = @"class C{
+    void Goo(int x, object y) {
 //[
         for (int i; i < x; i++) {
         }
@@ -45,24 +45,24 @@ class C {
     }
 }";
 
-        private static readonly string s_delimiterPreview = @"class C{
-    void Foo(int x, object y) {
+        private const string s_delimiterPreview = @"class C{
+    void Goo(int x, object y) {
 //[
-            this.Foo(x, y);
+            this.Goo(x, y);
 //]
     }
 }";
 
-        private static readonly string s_castPreview = @"class C{
-    void Foo(object x) {
+        private const string s_castPreview = @"class C{
+    void Goo(object x) {
 //[
         int y = (int)x;
 //]
     }
 }";
 
-        private static readonly string s_expressionPreview = @"class C{
-    void Foo(int x, object y) {
+        private const string s_expressionPreview = @"class C{
+    void Goo(int x, object y) {
 //[
         var x = 3;
         var y = 4;
@@ -71,15 +71,15 @@ class C {
     }
 }";
 
-        private static readonly string s_expressionSpacingPreview = @"
+        private const string s_expressionSpacingPreview = @"
 class c {
-    int Foo(int x, int y) {
+    int Goo(int x, int y) {
 //[
         return x   *   (x-y);
 //]
     }
 }";
-        private static readonly string s_declarationSpacingPreview = @"class MyClass {
+        private const string s_declarationSpacingPreview = @"class MyClass {
 //[
     int         index = 0;
     string      text = ""Start"";
@@ -90,7 +90,7 @@ class c {
                 }
 //]
 }";
-        private static readonly string s_baseColonPreview = @"//[
+        private const string s_baseColonPreview = @"//[
 interface I {
 }
 

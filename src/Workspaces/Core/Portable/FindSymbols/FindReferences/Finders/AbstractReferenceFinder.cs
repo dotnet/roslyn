@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -349,7 +350,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     symbol, aliasSymbol.Name, document, findParentNode, cancellationToken).ConfigureAwait(false);
                 allAliasReferences.AddRange(aliasReferences);
                 // the alias may reference an attribute and the alias name may end with an "Attribute" suffix. In this case search for the
-                // shortened name as well (e.g. using FooAttribute = MyNamespace.FooAttribute; [Foo] class C1 {})
+                // shortened name as well (e.g. using GooAttribute = MyNamespace.GooAttribute; [Goo] class C1 {})
                 if (TryGetNameWithoutAttributeSuffix(aliasSymbol.Name, syntaxFactsService, out var simpleName))
                 {
                     aliasReferences = await FindReferencesInDocumentUsingIdentifierAsync(
@@ -375,7 +376,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 var aliasReferences = await FindReferencesInDocumentUsingIdentifierAsync(aliasSymbol.Name, document, symbolsMatch, cancellationToken).ConfigureAwait(false);
                 allAliasReferences.AddRange(aliasReferences);
                 // the alias may reference an attribute and the alias name may end with an "Attribute" suffix. In this case search for the
-                // shortened name as well (e.g. using FooAttribute = MyNamespace.FooAttribute; [Foo] class C1 {})
+                // shortened name as well (e.g. using GooAttribute = MyNamespace.GooAttribute; [Goo] class C1 {})
                 if (TryGetNameWithoutAttributeSuffix(aliasSymbol.Name, syntaxFactsService, out var simpleName))
                 {
                     aliasReferences = await FindReferencesInDocumentUsingIdentifierAsync(simpleName, document, symbolsMatch, cancellationToken).ConfigureAwait(false);

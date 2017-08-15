@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -650,7 +651,7 @@ public class C<T> where T : int
             Assert.Equal(source == null, retargeting == null);
             if (source != null)
             {
-                var sourceMethod = (SourceMethodSymbol)source;
+                var sourceMethod = (SourceMemberMethodSymbol)source;
                 var retargetingMethod = (RetargetingMethodSymbol)retargeting;
                 CheckUnderlyingMember(sourceMethod, retargetingMethod.UnderlyingMethod);
                 CheckParameters(sourceMethod.Parameters, retargetingMethod.Parameters);

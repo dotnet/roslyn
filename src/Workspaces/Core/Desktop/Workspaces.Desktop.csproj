@@ -1,16 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\Settings.props" />
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{2E87FA96-50BB-4607-8676-46521599F998}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.Workspaces.Desktop</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
     <DefineConstants>$(DefineConstants);WORKSPACE_DESKTOP</DefineConstants>
   </PropertyGroup>
   <ItemGroup Label="File References">
@@ -22,18 +21,9 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
-    <PackageReference Include="ManagedEsent">
-      <Version>$(ManagedEsentVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="SQLitePCLRaw.bundle_green">
-      <Version>$(SQLitePCLRawbundle_greenVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Build">
-      <Version>$(MicrosoftBuildVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Build.Tasks.Core">
-      <Version>$(MicrosoftBuildTasksCoreVersion)</Version>
-    </PackageReference>
+    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)" />
+    <PackageReference Include="Microsoft.Build" Version="$(MicrosoftBuildVersion)" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(MicrosoftBuildTasksCoreVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\Core\Portable\EncodedStringText.cs">
@@ -57,94 +47,11 @@
     <Compile Include="..\..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
       <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
     </Compile>
-    <Compile Include="Execution\DesktopReferenceSerializationServiceFactory.cs" />
-    <Compile Include="Execution\SerializationAnalyzerAssemblyLoader.cs" />
-    <Compile Include="Options\ExportOptionAttribute.cs" />
-    <Compile Include="Log\EtwLogger.cs" />
-    <Compile Include="Log\RoslynEventSource.cs" />
-    <Compile Include="Options\Providers\ExportedOptionKeyOptionProvider.cs" />
-    <Compile Include="Utilities\ReferencePathUtilities_Desktop.cs" />
-    <Compile Include="WorkspaceDesktopResources.Designer.cs">
+    <Compile Update="WorkspaceDesktopResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>WorkspaceDesktopResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Workspace\CommandLineProject.cs" />
-    <Compile Include="Workspace\Esent\EsentPersistentStorage.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.AbstractTable.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.AbstractTableAccessor.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.DocumentTable.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.DocumentTableAccessor.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.IdentifierLocationTable.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.IdentifierLocationTableAccessor.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.IdentifierTable.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.NameTable.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.OpenSession.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.Pool.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.ProjectDocumentTable.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.ProjectDocumentTableAccessor.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.ProjectTable.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.ProjectTableAccessor.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.SolutionTable.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.SolutionTableAccessor.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.StringNameTableAccessor.cs" />
-    <Compile Include="Workspace\Esent\EsentStorage.TableKinds.cs" />
-    <Compile Include="Workspace\FileTextLoader.cs" />
-    <Compile Include="Workspace\Host\Documentation\DocumentationProviderServiceFactory.cs" />
-    <Compile Include="Workspace\Host\Mef\DesktopMefHostServices.cs" />
-    <Compile Include="Workspace\Host\Mef\MefV1HostServices.cs" />
-    <Compile Include="Workspace\Host\SimpleAnalyzerAssemblyLoaderService.cs" />
-    <Compile Include="Workspace\Host\TemporaryStorage\TemporaryStorageServiceFactory.cs" />
-    <Compile Include="Workspace\Host\TemporaryStorage\TemporaryStorageServiceFactory.MemoryMappedInfo.cs" />
-    <Compile Include="Workspace\Host\TemporaryStorage\TemporaryStorageServiceFactory.ReferenceCountedDisposable.cs" />
-    <Compile Include="Workspace\Host\TextFactory\DesktopTextFactoryService.cs" />
-    <Compile Include="Workspace\MSBuild\CSharp\CSharpProjectFileLoader.cs" />
-    <Compile Include="Workspace\MSBuild\CSharp\CSharpProjectFileLoader.CSharpProjectFile.cs" />
-    <Compile Include="Workspace\MSBuild\CSharp\CSharpProjectFileLoaderFactory.cs" />
-    <Compile Include="Workspace\MSBuild\MSBuildWorkspace.cs" />
-    <Compile Include="Workspace\MSBuild\ProjectFile\DocumentFileInfo.cs" />
-    <Compile Include="Workspace\MSBuild\ProjectFile\IProjectFile.cs" />
-    <Compile Include="Workspace\MSBuild\ProjectFile\IProjectFileLoader.cs" />
-    <Compile Include="Workspace\MSBuild\ProjectFile\ProjectFile.cs" />
-    <Compile Include="Workspace\MSBuild\ProjectFile\ProjectFileExtensionAttribute.cs" />
-    <Compile Include="Workspace\MSBuild\ProjectFile\ProjectFileInfo.cs" />
-    <Compile Include="Workspace\MSBuild\ProjectFile\ProjectFileLoader.cs" />
-    <Compile Include="Workspace\MSBuild\ProjectFile\ProjectFileReference.cs" />
-    <Compile Include="Workspace\MSBuild\ProjectFile\ProjectTypeGuidAttribute.cs" />
-    <Compile Include="Workspace\MSBuild\SolutionFile\LineScanner.cs" />
-    <Compile Include="Workspace\MSBuild\SolutionFile\ProjectBlock.cs" />
-    <Compile Include="Workspace\MSBuild\SolutionFile\SectionBlock.cs" />
-    <Compile Include="Workspace\MSBuild\SolutionFile\SolutionFile.cs" />
-    <Compile Include="Workspace\MSBuild\VisualBasic\VisualBasicProjectFileLoader.cs" />
-    <Compile Include="Workspace\MSBuild\VisualBasic\VisualBasicProjectFileLoaderFactory.cs" />
-    <Compile Include="Workspace\MSBuild\MSBuildProjectLoader.cs" />
-    <Compile Include="Workspace\SolutionSize\SolutionSizeTracker.cs" />
-    <Compile Include="Workspace\Esent\EsentPersistentStorageService.cs" />
-    <Compile Include="Workspace\SQLite\Interop\OpenFlags.cs" />
-    <Compile Include="Workspace\SQLite\Interop\ResettableSqlStatement.cs" />
-    <Compile Include="Workspace\SQLite\Interop\Result.cs" />
-    <Compile Include="Workspace\SQLite\Interop\SqlConnection.cs" />
-    <Compile Include="Workspace\SQLite\Interop\SqlException.cs" />
-    <Compile Include="Workspace\SQLite\Interop\SqlStatement.cs" />
-    <Compile Include="Workspace\SQLite\PooledConnection.cs" />
-    <Compile Include="Workspace\SQLite\SQLitePersistentStorage.Accessor.cs" />
-    <Compile Include="Workspace\SQLite\SQLitePersistentStorage.cs" />
-    <Compile Include="Workspace\SQLite\SQLitePersistentStorage_DocumentSerialization.cs" />
-    <Compile Include="Workspace\SQLite\SQLitePersistentStorageService.cs" />
-    <Compile Include="Workspace\SQLite\SQLitePersistentStorage_ProjectIds.cs" />
-    <Compile Include="Workspace\SQLite\SQLitePersistentStorage_ProjectSerialization.cs" />
-    <Compile Include="Workspace\SQLite\SQLitePersistentStorage_Helpers.cs" />
-    <Compile Include="Workspace\SQLite\SQLitePersistentStorage_DocumentIds.cs" />
-    <Compile Include="Workspace\SQLite\SQLitePersistentStorage_StringIds.cs" />
-    <Compile Include="Workspace\SQLite\SQLitePersistentStorage_SolutionSerialization.cs" />
-    <Compile Include="Workspace\SQLite\SQLitePersistentStorage_WriteBatching.cs" />
-    <Compile Include="Workspace\SQLite\SQLitePersistentStorage_BulkPopulateIds.cs" />
-    <Compile Include="Workspace\Storage\PersistenceStorageServiceFactory.cs" />
-    <Compile Include="Workspace\Storage\PersistentStorageService.cs" />
-    <Compile Include="Workspace\Storage\StorageDatabase.cs" />
-    <Compile Include="Workspace\Storage\StorageDatabaseLogger.cs" />
-    <Compile Include="Workspace\Storage\StorageOptions.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" />
@@ -190,21 +97,15 @@
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1ee8cad3-55f9-4d91-96b2-084641da9a6c}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Portable\Workspaces.csproj">
-      <Project>{5f8d2414-064a-4b3a-9b42-8e2a04246be5}</Project>
-      <Name>Workspaces</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\Portable\Workspaces.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="WorkspaceDesktopResources.resx">
+    <EmbeddedResource Update="WorkspaceDesktopResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>WorkspaceDesktopResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>

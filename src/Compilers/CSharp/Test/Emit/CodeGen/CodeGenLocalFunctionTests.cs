@@ -31,6 +31,98 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
         [Fact]
+        public void EnvironmentChainContainsStructEnvironment()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    void M(int x)
+    {
+        {
+            int y = 10;
+            void L() => Console.WriteLine(y);
+
+            {
+                int z = 5;
+                Action f2 = () => Console.WriteLine(z + x);
+                f2();
+            }
+            L();
+        }
+    }
+    public static void Main() => new C().M(3);
+}", expectedOutput: @"8
+10");
+        }
+
+        [Fact]
+        public void Repro20577()
+        {
+            var comp = CreateStandardCompilation(@"
+using System.Linq;
+
+public class Program {
+    public static void Main(string[] args) {
+        object v;
+
+        void AAA() {
+            object BBB(object v2) {
+                var a = v;
+                ((object[])v2).Select(i => BBB(i));
+                return null;
+            }
+        }
+    }
+}", references: new[] { LinqAssemblyRef });
+            CompileAndVerify(comp);
+        }
+
+        [Fact]
+        public void Repro19033()
+        {
+            CompileAndVerify(@"
+using System;
+
+class Program
+{
+    void Q(int n = 0)
+    {
+        {
+            object mc;
+
+            string B(object map)
+            {
+                Action<int> a = _ => B(new object());
+                return n.ToString();
+            }
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public void Repro19033_2()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    static void F(Action a)
+    {
+        object x = null;
+        {
+            object y = null;
+            void G(object z)
+            {
+                F(() => G(x));
+            }
+        }
+    }
+}");
+        }
+
+        [Fact]
         [WorkItem(18814, "https://github.com/dotnet/roslyn/issues/18814")]
         [WorkItem(18918, "https://github.com/dotnet/roslyn/issues/18918")]
         public void IntermediateStructClosures1()
@@ -76,59 +168,80 @@ class C
 }", expectedOutput: 
 @"0
 1");
-            // L1
-            verifier.VerifyIL("C.<M>g__L12_0(ref C.<>c__DisplayClass2_1)", @"
+            verifier.VerifyIL("C.M()", @"
 {
-  // Code size       13 (0xd)
+  // Code size       47 (0x2f)
   .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""C C.<>c__DisplayClass2_1.<>4__this""
-  IL_0006:  ldarg.0
-  IL_0007:  call       ""void C.<M>g__L22_1(ref C.<>c__DisplayClass2_1)""
-  IL_000c:  ret
+  .locals init (C.<>c__DisplayClass2_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldarg.0
+  IL_0003:  stfld      ""C C.<>c__DisplayClass2_0.<>4__this""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldc.i4.0
+  IL_000b:  stfld      ""int C.<>c__DisplayClass2_0.var1""
+  IL_0010:  ldarg.0
+  IL_0011:  ldfld      ""int C._x""
+  IL_0016:  call       ""void System.Console.WriteLine(int)""
+  IL_001b:  ldarg.0
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  call       ""void C.<M>g__L12_0(ref C.<>c__DisplayClass2_0)""
+  IL_0023:  ldarg.0
+  IL_0024:  ldfld      ""int C._x""
+  IL_0029:  call       ""void System.Console.WriteLine(int)""
+  IL_002e:  ret
 }");
-            // L2
-            verifier.VerifyIL("C.<M>g__L22_1(ref C.<>c__DisplayClass2_1)", @"
+
+            // L1
+            verifier.VerifyIL("C.<M>g__L12_0(ref C.<>c__DisplayClass2_0)", @"
 {
   // Code size        8 (0x8)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""void C.<M>g__L32_2(ref C.<>c__DisplayClass2_1)""
+  IL_0002:  call       ""void C.<M>g__L22_1(ref C.<>c__DisplayClass2_0)""
   IL_0007:  ret
 }");
-            // Skip some... L5
-            verifier.VerifyIL("C.<M>g__L52_4(ref C.<>c__DisplayClass2_1, ref C.<>c__DisplayClass2_0)", @"
+            // L2
+            verifier.VerifyIL("C.<M>g__L22_1(ref C.<>c__DisplayClass2_0)", @"
 {
-  // Code size        9 (0x9)
+  // Code size        8 (0x8)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""int C.<M>g__L62_5(ref C.<>c__DisplayClass2_1, ref C.<>c__DisplayClass2_0)""
-  IL_0007:  pop
-  IL_0008:  ret
+  IL_0002:  call       ""void C.<M>g__L32_2(ref C.<>c__DisplayClass2_0)""
+  IL_0007:  ret
+}");
+            // Skip some... L5
+            verifier.VerifyIL("C.<M>g__L52_4(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  ldarg.2
+  IL_0003:  call       ""int C.<M>g__L62_5(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)""
+  IL_0008:  pop
+  IL_0009:  ret
 }");
             // L6
-            verifier.VerifyIL("C.<M>g__L62_5(ref C.<>c__DisplayClass2_1, ref C.<>c__DisplayClass2_0)", @"
+            verifier.VerifyIL("C.<M>g__L62_5(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
 {
-  // Code size       35 (0x23)
+  // Code size       25 (0x19)
   .maxstack  4
   .locals init (int V_0)
-  IL_0000:  ldarg.1
-  IL_0001:  ldfld      ""int C.<>c__DisplayClass2_0.var2""
-  IL_0006:  ldarg.1
-  IL_0007:  ldfld      ""C C.<>c__DisplayClass2_0.<>4__this""
-  IL_000c:  ldarg.1
-  IL_000d:  ldfld      ""C C.<>c__DisplayClass2_0.<>4__this""
-  IL_0012:  ldfld      ""int C._x""
-  IL_0017:  stloc.0
-  IL_0018:  ldloc.0
-  IL_0019:  ldc.i4.1
-  IL_001a:  add
-  IL_001b:  stfld      ""int C._x""
-  IL_0020:  ldloc.0
-  IL_0021:  add
-  IL_0022:  ret
+  IL_0000:  ldarg.2
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass2_1.var2""
+  IL_0006:  ldarg.0
+  IL_0007:  ldarg.0
+  IL_0008:  ldfld      ""int C._x""
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  ldc.i4.1
+  IL_0010:  add
+  IL_0011:  stfld      ""int C._x""
+  IL_0016:  ldloc.0
+  IL_0017:  add
+  IL_0018:  ret
 }");
         }
 
@@ -724,7 +837,7 @@ class Test<T>
 {
     T Value;
 
-    public bool Foo(IEqualityComparer<T> comparer)
+    public bool Goo(IEqualityComparer<T> comparer)
     {
         bool local(T tmp)
         {
@@ -1624,7 +1737,7 @@ using System;
 
 class Program
 {
-    static int Foo
+    static int Goo
     {
         get
         {
@@ -1637,7 +1750,7 @@ class Program
     }
     static void Main(string[] args)
     {
-        Console.Write(Foo);
+        Console.Write(Goo);
     }
 }";
             VerifyOutput(source, "2");
@@ -1652,7 +1765,7 @@ using System.Collections.Generic;
 
 class Program
 {
-    static int Foo
+    static int Goo
     {
         get
         {
@@ -1670,7 +1783,7 @@ class Program
     }
     static void Main(string[] args)
     {
-        Console.Write(Foo);
+        Console.Write(Goo);
     }
 }";
             VerifyOutput(source, "2");
@@ -1732,7 +1845,7 @@ local();
             var source = @"
 int x = 1;
 int Bar() => ++x;
-var str = $@""{((Func<int>)(() => { int Foo() => Bar(); return Foo(); }))()}"";
+var str = $@""{((Func<int>)(() => { int Goo() => Bar(); return Goo(); }))()}"";
 Console.Write(str + ' ' + x);
 ";
             VerifyOutputInMain(source, "2 2", "System");
@@ -1744,35 +1857,35 @@ Console.Write(str + ' ' + x);
         public void StaticNoClosure()
         {
             var source = @"
-T Foo<T>(T x)
+T Goo<T>(T x)
 {
     return x;
 }
-Console.Write(Foo(2));
+Console.Write(Goo(2));
 ";
             var verify = VerifyOutputInMain(source, "2", "System");
-            var foo = verify.FindLocalFunction("Foo");
-            Assert.True(foo.IsStatic);
-            Assert.Equal(verify.Compilation.GetTypeByMetadataName("Program"), foo.ContainingType);
+            var goo = verify.FindLocalFunction("Goo");
+            Assert.True(goo.IsStatic);
+            Assert.Equal(verify.Compilation.GetTypeByMetadataName("Program"), goo.ContainingType);
         }
 
         [Fact]
         public void StaticNoClosureDelegate()
         {
             var source = @"
-T Foo<T>(T x)
+T Goo<T>(T x)
 {
     return x;
 }
-Func<int, int> foo = Foo;
-Console.Write(foo(2));
+Func<int, int> goo = Goo;
+Console.Write(goo(2));
 ";
             var verify = VerifyOutputInMain(source, "2", "System");
-            var foo = verify.FindLocalFunction("Foo");
+            var goo = verify.FindLocalFunction("Goo");
             var program = verify.Compilation.GetTypeByMetadataName("Program");
-            Assert.False(foo.IsStatic);
-            Assert.Equal("<>c", foo.ContainingType.Name);
-            Assert.Equal(program, foo.ContainingType.ContainingType);
+            Assert.False(goo.IsStatic);
+            Assert.Equal("<>c", goo.ContainingType.Name);
+            Assert.Equal(program, goo.ContainingType.ContainingType);
         }
 
         [Fact]
@@ -2284,19 +2397,19 @@ class Program
         {
             var source = @"
 int x = 2;
-void Foo()
+void Goo()
 {
     Console.Write(x);
 }
-Foo();
+Goo();
 ";
             var verify = VerifyOutputInMain(source, "2", "System");
-            var foo = verify.FindLocalFunction("Foo");
+            var goo = verify.FindLocalFunction("Goo");
             var program = verify.Compilation.GetTypeByMetadataName("Program");
-            Assert.Equal(program, foo.ContainingType);
-            Assert.True(foo.IsStatic);
-            Assert.Equal(RefKind.Ref, foo.Parameters[0].RefKind);
-            Assert.True(foo.Parameters[0].Type.IsValueType);
+            Assert.Equal(program, goo.ContainingType);
+            Assert.True(goo.IsStatic);
+            Assert.Equal(RefKind.Ref, goo.Parameters[0].RefKind);
+            Assert.True(goo.Parameters[0].Type.IsValueType);
         }
 
         [Fact]
@@ -2304,7 +2417,7 @@ Foo();
         {
             var source = @"
 int x = 2;
-void Foo<T1>()
+void Goo<T1>()
 {
     int y = x;
     void Bar<T2>()
@@ -2313,23 +2426,23 @@ void Foo<T1>()
     }
     Bar<T1>();
 }
-Foo<int>();
+Goo<int>();
 ";
             var verify = VerifyOutputInMain(source, "4", "System");
-            var foo = verify.FindLocalFunction("Foo");
+            var goo = verify.FindLocalFunction("Goo");
             var bar = verify.FindLocalFunction("Bar");
-            Assert.Equal(1, foo.Parameters.Length);
+            Assert.Equal(1, goo.Parameters.Length);
             Assert.Equal(2, bar.Parameters.Length);
-            Assert.Equal(RefKind.Ref, foo.Parameters[0].RefKind);
+            Assert.Equal(RefKind.Ref, goo.Parameters[0].RefKind);
             Assert.Equal(RefKind.Ref, bar.Parameters[0].RefKind);
             Assert.Equal(RefKind.Ref, bar.Parameters[1].RefKind);
-            Assert.True(foo.Parameters[0].Type.IsValueType);
+            Assert.True(goo.Parameters[0].Type.IsValueType);
             Assert.True(bar.Parameters[0].Type.IsValueType);
             Assert.True(bar.Parameters[1].Type.IsValueType);
-            Assert.Equal(foo.Parameters[0].Type.OriginalDefinition, bar.Parameters[0].Type.OriginalDefinition);
-            var fooFrame = (INamedTypeSymbol)foo.Parameters[0].Type;
+            Assert.Equal(goo.Parameters[0].Type.OriginalDefinition, bar.Parameters[0].Type.OriginalDefinition);
+            var gooFrame = (INamedTypeSymbol)goo.Parameters[0].Type;
             var barFrame = (INamedTypeSymbol)bar.Parameters[1].Type;
-            Assert.Equal(0, fooFrame.Arity);
+            Assert.Equal(0, gooFrame.Arity);
             Assert.Equal(1, barFrame.Arity);
         }
 
@@ -2419,27 +2532,27 @@ class Program
         {
             var source = @"
 int x = 0;
-void Foo()
+void Goo()
 {
     if (x != 2)
     {
         x++;
-        Foo();
+        Goo();
     }
     else
     {
         Console.Write(x);
     }
 }
-Foo();
+Goo();
 ";
             var verify = VerifyOutputInMain(source, "2", "System");
-            var foo = verify.FindLocalFunction("Foo");
+            var goo = verify.FindLocalFunction("Goo");
             var program = verify.Compilation.GetTypeByMetadataName("Program");
-            Assert.Equal(program, foo.ContainingType);
-            Assert.True(foo.IsStatic);
-            Assert.Equal(RefKind.Ref, foo.Parameters[0].RefKind);
-            Assert.True(foo.Parameters[0].Type.IsValueType);
+            Assert.Equal(program, goo.ContainingType);
+            Assert.True(goo.IsStatic);
+            Assert.Equal(RefKind.Ref, goo.Parameters[0].RefKind);
+            Assert.True(goo.Parameters[0].Type.IsValueType);
         }
 
         [Fact]
@@ -2447,13 +2560,13 @@ Foo();
         {
             var source = @"
 int x = 0;
-void Foo(int depth)
+void Goo(int depth)
 {
     int dummy = 0;
     void Bar(int depth2)
     {
         dummy++;
-        Foo(depth2);
+        Goo(depth2);
     }
     if (depth != 2)
     {
@@ -2465,22 +2578,22 @@ void Foo(int depth)
         Console.Write(x);
     }
 }
-Foo(0);
+Goo(0);
 ";
             var verify = VerifyOutputInMain(source, "2", "System");
             var program = verify.Compilation.GetTypeByMetadataName("Program");
-            var foo = verify.FindLocalFunction("Foo");
+            var goo = verify.FindLocalFunction("Goo");
             var bar = verify.FindLocalFunction("Bar");
-            Assert.Equal(program, foo.ContainingType);
+            Assert.Equal(program, goo.ContainingType);
             Assert.Equal(program, bar.ContainingType);
-            Assert.True(foo.IsStatic);
+            Assert.True(goo.IsStatic);
             Assert.True(bar.IsStatic);
-            Assert.Equal(2, foo.Parameters.Length);
+            Assert.Equal(2, goo.Parameters.Length);
             Assert.Equal(3, bar.Parameters.Length);
-            Assert.Equal(RefKind.Ref, foo.Parameters[1].RefKind);
+            Assert.Equal(RefKind.Ref, goo.Parameters[1].RefKind);
             Assert.Equal(RefKind.Ref, bar.Parameters[1].RefKind);
             Assert.Equal(RefKind.Ref, bar.Parameters[2].RefKind);
-            Assert.True(foo.Parameters[1].Type.IsValueType);
+            Assert.True(goo.Parameters[1].Type.IsValueType);
             Assert.True(bar.Parameters[1].Type.IsValueType);
             Assert.True(bar.Parameters[2].Type.IsValueType);
         }
@@ -2489,16 +2602,16 @@ Foo(0);
         public void Recursion()
         {
             var source = @"
-void Foo(int depth)
+void Goo(int depth)
 {
     if (depth > 10)
     {
         Console.WriteLine(2);
         return;
     }
-    Foo(depth + 1);
+    Goo(depth + 1);
 }
-Foo(0);
+Goo(0);
 ";
             VerifyOutputInMain(source, "2", "System");
         }
@@ -2507,7 +2620,7 @@ Foo(0);
         public void MutualRecursion()
         {
             var source = @"
-void Foo(int depth)
+void Goo(int depth)
 {
     if (depth > 10)
     {
@@ -2516,11 +2629,11 @@ void Foo(int depth)
     }
     void Bar(int depth2)
     {
-        Foo(depth2 + 1);
+        Goo(depth2 + 1);
     }
     Bar(depth + 1);
 }
-Foo(0);
+Goo(0);
 ";
             VerifyOutputInMain(source, "2", "System");
         }
@@ -3398,9 +3511,9 @@ Local();
 ";
             // Should be a static method on "Program" itself, not a display class like "Program+<>c__DisplayClass0_0"
             var verify = VerifyOutputInMain(source, "2", "System");
-            var foo = verify.FindLocalFunction("Local");
-            Assert.True(foo.IsStatic);
-            Assert.Equal(verify.Compilation.GetTypeByMetadataName("Program"), foo.ContainingType);
+            var goo = verify.FindLocalFunction("Local");
+            Assert.True(goo.IsStatic);
+            Assert.Equal(verify.Compilation.GetTypeByMetadataName("Program"), goo.ContainingType);
         }
 
         [Fact]
@@ -3443,6 +3556,121 @@ class Program
 ";
             VerifyOutput(source, output: @"202
 00222");
+        }
+
+        [Fact]
+        [WorkItem(21317, "https://github.com/dotnet/roslyn/issues/21317")]
+        [CompilerTrait(CompilerFeature.Dynamic)]
+        public void DynamicGenericArg()
+        {
+            var src = @"
+void L1<T>(T x)
+{
+    Console.WriteLine($""{x}: {typeof(T)}"");
+}
+dynamic val = 2;
+L1<object>(val);
+L1<int>(val);
+L1<dynamic>(val);
+L1<dynamic>(4);
+
+void L2<T>(int x, T y) => Console.WriteLine($""{x}, {y}: {typeof(T)}"");
+L2<float>(val, 3.0f);
+
+List<dynamic> listOfDynamic = new List<dynamic> { 1, 2, 3 };
+void L3<T>(List<T> x) => Console.WriteLine($""{string.Join("", "", x)}: {typeof(T)}"");
+L3(listOfDynamic);
+
+void L4<T>(T x, params int[] y) => Console.WriteLine($""{x}, {string.Join("", "", y)}: {typeof(T)}"");
+L4<dynamic>(val, 3, 4);
+L4<int>(val, 3, 4);
+L4<int>(1, 3, val);
+
+void L5<T>(int x, params T[] y) => Console.WriteLine($""{x}, {string.Join("", "", y)}: {typeof(T)}"");
+L5<int>(val, 3, 4);
+L5<int>(1, 3, val);
+L5<dynamic>(1, 3, val);
+";
+            var output = @"
+2: System.Object
+2: System.Int32
+2: System.Object
+4: System.Object
+2, 3: System.Single
+1, 2, 3: System.Object
+2, 3, 4: System.Object
+2, 3, 4: System.Int32
+1, 3, 2: System.Int32
+2, 3, 4: System.Int32
+1, 3, 2: System.Int32
+1, 3, 2: System.Object
+";
+            VerifyOutputInMain(src, output, "System", "System.Collections.Generic");
+        }
+
+        [Fact]
+        [WorkItem(21317, "https://github.com/dotnet/roslyn/issues/21317")]
+        [CompilerTrait(CompilerFeature.Dynamic)]
+        public void DynamicGenericClassMethod()
+        {
+            var src = @"
+using System;
+class C1<T1>
+{
+    public static void M1<T2>()
+    {
+        void F(int x)
+        {
+            Console.WriteLine($""C1<{typeof(T1)}>.M1<{typeof(T2)}>.F({x})"");
+        }
+        F((dynamic)2);
+    }
+    public static void M2()
+    {
+        void F(int x)
+        {
+            Console.WriteLine($""C1<{typeof(T1)}>.M2.F({x})"");
+        }
+        F((dynamic)2);
+    }
+}
+class C2
+{
+    public static void M1<T2>()
+    {
+        void F(int x)
+        {
+            Console.WriteLine($""C2.M1<{typeof(T2)}>.F({x})"");
+        }
+        F((dynamic)2);
+    }
+    public static void M2()
+    {
+        void F(int x)
+        {
+            Console.WriteLine($""C2.M2.F({x})"");
+        }
+        F((dynamic)2);
+    }
+}
+class Program
+{
+    static void Main()
+    {
+        C1<int>.M1<float>();
+        C1<int>.M2();
+        C2.M1<float>();
+        C2.M2();
+    }
+}
+";
+            var output = @"
+C1<System.Int32>.M1<System.Single>.F(2)
+C1<System.Int32>.M2.F(2)
+C2.M1<System.Single>.F(2)
+C2.M2.F(2)
+";
+            VerifyOutput(src, output);
         }
 
         [Fact]
@@ -3582,11 +3810,11 @@ class Program
     }
     static string C()
     {
-        async Foo()
+        async Goo()
         {
             return new async();
         }
-        return Foo().ToString();
+        return Goo().ToString();
     }
     static string D()
     {

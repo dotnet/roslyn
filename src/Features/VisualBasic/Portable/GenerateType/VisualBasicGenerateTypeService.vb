@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -182,26 +182,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                     generateTypeServiceStateOptions.IsMembersWithModule = True
                 End If
 
-                ' Case : Class Foo(of T as MyType)
+                ' Case : Class Goo(of T as MyType)
                 If nameOrMemberAccessExpression.GetAncestors(Of TypeConstraintSyntax).Any() Then
                     generateTypeServiceStateOptions.IsClassInterfaceTypes = True
                     Return True
                 End If
 
-                ' Case : Custom Event E As Foo
-                ' Case : Public Event F As Foo
+                ' Case : Custom Event E As Goo
+                ' Case : Public Event F As Goo
                 If nameOrMemberAccessExpression.GetAncestors(Of EventStatementSyntax)().Any() Then
-                    ' Case : Foo
+                    ' Case : Goo
                     ' Only Delegate
                     If simpleName.Parent IsNot Nothing AndAlso TypeOf simpleName.Parent IsNot QualifiedNameSyntax Then
                         generateTypeServiceStateOptions.IsDelegateOnly = True
                         Return True
                     End If
 
-                    ' Case : Something.Foo ...
+                    ' Case : Something.Goo ...
                     If TypeOf nameOrMemberAccessExpression Is QualifiedNameSyntax Then
 
-                        ' Case : NSOrSomething.GenType.Foo
+                        ' Case : NSOrSomething.GenType.Goo
                         If nextToken.IsKind(SyntaxKind.DotToken) Then
                             If nameOrMemberAccessExpression.Parent IsNot Nothing AndAlso TypeOf nameOrMemberAccessExpression.Parent Is QualifiedNameSyntax Then
                                 Return True
@@ -261,7 +261,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                 End If
             End If
 
-            ' New MyDelegate(AddressOf foo)
+            ' New MyDelegate(AddressOf goo)
             ' New NS.MyDelegate(Function(n) n)
             If TypeOf nameOrMemberAccessExpression.Parent Is ObjectCreationExpressionSyntax Then
                 Dim objectCreationExpressionOpt = DirectCast(nameOrMemberAccessExpression.Parent, ObjectCreationExpressionSyntax)
@@ -318,7 +318,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                     If variableDeclarator.Initializer IsNot Nothing AndAlso variableDeclarator.Initializer.Value IsNot Nothing Then
                         Dim expression = variableDeclarator.Initializer.Value
                         If expression.IsKind(SyntaxKind.AddressOfExpression) Then
-                            ' ... = AddressOf Foo
+                            ' ... = AddressOf Goo
                             generateTypeServiceStateOptions.DelegateCreationMethodSymbol = GetMemberGroupIfPresent(semanticModel, DirectCast(expression, UnaryExpressionSyntax).Operand, cancellationToken)
                         Else
                             If TypeOf expression Is LambdaExpressionSyntax Then
@@ -336,12 +336,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                         End If
                     End If
                 ElseIf TypeOf nameOrMemberAccessExpression.Parent Is CastExpressionSyntax Then
-                    ' Case: Dim s1 = DirectCast(AddressOf foo, Myy)
-                    '       Dim s2 = TryCast(AddressOf foo, Myy)
-                    '       Dim s3 = CType(AddressOf foo, Myy)
+                    ' Case: Dim s1 = DirectCast(AddressOf goo, Myy)
+                    '       Dim s2 = TryCast(AddressOf goo, Myy)
+                    '       Dim s3 = CType(AddressOf goo, Myy)
                     Dim expressionToBeCasted = DirectCast(nameOrMemberAccessExpression.Parent, CastExpressionSyntax).Expression
                     If expressionToBeCasted.IsKind(SyntaxKind.AddressOfExpression) Then
-                        ' ... = AddressOf Foo
+                        ' ... = AddressOf Goo
                         generateTypeServiceStateOptions.DelegateCreationMethodSymbol = GetMemberGroupIfPresent(semanticModel, DirectCast(expressionToBeCasted, UnaryExpressionSyntax).Operand, cancellationToken)
                     End If
                 End If

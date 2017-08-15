@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             context.RegisterRefactoring(
                 new MyCodeAction(
                     CSharpFeaturesResources.Inline_temporary_variable,
-                    (c) => this.InlineTemporaryAsync(document, variableDeclarator, c)));
+                    c => this.InlineTemporaryAsync(document, variableDeclarator, c)));
         }
 
         private async Task<IEnumerable<ReferenceLocation>> GetReferencesAsync(
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
         private SyntaxTriviaList GetTriviaToPreserve(SyntaxTriviaList syntaxTriviaList)
         {
-            return ShouldPreserve(syntaxTriviaList) ? syntaxTriviaList : default(SyntaxTriviaList);
+            return ShouldPreserve(syntaxTriviaList) ? syntaxTriviaList : default;
         }
 
         private static bool ShouldPreserve(SyntaxTriviaList trivia)

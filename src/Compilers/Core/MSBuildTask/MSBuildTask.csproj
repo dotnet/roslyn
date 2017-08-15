@@ -1,18 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{7AD4FE65-9A30-41A6-8004-AA8F89BCB7F3}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Microsoft.CodeAnalysis.BuildTasks</RootNamespace>
     <AssemblyName>Microsoft.Build.Tasks.CodeAnalysis</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <TargetFramework>netstandard1.3</TargetFramework>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
@@ -51,31 +48,14 @@
     <Compile Include="..\Portable\InternalUtilities\UnicodeCharacterUtilities.cs">
       <Link>UnicodeCharacterUtilities.cs</Link>
     </Compile>
-    <Compile Include="AssemblyResolution.cs" />
-    <Compile Include="CanonicalError.cs" />
-    <Compile Include="MvidReader.cs" />
-    <Compile Include="CopyRefAssembly.cs" />
-    <Compile Include="ValidateBootstrap.cs" />
-    <Compile Include="CommandLineBuilderExtension.cs" />
-    <Compile Include="Csc.cs" />
-    <Compile Include="Csi.cs" />
-    <Compile Include="ErrorString.Designer.cs">
+    <Compile Update="ErrorString.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>ErrorString.resx</DependentUpon>
     </Compile>
-    <Compile Include="ICompilerOptionsHostObject.cs" />
-    <Compile Include="ICscHostObject5.cs" />
-    <Compile Include="InteractiveCompiler.cs" />
-    <Compile Include="IVbcHostObject6.cs" />
-    <Compile Include="ManagedCompiler.cs" />
-    <Compile Include="PropertyDictionary.cs" />
-    <Compile Include="RCWForCurrentContext.cs" />
-    <Compile Include="Utilities.cs" />
-    <Compile Include="Vbc.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="ErrorString.resx">
+    <EmbeddedResource Update="ErrorString.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>ErrorString.Designer.cs</LastGenOutput>
     </EmbeddedResource>

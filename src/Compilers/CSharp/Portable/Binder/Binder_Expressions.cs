@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System;
@@ -1312,6 +1313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (node.IsKind(SyntaxKind.IdentifierName) && FallBackOnDiscard((IdentifierNameSyntax)node, diagnostics))
                 {
+                    lookupResult.Free();
                     return new BoundDiscardExpression(node, type: null);
                 }
 
@@ -2280,6 +2282,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.IndexerAccess:
                         return CheckIsVariable(argumentSyntax, arg, BindValueKind.RefOrOut, false, diagnostics);
                 }
+            }
+
+            if (argumentSyntax.RefOrOutKeyword.Kind() != SyntaxKind.None)
+            {
+                argumentSyntax.Expression.CheckDeconstructionCompatibleArgument(diagnostics);
             }
 
             return hadError;
@@ -3620,7 +3627,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // 4. A delegate type.
                 else if (argument.Type.TypeKind == TypeKind.Delegate)
                 {
-                    var sourceDelegate = argument.Type as NamedTypeSymbol;
+                    var sourceDelegate = (NamedTypeSymbol)argument.Type;
                     MethodGroup methodGroup = MethodGroup.GetInstance();
                     try
                     {
@@ -5191,8 +5198,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // There are some sources of a `dynamic` typed value that can be known before runtime
                 // to be invalid. For example, accessing a set-only property whose type is dynamic:
-                //   dynamic Foo { set; }
-                // If Foo itself is a dynamic thing (e.g. in `x.Foo.Bar`, `x` is dynamic, and we're
+                //   dynamic Goo { set; }
+                // If Goo itself is a dynamic thing (e.g. in `x.Goo.Bar`, `x` is dynamic, and we're
                 // currently checking Bar), then CheckValue will do nothing.
                 boundLeft = CheckValue(boundLeft, BindValueKind.RValue, diagnostics);
                 return BindDynamicMemberAccess(node, boundLeft, right, invoked, indexed, diagnostics);

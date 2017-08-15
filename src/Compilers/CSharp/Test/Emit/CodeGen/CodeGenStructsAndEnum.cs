@@ -1,10 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -182,21 +178,21 @@ class Program
     {
         public int x;
 
-        public void Foo()
+        public void Goo()
         {
             x = 123;
         }
     }
 
-    public static S1 foo()
+    public static S1 goo()
     {
         return new S1();
     }
 
     static void Main()
     {
-        foo().ToString();
-        Console.Write(foo().x);
+        goo().ToString();
+        Console.Write(goo().x);
     }
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"0");
@@ -206,13 +202,13 @@ class Program
   // Code size       36 (0x24)
   .maxstack  1
   .locals init (Program.S1 V_0)
-  IL_0000:  call       ""Program.S1 Program.foo()""
+  IL_0000:  call       ""Program.S1 Program.goo()""
   IL_0005:  stloc.0
   IL_0006:  ldloca.s   V_0
   IL_0008:  constrained. ""Program.S1""
   IL_000e:  callvirt   ""string object.ToString()""
   IL_0013:  pop
-  IL_0014:  call       ""Program.S1 Program.foo()""
+  IL_0014:  call       ""Program.S1 Program.goo()""
   IL_0019:  ldfld      ""int Program.S1.x""
   IL_001e:  call       ""void System.Console.Write(int)""
   IL_0023:  ret
@@ -410,12 +406,12 @@ namespace NS
 
     namespace N2
     {
-        public interface IFoo<T>
+        public interface IGoo<T>
         {
             void M(T t);
         }
 
-        struct S<T, V> : IFoo<T>
+        struct S<T, V> : IGoo<T>
         {
             public S(V v)
             {
@@ -436,9 +432,9 @@ namespace NS
         
         static void Main()
         {
-            IFoo<string> foo = new S<string, byte>(255);
-            foo.M(""Abc"");
-            Console.WriteLine(((S<string, byte>)foo).field);
+            IGoo<string> goo = new S<string, byte>(255);
+            goo.M(""Abc"");
+            Console.WriteLine(((S<string, byte>)goo).field);
 
             ary = new S<N2, char>[3];
             ary[0] = ary[1] = ary[2] = new S<N2, char>('q');
@@ -462,7 +458,7 @@ q");
   IL_000a:  box        ""NS.N2.S<string, byte>""
   IL_000f:  dup
   IL_0010:  ldstr      ""Abc""
-  IL_0015:  callvirt   ""void NS.N2.IFoo<string>.M(string)""
+  IL_0015:  callvirt   ""void NS.N2.IGoo<string>.M(string)""
   IL_001a:  unbox      ""NS.N2.S<string, byte>""
   IL_001f:  ldfld      ""byte NS.N2.S<string, byte>.field""
   IL_0024:  call       ""void System.Console.WriteLine(int)""
@@ -1039,6 +1035,276 @@ public class D
 ");
         }
 
+        [WorkItem(16364, "https://github.com/dotnet/roslyn/issues/16364")]
+        [Fact]
+        public void InplaceCtor003()
+        {
+            string source = @"
+
+public class D
+{
+    public struct Boo
+    {
+        public int I1;
+
+        public Boo(ref int i1)
+        {            
+            this.I1 = 1;
+            this.I1 += i1;
+        }
+
+        public Boo(ref Boo b1)
+        {            
+            this.I1 = 1;
+            this.I1 += b1.I1;
+        }
+    }
+
+    public static Boo v1;
+
+    public static void Main()
+    {
+        Boo a1 = default(Boo);
+
+        a1 = new Boo(ref a1);
+        System.Console.Write(a1.I1);
+
+        v1 = new Boo(ref v1);
+        System.Console.Write(v1.I1);
+
+        a1 = default(Boo);
+        v1 = default(Boo);
+
+        a1 = new Boo(ref a1.I1);
+        System.Console.Write(a1.I1);
+
+        v1 = new Boo(ref v1.I1);
+        System.Console.Write(v1.I1);
+
+    }
+}
+";
+
+            var compilation = CompileAndVerify(source, expectedOutput: "1111");
+
+            compilation.VerifyIL("D.Main",
+@"
+{
+  // Code size      136 (0x88)
+  .maxstack  1
+  .locals init (D.Boo V_0) //a1
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""D.Boo""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  newobj     ""D.Boo..ctor(ref D.Boo)""
+  IL_000f:  stloc.0
+  IL_0010:  ldloc.0
+  IL_0011:  ldfld      ""int D.Boo.I1""
+  IL_0016:  call       ""void System.Console.Write(int)""
+  IL_001b:  ldsflda    ""D.Boo D.v1""
+  IL_0020:  newobj     ""D.Boo..ctor(ref D.Boo)""
+  IL_0025:  stsfld     ""D.Boo D.v1""
+  IL_002a:  ldsflda    ""D.Boo D.v1""
+  IL_002f:  ldfld      ""int D.Boo.I1""
+  IL_0034:  call       ""void System.Console.Write(int)""
+  IL_0039:  ldloca.s   V_0
+  IL_003b:  initobj    ""D.Boo""
+  IL_0041:  ldsflda    ""D.Boo D.v1""
+  IL_0046:  initobj    ""D.Boo""
+  IL_004c:  ldloca.s   V_0
+  IL_004e:  ldflda     ""int D.Boo.I1""
+  IL_0053:  newobj     ""D.Boo..ctor(ref int)""
+  IL_0058:  stloc.0
+  IL_0059:  ldloc.0
+  IL_005a:  ldfld      ""int D.Boo.I1""
+  IL_005f:  call       ""void System.Console.Write(int)""
+  IL_0064:  ldsflda    ""D.Boo D.v1""
+  IL_0069:  ldflda     ""int D.Boo.I1""
+  IL_006e:  newobj     ""D.Boo..ctor(ref int)""
+  IL_0073:  stsfld     ""D.Boo D.v1""
+  IL_0078:  ldsflda    ""D.Boo D.v1""
+  IL_007d:  ldfld      ""int D.Boo.I1""
+  IL_0082:  call       ""void System.Console.Write(int)""
+  IL_0087:  ret
+}
+");
+        }
+
+        [WorkItem(16364, "https://github.com/dotnet/roslyn/issues/16364")]
+        [Fact]
+        public void InplaceCtor004()
+        {
+            string source = @"
+
+public class D
+{
+    public struct Boo
+    {
+        public int I1;
+
+        public Boo(ref int i1)
+        {            
+            this.I1 = 1;
+            this.I1 += i1;
+        }
+
+        public Boo(ref Boo b1)
+        {            
+            this.I1 = 1;
+            this.I1 += b1.I1;
+        }
+    }
+
+    public static Boo v1;
+
+    public static void Main()
+    {
+        Boo a1 = default(Boo);
+
+        ref var r1 = ref a1;
+        a1 = new Boo(ref r1);
+        System.Console.Write(a1.I1);
+
+        ref var r2 = ref v1;
+        v1 = new Boo(ref r2);
+        System.Console.Write(v1.I1);
+
+        a1 = default(Boo);
+        v1 = default(Boo);
+
+        ref var r3 = ref a1.I1;
+        a1 = new Boo(ref r3);
+        System.Console.Write(a1.I1);
+
+        ref var r4 = ref v1.I1;
+        v1 = new Boo(ref r4);
+        System.Console.Write(v1.I1);
+
+    }
+}
+";
+
+            var compilation = CompileAndVerify(source, expectedOutput: "1111");
+
+            compilation.VerifyIL("D.Main",
+@"
+{
+  // Code size      146 (0x92)
+  .maxstack  1
+  .locals init (D.Boo V_0, //a1
+                D.Boo& V_1, //r1
+                D.Boo& V_2, //r2
+                int& V_3, //r3
+                int& V_4) //r4
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""D.Boo""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  stloc.1
+  IL_000b:  ldloc.1
+  IL_000c:  newobj     ""D.Boo..ctor(ref D.Boo)""
+  IL_0011:  stloc.0
+  IL_0012:  ldloc.0
+  IL_0013:  ldfld      ""int D.Boo.I1""
+  IL_0018:  call       ""void System.Console.Write(int)""
+  IL_001d:  ldsflda    ""D.Boo D.v1""
+  IL_0022:  stloc.2
+  IL_0023:  ldloc.2
+  IL_0024:  newobj     ""D.Boo..ctor(ref D.Boo)""
+  IL_0029:  stsfld     ""D.Boo D.v1""
+  IL_002e:  ldsflda    ""D.Boo D.v1""
+  IL_0033:  ldfld      ""int D.Boo.I1""
+  IL_0038:  call       ""void System.Console.Write(int)""
+  IL_003d:  ldloca.s   V_0
+  IL_003f:  initobj    ""D.Boo""
+  IL_0045:  ldsflda    ""D.Boo D.v1""
+  IL_004a:  initobj    ""D.Boo""
+  IL_0050:  ldloca.s   V_0
+  IL_0052:  ldflda     ""int D.Boo.I1""
+  IL_0057:  stloc.3
+  IL_0058:  ldloc.3
+  IL_0059:  newobj     ""D.Boo..ctor(ref int)""
+  IL_005e:  stloc.0
+  IL_005f:  ldloc.0
+  IL_0060:  ldfld      ""int D.Boo.I1""
+  IL_0065:  call       ""void System.Console.Write(int)""
+  IL_006a:  ldsflda    ""D.Boo D.v1""
+  IL_006f:  ldflda     ""int D.Boo.I1""
+  IL_0074:  stloc.s    V_4
+  IL_0076:  ldloc.s    V_4
+  IL_0078:  newobj     ""D.Boo..ctor(ref int)""
+  IL_007d:  stsfld     ""D.Boo D.v1""
+  IL_0082:  ldsflda    ""D.Boo D.v1""
+  IL_0087:  ldfld      ""int D.Boo.I1""
+  IL_008c:  call       ""void System.Console.Write(int)""
+  IL_0091:  ret
+}
+");
+        }
+
+        [WorkItem(16364, "https://github.com/dotnet/roslyn/issues/16364")]
+        [Fact]
+        public void InplaceCtor005()
+        {
+            string source = @"
+using System;
+
+public class D
+{
+    public struct Boo
+    {
+        public int I1;
+
+        public Boo(int x, __arglist)
+        {
+            this.I1 = 1;
+            this.I1 += __refvalue(new ArgIterator(__arglist).GetNextArg(), Boo).I1;
+        }
+    }
+
+    public static Boo v1;
+
+    public static void Main()
+    {
+        Boo a1 = default(Boo);
+
+        a1 = new Boo(1, __arglist(ref a1));
+        System.Console.Write(a1.I1);
+
+        v1 = new Boo(1, __arglist(ref v1));
+        System.Console.Write(v1.I1);
+    }
+}
+";
+
+            var compilation = CompileAndVerify(source, expectedOutput: "11");
+
+            compilation.VerifyIL("D.Main",
+@"
+{
+  // Code size       60 (0x3c)
+  .maxstack  2
+  .locals init (D.Boo V_0) //a1
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""D.Boo""
+  IL_0008:  ldc.i4.1
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  newobj     ""D.Boo..ctor(int, __arglist) with __arglist( ref D.Boo)""
+  IL_0010:  stloc.0
+  IL_0011:  ldloc.0
+  IL_0012:  ldfld      ""int D.Boo.I1""
+  IL_0017:  call       ""void System.Console.Write(int)""
+  IL_001c:  ldc.i4.1
+  IL_001d:  ldsflda    ""D.Boo D.v1""
+  IL_0022:  newobj     ""D.Boo..ctor(int, __arglist) with __arglist( ref D.Boo)""
+  IL_0027:  stsfld     ""D.Boo D.v1""
+  IL_002c:  ldsflda    ""D.Boo D.v1""
+  IL_0031:  ldfld      ""int D.Boo.I1""
+  IL_0036:  call       ""void System.Console.Write(int)""
+  IL_003b:  ret
+}
+");
+        }
+
         [Fact]
         public void InitUsed001()
         {
@@ -1257,7 +1523,6 @@ public class D
         }
 
         #endregion
-
         #region "Enum"
 
         [Fact]

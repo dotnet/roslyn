@@ -1,3 +1,4 @@
+Microsoft.CodeAnalysis.CommandLineArguments.DisplayLangVersions.get -> bool
 Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, params Microsoft.CodeAnalysis.OperationKind[] operationKinds) -> void
 Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, params Microsoft.CodeAnalysis.OperationKind[] operationKinds) -> void
 Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext
@@ -651,9 +652,20 @@ Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.UnsignedPostfixDecrement = 7
 Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.UnsignedPostfixIncrement = 771 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
 Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.UnsignedPrefixDecrement = 774 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
 Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.UnsignedPrefixIncrement = 773 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
+Microsoft.CodeAnalysis.SyntaxList<TNode>.SyntaxList(System.Collections.Generic.IEnumerable<TNode> nodes) -> void
+Microsoft.CodeAnalysis.SyntaxList<TNode>.SyntaxList(TNode node) -> void
+Microsoft.CodeAnalysis.SyntaxNodeOrTokenList.SyntaxNodeOrTokenList(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNodeOrToken> nodesAndTokens) -> void
+Microsoft.CodeAnalysis.SyntaxNodeOrTokenList.SyntaxNodeOrTokenList(params Microsoft.CodeAnalysis.SyntaxNodeOrToken[] nodesAndTokens) -> void
+Microsoft.CodeAnalysis.SyntaxTokenList.SyntaxTokenList(Microsoft.CodeAnalysis.SyntaxToken token) -> void
+Microsoft.CodeAnalysis.SyntaxTokenList.SyntaxTokenList(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxToken> tokens) -> void
+Microsoft.CodeAnalysis.SyntaxTokenList.SyntaxTokenList(params Microsoft.CodeAnalysis.SyntaxToken[] tokens) -> void
+Microsoft.CodeAnalysis.SyntaxTriviaList.SyntaxTriviaList(Microsoft.CodeAnalysis.SyntaxTrivia trivia) -> void
+Microsoft.CodeAnalysis.SyntaxTriviaList.SyntaxTriviaList(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTrivia> trivias) -> void
+Microsoft.CodeAnalysis.SyntaxTriviaList.SyntaxTriviaList(params Microsoft.CodeAnalysis.SyntaxTrivia[] trivias) -> void
 abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.OperationKind> operationKinds) -> void
 abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationBlockEndAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void
 abstract Microsoft.CodeAnalysis.SemanticModel.GetOperationCore(Microsoft.CodeAnalysis.SyntaxNode node, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.IOperation
+override Microsoft.CodeAnalysis.Optional<T>.ToString() -> string
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.Visit(Microsoft.CodeAnalysis.IOperation operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitAddressOfExpression(Microsoft.CodeAnalysis.Semantics.IAddressOfExpression operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitArgument(Microsoft.CodeAnalysis.Semantics.IArgument operation) -> void

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
 class C
 {
-    async void Foo(Task<int> t)
+    async void Goo(Task<int> t)
     {
         int c = 1 + await t;
     }
@@ -139,7 +139,7 @@ using System.Threading.Tasks;
  
 class C
 {
-    static async Task Foo()
+    static async Task Goo()
     {
         Console.WriteLine(new TypedReference().Equals(await Task.FromResult(0)));
     }
@@ -160,7 +160,7 @@ class C
 
 class C
 {
-    void Foo(Task<int> t)
+    void Goo(Task<int> t)
     {
         var v = await t;
     }

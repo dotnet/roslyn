@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.MoveType
     Partial Public Class MoveTypeTests
@@ -46,8 +46,7 @@ End Class
             Dim expectedDocumentName = "Class1.vb"
 
             Dim destinationDocumentText =
-"
-Class Class1
+"Class Class1
 End Class
 "
             Await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText)
@@ -99,7 +98,6 @@ End Class
 "
 Public Partial Class Class1
     Class Class2
-
     End Class
 End Class
 "
@@ -158,6 +156,8 @@ End Class
 "
             Dim codeAfterMove =
 "
+' Used only by inner
+
 ' Not used
 Imports System.Collections
 
@@ -170,6 +170,8 @@ End Class
 "
 ' Used only by inner
 Imports System
+
+' Not used
 
 Partial Class Outer
     Class Inner
@@ -204,7 +206,8 @@ End Class
 Partial Class Outer
     Inherits Something
     Implements ISomething
-End Class"
+End Class
+"
             Dim expectedDocumentName = "Inner.vb"
 
             Dim destinationDocumentText =
@@ -217,7 +220,8 @@ Partial Class Outer
         Sub M(d as DateTime)
         End Sub
     End Class
-End Class"
+End Class
+"
             Await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText)
         End Function
     End Class

@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.RuntimeMembers;
@@ -1819,24 +1820,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new BoundUnaryOperator(syntax, UnaryOperatorKind.BoolLogicalNegation, call, ConstantValue.NotAvailable, null, LookupResultKind.Viable, returnType);
 
             return result;
-        }
-
-        private static MethodSymbol GetTruthOperator(TypeSymbol type, bool negative)
-        {
-            string name = negative ? WellKnownMemberNames.FalseOperatorName : WellKnownMemberNames.TrueOperatorName;
-            var operators = ((NamedTypeSymbol)type.StrippedType()).GetOperators(name);
-            Debug.Assert(!operators.IsEmpty);
-            for (int i = 0; i < operators.Length; ++i)
-            {
-                Debug.Assert(operators[i].ParameterCount == 1);
-                if (operators[i].ParameterTypes[0] == type)
-                {
-                    return operators[i];
-                }
-            }
-
-            Debug.Assert(false, "How did we bind a user-defined logical operator or dynamic logical Boolean operator without operator false or operator true?");
-            return null;
         }
 
         private BoundExpression RewriteStringEquality(BoundBinaryOperator oldNode, SyntaxNode syntax, BinaryOperatorKind operatorKind, BoundExpression loweredLeft, BoundExpression loweredRight, TypeSymbol type, SpecialMember member)

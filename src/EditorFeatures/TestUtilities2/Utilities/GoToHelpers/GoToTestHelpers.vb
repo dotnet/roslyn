@@ -2,11 +2,13 @@
 
 Imports Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
+Imports Microsoft.CodeAnalysis.CSharp.GeneratedCodeRecognition
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.GeneratedCodeRecognition
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.GeneratedCodeRecognition
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Text
 
@@ -18,6 +20,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
                         GetType(GeneratedCodeRecognitionService),
                         GetType(CSharpGoToDefinitionSymbolService),
                         GetType(VisualBasicGoToDefinitionSymbolService))
+                        GetType(CSharpGeneratedCodeRecognitionService),
+                        GetType(VisualBasicGeneratedCodeRecognitionService))
 
         Public ReadOnly ExportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(Catalog)
 

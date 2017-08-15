@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -1093,7 +1094,7 @@ namespace Microsoft.CodeAnalysis
 
         #region Diagnostics
 
-        internal static readonly CompilationStage DefaultDiagnosticsStage = CompilationStage.Compile;
+        internal const CompilationStage DefaultDiagnosticsStage = CompilationStage.Compile;
 
         /// <summary>
         /// Gets the diagnostics produced during the parsing stage.
@@ -2122,14 +2123,12 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.StreamMustSupportRead, nameof(sourceLinkStream));
             }
 
-            if (embeddedTexts != null && !embeddedTexts.IsEmpty())
+            if (embeddedTexts != null && 
+                !embeddedTexts.IsEmpty() && 
+                pdbStream == null && 
+                options?.DebugInformationFormat != DebugInformationFormat.Embedded)
             {
-                if (options == null || 
-                    options.DebugInformationFormat == DebugInformationFormat.Pdb ||
-                    options.DebugInformationFormat == DebugInformationFormat.PortablePdb && pdbStream == null)
-                {
-                    throw new ArgumentException(CodeAnalysisResources.EmbeddedTextsRequirePortablePdb, nameof(embeddedTexts));
-                }
+                throw new ArgumentException(CodeAnalysisResources.EmbeddedTextsRequirePdb, nameof(embeddedTexts));
             }
 
             return Emit(
@@ -2718,6 +2717,11 @@ namespace Microsoft.CodeAnalysis
                 catch (Cci.PdbWritingException e)
                 {
                     diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PdbWritingFailed, Location.None, e.Message));
+                    return null;
+                }
+                catch (Cci.PeWritingException e)
+                {
+                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PeWritingFailure, Location.None, e.InnerException.ToString()));
                     return null;
                 }
                 catch (PermissionSetFileReadException e)

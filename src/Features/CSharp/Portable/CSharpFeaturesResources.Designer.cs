@@ -657,15 +657,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Move declaration near reference.
-        /// </summary>
-        internal static string Move_declaration_near_reference {
-            get {
-                return ResourceManager.GetString("Move_declaration_near_reference", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &lt;Name&gt;.
         /// </summary>
         internal static string Name {
@@ -842,6 +833,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Remove_Unnecessary_Usings {
             get {
                 return ResourceManager.GetString("Remove_Unnecessary_Usings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove unused function.
+        /// </summary>
+        internal static string Remove_unused_function {
+            get {
+                return ResourceManager.GetString("Remove_unused_function", resourceCulture);
             }
         }
         
@@ -1127,6 +1127,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use &apos;is null&apos; check.
+        /// </summary>
+        internal static string Use_is_null_check {
+            get {
+                return ResourceManager.GetString("Use_is_null_check", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to use &apos;var&apos; instead of explicit type.
         /// </summary>
         internal static string use_var_instead_of_explicit_type {
@@ -1177,15 +1186,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string v7_switch {
             get {
                 return ResourceManager.GetString("v7_switch", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Warning: Declaration changes scope and may change meaning..
-        /// </summary>
-        internal static string Warning_colon_Declaration_changes_scope_and_may_change_meaning {
-            get {
-                return ResourceManager.GetString("Warning_colon_Declaration_changes_scope_and_may_change_meaning", resourceCulture);
             }
         }
         

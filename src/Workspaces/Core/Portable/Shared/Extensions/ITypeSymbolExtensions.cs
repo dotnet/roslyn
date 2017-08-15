@@ -105,11 +105,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             // This method can return multiple results.  Consider the case of:
             // 
-            // interface IFoo<X> { void Foo(X x); }
+            // interface IGoo<X> { void Goo(X x); }
             //
-            // class C : IFoo<int>, IFoo<string> { void Foo(int x); void Foo(string x); }
+            // class C : IGoo<int>, IGoo<string> { void Goo(int x); void Goo(string x); }
             //
-            // If you're looking for the implementations of IFoo<X>.Foo then you want to find both
+            // If you're looking for the implementations of IGoo<X>.Goo then you want to find both
             // results in C.
 
             // TODO(cyrusn): Implement this using the actual code for
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // this type.  However, this type may not actually say that it implements it.  For
             // example:
             //
-            // interface I { void Foo(); }
+            // interface I { void Goo(); }
             //
             // class B { } 
             //
@@ -142,8 +142,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             //
             // class D : C { }
             //
-            // D does implement I transitively through C.  However, even if D has a "Foo" method, it
-            // won't be an implementation of I.Foo.  The implementation of I.Foo must be from a type
+            // D does implement I transitively through C.  However, even if D has a "Goo" method, it
+            // won't be an implementation of I.Goo.  The implementation of I.Goo must be from a type
             // that actually has I in it's direct interface chain, or a type that's a base type of
             // that.  in this case, that means only classes C or B.
             var interfaceType = interfaceMember.ContainingType;
@@ -639,7 +639,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return
                 typeSymbol.AllInterfaces.Any(i => i.SpecialType == SpecialType.System_Collections_IEnumerable) &&
-                typeSymbol.GetAccessibleMembersInThisAndBaseTypes<IMethodSymbol>(within ?? typeSymbol).Where(s => s.Name == WellKnownMemberNames.CollectionInitializerAddMethodName)
+                typeSymbol.GetBaseTypesAndThis()
+                    .Union(typeSymbol.GetOriginalInterfacesAndTheirBaseInterfaces())
+                    .SelectAccessibleMembers<IMethodSymbol>(WellKnownMemberNames.CollectionInitializerAddMethodName, within ?? typeSymbol)
                     .OfType<IMethodSymbol>()
                     .Any(m => m.Parameters.Any());
         }
@@ -682,9 +684,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return ImmutableArray<T>.Empty;
             }
 
-            var types = containingType.GetBaseTypesAndThis();
-            return types.SelectMany(x => x.GetMembers().OfType<T>().Where(m => m.IsAccessibleWithin(within)))
-                        .ToImmutableArray();
+            return containingType.GetBaseTypesAndThis().SelectAccessibleMembers<T>(within).ToImmutableArray();
         }
 
         public static bool? AreMoreSpecificThan(this IList<ITypeSymbol> t1, IList<ITypeSymbol> t2)
@@ -720,6 +720,26 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             return result;
+        }
+
+        private static IEnumerable<T> SelectAccessibleMembers<T>(this IEnumerable<ITypeSymbol> types, ISymbol within) where T : class, ISymbol
+        {
+            if (types == null)
+            {
+                return ImmutableArray<T>.Empty;
+            }
+
+            return types.SelectMany(x => x.GetMembers().OfType<T>().Where(m => m.IsAccessibleWithin(within)));
+        }
+
+        private static IEnumerable<T> SelectAccessibleMembers<T>(this IEnumerable<ITypeSymbol> types, string memberName, ISymbol within) where T : class, ISymbol
+        {
+            if (types == null)
+            {
+                return ImmutableArray<T>.Empty;
+            }
+
+            return types.SelectMany(x => x.GetMembers(memberName).OfType<T>().Where(m => m.IsAccessibleWithin(within)));
         }
 
         private static bool? IsMoreSpecificThan(this ITypeSymbol t1, ITypeSymbol t2)

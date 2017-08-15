@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Execution
                     var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
                     var guid = metadataReader.GetGuid(mvidHandle);
 
-                    writer.WriteValue(guid.ToByteArray());
+                    writer.WriteGuid(guid);
                 }
             }
             catch
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Execution
             var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
             var guid = metadataReader.GetGuid(mvidHandle);
 
-            writer.WriteValue(guid.ToByteArray());
+            writer.WriteGuid(guid);
         }
 
         private void WritePortableExecutableReferenceTo(

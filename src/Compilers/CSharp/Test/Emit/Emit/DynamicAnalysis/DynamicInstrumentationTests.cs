@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.Test.Utilities.CSharpInstrumentationChecker;
@@ -292,7 +293,7 @@ public class Program
 
     static void TestMain()
     {
-        Console.WriteLine(""foo"");
+        Console.WriteLine(""goo"");
         goto bar;
         Console.Write(""you won't see me"");
         bar: Console.WriteLine(""bar"");
@@ -332,7 +333,7 @@ public class Program
     }
 }
 ";
-            string expectedOutput = @"foo
+            string expectedOutput = @"goo
 bar
 Flushing
 Method 1
@@ -1874,17 +1875,17 @@ public class Program
 
     static void TestMain()                                                  // Method 2
     {
-        foreach (var i in Foo())
+        foreach (var i in Goo())
         {    
             Console.WriteLine(i);
         }  
-        foreach (var i in Foo())
+        foreach (var i in Goo())
         {    
             Console.WriteLine(i);
         }
     }
 
-    public static System.Collections.Generic.IEnumerable<int> Foo()
+    public static System.Collections.Generic.IEnumerable<int> Goo()
     {
         for (int i = 0; i < 5; ++i)
         {

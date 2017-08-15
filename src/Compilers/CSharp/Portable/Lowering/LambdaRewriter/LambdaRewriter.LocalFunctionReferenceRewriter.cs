@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -139,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _framePointers.TryGetValue(synthesizedLambda.ContainingType, out _innermostFramePointer);
                     }
 
-                    var containerAsFrame = synthesizedLambda.ContainingType as LambdaFrame;
+                    var containerAsFrame = synthesizedLambda.ContainingType as SynthesizedClosureEnvironment;
 
                     // Includes type parameters from the containing type iff
                     // the containing type is a frame. If it is a frame then
@@ -200,11 +201,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // will always be a LambdaFrame, it's always a capture frame
                     var frameType = (NamedTypeSymbol)loweredSymbol.Parameters[i].Type.OriginalDefinition;
 
-                    Debug.Assert(frameType is LambdaFrame);
+                    Debug.Assert(frameType is SynthesizedClosureEnvironment);
 
                     if (frameType.Arity > 0)
                     {
-                        var typeParameters = ((LambdaFrame)frameType).ConstructedFromTypeParameters;
+                        var typeParameters = ((SynthesizedClosureEnvironment)frameType).ConstructedFromTypeParameters;
                         Debug.Assert(typeParameters.Length == frameType.Arity);
                         var subst = this.TypeMap.SubstituteTypeParameters(typeParameters);
                         frameType = frameType.Construct(subst);

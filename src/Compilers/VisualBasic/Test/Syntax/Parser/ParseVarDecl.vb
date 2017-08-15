@@ -250,7 +250,7 @@ End Class
         ParseAndVerify(<![CDATA[
 Module Program
     Sub Main()
-        Dim [foo as integer = 23 
+        Dim [goo as integer = 23 
         Dim [goo As Char = "d"c
 
         Dim [ as integer = 23 
@@ -266,7 +266,7 @@ Module Program
     End Sub
 End Module
             ]]>, Diagnostic(ERRID.ERR_ExpectedIdentifier, ""),
-                 Diagnostic(ERRID.ERR_MissingEndBrack, "[foo"),
+                 Diagnostic(ERRID.ERR_MissingEndBrack, "[goo"),
                  Diagnostic(ERRID.ERR_ExpectedIdentifier, ""),
                  Diagnostic(ERRID.ERR_MissingEndBrack, "[goo"),
                  Diagnostic(ERRID.ERR_ExpectedIdentifier, ""),

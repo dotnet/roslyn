@@ -144,7 +144,7 @@ namespace N {
     }
 }
 
-namespace N.Foo;
+namespace N.Goo;
 ");
 
             EmitResult emitResult;
@@ -175,7 +175,7 @@ namespace N.Foo;
         public void EmitMetadataOnly()
         {
             CSharpCompilation comp = CreateStandardCompilation(@"
-namespace Foo.Bar
+namespace Goo.Bar
 {
     public class Test1
     {
@@ -192,7 +192,7 @@ namespace Foo.Bar
             x = 17;
         }
 
-        public string foo(int a)
+        public string goo(int a)
         {
             return a.ToString();
         }
@@ -215,7 +215,7 @@ namespace Foo.Bar
 
             var srcUsing = @"
 using System;
-using Foo.Bar;
+using Goo.Bar;
 
 class Test2
 {
@@ -875,6 +875,25 @@ comp => comp.VerifyDiagnostics(
                 //             System.Console.WriteLine(sizeof(S*));
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "S*").WithArguments("S").WithLocation(7, 45)
                 ));
+        }
+
+        [Fact]
+        public void RefAssemblyClient_ExplicitPropertyImplementation()
+        {
+            VerifyRefAssemblyClient(@"
+public interface I
+{
+    int P { get; set; }
+}
+public class Base : I
+{
+    int I.P { get { throw null; } set { throw null; } }
+}",
+@"
+class Derived : Base, I
+{
+}",
+comp => comp.VerifyDiagnostics());
         }
 
         [Fact]
@@ -1633,6 +1652,205 @@ public class PublicClass
         }
 
         [Fact]
+        public void RefAssembly_VerifyTypesAndMembersOnExplicitlyImplementedProperty()
+        {
+            string source = @"
+public interface I
+{
+    int P { get; set; }
+}
+public class C : I
+{
+    int I.P
+    {
+        get { throw null; }
+        set { throw null; }
+    }
+}
+";
+            CSharpCompilation comp = CreateCompilation(source, references: new[] { MscorlibRef },
+                options: TestOptions.DebugDll.WithDeterministic(true));
+
+            // verify metadata (types, members, attributes) of the regular assembly
+            CompileAndVerify(comp, emitOptions: EmitOptions.Default, verify: true);
+
+            var realImage = comp.EmitToImageReference(EmitOptions.Default);
+            var compWithReal = CreateCompilation("", references: new[] { MscorlibRef, realImage },
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            verifyPropertyWasEmitted(compWithReal);
+
+            // verify metadata (types, members, attributes) of the metadata-only assembly
+            var emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(true);
+            CompileAndVerify(comp, emitOptions: emitMetadataOnly, verify: true);
+
+            var metadataImage = comp.EmitToImageReference(emitMetadataOnly);
+            var compWithMetadata = CreateCompilation("", references: new[] { MscorlibRef, metadataImage },
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            verifyPropertyWasEmitted(compWithMetadata);
+
+            MetadataReaderUtils.AssertEmptyOrThrowNull(comp.EmitToArray(emitMetadataOnly));
+
+            // verify metadata (types, members, attributes) of the ref assembly
+            var emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
+            CompileAndVerify(comp, emitOptions: emitRefOnly, verify: true);
+
+            var refImage = comp.EmitToImageReference(emitRefOnly);
+            var compWithRef = CreateCompilation("", references: new[] { MscorlibRef, refImage },
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            verifyPropertyWasEmitted(compWithRef);
+
+            MetadataReaderUtils.AssertEmptyOrThrowNull(comp.EmitToArray(emitRefOnly));
+
+            void verifyPropertyWasEmitted(CSharpCompilation input)
+            {
+                AssertEx.Equal(
+                    new[] { "<Module>", "I", "C" },
+                    input.SourceModule.GetReferencedAssemblySymbols().Last().GlobalNamespace.GetMembers().Select(m => m.ToDisplayString()));
+
+                AssertEx.Equal(
+                    new[] { "System.Int32 C.I.P.get", "void C.I.P.set", "C..ctor()", "System.Int32 C.I.P { get; set; }" },
+                    input.GetMember<NamedTypeSymbol>("C").GetMembers()
+                        .Select(m => m.ToTestDisplayString()));
+            }
+        }
+
+        [Fact]
+        public void RefAssembly_VerifyTypesAndMembersOnExplicitlyImplementedEvent()
+        {
+            string source = @"
+public interface I
+{
+    event System.Action E;
+}
+public class C : I
+{
+    event System.Action I.E
+    {
+        add { throw null; }
+        remove { throw null; }
+    }
+}
+";
+            CSharpCompilation comp = CreateCompilation(source, references: new[] { MscorlibRef },
+                options: TestOptions.DebugDll.WithDeterministic(true));
+
+            // verify metadata (types, members, attributes) of the regular assembly
+            CompileAndVerify(comp, emitOptions: EmitOptions.Default, verify: true);
+
+            var realImage = comp.EmitToImageReference(EmitOptions.Default);
+            var compWithReal = CreateCompilation("", references: new[] { MscorlibRef, realImage },
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            verifyEventWasEmitted(compWithReal);
+
+            // verify metadata (types, members, attributes) of the metadata-only assembly
+            var emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(true);
+            CompileAndVerify(comp, emitOptions: emitMetadataOnly, verify: true);
+
+            var metadataImage = comp.EmitToImageReference(emitMetadataOnly);
+            var compWithMetadata = CreateCompilation("", references: new[] { MscorlibRef, metadataImage },
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            verifyEventWasEmitted(compWithMetadata);
+
+            MetadataReaderUtils.AssertEmptyOrThrowNull(comp.EmitToArray(emitMetadataOnly));
+
+            // verify metadata (types, members, attributes) of the ref assembly
+            var emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
+            CompileAndVerify(comp, emitOptions: emitRefOnly, verify: true);
+
+            var refImage = comp.EmitToImageReference(emitRefOnly);
+            var compWithRef = CreateCompilation("", references: new[] { MscorlibRef, refImage },
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            verifyEventWasEmitted(compWithRef);
+
+            MetadataReaderUtils.AssertEmptyOrThrowNull(comp.EmitToArray(emitRefOnly));
+
+            void verifyEventWasEmitted(CSharpCompilation input)
+            {
+                AssertEx.Equal(
+                    new[] { "<Module>", "I", "C" },
+                    input.SourceModule.GetReferencedAssemblySymbols().Last().GlobalNamespace.GetMembers().Select(m => m.ToDisplayString()));
+
+                AssertEx.Equal(
+                    new[] { "void C.I.E.add", "void C.I.E.remove", "C..ctor()", "event System.Action C.I.E" },
+                    input.GetMember<NamedTypeSymbol>("C").GetMembers()
+                        .Select(m => m.ToTestDisplayString()));
+            }
+        }
+
+        [Fact]
+        public void RefAssembly_VerifyTypesAndMembersOnExplicitlyImplementedIndexer()
+        {
+            string source = @"
+public interface I
+{
+    int this[int i] { get; set; }
+}
+public class C : I
+{
+    int I.this[int i]
+    {
+        get { throw null; }
+        set { throw null; }
+    }
+}
+";
+            CSharpCompilation comp = CreateCompilation(source, references: new[] { MscorlibRef },
+                options: TestOptions.DebugDll.WithDeterministic(true));
+
+            // verify metadata (types, members, attributes) of the regular assembly
+            CompileAndVerify(comp, emitOptions: EmitOptions.Default, verify: true);
+
+            var realImage = comp.EmitToImageReference(EmitOptions.Default);
+            var compWithReal = CreateCompilation("", references: new[] { MscorlibRef, realImage },
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            verifyIndexerWasEmitted(compWithReal);
+
+            // verify metadata (types, members, attributes) of the metadata-only assembly
+            var emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(true);
+            CompileAndVerify(comp, emitOptions: emitMetadataOnly, verify: true);
+
+            var metadataImage = comp.EmitToImageReference(emitMetadataOnly);
+            var compWithMetadata = CreateCompilation("", references: new[] { MscorlibRef, metadataImage },
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            verifyIndexerWasEmitted(compWithMetadata);
+
+            MetadataReaderUtils.AssertEmptyOrThrowNull(comp.EmitToArray(emitMetadataOnly));
+
+            // verify metadata (types, members, attributes) of the ref assembly
+            var emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
+            CompileAndVerify(comp, emitOptions: emitRefOnly, verify: true);
+
+            var refImage = comp.EmitToImageReference(emitRefOnly);
+            var compWithRef = CreateCompilation("", references: new[] { MscorlibRef, refImage },
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            verifyIndexerWasEmitted(compWithRef);
+
+            MetadataReaderUtils.AssertEmptyOrThrowNull(comp.EmitToArray(emitRefOnly));
+
+            void verifyIndexerWasEmitted(CSharpCompilation input)
+            {
+                AssertEx.Equal(
+                    new[] { "<Module>", "I", "C" },
+                    input.SourceModule.GetReferencedAssemblySymbols().Last().GlobalNamespace.GetMembers().Select(m => m.ToDisplayString()));
+
+                AssertEx.Equal(
+                    new[] {"System.Int32 C.I.get_Item(System.Int32 i)", "void C.I.set_Item(System.Int32 i, System.Int32 value)",
+                        "C..ctor()", "System.Int32 C.I.Item[System.Int32 i] { get; set; }" },
+                    input.GetMember<NamedTypeSymbol>("C").GetMembers()
+                        .Select(m => m.ToTestDisplayString()));
+            }
+        }
+
+        [Fact]
         public void RefAssembly_VerifyTypesAndMembersOnStruct()
         {
             string source = @"
@@ -1967,7 +2185,7 @@ public class C
             CompileAndVerify(@"
 class C
 {
-    static bool Foo(int i)
+    static bool Goo(int i)
     {
         int y = 10;
         bool x = (y == null); // NYI: Implicit null conversion
@@ -3137,14 +3355,14 @@ using System;
             string source = @"
 public class Test
 {
-    public static decimal Foo(decimal d = 0)
+    public static decimal Goo(decimal d = 0)
     {
         return d;
     }
 
     public static void Main()
     {
-        System.Console.WriteLine(Foo());
+        System.Console.WriteLine(Goo());
     }
 }
 ";
@@ -3745,17 +3963,17 @@ class C
 
         private void TestReferenceToNestedGenericType()
         {
-            string p1 = @"public class Foo<T> { }";
+            string p1 = @"public class Goo<T> { }";
             string p2 = @"using System;
 
 public class Test
 {
     public class C<T> {}
-    public class J<T> : C<Foo<T>> { }
+    public class J<T> : C<Goo<T>> { }
     
     public static void Main()
     {
-        Console.WriteLine(typeof(J<int>).BaseType.Equals(typeof(C<Foo<int>>)) ? 0 : 1);
+        Console.WriteLine(typeof(J<int>).BaseType.Equals(typeof(C<Goo<int>>)) ? 0 : 1);
     }
 }";
             var c1 = CreateStandardCompilation(p1, options: TestOptions.ReleaseDll, assemblyName: Guid.NewGuid().ToString());
@@ -4299,7 +4517,7 @@ class C
         {
             //These tests ensure that users supplying a broken stream implementation via the emit API 
             //get exceptions enabling them to attribute the failure to their code and to debug.
-            string source = @"class Foo {}";
+            string source = @"class Goo {}";
             var compilation = CreateStandardCompilation(source);
 
             var output = new BrokenStream();
@@ -4322,9 +4540,27 @@ class C
         }
 
         [Fact]
+        public void BrokenPortablePdbStream()
+        {
+            string source = @"class Goo {}";
+            var compilation = CreateStandardCompilation(source);
+
+            using (var output = new MemoryStream())
+            {
+                var pdbStream = new BrokenStream();
+                pdbStream.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite;
+                var result = compilation.Emit(output, pdbStream, options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb));
+                result.Diagnostics.Verify(
+                    // error CS0041: Unexpected error writing debug information -- 'I/O error occurred.'
+                    Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("I/O error occurred.").WithLocation(1, 1)
+                    );
+            }
+        }
+
+        [Fact]
         public void BrokenPDBStream()
         {
-            string source = @"class Foo {}";
+            string source = @"class Goo {}";
             var compilation = CreateStandardCompilation(source, null, TestOptions.DebugDll);
 
             var output = new MemoryStream();

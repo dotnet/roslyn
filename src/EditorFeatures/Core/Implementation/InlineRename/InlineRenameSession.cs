@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -710,7 +710,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         internal bool TryGetContainingEditableSpan(SnapshotPoint point, out SnapshotSpan editableSpan)
         {
-            editableSpan = default(SnapshotSpan);
+            editableSpan = default;
             if (!_openTextBuffers.TryGetValue(point.Snapshot.TextBuffer, out var bufferManager))
             {
                 return false;

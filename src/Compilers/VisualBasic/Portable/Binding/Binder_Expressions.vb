@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
@@ -1819,7 +1820,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Dev10 comment:
                 ' Note that this is needed so that we can determine whether the structure
-                ' is not an LValue (eg: RField.m_x = 20 where foo is a readonly field of a
+                ' is not an LValue (eg: RField.m_x = 20 where goo is a readonly field of a
                 ' structure type). In such cases, the structure's field m_x cannot be modified.
                 '
                 ' This does not apply to type params because for type params we do want to
@@ -3571,7 +3572,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim arguments = typeArgumentsOpt.Arguments
 
             'TODO: What should we do if count is 0? Can we get in a situation like this?
-            '      Perhaps for a missing type argument case [Foo(Of )].
+            '      Perhaps for a missing type argument case [Goo(Of )].
 
             Dim boundArguments(arguments.Count - 1) As TypeSymbol
 

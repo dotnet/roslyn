@@ -5045,6 +5045,9 @@
   <data name="IDS_LogoLine2" xml:space="preserve">
     <value>Copyright (C) Microsoft Corporation. All rights reserved.</value>
   </data>
+  <data name="IDS_LangVersions" xml:space="preserve">
+    <value>Supported language versions:</value>
+  </data>
   <data name="IDS_VBCHelp" xml:space="preserve">
     <value>                  Visual Basic Compiler Options
 
@@ -5130,9 +5133,11 @@
 /imports:&lt;import_list&gt;            Declare global Imports for namespaces in 
                                   referenced metadata files. 
                                   import_list:namespace,...
-/langversion:&lt;number&gt;             Specify language version: 
-                                  9|9.0|10|10.0|11|11.0|12|12.0|14|14.0|15|
-                                  15.0|15.3|default|latest
+/langversion:?                    Display the allowed values for language version
+/langversion:&lt;string&gt;             Specify language version such as
+                                  `default` (latest major version), or
+                                  `latest` (latest version, including minor versions),
+                                  or specific versions like `14` or `15.3`
 /optionexplicit[+|-]              Require explicit declaration of variables.
 /optioninfer[+|-]                 Allow type inference of variables.
 /rootnamespace:&lt;string&gt;           Specifies the root Namespace for all type 
@@ -5451,7 +5456,7 @@
     <value>An expression tree may not contain a call to a method or property that returns by reference.</value>
   </data>
   <data name="ERR_CannotEmbedWithoutPdb" xml:space="preserve">
-    <value>/embed switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded).</value>
+    <value>/embed switch is only supported when emitting a PDB.</value>
   </data>
   <data name="ERR_InvalidInstrumentationKind" xml:space="preserve">
     <value>Invalid instrumentation kind: {0}</value>
@@ -5492,4 +5497,8 @@
   <data name="WRN_Experimental_Title" xml:space="preserve">
     <value>Type is for evaluation purposes only and is subject to change or removal in future updates.</value>
   </data>
+  <data name="ERR_InvalidDebugInfo" xml:space="preserve">
+    <value>Unable to read debug information of method '{0}' (token 0x{1}) from assembly '{2}'</value>
+  </data>
 </root>
+

@@ -9,7 +9,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace RunTests
 {
@@ -84,11 +83,21 @@ namespace RunTests
 
                 // Define environment variables for processes started via ProcessRunner.
                 var environmentVariables = new Dictionary<string, string>();
-                environmentVariables.Add(ProcDumpRunner.ProcDumpPathEnvironmentVariableKey, _options.ProcDumpPath);
+                _options.ProcDumpInfo?.WriteEnvironmentVariables(environmentVariables);
 
                 var outputDirectory = _options.LogFilePath != null
                     ? Path.GetDirectoryName(_options.LogFilePath)
                     : Directory.GetCurrentDirectory();
+
+                // Attach procDump to processes when the are started so we can watch for 
+                // unexepected crashes.
+                void onProcessStart(Process process)
+                {
+                    if (_options.ProcDumpInfo != null)
+                    {
+                        ProcDumpUtil.AttachProcDump(_options.ProcDumpInfo.Value, process.Id);
+                    }
+                }
 
                 var start = DateTime.UtcNow;
                 var xunitPath = _options.XunitPath;
@@ -100,7 +109,7 @@ namespace RunTests
                     captureOutput: true,
                     cancellationToken: cancellationToken,
                     environmentVariables: environmentVariables,
-                    onProcessStartHandler: (process) => ProcDumpRunner.StartProcDump(_options.ProcDumpPath, process.Id, process.ProcessName, outputDirectory, Logger.Log));
+                    onProcessStartHandler: onProcessStart);
                 var span = DateTime.UtcNow - start;
 
                 if (processOutput.ExitCode != 0)

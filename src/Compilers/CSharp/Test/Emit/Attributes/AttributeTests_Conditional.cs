@@ -604,13 +604,13 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-[Conditional(Foo.M)]
+[Conditional(Goo.M)]
 [Conditional(Bar.M)]
-public class Foo: Attribute
+public class Goo: Attribute
 {
     public const string M = Bar.M;
-    public Foo([Optional][Foo]int y) {}
-    public static void Main() { var unused = new Foo(); }
+    public Goo([Optional][Goo]int y) {}
+    public static void Main() { var unused = new Goo(); }
 }
 
 class Bar
@@ -622,13 +622,13 @@ class Bar
             {
                 var globalNamespace = module.GlobalNamespace;
 
-                var classFoo = globalNamespace.GetMember<NamedTypeSymbol>("Foo");
-                Assert.True(classFoo.IsConditional);
+                var classGoo = globalNamespace.GetMember<NamedTypeSymbol>("Goo");
+                Assert.True(classGoo.IsConditional);
 
-                var fooCtor = classFoo.InstanceConstructors.First();
-                Assert.Equal(1, fooCtor.ParameterCount);
+                var gooCtor = classGoo.InstanceConstructors.First();
+                Assert.Equal(1, gooCtor.ParameterCount);
 
-                var paramY = fooCtor.Parameters[0];
+                var paramY = gooCtor.Parameters[0];
                 Assert.True(paramY.IsOptional);
                 var attributes = paramY.GetAttributes();
                 if (isFromSource)
@@ -652,15 +652,15 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-[Conditional(Foo.M)]
-[Conditional(Foo.M())]
+[Conditional(Goo.M)]
+[Conditional(Goo.M())]
 [Conditional(Bar.M)]
 [Conditional(Bar.M())]
-public class Foo: Attribute
+public class Goo: Attribute
 {
     public const string M = Bar.M;
-    public Foo([Optional][Foo]int y) {}
-    public static void Main() { var unused = new Foo(); }
+    public Goo([Optional][Goo]int y) {}
+    public static void Main() { var unused = new Goo(); }
 }
 
 class Bar
@@ -672,9 +672,9 @@ class Bar
                 // (12,33): error CS0428: Cannot convert method group 'M' to non-delegate type 'string'. Did you intend to invoke the method?
                 //     public const string M = Bar.M;
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "M").WithArguments("M", "string"),
-                // (7,18): error CS1955: Non-invocable member 'Foo.M' cannot be used like a method.
-                // [Conditional(Foo.M())]
-                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "M").WithArguments("Foo.M"),
+                // (7,18): error CS1955: Non-invocable member 'Goo.M' cannot be used like a method.
+                // [Conditional(Goo.M())]
+                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "M").WithArguments("Goo.M"),
                 // (8,14): error CS1503: Argument 1: cannot convert from 'method group' to 'string'
                 // [Conditional(Bar.M)]
                 Diagnostic(ErrorCode.ERR_BadArgType, "Bar.M").WithArguments("1", "method group", "string"),
@@ -682,8 +682,8 @@ class Bar
                 // [Conditional(Bar.M())]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "Bar.M()"),
                 // (6,14): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                // [Conditional(Foo.M)]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "Foo.M"));
+                // [Conditional(Goo.M)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "Goo.M"));
         }
 
         #endregion

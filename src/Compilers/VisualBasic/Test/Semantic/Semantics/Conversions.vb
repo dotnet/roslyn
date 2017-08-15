@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class ConversionsTests
         Inherits BasicTestBase
 
-        Private Shared ReadOnly s_noConversion As ConversionKind = Nothing
+        Private Const s_noConversion As ConversionKind = Nothing
 
         <Fact()>
         Public Sub TryCastDirectCastConversions()
@@ -4023,9 +4023,9 @@ Public Module Program
         Dim inner As New C1(Of Integer).S1
         outer.EnumField = C1(Of Integer).E1.A
         inner.EnumField = C1(Of Integer).E1.A     
-        Foo(inner.EnumField)
+        Goo(inner.EnumField)
     End Sub
-    Sub Foo(x As Object)
+    Sub Goo(x As Object)
         Console.WriteLine(x.ToString)
     End Sub
 End Module]]>,

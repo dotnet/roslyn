@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -1125,10 +1126,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // problems with constraints. We recurse into type *arguments* in the overload
             // in ConstructedNamedTypeSymbol.
             //
-            // When we are binding a name with a nested type, Foo.Bar, then we ask for
-            // use-site errors to be reported on both Foo and Foo.Bar. Therefore we should
+            // When we are binding a name with a nested type, Goo.Bar, then we ask for
+            // use-site errors to be reported on both Goo and Goo.Bar. Therefore we should
             // not recurse into the containing type here; doing so will result in errors
-            // being reported twice if Foo is bad.
+            // being reported twice if Goo is bad.
 
             var @base = this.BaseTypeNoUseSiteDiagnostics;
             if ((object)@base != null && @base.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes))

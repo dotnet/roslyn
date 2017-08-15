@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -237,7 +237,7 @@ ValueC = 257 // Out of underlying range
             text =
 @"enum ColorA
 {
-void foo()
+void goo()
     {}
 }
 ";
@@ -723,7 +723,7 @@ partial class EnumPartial
 enum ABC { a, b, c }
 class c1
 {
-    public int Foo(ABC o = ABC.a | ABC.b)
+    public int Goo(ABC o = ABC.a | ABC.b)
     {
         return 0;
     }

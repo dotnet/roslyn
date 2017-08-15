@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -346,7 +347,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '
             ' eg:
             ' Class Cls1
-            '    Protected Sub foo()
+            '    Protected Sub goo()
             '    End Sub
             ' End Class
             '
@@ -355,10 +356,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '
             '    Sub Test()
             '        Dim obj1 as New Cls1
-            '        Obj1.foo    'Not accessible
+            '        Obj1.goo    'Not accessible
             '
             '        Dim obj2 as New Cls2
-            '        Obj2.foo    'Accessible
+            '        Obj2.goo    'Accessible
             '    End Sub
             ' End Class
             If InheritsFromIgnoringConstruction(originalThroughTypeOpt, withinType, basesBeingResolved, useSiteDiagnostics) Then
@@ -372,7 +373,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '
             ' eg:
             ' Class Cls1
-            '    Protected Sub foo()
+            '    Protected Sub goo()
             '    End Sub
             ' End Class
             '
@@ -385,7 +386,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '    Class Cls2_1
             '      Sub Test()
             '        Dim obj2 as New Cls2
-            '        Obj2.foo    'Accessible
+            '        Obj2.goo    'Accessible
             '
             '        Obj2.goo    'Accessible
             '      End Sub
@@ -465,7 +466,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     current = Nothing ' can't go up the base type chain.
                 Else
                     ' NOTE: The base type of an 'original' type may not be 'original'. i.e. 
-                    ' "class Foo : Inherits IBar(Of Integer)".  We must map it back to the 'original' when as we walk up
+                    ' "class Goo : Inherits IBar(Of Integer)".  We must map it back to the 'original' when as we walk up
                     ' the base type hierarchy.
                     current = current.BaseTypeOriginalDefinition(useSiteDiagnostics)
                 End If

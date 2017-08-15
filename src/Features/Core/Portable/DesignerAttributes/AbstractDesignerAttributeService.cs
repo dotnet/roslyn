@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
             SemanticModel model = null;
 
             string designerAttributeArgument = null;
-            var documentHasError = false;
 
             // get type defined in current tree
             foreach (var typeNode in GetAllTopLevelTypeDefined(root))
@@ -44,7 +43,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
                         {
                             // The DesignerCategoryAttribute doesn't exist. either not applicable or
                             // no idea on design attribute status, just leave things as it is.
-                            return new DesignerAttributeDocumentData(document.FilePath, designerAttributeArgument, documentHasError, notApplicable: true);
+                            return new DesignerAttributeDocumentData(document.FilePath, designerAttributeArgument);
                         }
                     }
 
@@ -64,7 +63,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
                     {
                         if (type.IsErrorType())
                         {
-                            documentHasError = true;
                             continue;
                         }
 
@@ -75,7 +73,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
                         if (attribute != null && attribute.ConstructorArguments.Length == 1)
                         {
                             designerAttributeArgument = GetArgumentString(attribute.ConstructorArguments[0]);
-                            return new DesignerAttributeDocumentData(document.FilePath, designerAttributeArgument, documentHasError, notApplicable: false);
+                            return new DesignerAttributeDocumentData(document.FilePath, designerAttributeArgument);
                         }
                     }
                 }
@@ -87,7 +85,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
                 }
             }
 
-            return new DesignerAttributeDocumentData(document.FilePath, designerAttributeArgument, documentHasError, notApplicable: false);
+            return new DesignerAttributeDocumentData(document.FilePath, designerAttributeArgument);
         }
 
         private static string GetArgumentString(TypedConstant argument)

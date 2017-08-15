@@ -3,8 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -19,21 +19,38 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal partial class AnalyzerManager
     {
-        /// <summary>
-        /// Gets the default instance of the AnalyzerManager for the lifetime of the analyzer host process.
-        /// </summary>
-        public static readonly AnalyzerManager Instance = new AnalyzerManager();
-
         // This cache stores the analyzer execution context per-analyzer (i.e. registered actions, supported descriptors, etc.).
-        private readonly ConditionalWeakTable<DiagnosticAnalyzer, AnalyzerExecutionContext> _analyzerExecutionContextMap =
-            new ConditionalWeakTable<DiagnosticAnalyzer, AnalyzerExecutionContext>();
+        private readonly ImmutableDictionary<DiagnosticAnalyzer, AnalyzerExecutionContext> _analyzerExecutionContextMap;
+
+        public AnalyzerManager(ImmutableArray<DiagnosticAnalyzer> analyzers)
+        {
+            _analyzerExecutionContextMap = CreateAnalyzerExecutionContextMap(analyzers);
+        }
+
+        public AnalyzerManager(DiagnosticAnalyzer analyzer)
+        {
+            _analyzerExecutionContextMap = CreateAnalyzerExecutionContextMap(SpecializedCollections.SingletonEnumerable(analyzer));
+        }
+
+        private ImmutableDictionary<DiagnosticAnalyzer, AnalyzerExecutionContext> CreateAnalyzerExecutionContextMap(IEnumerable<DiagnosticAnalyzer> analyzers)
+        {
+            var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, AnalyzerExecutionContext>();
+            foreach (var analyzer in analyzers)
+            {
+                builder.Add(analyzer, new AnalyzerExecutionContext());
+            }
+
+            return builder.ToImmutable();
+        }
+
+        private AnalyzerExecutionContext GetAnalyzerExecutionContext(DiagnosticAnalyzer analyzer) => _analyzerExecutionContextMap[analyzer];
 
         private async Task<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeAsync(
             DiagnosticAnalyzer analyzer,
             HostSessionStartAnalysisScope sessionScope,
             AnalyzerExecutor analyzerExecutor)
         {
-            var analyzerExecutionContext = _analyzerExecutionContextMap.GetOrCreateValue(analyzer);
+            var analyzerExecutionContext = GetAnalyzerExecutionContext(analyzer);
             return await GetCompilationAnalysisScopeCoreAsync(sessionScope, analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
         }
 
@@ -49,8 +66,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             catch (OperationCanceledException)
             {
                 // Task to compute the scope was cancelled.
-                // Clear the entry in scope map for analyzer, so we can attempt a retry.
-                analyzerExecutionContext.ClearCompilationScopeMap(analyzerExecutor.Compilation);
+                // Clear the compilation scope for analyzer, so we can attempt a retry.
+                analyzerExecutionContext.ClearCompilationScopeTask();
 
                 analyzerExecutor.CancellationToken.ThrowIfCancellationRequested();
                 return await GetCompilationAnalysisScopeCoreAsync(sessionScope, analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
@@ -61,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             AnalyzerExecutor analyzerExecutor)
         {
-            var analyzerExecutionContext = _analyzerExecutionContextMap.GetOrCreateValue(analyzer);
+            var analyzerExecutionContext = GetAnalyzerExecutionContext(analyzer);
             return await GetSessionAnalysisScopeCoreAsync(analyzer, analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
         }
 
@@ -139,20 +156,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             AnalyzerExecutor analyzerExecutor)
         {
-            var analyzerExecutionContext = _analyzerExecutionContextMap.GetOrCreateValue(analyzer);
+            var analyzerExecutionContext = GetAnalyzerExecutionContext(analyzer);
             return analyzerExecutionContext.GetOrComputeDescriptors(analyzer, analyzerExecutor);
-        }
-
-        /// <summary>
-        /// This method should be invoked when the analyzer host is disposing off the analyzers.
-        /// It unregisters the exception handler hooked up to the descriptors' LocalizableString fields and subsequently removes the cached descriptors for the analyzers.
-        /// </summary>
-        internal void ClearAnalyzerState(ImmutableArray<DiagnosticAnalyzer> analyzers)
-        {
-            foreach (var analyzer in analyzers)
-            {
-                _analyzerExecutionContextMap.Remove(analyzer);
-            }
         }
 
         internal bool IsSupportedDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer, AnalyzerExecutor analyzerExecutor)

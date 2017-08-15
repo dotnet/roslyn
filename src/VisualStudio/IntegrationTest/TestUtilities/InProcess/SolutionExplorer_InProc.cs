@@ -221,9 +221,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             if (project is IVsBrowseObjectContext browseObjectContext)
             {
-                var packageService = browseObjectContext.ConfiguredProject.Services.PackageReferences;
+                var threadingService = browseObjectContext.UnconfiguredProject.ProjectService.Services.ThreadingPolicy;
 
-                var result = packageService.AddAsync(packageName, version).GetAwaiter().GetResult();
+                var result = threadingService.ExecuteSynchronously(async () =>
+                {
+                    var configuredProject = await browseObjectContext.UnconfiguredProject.GetSuggestedConfiguredProjectAsync().ConfigureAwait(false);
+                    return await configuredProject.Services.PackageReferences.AddAsync(packageName, version).ConfigureAwait(false);
+                });
             }
             else
             {
@@ -237,9 +241,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             if (project is IVsBrowseObjectContext browseObjectContext)
             {
-                var packageService = browseObjectContext.ConfiguredProject.Services.PackageReferences;
+                var threadingService = browseObjectContext.UnconfiguredProject.ProjectService.Services.ThreadingPolicy;
 
-                packageService.RemoveAsync(packageName).GetAwaiter().GetResult();
+                threadingService.ExecuteSynchronously(async () =>
+                {
+                    var configuredProject = await browseObjectContext.UnconfiguredProject.GetSuggestedConfiguredProjectAsync().ConfigureAwait(false);
+                    await configuredProject.Services.PackageReferences.RemoveAsync(packageName).ConfigureAwait(false);
+                });
             }
             else
             {
@@ -800,10 +808,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return Path.Combine(projectPath, relativeFilePath);
         }
 
-        public void ReloadProject(string projectName)
+        public void ReloadProject(string projectRelativePath)
         {
             var solutionPath = Path.GetDirectoryName(_solution.FullName);
-            var projectPath = Path.Combine(solutionPath, projectName);
+            var projectPath = Path.Combine(solutionPath, projectRelativePath);
             _solution.AddFromFile(projectPath);
         }
 
@@ -821,7 +829,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void UnloadProject(string projectName)
         {
-            var project = _solution.Projects.Item(projectName);
+            var projects = _solution.Projects;
+            EnvDTE.Project project = null;
+            for (int i = 1; i <= projects.Count; i++)
+            {
+                project = projects.Item(i);
+                if (string.Compare(project.Name, projectName, StringComparison.Ordinal) == 0)
+                {
+                    break;
+                }
+            }
+
             _solution.Remove(project);
         }
 

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -149,21 +149,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return true;
         }
 
-        public bool TrySymbolNavigationNotify(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
+        public bool TrySymbolNavigationNotify(ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
-            return TryNotifyForSpecificSymbol(symbol, solution, cancellationToken);
+            return TryNotifyForSpecificSymbol(symbol, project, cancellationToken);
         }
 
         private bool TryNotifyForSpecificSymbol(
-            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
+            ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
             AssertIsForeground();
 
-            var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
+            var definitionItem = symbol.ToNonClassifiedDefinitionItem(project, includeHiddenLocations: true);
             definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey1, out var rqName);
 
             if (!TryGetNavigationAPIRequiredArguments(
-                    definitionItem, rqName, solution, cancellationToken,
+                    definitionItem, rqName, cancellationToken,
                     out var hierarchy, out var itemID, out var navigationNotify))
             {
                 return false;
@@ -213,7 +213,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             if (!TryGetNavigationAPIRequiredArguments(
-                    definitionItem, rqName, solution, cancellationToken,
+                    definitionItem, rqName, cancellationToken,
                     out var hierarchy, out var itemID, out var navigationNotify))
             {
                 return false;
@@ -244,7 +244,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private bool TryGetNavigationAPIRequiredArguments(
             DefinitionItem definitionItem,
             string rqName,
-            Solution solution,
             CancellationToken cancellationToken,
             out IVsHierarchy hierarchy,
             out uint itemID,

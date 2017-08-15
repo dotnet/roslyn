@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Semantics;
 using Roslyn.Utilities;
 
@@ -438,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // By contrast:
             //
-            // Foo(z: this.p, y: this.Q(), x: (object)10)
+            // Goo(z: this.p, y: this.Q(), x: (object)10)
             //
             // The boxing of 10 can be reordered, but the fetch of this.p has to happen before the
             // call to this.Q() because the call could change the value of this.p. 

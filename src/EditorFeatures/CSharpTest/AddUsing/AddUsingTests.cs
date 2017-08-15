@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             string initialMarkup,
             string expectedMarkup,
             int index = 0,
-            bool ignoreTrivia = true,
+            bool ignoreTrivia = false,
             CodeActionPriority? priority = null,
             IDictionary<OptionKey, object> options = null)
         {
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
 {
     [|IDictionary|] Method()
     {
-        Foo();
+        Goo();
     }
 }",
 @"using System.Collections;
@@ -91,7 +91,7 @@ class Class
 {
     IDictionary Method()
     {
-        Foo();
+        Goo();
     }
 }");
         }
@@ -133,7 +133,7 @@ class Class1 : TextBox
 {
     [|IDictionary|] Method()
     {
-        Foo();
+        Goo();
     }
 }",
 @"using System.Collections.Generic;
@@ -142,7 +142,7 @@ class Class
 {
     IDictionary Method()
     {
-        Foo();
+        Goo();
     }
 }",
 index: 1);
@@ -156,7 +156,7 @@ index: 1);
 {
     [|List|] Method()
     {
-        Foo();
+        Goo();
     }
 }",
 @"using System.Collections.Generic;
@@ -165,7 +165,7 @@ class Class
 {
     List Method()
     {
-        Foo();
+        Goo();
     }
 }");
         }
@@ -178,7 +178,7 @@ class Class
 {
     [|List<int>|] Method()
     {
-        Foo();
+        Goo();
     }
 }",
 @"using System.Collections.Generic;
@@ -187,7 +187,7 @@ class Class
 {
     List<int> Method()
     {
-        Foo();
+        Goo();
     }
 }");
         }
@@ -200,7 +200,7 @@ class Class
 {
     [|List<int, string, bool>|] Method()
     {
-        Foo();
+        Goo();
     }
 }");
         }
@@ -213,7 +213,7 @@ class Class
 {
     [|List<int, string>|] Method()
     {
-        Foo();
+        Goo();
     }
 }");
         }
@@ -224,7 +224,7 @@ class Class
             await TestAsync(
 @"class Class
 {
-    void Foo()
+    void Goo()
     {
         [|List<int>|] a = new List<int>();
     }
@@ -233,7 +233,7 @@ class Class
 
 class Class
 {
-    void Foo()
+    void Goo()
     {
         List<int> a = new List<int>();
     }
@@ -269,7 +269,7 @@ class Class
 {
     [|List<int>|] Method()
     {
-        Foo();
+        Goo();
     }
 }",
 @"using System;
@@ -279,7 +279,7 @@ class Class
 {
     List<int> Method()
     {
-        Foo();
+        Goo();
     }
 }");
         }
@@ -294,7 +294,7 @@ class Class
     {
         [|List<int>|] Method()
         {
-            Foo();
+            Goo();
         }
     }
 }",
@@ -306,7 +306,7 @@ namespace N
     {
         List<int> Method()
         {
-            Foo();
+            Goo();
         }
     }
 }");
@@ -324,7 +324,7 @@ namespace N
     {
         [|List<int>|] Method()
         {
-            Foo();
+            Goo();
         }
     }
 }",
@@ -337,7 +337,7 @@ namespace N
     {
         List<int> Method()
         {
-            Foo();
+            Goo();
         }
     }
 }");
@@ -353,7 +353,7 @@ class Class
 {
     [|IDictionary|] Method()
     {
-        Foo();
+        Goo();
     }
 }",
 count: 1);
@@ -365,7 +365,7 @@ class Class
 {
     [|IDictionary|] Method()
     {
-        Foo();
+        Goo();
     }
 }",
 @"using System.Collections;
@@ -375,7 +375,7 @@ class Class
 {
     IDictionary Method()
     {
-        Foo();
+        Goo();
     }
 }");
         }
@@ -452,7 +452,7 @@ parseOptions: Options.Regular);
             await TestAsync(
 @"class Class
 {
-    void Foo()
+    void Goo()
     {
         var a = [|Colors|].Red;
     }
@@ -471,7 +471,7 @@ namespace A
 
 class Class
 {
-    void Foo()
+    void Goo()
     {
         var a = Colors.Red;
     }
@@ -520,25 +520,25 @@ namespace A
         public async Task TestOnImplementedInterface()
         {
             await TestAsync(
-@"class Class : [|IFoo|]
+@"class Class : [|IGoo|]
 {
 }
 
 namespace A
 {
-    interface IFoo
+    interface IGoo
     {
     }
 }",
 @"using A;
 
-class Class : IFoo
+class Class : IGoo
 {
 }
 
 namespace A
 {
-    interface IFoo
+    interface IGoo
     {
     }
 }");
@@ -548,7 +548,7 @@ namespace A
         public async Task TestAllInBaseList()
         {
             await TestAsync(
-@"class Class : [|IFoo|], Class2
+@"class Class : [|IGoo|], Class2
 {
 }
 
@@ -561,13 +561,13 @@ namespace A
 
 namespace B
 {
-    interface IFoo
+    interface IGoo
     {
     }
 }",
 @"using B;
 
-class Class : IFoo, Class2
+class Class : IGoo, Class2
 {
 }
 
@@ -580,7 +580,7 @@ namespace A
 
 namespace B
 {
-    interface IFoo
+    interface IGoo
     {
     }
 }");
@@ -588,7 +588,7 @@ namespace B
             await TestAsync(
 @"using B;
 
-class Class : IFoo, [|Class2|]
+class Class : IGoo, [|Class2|]
 {
 }
 
@@ -601,14 +601,14 @@ namespace A
 
 namespace B
 {
-    interface IFoo
+    interface IGoo
     {
     }
 }",
 @"using A;
 using B;
 
-class Class : IFoo, Class2
+class Class : IGoo, Class2
 {
 }
 
@@ -621,7 +621,7 @@ namespace A
 
 namespace B
 {
-    interface IFoo
+    interface IGoo
     {
     }
 }");
@@ -666,7 +666,7 @@ class Class
             await TestAsync(
 @"class Class
 {
-    void Foo()
+    void Goo()
     {
         List<int> l;
         l = new [|List<int>|]();
@@ -676,7 +676,7 @@ class Class
 
 class Class
 {
-    void Foo()
+    void Goo()
     {
         List<int> l;
         l = new List<int>();
@@ -811,7 +811,7 @@ namespace C
             await TestAsync(
 @"using System.Collections.Generic;
 
-class Foo
+class Goo
 {
     void Bar()
     {
@@ -822,7 +822,7 @@ class Foo
 @"using System.Collections.Generic;
 using System.Linq;
 
-class Foo
+class Goo
 {
     void Bar()
     {
@@ -839,7 +839,7 @@ class Foo
             await TestAsync(
 @"using System.Collections.Generic;
 
-class Foo
+class Goo
 {
     void Bar()
     {
@@ -852,7 +852,7 @@ class Foo
 @"using System.Collections.Generic;
 using System.Linq;
 
-class Foo
+class Goo
 {
     void Bar()
     {
@@ -876,13 +876,13 @@ class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
 namespace D
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -897,13 +897,13 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
 namespace D
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -923,13 +923,13 @@ class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -944,13 +944,13 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -970,13 +970,13 @@ class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -991,13 +991,13 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1017,13 +1017,13 @@ class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
 namespace C
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1038,13 +1038,13 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
 namespace C
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1064,13 +1064,13 @@ class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
 namespace B
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1085,13 +1085,13 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
 namespace B
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1111,13 +1111,13 @@ class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
 namespace B.A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1132,13 +1132,13 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
 namespace B.A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1158,7 +1158,7 @@ class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
@@ -1166,7 +1166,7 @@ namespace B
 {
     namespace A
     {
-        class Foo
+        class Goo
         {
             public static void Bar()
             {
@@ -1182,7 +1182,7 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
@@ -1190,7 +1190,7 @@ namespace B
 {
     namespace A
     {
-        class Foo
+        class Goo
         {
             public static void Bar()
             {
@@ -1211,7 +1211,7 @@ class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
@@ -1219,7 +1219,7 @@ namespace B
 {
     namespace A
     {
-        class Foo
+        class Goo
         {
             public static void Bar()
             {
@@ -1235,7 +1235,7 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
@@ -1243,7 +1243,7 @@ namespace B
 {
     namespace A
     {
-        class Foo
+        class Goo
         {
             public static void Bar()
             {
@@ -1264,13 +1264,13 @@ class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
 namespace B
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1285,13 +1285,13 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
 namespace B
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1312,13 +1312,13 @@ class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1333,13 +1333,13 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1361,13 +1361,13 @@ class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1383,13 +1383,13 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1431,27 +1431,31 @@ systemSpecialCase: true);
         public async Task TestSimpleSystemUnsortedUsings1()
         {
             await TestAsync(
-@"using B;
+@"
+using C;
+using B;
 using System;
 
 class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
         }
     }
 }",
-@"using B;
+@"
+using C;
+using B;
 using System;
 using A;
 
@@ -1459,13 +1463,13 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1487,13 +1491,13 @@ class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1509,13 +1513,13 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1636,27 +1640,31 @@ systemSpecialCase: true);
         public async Task TestSimpleSystemUnsortedUsings4()
         {
             await TestAsync(
-@"using System;
+@"
+using C;
+using System;
 using B;
 
 class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
         }
     }
 }",
-@"using System;
+@"
+using C;
+using System;
 using B;
 using A;
 
@@ -1664,13 +1672,13 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1691,13 +1699,13 @@ class Class
 {
     void Method()
     {
-        [|Foo|].Bar();
+        [|Goo|].Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1712,13 +1720,13 @@ class Class
 {
     void Method()
     {
-        Foo.Bar();
+        Goo.Bar();
     }
 }
 
 namespace A
 {
-    class Foo
+    class Goo
     {
         public static void Bar()
         {
@@ -1799,7 +1807,9 @@ ignoreTrivia: false);
         {
             await TestAsync(
 @"class Program { static void Main ( string [ ] args ) { [|Console|] . Out . NewLine = ""\r\n\r\n"" ; } } ",
-@"using System ; class Program { static void Main ( string [ ] args ) { Console . Out . NewLine = ""\r\n\r\n"" ; } } ");
+@"using System;
+
+class Program { static void Main ( string [ ] args ) { Console . Out . NewLine = ""\r\n\r\n"" ; } } ");
         }
 
         [WorkItem(539853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539853")]
@@ -1809,7 +1819,9 @@ ignoreTrivia: false);
             await TestAsync(
 @"using System.Console; WriteLine([|Expression|].Constant(123));",
 @"using System.Console;
-using System.Linq.Expressions; WriteLine(Expression.Constant(123));",
+using System.Linq.Expressions;
+
+WriteLine(Expression.Constant(123));",
 parseOptions: GetScriptOptions());
         }
 
@@ -1818,7 +1830,7 @@ parseOptions: GetScriptOptions());
         public async Task TestAddAfterDefineDirective1()
         {
             await TestAsync(
-@"#define foo
+@"#define goo
 
 using System.Collections.Generic;
 using System.Linq;
@@ -1830,7 +1842,7 @@ class Program
         [|Console|].WriteLine();
     }
 }",
-@"#define foo
+@"#define goo
 
 using System;
 using System.Collections.Generic;
@@ -1851,7 +1863,7 @@ ignoreTrivia: false);
         public async Task TestAddAfterDefineDirective2()
         {
             await TestAsync(
-@"#define foo
+@"#define goo
 
 class Program
 {
@@ -1860,7 +1872,7 @@ class Program
         [|Console|].WriteLine();
     }
 }",
-@"#define foo
+@"#define goo
 
 using System;
 
@@ -1878,9 +1890,9 @@ ignoreTrivia: false);
         public async Task TestAddAfterDefineDirective3()
         {
             await TestAsync(
-@"#define foo
+@"#define goo
 
-/// Foo
+/// Goo
 class Program
 {
     static void Main(string[] args)
@@ -1888,10 +1900,10 @@ class Program
         [|Console|].WriteLine();
     }
 }",
-@"#define foo
+@"#define goo
 
 using System;
-/// Foo
+/// Goo
 class Program
 {
     static void Main(string[] args)
@@ -1906,9 +1918,9 @@ ignoreTrivia: false);
         public async Task TestAddAfterDefineDirective4()
         {
             await TestAsync(
-@"#define foo
+@"#define goo
 
-// Foo
+// Goo
 class Program
 {
     static void Main(string[] args)
@@ -1916,9 +1928,9 @@ class Program
         [|Console|].WriteLine();
     }
 }",
-@"#define foo
+@"#define goo
 
-// Foo
+// Goo
 using System;
 
 class Program
@@ -1964,9 +1976,9 @@ ignoreTrivia: false);
         public async Task TestAddAfterExternAlias1()
         {
             await TestAsync(
-@"#define foo
+@"#define goo
 
-extern alias Foo;
+extern alias Goo;
 
 class Program
 {
@@ -1975,9 +1987,9 @@ class Program
         [|Console|].WriteLine();
     }
 }",
-@"#define foo
+@"#define goo
 
-extern alias Foo;
+extern alias Goo;
 
 using System;
 
@@ -1995,9 +2007,9 @@ ignoreTrivia: false);
         public async Task TestAddAfterExternAlias2()
         {
             await TestAsync(
-@"#define foo
+@"#define goo
 
-extern alias Foo;
+extern alias Goo;
 
 using System.Collections;
 
@@ -2008,9 +2020,9 @@ class Program
         [|Console|].WriteLine();
     }
 }",
-@"#define foo
+@"#define goo
 
-extern alias Foo;
+extern alias Goo;
 
 using System;
 using System.Collections;
@@ -2116,7 +2128,7 @@ ignoreTrivia: false);
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    void Foo()
+    void Goo()
     {
 #line 1 ""Default.aspx""
         using (new [|StreamReader|]())
@@ -2138,7 +2150,7 @@ ignoreTrivia: false);
 input,
 @"using System.Runtime.InteropServices;
 
-[assembly: Guid(""9ed54f84-a89d-4fcd-a854-44251e925f09"")]");
+[ assembly : Guid ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ");
         }
 
         [WorkItem(546833, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546833")]
@@ -2412,6 +2424,7 @@ namespace ExternAliases
             const string ExpectedDocumentText = @"extern alias P;
 
 using P::ProjectLib;
+
 namespace ExternAliases
 {
     class Program
@@ -2469,7 +2482,8 @@ namespace ExternAliases
     </Project>
 </Workspace>";
 
-            const string ExpectedDocumentText = @"extern alias P;
+            const string ExpectedDocumentText = @"
+extern alias P;
 
 using P::AnotherNS;
 using P::ProjectLib;
@@ -2523,6 +2537,7 @@ namespace ExternAliases
 </Workspace>";
 
             const string ExpectedDocumentText = @"extern alias P;
+
 using P::AnotherNS;
 namespace ExternAliases
 {
@@ -2638,7 +2653,7 @@ namespace N1
 
 public class MyClass
 {
-    public static explicit operator N1.D(MyClass f)
+    public static explicit operator N1.D (MyClass f)
     {
         return default(N1.D);
     }
@@ -3050,14 +3065,17 @@ namespace Extensions
 </Workspace> ";
 
             var expectedText =
-@"using Extensions;
+@"
+using Extensions;
+
 public class C
 {
     void Main(C a)
     {
         C x = a?.B();
     }
-}";
+}
+       ";
             await TestAsync(initialText, expectedText);
         }
 
@@ -3096,7 +3114,9 @@ namespace Extensions
 </Workspace> ";
 
             var expectedText =
-@"using Extensions;
+@"
+using Extensions;
+
 public class C
 {
     public E B { get; private set; }
@@ -3109,7 +3129,8 @@ public class C
     public class E
     {
     }
-}";
+}
+       ";
             await TestAsync(initialText, expectedText);
         }
 
@@ -3836,8 +3857,8 @@ namespace X
 }",
 @"namespace Microsoft.MyApp
 {
-#if true
     using Microsoft.Win32.SafeHandles;
+#if true
     using Win32;
 #else
     using System;
@@ -4094,7 +4115,7 @@ using System.Collections.Generic;
 
 static void Main(string[] args)
 {
-    Func<int> f = () => { List<int>.}
+    Func<int> f = () => { List<int>. }
 }";
             await TestAsync(initialText, expectedText);
         }
@@ -4117,7 +4138,7 @@ using System.Collections.Generic;
 
 static void Main(string[] args)
 {
-    Func<int> f = () => { List<int>}
+    Func<int> f = () => { List<int> }
 }";
             await TestAsync(initialText, expectedText);
         }
@@ -4194,7 +4215,7 @@ static void Main(string[] args)
 
 class Test
 {
-    void Foo()
+    void Goo()
     {
         Action a = () => {
             [|IBindCtx|] };
@@ -4206,7 +4227,7 @@ using System.Runtime.InteropServices.ComTypes;
 
 class Test
 {
-    void Foo()
+    void Goo()
     {
         Action a = () => {
             IBindCtx };
@@ -4234,7 +4255,7 @@ namespace Namespace1
 
 namespace Namespace2
 {
-    class Foo
+    class Goo
     {
         void Bar()
         {
@@ -4258,7 +4279,7 @@ namespace Namespace1
 
 namespace Namespace2
 {
-    class Foo
+    class Goo
     {
         void Bar()
         {
@@ -4461,7 +4482,7 @@ namespace N
     {
         [|List<int>|] Method()
         {
-            Foo();
+            Goo();
         }
     }
 }",
@@ -4477,7 +4498,7 @@ namespace N
     {
         List<int> Method()
         {
-            Foo();
+            Goo();
         }
     }
 }");
@@ -4637,11 +4658,147 @@ namespace Outer
     {
         void M()
         {
+            // Note: IVsStatusBar is cased incorrectly.
             IVsStatusbar b;
         }
     }
 }
 ");
+        }
+
+        [WorkItem(19575, "https://github.com/dotnet/roslyn/issues/19575")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestNoNonGenericsWithGenericCodeParsedAsExpression()
+        {
+            var code = @"
+class C
+{
+    private void GetEvaluationRuleNames()
+    {
+        [|IEnumerable|] < Int32 >
+        return ImmutableArray.CreateRange();
+    }
+}";
+            await TestActionCountAsync(code, count: 1);
+
+            await TestInRegularAndScriptAsync(
+code,
+@"
+using System.Collections.Generic;
+
+class C
+{
+    private void GetEvaluationRuleNames()
+    {
+        IEnumerable < Int32 >
+        return ImmutableArray.CreateRange();
+    }
+}");
+        }
+
+        [WorkItem(19796, "https://github.com/dotnet/roslyn/issues/19796")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestWhenInRome1()
+        {
+            // System is set to be sorted first, but the actual file shows it at the end.
+            // Keep things sorted, but respect that 'System' is at the end.
+            await TestAsync(
+@"
+using B;
+using System;
+
+class Class
+{
+    void Method()
+    {
+        [|Goo|].Bar();
+    }
+}
+
+namespace A
+{
+    class Goo
+    {
+        public static void Bar()
+        {
+        }
+    }
+}",
+@"
+using A;
+using B;
+using System;
+
+class Class
+{
+    void Method()
+    {
+        Goo.Bar();
+    }
+}
+
+namespace A
+{
+    class Goo
+    {
+        public static void Bar()
+        {
+        }
+    }
+}",
+systemSpecialCase: true);
+        }
+
+        [WorkItem(19796, "https://github.com/dotnet/roslyn/issues/19796")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestWhenInRome2()
+        {
+            // System is set to not be sorted first, but the actual file shows it sorted first.
+            // Keep things sorted, but respect that 'System' is at the beginning.
+            await TestAsync(
+@"
+using System;
+using B;
+
+class Class
+{
+    void Method()
+    {
+        [|Goo|].Bar();
+    }
+}
+
+namespace A
+{
+    class Goo
+    {
+        public static void Bar()
+        {
+        }
+    }
+}",
+@"
+using System;
+using A;
+using B;
+
+class Class
+{
+    void Method()
+    {
+        Goo.Bar();
+    }
+}
+
+namespace A
+{
+    class Goo
+    {
+        public static void Bar()
+        {
+        }
+    }
+}");
         }
     }
 }

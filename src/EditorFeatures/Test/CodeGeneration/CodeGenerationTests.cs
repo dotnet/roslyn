@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             IList<ISymbol> imports = null,
             IList<INamespaceOrTypeSymbol> members = null,
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
-            bool ignoreTrivia = true)
+            bool ignoreTrivia = false)
         {
             using (var context = await TestContext.CreateAsync(initial, expected, ignoreTrivia))
             {
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             Accessibility accessibility = Accessibility.Public,
             Editing.DeclarationModifiers modifiers = default(Editing.DeclarationModifiers),
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
-            bool ignoreTrivia = true,
+            bool ignoreTrivia = false,
             bool hasConstantValue = false,
             object constantValue = null,
             bool addToCompilationUnit = false)
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             ImmutableArray<SyntaxNode> baseArguments = default(ImmutableArray<SyntaxNode>),
             ImmutableArray<SyntaxNode> thisArguments = default(ImmutableArray<SyntaxNode>),
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
-            bool ignoreTrivia = true)
+            bool ignoreTrivia = false)
         {
             using (var context = await TestContext.CreateAsync(initial, expected, ignoreTrivia))
             {
@@ -121,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             string statements = null,
             ImmutableArray<SyntaxNode> handlesExpressions = default(ImmutableArray<SyntaxNode>),
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
-            bool ignoreTrivia = true)
+            bool ignoreTrivia = false)
         {
             if (statements != null)
             {
@@ -159,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             ImmutableArray<Func<SemanticModel, IParameterSymbol>> parameters = default(ImmutableArray<Func<SemanticModel, IParameterSymbol>>),
             string statements = null,
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
-            bool ignoreTrivia = true)
+            bool ignoreTrivia = false)
         {
             if (statements != null)
             {
@@ -196,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             ImmutableArray<Func<SemanticModel, IParameterSymbol>> parameters = default(ImmutableArray<Func<SemanticModel, IParameterSymbol>>),
             string statements = null,
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
-            bool ignoreTrivia = true)
+            bool ignoreTrivia = false)
         {
             using (var context = await TestContext.CreateAsync(initial, initial, ignoreResult: true))
             {
@@ -238,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             Editing.DeclarationModifiers modifiers = default(Editing.DeclarationModifiers),
             string statements = null,
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
-            bool ignoreTrivia = true)
+            bool ignoreTrivia = false)
         {
             if (statements != null)
             {
@@ -266,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             string expected,
             string statements,
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
-            bool ignoreTrivia = true)
+            bool ignoreTrivia = false)
         {
             if (statements != null)
             {
@@ -287,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             string expected,
             ImmutableArray<Func<SemanticModel, IParameterSymbol>> parameters,
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
-            bool ignoreTrivia = true)
+            bool ignoreTrivia = false)
         {
             using (var context = await TestContext.CreateAsync(initial, expected, ignoreTrivia))
             {
@@ -308,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             ImmutableArray<ITypeParameterSymbol> typeParameters = default(ImmutableArray<ITypeParameterSymbol>),
             ImmutableArray<Func<SemanticModel, IParameterSymbol>> parameters = default(ImmutableArray<Func<SemanticModel, IParameterSymbol>>),
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
-            bool ignoreTrivia = true)
+            bool ignoreTrivia = false)
         {
             using (var context = await TestContext.CreateAsync(initial, expected, ignoreTrivia))
             {
@@ -340,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             IMethodSymbol removeMethod = null,
             IMethodSymbol raiseMethod = null,
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
-            bool ignoreTrivia = true)
+            bool ignoreTrivia = false)
         {
             using (var context = await TestContext.CreateAsync(initial, expected, ignoreTrivia))
             {
@@ -376,7 +377,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             ImmutableArray<Func<SemanticModel, IParameterSymbol>> parameters = default(ImmutableArray<Func<SemanticModel, IParameterSymbol>>),
             bool isIndexer = false,
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
-            bool ignoreTrivia = true,
+            bool ignoreTrivia = false,
             IDictionary<OptionKey, object> options = null)
         {
             // This assumes that tests will not use place holders for get/set statements at the same time
@@ -469,7 +470,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             SpecialType specialType = SpecialType.None,
             ImmutableArray<Func<SemanticModel, ISymbol>> members = default(ImmutableArray<Func<SemanticModel, ISymbol>>),
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
-            bool ignoreTrivia = true)
+            bool ignoreTrivia = false)
         {
             using (var context = await TestContext.CreateAsync(initial, expected, ignoreTrivia))
             {
@@ -486,7 +487,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             string expected,
             Type attributeClass,
             SyntaxToken? target = null,
-            bool ignoreTrivia = true)
+            bool ignoreTrivia = false)
         {
             using (var context = await TestContext.CreateAsync(initial, expected, ignoreTrivia))
             {
@@ -577,7 +578,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             string expected,
             bool onlyGenerateMembers = false,
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
-            bool ignoreTrivia = true,
+            bool ignoreTrivia = false,
             string forceLanguage = null)
         {
             using (var context = await TestContext.CreateAsync(initial, expected, ignoreTrivia, forceLanguage))
@@ -836,7 +837,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 this.Service = Document.Project.LanguageServices.GetService<ICodeGenerationService>();
             }
 
-            public static async Task<TestContext> CreateAsync(string initial, string expected, bool ignoreTrivia = true, string forceLanguage = null, bool ignoreResult = false)
+            public static async Task<TestContext> CreateAsync(string initial, string expected, bool ignoreTrivia = false, string forceLanguage = null, bool ignoreResult = false)
             {
                 var language = forceLanguage != null ? forceLanguage : GetLanguage(initial);
                 var isVisualBasic = language == LanguageNames.VisualBasic;

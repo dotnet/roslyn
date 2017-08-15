@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -646,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     }
                     else
                     {
-                        span = default(TextSpan);
+                        span = default;
                         return false;
                     }
 
@@ -1116,11 +1116,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             switch (kind)
             {
                 case SyntaxKind.CompilationUnit:
-                    return default(TextSpan);
+                    return default;
 
                 case SyntaxKind.GlobalStatement:
                     // TODO:
-                    return default(TextSpan);
+                    return default;
 
                 case SyntaxKind.ExternAliasDirective:
                 case SyntaxKind.UsingDirective:
@@ -2519,8 +2519,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 Debug.Assert(newNode.Parent.Parent is BasePropertyDeclarationSyntax);
 
                 ClassifyMethodBodyRudeUpdate(
-                    oldNode.Body,
-                    newNode.Body,
+                    (SyntaxNode)oldNode.Body ?? oldNode.ExpressionBody?.Expression,
+                    (SyntaxNode)newNode.Body ?? newNode.ExpressionBody?.Expression,
                     containingMethodOpt: null,
                     containingType: (TypeDeclarationSyntax)newNode.Parent.Parent.Parent);
             }
@@ -2546,8 +2546,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 }
 
                 ClassifyMethodBodyRudeUpdate(
-                    oldNode.Body,
-                    newNode.Body,
+                    (SyntaxNode)oldNode.Body ?? oldNode.ExpressionBody?.Expression,
+                    (SyntaxNode)newNode.Body ?? newNode.ExpressionBody?.Expression,
                     containingMethodOpt: null,
                     containingType: (TypeDeclarationSyntax)newNode.Parent);
             }
@@ -2555,8 +2555,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             private void ClassifyUpdate(DestructorDeclarationSyntax oldNode, DestructorDeclarationSyntax newNode)
             {
                 ClassifyMethodBodyRudeUpdate(
-                    oldNode.Body,
-                    newNode.Body,
+                    (SyntaxNode)oldNode.Body ?? oldNode.ExpressionBody?.Expression,
+                    (SyntaxNode)newNode.Body ?? newNode.ExpressionBody?.Expression,
                     containingMethodOpt: null,
                     containingType: (TypeDeclarationSyntax)newNode.Parent);
             }
@@ -3140,7 +3140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             diagnostics.Add(new RudeEditDiagnostic(
                 RudeEditKind.UpdateAroundActiveStatement,
-                default(TextSpan), // no span since the offending node is in the old syntax
+                default, // no span since the offending node is in the old syntax
                 oldCSharp7Syntax,
                 new[] { GetStatementDisplayName(oldCSharp7Syntax, EditKind.Update) }));
         }
