@@ -1,12 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -31,7 +33,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     return;
                 }
 
+                // NOTE: In projection scenarios, we might get a set of documents to search
+                // that are not all the same language and might not exist in the OOP process
+                // (like the JS parts of a .cshtml file). Filter them out here.  This will
+                // need to be revisited if we someday support FAR between these languages.
                 var documents = documentArgs?.Select(solution.GetDocument)
+                                             .WhereNotNull()
                                              .ToImmutableHashSet();
 
                 await SymbolFinder.FindReferencesInCurrentProcessAsync(
@@ -53,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<ImmutableArray<SerializableSymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(
+        public async Task<IList<SerializableSymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(
             ProjectId projectId, string name, SearchKind searchKind, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             using (UserOperationBooster.Boost())
@@ -71,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<ImmutableArray<SerializableSymbolAndProjectId>> FindSolutionSourceDeclarationsWithNormalQueryAsync(
+        public async Task<IList<SerializableSymbolAndProjectId>> FindSolutionSourceDeclarationsWithNormalQueryAsync(
             string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             using (UserOperationBooster.Boost())
@@ -84,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<ImmutableArray<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithNormalQueryAsync(
+        public async Task<IList<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithNormalQueryAsync(
             ProjectId projectId, string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             using (UserOperationBooster.Boost())
@@ -99,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<ImmutableArray<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithPatternAsync(
+        public async Task<IList<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithPatternAsync(
             ProjectId projectId, string pattern, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             using (UserOperationBooster.Boost())

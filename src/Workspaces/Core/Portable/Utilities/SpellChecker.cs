@@ -139,7 +139,7 @@ namespace Roslyn.Utilities
             _editDistance?.Dispose();
             _source = null;
             _editDistance = null;
-            _lastAreSimilarResult = default(CacheResult);
+            _lastAreSimilarResult = default;
             lock (s_poolGate)
             {
                 s_pool.Push(this);

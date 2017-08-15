@@ -97,9 +97,9 @@ class Program
 {
     static void Main(string[] args)
     {
-        Foo();
+        Goo();
     }
-    private static void Foo()
+    private static void Goo()
     {
         {|0:|}int i = 0;
         {|1:|}int j = 1;
@@ -122,9 +122,9 @@ class Program
 {
     static void Main(string[] args)
     {
-        Foo();
+        Goo();
     }
-    private static void Foo()
+    private static void Goo()
     {
         {|0:|}int i = 0;
         {|1:|}int j = 1;

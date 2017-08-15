@@ -109,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public void StopTracking()
         {
             // remove tracking points
-            _trackingPoints = default(ImmutableArray<ITrackingPoint>);
+            _trackingPoints = default;
         }
 
         public void Dispose()
@@ -121,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             if (index < 0 || _items.Length <= index)
             {
-                return default(TableItem<TData>);
+                return default;
             }
 
             return _items[index];

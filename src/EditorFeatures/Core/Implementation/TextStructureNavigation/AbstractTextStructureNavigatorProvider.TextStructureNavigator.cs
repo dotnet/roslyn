@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                     var root = document.GetSyntaxRootSynchronously(cancellationToken);
                     var trivia = root.FindTrivia(position, findInsideTrivia: true);
 
-                    if (trivia != default(SyntaxTrivia))
+                    if (trivia != default)
                     {
                         if (trivia.Span.Start == position && _provider.ShouldSelectEntireTriviaFromStart(trivia))
                         {
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                     return true;
                 }
 
-                token = default(SyntaxToken);
+                token = default;
                 return false;
             }
 

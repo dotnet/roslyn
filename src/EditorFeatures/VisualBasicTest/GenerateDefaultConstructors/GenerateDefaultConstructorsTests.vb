@@ -28,8 +28,10 @@ Imports System.Collections.Generic
 Imports System.Linq
 Class Program
     Inherits Exception
+
     Public Sub New()
     End Sub
+
     Sub Main(args As String())
     End Sub
 End Class")
@@ -51,9 +53,11 @@ Imports System.Collections.Generic
 Imports System.Linq
 Class Program
     Inherits Exception
+
     Public Sub New(message As String)
         MyBase.New(message)
     End Sub
+
     Sub Main(args As String())
     End Sub
 End Class",
@@ -74,7 +78,6 @@ End Class",
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
-
 Class Program
     Inherits Exception
 
@@ -103,6 +106,7 @@ End Class",
 Imports System.Collections.Generic
 Imports System.Linq
 Imports System.Runtime.Serialization
+
 Class Program
     Inherits Exception
 
@@ -194,7 +198,7 @@ End Structure")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestNotOfferedForIncorrectlyParentedInheritsStatement() As Task
             Await TestMissingInRegularAndScriptAsync(
-"Inherits [||]Foo")
+"Inherits [||]Goo")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
@@ -214,19 +218,24 @@ End Class",
 Imports System.Collections.Generic
 Imports System.Linq
 Imports System.Runtime.Serialization
+
 Class Program
     Inherits Exception
     Public Sub New()
     End Sub
+
     Public Sub New(message As String)
         MyBase.New(message)
     End Sub
+
     Public Sub New(message As String, innerException As Exception)
         MyBase.New(message, innerException)
     End Sub
+
     Protected Sub New(info As SerializationInfo, context As StreamingContext)
         MyBase.New(info, context)
     End Sub
+
     Sub Main(args As String())
     End Sub
 End Class",
@@ -258,8 +267,10 @@ Imports System.Collections.Generic
 Imports System.Linq
 Class Program
     Inherits Exception
+
     Public Sub New()
     End Sub
+
     Public Sub New(message As String)
         MyBase.New(message)
     End Sub
@@ -299,9 +310,11 @@ Class Program
 
     Public Sub New()
     End Sub
+
     Public Sub New(message As String)
         MyBase.New(message)
     End Sub
+
     Public Sub New(message As String, innerException As Exception)
         MyBase.New(message, innerException)
     End Sub
@@ -331,8 +344,10 @@ Imports System.Collections.Generic
 Imports System.Linq
 Class Program
     Inherits Exception
+
     Public Sub New()
     End Sub
+
     Sub Main(args As String())
     End Sub
 End Class")

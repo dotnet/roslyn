@@ -20,14 +20,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
 End Interface
 Class C
     Implements MyInterface
-    Event foo() Implements [|MyInterface.E|]
+    Event goo() Implements [|MyInterface.E|]
 End Class",
 "Interface MyInterface
     Event E()
 End Interface
 Class C
     Implements MyInterface
-    Event foo() Implements MyInterface.E
+    Event goo() Implements MyInterface.E
 End Class")
         End Function
 
@@ -38,7 +38,7 @@ End Class")
 End Interface
 Class C
     Implements MyInterface
-    Event foo() Implements [|MyInterface.|] 
+    Event goo() Implements [|MyInterface.|] 
  End Class")
         End Function
 
@@ -50,7 +50,7 @@ Class C
 End Interface
 Class C
     Implements MyInterface
-    Event foo() Implements [|MyInterface.E|]
+    Event goo() Implements [|MyInterface.E|]
 End Class")
         End Function
 
@@ -61,14 +61,14 @@ End Class")
 End Interface
 Class C
     Implements MyInterface
-    Event foo(x As Integer) Implements [|MyInterface.E|]
+    Event goo(x As Integer) Implements [|MyInterface.E|]
 End Class",
 "Interface MyInterface
     Event E(x As Integer)
 End Interface
 Class C
     Implements MyInterface
-    Event foo(x As Integer) Implements MyInterface.E
+    Event goo(x As Integer) Implements MyInterface.E
 End Class")
         End Function
 
@@ -143,6 +143,7 @@ End Class")
 End Class",
 "Public Class C
     Public Event MyEvent(x As Integer)
+
     Sub EventHandler(ByVal x As Integer) Handles Me.MyEvent
         ' Place code to handle events from BaseClass here. 
     End Sub
@@ -160,6 +161,7 @@ End Class")
 End Class",
 "Public Class C
     Public Event MyEvent(x As Integer)
+
     Sub EventHandler(ByVal x As Integer) Handles MyClass.MyEvent
         ' Place code to handle events from BaseClass here. 
     End Sub
@@ -193,6 +195,7 @@ End Class",
 "Public Class B
     Dim WithEvents x As B
     Public Event E1(x As String)
+
     Private Sub Test(Optional x As String = Nothing) Handles x.E1 'mark 1 
     End Sub
     Private Sub Test2(ParamArray x As String()) Handles x.E2 'mark 2 
@@ -214,6 +217,7 @@ End Class",
 "Public Class B
     Dim WithEvents x As B
     Public Event E2(x() As String)
+
     Private Sub Test(Optional x As String = Nothing) Handles x.E1 'mark 1 
     End Sub
     Private Sub Test2(ParamArray x As String()) Handles x.E2 'mark 2 
@@ -354,7 +358,9 @@ End Class",
     Public Sub New()
         AddHandler XEvent, AddressOf EClass_EventHandler
     End Sub
+
     Public Event XEvent()
+
     Sub EClass_EventHandler()
     End Sub
 End Class")
@@ -377,7 +383,9 @@ End Class",
     Public Sub New()
         RemoveHandler XEvent, AddressOf EClass_EventHandler
     End Sub
+
     Public Event XEvent()
+
     Sub EClass_EventHandler()
     End Sub
 End Class")
@@ -400,7 +408,9 @@ End Class",
     Public Sub New()
         AddHandler Me.XEvent, AddressOf EClass_EventHandler
     End Sub
+
     Public Event XEvent()
+
     Sub EClass_EventHandler()
     End Sub
 End Class")
@@ -423,7 +433,9 @@ End Class",
     Public Sub New()
         RemoveHandler Me.XEvent, AddressOf EClass_EventHandler
     End Sub
+
     Public Event XEvent()
+
     Sub EClass_EventHandler()
     End Sub
 End Class")
@@ -446,7 +458,9 @@ End Class",
     Public Sub New()
         AddHandler MyClass.XEvent, AddressOf EClass_EventHandler
     End Sub
+
     Public Event XEvent()
+
     Sub EClass_EventHandler()
     End Sub
 End Class")
@@ -469,7 +483,9 @@ End Class",
     Public Sub New()
         RemoveHandler MyClass.XEvent, AddressOf EClass_EventHandler
     End Sub
+
     Public Event XEvent()
+
     Sub EClass_EventHandler()
     End Sub
 End Class")

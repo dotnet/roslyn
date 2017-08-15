@@ -334,7 +334,7 @@ enum Color
 }");
         }
 
-        [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public async Task TestWithNonZeroInteger()
         {
             await TestInRegularAndScriptAsync(

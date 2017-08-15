@@ -897,7 +897,7 @@ class Program
 {
     async Task<int> A()
     {
-        return await (null ?? Task.FromResult(1)) }
+        return await (null ?? Task.FromResult(1))}
 }");
         }
 
@@ -921,7 +921,7 @@ class Program
 {
     async Task<int> A()
     {
-        return await (null as Task<int>) }
+        return await (null as Task<int>)}
 }");
         }
 

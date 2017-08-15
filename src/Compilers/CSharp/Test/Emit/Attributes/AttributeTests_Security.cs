@@ -68,7 +68,7 @@ public struct EventDescriptor
         {
             string source = @"
 [System.Security.SuppressUnmanagedCodeSecurityAttribute]
-class Foo
+class Goo
 {
     [System.Security.SuppressUnmanagedCodeSecurityAttribute]
     public static void Main() {}
@@ -709,7 +709,7 @@ namespace N
 	public class C
 	{
         [PrincipalPermission(SecurityAction.Demand, Role=@""User1"")]
-		public static void Foo() {}
+		public static void Goo() {}
     }
 }
 ";
@@ -720,7 +720,7 @@ namespace N
                 {
                     ActionFlags = DeclarativeSecurityAction.Demand,
                     ParentKind = SymbolKind.Method,
-                    ParentNameOpt = @"Foo",
+                    ParentNameOpt = @"Goo",
                     PermissionSet =
                         "." + // always start with a dot
                         "\u0001" + // number of attributes (small enough to fit in 1 byte)
@@ -800,7 +800,7 @@ namespace N
 	{
         [PrincipalPermission(SecurityAction.Demand, Role=@""User1"")]
 	    [PrincipalPermission(SecurityAction.Demand, Role=@""User1"")]
-        public static void Foo() {}
+        public static void Goo() {}
     }
 }
 ";
@@ -811,7 +811,7 @@ namespace N
                 {
                     ActionFlags = DeclarativeSecurityAction.Demand,
                     ParentKind = SymbolKind.Method,
-                    ParentNameOpt = @"Foo",
+                    ParentNameOpt = @"Goo",
                     PermissionSet =
                         "." + // always start with a dot
                         "\u0002" + // number of attributes (small enough to fit in 1 byte)
@@ -910,7 +910,7 @@ namespace N
 	{
         [PrincipalPermission(SecurityAction.Demand, Role=@""User1"")]
 	    [PrincipalPermission(SecurityAction.Assert, Role=@""User2"")]
-        public static void Foo() {}
+        public static void Goo() {}
     }
 }
 ";
@@ -921,7 +921,7 @@ namespace N
                 {
                     ActionFlags = DeclarativeSecurityAction.Demand,
                     ParentKind = SymbolKind.Method,
-                    ParentNameOpt = @"Foo",
+                    ParentNameOpt = @"Goo",
                     PermissionSet =
                         "." + // always start with a dot
                         "\u0001" + // number of attributes (small enough to fit in 1 byte)
@@ -940,7 +940,7 @@ namespace N
                 {
                     ActionFlags = DeclarativeSecurityAction.Assert,
                     ParentKind = SymbolKind.Method,
-                    ParentNameOpt = @"Foo",
+                    ParentNameOpt = @"Goo",
                     PermissionSet =
                         "." + // always start with a dot
                         "\u0001" + // number of attributes (small enough to fit in 1 byte)
@@ -1033,10 +1033,10 @@ namespace N
     public class C
 	{
         [PrincipalPermission(SecurityAction.Demand, Role=@""User1"")]
-	    public static void Foo1() {}
+	    public static void Goo1() {}
 
         [PrincipalPermission(SecurityAction.Demand, Role=@""User1"")]
-	    public static void Foo2() {}
+	    public static void Goo2() {}
     }
 }
 ";
@@ -1047,7 +1047,7 @@ namespace N
                 {
                     ActionFlags = DeclarativeSecurityAction.Demand,
                     ParentKind = SymbolKind.Method,
-                    ParentNameOpt = @"Foo1",
+                    ParentNameOpt = @"Goo1",
                     PermissionSet =
                         "." + // always start with a dot
                         "\u0001" + // number of attributes (small enough to fit in 1 byte)
@@ -1066,7 +1066,7 @@ namespace N
                 {
                     ActionFlags = DeclarativeSecurityAction.Demand,
                     ParentKind = SymbolKind.Method,
-                    ParentNameOpt = @"Foo2",
+                    ParentNameOpt = @"Goo2",
                     PermissionSet =
                         "." + // always start with a dot
                         "\u0001" + // number of attributes (small enough to fit in 1 byte)
@@ -1098,7 +1098,7 @@ namespace N
     public class C
 	{
         [PrincipalPermission(SecurityAction.Demand, Role=@""User1"")]
-	    public static void Foo() {}
+	    public static void Goo() {}
     }
 }
 ";
@@ -1170,7 +1170,7 @@ namespace N
                 {
                     ActionFlags = DeclarativeSecurityAction.Demand,
                     ParentKind = SymbolKind.Method,
-                    ParentNameOpt = @"Foo",
+                    ParentNameOpt = @"Goo",
                     PermissionSet =
                         "." + // always start with a dot
                         "\u0001" + // number of attributes (small enough to fit in 1 byte)
@@ -1199,7 +1199,7 @@ namespace N
     public class C
 	{
         [PrincipalPermission(SecurityAction.Demand, Role=@""User1"")]
-	    public static void Foo() {}
+	    public static void Goo() {}
     }
 }
 ";
@@ -1246,7 +1246,7 @@ namespace N
                 {
                     ActionFlags = DeclarativeSecurityAction.Demand,
                     ParentKind = SymbolKind.Method,
-                    ParentNameOpt = @"Foo",
+                    ParentNameOpt = @"Goo",
                     PermissionSet =
                         "." + // always start with a dot
                         "\u0001" + // number of attributes (small enough to fit in 1 byte)
@@ -1280,7 +1280,7 @@ namespace N
 	{
         [PrincipalPermission(SecurityAction.Demand, Role=@""User1"")]
         [PrincipalPermission(SecurityAction.Demand, Role=@""User2"")]
-	    public static void Foo() {}
+	    public static void Goo() {}
     }
 }
 ";
@@ -1290,7 +1290,7 @@ namespace N
                 var ns = module.GlobalNamespace.GetMember<NamespaceSymbol>("N");
                 var namedType = ns.GetMember<NamedTypeSymbol>("C");
                 var type = (Cci.ITypeDefinition)namedType;
-                var method = (Cci.IMethodDefinition)namedType.GetMember("Foo");
+                var method = (Cci.IMethodDefinition)namedType.GetMember("Goo");
 
                 if (isFromSource)
                 {

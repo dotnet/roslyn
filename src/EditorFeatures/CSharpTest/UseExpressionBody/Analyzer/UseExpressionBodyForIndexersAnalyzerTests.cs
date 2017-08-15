@@ -150,8 +150,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }", options: UseBlockBody);
         }
 
+        [WorkItem(20363, "https://github.com/dotnet/roslyn/issues/20363")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task TestUseBlockBodyIfAccessorWantExpression1()
+        public async Task TestUseBlockBodyForAccessorEventWhenAccessorWantExpression1()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -162,9 +163,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 {
     int this[int i]
     {
-        get => Bar();
+        get
+        {
+            return Bar();
         }
-    }", options: UseBlockBodyExceptAccessor);
+    }
+}", options: UseBlockBodyExceptAccessor);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]

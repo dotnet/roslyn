@@ -154,7 +154,7 @@ public class X
     public static void Main()
     {
         Test<string>(1);
-        Test<int>(""foo"");
+        Test<int>(""goo"");
         Test<int>(1);
         Test<int>(1.2);
         Test<double>(1.2);
@@ -177,7 +177,7 @@ public class X
             {
                 var expectedOutput =
 @"expression 1 is not String
-expression foo is not Int32
+expression goo is not Int32
 expression 1 is Int32 1
 expression 1.2 is not Int32
 expression 1.2 is Double 1.2
@@ -553,7 +553,7 @@ public struct X
 {
     public static void Main()
     {
-        var oa = new object[] { 1, 10, 20L, 1.2, ""foo"", true, null, new X(), new Exception(""boo"") };
+        var oa = new object[] { 1, 10, 20L, 1.2, ""goo"", true, null, new X(), new Exception(""boo"") };
         foreach (var o in oa)
         {
             switch (o)
@@ -593,7 +593,7 @@ public struct X
 int 10
 long 20
 double 1.2
-class String foo
+class String goo
 struct Boolean True
 null
 struct X X
@@ -3198,7 +3198,7 @@ public class X
         Console.WriteLine(1L is int.MaxValue); // OK, but false
         Console.WriteLine(1 is int.MaxValue); // false
         Console.WriteLine(int.MaxValue is int.MaxValue); // true
-        Console.WriteLine(""foo"" is System.String); // true
+        Console.WriteLine(""goo"" is System.String); // true
         Console.WriteLine(Int32.MaxValue is Int32.MaxValue); // true
         Console.WriteLine(new int[] {1, 2} is int[] a); // true
         object o = null;
@@ -3220,8 +3220,8 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (11,27): warning CS0183: The given expression is always of the provided ('string') type
-                //         Console.WriteLine("foo" is System.String); // true
-                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, @"""foo"" is System.String").WithArguments("string").WithLocation(11, 27)
+                //         Console.WriteLine("goo" is System.String); // true
+                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, @"""goo"" is System.String").WithArguments("string").WithLocation(11, 27)
                 );
             CompileAndVerify(compilation, expectedOutput:
 @"True
@@ -3871,7 +3871,7 @@ class Program
 {
     public static void Main(string[] args)
     {
-        foreach (var s in new[] { ""0123"", ""foo"" })
+        foreach (var s in new[] { ""0123"", ""goo"" })
         {
             Console.Write(s + "" "");
             try
@@ -3896,7 +3896,7 @@ class Program
                 );
             var comp = CompileAndVerify(compilation, expectedOutput:
 @"0123 123
-foo throws");
+goo throws");
         }
 
         [Fact]
@@ -3984,7 +3984,7 @@ class Program
         {
             try
             {
-                var used = (await Foo(i))?.ToString() ?? throw await Bar(i);
+                var used = (await Goo(i))?.ToString() ?? throw await Bar(i);
             }
             catch (Exception ex)
             {
@@ -3992,7 +3992,7 @@ class Program
             }
         }
     }
-    static async Task<object> Foo(int i)
+    static async Task<object> Goo(int i)
     {
         await Task.Yield();
         return (i == 1) ? i : (object)null;
@@ -4268,15 +4268,15 @@ True";
 
 public class C
 {
-    public string[] Foo2(out string x) { x = """"; return null; }
-    public string[] Foo3(bool b) { return null; }
+    public string[] Goo2(out string x) { x = """"; return null; }
+    public string[] Goo3(bool b) { return null; }
 
-    public string[] Foo5(string u) { return null; }
+    public string[] Goo5(string u) { return null; }
     
     public void Test()
     {
-        var t1 = Foo2(out var x1).Concat(Foo5(x1));
-        var t2 = Foo3(t1 is var x2).Concat(Foo5(x2.First()));
+        var t1 = Goo2(out var x1).Concat(Goo5(x1));
+        var t2 = Goo3(t1 is var x2).Concat(Goo5(x2.First()));
     }
 }
 ";
@@ -5942,7 +5942,7 @@ public class Program
         if (null as string is string s1) { }
         const string s = null;
         if (s is string s2) { }
-        if (""foo"" is string s3) { }
+        if (""goo"" is string s3) { }
     }
     void M1(int? i)
     {
@@ -6196,6 +6196,145 @@ Func called
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TestVoidInIsOrAs_01()
+        {
+            // though silly, it is not forbidden to test a void value's type
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        if (Console.Write(""Hello"") is object) {}
+    }
+}
+";
+            var expectedOutput = @"Hello";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (6,13): warning CS0184: The given expression is never of the provided ('object') type
+                //         if (Console.Write("Hello") is object) {}
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, @"Console.Write(""Hello"") is object").WithArguments("object").WithLocation(6, 13)
+                );
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TestVoidInIsOrAs_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        var o = Console.WriteLine(""world!"") as object;
+        if (o != null) throw null;
+    }
+}
+";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (6,17): error CS0039: Cannot convert type 'void' to 'object' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
+                //         var o = Console.WriteLine("world!") as object;
+                Diagnostic(ErrorCode.ERR_NoExplicitBuiltinConv, @"Console.WriteLine(""world!"") as object").WithArguments("void", "object").WithLocation(6, 17)
+                );
+        }
+
+        [Fact]
+        public void TestVoidInIsOrAs_03()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        M<object>();
+    }
+    static void M<T>() where T : class
+    {
+        var o = Console.WriteLine(""Hello"") as T;
+        if (o != null) throw null;
+    }
+}
+";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (10,17): error CS0039: Cannot convert type 'void' to 'T' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
+                //         var o = Console.WriteLine("Hello") as T;
+                Diagnostic(ErrorCode.ERR_NoExplicitBuiltinConv, @"Console.WriteLine(""Hello"") as T").WithArguments("void", "T").WithLocation(10, 17)
+                );
+        }
+
+        [Fact]
+        public void TestVoidInIsOrAs_04()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        if (Console.WriteLine(""Hello"") is var x) { }
+    }
+}
+";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (6,13): error CS8117: Invalid operand for pattern match; value required, but found 'void'.
+                //         if (Console.WriteLine("Hello") is var x) { }
+                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, @"Console.WriteLine(""Hello"")").WithArguments("void").WithLocation(6, 13)
+                );
+        }
+
+        [Fact]
+        public void TestVoidInIsOrAs_05()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        if (Console.WriteLine(""Hello"") is var _) {}
+    }
+}
+";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (6,13): error CS8117: Invalid operand for pattern match; value required, but found 'void'.
+                //         if (Console.WriteLine("Hello") is var _) {}
+                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, @"Console.WriteLine(""Hello"")").WithArguments("void").WithLocation(6, 13)
+                );
+        }
+
+        [Fact]
+        public void TestVoidInSwitch()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        switch (Console.WriteLine(""Hello""))
+        {
+            default:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (6,17): error CS8119: The switch expression must be a value; found 'void'.
+                //         switch (Console.WriteLine("Hello"))
+                Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, @"Console.WriteLine(""Hello"")").WithArguments("void").WithLocation(6, 17)
+                );
         }
     }
 }

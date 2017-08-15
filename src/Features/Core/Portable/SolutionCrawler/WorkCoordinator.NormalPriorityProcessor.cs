@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _workItemQueue = new AsyncDocumentWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
                         _higherPriorityDocumentsNotProcessed = new ConcurrentDictionary<DocumentId, IDisposable>(concurrencyLevel: 2, capacity: 20);
 
-                        _currentProjectProcessing = default(ProjectId);
+                        _currentProjectProcessing = default;
                         _processingSolution = null;
 
                         Start();

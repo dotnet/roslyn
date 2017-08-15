@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
             var spans = mappingSpan.GetSpans(viewSnapshot);
             if (spans.Count != 1)
             {
-                span = default(SnapshotSpan);
+                span = default;
                 return false; // span is unmapped or disjoint.
             }
 

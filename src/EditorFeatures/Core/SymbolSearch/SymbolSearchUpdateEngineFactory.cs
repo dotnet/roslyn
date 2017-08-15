@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
 {
@@ -12,10 +14,13 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     /// implementation produces an engine that will run in-process.  Implementations at
     /// other layers can behave differently (for example, running the engine out-of-process).
     /// </summary>
-    internal static class SymbolSearchUpdateEngineFactory
+    internal static partial class SymbolSearchUpdateEngineFactory
     {
         public static async Task<ISymbolSearchUpdateEngine> CreateEngineAsync(
-            Workspace workspace, ISymbolSearchLogService logService, CancellationToken cancellationToken)
+            Workspace workspace,
+            ISymbolSearchLogService logService,
+            ISymbolSearchProgressService progressService,
+            CancellationToken cancellationToken)
         {
             var client = await workspace.TryGetRemoteHostClientAsync(
                 RemoteFeatureOptions.SymbolSearchEnabled, cancellationToken).ConfigureAwait(false);
@@ -24,55 +29,65 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 var session = await client.TryCreateKeepAliveSessionAsync(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, logService, cancellationToken).ConfigureAwait(false);
                 if (session != null)
                 {
-                    return new RemoteUpdateEngine(workspace, session);
+                    return new RemoteUpdateEngine(workspace, session, logService, progressService);
                 }
             }
 
             // Couldn't go out of proc.  Just do everything inside the current process.
-            return new SymbolSearchUpdateEngine(logService);
+            return new SymbolSearchUpdateEngine(logService, progressService);
         }
 
-        private class RemoteUpdateEngine : ISymbolSearchUpdateEngine
+        private partial class RemoteUpdateEngine : ISymbolSearchUpdateEngine, ISymbolSearchLogService, ISymbolSearchProgressService
         {
             private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
 
             private readonly Workspace _workspace;
+
+            private readonly ISymbolSearchLogService _logService;
+            private readonly ISymbolSearchProgressService _progressService;
+
             private readonly KeepAliveSession _session;
 
-            public RemoteUpdateEngine(Workspace workspace, KeepAliveSession session)
+            public RemoteUpdateEngine(
+                Workspace workspace,
+                KeepAliveSession session,
+                ISymbolSearchLogService logService,
+                ISymbolSearchProgressService progressService)
             {
                 _workspace = workspace;
                 _session = session;
+                _logService = logService;
+                _progressService = progressService;
             }
 
             public async Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
                 string source, string name, int arity, CancellationToken cancellationToken)
             {
-                var results = await _session.TryInvokeAsync<ImmutableArray<PackageWithTypeResult>>(
+                var results = await _session.TryInvokeAsync<IList<PackageWithTypeResult>>(
                     nameof(IRemoteSymbolSearchUpdateEngine.FindPackagesWithTypeAsync),
                     new object[] { source, name, arity }, cancellationToken).ConfigureAwait(false);
 
-                return results.NullToEmpty();
+                return results.ToImmutableArrayOrEmpty();
             }
 
             public async Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
                 string source, string assemblyName, CancellationToken cancellationToken)
             {
-                var results = await _session.TryInvokeAsync<ImmutableArray<PackageWithAssemblyResult>>(
+                var results = await _session.TryInvokeAsync<IList<PackageWithAssemblyResult>>(
                     nameof(IRemoteSymbolSearchUpdateEngine.FindPackagesWithAssemblyAsync),
                     new object[] { source, assemblyName }, cancellationToken).ConfigureAwait(false);
 
-                return results.NullToEmpty();
+                return results.ToImmutableArrayOrEmpty();
             }
 
             public async Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
                 string name, int arity, CancellationToken cancellationToken)
             {
-                var results = await _session.TryInvokeAsync<ImmutableArray<ReferenceAssemblyWithTypeResult>>(
+                var results = await _session.TryInvokeAsync<IList<ReferenceAssemblyWithTypeResult>>(
                     nameof(IRemoteSymbolSearchUpdateEngine.FindReferenceAssembliesWithTypeAsync),
                     new object[] { name, arity }, cancellationToken).ConfigureAwait(false);
 
-                return results.NullToEmpty();
+                return results.ToImmutableArrayOrEmpty();
             }
 
             public async Task UpdateContinuouslyAsync(
@@ -82,6 +97,28 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync),
                     new object[] { sourceName, localSettingsDirectory }, CancellationToken.None).ConfigureAwait(false);
             }
+
+            #region RPC callbacks
+
+            public Task LogExceptionAsync(string exception, string text)
+                => _logService.LogExceptionAsync(exception, text);
+
+            public Task LogInfoAsync(string text)
+                => _logService.LogInfoAsync(text);
+
+            public Task OnDownloadFullDatabaseStartedAsync(string title)
+                => _progressService.OnDownloadFullDatabaseStartedAsync(title);
+
+            public Task OnDownloadFullDatabaseSucceededAsync()
+                => _progressService.OnDownloadFullDatabaseSucceededAsync();
+
+            public Task OnDownloadFullDatabaseCanceledAsync()
+                => _progressService.OnDownloadFullDatabaseCanceledAsync();
+
+            public Task OnDownloadFullDatabaseFailedAsync(string message)
+                => _progressService.OnDownloadFullDatabaseFailedAsync(message);
+
+            #endregion
         }
     }
 }

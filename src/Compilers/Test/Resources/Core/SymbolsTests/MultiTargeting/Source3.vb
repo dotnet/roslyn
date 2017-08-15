@@ -5,7 +5,7 @@
 
 
 Public Class C3
-    Public Function Foo() As C1(Of C3).C2(Of C4)
+    Public Function Goo() As C1(Of C3).C2(Of C4)
         Return Nothing
     End Function
 
@@ -13,21 +13,21 @@ Public Class C3
         Return Nothing
     End Function
 
-    Public Function Foo1() As C8(Of C7)
+    Public Function Goo1() As C8(Of C7)
         Return Nothing
     End Function
 
-    Public Sub Foo2(ByRef x1(,) As C300,
+    Public Sub Goo2(ByRef x1(,) As C300,
                     <System.Runtime.InteropServices.Out()> ByRef x2 As C4,
                     ByRef x3() As C7,
                     Optional ByVal x4 As C4 = Nothing)
     End Sub
 
-    Friend Overridable Function Foo3(Of TFoo3 As C4)() As TFoo3
+    Friend Overridable Function Goo3(Of TGoo3 As C4)() As TGoo3
         Return Nothing
     End Function
 
-    Public Function Foo4() As C8(Of C4)
+    Public Function Goo4() As C8(Of C4)
         Return Nothing
     End Function
 

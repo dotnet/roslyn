@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -35,7 +34,7 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(IDEDiagnosticIds.OrderModifiers);
+            ImmutableArray.Create(IDEDiagnosticIds.OrderModifiersDiagnosticId);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -62,7 +61,7 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
                 editor.ReplaceNode(memberDeclaration, (currentNode, _) =>
                 {
                     var modifiers = _syntaxFacts.GetModifiers(currentNode);
-                    var orderedModifiers = TokenList(
+                    var orderedModifiers = new SyntaxTokenList(
                         modifiers.OrderBy(CompareModifiers)
                                  .Select((t, i) => t.WithTriviaFrom(modifiers[i])));
 
@@ -81,8 +80,6 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
             int GetOrder(SyntaxToken token)
                 => preferredOrder.TryGetValue(token.RawKind, out var value) ? value : int.MaxValue;
         }
-
-        protected abstract SyntaxTokenList TokenList(IEnumerable<SyntaxToken> tokens);
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {

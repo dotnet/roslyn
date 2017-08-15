@@ -2961,13 +2961,13 @@ Class C
         Return Nothing
     End Function
     Shared Sub M(o As object)
-        for i as double = foo() to foo() step foo()
-            for j as double = foo() to foo() step foo()
+        for i as double = goo() to goo() step goo()
+            for j as double = goo() to goo() step goo()
             next
         next
     End Sub
 
-    shared function foo() as double
+    shared function goo() as double
         return 1
     end function
 End Class
@@ -2995,11 +2995,11 @@ End Class
                 Boolean V_8,
                 Double V_9) //j
   IL_0000:  nop
-  IL_0001:  call       ""Function C.foo() As Double""
+  IL_0001:  call       ""Function C.goo() As Double""
   IL_0006:  stloc.0
-  IL_0007:  call       ""Function C.foo() As Double""
+  IL_0007:  call       ""Function C.goo() As Double""
   IL_000c:  stloc.1
-  IL_000d:  call       ""Function C.foo() As Double""
+  IL_000d:  call       ""Function C.goo() As Double""
   IL_0012:  stloc.2
   IL_0013:  ldloc.2
   IL_0014:  ldc.r8     0
@@ -3010,11 +3010,11 @@ End Class
   IL_0023:  ldloc.0
   IL_0024:  stloc.s    V_4
   IL_0026:  br.s       IL_007c
-  IL_0028:  call       ""Function C.foo() As Double""
+  IL_0028:  call       ""Function C.goo() As Double""
   IL_002d:  stloc.s    V_5
-  IL_002f:  call       ""Function C.foo() As Double""
+  IL_002f:  call       ""Function C.goo() As Double""
   IL_0034:  stloc.s    V_6
-  IL_0036:  call       ""Function C.foo() As Double""
+  IL_0036:  call       ""Function C.goo() As Double""
   IL_003b:  stloc.s    V_7
   IL_003d:  ldloc.s    V_7
   IL_003f:  ldc.r8     0
@@ -3088,11 +3088,11 @@ End Class
                 Boolean V_8,
                 Double V_9) //j
   IL_0000:  nop
-  IL_0001:  call       ""Function C.foo() As Double""
+  IL_0001:  call       ""Function C.goo() As Double""
   IL_0006:  stloc.0
-  IL_0007:  call       ""Function C.foo() As Double""
+  IL_0007:  call       ""Function C.goo() As Double""
   IL_000c:  stloc.1
-  IL_000d:  call       ""Function C.foo() As Double""
+  IL_000d:  call       ""Function C.goo() As Double""
   IL_0012:  stloc.2
   IL_0013:  ldloc.2
   IL_0014:  ldc.r8     0
@@ -3103,11 +3103,11 @@ End Class
   IL_0023:  ldloc.0
   IL_0024:  stloc.s    V_4
   IL_0026:  br.s       IL_007c
-  IL_0028:  call       ""Function C.foo() As Double""
+  IL_0028:  call       ""Function C.goo() As Double""
   IL_002d:  stloc.s    V_5
-  IL_002f:  call       ""Function C.foo() As Double""
+  IL_002f:  call       ""Function C.goo() As Double""
   IL_0034:  stloc.s    V_6
-  IL_0036:  call       ""Function C.foo() As Double""
+  IL_0036:  call       ""Function C.goo() As Double""
   IL_003b:  stloc.s    V_7
   IL_003d:  ldloc.s    V_7
   IL_003f:  ldc.r8     0

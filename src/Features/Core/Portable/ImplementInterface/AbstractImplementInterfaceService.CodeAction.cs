@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 CancellationToken cancellationToken)
             {
                 // As we go along generating members we may end up with conflicts.  For example, say
-                // you have "interface IFoo { string Bar { get; } }" and "interface IQuux { int Bar
+                // you have "interface IGoo { string Bar { get; } }" and "interface IQuux { int Bar
                 // { get; } }" and we need to implement both 'Bar' methods.  The second will have to
                 // be explicitly implemented as it will conflict with the first.  So we need to keep
                 // track of what we've actually implemented so that we can check further interface
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 //
                 // Note: if we implement a method explicitly then we do *not* add it to this list.
                 // That's because later members won't conflict with it even if they have the same
-                // signature otherwise.  i.e. if we chose to implement IFoo.Bar explicitly, then we
+                // signature otherwise.  i.e. if we chose to implement IGoo.Bar explicitly, then we
                 // could implement IQuux.Bar implicitly (and vice versa).
                 var implementedVisibleMembers = new List<ISymbol>();
                 var implementedMembers = ArrayBuilder<ISymbol>.GetInstance();
@@ -283,13 +283,13 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 // generate.  This can happen in C# when you have interfaces that have the same
                 // method, and you are implementing implicitly.  For example:
                 //
-                // interface IFoo { void Foo(); }
+                // interface IGoo { void Goo(); }
                 //
-                // interface IBar : IFoo { new void Foo(); }
+                // interface IBar : IGoo { new void Goo(); }
                 //
                 // class C : IBar
                 //
-                // In this case we only want to generate 'Foo' once.
+                // In this case we only want to generate 'Goo' once.
                 if (HasMatchingMember(implementedVisibleMembers, member))
                 {
                     return null;
@@ -349,9 +349,9 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
             private bool HasUnexpressibleConstraint(ISymbol member)
             {
-                // interface IFoo<T> { void Bar<U>() where U : T; }
+                // interface IGoo<T> { void Bar<U>() where U : T; }
                 //
-                // class A : IFoo<int> { }
+                // class A : IGoo<int> { }
                 //
                 // In this case we cannot generate an implement method for Bar.  That's because we'd
                 // need to say "where U : int" and that's disallowed by the language.  So we must
@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                     case IEventSymbol @event:
                         var accessor = CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                            attributes: default(ImmutableArray<AttributeData>),
+                            attributes: default,
                             accessibility: Accessibility.NotApplicable,
                             statements: factory.CreateThrowNotImplementedStatementBlock(compilation));
 
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                         factory.MemberAccessExpression(throughExpression, memberName), factory.IdentifierName("value")));
 
                     return CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                           attributes: default(ImmutableArray<AttributeData>),
+                           attributes: default,
                            accessibility: Accessibility.NotApplicable,
                            statements: ImmutableArray.Create(statement));
                 }
@@ -578,17 +578,17 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 // If this is a language that doesn't support implicit implementation then no
                 // implemented members will ever match.  For example, if you have:
                 //
-                // Interface IFoo : sub Foo() : End Interface
+                // Interface IGoo : sub Goo() : End Interface
                 //
-                // Interface IBar : Inherits IFoo : Shadows Sub Foo() : End Interface
+                // Interface IBar : Inherits IGoo : Shadows Sub Goo() : End Interface
                 //
                 // Class C : Implements IBar
                 //
                 // We'll first end up generating:
                 //
-                // Public Sub Foo() Implements IFoo.Foo
+                // Public Sub Goo() Implements IGoo.Goo
                 //
-                // However, that same method won't be viable for IBar.Foo (unlike C#) because it
+                // However, that same method won't be viable for IBar.Goo (unlike C#) because it
                 // explicitly specifies its interface).
                 if (!Service.CanImplementImplicitly)
                 {

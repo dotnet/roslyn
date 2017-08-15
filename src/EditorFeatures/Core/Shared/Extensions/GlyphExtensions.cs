@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             switch (glyph)
             {
                 case Glyph.None:
-                    return default(ImageMoniker);
+                    return default;
 
                 case Glyph.Assembly:
                     return KnownMonikers.Assembly;

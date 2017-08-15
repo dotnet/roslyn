@@ -165,12 +165,12 @@ class Program
     {
     }
 
-    static void Foo(S1 s = new S1())
+    static void Goo(S1 s = new S1())
     {
 
     }
 
-    static void Foo(S2 s = new S2())
+    static void Goo(S2 s = new S2())
     {
 
     }
@@ -182,7 +182,7 @@ class Program
     //     public S2()
     Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "S2").WithLocation(10, 12),
     // (26,28): error CS1736: Default parameter value for 's' must be a compile-time constant
-    //     static void Foo(S2 s = new S2())
+    //     static void Goo(S2 s = new S2())
     Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new S2()").WithArguments("s").WithLocation(26, 28)
 );
         }
@@ -1969,7 +1969,7 @@ class C
             // multiplying constants in checked statement that causes overflow behaves like unchecked
 
             var source = @"
-public class foo
+public class goo
 {
     const int i = 1000000;
     const int j = 1000000;
@@ -2472,7 +2472,7 @@ class c1
     }
 
     [MyAttribute(A + B + 3)]
-    void Foo()
+    void Goo()
     {
     }
 }");

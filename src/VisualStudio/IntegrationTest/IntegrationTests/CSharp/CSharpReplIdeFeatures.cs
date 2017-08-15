@@ -15,11 +15,15 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Workspace.SetUseSuggestionMode(true);
         }
 
-        public new void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            VisualStudio.Workspace.SetUseSuggestionMode(false);
-            VisualStudio.InteractiveWindow.Reset();
-            base.Dispose();
+            if (disposing)
+            {
+                VisualStudio.Workspace.SetUseSuggestionMode(false);
+                VisualStudio.InteractiveWindow.Reset();
+            }
+
+            base.Dispose(disposing);
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20219")]
@@ -39,7 +43,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19914")]
         public void VerifyQuickInfoOnStringDocCommentsFromMetadata()
         {
-            VisualStudio.InteractiveWindow.InsertCode("static void Foo(string[] args) { }");
+            VisualStudio.InteractiveWindow.InsertCode("static void Goo(string[] args) { }");
             VisualStudio.InteractiveWindow.PlaceCaret("[]", charsOffset: -2);
             VisualStudio.InteractiveWindow.InvokeQuickInfo();
             var s = VisualStudio.InteractiveWindow.GetQuickInfo();
@@ -86,8 +90,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20219")]
         public void HighlightRefsMultipleSubmisionsVerifyRenameTagsShowUpWhenInvokedOnSubmittedText()
         {
-            VisualStudio.InteractiveWindow.SubmitText("class Foo { }");
-            VisualStudio.InteractiveWindow.SubmitText("Foo something = new Foo();");
+            VisualStudio.InteractiveWindow.SubmitText("class Goo { }");
+            VisualStudio.InteractiveWindow.SubmitText("Goo something = new Goo();");
             VisualStudio.InteractiveWindow.SubmitText("something.ToString();");
             VisualStudio.InteractiveWindow.PlaceCaret("someth", charsOffset: 1, occurrence: 2);
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
@@ -98,8 +102,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20219")]
         public void HighlightRefsMultipleSubmisionsVerifyRenameTagsShowUpOnUnsubmittedText()
         {
-            VisualStudio.InteractiveWindow.SubmitText("class Foo { }");
-            VisualStudio.InteractiveWindow.SubmitText("Foo something = new Foo();");
+            VisualStudio.InteractiveWindow.SubmitText("class Goo { }");
+            VisualStudio.InteractiveWindow.SubmitText("Goo something = new Goo();");
             VisualStudio.InteractiveWindow.InsertCode("something.ToString();");
             VisualStudio.InteractiveWindow.PlaceCaret("someth", charsOffset: 1, occurrence: 2);
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
@@ -110,10 +114,10 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20219")]
         public void HighlightRefsMultipleSubmisionsVerifyRenameTagsShowUpOnTypesWhenInvokedOnSubmittedText()
         {
-            VisualStudio.InteractiveWindow.SubmitText("class Foo { }");
-            VisualStudio.InteractiveWindow.SubmitText("Foo a;");
-            VisualStudio.InteractiveWindow.SubmitText("Foo b;");
-            VisualStudio.InteractiveWindow.PlaceCaret("Foo b", charsOffset: -1);
+            VisualStudio.InteractiveWindow.SubmitText("class Goo { }");
+            VisualStudio.InteractiveWindow.SubmitText("Goo a;");
+            VisualStudio.InteractiveWindow.SubmitText("Goo b;");
+            VisualStudio.InteractiveWindow.PlaceCaret("Goo b", charsOffset: -1);
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
             VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
             VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 2);
@@ -122,10 +126,10 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20219")]
         public void HighlightRefsMultipleSubmisionsVerifyRenameTagsShowUpOnTypesWhenInvokedOnUnsubmittedText()
         {
-            VisualStudio.InteractiveWindow.SubmitText("class Foo { }");
-            VisualStudio.InteractiveWindow.SubmitText("Foo a;");
-            VisualStudio.InteractiveWindow.InsertCode("Foo b;");
-            VisualStudio.InteractiveWindow.PlaceCaret("Foo b", charsOffset: -1);
+            VisualStudio.InteractiveWindow.SubmitText("class Goo { }");
+            VisualStudio.InteractiveWindow.SubmitText("Goo a;");
+            VisualStudio.InteractiveWindow.InsertCode("Goo b;");
+            VisualStudio.InteractiveWindow.PlaceCaret("Goo b", charsOffset: -1);
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.ReferenceHighlighting);
             VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 1);
             VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedReference, 2);
@@ -134,9 +138,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20219")]
         public void HighlightRefsMultipleSubmisionsVerifyRenameTagsGoAwayWhenInvokedOnUnsubmittedText()
         {
-            VisualStudio.InteractiveWindow.SubmitText("class Foo { }");
-            VisualStudio.InteractiveWindow.SubmitText("Foo a;");
-            VisualStudio.InteractiveWindow.InsertCode("Foo b;Something();");
+            VisualStudio.InteractiveWindow.SubmitText("class Goo { }");
+            VisualStudio.InteractiveWindow.SubmitText("Goo a;");
+            VisualStudio.InteractiveWindow.InsertCode("Goo b;Something();");
             VisualStudio.InteractiveWindow.PlaceCaret("Something();", charsOffset: -1);
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
             VisualStudio.InteractiveWindow.VerifyTags(WellKnownTagNames.MarkerFormatDefinition_HighlightedDefinition, 0);

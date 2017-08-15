@@ -106,8 +106,8 @@
     <PackageReference Include="System.Reflection.Metadata">
       <Version>$(SystemReflectionMetadataFixedVersion)</Version>
     </PackageReference>
-    <PackageReference Include="VSSDK.ComponentModelHost">
-      <Version>$(VSSDKComponentModelHostVersion)</Version>
+    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost">
+      <Version>$(MicrosoftVisualStudioComponentModelHostFixedVersion)</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
@@ -142,10 +142,14 @@
     <ProjectReference Include="..\SyntaxVisualizerControl\SyntaxVisualizerControl.csproj">
       <Project>{afe45e23-e7ee-48c5-8143-ebe2ff67070f}</Project>
       <Name>SyntaxVisualizerControl</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
     <ProjectReference Include="..\SyntaxVisualizerDgmlHelper\SyntaxVisualizerDgmlHelper.vbproj">
       <Project>{da4f74af-2694-4ac9-a8cc-18382de8215e}</Project>
       <Name>SyntaxVisualizerDgmlHelper</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

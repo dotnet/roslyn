@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             // Conversion operators don't have names.
-            return default(SyntaxToken);
+            return default;
         }
 
         public static int GetArity(this MemberDeclarationSyntax member)

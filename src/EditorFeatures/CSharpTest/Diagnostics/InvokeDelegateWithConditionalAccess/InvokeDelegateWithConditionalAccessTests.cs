@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         [||]var v = a;
         if (v != null)
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         a?.Invoke();
     }
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         var v = a;
         [||]if (v != null)
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         a?.Invoke();
     }
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         var v = a;
         if (v != null)
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         a?.Invoke();
     }
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         [||]var v = a;
         if (v != null)
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         [||]var v = a;
         if (null != v)
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         a?.Invoke();
     }
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         [||]var v = a;
         if (null != v)
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         a?.Invoke();
     }
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         bool b = true;
         [||]var v = b ? a : null;
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         bool b = true;
         (b ? a : null)?.Invoke();
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         [||]var v = a;
         if (v != null)
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         [||]var v = a, x = a;
         if (v != null)
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         var v = a, x = a;
         [||]if (v != null)
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         var v = a, x = a;
         v?.Invoke();
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         [||]var v = a;
         if (v != null)
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         var v = a;
         [||]if (v != null)
@@ -330,10 +330,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         var v = a;
         v?.Invoke();
+
         v = null;
     }
 }");
@@ -471,8 +472,7 @@ class C
         if (true != true)
         {
         }
-        else
-            this.E?.Invoke(this, EventArgs.Empty);
+        else this.E?.Invoke(this, EventArgs.Empty);
     }
 }");
         }
@@ -484,7 +484,7 @@ class C
 @"class C
 {
     System.Action a;
-    void Foo()
+    void Goo()
     {
         // Comment
         [||]var v = a;
@@ -497,7 +497,7 @@ class C
 @"class C
 {
     System.Action a;
-    void Foo()
+    void Goo()
     {
         // Comment
         a?.Invoke();
@@ -512,7 +512,7 @@ class C
 @"class C
 {
     System.Action a;
-    void Foo()
+    void Goo()
     {
         // Comment
         [||]if (a != null)
@@ -524,7 +524,7 @@ class C
 @"class C
 {
     System.Action a;
-    void Foo()
+    void Goo()
     {
         // Comment
         a?.Invoke();
@@ -543,7 +543,7 @@ class C
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         var v = a;
         [||]if (v != null)
@@ -556,7 +556,7 @@ class C
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         a?.Invoke();
     }
@@ -574,7 +574,7 @@ class C
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         var v = a;
         if (v != null)
@@ -587,7 +587,7 @@ class C
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         a?.Invoke();
     }
@@ -602,7 +602,7 @@ class C
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         [||]var v = a;
         v?.Invoke();
@@ -618,7 +618,7 @@ class C
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         var v = a;
         [||]v?.Invoke();
@@ -634,7 +634,7 @@ class C
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         [||]a?.Invoke();
     }
@@ -649,7 +649,7 @@ class C
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         var v = a;
         if (v == a)
@@ -668,7 +668,7 @@ class C
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         var v = a;
         if (v == null)
@@ -691,7 +691,7 @@ class C
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         [||]var v = a;
         int x;
@@ -715,7 +715,7 @@ class C
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         var v = a;
         int x;
@@ -729,7 +729,7 @@ class C
 {
     System.Action a;
 
-    void Foo()
+    void Goo()
     {
         var v = a;
         int x;
@@ -746,7 +746,7 @@ class C
 {
     System.Func<int> a;
 
-    int Foo()
+    int Goo()
     {
         var v = a;
         [||]if (v != null)

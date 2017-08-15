@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     void M()
     {
         [|int|] i;
-        if (Foo(int.TryParse(v, out i)))
+        if (Goo(int.TryParse(v, out i)))
         {
         }
     }
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 {
     void M()
     {
-        if (Foo(int.TryParse(v, out int i)))
+        if (Goo(int.TryParse(v, out int i)))
         {
         }
     }
@@ -929,7 +929,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(""Foo"");
+        Console.WriteLine(""Goo"");
 
         int [|result|];
         if (int.TryParse(""12"", out result))
@@ -944,7 +944,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(""Foo"");
+        Console.WriteLine(""Goo"");
 
         if (int.TryParse(""12"", out int result))
         {
@@ -965,13 +965,13 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(""Foo"");
+        Console.WriteLine(""Goo"");
 
 
 
 
 
-        // Foo
+        // Goo
 
 
 
@@ -988,13 +988,13 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(""Foo"");
+        Console.WriteLine(""Goo"");
 
 
 
 
 
-        // Foo
+        // Goo
 
 
 
@@ -1075,7 +1075,7 @@ using System;
 
 class C
 {
-    void Foo(string x)
+    void Goo(string x)
     {
         object [|s|] = null; 
         if (x != null || TryBaz(out s))
@@ -1101,7 +1101,7 @@ using System;
 
 class C
 {
-    void Foo(string x)
+    void Goo(string x)
     {
         object [|s|] = null; 
         if (x != null && TryBaz(out s))
@@ -1120,11 +1120,11 @@ using System;
 
 class C
 {
-    void Foo(string x)
+    void Goo(string x)
     {
         if (x != null && TryBaz(out object s))
         {
-            Console.WriteLine(s); 
+            Console.WriteLine(s);
         }
     }
 
@@ -1603,7 +1603,7 @@ class C
 {
     static void Main(string[] args)
     {
-        for ( ; TryExtractTokenFromEmail(out string token); )
+        for (; TryExtractTokenFromEmail(out string token);)
         {
         }
     }
@@ -1881,7 +1881,7 @@ class Demo
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string a; string [|b|];
         Method(out a, out b);
@@ -1890,7 +1890,7 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string a; 
         Method(out a, out string b);
@@ -1906,7 +1906,7 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string a; /*leading*/ string [|b|]; // trailing
         Method(out a, out b);
@@ -1915,7 +1915,7 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string a; /*leading*/  // trailing
         Method(out a, out string b);
@@ -1931,7 +1931,7 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string a;
         /*leading*/ string [|b|]; // trailing
@@ -1941,7 +1941,7 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string a;
         /*leading*/ // trailing

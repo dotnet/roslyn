@@ -13,7 +13,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
     Public Class VisualBasicCompletionSnippetNoteTests
         Private _markup As XElement = <document>
                                           <![CDATA[Imports System
-Class Foo
+Class Goo
     $$
 End Class]]></document>
 

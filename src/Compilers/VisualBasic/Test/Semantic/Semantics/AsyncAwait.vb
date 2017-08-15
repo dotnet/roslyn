@@ -5219,9 +5219,9 @@ Imports System.Threading.Tasks
 
 Public Module Module1
         Public Sub Main()
-  foo()
+  goo()
  End Sub
-        Public Async Sub Foo()
+        Public Async Sub Goo()
                     Dim AwaitableLambda1 = Async Function()
                                                Await Task.Yield
                                                Return New List(Of Test) From {New Test With {.Async = "test2", .Await = 2}, New Test With {.Async = "test3", .Await = 3}}
@@ -5629,7 +5629,7 @@ End Class
 
 Class Program
     Shared Sub Main()
-        Dim item = New Item With {.Name = "Foo"}
+        Dim item = New Item With {.Name = "Goo"}
         Task.WaitAll(Shift(item))
     End Sub
 
@@ -5655,7 +5655,7 @@ End Class
 
             CompileAndVerify(compilation,
             <![CDATA[
-M2 is called for item 'Foo'
+M2 is called for item 'Goo'
 M1 is called for item 'Bar'
 ]]>)
         End Sub

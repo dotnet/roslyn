@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.TodoComments;
@@ -22,11 +23,11 @@ namespace Microsoft.CodeAnalysis.Remote
         /// 
         /// This will be called by ServiceHub/JsonRpc framework
         /// </summary>
-        public async Task<IList<TodoComment>> GetTodoCommentsAsync(DocumentId documentId, ImmutableArray<TodoCommentDescriptor> tokens, CancellationToken cancellationToken)
+        public async Task<IList<TodoComment>> GetTodoCommentsAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, IList<TodoCommentDescriptor> tokens, CancellationToken cancellationToken)
         {
             using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_GetTodoCommentsAsync, documentId.ProjectId.DebugName, cancellationToken))
             {
-                var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
+                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var document = solution.GetDocument(documentId);
 
                 var service = document.GetLanguageService<ITodoCommentService>();

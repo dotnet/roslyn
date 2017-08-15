@@ -944,7 +944,7 @@ namespace Test
 {
     public class Program
     {
-        public void Foo()
+        public void Goo()
         {
             var a3 = new[,,] { { { 3, 4 } }, 3, 4 };
         }
@@ -969,7 +969,7 @@ namespace Test
 {
     public class Program
     {
-        public void Foo()
+        public void Goo()
         {
             var a3 = new[,,] { { { 3, 4 } }, x, 4 };
         }

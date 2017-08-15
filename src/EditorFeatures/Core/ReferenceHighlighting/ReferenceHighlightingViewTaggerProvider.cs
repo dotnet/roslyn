@@ -69,6 +69,8 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
+            // Note: this may return no snapshot spans.  We have to be resilient to that
+            // when processing the TaggerContext<>.SpansToTag below.
             return textViewOpt.BufferGraph.GetTextBuffers(b => IsSupportedContentType(b.ContentType))
                               .Select(b => b.CurrentSnapshot.GetFullSpan())
                               .ToList();
@@ -91,7 +93,8 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
                 return SpecializedTasks.EmptyTask;
             }
 
-            var document = context.SpansToTag.First(vt => vt.SnapshotSpan.Snapshot == caretPosition.Snapshot).Document;
+            // GetSpansToTag may have produced no actual spans to tag.  Be resilient to that.
+            var document = context.SpansToTag.FirstOrDefault(vt => vt.SnapshotSpan.Snapshot == caretPosition.Snapshot).Document;
             if (document == null)
             {
                 return SpecializedTasks.EmptyTask;

@@ -32,29 +32,29 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)>
         Public Async Function TestClass() As Task
             Await TestAsync(<text>
-Class Foo$$
+Class Goo$$
 End Class
-</text>.NormalizedValue, "Foo", 0)
+</text>.NormalizedValue, "Goo", 0)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)>
         Public Async Function TestSub() As Task
             Await TestAsync(<text>
 Class C
-  Sub Foo()$$
+  Sub Goo()$$
   End Sub
 End Class
-</text>.NormalizedValue, "C.Foo()", 0)
+</text>.NormalizedValue, "C.Goo()", 0)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)>
         Public Async Function TestFunction() As Task
             Await TestAsync(<text>
 Class C
-  $$Function Foo() As Integer
+  $$Function Goo() As Integer
   End Function
 End Class
-</text>.NormalizedValue, "C.Foo() As Integer", 0)
+</text>.NormalizedValue, "C.Goo() As Integer", 0)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)>

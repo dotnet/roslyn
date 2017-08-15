@@ -11,8 +11,8 @@ namespace Roslyn.Utilities
     internal abstract class ValueSource<T>
     {
         public abstract bool TryGetValue(out T value);
-        public abstract T GetValue(CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task<T> GetValueAsync(CancellationToken cancellationToken = default(CancellationToken));
+        public abstract T GetValue(CancellationToken cancellationToken = default);
+        public abstract Task<T> GetValueAsync(CancellationToken cancellationToken = default);
 
         public bool HasValue
         {
@@ -22,6 +22,6 @@ namespace Roslyn.Utilities
             }
         }
 
-        public static readonly ConstantValueSource<T> Empty = new ConstantValueSource<T>(default(T));
+        public static readonly ConstantValueSource<T> Empty = new ConstantValueSource<T>(default);
     }
 }

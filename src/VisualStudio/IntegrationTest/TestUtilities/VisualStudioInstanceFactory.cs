@@ -16,11 +16,15 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Interop;
 using Microsoft.VisualStudio.Setup.Configuration;
 using Process = System.Diagnostics.Process;
+using RunTests;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     public sealed class VisualStudioInstanceFactory : IDisposable
     {
+        [ThreadStatic]
+        private static bool s_inHandler;
+
         public static readonly string VsProductVersion = Settings.Default.VsProductVersion;
 
         public static readonly string VsLaunchArgs = $"{(string.IsNullOrWhiteSpace(Settings.Default.VsRootSuffix) ? "/log" : $"/rootsuffix {Settings.Default.VsRootSuffix}")} /log";
@@ -50,8 +54,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         private static void FirstChanceExceptionHandler(object sender, FirstChanceExceptionEventArgs eventArgs)
         {
+            if (s_inHandler)
+            {
+                // An exception was thrown from within the handler, resulting in a recursive call to the handler.
+                // Bail out now we so don't recursively throw another exception and overflow the stack.
+                return;
+            }
+
             try
             {
+                s_inHandler = true;
+
                 var assemblyDirectory = GetAssemblyDirectory();
                 var testName = CaptureTestNameAttribute.CurrentName ?? "Unknown";
                 var logDir = Path.Combine(assemblyDirectory, "xUnitResults", "Screenshots");
@@ -64,11 +77,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                     $"{exception}.GetType().Name{Environment.NewLine}{exception.StackTrace}");
 
             }
-            catch (Exception e)
+            finally
             {
-                Debug.WriteLine(e);
-                // Per the AppDomain.FirstChanceException contract we must catch and deal with all exceptions that arise in the handler.
-                // Otherwise, we are likely to end up with recursive calls into this method until we overflow the stack.
+                s_inHandler = false;
             }
         }
 
@@ -158,8 +169,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 hostProcess = StartNewVisualStudioProcess(installationPath);
 
-                var procDumpPath = Environment.GetEnvironmentVariable(ProcDumpRunner.ProcDumpPathEnvironmentVariableKey);
-                ProcDumpRunner.StartProcDump(procDumpPath, hostProcess.Id, hostProcess.ProcessName, Path.Combine(GetAssemblyDirectory(), "xUnitResults"), s => Debug.WriteLine(s));
+                var procDumpInfo = ProcDumpInfo.ReadFromEnvironment();
+                if (procDumpInfo != null)
+                {
+                    ProcDumpUtil.AttachProcDump(procDumpInfo.Value, hostProcess.Id);
+                }
 
                 // We wait until the DTE instance is up before we're good
                 dte = IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).Result;
@@ -237,6 +251,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             if (haveVsInstallDir)
             {
                 vsInstallDir = Path.GetFullPath(vsInstallDir);
+                vsInstallDir = vsInstallDir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
                 Debug.WriteLine($"An environment variable named 'VSInstallDir' was found, adding this to the specified requirements. (VSInstallDir: {vsInstallDir})");
             }
 
@@ -248,6 +263,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                     if (haveVsInstallDir)
                     {
                         var installationPath = instance.GetInstallationPath();
+                        installationPath = Path.GetFullPath(installationPath);
+                        installationPath = installationPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
                         isMatch &= installationPath.Equals(vsInstallDir, StringComparison.OrdinalIgnoreCase);
                     }
                 }

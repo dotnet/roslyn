@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             context.RegisterRefactoring(
                 new MyCodeAction(
                     CSharpFeaturesResources.Inline_temporary_variable,
-                    (c) => this.InlineTemporaryAsync(document, variableDeclarator, c)));
+                    c => this.InlineTemporaryAsync(document, variableDeclarator, c)));
         }
 
         private async Task<IEnumerable<ReferenceLocation>> GetReferencesAsync(
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
         private SyntaxTriviaList GetTriviaToPreserve(SyntaxTriviaList syntaxTriviaList)
         {
-            return ShouldPreserve(syntaxTriviaList) ? syntaxTriviaList : default(SyntaxTriviaList);
+            return ShouldPreserve(syntaxTriviaList) ? syntaxTriviaList : default;
         }
 
         private static bool ShouldPreserve(SyntaxTriviaList trivia)

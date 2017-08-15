@@ -502,8 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 block = null;
                 hasErrors = true;
-                // TODO(https://github.com/dotnet/roslyn/issues/14900): Better error message
-                diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, localSymbol.Locations[0], localSymbol);
+                diagnostics.Add(ErrorCode.ERR_LocalFunctionMissingBody, localSymbol.Locations[0], localSymbol);
             }
 
             if (block != null)
@@ -965,7 +964,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var diagnostic in constantValueDiagnostics)
                 {
                     diagnostics.Add(diagnostic);
-                    hasErrors = true;
+                    if (diagnostic.Severity == DiagnosticSeverity.Error)
+                    {
+                        hasErrors = true;
+                    }
                 }
             }
 
@@ -2135,7 +2137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 return false;
                             }
                             else if (RequiresVariableReceiver(receiver, eventSymbol.AssociatedField) && // NOTE: using field, not event
-                                !CheckIsValidReceiverForVariable(eventSyntax, receiver, BindValueKind.Assignment, diagnostics))
+                                !CheckIsValidReceiverForVariable(eventSyntax, receiver, valueKind, diagnostics))
                             {
                                 return false;
                             }
@@ -2528,8 +2530,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // It is possible that the conversion from lambda to delegate is just fine, and 
             // that we ended up here because the target type, though itself is not an error
             // type, contains a type argument which is an error type. For example, converting
-            // (Foo foo)=>{} to Action<Foo> is a perfectly legal conversion even if Foo is undefined!
-            // In that case we have already reported an error that Foo is undefined, so just bail out.
+            // (Goo goo)=>{} to Action<Goo> is a perfectly legal conversion even if Goo is undefined!
+            // In that case we have already reported an error that Goo is undefined, so just bail out.
 
             if (reason == LambdaConversionResult.Success)
             {

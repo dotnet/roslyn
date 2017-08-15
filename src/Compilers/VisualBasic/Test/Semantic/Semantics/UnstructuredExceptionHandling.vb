@@ -14601,16 +14601,16 @@ Module Module1
     Sub Main()
         Dim sPath As String = ""
         sPath = "Test2"
-        On Error GoTo foo
+        On Error GoTo goo
         Error 5
         Console.WriteLine(sPath)
         Exit Sub
-fooReturn:
-        sPath &= "fooReturn"
+gooReturn:
+        sPath &= "gooReturn"
         Console.WriteLine(sPath)
         Exit Sub
-foo:
-        sPath &= "foo"
+goo:
+        sPath &= "goo"
         Resume Next 'Resume Next
     End Sub
 End Module
@@ -14620,10 +14620,10 @@ End Module
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            CompileAndVerify(compilation, expectedOutput:="Test2foo")
+            CompileAndVerify(compilation, expectedOutput:="Test2goo")
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
-            CompileAndVerify(compilation, expectedOutput:="Test2foo")
+            CompileAndVerify(compilation, expectedOutput:="Test2goo")
         End Sub
 
         <Fact()>
@@ -14638,16 +14638,16 @@ Module Module1
     Sub Main()
         Dim sPath As String = ""
         sPath = "Test3"
-        On Error GoTo foo
+        On Error GoTo goo
         Error 5
         Exit Sub
-fooReturn:
-        sPath &= "fooReturn"
+gooReturn:
+        sPath &= "gooReturn"
         Console.WriteLine(sPath)
         Exit Sub
-foo:
-        sPath &= "foo"
-        Resume fooReturn 'Resume with Label
+goo:
+        sPath &= "goo"
+        Resume gooReturn 'Resume with Label
     End Sub
 
 End Module
@@ -14658,10 +14658,10 @@ End Module
 
             'Just to verify with/without optimizations
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            CompileAndVerify(compilation, expectedOutput:="Test3foofooReturn")
+            CompileAndVerify(compilation, expectedOutput:="Test3googooReturn")
 
             compilation = compilation.WithOptions(TestOptions.DebugExe)
-            CompileAndVerify(compilation, expectedOutput:="Test3foofooReturn")
+            CompileAndVerify(compilation, expectedOutput:="Test3googooReturn")
         End Sub
 
         <Fact()>
@@ -14681,13 +14681,13 @@ Module Module1
         Console.WriteLine(sPath)
         Console.WriteLine("End")
         Exit Sub
-fooReturn:
-        sPath &= "fooReturn"
+gooReturn:
+        sPath &= "gooReturn"
         Console.WriteLine(sPath)
         Exit Sub
-foo:
-        sPath &= "foo"
-        Resume fooReturn 'Resume with Line    
+goo:
+        sPath &= "goo"
+        Resume gooReturn 'Resume with Line    
     End Sub
 End Module
         ]]>
@@ -14721,13 +14721,13 @@ Module Module1
 
         Console.WriteLine(sPath)
         Exit Sub
-fooReturn:
-        sPath &= "fooReturn"
+gooReturn:
+        sPath &= "gooReturn"
         Console.WriteLine(sPath)
         Exit Sub
-foo:
-        sPath &= "foo"
-        Resume fooReturn 'Resume with Line    
+goo:
+        sPath &= "goo"
+        Resume gooReturn 'Resume with Line    
     End Sub
 End Module
         ]]>
@@ -14806,13 +14806,13 @@ Module Module1
         Error 5 '<- will error here as unhandled exception
         Console.WriteLine(sPath)
         Exit Sub
-fooReturn:
-        sPath &= "fooReturn"
+gooReturn:
+        sPath &= "gooReturn"
         Console.WriteLine(sPath)
         Exit Sub
-foo:
-        sPath &= "foo"
-        Resume fooReturn 'Resume with Line    
+goo:
+        sPath &= "goo"
+        Resume gooReturn 'Resume with Line    
     End Sub
 End Module
                 ]]>
@@ -14888,13 +14888,13 @@ Module Module1
     Sub Main()
         Dim sb As String = ""
 
-        On Error GoTo foo
+        On Error GoTo goo
 
         Throw New Exception()
         Exit Sub
-foo:
+goo:
         On Error GoTo -1
-        Console.WriteLine("foo")
+        Console.WriteLine("goo")
         On Error GoTo bar
         Throw New Exception()
         GoTo EndSection
@@ -14919,7 +14919,7 @@ End Module
     </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
-            CompileAndVerify(compilation, expectedOutput:=<![CDATA[foo
+            CompileAndVerify(compilation, expectedOutput:=<![CDATA[goo
 bar
 zoo
 EndSection]]>)
@@ -14937,12 +14937,12 @@ Imports System
 
 Module Module1
     Sub Main()
-        On Error GoTo foo
+        On Error GoTo goo
         Throw New Exception()
         Exit Sub
-foo:
+goo:
         On Error GoTo 0
-        Console.Write("foo")
+        Console.Write("goo")
         On Error GoTo bar
         Throw New Exception() '<- Unhandled Exception Here
         GoTo EndSection
@@ -14983,7 +14983,7 @@ End Module
   IL_000d:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
   IL_0012:  ldc.i4.0
   IL_0013:  stloc.0
-  IL_0014:  ldstr      "foo"
+  IL_0014:  ldstr      "goo"
   IL_0019:  call       "Sub System.Console.Write(String)"
   IL_001e:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
   IL_0023:  ldc.i4.3
@@ -15060,11 +15060,11 @@ Imports System
 
 Module Module1
     Sub Main()
-        On Error GoTo foo
+        On Error GoTo goo
         Throw New Exception()
         Exit Sub
-foo:
-        Console.Write("foo")
+goo:
+        Console.Write("goo")
         On Error GoTo bar
         Throw New Exception() '<- Unhandled Exception Here
         GoTo EndSection
@@ -15101,7 +15101,7 @@ End Module
   IL_0006:  stloc.0
   IL_0007:  newobj     "Sub System.Exception..ctor()"
   IL_000c:  throw
-  IL_000d:  ldstr      "foo"
+  IL_000d:  ldstr      "goo"
   IL_0012:  call       "Sub System.Console.Write(String)"
   IL_0017:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
   IL_001c:  ldc.i4.3
@@ -15639,7 +15639,7 @@ errhandler:
         On Error Resume Next
         Dim iCount As Integer = 0
 
-        For i = 0 To 10 Step StepFoo(-1)
+        For i = 0 To 10 Step StepGoo(-1)
             Console.WriteLine("In Loop" & i)
             iCount += 1
             If iCount >= 3 Then
@@ -15648,7 +15648,7 @@ errhandler:
         Next
     End Sub
 
-    Function StepFoo(i As Integer) As Integer
+    Function StepGoo(i As Integer) As Integer
         If i < 0 Then
             Error 5
         Else
@@ -16015,7 +16015,7 @@ End Module
     IL_000b:  ldc.i4.3
     IL_000c:  stloc.2
     IL_000d:  ldc.i4.m1
-    IL_000e:  call       "Function Module1.StepFoo(Integer) As Integer"
+    IL_000e:  call       "Function Module1.StepGoo(Integer) As Integer"
     IL_0013:  stloc.s    V_4
     IL_0015:  ldc.i4.0
     IL_0016:  stloc.s    V_5
@@ -16129,12 +16129,12 @@ Module Module1
     End Sub
 
     Sub GotoMinus0()
-        On Error GoTo foo
+        On Error GoTo goo
         Error 1
         On Error GoTo 0 'This should reset the error handler to nothing
         Error 2 '< It will fail here with unhandled exception
         Exit Sub
-foo:
+goo:
         Console.WriteLine("In Handler")
         Resume Next
     End Sub
@@ -16253,12 +16253,12 @@ Module Module1
     End Sub
 
     Sub GotoMinus0()        
-        On Error GoTo foo
+        On Error GoTo goo
         Throw New Exception()
 
         Throw New Exception() '< It will fail here with unhandled exception
         Exit Sub
-foo:
+goo:
         Console.WriteLine("In Handler")
         On Error GoTo 0 'This should reset the error handler to nothing
         Resume Next
@@ -16378,7 +16378,7 @@ Module Module1
     End Sub
 
     Sub GotoMinus1()
-        'Resume Next takes place in Foo: Block
+        'Resume Next takes place in Goo: Block
         'and hence will result in infinite recursion without
         'the Iindex count exit condition
 
@@ -16387,19 +16387,19 @@ Module Module1
 
         Dim IiNDEX As Integer = 0
 
-        On Error GoTo foo
+        On Error GoTo goo
         Console.WriteLine("Before 1st Error")
         Error 1
         Console.WriteLine("Before 2nd Error")
         Error 2
         Exit Sub
-foo:
-        Console.WriteLine("Foo")
+goo:
+        Console.WriteLine("Goo")
         IiNDEX += 1
         If IiNDEX >= 3 Then Exit Sub
-        Console.WriteLine("In Foo Before Reset")
+        Console.WriteLine("In Goo Before Reset")
         On Error GoTo -1 'This should reset the error
-        Console.WriteLine("In Foo After Reset")
+        Console.WriteLine("In Goo After Reset")
 
         Resume Next
     End Sub
@@ -16410,13 +16410,13 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             Dim compilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[Before 1st Error
-Foo
-In Foo Before Reset
-In Foo After Reset
-Foo
-In Foo Before Reset
-In Foo After Reset
-Foo
+Goo
+In Goo Before Reset
+In Goo After Reset
+Goo
+In Goo Before Reset
+In Goo After Reset
+Goo
 ]]>)
 
             compilationVerifier.VerifyIL("Module1.GotoMinus1", <![CDATA[
@@ -16456,7 +16456,7 @@ Foo
     IL_0034:  throw
     IL_0035:  ldc.i4.8
     IL_0036:  stloc.2
-    IL_0037:  ldstr      "Foo"
+    IL_0037:  ldstr      "Goo"
     IL_003c:  call       "Sub System.Console.WriteLine(String)"
     IL_0041:  ldc.i4.s   9
     IL_0043:  stloc.2
@@ -16471,14 +16471,14 @@ Foo
     IL_004d:  bge.s      IL_0086
     IL_004f:  ldc.i4.s   12
     IL_0051:  stloc.2
-    IL_0052:  ldstr      "In Foo Before Reset"
+    IL_0052:  ldstr      "In Goo Before Reset"
     IL_0057:  call       "Sub System.Console.WriteLine(String)"
     IL_005c:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
     IL_0061:  ldc.i4.0
     IL_0062:  stloc.1
     IL_0063:  ldc.i4.s   14
     IL_0065:  stloc.2
-    IL_0066:  ldstr      "In Foo After Reset"
+    IL_0066:  ldstr      "In Goo After Reset"
     IL_006b:  call       "Sub System.Console.WriteLine(String)"
     IL_0070:  ldc.i4.s   15
     IL_0072:  stloc.2
@@ -16568,7 +16568,7 @@ Module Module1
     End Sub
 
     Sub GotoMinus1()
-        'Resume Next takes place in Foo: Block
+        'Resume Next takes place in Goo: Block
         'and hence will result in infinite recursion without
         'the Iindex count exit condition
 
@@ -16577,7 +16577,7 @@ Module Module1
 
         Dim IiNDEX As Integer = 0
 
-        On Error GoTo foo
+        On Error GoTo goo
         Console.WriteLine("Before 1st Error")
         Error 1
 
@@ -16588,8 +16588,8 @@ Module Module1
         Console.WriteLine("Before 2nd Error")
         Error 2
         Exit Sub
-foo:
-        Console.WriteLine("Foo")
+goo:
+        Console.WriteLine("Goo")
         IiNDEX += 1
         If IiNDEX >= 3 Then Exit Sub
         
@@ -16602,11 +16602,11 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             Dim compilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[Before 1st Error
-Foo
+Goo
 In Main Block Before Reset
 In Main Block After Reset
 Before 2nd Error
-Foo]]>)
+Goo]]>)
 
             compilationVerifier.VerifyIL("Module1.GotoMinus1", <![CDATA[
 {
@@ -16656,7 +16656,7 @@ Foo]]>)
     IL_0054:  throw
     IL_0055:  ldc.i4.s   11
     IL_0057:  stloc.2
-    IL_0058:  ldstr      "Foo"
+    IL_0058:  ldstr      "Goo"
     IL_005d:  call       "Sub System.Console.WriteLine(String)"
     IL_0062:  ldc.i4.s   12
     IL_0064:  stloc.2
@@ -16758,7 +16758,7 @@ Module Module1
         'Resume next will result in going to the next statement from initial error and 
         'handler is reset here - so need to have extra condition check.
 
-        On Error GoTo foo
+        On Error GoTo goo
         Console.WriteLine("Before 1 Exception")
         Throw New Exception()
         Console.WriteLine("After 1 Exception")
@@ -16768,8 +16768,8 @@ Module Module1
         Throw New Exception()
         Console.WriteLine("After 2 Exception")        
         Exit Sub
-foo:
-        Console.WriteLine("Foo")        
+goo:
+        Console.WriteLine("Goo")        
         Resume Next
     End Sub
 End Module
@@ -16779,10 +16779,10 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             Dim compilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[Before 1 Exception
-Foo
+Goo
 After 1 Exception
 Before 2 Exception
-Foo
+Goo
 After 2 Exception]]>)
 
 
@@ -16828,7 +16828,7 @@ After 2 Exception]]>)
     IL_004e:  br.s       IL_0073
     IL_0050:  ldc.i4.s   10
     IL_0052:  stloc.2
-    IL_0053:  ldstr      "Foo"
+    IL_0053:  ldstr      "Goo"
     IL_0058:  call       "Sub System.Console.WriteLine(String)"
     IL_005d:  ldc.i4.s   11
     IL_005f:  stloc.2
@@ -17386,7 +17386,7 @@ Module Module1
         On Error Resume Next
         Console.WriteLine("*********************************************")
         Console.WriteLine("IF Block(1) Test")
-        If Foo_IF() Then
+        If Goo_IF() Then
             Console.WriteLine("If Block")
         Else
             Console.WriteLine("Else Block")
@@ -17394,7 +17394,7 @@ Module Module1
         Console.WriteLine("End")
     End Sub
 
-    Function Foo_IF() As Boolean
+    Function Goo_IF() As Boolean
         Error 5
     End Function
 
@@ -17403,9 +17403,9 @@ Module Module1
         On Error Resume Next
         Console.WriteLine("*********************************************")
         Console.WriteLine("IF Block Test")
-        If FooIF(0) Then
+        If GooIF(0) Then
             Console.WriteLine("If Block")
-        ElseIf FooIF(2) Then 'Cause and Error
+        ElseIf GooIF(2) Then 'Cause and Error
             Console.WriteLine("ElseIf Block")
         Else
             Console.WriteLine("Else Block")
@@ -17413,7 +17413,7 @@ Module Module1
         Console.WriteLine("End")
     End Sub
 
-    Function FooIF(i As Integer) As Boolean
+    Function GooIF(i As Integer) As Boolean
         If i = 0 Then
             Return False
         ElseIf i = 1 Then
@@ -17429,9 +17429,9 @@ Module Module1
         Dim a = 1
         Console.WriteLine("*********************************************")
         Console.WriteLine("ELSEIF Block Test")
-        If a = 1 AndAlso FooELSEIF(0) Then
+        If a = 1 AndAlso GooELSEIF(0) Then
             Console.WriteLine("If Block")
-        ElseIf a = 1 AndAlso FooELSEIF(2) Then 'Cause and Error
+        ElseIf a = 1 AndAlso GooELSEIF(2) Then 'Cause and Error
             Console.WriteLine("ElseIf Block")
         Else
             Console.WriteLine("Else Block")
@@ -17439,7 +17439,7 @@ Module Module1
         Console.WriteLine("End")
     End Sub
 
-    Function FooELSEIF(i As Integer) As Boolean
+    Function GooELSEIF(i As Integer) As Boolean
         If i = 0 Then
             Return False
         ElseIf i = 1 Then
@@ -17490,7 +17490,7 @@ End]]>)
     IL_001a:  call       "Sub System.Console.WriteLine(String)"
     IL_001f:  ldc.i4.4
     IL_0020:  stloc.2
-    IL_0021:  call       "Function Module1.Foo_IF() As Boolean"
+    IL_0021:  call       "Function Module1.Goo_IF() As Boolean"
     IL_0026:  brfalse.s  IL_0036
     IL_0028:  ldc.i4.5
     IL_0029:  stloc.2
@@ -17581,7 +17581,7 @@ End]]>)
     IL_001f:  ldc.i4.4
     IL_0020:  stloc.2
     IL_0021:  ldc.i4.0
-    IL_0022:  call       "Function Module1.FooIF(Integer) As Boolean"
+    IL_0022:  call       "Function Module1.GooIF(Integer) As Boolean"
     IL_0027:  brfalse.s  IL_0037
     IL_0029:  ldc.i4.5
     IL_002a:  stloc.2
@@ -17591,7 +17591,7 @@ End]]>)
     IL_0037:  ldc.i4.7
     IL_0038:  stloc.2
     IL_0039:  ldc.i4.2
-    IL_003a:  call       "Function Module1.FooIF(Integer) As Boolean"
+    IL_003a:  call       "Function Module1.GooIF(Integer) As Boolean"
     IL_003f:  brfalse.s  IL_004f
     IL_0041:  ldc.i4.8
     IL_0042:  stloc.2
@@ -17693,7 +17693,7 @@ End]]>)
     IL_0026:  ldc.i4.1
     IL_0027:  bne.un.s   IL_003f
     IL_0029:  ldc.i4.0
-    IL_002a:  call       "Function Module1.FooELSEIF(Integer) As Boolean"
+    IL_002a:  call       "Function Module1.GooELSEIF(Integer) As Boolean"
     IL_002f:  brfalse.s  IL_003f
     IL_0031:  ldc.i4.6
     IL_0032:  stloc.2
@@ -17706,7 +17706,7 @@ End]]>)
     IL_0042:  ldc.i4.1
     IL_0043:  bne.un.s   IL_005c
     IL_0045:  ldc.i4.2
-    IL_0046:  call       "Function Module1.FooELSEIF(Integer) As Boolean"
+    IL_0046:  call       "Function Module1.GooELSEIF(Integer) As Boolean"
     IL_004b:  brfalse.s  IL_005c
     IL_004d:  ldc.i4.s   9
     IL_004f:  stloc.2
@@ -17794,7 +17794,7 @@ Module Module1
     Sub Main()
         On Error GoTo handler
         Console.WriteLine("Before Select")
-        Select Case foo
+        Select Case goo
             Case 1
                 Console.WriteLine("1")
             Case 2
@@ -17809,7 +17809,7 @@ handler:
         Resume Next
     End Sub
 
-    Function foo()
+    Function goo()
         Error 1
     End Function
 End Module
@@ -17842,7 +17842,7 @@ After Case]]>)
     IL_000e:  call       "Sub System.Console.WriteLine(String)"
     IL_0013:  ldc.i4.3
     IL_0014:  stloc.2
-    IL_0015:  call       "Function Module1.foo() As Object"
+    IL_0015:  call       "Function Module1.goo() As Object"
     IL_001a:  stloc.3
     IL_001b:  ldc.i4.5
     IL_001c:  stloc.2
@@ -17971,7 +17971,7 @@ After Case]]>)
                 Dim i = 1
                 Console.WriteLine("Before Select")
                 Select Case i
-                    Case foo()
+                    Case goo()
                         Console.WriteLine("1")
                     Case 2
                         Console.WriteLine("2")
@@ -17985,7 +17985,7 @@ handler:
                 Resume Next
             End Sub
 
-            Function foo()
+            Function goo()
                 Error 1
             End Function
         End Module
@@ -18017,7 +18017,7 @@ After Case]]>)
                 Dim i = 1
                 Console.WriteLine("Before Select")
                 Select Case i
-                    Case foo()
+                    Case goo()
                         Console.WriteLine("1")
                     Case 2
                         Console.WriteLine("2")
@@ -18031,7 +18031,7 @@ handler:
                 Resume Next
             End Sub
 
-            Function foo()
+            Function goo()
                 Error 1
             End Function
         End Module
@@ -18065,7 +18065,7 @@ Module Module1
         Dim i = 1
         Console.WriteLine("Before Select")
         Select Case i
-            Case i = foo(), 1
+            Case i = goo(), 1
                 Console.WriteLine("1")
             Case 2
                 Console.WriteLine("2")
@@ -18079,7 +18079,7 @@ handler:
         Resume Next
     End Sub
 
-    Function foo()
+    Function goo()
         Error 1
     End Function
 End Module
