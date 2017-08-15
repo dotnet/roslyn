@@ -16,10 +16,11 @@ This document is meant to be a comprehensive list of Roslyn features for use in 
 - Test phases
     - **Merge Signoff**: Can the language feature be merged? with all *Internal Dogfooding Requirements* met and all *Product Features* free of crashes and asserts?
         - Meet Internal Dogfooding Requirements
-            - Critical IDE features in the areas of **Typing**, **Navigating**, and **Viewing** must function as expected. Any non-trivial issues in these areas block language feature merging.
+            - Critical IDE features (marked with a :fast_forward: in the areas of **Typing**, **Navigating**, and **Viewing** must function as expected. Any non-trivial issues in these areas block language feature merging.
             - All product features are free of crashes, asserts, and hangs.
     - **Feature Signoff**: Per-feature signoff with links to non-blocking issues.
     - **Feature Suggestions**: What can we add to the product to make the new language feature delightful to use?
+
 - Testing approaches
     - Read the **feature specification** and related conversations
     - Think about how the new language feature **interacts with each product feature**
