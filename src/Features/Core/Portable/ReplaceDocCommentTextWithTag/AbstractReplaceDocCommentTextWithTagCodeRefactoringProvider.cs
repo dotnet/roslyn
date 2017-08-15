@@ -93,7 +93,8 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
                 return;
             }
 
-            // Look up the term inside the named type if we're inside of one.
+            // Doc comments on a named type can see the members inside of it.  So check
+            // inside the named type for a member that matches.
             if (symbol is INamedTypeSymbol namedType)
             {
                 var childMember = namedType.GetMembers().FirstOrDefault(m => syntaxFacts.StringComparer.Equals(m.Name, singleWordText));
