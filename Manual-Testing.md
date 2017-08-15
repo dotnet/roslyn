@@ -1,3 +1,9 @@
+## Purpose of this document
+
+This document is meant to be a comprehensive list of Roslyn features for use in several kinds of testing.
+- Routine product testing (features marked with a :star:)
+- Release testing (all features)
+- New language feature testing (think about all features, test relevant ones)
 
 ## Test plan
 - Read the **feature specification** and related conversations
