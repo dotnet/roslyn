@@ -1761,6 +1761,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         ' It's possible there is another symbol with the same name as the alias that binds first
         Private Function ValidateAliasForTarget(aliasReplacement As IAliasSymbol, semanticModel As SemanticModel, node As ExpressionSyntax, symbol As ISymbol) As Boolean
             Dim aliasName = aliasReplacement.Name
+
+            ' If we're the argument of a NameOf(X.Y) call, then we can't simplify to an
+            ' alias unless the alias has the same name as us (i.e. 'Y').
+            If node.IsNameOfArgumentExpression() Then
+                Dim nameofValueOpt = semanticModel.GetConstantValue(node.Parent.Parent.Parent)
+                If Not nameofValueOpt.HasValue Then
+                    Return False
+                End If
+
+                Dim existingValue = TryCast(nameofValueOpt.Value, String)
+                If existingValue Is Nothing OrElse existingValue <> aliasName Then
+                    Return False
+                End If
+            End If
+
             Dim boundSymbols = semanticModel.LookupNamespacesAndTypes(node.SpanStart, name:=aliasName)
             If boundSymbols.Length = 1 Then
                 Dim boundAlias = TryCast(boundSymbols(0), IAliasSymbol)
@@ -1774,6 +1789,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End If
             End If
             Return False
+        End Function
+
+        <Extension>
+        Public Function IsNameOfArgumentExpression(expression As ExpressionSyntax) As Boolean
+            Return expression.IsParentKind(SyntaxKind.NameOfExpression)
         End Function
 
         <Extension()>
