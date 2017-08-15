@@ -203,7 +203,8 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 using (MemoryStream memStream = new MemoryStream(asArray))
-                using (BinaryReader br = new BinaryReader(new MemoryStream(asArray))) {
+                using (BinaryReader br = new BinaryReader(new MemoryStream(asArray)))
+                {
                     byte bType = br.ReadByte();    // BLOBHEADER.bType: Expected to be 0x6 (PUBLICKEYBLOB) or 0x7 (PRIVATEKEYBLOB), though there's no check for backward compat reasons. 
                     byte bVersion = br.ReadByte(); // BLOBHEADER.bVersion: Expected to be 0x2, though there's no check for backward compat reasons.
                     br.ReadUInt16();               // BLOBHEADER.wReserved
@@ -211,16 +212,14 @@ namespace Microsoft.CodeAnalysis
                     uint magic = br.ReadUInt32();  // RSAPubKey.magic: Expected to be 0x31415352 ('RSA1') or 0x32415352 ('RSA2') 
                     var bitLen = br.ReadUInt32();  // Bit Length for Modulus
                     var pubExp = br.ReadUInt32();  // Exponent 
-                    var modulusLength = (int) (bitLen / 8);
-                    var halfModulusLength = (modulusLength + 1) / 2;
-
+                    var modulusLength = (int)(bitLen / 8);
 
                     if (blob.Length - s_offsetToKeyData < modulusLength)
                     {
                         return false;
                     }
 
-                    var modulus = br.ReadBytes((int) bitLen / 8);
+                    var modulus = br.ReadBytes(modulusLength);
 
                     if (!(bType == PrivateKeyBlobId && magic == RSA2) && !(bType == PublicKeyBlobId && magic == RSA1))
                     {
@@ -229,24 +228,11 @@ namespace Microsoft.CodeAnalysis
 
                     if (bType == PrivateKeyBlobId)
                     {
-                        RSAParameters rsaParameters = default(RSAParameters);
-
-                        rsaParameters.Exponent = ExponentAsBytes(pubExp);
-                        // RsaParameters wants the bytes in reverse order, so we clone the reversed sequence.
-                        rsaParameters.Modulus = modulus.Reverse().ToArray();
-                        rsaParameters.P = br.ReadReversed(halfModulusLength);
-                        rsaParameters.Q = br.ReadReversed(halfModulusLength);
-                        rsaParameters.DP = br.ReadReversed(halfModulusLength);
-                        rsaParameters.DQ = br.ReadReversed(halfModulusLength);
-                        rsaParameters.InverseQ = br.ReadReversed(halfModulusLength);
-                        rsaParameters.D = br.ReadReversed(modulusLength);
-
-                        privateKey = rsaParameters;
-
+                        privateKey = ToRSAParameters(asArray, true);
                         // For snKey, rewrite some of the the parameters
                         algId = AlgorithmId.RsaSign;
                         magic = RSA1;
-                    } 
+                    }
 
                     snKey = CreateSnPublicKeyBlob(PublicKeyBlobId, bVersion, algId, RSA1, bitLen, pubExp, modulus);
                     return true;
@@ -259,7 +245,45 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Helper for RsaCryptoServiceProvider.ExportParameters()
+        /// Copied from https://github.com/dotnet/corefx/blob/5fe5f9aae7b2987adc7082f90712b265bee5eefc/src/System.Security.Cryptography.Csp/src/System/Security/Cryptography/CapiHelper.Shared.cs
+        /// </summary>
+        internal static RSAParameters ToRSAParameters(this byte[] cspBlob, bool includePrivateParameters)
+        {
+            BinaryReader br = new BinaryReader(new MemoryStream(cspBlob));
+
+            byte bType = br.ReadByte();    // BLOBHEADER.bType: Expected to be 0x6 (PUBLICKEYBLOB) or 0x7 (PRIVATEKEYBLOB), though there's no check for backward compat reasons. 
+            byte bVersion = br.ReadByte(); // BLOBHEADER.bVersion: Expected to be 0x2, though there's no check for backward compat reasons.
+            br.ReadUInt16();               // BLOBHEADER.wReserved
+            int algId = br.ReadInt32();    // BLOBHEADER.aiKeyAlg
+
+            int magic = br.ReadInt32();    // RSAPubKey.magic: Expected to be 0x31415352 ('RSA1') or 0x32415352 ('RSA2') 
+            int bitLen = br.ReadInt32();   // RSAPubKey.bitLen
+
+            int modulusLength = bitLen / 8;
+            int halfModulusLength = (modulusLength + 1) / 2;
+
+            uint expAsDword = br.ReadUInt32();
+
+            RSAParameters rsaParameters = new RSAParameters();
+            rsaParameters.Exponent = ExponentAsBytes(expAsDword);
+            rsaParameters.Modulus = br.ReadReversed(modulusLength);
+            if (includePrivateParameters)
+            {
+                rsaParameters.P = br.ReadReversed(halfModulusLength);
+                rsaParameters.Q = br.ReadReversed(halfModulusLength);
+                rsaParameters.DP = br.ReadReversed(halfModulusLength);
+                rsaParameters.DQ = br.ReadReversed(halfModulusLength);
+                rsaParameters.InverseQ = br.ReadReversed(halfModulusLength);
+                rsaParameters.D = br.ReadReversed(modulusLength);
+            }
+
+            return rsaParameters;
+        }
+
+        /// <summary>
         /// Helper for converting a UInt32 exponent to bytes.
+        /// Copied from https://github.com/dotnet/corefx/blob/5fe5f9aae7b2987adc7082f90712b265bee5eefc/src/System.Security.Cryptography.Csp/src/System/Security/Cryptography/CapiHelper.Shared.cs
         /// </summary>
         private static byte[] ExponentAsBytes(uint exponent)
         {
