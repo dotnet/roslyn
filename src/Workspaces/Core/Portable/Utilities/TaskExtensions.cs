@@ -90,8 +90,6 @@ namespace Roslyn.Utilities
             TaskContinuationOptions continuationOptions,
             TaskScheduler scheduler)
         {
-            Contract.ThrowIfNull(continuationAction, nameof(continuationAction));
-
             Func<Task, bool> continuationFunction = antecedent =>
             {
                 continuationAction(antecedent);
@@ -118,8 +116,6 @@ namespace Roslyn.Utilities
             TaskContinuationOptions continuationOptions,
             TaskScheduler scheduler)
         {
-            Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
-
             return task.SafeContinueWith<TResult>(
                 (Task antecedent) => continuationFunction((Task<TInput>)antecedent), cancellationToken, continuationOptions, scheduler);
         }
@@ -131,8 +127,6 @@ namespace Roslyn.Utilities
             TaskContinuationOptions continuationOptions,
             TaskScheduler scheduler)
         {
-            Contract.ThrowIfNull(continuationAction, nameof(continuationAction));
-
             return task.SafeContinueWith(
                 (Task antecedent) => continuationAction((Task<TInput>)antecedent), cancellationToken, continuationOptions, scheduler);
         }
@@ -161,8 +155,6 @@ namespace Roslyn.Utilities
             //
             // We do not want this, so we pass the LazyCancellation flag to the TPL which implements
             // the behavior we want.
-
-            Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
 
             Func<Task, TResult> outerFunction = t =>
             {
@@ -231,8 +223,6 @@ namespace Roslyn.Utilities
             TaskContinuationOptions taskContinuationOptions,
             TaskScheduler scheduler)
         {
-            Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
-
             return task.SafeContinueWith(t =>
                 Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWith(
                     _ => continuationFunction(t), cancellationToken, TaskContinuationOptions.None, scheduler),
@@ -247,8 +237,6 @@ namespace Roslyn.Utilities
             TaskContinuationOptions taskContinuationOptions,
             TaskScheduler scheduler)
         {
-            Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
-
             return task.SafeContinueWith(t =>
                 Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWith(
                     _ => continuationFunction(t), cancellationToken, TaskContinuationOptions.None, scheduler),
@@ -263,8 +251,6 @@ namespace Roslyn.Utilities
             TaskContinuationOptions taskContinuationOptions,
             TaskScheduler scheduler)
         {
-            Contract.ThrowIfNull(continuationAction, nameof(continuationAction));
-
             return task.SafeContinueWith(t =>
                 Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWith(
                     _ => continuationAction(), cancellationToken, TaskContinuationOptions.None, scheduler),
@@ -278,8 +264,6 @@ namespace Roslyn.Utilities
             TaskContinuationOptions continuationOptions,
             TaskScheduler scheduler)
         {
-            Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
-
             return task.SafeContinueWithFromAsync<TResult>(
                 (Task antecedent) => continuationFunction((Task<TInput>)antecedent), cancellationToken, continuationOptions, scheduler);
         }
@@ -366,8 +350,6 @@ namespace Roslyn.Utilities
             TaskContinuationOptions taskContinuationOptions,
             TaskScheduler scheduler)
         {
-            Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
-
             return task.SafeContinueWith(t =>
                 Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWithFromAsync(
                     _ => continuationFunction(t), cancellationToken, TaskContinuationOptions.None, scheduler),
@@ -382,8 +364,6 @@ namespace Roslyn.Utilities
             TaskContinuationOptions taskContinuationOptions,
             TaskScheduler scheduler)
         {
-            Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
-
             return task.SafeContinueWith(t =>
                 Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWithFromAsync(
                     _ => continuationFunction(t), cancellationToken, TaskContinuationOptions.None, scheduler),

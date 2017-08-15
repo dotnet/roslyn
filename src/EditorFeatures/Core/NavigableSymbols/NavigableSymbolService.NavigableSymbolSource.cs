@@ -55,10 +55,6 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
                 }
 
                 var service = document.GetLanguageService<IGoToSymbolService>();
-                if (service == null)
-                {
-                    return null;
-                }
 
                 var context = new GoToSymbolContext(document, position, cancellationToken);
 

@@ -37,40 +37,5 @@ namespace Microsoft.CodeAnalysis.Versions
             PersistedVersionStampLogger.LogPersistedDependentProjectVersionUsage(canReuse);
             return canReuse;
         }
-
-        public static bool CanReusePersistedSemanticVersion(
-            this Project project, VersionStamp projectVersion, VersionStamp semanticVersion, VersionStamp persistedVersion)
-        {
-            var canReuse = CanReusePersistedSemanticVersionInternal(
-                project, projectVersion, semanticVersion, persistedVersion, (s, p, v) => s.GetInitialProjectVersionFromSemanticVersion(p, v));
-
-            PersistedVersionStampLogger.LogPersistedSemanticVersionUsage(canReuse);
-            return canReuse;
-        }
-
-        public static bool CanReusePersistedDependentSemanticVersion(
-            this Project project, VersionStamp dependentProjectVersion, VersionStamp dependentSemanticVersion, VersionStamp persistedVersion)
-        {
-            var canReuse = CanReusePersistedSemanticVersionInternal(
-                project, dependentProjectVersion, dependentSemanticVersion, persistedVersion, (s, p, v) => s.GetInitialDependentProjectVersionFromDependentSemanticVersion(p, v));
-
-            PersistedVersionStampLogger.LogPersistedDependentSemanticVersionUsage(canReuse);
-            return canReuse;
-        }
-
-        private static bool CanReusePersistedSemanticVersionInternal(
-            Project project,
-            VersionStamp projectVersion,
-            VersionStamp semanticVersion,
-            VersionStamp persistedVersion,
-            Func<ISemanticVersionTrackingService, Project, VersionStamp, VersionStamp> versionGetter)
-        {
-            // * NOTE * 
-            // Disabled semantic version tracking
-            // we need better version for it to reliably work.
-            //
-            // see tracking issue here : https://github.com/dotnet/roslyn/issues/2311
-            return VersionStamp.CanReusePersistedVersion(semanticVersion, persistedVersion);
-        }
     }
 }
