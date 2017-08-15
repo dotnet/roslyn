@@ -23,8 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
 @"[|static|] internal class C
 {
 }",
-@"
-internal static class C
+@"internal static class C
 {
 }");
         }
@@ -36,8 +35,7 @@ internal static class C
 @"[|unsafe|] public struct C
 {
 }",
-@"
-public unsafe struct C
+@"public unsafe struct C
 {
 }");
         }
@@ -49,8 +47,7 @@ public unsafe struct C
 @"[|unsafe|] public interface C
 {
 }",
-@"
-public unsafe interface C
+@"public unsafe interface C
 {
 }");
         }
@@ -62,8 +59,7 @@ public unsafe interface C
 @"[|internal|] protected enum C
 {
 }",
-@"
-protected internal enum C
+@"protected internal enum C
 {
 }");
         }
@@ -84,8 +80,7 @@ protected internal enum C
 {
     [|unsafe|] public void M() { }
 }",
-@"
-class C
+@"class C
 {
     public unsafe void M() { }
 }");
@@ -99,8 +94,7 @@ class C
 {
     [|unsafe|] public int a;
 }",
-@"
-class C
+@"class C
 {
     public unsafe int a;
 }");
@@ -114,8 +108,7 @@ class C
 {
     [|unsafe|] public C() { }
 }",
-@"
-class C
+@"class C
 {
     public unsafe C() { }
 }");
@@ -129,8 +122,7 @@ class C
 {
     [|unsafe|] public int P { get; }
 }",
-@"
-class C
+@"class C
 {
     public unsafe int P { get; }
 }");
@@ -144,8 +136,7 @@ class C
 {
     int P { [|internal|] protected get; }
 }",
-@"
-class C
+@"class C
 {
     int P { protected internal get; }
 }");
@@ -159,8 +150,7 @@ class C
 {
     [|internal|] protected event Action P { add { } remove { } }
 }",
-@"
-class C
+@"class C
 {
     protected internal event Action P { add { } remove { } }
 }");
@@ -174,8 +164,7 @@ class C
 {
     [|internal|] protected event Action P;
 }",
-@"
-class C
+@"class C
 {
     protected internal event Action P;
 }");
@@ -189,8 +178,7 @@ class C
 {
     [|static|] public C operator +(C c1, C c2) { }
 }",
-@"
-class C
+@"class C
 {
     public static C operator +(C c1, C c2) { }
 }");
@@ -204,8 +192,7 @@ class C
 {
     [|static|] public implicit operator bool(C c1) { }
 }",
-@"
-class C
+@"class C
 {
     public static implicit operator bool(C c1) { }
 }");
@@ -219,8 +206,7 @@ class C
 {
     static internal class Nested { }
 }",
-@"
-internal static class C
+@"internal static class C
 {
     internal static class Nested { }
 }");
@@ -234,8 +220,7 @@ internal static class C
 {
     {|FixAllInDocument:static|} internal class Nested { }
 }",
-@"
-internal static class C
+@"internal static class C
 {
     internal static class Nested { }
 }");

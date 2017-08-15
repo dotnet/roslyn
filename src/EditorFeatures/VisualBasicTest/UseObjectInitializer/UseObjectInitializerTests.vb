@@ -378,7 +378,8 @@ Class C
         }
         z.y = 2
     End Sub
-End Class")
+End Class
+")
         End Function
     End Class
 End Namespace

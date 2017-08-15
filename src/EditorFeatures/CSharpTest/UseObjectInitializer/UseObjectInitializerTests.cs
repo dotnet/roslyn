@@ -324,7 +324,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 
     void M()
     {
-        var v = new C(() => {
+        var v = new C(() =>
+        {
             var v2 = new C
             {
                 i = 1
@@ -364,7 +365,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
     {
         var v = new C
         {
-            j = () => {
+            j = () =>
+            {
                 var v2 = new C
                 {
                     i = 1
