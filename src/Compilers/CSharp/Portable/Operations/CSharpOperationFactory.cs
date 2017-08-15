@@ -256,7 +256,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                     return CreateBoundIsPatternExpressionOperation((BoundIsPatternExpression)boundNode);
                 default:
                     var constantValue = ConvertToOptional((boundNode as BoundExpression)?.ConstantValue);
-                    return Operation.CreateOperationNone(_semanticModel, boundNode.Syntax, constantValue, getChildren: () => GetIOperationChildren(boundNode));
+                    bool isImplicit = boundNode.WasCompilerGenerated;
+
+                    return Operation.CreateOperationNone(_semanticModel, boundNode.Syntax, constantValue, getChildren: () => GetIOperationChildren(boundNode), isImplicit: isImplicit);
             }
         }
 
@@ -283,7 +285,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundDeconstructValuePlaceholder.Syntax;
             ITypeSymbol type = boundDeconstructValuePlaceholder.Type;
             Optional<object> constantValue = ConvertToOptional(boundDeconstructValuePlaceholder.ConstantValue);
-            return new PlaceholderExpression(_semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundDeconstructValuePlaceholder.WasCompilerGenerated;
+            return new PlaceholderExpression(_semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IInvocationExpression CreateBoundCallOperation(BoundCall boundCall)
@@ -313,7 +316,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundCall.Syntax;
             ITypeSymbol type = boundCall.Type;
             Optional<object> constantValue = ConvertToOptional(boundCall.ConstantValue);
-            return new LazyInvocationExpression(targetMethod, instance, isVirtual, argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundCall.WasCompilerGenerated;
+            return new LazyInvocationExpression(targetMethod, instance, isVirtual, argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ILocalReferenceExpression CreateBoundLocalOperation(BoundLocal boundLocal)
@@ -322,7 +326,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundLocal.Syntax;
             ITypeSymbol type = boundLocal.Type;
             Optional<object> constantValue = ConvertToOptional(boundLocal.ConstantValue);
-            return new LocalReferenceExpression(local, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundLocal.WasCompilerGenerated;
+            return new LocalReferenceExpression(local, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IFieldReferenceExpression CreateBoundFieldAccessOperation(BoundFieldAccess boundFieldAccess)
@@ -333,7 +338,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundFieldAccess.Syntax;
             ITypeSymbol type = boundFieldAccess.Type;
             Optional<object> constantValue = ConvertToOptional(boundFieldAccess.ConstantValue);
-            return new LazyFieldReferenceExpression(field, instance, member, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundFieldAccess.WasCompilerGenerated;
+            return new LazyFieldReferenceExpression(field, instance, member, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IPropertyReferenceExpression CreateBoundPropertyAccessOperation(BoundPropertyAccess boundPropertyAccess)
@@ -345,7 +351,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundPropertyAccess.Syntax;
             ITypeSymbol type = boundPropertyAccess.Type;
             Optional<object> constantValue = ConvertToOptional(boundPropertyAccess.ConstantValue);
-            return new LazyPropertyReferenceExpression(property, instance, member, argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundPropertyAccess.WasCompilerGenerated;
+            return new LazyPropertyReferenceExpression(property, instance, member, argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IPropertyReferenceExpression CreateBoundIndexerAccessOperation(BoundIndexerAccess boundIndexerAccess)
@@ -375,7 +382,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundIndexerAccess.Syntax;
             ITypeSymbol type = boundIndexerAccess.Type;
             Optional<object> constantValue = ConvertToOptional(boundIndexerAccess.ConstantValue);
-            return new LazyPropertyReferenceExpression(property, instance, member, argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundIndexerAccess.WasCompilerGenerated;
+            return new LazyPropertyReferenceExpression(property, instance, member, argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IEventReferenceExpression CreateBoundEventAccessOperation(BoundEventAccess boundEventAccess)
@@ -386,7 +394,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundEventAccess.Syntax;
             ITypeSymbol type = boundEventAccess.Type;
             Optional<object> constantValue = ConvertToOptional(boundEventAccess.ConstantValue);
-            return new LazyEventReferenceExpression(@event, instance, member, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundEventAccess.WasCompilerGenerated;
+            return new LazyEventReferenceExpression(@event, instance, member, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IEventReferenceExpression CreateBoundEventAccessOperation(BoundEventAssignmentOperator boundEventAssignmentOperator)
@@ -400,28 +409,31 @@ namespace Microsoft.CodeAnalysis.Semantics
             IEventSymbol @event = boundEventAssignmentOperator.Event;
             Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(boundEventAssignmentOperator.Event.IsStatic ? null : boundEventAssignmentOperator.ReceiverOpt));
             SyntaxNode eventAccessSyntax = ((AssignmentExpressionSyntax)syntax).Left;
+            bool isImplicit = boundEventAssignmentOperator.WasCompilerGenerated;
 
-            return new LazyEventReferenceExpression(@event, instance, @event, _semanticModel, eventAccessSyntax, @event.Type, ConvertToOptional(null));
+            return new LazyEventReferenceExpression(@event, instance, @event, _semanticModel, eventAccessSyntax, @event.Type, ConvertToOptional(null), isImplicit);
         }
 
         private IEventAssignmentExpression CreateBoundEventAssignmentOperatorOperation(BoundEventAssignmentOperator boundEventAssignmentOperator)
         {
-            Lazy<IEventReferenceExpression> eventReference = new Lazy<IEventReferenceExpression>(() => CreateBoundEventAccessOperation(boundEventAssignmentOperator));                
+            Lazy<IEventReferenceExpression> eventReference = new Lazy<IEventReferenceExpression>(() => CreateBoundEventAccessOperation(boundEventAssignmentOperator));
             Lazy<IOperation> handlerValue = new Lazy<IOperation>(() => Create(boundEventAssignmentOperator.Argument));
             SyntaxNode syntax = boundEventAssignmentOperator.Syntax;
             bool adds = boundEventAssignmentOperator.IsAddition;
             ITypeSymbol type = boundEventAssignmentOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundEventAssignmentOperator.ConstantValue);
-            return new LazyEventAssignmentExpression(eventReference, handlerValue, adds, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundEventAssignmentOperator.WasCompilerGenerated;
+            return new LazyEventAssignmentExpression(eventReference, handlerValue, adds, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private IParameterReferenceExpression CreateBoundParameterOperation(BoundParameter boundParameter)
+            private IParameterReferenceExpression CreateBoundParameterOperation(BoundParameter boundParameter)
         {
             IParameterSymbol parameter = boundParameter.ParameterSymbol;
             SyntaxNode syntax = boundParameter.Syntax;
             ITypeSymbol type = boundParameter.Type;
             Optional<object> constantValue = ConvertToOptional(boundParameter.ConstantValue);
-            return new ParameterReferenceExpression(parameter, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundParameter.WasCompilerGenerated;
+            return new ParameterReferenceExpression(parameter, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ILiteralExpression CreateBoundLiteralOperation(BoundLiteral boundLiteral)
@@ -430,7 +442,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundLiteral.Syntax;
             ITypeSymbol type = boundLiteral.Type;
             Optional<object> constantValue = ConvertToOptional(boundLiteral.ConstantValue);
-            return new LiteralExpression(text, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundLiteral.WasCompilerGenerated;
+            return new LiteralExpression(text, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IAnonymousObjectCreationExpression CreateBoundAnonymousObjectCreationExpressionOperation(BoundAnonymousObjectCreationExpression boundAnonymousObjectCreationExpression)
@@ -439,7 +452,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundAnonymousObjectCreationExpression.Syntax;
             ITypeSymbol type = boundAnonymousObjectCreationExpression.Type;
             Optional<object> constantValue = ConvertToOptional(boundAnonymousObjectCreationExpression.ConstantValue);
-            return new LazyAnonymousObjectCreationExpression(memberInitializers, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundAnonymousObjectCreationExpression.WasCompilerGenerated;
+            return new LazyAnonymousObjectCreationExpression(memberInitializers, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IPropertyReferenceExpression CreateBoundAnonymousPropertyDeclarationOperation(BoundAnonymousPropertyDeclaration boundAnonymousPropertyDeclaration)
@@ -451,7 +465,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundAnonymousPropertyDeclaration.Syntax;
             ITypeSymbol type = boundAnonymousPropertyDeclaration.Type;
             Optional<object> constantValue = ConvertToOptional(boundAnonymousPropertyDeclaration.ConstantValue);
-            return new LazyPropertyReferenceExpression(property, instance, member, argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundAnonymousPropertyDeclaration.WasCompilerGenerated;
+            return new LazyPropertyReferenceExpression(property, instance, member, argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IObjectCreationExpression CreateBoundObjectCreationExpressionOperation(BoundObjectCreationExpression boundObjectCreationExpression)
@@ -476,7 +491,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundObjectCreationExpression.Syntax;
             ITypeSymbol type = boundObjectCreationExpression.Type;
             Optional<object> constantValue = ConvertToOptional(boundObjectCreationExpression.ConstantValue);
-            return new LazyObjectCreationExpression(constructor, initializer, argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundObjectCreationExpression.WasCompilerGenerated;
+            return new LazyObjectCreationExpression(constructor, initializer, argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IDynamicObjectCreationExpression CreateBoundDynamicObjectCreationExpressionOperation(BoundDynamicObjectCreationExpression boundDynamicObjectCreationExpression)
@@ -490,7 +506,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundDynamicObjectCreationExpression.Syntax;
             ITypeSymbol type = boundDynamicObjectCreationExpression.Type;
             Optional<object> constantValue = ConvertToOptional(boundDynamicObjectCreationExpression.ConstantValue);
-            return new LazyDynamicObjectCreationExpression(name, applicableSymbols, arguments, argumentNames, argumentRefKinds, initializer, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundDynamicObjectCreationExpression.WasCompilerGenerated;
+            return new LazyDynamicObjectCreationExpression(name, applicableSymbols, arguments, argumentNames, argumentRefKinds, initializer, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IObjectOrCollectionInitializerExpression CreateBoundObjectInitializerExpressionOperation(BoundObjectInitializerExpression boundObjectInitializerExpression)
@@ -499,7 +516,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundObjectInitializerExpression.Syntax;
             ITypeSymbol type = boundObjectInitializerExpression.Type;
             Optional<object> constantValue = ConvertToOptional(boundObjectInitializerExpression.ConstantValue);
-            return new LazyObjectOrCollectionInitializerExpression(initializers, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundObjectInitializerExpression.WasCompilerGenerated;
+            return new LazyObjectOrCollectionInitializerExpression(initializers, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IObjectOrCollectionInitializerExpression CreateBoundCollectionInitializerExpressionOperation(BoundCollectionInitializerExpression boundCollectionInitializerExpression)
@@ -508,7 +526,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundCollectionInitializerExpression.Syntax;
             ITypeSymbol type = boundCollectionInitializerExpression.Type;
             Optional<object> constantValue = ConvertToOptional(boundCollectionInitializerExpression.ConstantValue);
-            return new LazyObjectOrCollectionInitializerExpression(initializers, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundCollectionInitializerExpression.WasCompilerGenerated;
+            return new LazyObjectOrCollectionInitializerExpression(initializers, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IMemberReferenceExpression CreateBoundObjectInitializerMemberOperation(BoundObjectInitializerMember boundObjectInitializerMember)
@@ -518,20 +537,22 @@ namespace Microsoft.CodeAnalysis.Semantics
                 _semanticModel,
                 syntax: boundObjectInitializerMember.Syntax,
                 type: boundObjectInitializerMember.MemberSymbol.ContainingType,
-                constantValue: default(Optional<object>)));
+                constantValue: default(Optional<object>),
+                isImplicit: boundObjectInitializerMember.WasCompilerGenerated));
 
             SyntaxNode syntax = boundObjectInitializerMember.Syntax;
             ITypeSymbol type = boundObjectInitializerMember.Type;
             Optional<object> constantValue = ConvertToOptional(boundObjectInitializerMember.ConstantValue);
+            bool isImplicit = boundObjectInitializerMember.WasCompilerGenerated;
 
             switch (boundObjectInitializerMember.MemberSymbol.Kind)
             {
                 case SymbolKind.Field:
                     var field = (FieldSymbol)boundObjectInitializerMember.MemberSymbol;
-                    return new LazyFieldReferenceExpression(field, instance, field, _semanticModel, syntax, type, constantValue);
+                    return new LazyFieldReferenceExpression(field, instance, field, _semanticModel, syntax, type, constantValue, isImplicit);
                 case SymbolKind.Event:
                     var eventSymbol = (EventSymbol)boundObjectInitializerMember.MemberSymbol;
-                    return new LazyEventReferenceExpression(eventSymbol, instance, eventSymbol, _semanticModel, syntax, type, constantValue);
+                    return new LazyEventReferenceExpression(eventSymbol, instance, eventSymbol, _semanticModel, syntax, type, constantValue, isImplicit);
                 case SymbolKind.Property:
                     var property = (PropertySymbol)boundObjectInitializerMember.MemberSymbol;
                     Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder;
@@ -560,7 +581,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                         });
                     }
 
-                    return new LazyPropertyReferenceExpression(property, instance, property, argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue);
+                    return new LazyPropertyReferenceExpression(property, instance, property, argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue, isImplicit);
                 default:
                     throw ExceptionUtilities.Unreachable;
             }
@@ -574,7 +595,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundCollectionElementInitializer.Syntax;
             ITypeSymbol type = boundCollectionElementInitializer.Type;
             Optional<object> constantValue = ConvertToOptional(boundCollectionElementInitializer.ConstantValue);
-            return new LazyCollectionElementInitializerExpression(addMethod, arguments, isDynamic, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundCollectionElementInitializer.WasCompilerGenerated;
+            return new LazyCollectionElementInitializerExpression(addMethod, arguments, isDynamic, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IDynamicMemberReferenceExpression CreateBoundDynamicMemberAccessOperation(BoundDynamicMemberAccess boundDynamicMemberAccess)
@@ -590,7 +612,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntaxNode = boundDynamicMemberAccess.Syntax;
             ITypeSymbol type = boundDynamicMemberAccess.Type;
             Optional<object> constantValue = ConvertToOptional(boundDynamicMemberAccess.ConstantValue);
-            return new LazyDynamicMemberReferenceExpression(instance, memberName, typeArguments, containingType, _semanticModel, syntaxNode, type, constantValue);
+            bool isImplicit = boundDynamicMemberAccess.WasCompilerGenerated;
+            return new LazyDynamicMemberReferenceExpression(instance, memberName, typeArguments, containingType, _semanticModel, syntaxNode, type, constantValue, isImplicit);
         }
 
         private ICollectionElementInitializerExpression CreateBoundDynamicCollectionElementInitializerOperation(BoundDynamicCollectionElementInitializer boundCollectionElementInitializer)
@@ -601,7 +624,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundCollectionElementInitializer.Syntax;
             ITypeSymbol type = boundCollectionElementInitializer.Type;
             Optional<object> constantValue = ConvertToOptional(boundCollectionElementInitializer.ConstantValue);
-            return new LazyCollectionElementInitializerExpression(addMethod, arguments, isDynamic, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundCollectionElementInitializer.WasCompilerGenerated;
+            return new LazyCollectionElementInitializerExpression(addMethod, arguments, isDynamic, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IOperation CreateUnboundLambdaOperation(UnboundLambda unboundLambda)
@@ -626,7 +650,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             // an IAnonymousFunctionExpression, you need to look at the parent IConversionExpression.
             ITypeSymbol type = null;
             Optional<object> constantValue = ConvertToOptional(boundLambda.ConstantValue);
-            return new LazyAnonymousFunctionExpression(symbol, body, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundLambda.WasCompilerGenerated;
+            return new LazyAnonymousFunctionExpression(symbol, body, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ILocalFunctionStatement CreateBoundLocalFunctionStatementOperation(BoundLocalFunctionStatement boundLocalFunctionStatement)
@@ -636,12 +661,14 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundLocalFunctionStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyLocalFunctionStatement(localFunctionSymbol, body, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundLocalFunctionStatement.WasCompilerGenerated;
+            return new LazyLocalFunctionStatement(localFunctionSymbol, body, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IOperation CreateBoundConversionOperation(BoundConversion boundConversion)
         {
             ConversionKind conversionKind = GetConversionKind(boundConversion.ConversionKind);
+            bool isImplicit = boundConversion.WasCompilerGenerated;
             if (boundConversion.ConversionKind == CSharp.ConversionKind.MethodGroup)
             {
                 IMethodSymbol method = boundConversion.SymbolOpt;
@@ -650,7 +677,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 SyntaxNode syntax = boundConversion.Syntax;
                 ITypeSymbol type = boundConversion.Type;
                 Optional<object> constantValue = ConvertToOptional(boundConversion.ConstantValue);
-                return new LazyMethodBindingExpression(method, isVirtual, instance, method, _semanticModel, syntax, type, constantValue);
+                return new LazyMethodBindingExpression(method, isVirtual, instance, method, _semanticModel, syntax, type, constantValue, isImplicit);
             }
             else
             {
@@ -663,7 +690,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 bool isChecked = conversion.IsNumeric && boundConversion.Checked;
                 ITypeSymbol type = boundConversion.Type;
                 Optional<object> constantValue = ConvertToOptional(boundConversion.ConstantValue);
-                return new LazyCSharpConversionExpression(operand, conversion, isExplicit, isTryCast, isChecked, _semanticModel, syntax, type, constantValue);
+                return new LazyCSharpConversionExpression(operand, conversion, isExplicit, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
             }
         }
 
@@ -677,7 +704,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             bool isChecked = false;
             ITypeSymbol type = boundAsOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundAsOperator.ConstantValue);
-            return new LazyCSharpConversionExpression(operand, conversion, isExplicit, isTryCast, isChecked, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundAsOperator.WasCompilerGenerated;
+            return new LazyCSharpConversionExpression(operand, conversion, isExplicit, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IIsTypeExpression CreateBoundIsOperatorOperation(BoundIsOperator boundIsOperator)
@@ -687,7 +715,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundIsOperator.Syntax;
             ITypeSymbol type = boundIsOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundIsOperator.ConstantValue);
-            return new LazyIsTypeExpression(operand, isType, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundIsOperator.WasCompilerGenerated;
+            return new LazyIsTypeExpression(operand, isType, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ISizeOfExpression CreateBoundSizeOfOperatorOperation(BoundSizeOfOperator boundSizeOfOperator)
@@ -696,7 +725,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundSizeOfOperator.Syntax;
             ITypeSymbol type = boundSizeOfOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundSizeOfOperator.ConstantValue);
-            return new SizeOfExpression(typeOperand, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundSizeOfOperator.WasCompilerGenerated;
+            return new SizeOfExpression(typeOperand, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ITypeOfExpression CreateBoundTypeOfOperatorOperation(BoundTypeOfOperator boundTypeOfOperator)
@@ -705,7 +735,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundTypeOfOperator.Syntax;
             ITypeSymbol type = boundTypeOfOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundTypeOfOperator.ConstantValue);
-            return new TypeOfExpression(typeOperand, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundTypeOfOperator.WasCompilerGenerated;
+            return new TypeOfExpression(typeOperand, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IArrayCreationExpression CreateBoundArrayCreationOperation(BoundArrayCreation boundArrayCreation)
@@ -716,7 +747,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundArrayCreation.Syntax;
             ITypeSymbol type = boundArrayCreation.Type;
             Optional<object> constantValue = ConvertToOptional(boundArrayCreation.ConstantValue);
-            return new LazyArrayCreationExpression(elementType, dimensionSizes, initializer, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundArrayCreation.WasCompilerGenerated;
+            return new LazyArrayCreationExpression(elementType, dimensionSizes, initializer, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IArrayInitializer CreateBoundArrayInitializationOperation(BoundArrayInitialization boundArrayInitialization)
@@ -725,7 +757,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundArrayInitialization.Syntax;
             ITypeSymbol type = boundArrayInitialization.Type;
             Optional<object> constantValue = ConvertToOptional(boundArrayInitialization.ConstantValue);
-            return new LazyArrayInitializer(elementValues, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundArrayInitialization.WasCompilerGenerated;
+            return new LazyArrayInitializer(elementValues, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IDefaultValueExpression CreateBoundDefaultExpressionOperation(BoundDefaultExpression boundDefaultExpression)
@@ -733,7 +766,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundDefaultExpression.Syntax;
             ITypeSymbol type = boundDefaultExpression.Type;
             Optional<object> constantValue = ConvertToOptional(boundDefaultExpression.ConstantValue);
-            return new DefaultValueExpression(_semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundDefaultExpression.WasCompilerGenerated;
+            return new DefaultValueExpression(_semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IInstanceReferenceExpression CreateBoundBaseReferenceOperation(BoundBaseReference boundBaseReference)
@@ -742,7 +776,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundBaseReference.Syntax;
             ITypeSymbol type = boundBaseReference.Type;
             Optional<object> constantValue = ConvertToOptional(boundBaseReference.ConstantValue);
-            return new InstanceReferenceExpression(instanceReferenceKind, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundBaseReference.WasCompilerGenerated;
+            return new InstanceReferenceExpression(instanceReferenceKind, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IInstanceReferenceExpression CreateBoundThisReferenceOperation(BoundThisReference boundThisReference)
@@ -751,7 +786,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundThisReference.Syntax;
             ITypeSymbol type = boundThisReference.Type;
             Optional<object> constantValue = ConvertToOptional(boundThisReference.ConstantValue);
-            return new InstanceReferenceExpression(instanceReferenceKind, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundThisReference.WasCompilerGenerated;
+            return new InstanceReferenceExpression(instanceReferenceKind, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IOperation CreateBoundAssignmentOperatorOrMemberInitializerOperation(BoundAssignmentOperator boundAssignmentOperator)
@@ -773,7 +809,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundAssignmentOperator.Syntax;
             ITypeSymbol type = boundAssignmentOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundAssignmentOperator.ConstantValue);
-            return new LazySimpleAssignmentExpression(target, value, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundAssignmentOperator.WasCompilerGenerated;
+            return new LazySimpleAssignmentExpression(target, value, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IMemberInitializerExpression CreateBoundMemberInitializerOperation(BoundAssignmentOperator boundAssignmentOperator)
@@ -785,7 +822,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundAssignmentOperator.Syntax;
             ITypeSymbol type = boundAssignmentOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundAssignmentOperator.ConstantValue);
-            return new LazyMemberInitializerExpression(target, value, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundAssignmentOperator.WasCompilerGenerated;
+            return new LazyMemberInitializerExpression(target, value, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ICompoundAssignmentExpression CreateBoundCompoundAssignmentOperatorOperation(BoundCompoundAssignmentOperator boundCompoundAssignmentOperator)
@@ -798,7 +836,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundCompoundAssignmentOperator.Syntax;
             ITypeSymbol type = boundCompoundAssignmentOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundCompoundAssignmentOperator.ConstantValue);
-            return new LazyCompoundAssignmentExpression(binaryOperationKind, boundCompoundAssignmentOperator.Type.IsNullableType(), target, value, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundCompoundAssignmentOperator.WasCompilerGenerated;
+            return new LazyCompoundAssignmentExpression(binaryOperationKind, boundCompoundAssignmentOperator.Type.IsNullableType(), target, value, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IIncrementExpression CreateBoundIncrementOperatorOperation(BoundIncrementOperator boundIncrementOperator)
@@ -810,7 +849,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundIncrementOperator.Syntax;
             ITypeSymbol type = boundIncrementOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundIncrementOperator.ConstantValue);
-            return new LazyIncrementExpression(incrementOperationKind, target, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundIncrementOperator.WasCompilerGenerated;
+            return new LazyIncrementExpression(incrementOperationKind, target, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IInvalidExpression CreateBoundBadExpressionOperation(BoundBadExpression boundBadExpression)
@@ -819,7 +859,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundBadExpression.Syntax;
             ITypeSymbol type = boundBadExpression.Type;
             Optional<object> constantValue = ConvertToOptional(boundBadExpression.ConstantValue);
-            return new LazyInvalidExpression(children, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundBadExpression.WasCompilerGenerated;
+            return new LazyInvalidExpression(children, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ITypeParameterObjectCreationExpression CreateBoundNewTOperation(BoundNewT boundNewT)
@@ -828,7 +869,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundNewT.Syntax;
             ITypeSymbol type = boundNewT.Type;
             Optional<object> constantValue = ConvertToOptional(boundNewT.ConstantValue);
-            return new LazyTypeParameterObjectCreationExpression(initializer, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundNewT.WasCompilerGenerated;
+            return new LazyTypeParameterObjectCreationExpression(initializer, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IUnaryOperatorExpression CreateBoundUnaryOperatorOperation(BoundUnaryOperator boundUnaryOperator)
@@ -841,7 +883,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             ITypeSymbol type = boundUnaryOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundUnaryOperator.ConstantValue);
             bool isLifted = boundUnaryOperator.OperatorKind.IsLifted();
-            return new LazyUnaryOperatorExpression(unaryOperationKind, operand, isLifted, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundUnaryOperator.WasCompilerGenerated;
+            return new LazyUnaryOperatorExpression(unaryOperationKind, operand, isLifted, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IBinaryOperatorExpression CreateBoundBinaryOperatorOperation(BoundBinaryOperator boundBinaryOperator)
@@ -855,7 +898,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             ITypeSymbol type = boundBinaryOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundBinaryOperator.ConstantValue);
             bool isLifted = boundBinaryOperator.OperatorKind.IsLifted();
-            return new LazyBinaryOperatorExpression(binaryOperationKind, leftOperand, rightOperand, isLifted, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundBinaryOperator.WasCompilerGenerated;
+            return new LazyBinaryOperatorExpression(binaryOperationKind, leftOperand, rightOperand, isLifted, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IConditionalChoiceExpression CreateBoundConditionalOperatorOperation(BoundConditionalOperator boundConditionalOperator)
@@ -866,7 +910,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundConditionalOperator.Syntax;
             ITypeSymbol type = boundConditionalOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundConditionalOperator.ConstantValue);
-            return new LazyConditionalChoiceExpression(condition, ifTrueValue, ifFalseValue, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundConditionalOperator.WasCompilerGenerated;
+            return new LazyConditionalChoiceExpression(condition, ifTrueValue, ifFalseValue, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private INullCoalescingExpression CreateBoundNullCoalescingOperatorOperation(BoundNullCoalescingOperator boundNullCoalescingOperator)
@@ -876,7 +921,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundNullCoalescingOperator.Syntax;
             ITypeSymbol type = boundNullCoalescingOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundNullCoalescingOperator.ConstantValue);
-            return new LazyNullCoalescingExpression(primaryOperand, secondaryOperand, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundNullCoalescingOperator.WasCompilerGenerated;
+            return new LazyNullCoalescingExpression(primaryOperand, secondaryOperand, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IAwaitExpression CreateBoundAwaitExpressionOperation(BoundAwaitExpression boundAwaitExpression)
@@ -885,7 +931,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundAwaitExpression.Syntax;
             ITypeSymbol type = boundAwaitExpression.Type;
             Optional<object> constantValue = ConvertToOptional(boundAwaitExpression.ConstantValue);
-            return new LazyAwaitExpression(awaitedValue, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundAwaitExpression.WasCompilerGenerated;
+            return new LazyAwaitExpression(awaitedValue, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IArrayElementReferenceExpression CreateBoundArrayAccessOperation(BoundArrayAccess boundArrayAccess)
@@ -895,7 +942,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundArrayAccess.Syntax;
             ITypeSymbol type = boundArrayAccess.Type;
             Optional<object> constantValue = ConvertToOptional(boundArrayAccess.ConstantValue);
-            return new LazyArrayElementReferenceExpression(arrayReference, indices, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundArrayAccess.WasCompilerGenerated;
+
+            return new LazyArrayElementReferenceExpression(arrayReference, indices, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IPointerIndirectionReferenceExpression CreateBoundPointerIndirectionOperatorOperation(BoundPointerIndirectionOperator boundPointerIndirectionOperator)
@@ -904,7 +953,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundPointerIndirectionOperator.Syntax;
             ITypeSymbol type = boundPointerIndirectionOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundPointerIndirectionOperator.ConstantValue);
-            return new LazyPointerIndirectionReferenceExpression(pointer, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundPointerIndirectionOperator.WasCompilerGenerated;
+            return new LazyPointerIndirectionReferenceExpression(pointer, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private INameOfExpression CreateBoundNameOfOperatorOperation(BoundNameOfOperator boundNameOfOperator)
@@ -913,7 +963,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundNameOfOperator.Syntax;
             ITypeSymbol type = boundNameOfOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundNameOfOperator.ConstantValue);
-            return new LazyNameOfExpression(argument, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundNameOfOperator.WasCompilerGenerated;
+            return new LazyNameOfExpression(argument, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IThrowExpression CreateBoundThrowExpressionOperation(BoundThrowExpression boundThrowExpression)
@@ -922,7 +973,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundThrowExpression.Syntax;
             ITypeSymbol type = boundThrowExpression.Type;
             Optional<object> constantValue = ConvertToOptional(boundThrowExpression.ConstantValue);
-            return new LazyThrowExpression(expression, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundThrowExpression.WasCompilerGenerated;
+            return new LazyThrowExpression(expression, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IAddressOfExpression CreateBoundAddressOfOperatorOperation(BoundAddressOfOperator boundAddressOfOperator)
@@ -931,7 +983,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundAddressOfOperator.Syntax;
             ITypeSymbol type = boundAddressOfOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundAddressOfOperator.ConstantValue);
-            return new LazyAddressOfExpression(reference, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundAddressOfOperator.WasCompilerGenerated;
+            return new LazyAddressOfExpression(reference, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IInstanceReferenceExpression CreateBoundImplicitReceiverOperation(BoundImplicitReceiver boundImplicitReceiver)
@@ -940,7 +993,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundImplicitReceiver.Syntax;
             ITypeSymbol type = boundImplicitReceiver.Type;
             Optional<object> constantValue = ConvertToOptional(boundImplicitReceiver.ConstantValue);
-            return new InstanceReferenceExpression(instanceReferenceKind, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundImplicitReceiver.WasCompilerGenerated;
+            return new InstanceReferenceExpression(instanceReferenceKind, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IConditionalAccessExpression CreateBoundConditionalAccessOperation(BoundConditionalAccess boundConditionalAccess)
@@ -950,7 +1004,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundConditionalAccess.Syntax;
             ITypeSymbol type = boundConditionalAccess.Type;
             Optional<object> constantValue = ConvertToOptional(boundConditionalAccess.ConstantValue);
-            return new LazyConditionalAccessExpression(conditionalValue, conditionalInstance, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundConditionalAccess.WasCompilerGenerated;
+
+            return new LazyConditionalAccessExpression(conditionalValue, conditionalInstance, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IConditionalAccessInstanceExpression CreateBoundConditionalReceiverOperation(BoundConditionalReceiver boundConditionalReceiver)
@@ -958,7 +1014,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundConditionalReceiver.Syntax;
             ITypeSymbol type = boundConditionalReceiver.Type;
             Optional<object> constantValue = ConvertToOptional(boundConditionalReceiver.ConstantValue);
-            return new ConditionalAccessInstanceExpression(_semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundConditionalReceiver.WasCompilerGenerated;
+            return new ConditionalAccessInstanceExpression(_semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IFieldInitializer CreateBoundFieldEqualsValueOperation(BoundFieldEqualsValue boundFieldEqualsValue)
@@ -969,7 +1026,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundFieldEqualsValue.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyFieldInitializer(initializedFields, value, kind, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundFieldEqualsValue.WasCompilerGenerated;
+            return new LazyFieldInitializer(initializedFields, value, kind, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IPropertyInitializer CreateBoundPropertyEqualsValueOperation(BoundPropertyEqualsValue boundPropertyEqualsValue)
@@ -980,7 +1038,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundPropertyEqualsValue.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyPropertyInitializer(initializedProperty, value, kind, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundPropertyEqualsValue.WasCompilerGenerated;
+            return new LazyPropertyInitializer(initializedProperty, value, kind, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IParameterInitializer CreateBoundParameterEqualsValueOperation(BoundParameterEqualsValue boundParameterEqualsValue)
@@ -991,7 +1050,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundParameterEqualsValue.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyParameterInitializer(parameter, value, kind, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundParameterEqualsValue.WasCompilerGenerated;
+            return new LazyParameterInitializer(parameter, value, kind, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IBlockStatement CreateBoundBlockOperation(BoundBlock boundBlock)
@@ -1003,7 +1063,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundBlock.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyBlockStatement(statements, locals, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundBlock.WasCompilerGenerated;
+            return new LazyBlockStatement(statements, locals, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IBranchStatement CreateBoundContinueStatementOperation(BoundContinueStatement boundContinueStatement)
@@ -1013,7 +1074,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundContinueStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new BranchStatement(target, branchKind, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundContinueStatement.WasCompilerGenerated;
+            return new BranchStatement(target, branchKind, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IBranchStatement CreateBoundBreakStatementOperation(BoundBreakStatement boundBreakStatement)
@@ -1023,7 +1085,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundBreakStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new BranchStatement(target, branchKind, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundBreakStatement.WasCompilerGenerated;
+            return new BranchStatement(target, branchKind, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IReturnStatement CreateBoundYieldBreakStatementOperation(BoundYieldBreakStatement boundYieldBreakStatement)
@@ -1032,7 +1095,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundYieldBreakStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyReturnStatement(OperationKind.YieldBreakStatement, returnedValue, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundYieldBreakStatement.WasCompilerGenerated;
+            return new LazyReturnStatement(OperationKind.YieldBreakStatement, returnedValue, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IBranchStatement CreateBoundGotoStatementOperation(BoundGotoStatement boundGotoStatement)
@@ -1042,7 +1106,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundGotoStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new BranchStatement(target, branchKind, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundGotoStatement.WasCompilerGenerated;
+            return new BranchStatement(target, branchKind, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IEmptyStatement CreateBoundNoOpStatementOperation(BoundNoOpStatement boundNoOpStatement)
@@ -1050,7 +1115,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundNoOpStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new EmptyStatement(_semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundNoOpStatement.WasCompilerGenerated;
+            return new EmptyStatement(_semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IIfStatement CreateBoundIfStatementOperation(BoundIfStatement boundIfStatement)
@@ -1061,7 +1127,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundIfStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyIfStatement(condition, ifTrueStatement, ifFalseStatement, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundIfStatement.WasCompilerGenerated;
+            return new LazyIfStatement(condition, ifTrueStatement, ifFalseStatement, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IWhileUntilLoopStatement CreateBoundWhileStatementOperation(BoundWhileStatement boundWhileStatement)
@@ -1074,7 +1141,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundWhileStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyWhileUntilLoopStatement(isTopTest, isWhile, condition, loopKind, body, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundWhileStatement.WasCompilerGenerated;
+            return new LazyWhileUntilLoopStatement(isTopTest, isWhile, condition, loopKind, body, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IWhileUntilLoopStatement CreateBoundDoStatementOperation(BoundDoStatement boundDoStatement)
@@ -1087,7 +1155,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundDoStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyWhileUntilLoopStatement(isTopTest, isWhile, condition, loopKind, body, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundDoStatement.WasCompilerGenerated;
+            return new LazyWhileUntilLoopStatement(isTopTest, isWhile, condition, loopKind, body, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IForLoopStatement CreateBoundForStatementOperation(BoundForStatement boundForStatement)
@@ -1101,7 +1170,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundForStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyForLoopStatement(before, atLoopBottom, locals, condition, loopKind, body, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundForStatement.WasCompilerGenerated;
+            return new LazyForLoopStatement(before, atLoopBottom, locals, condition, loopKind, body, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IForEachLoopStatement CreateBoundForEachStatementOperation(BoundForEachStatement boundForEachStatement)
@@ -1115,7 +1185,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundForEachStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyForEachLoopStatement(iterationVariable, collection, loopKind, body, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundForEachStatement.WasCompilerGenerated;
+            return new LazyForEachLoopStatement(iterationVariable, collection, loopKind, body, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ISwitchStatement CreateBoundSwitchStatementOperation(BoundSwitchStatement boundSwitchStatement)
@@ -1125,7 +1196,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundSwitchStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazySwitchStatement(value, cases, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundSwitchStatement.WasCompilerGenerated;
+            return new LazySwitchStatement(value, cases, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ICaseClause CreateBoundSwitchLabelOperation(BoundSwitchLabel boundSwitchLabel)
@@ -1133,16 +1205,17 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundSwitchLabel.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
+            bool isImplicit = boundSwitchLabel.WasCompilerGenerated;
 
             if (boundSwitchLabel.ExpressionOpt != null)
             {
                 Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundSwitchLabel.ExpressionOpt));
                 BinaryOperationKind equality = GetLabelEqualityKind(boundSwitchLabel);
-                return new LazySingleValueCaseClause(value, equality, CaseKind.SingleValue, _semanticModel, syntax, type, constantValue);
+                return new LazySingleValueCaseClause(value, equality, CaseKind.SingleValue, _semanticModel, syntax, type, constantValue, isImplicit);
             }
             else
             {
-                return new DefaultCaseClause(_semanticModel, syntax, type, constantValue);
+                return new DefaultCaseClause(_semanticModel, syntax, type, constantValue, isImplicit);
             }
         }
 
@@ -1154,7 +1227,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundTryStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyTryStatement(body, catches, finallyHandler, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundTryStatement.WasCompilerGenerated;
+            return new LazyTryStatement(body, catches, finallyHandler, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ICatchClause CreateBoundCatchBlockOperation(BoundCatchBlock boundCatchBlock)
@@ -1166,7 +1240,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundCatchBlock.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyCatchClause(handler, caughtType, filter, exceptionLocal, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundCatchBlock.WasCompilerGenerated;
+            return new LazyCatchClause(handler, caughtType, filter, exceptionLocal, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IFixedStatement CreateBoundFixedStatementOperation(BoundFixedStatement boundFixedStatement)
@@ -1176,7 +1251,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundFixedStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyFixedStatement(variables, body, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundFixedStatement.WasCompilerGenerated;
+            return new LazyFixedStatement(variables, body, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IUsingStatement CreateBoundUsingStatementOperation(BoundUsingStatement boundUsingStatement)
@@ -1187,7 +1263,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundUsingStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyUsingStatement(body, declaration, value, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundUsingStatement.WasCompilerGenerated;
+            return new LazyUsingStatement(body, declaration, value, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IThrowStatement CreateBoundThrowStatementOperation(BoundThrowStatement boundThrowStatement)
@@ -1196,7 +1273,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundThrowStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyThrowStatement(thrownObject, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundThrowStatement.WasCompilerGenerated;
+            return new LazyThrowStatement(thrownObject, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IReturnStatement CreateBoundReturnStatementOperation(BoundReturnStatement boundReturnStatement)
@@ -1205,7 +1283,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundReturnStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyReturnStatement(OperationKind.ReturnStatement, returnedValue, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundReturnStatement.WasCompilerGenerated;
+            return new LazyReturnStatement(OperationKind.ReturnStatement, returnedValue, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IReturnStatement CreateBoundYieldReturnStatementOperation(BoundYieldReturnStatement boundYieldReturnStatement)
@@ -1214,7 +1293,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundYieldReturnStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyReturnStatement(OperationKind.YieldReturnStatement, returnedValue, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundYieldReturnStatement.WasCompilerGenerated;
+            return new LazyReturnStatement(OperationKind.YieldReturnStatement, returnedValue, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ILockStatement CreateBoundLockStatementOperation(BoundLockStatement boundLockStatement)
@@ -1224,7 +1304,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundLockStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyLockStatement(lockedObject, body, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundLockStatement.WasCompilerGenerated;
+
+            return new LazyLockStatement(lockedObject, body, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IInvalidStatement CreateBoundBadStatementOperation(BoundBadStatement boundBadStatement)
@@ -1233,7 +1315,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundBadStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyInvalidStatement(children, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundBadStatement.WasCompilerGenerated;
+            return new LazyInvalidStatement(children, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IVariableDeclaration CreateVariableDeclaration(BoundLocalDeclaration boundLocalDeclaration)
@@ -1251,7 +1334,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundLocalDeclaration.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyVariableDeclarationStatement(declarations, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundLocalDeclaration.WasCompilerGenerated;
+            return new LazyVariableDeclarationStatement(declarations, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IVariableDeclarationStatement CreateBoundMultipleLocalDeclarationsOperation(BoundMultipleLocalDeclarations boundMultipleLocalDeclarations)
@@ -1261,7 +1345,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundMultipleLocalDeclarations.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyVariableDeclarationStatement(declarations, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundMultipleLocalDeclarations.WasCompilerGenerated;
+            return new LazyVariableDeclarationStatement(declarations, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ILabelStatement CreateBoundLabelStatementOperation(BoundLabelStatement boundLabelStatement)
@@ -1271,7 +1356,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundLabelStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyLabelStatement(label, labeledStatement, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundLabelStatement.WasCompilerGenerated;
+            return new LazyLabelStatement(label, labeledStatement, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ILabelStatement CreateBoundLabeledStatementOperation(BoundLabeledStatement boundLabeledStatement)
@@ -1281,7 +1367,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundLabeledStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyLabelStatement(label, labeledStatement, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundLabeledStatement.WasCompilerGenerated;
+            return new LazyLabelStatement(label, labeledStatement, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IExpressionStatement CreateBoundExpressionStatementOperation(BoundExpressionStatement boundExpressionStatement)
@@ -1290,7 +1377,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundExpressionStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyExpressionStatement(expression, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundExpressionStatement.WasCompilerGenerated;
+            return new LazyExpressionStatement(expression, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ITupleExpression CreateBoundTupleExpressionOperation(BoundTupleExpression boundTupleExpression)
@@ -1299,7 +1387,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundTupleExpression.Syntax;
             ITypeSymbol type = boundTupleExpression.Type;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyTupleExpression(elements, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundTupleExpression.WasCompilerGenerated;
+            return new LazyTupleExpression(elements, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IInterpolatedStringExpression CreateBoundInterpolatedStringExpressionOperation(BoundInterpolatedString boundInterpolatedString)
@@ -1309,7 +1398,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundInterpolatedString.Syntax;
             ITypeSymbol type = boundInterpolatedString.Type;
             Optional<object> constantValue = ConvertToOptional(boundInterpolatedString.ConstantValue);
-            return new LazyInterpolatedStringExpression(parts, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundInterpolatedString.WasCompilerGenerated;
+            return new LazyInterpolatedStringExpression(parts, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IInterpolatedStringContent CreateBoundInterpolatedStringContentOperation(BoundNode boundNode)
@@ -1332,7 +1422,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundStringInsert.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyInterpolation(expression, alignment, format, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundStringInsert.WasCompilerGenerated;
+            return new LazyInterpolation(expression, alignment, format, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IInterpolatedStringText CreateBoundInterpolatedStringTextOperation(BoundNode boundNode)
@@ -1341,7 +1432,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundNode.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyInterpolatedStringText(text, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundNode.WasCompilerGenerated;
+            return new LazyInterpolatedStringText(text, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IConstantPattern CreateBoundConstantPatternOperation(BoundConstantPattern boundConstantPattern)
@@ -1350,7 +1442,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundConstantPattern.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyConstantPattern(value, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundConstantPattern.WasCompilerGenerated;
+            return new LazyConstantPattern(value, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IDeclarationPattern CreateBoundDeclarationPatternOperation(BoundDeclarationPattern boundDeclarationPattern)
@@ -1359,7 +1452,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundDeclarationPattern.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new DeclarationPattern(variable, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundDeclarationPattern.WasCompilerGenerated;
+            return new DeclarationPattern(variable, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ISwitchStatement CreateBoundPatternSwitchStatementOperation(BoundPatternSwitchStatement boundPatternSwitchStatement)
@@ -1369,7 +1463,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundPatternSwitchStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazySwitchStatement(value, cases, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundPatternSwitchStatement.WasCompilerGenerated;
+            return new LazySwitchStatement(value, cases, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ICaseClause CreateBoundPatternSwitchLabelOperation(BoundPatternSwitchLabel boundPatternSwitchLabel)
@@ -1377,18 +1472,19 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundPatternSwitchLabel.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
+            bool isImplicit = boundPatternSwitchLabel.WasCompilerGenerated;
 
             if (boundPatternSwitchLabel.Pattern.Kind == BoundKind.WildcardPattern)
             {
                 // Default switch label in pattern switch statement is represented as a default case clause.
-                return new DefaultCaseClause(_semanticModel, syntax, type, constantValue);
+                return new DefaultCaseClause(_semanticModel, syntax, type, constantValue, isImplicit);
             }
             else
             {
                 LabelSymbol label = boundPatternSwitchLabel.Label;
                 Lazy<IPattern> pattern = new Lazy<IPattern>(() => (IPattern)Create(boundPatternSwitchLabel.Pattern));
                 Lazy<IOperation> guardExpression = new Lazy<IOperation>(() => Create(boundPatternSwitchLabel.Guard));
-                return new LazyPatternCaseClause(label, pattern, guardExpression, _semanticModel, syntax, type, constantValue);
+                return new LazyPatternCaseClause(label, pattern, guardExpression, _semanticModel, syntax, type, constantValue, isImplicit);
             }
         }
 
@@ -1399,7 +1495,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundIsPatternExpression.Syntax;
             ITypeSymbol type = boundIsPatternExpression.Type;
             Optional<object> constantValue = ConvertToOptional(boundIsPatternExpression.ConstantValue);
-            return new LazyIsPatternExpression(expression, pattern, _semanticModel, syntax, type, constantValue);
+            bool isImplicit = boundIsPatternExpression.WasCompilerGenerated;
+            return new LazyIsPatternExpression(expression, pattern, _semanticModel, syntax, type, constantValue, isImplicit);
         }
     }
 }

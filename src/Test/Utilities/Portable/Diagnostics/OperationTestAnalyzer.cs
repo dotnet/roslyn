@@ -286,8 +286,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             SyntaxNode syntax = increment.Syntax;
             ITypeSymbol type = increment.Type;
             Optional<object> constantValue = new Optional<object>(1);
-
-            return new LiteralExpression(text, semanticModel, syntax, type, constantValue);
+            return new LiteralExpression(text, semanticModel, syntax, type, constantValue, increment.IsImplicit);
         }
 
         private static int Abs(int value)

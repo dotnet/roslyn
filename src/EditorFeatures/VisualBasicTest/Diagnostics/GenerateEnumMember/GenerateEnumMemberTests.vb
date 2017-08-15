@@ -1163,6 +1163,7 @@ End Enum",
         Color.Blue
     End Sub
 End Class
+
 Enum Color As Long
     Red = &H8000000000000000
     Blue = &H8000000000000001

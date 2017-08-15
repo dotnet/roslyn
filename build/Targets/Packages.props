@@ -194,6 +194,7 @@
     <SystemRuntimeSerializationPrimitivesVersion>4.3.0</SystemRuntimeSerializationPrimitivesVersion>
     <SystemSecurityAccessControlVersion>4.3.0</SystemSecurityAccessControlVersion>
     <SystemSecurityCryptographyAlgorithmsVersion>4.3.0</SystemSecurityCryptographyAlgorithmsVersion>
+    <SystemSecurityCryptographyCspVersion>4.3.0</SystemSecurityCryptographyCspVersion>
     <SystemSecurityCryptographyEncodingVersion>4.3.0</SystemSecurityCryptographyEncodingVersion>
     <SystemSecurityCryptographyPrimitivesVersion>4.3.0</SystemSecurityCryptographyPrimitivesVersion>
     <SystemSecurityCryptographyX509CertificatesVersion>4.3.0</SystemSecurityCryptographyX509CertificatesVersion>

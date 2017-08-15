@@ -113,8 +113,8 @@ Module M1
     Sub goo(d As Integer)
     End Sub
     Sub Main()
-        goo(CInt(""10"")) 
- End Sub
+        goo(CInt(""10""))
+    End Sub
 End Module")
         End Function
 
@@ -149,8 +149,8 @@ End Module",
 "Option Strict On
 Module M1
     Function goo() As Integer
-        Return CInt(""10"") 
- End Function
+        Return CInt(""10"")
+    End Function
 End Module")
         End Function
 

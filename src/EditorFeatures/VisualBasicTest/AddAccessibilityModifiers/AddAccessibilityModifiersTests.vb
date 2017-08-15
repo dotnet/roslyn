@@ -157,7 +157,7 @@ namespace N
             end sub
 
             Public property P1 as integer
-            
+
             Public property P2 as integer
                 get
                 end get
