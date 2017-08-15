@@ -24,8 +24,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ILockStatement (OperationKind.LockStatement) (Syntax: 'SyncLock o' ... nd SyncLock')
-  Expression: IFieldReferenceExpression: ConsoleApp2.C1.o As System.Object (OperationKind.FieldReferenceExpression, Type: System.Object) (Syntax: 'o')
-      Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: ConsoleApp2.C1) (Syntax: 'o')
+  Expression: IFieldReferenceExpression: C1.o As System.Object (OperationKind.FieldReferenceExpression, Type: System.Object) (Syntax: 'o')
+      Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'o')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'SyncLock o' ... nd SyncLock')
 ]]>.Value
 
@@ -110,7 +110,7 @@ ILockStatement (OperationKind.LockStatement, IsInvalid) (Syntax: 'SyncLock i' ..
             Dim expectedDiagnostics = <![CDATA[
 BC30582: 'SyncLock' operand cannot be of type 'Integer' because 'Integer' is not a reference type.
         SyncLock i'BIND:"SyncLock i"
-                                                                                          ~
+                 ~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of SyncLockBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
@@ -140,7 +140,7 @@ ILockStatement (OperationKind.LockStatement, IsInvalid) (Syntax: 'SyncLock'BI ..
             Dim expectedDiagnostics = <![CDATA[
 BC30201: Expression expected.
         SyncLock'BIND:"SyncLock"
-                                                            ~
+                ~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of SyncLockBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
@@ -170,7 +170,7 @@ ILockStatement (OperationKind.LockStatement, IsInvalid) (Syntax: 'SyncLock In ..
             Dim expectedDiagnostics = <![CDATA[
 BC30451: 'InvalidReference' is not declared. It may be inaccessible due to its protection level.
         SyncLock InvalidReference'BIND:"SyncLock InvalidReference"
-                                                            ~~~~~~~
+                 ~~~~~~~~~~~~~~~~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of SyncLockBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
@@ -251,8 +251,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ILockStatement (OperationKind.LockStatement) (Syntax: 'SyncLock M2 ... nd SyncLock')
-  Expression: IInvocationExpression ( Function ConsoleApp2.C1.M2() As System.Object) (OperationKind.InvocationExpression, Type: System.Object) (Syntax: 'M2()')
-      Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: ConsoleApp2.C1) (Syntax: 'M2')
+  Expression: IInvocationExpression ( Function C1.M2() As System.Object) (OperationKind.InvocationExpression, Type: System.Object) (Syntax: 'M2()')
+      Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'M2')
       Arguments(0)
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'SyncLock M2 ... nd SyncLock')
 ]]>.Value
@@ -282,8 +282,8 @@ End Class]]>.Value
 ILockStatement (OperationKind.LockStatement, IsInvalid) (Syntax: 'SyncLock M2 ... nd SyncLock')
   Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'M2()')
       Children(1):
-          IInvocationExpression ( Sub ConsoleApp2.C1.M2()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'M2()')
-            Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: ConsoleApp2.C1, IsInvalid) (Syntax: 'M2')
+          IInvocationExpression ( Sub C1.M2()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'M2()')
+            Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid) (Syntax: 'M2')
             Arguments(0)
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'SyncLock M2 ... nd SyncLock')
 ]]>.Value
@@ -291,7 +291,7 @@ ILockStatement (OperationKind.LockStatement, IsInvalid) (Syntax: 'SyncLock M2 ..
             Dim expectedDiagnostics = <![CDATA[
 BC30491: Expression does not produce a value.
         SyncLock M2()'BIND:"SyncLock M2()"
-                                                            ~
+                 ~~~~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of SyncLockBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)

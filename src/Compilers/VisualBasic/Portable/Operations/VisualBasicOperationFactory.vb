@@ -471,7 +471,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function CreateBoundUserDefinedShortCircuitingOperatorOperation(boundUserDefinedShortCircuitingOperator As BoundUserDefinedShortCircuitingOperator) As IBinaryOperatorExpression
-            Dim binaryOperationKind As BinaryOperationKind = If((boundUserDefinedShortCircuitingOperator.BitwiseOperator.OperatorKind And BinaryOperatorKind.And) <> 0, binaryOperationKind.OperatorMethodConditionalAnd, binaryOperationKind.OperatorMethodConditionalOr)
+            Dim binaryOperationKind As BinaryOperationKind = If((boundUserDefinedShortCircuitingOperator.BitwiseOperator.OperatorKind And BinaryOperatorKind.And) <> 0, BinaryOperationKind.OperatorMethodConditionalAnd, BinaryOperationKind.OperatorMethodConditionalOr)
             Dim leftOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundUserDefinedShortCircuitingOperator.LeftOperand))
             Dim rightOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundUserDefinedShortCircuitingOperator.BitwiseOperator.Right))
             Dim usesOperatorMethod As Boolean = True
