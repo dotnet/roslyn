@@ -170,26 +170,27 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
                 return span;
             }
 
-            var start = span.Start;
-            var end = span.Start;
-            while (start > 0 &&
-                   ShouldExpandSpanBackwardOneCharacter(sourceText, start, fullyQualifiedName))
+            var startInclusive = span.Start;
+            var endExclusive = span.Start;
+            while (startInclusive > 0 &&
+                   ShouldExpandSpanBackwardOneCharacter(sourceText, startInclusive, fullyQualifiedName))
             {
-                start--;
+                startInclusive--;
             }
 
-            while (end < sourceText.Length && 
-                   ShouldExpandSpanForwardOneCharacter(sourceText, end, fullyQualifiedName))
+            while (endExclusive < sourceText.Length && 
+                   ShouldExpandSpanForwardOneCharacter(sourceText, endExclusive, fullyQualifiedName))
             {
-                end++;
+                endExclusive++;
             }
 
-            return TextSpan.FromBounds(start, end);
+            return TextSpan.FromBounds(startInclusive, endExclusive);
         }
 
-        private bool ShouldExpandSpanForwardOneCharacter(SourceText sourceText, int end, bool fullyQualifiedName)
+        private bool ShouldExpandSpanForwardOneCharacter(
+            SourceText sourceText, int endExclusive, bool fullyQualifiedName)
         {
-            var currentChar = sourceText[end];
+            var currentChar = sourceText[endExclusive];
 
             if (char.IsLetterOrDigit(currentChar))
             {
@@ -199,7 +200,7 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
             // Only consume a dot in front of the current word if it is part of a dotted
             // word chain, and isn't just the end of a sentence.
             if (fullyQualifiedName && currentChar == '.' &&
-                end + 1 < sourceText.Length && char.IsLetterOrDigit(sourceText[end + 1]))
+                endExclusive + 1 < sourceText.Length && char.IsLetterOrDigit(sourceText[endExclusive + 1]))
             {
                 return true;
             }
@@ -208,11 +209,11 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
         }
 
         private bool ShouldExpandSpanBackwardOneCharacter(
-            SourceText sourceText, int start, bool fullyQualifiedName)
+            SourceText sourceText, int startInclusive, bool fullyQualifiedName)
         {
-            Debug.Assert(start > 0);
+            Debug.Assert(startInclusive > 0);
 
-            var previousCharacter = sourceText[start - 1];
+            var previousCharacter = sourceText[startInclusive - 1];
             if (char.IsLetterOrDigit(previousCharacter))
             {
                 return true;
