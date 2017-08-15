@@ -274,9 +274,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new ConditionalChoiceExpression(Visit(operation.Condition), Visit(operation.IfTrueValue), Visit(operation.IfFalseValue), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        public override IOperation VisitNullCoalescingExpression(INullCoalescingExpression operation, object argument)
+        public override IOperation VisitCoalesceExpression(ICoalesceExpression operation, object argument)
         {
-            return new NullCoalescingExpression(Visit(operation.PrimaryOperand), Visit(operation.SecondaryOperand), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new CoalesceExpression(Visit(operation.Expression), Visit(operation.WhenNull), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitIsTypeExpression(IIsTypeExpression operation, object argument)

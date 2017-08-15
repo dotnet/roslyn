@@ -865,13 +865,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.IfFalseValue, "IfFalse");
         }
 
-        public override void VisitNullCoalescingExpression(INullCoalescingExpression operation)
+        public override void VisitCoalesceExpression(ICoalesceExpression operation)
         {
-            LogString(nameof(INullCoalescingExpression));
+            LogString(nameof(ICoalesceExpression));
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.PrimaryOperand, "Left");
-            Visit(operation.SecondaryOperand, "Right");
+            Visit(operation.Expression, "Expression");
+            Visit(operation.WhenNull, "WhenNull");
         }
 
         public override void VisitIsTypeExpression(IIsTypeExpression operation)
