@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         ILabelSymbol Label { get; }
         /// <summary>
-        /// Statement that has been labeled.
+        /// Statement that has been labeled. In VB, this is always null.
         /// </summary>
         IOperation Statement { get; }
     }
