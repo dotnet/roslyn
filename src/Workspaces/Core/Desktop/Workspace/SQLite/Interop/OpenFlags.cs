@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         // SQLITE_OPEN_SUBJOURNAL       = 0x00002000, /* VFS only */
         // SQLITE_OPEN_MASTER_JOURNAL   = 0x00004000, /* VFS only */
         // SQLITE_OPEN_NOMUTEX          = 0x00008000, /* Ok for sqlite3_open_v2() */
-        // SQLITE_OPEN_FULLMUTEX        = 0x00010000, /* Ok for sqlite3_open_v2() */
-        // SQLITE_OPEN_SHAREDCACHE      = 0x00020000, /* Ok for sqlite3_open_v2() */
+        SQLITE_OPEN_FULLMUTEX        = 0x00010000, /* Ok for sqlite3_open_v2() */
+        SQLITE_OPEN_SHAREDCACHE      = 0x00020000, /* Ok for sqlite3_open_v2() */
         // SQLITE_OPEN_PRIVATECACHE     = 0x00040000, /* Ok for sqlite3_open_v2() */
         // SQLITE_OPEN_WAL              = 0x00080000, /* VFS only */
     }

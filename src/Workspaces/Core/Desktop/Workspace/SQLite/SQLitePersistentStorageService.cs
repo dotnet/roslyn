@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.SQLite
 {
     internal partial class SQLitePersistentStorageService : AbstractPersistentStorageService
     {
+        private const string LockFile = "db.lock";
         private const string StorageExtension = "sqlite3";
         private const string PersistentStorageFileName = "storage.ide";
 
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         {
         }
 
-        public SQLitePersistentStorageService(IOptionService optionService, IPersistentStorageFaultInjector faultInjector) 
+        public SQLitePersistentStorageService(IOptionService optionService, IPersistentStorageFaultInjector faultInjector)
             : base(optionService, testing: true)
         {
             _faultInjectorOpt = faultInjector;
@@ -37,11 +38,50 @@ namespace Microsoft.CodeAnalysis.SQLite
         }
 
         protected override AbstractPersistentStorage OpenDatabase(Solution solution, string workingFolderPath, string databaseFilePath)
-            => new SQLitePersistentStorage(
-                OptionService, workingFolderPath, solution.FilePath, databaseFilePath, this.Release, _faultInjectorOpt);
+        {
+            // try to get db ownership lock. if someone else already has the lock. it will throw
+            var dbOwnershipLock = TryGetDatabaseOwnership(databaseFilePath);
+
+            return new SQLitePersistentStorage(
+                OptionService, workingFolderPath, solution.FilePath, databaseFilePath, this.Release, dbOwnershipLock, _faultInjectorOpt);
+        }
+
+        private static IDisposable TryGetDatabaseOwnership(string databaseFilePath)
+        {
+            try
+            {
+                // make sure directory exist first.
+                EnsureDirectory(databaseFilePath);
+
+                return File.Open(
+                    Path.Combine(Path.GetDirectoryName(databaseFilePath), LockFile),
+                    FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("can't get the ownership", ex);
+            }
+        }
+
+        private static void EnsureDirectory(string databaseFilePath)
+        {
+            var directory = Path.GetDirectoryName(databaseFilePath);
+            if (Directory.Exists(directory))
+            {
+                return;
+            }
+
+            Directory.CreateDirectory(directory);
+        }
 
         protected override bool ShouldDeleteDatabase(Exception exception)
         {
+            if (exception is InvalidOperationException)
+            {
+                // db is owned by another process
+                return false;
+            }
+
             // Error occurred when trying to open this DB.  Try to remove it so we can create a good dB.
             return true;
         }
