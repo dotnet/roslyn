@@ -179,6 +179,7 @@ class Class2 { }";
             var destinationDocumentText =
 @"// Banner Text
 using System;
+
 class Class1 
 { 
     void Print(int x)
@@ -230,6 +231,7 @@ class Class2
             var destinationDocumentText =
 @"// Banner Text
 using System;
+
 class Class1 
 { 
     void Print(int x)
@@ -998,7 +1000,8 @@ namespace N
 
             var expectedDocumentName = "Inner.cs";
             var destinationDocumentText =
-@"#if true
+@"
+#if true
 public class Inner
 {
 
@@ -1065,6 +1068,112 @@ namespace N
 
             await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText, ignoreTrivia: false);
+        }
+
+        [WorkItem(21456, "https://github.com/dotnet/roslyn/issues/21456")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task TestLeadingBlankLines1()
+        {
+            var code =
+@"// Banner Text
+using System;
+
+[||]class Class1
+{
+    void Foo()
+    {
+        Console.WriteLine();
+    }
+}
+
+class Class2
+{
+    void Foo()
+    {
+        Console.WriteLine();
+    }
+}
+";
+            var codeAfterMove = @"// Banner Text
+using System;
+
+class Class2
+{
+    void Foo()
+    {
+        Console.WriteLine();
+    }
+}
+";
+
+            var expectedDocumentName = "Class1.cs";
+            var destinationDocumentText = @"// Banner Text
+using System;
+
+class Class1
+{
+    void Foo()
+    {
+        Console.WriteLine();
+    }
+}
+";
+
+            await TestMoveTypeToNewFileAsync(
+                code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WorkItem(21456, "https://github.com/dotnet/roslyn/issues/21456")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task TestLeadingBlankLines2()
+        {
+            var code =
+@"// Banner Text
+using System;
+
+class Class1
+{
+    void Foo()
+    {
+        Console.WriteLine();
+    }
+}
+
+[||]class Class2
+{
+    void Foo()
+    {
+        Console.WriteLine();
+    }
+}
+";
+            var codeAfterMove = @"// Banner Text
+using System;
+
+class Class1
+{
+    void Foo()
+    {
+        Console.WriteLine();
+    }
+}
+";
+
+            var expectedDocumentName = "Class2.cs";
+            var destinationDocumentText = @"// Banner Text
+using System;
+
+class Class2
+{
+    void Foo()
+    {
+        Console.WriteLine();
+    }
+}
+";
+
+            await TestMoveTypeToNewFileAsync(
+                code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
     }
 }

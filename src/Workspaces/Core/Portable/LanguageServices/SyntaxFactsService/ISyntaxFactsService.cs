@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsCaseSensitive { get; }
         StringComparer StringComparer { get; }
 
+        SyntaxTrivia ElasticMarker { get; }
         SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
 
         bool SupportsIndexingInitializer(ParseOptions options);

@@ -33,6 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public StringComparer StringComparer { get; } = StringComparer.Ordinal;
 
+        public SyntaxTrivia ElasticMarker
+            => SyntaxFactory.ElasticMarker;
+
         public SyntaxTrivia ElasticCarriageReturnLineFeed
             => SyntaxFactory.ElasticCarriageReturnLineFeed;
 
