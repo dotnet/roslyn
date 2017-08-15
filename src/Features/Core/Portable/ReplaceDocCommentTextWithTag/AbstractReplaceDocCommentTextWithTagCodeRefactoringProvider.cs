@@ -70,7 +70,8 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
             if (fullyQualifiedSpan != singleWordSpan)
             {
                 var fullyQualifiedText = sourceText.ToString(fullyQualifiedSpan);
-                if (TryParseAndBindText(context, semanticModel, token, fullyQualifiedSpan, fullyQualifiedText))
+                if (TryRegisterSeeCrefTagIfSymbol(
+                        context, semanticModel, token, fullyQualifiedSpan, cancellationToken))
                 {
                     return;
                 }
@@ -107,12 +108,16 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
 
             // Finally, try to speculatively bind the name and see if it binds to anything
             // in the surrounding context.
-            TryParseAndBindText(context, semanticModel, token, singleWordSpan, singleWordText);
+            TryRegisterSeeCrefTagIfSymbol(
+                context, semanticModel, token, singleWordSpan, cancellationToken);
         }
 
-        private bool TryParseAndBindText(
-            CodeRefactoringContext context, SemanticModel semanticModel, SyntaxToken token, TextSpan replacementSpan, string text)
+        private bool TryRegisterSeeCrefTagIfSymbol(
+            CodeRefactoringContext context, SemanticModel semanticModel, SyntaxToken token, TextSpan replacementSpan, CancellationToken cancellationToken)
         {
+            var sourceText = semanticModel.SyntaxTree.GetText(cancellationToken);
+            var text = sourceText.ToString(replacementSpan);
+
             var parsed = ParseExpression(text);
             var foundSymbol = semanticModel.GetSpeculativeSymbolInfo(token.SpanStart, parsed, SpeculativeBindingOption.BindAsExpression).GetAnySymbol();
             if (foundSymbol == null)
