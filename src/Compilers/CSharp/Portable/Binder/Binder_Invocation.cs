@@ -631,8 +631,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to be dispatched as dynamic invocations since they cannot be
             // overloaded. Instead, we'll just emit a standard call with
             // dynamic implicit conversions for any dynamic arguments. There
-            // are two exceptions: "params", and unconstructed generics. See
-            // comments below for the exact semantics in these cases.
+            // are two exceptions: "params", and unconstructed generics. While
+            // implementing those cases with dynamic invocations is possible,
+            // we have decided the implementation complexity is not worth it.
+            // Refer to the comments below for the exact semantics.
 
             Debug.Assert(resolution.IsLocalFunctionInvocation);
             Debug.Assert(resolution.OverloadResolutionResult.Succeeded);
