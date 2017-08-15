@@ -1243,11 +1243,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Does not consider <see cref="Symbol.CanBeReferencedByName"/> - that is left to the caller.
         /// </remarks>
-        internal bool CanAddLookupSymbolInfo(Symbol symbol, LookupOptions options, TypeSymbol accessThroughType)
+        internal bool CanAddLookupSymbolInfo(Symbol symbol, LookupOptions options, LookupSymbolsInfo info, TypeSymbol accessThroughType, AliasSymbol aliasSymbol = null)
         {
             Debug.Assert(symbol.Kind != SymbolKind.Alias, "It is the caller's responsibility to unwrap aliased symbols.");
+            Debug.Assert(aliasSymbol == null || aliasSymbol.GetAliasTarget(basesBeingResolved: null) == symbol);
             Debug.Assert(options.AreValid());
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+
+            var name = aliasSymbol != null ? aliasSymbol.Name : symbol.Name;
+            if (!info.CanBeAdded(name))
+            {
+                return false;
+            }
 
             if ((options & LookupOptions.NamespacesOrTypesOnly) != 0 && !(symbol is NamespaceOrTypeSymbol))
             {
@@ -1562,7 +1569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var symbol in GetCandidateMembers(ns, options, originalBinder))
             {
-                if (originalBinder.CanAddLookupSymbolInfo(symbol, options, null))
+                if (originalBinder.CanAddLookupSymbolInfo(symbol, options, result, null))
                 {
                     result.AddSymbol(symbol, symbol.Name, symbol.GetArity());
                 }
@@ -1573,7 +1580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var symbol in GetCandidateMembers(type, options, originalBinder))
             {
-                if (originalBinder.CanAddLookupSymbolInfo(symbol, options, accessThroughType))
+                if (originalBinder.CanAddLookupSymbolInfo(symbol, options, result, accessThroughType))
                 {
                     result.AddSymbol(symbol, symbol.Name, symbol.GetArity());
                 }
