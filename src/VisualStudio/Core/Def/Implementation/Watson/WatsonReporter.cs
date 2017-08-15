@@ -10,19 +10,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     internal class WatsonReporter
     {
         /// <summary>
-        /// The default callback to pass to <see cref="TelemetrySessionExtensions.PostFault(TelemetrySession, string, string, Exception, Func{IFaultUtility, int})"/>.
-        /// Returning "0" signals that we should send data to Watson; any other value will cancel the Watson report.
-        /// </summary>
-        private static Func<IFaultUtility, int> s_defaultCallback = _ => 0;
-
-        /// <summary>
-        /// Controls whether or not we actually report the failure.
-        /// There are situations where we know we're in a bad state and any further reports are unlikely to be
-        /// helpful, so we shouldn't send them.
-        /// </summary>
-        private static bool s_reportWatson = true;
-
-        /// <summary>
         /// Report Non-Fatal Watson
         /// </summary>
         /// <param name="exception">Exception that triggered this non-fatal error</param>
@@ -38,7 +25,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// <param name="exception">Exception that triggered this non-fatal error</param>
         public static void Report(string description, Exception exception)
         {
-            Report(description, exception, s_defaultCallback);
+            TelemetryService.DefaultSession.PostFault(
+                eventName: FunctionId.NonFatalWatson.GetEventName(),
+                description: description,
+                exceptionObject: exception,
+                gatherEventDetails: arg =>
+                {
+                    arg.AddProcessDump(System.Diagnostics.Process.GetCurrentProcess().Id);
+
+                    // 0 means send watson, otherwise, cancel watson
+                    // we always send watson since dump itself can have valuable data
+                    return 0;
+                });
         }
 
         /// <summary>
@@ -46,16 +44,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// </summary>
         /// <param name="description">any description you want to save with this watson report</param>
         /// <param name="exception">Exception that triggered this non-fatal error</param>
-        /// <param name="callback">Callback to include extra data with the NFW. Note that we always collect
-        /// a dump of the current process, but this can be used to add further information or files to the
-        /// CAB.</param>
+        /// <param name="callback">callback to include extra data with the NFW</param>
         public static void Report(string description, Exception exception, Func<IFaultUtility, int> callback)
         {
-            if (!s_reportWatson)
-            {
-                return;
-            }
-
             TelemetryService.DefaultSession.PostFault(
                 eventName: FunctionId.NonFatalWatson.GetEventName(),
                 description: description,
@@ -66,14 +57,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     arg.AddProcessDump(System.Diagnostics.Process.GetCurrentProcess().Id);
                     return callback(arg);
                 });
-
-            if (exception is OutOfMemoryException)
-            {
-                // Once we've encountered one OOM we're likely to see more. There will probably be other
-                // failures as a direct result of the OOM, as well. These aren't helpful so we should just
-                // stop reporting failures.
-                s_reportWatson = false;
-            }
         }
     }
 }

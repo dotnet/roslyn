@@ -159,6 +159,7 @@
     <Compile Include="Implementation\Utilities\AutomationDelegatingListView.cs" />
     <Compile Include="Implementation\Utilities\HyperlinkStyleHelper.cs" />
     <Compile Include="Implementation\Venus\VenusTaskExtensions.cs" />
+    <Compile Include="Implementation\Versions\SemanticVersionTrackingService.cs" />
     <Compile Include="Implementation\ContainedLanguageRefactorNotifyService.cs" />
     <Compile Include="Implementation\VirtualMemoryNotificationListener.cs" />
     <Compile Include="Implementation\Watson\WatsonReporter.cs" />
@@ -345,7 +346,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.15.0.DesignTime">
       <Version>$(MicrosoftVisualStudioShellInterop150DesignTimeVersion)</Version>
     </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.15.3.DesignTime">
+	 <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.15.3.DesignTime">
       <Version>$(MicrosoftVisualStudioShellInterop153DesignTimeVersion)</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0">
@@ -450,9 +451,9 @@
     <PackageReference Include="Newtonsoft.Json">
       <Version>$(NewtonsoftJsonVersion)</Version>
     </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.15.3.DesignTime">
-      <Version>$(MicrosoftVisualStudioShellInterop153DesignTimeVersion)</Version>
-    </PackageReference>
+	<PackageReference Include="Microsoft.VisualStudio.Shell.Interop.15.3.DesignTime">
+		<Version>$(MicrosoftVisualStudioShellInterop153DesignTimeVersion)</Version>
+	</PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CodeMarkers\ManagedCodeMarkers.cs" />

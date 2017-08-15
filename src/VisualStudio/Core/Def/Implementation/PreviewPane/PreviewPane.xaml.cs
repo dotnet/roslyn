@@ -7,12 +7,11 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Navigation;
+using EnvDTE;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
-using IVsUIShell = Microsoft.VisualStudio.Shell.Interop.IVsUIShell;
-using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 {
@@ -25,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
         private readonly string _id;
         private readonly bool _logIdVerbatimInTelemetry;
-        private readonly IVsUIShell _uiShell;
+        private readonly DTE _dte;
 
         private bool _isExpanded;
         private double _heightForThreeLineTitle;
@@ -40,14 +39,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             string helpLinkToolTipText,
             IReadOnlyList<object> previewContent,
             bool logIdVerbatimInTelemetry,
-            IVsUIShell uiShell,
+            DTE dte,
             Guid optionPageGuid = default(Guid))
         {
             InitializeComponent();
 
             _id = id;
             _logIdVerbatimInTelemetry = logIdVerbatimInTelemetry;
-            _uiShell = uiShell;
+            _dte = dte;
 
             // Initialize header portion.
             if ((severityIcon != null) && !string.IsNullOrWhiteSpace(id) && !string.IsNullOrWhiteSpace(title))
@@ -359,11 +358,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
         {
             if (_optionPageGuid != default(Guid))
             {
-                ErrorHandler.ThrowOnFailure(_uiShell.PostExecCommand(
-                    VSConstants.GUID_VSStandardCommandSet97,
-                    (uint)VSConstants.VSStd97CmdID.ToolsOptions,
-                    (uint)OLECMDEXECOPT.OLECMDEXECOPT_DODEFAULT,
-                    _optionPageGuid.ToString()));
+                _dte.ExecuteCommand("Tools.Options", _optionPageGuid.ToString());
             }
         }
     }
