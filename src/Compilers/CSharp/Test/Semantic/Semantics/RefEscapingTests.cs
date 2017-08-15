@@ -101,6 +101,116 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         }
 
         [Fact()]
+        public void RefLikeReturnEscapeWithRefLikes()
+        {
+            var text = @"
+    class Program
+    {
+        static void Main()
+        {
+        }
+
+        static ref int Test1(ref S1 arg)
+        {
+            return ref (new int[1])[0];
+        }
+
+        static S1 MayWrap(ref int arg)
+        {
+            return default;
+        }
+
+        static ref int Test3()
+        {
+            int local = 42;
+            var sp = MayWrap(ref local);
+            return ref Test1(ref sp);    // error
+        }
+
+        static ref int Test4()
+        {
+            var sp = MayWrap(ref (new int[1])[0]);
+
+            // valid. 
+            // Even though sp is itself not ref-returnable, Test1 cannot ref-return it
+            return ref Test1(ref sp);    // OK
+        }
+
+        ref struct S1
+        {
+        }
+    }
+";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (22,34): error CS8520: Cannot use local 'sp' in this context because it may expose referenced variables outside of their declaration scope 
+                //             return ref Test1(ref sp);    // error
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "sp").WithArguments("sp").WithLocation(22, 34),
+                // (22,24): error CS8521: Cannot use a result of 'Program.Test1(ref Program.S1)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
+                //             return ref Test1(ref sp);    // error
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Test1(ref sp)").WithArguments("Program.Test1(ref Program.S1)", "arg").WithLocation(22, 24)
+            );
+        }
+
+        [Fact()]
+        public void RefLikeReturnEscapeWithRefLikes1()
+        {
+            var text = @"
+    class Program
+    {
+        static void Main()
+        {
+        }
+
+        static ref int Test1(ref S1 arg)
+        {
+            return ref (new int[1])[0];
+        }
+
+        static S1 MayWrap(ref int arg)
+        {
+            return default;
+        }
+
+        static void Test5()
+        {
+            var sp = MayWrap(ref (new int[1])[0]);
+
+            // returnable. 
+            // Even though sp is itself not ref-returnable, Test1 cannot ref-return it, so spR is returnable by value.
+            var spR = MayWrap(ref Test1(ref sp));   
+
+            int local = 42;
+            var sp1 = MayWrap(ref local);
+
+            // not returnable by value. (since it refers to a local)
+            var spNr = MayWrap(ref Test1(ref sp1));   
+
+            // error
+            spR = spNr;
+
+            // OK, since both are not ref returnable
+            ref var ternary = ref true? ref spR: ref spNr;
+
+            // error
+            spR = ternary;
+        }
+
+        ref struct S1
+        {
+        }
+    }
+";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (33,19): error CS8520: Cannot use local 'spNr' in this context because it may expose referenced variables outside of their declaration scope 
+                //             spR = spNr;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "spNr").WithArguments("spNr").WithLocation(33, 19),
+                // (39,19): error CS8520: Cannot use local 'ternary' in this context because it may expose referenced variables outside of their declaration scope 
+                //             spR = ternary;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "ternary").WithArguments("ternary").WithLocation(39, 19)
+            );
+        }
+        
+        [Fact()]
         public void RefLikeReturnEscapeInParam()
         {
             var text = @"

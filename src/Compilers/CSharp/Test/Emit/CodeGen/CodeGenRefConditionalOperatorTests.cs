@@ -695,9 +695,9 @@ class C
                 // (14,37): error CS8168: Cannot return local 'local2' by reference because it is not a ref local
                 //         return ref b? ref val1: ref local2;
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "local2").WithArguments("local2").WithLocation(14, 37),
-                // (14,20): error CS8156: An expression cannot be used in this context because it may not be returned by reference
+                // (14,20): error CS8525: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes.
                 //         return ref b? ref val1: ref local2;
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "b? ref val1: ref local2").WithLocation(14, 20)
+                Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "b? ref val1: ref local2").WithLocation(14, 20)
                );
         }
 
@@ -734,9 +734,9 @@ class C
                 // (14,38): error CS8168: Cannot return local 'local2' by reference because it is not a ref local
                 //         return ref (b? ref val1: ref local2).x;
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "local2").WithArguments("local2").WithLocation(14, 38),
-                // (14,20): error CS8156: An expression cannot be used in this context because it may not be returned by reference
+                // (14,21): error CS8525: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes.
                 //         return ref (b? ref val1: ref local2).x;
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "(b? ref val1: ref local2).x").WithLocation(14, 20)
+                Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "b? ref val1: ref local2").WithLocation(14, 21)
                );
         }
 
@@ -771,9 +771,12 @@ class C
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
-                // (15,20): error CS8157: Cannot return 'temp' by reference because it was initialized to a value that cannot be returned by reference
-                //         return ref temp;
-                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "temp").WithArguments("temp").WithLocation(15, 20)
+                // (14,46): error CS8168: Cannot return local 'local2' by reference because it is not a ref local
+                //         ref var temp = ref (b? ref val1: ref local2).x;
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local2").WithArguments("local2").WithLocation(14, 46),
+                // (14,29): error CS8525: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes.
+                //         ref var temp = ref (b? ref val1: ref local2).x;
+                Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "b? ref val1: ref local2").WithLocation(14, 29)
                );
         }
 

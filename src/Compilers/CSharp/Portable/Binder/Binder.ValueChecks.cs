@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Some value kinds are semantically the same and the only distinction is how errors are reported
         // for those purposes we reserve lowest 3 bits
         private const int ValueKindInsignificantBits = 3;
-        private const BindValueKind ValueKindSignificantBitsMask = unchecked((BindValueKind)~((1 << ValueKindInsignificantBits)-1));
+        private const BindValueKind ValueKindSignificantBitsMask = unchecked((BindValueKind)~((1 << ValueKindInsignificantBits) - 1));
 
         /// <summary>
         /// Expression capabilities and requirements.
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// Same as CompoundAssignment, the distinction is really just for error reporting.
             /// </summary>
             IncrementDecrement = CompoundAssignment + 1,
-            
+
             /// <summary>
             /// Expression is a r/o reference.
             /// </summary>
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var conditional = (BoundConditionalOperator)expr;
 
                     // byref conditional defers to its operands
-                    if (conditional.IsByRef && 
+                    if (conditional.IsByRef &&
                         (CheckValueKind(conditional.Consequence.Syntax, conditional.Consequence, valueKind, checkingReceiver: false, diagnostics: diagnostics) &
                         CheckValueKind(conditional.Alternative.Syntax, conditional.Alternative, valueKind, checkingReceiver: false, diagnostics: diagnostics)))
                     {
@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // reprot standard lvalue error
                     break;
-                
+
                 case BoundKind.FieldAccess:
                     var fieldAccess = (BoundFieldAccess)expr;
                     return CheckFieldValueKind(node, fieldAccess, valueKind, checkingReceiver, diagnostics);
@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 if (!localSymbol.IsWritable)
-                { 
+                {
                     ReportReadonlyLocalError(node, localSymbol, valueKind, checkingReceiver, diagnostics);
                     return false;
                 }
@@ -641,7 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // for other fields defer to the receiver.
-            return CheckRefEscape(node, fieldAccess.ReceiverOpt, escapeFrom, escapeTo, checkingReceiver:true, diagnostics: diagnostics);
+            return CheckRefEscape(node, fieldAccess.ReceiverOpt, escapeFrom, escapeTo, checkingReceiver: true, diagnostics: diagnostics);
         }
 
         private static bool CheckFieldLikeEventRefEscape(SyntaxNode node, BoundEventAccess eventAccess, uint escapeFrom, uint escapeTo, bool checkingReceiver, DiagnosticBag diagnostics)
@@ -959,9 +959,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    // if ref is passed, check ref escape, since it is the same or narrower than val escape
+                    // if ref is passed and it is not a ref-like, check ref escape, 
+                    // since it is the same or narrower than val escape and callee may wrap the ref into a val
                     var argument = args[argIndex];
-                    var valid = effectiveRefKind != RefKind.None ?
+                    var valid = effectiveRefKind != RefKind.None && argument.Type.IsByRefLikeType == false ?
                                         CheckRefEscape(argument.Syntax, argument, escapeFrom, escapeTo, false, diagnostics) :
                                         CheckValEscape(argument.Syntax, argument, escapeFrom, escapeTo, false, diagnostics);
 
@@ -1040,8 +1041,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    // if ref is passed, check ref escape, since it is the same or narrower than val escape
-                    var argEscape = effectiveRefKind != RefKind.None ?
+                    // if ref is passed and it is not a ref-like, check ref escape, 
+                    // since it is the same or narrower than val escape and callee may wrap the ref into a val
+                    var argument = args[argIndex];
+                    var argEscape = effectiveRefKind != RefKind.None && argument.Type.IsByRefLikeType == false ?
                                         GetRefEscape(args[argIndex], scopeOfTheContainingExpression) :
                                         GetValEscape(args[argIndex], scopeOfTheContainingExpression);
 
@@ -1059,7 +1062,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // handle omitted optional "in" parameters if there are any
             if (!parameters.IsDefault)
             {
-                for(int i = 0; i < parameters.Length; i++)
+                for (int i = 0; i < parameters.Length; i++)
                 {
                     var parameter = parameters[i];
                     if (parameter.IsParams)
@@ -1069,7 +1072,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (parameter.RefKind == RefKind.RefReadOnly && inParametersMatchedWithArgs?[i] != true)
                     {
-                        // unmatched "in" parameter is an RValue 
+                        // unmatched "in" parameter is an RValue, its val-escape is scopeOfTheContainingExpression
                         inParametersMatchedWithArgs?.Free();
                         return scopeOfTheContainingExpression;
                     }
@@ -1148,7 +1151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // if ref is passed and it is not a ref-like, check ref escape, 
                     // since it is the same or narrower than val escape and callee may wrap the ref into a val
                     var argument = args[argIndex];
-                    var valid = effectiveRefKind != RefKind.None && argument.Type.IsByRefLikeType == false?
+                    var valid = effectiveRefKind != RefKind.None && argument.Type.IsByRefLikeType == false ?
                                         CheckRefEscape(argument.Syntax, argument, scopeOfTheContainingExpression, escapeTo, false, diagnostics) :
                                         CheckValEscape(argument.Syntax, argument, scopeOfTheContainingExpression, escapeTo, false, diagnostics);
 
@@ -1336,20 +1339,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return ErrorCode.ERR_RefLvalueExpected;
             }
-            
+
             throw ExceptionUtilities.UnexpectedValue(kind);
         }
 
         static private ErrorCode GetStandardRValueRefEscapeError(uint escapeTo)
         {
             if (escapeTo == Binder.ExternalScope)
-            { 
+            {
                 return ErrorCode.ERR_RefReturnLvalueExpected;
             }
 
             return ErrorCode.ERR_EscapeOther;
         }
-        
+
         private static void ReportReadOnlyFieldError(FieldSymbol field, SyntaxNode node, BindValueKind kind, bool checkingReceiver, DiagnosticBag diagnostics)
         {
             Debug.Assert((object)field != null);
@@ -1503,7 +1506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!thisref.Type.IsValueType)
                     {
                         break;
-                    }                        
+                    }
 
                     //"this" is not returnable by reference in a struct.
                     if (escapeTo == Binder.ExternalScope)
@@ -1546,7 +1549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var call = (BoundCall)expr;
 
                     var methodSymbol = call.Method;
-                    if( methodSymbol.RefKind == RefKind.None)
+                    if (methodSymbol.RefKind == RefKind.None)
                     {
                         break;
                     }
