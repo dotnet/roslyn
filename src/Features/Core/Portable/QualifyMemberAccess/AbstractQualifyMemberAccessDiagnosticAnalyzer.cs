@@ -60,6 +60,11 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
+            if (context.ContainingSymbol.IsStatic)
+            {
+                return;
+            }
+
             var memberReference = (IMemberReferenceExpression)context.Operation;
 
             // this is a static reference so we don't care if it's qualified

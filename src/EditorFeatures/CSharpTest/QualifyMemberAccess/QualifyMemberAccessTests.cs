@@ -1096,5 +1096,52 @@ class Derived : Base
 }",
 CodeStyleOptions.QualifyEventAccess);
         }
+
+        [WorkItem(21519, "https://github.com/dotnet/roslyn/issues/21519")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task DoNotReportToQualify_IfInStaticContext1()
+        {
+            await TestMissingAsyncWithOption(
+@"class Program
+{
+    public int Foo { get; set; }
+    public static string Bar = nameof([|Foo|]);
+}",
+CodeStyleOptions.QualifyEventAccess);
+        }
+
+        [WorkItem(21519, "https://github.com/dotnet/roslyn/issues/21519")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task DoNotReportToQualify_IfInStaticContext2()
+        {
+            await TestMissingAsyncWithOption(
+@"class Program
+{
+    public int Foo { get; set; }
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine(nameof([|Foo|]));
+    }
+}",
+CodeStyleOptions.QualifyEventAccess);
+        }
+
+        [WorkItem(21519, "https://github.com/dotnet/roslyn/issues/21519")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task DoNotReportToQualify_IfInStaticContext3()
+        {
+            await TestMissingAsyncWithOption(
+@"class Program
+{
+    public int Foo { get; set; }
+    static string Bar { get; set; }
+
+    static Program()
+    {
+        Bar = nameof([|Foo|]);
+    }
+}",
+CodeStyleOptions.QualifyEventAccess);
+        }
     }
 }
