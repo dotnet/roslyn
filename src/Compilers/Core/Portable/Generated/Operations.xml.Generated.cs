@@ -2861,20 +2861,20 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
         }
 
-        protected abstract IOperation LockedObjectImpl { get; }
+        protected abstract IOperation ExpressionImpl { get; }
         protected abstract IOperation BodyImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                yield return LockedObject;
+                yield return Expression;
                 yield return Body;
             }
         }
         /// <summary>
-        /// Value to be locked.
+        /// Expression producing a value to be locked.
         /// </summary>
-        public IOperation LockedObject => Operation.SetParentOperation(LockedObjectImpl, this);
+        public IOperation Expression => Operation.SetParentOperation(ExpressionImpl, this);
         /// <summary>
         /// Body of the lock, to be executed while holding the lock.
         /// </summary>
@@ -2894,14 +2894,14 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LockStatement : BaseLockStatement, ILockStatement
     {
-        public LockStatement(IOperation lockedObject, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public LockStatement(IOperation expression, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            LockedObjectImpl = lockedObject;
+            ExpressionImpl = expression;
             BodyImpl = body;
         }
 
-        protected override IOperation LockedObjectImpl { get; }
+        protected override IOperation ExpressionImpl { get; }
         protected override IOperation BodyImpl { get; }
     }
 
@@ -2910,16 +2910,16 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LazyLockStatement : BaseLockStatement, ILockStatement
     {
-        private readonly Lazy<IOperation> _lazyLockedObject;
+        private readonly Lazy<IOperation> _lazyExpression;
         private readonly Lazy<IOperation> _lazyBody;
 
         public LazyLockStatement(Lazy<IOperation> lockedObject, Lazy<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            _lazyLockedObject = lockedObject ?? throw new System.ArgumentNullException(nameof(lockedObject));
+            _lazyExpression = lockedObject ?? throw new System.ArgumentNullException(nameof(lockedObject));
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }
 
-        protected override IOperation LockedObjectImpl => _lazyLockedObject.Value;
+        protected override IOperation ExpressionImpl => _lazyExpression.Value;
 
         protected override IOperation BodyImpl => _lazyBody.Value;
     }

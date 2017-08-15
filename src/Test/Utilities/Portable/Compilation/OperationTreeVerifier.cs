@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(ILockStatement));
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.LockedObject, "LockedObject");
+            Visit(operation.Expression, "Expression");
             Visit(operation.Body, "Body");
         }
 
