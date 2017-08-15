@@ -58,6 +58,8 @@ When doing a test pass, copy this page and consider using these status indicator
 
 # Product Features
 
+### Core Scenarios in Editing, Navigating, and Viewing
+
 | Category | Feature/Description | C# Signoff/Notes | VB Signoff/Notes | F# Signoff/Notes |
 | --- | --- | --- | --- | --- | 
 | **Enable/Disable** | :fast_forward: **Feature Flags** <br />To completely enables/disable new compiler features in the compiler & IDE | | | N/A |
