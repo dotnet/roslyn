@@ -96,8 +96,8 @@ namespace Microsoft.CodeAnalysis
         BinaryOperatorExpression = 0x10e,
         /// <summary>Indicates an <see cref="IConditionalChoiceExpression"/>.</summary>
         ConditionalChoiceExpression = 0x10f,
-        /// <summary>Indicates an <see cref="INullCoalescingExpression"/>.</summary>
-        NullCoalescingExpression = 0x110,
+        /// <summary>Indicates an <see cref="ICoalesceExpression"/>.</summary>
+        CoalesceExpression = 0x110,
         /// <summary>Indicates an <see cref="IAnonymousFunctionExpression"/>.</summary>
         AnonymousFunctionExpression = 0x111,
         /// <summary>Indicates an <see cref="IObjectCreationExpression"/>.</summary>

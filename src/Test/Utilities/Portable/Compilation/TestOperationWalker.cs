@@ -372,9 +372,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitConditionalChoiceExpression(operation);
         }
 
-        public override void VisitNullCoalescingExpression(INullCoalescingExpression operation)
+        public override void VisitCoalesceExpression(ICoalesceExpression operation)
         {
-            base.VisitNullCoalescingExpression(operation);
+            base.VisitCoalesceExpression(operation);
         }
 
         public override void VisitIsTypeExpression(IIsTypeExpression operation)
