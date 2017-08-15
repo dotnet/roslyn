@@ -13,9 +13,9 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private ReadOnly _cache As ConcurrentDictionary(Of BoundNode, IOperation) =
             New ConcurrentDictionary(Of BoundNode, IOperation)(concurrencyLevel:=2, capacity:=10)
 
-        Private ReadOnly _semanticModel As SemanticModel
+        Private ReadOnly _semanticModel As VBSemanticModel
 
-        Public Sub New(semanticModel As SemanticModel)
+        Public Sub New(semanticModel As VBSemanticModel)
             _semanticModel = semanticModel
         End Sub
 
@@ -476,7 +476,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function CreateBoundTryCastOperation(boundTryCast As BoundTryCast) As IConversionExpression
             Dim operand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundTryCast.Operand))
             Dim syntax As SyntaxNode = boundTryCast.Syntax
-            Dim conversion As Conversion = _semanticModel.GetConversion(syntax)
+            Dim summary As BoundNodeSummary = New BoundNodeSummary(boundTryCast.Operand, boundTryCast, Nothing)
+            Dim conversion As Conversion = _semanticModel.GetTypeInfoForNode(summary).ImplicitConversion
             Dim isExplicitCastInCode As Boolean = True
             Dim isTryCast As Boolean = True
             Dim isChecked = False
@@ -488,7 +489,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function CreateBoundDirectCastOperation(boundDirectCast As BoundDirectCast) As IConversionExpression
             Dim operand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundDirectCast.Operand))
             Dim syntax As SyntaxNode = boundDirectCast.Syntax
-            Dim conversion As Conversion = _semanticModel.GetConversion(syntax)
+            Dim summary As BoundNodeSummary = New BoundNodeSummary(boundDirectCast.Operand, boundDirectCast, Nothing)
+            Dim conversion As Conversion = _semanticModel.GetTypeInfoForNode(summary).ImplicitConversion
             Dim isExplicit As Boolean = True
             Dim isTryCast As Boolean = False
             Dim isChecked = False
@@ -500,7 +502,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function CreateBoundConversionOperation(boundConversion As BoundConversion) As IConversionExpression
             Dim operand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundConversion.Operand))
             Dim syntax As SyntaxNode = boundConversion.Syntax
-            Dim conversion As Conversion = _semanticModel.GetConversion(syntax)
+            Dim summary As BoundNodeSummary = New BoundNodeSummary(boundConversion.Operand, boundConversion, Nothing)
+            Dim conversion As Conversion = _semanticModel.GetTypeInfoForNode(summary).ImplicitConversion
             Dim isExplicit As Boolean = boundConversion.ExplicitCastInCode
             Dim isTryCast As Boolean = False
             Dim isChecked = False
@@ -512,7 +515,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function CreateBoundUserDefinedConversionOperation(boundUserDefinedConversion As BoundUserDefinedConversion) As IConversionExpression
             Dim operand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundUserDefinedConversion.Operand))
             Dim syntax As SyntaxNode = boundUserDefinedConversion.Syntax
-            Dim conversion As Conversion = _semanticModel.GetConversion(syntax)
+            Dim summary As BoundNodeSummary = New BoundNodeSummary(boundUserDefinedConversion.Operand, boundUserDefinedConversion, Nothing)
+            Dim conversion As Conversion = _semanticModel.GetTypeInfoForNode(summary).ImplicitConversion
             Dim isExplicit As Boolean = Not boundUserDefinedConversion.WasCompilerGenerated
             Dim isTryCast As Boolean = False
             Dim isChecked = False
