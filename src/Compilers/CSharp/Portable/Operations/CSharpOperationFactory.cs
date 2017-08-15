@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         private readonly ConcurrentDictionary<BoundLocalDeclaration, IVariableDeclaration> _variableDeclarationCache =
             new ConcurrentDictionary<BoundLocalDeclaration, IVariableDeclaration>(concurrencyLevel: 2, capacity: 10);
 
-        private readonly SemanticModel _semanticModel;
+        private readonly CSharpSemanticModel _semanticModel;
 
-        public CSharpOperationFactory(SemanticModel semanticModel)
+        public CSharpOperationFactory(CSharpSemanticModel semanticModel)
         {
             _semanticModel = semanticModel;
         }
@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IEventAssignmentExpression CreateBoundEventAssignmentOperatorOperation(BoundEventAssignmentOperator boundEventAssignmentOperator)
         {
-            Lazy<IEventReferenceExpression> eventReference = new Lazy<IEventReferenceExpression>(() => CreateBoundEventAccessOperation(boundEventAssignmentOperator));                
+            Lazy<IEventReferenceExpression> eventReference = new Lazy<IEventReferenceExpression>(() => CreateBoundEventAccessOperation(boundEventAssignmentOperator));
             Lazy<IOperation> handlerValue = new Lazy<IOperation>(() => Create(boundEventAssignmentOperator.Argument));
             SyntaxNode syntax = boundEventAssignmentOperator.Syntax;
             bool adds = boundEventAssignmentOperator.IsAddition;
@@ -656,7 +656,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 Lazy<IOperation> operand = new Lazy<IOperation>(() => Create(boundConversion.Operand));
                 SyntaxNode syntax = boundConversion.Syntax;
-                Conversion conversion = _semanticModel.GetConversion(syntax);
+                Conversion conversion = _semanticModel.GetTypeInfoForNode(boundConversion.Operand, boundConversion, null).ImplicitConversion;
                 bool isExplicit = boundConversion.ExplicitCastInCode;
                 bool isTryCast = false;
                 // Checked conversions only matter if the conversion is a Numeric conversion. Don't have true unless the conversion is actually numeric.
@@ -671,7 +671,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             Lazy<IOperation> operand = new Lazy<IOperation>(() => Create(boundAsOperator.Operand));
             SyntaxNode syntax = boundAsOperator.Syntax;
-            Conversion conversion = _semanticModel.GetConversion(syntax);
+            Conversion conversion = _semanticModel.GetTypeInfoForNode(boundAsOperator.Operand, boundAsOperator, null).ImplicitConversion;
             bool isExplicit = true;
             bool isTryCast = true;
             bool isChecked = false;
