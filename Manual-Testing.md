@@ -17,7 +17,7 @@ This document is meant to be a comprehensive list of Roslyn features for use in 
     - **Merge Signoff**: Can the language feature be merged?
         - Critical IDE features in the areas of **Typing**, **Navigating**, and **Viewing** must function as expected. Any non-trivial issues in these areas block language feature merging.
             - These are marked with a :fast_forward:.
-        - All product features are free of crashes, asserts, and hangs.
+        - All product features have been considered/tested are free of crashes, asserts, and hangs.
     - **Feature Signoff**: Per-feature signoff with links to non-blocking issues.
     - **Feature Suggestions**: What can we add to the product to make the new language feature delightful to use?
 
