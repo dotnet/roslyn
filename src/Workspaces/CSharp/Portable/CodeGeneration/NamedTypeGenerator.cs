@@ -6,7 +6,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
 using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                                      cancellationToken)
                 : declaration;
 
-            return AddCleanupAnnotationsTo(ConditionallyAddDocumentationCommentTo(declaration, namedType, options));
+            return AddFormatterAndCodeGeneratorAnnotationsTo(ConditionallyAddDocumentationCommentTo(declaration, namedType, options));
         }
 
         public static MemberDeclarationSyntax UpdateNamedTypeDeclaration(
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             declaration = RemoveAllMembers(declaration);
             declaration = service.AddMembers(declaration, newMembers, options, cancellationToken);
-            return AddCleanupAnnotationsTo(declaration);
+            return AddFormatterAndCodeGeneratorAnnotationsTo(declaration);
         }
 
         private static MemberDeclarationSyntax GetDeclarationSyntaxWithoutMembers(
@@ -119,12 +119,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             switch (declaration.Kind())
             {
                 case SyntaxKind.EnumDeclaration:
-                    return ((EnumDeclarationSyntax)declaration).WithMembers(default(SeparatedSyntaxList<EnumMemberDeclarationSyntax>));
+                    return ((EnumDeclarationSyntax)declaration).WithMembers(default);
 
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.ClassDeclaration:
-                    return ((TypeDeclarationSyntax)declaration).WithMembers(default(SyntaxList<MemberDeclarationSyntax>));
+                    return ((TypeDeclarationSyntax)declaration).WithMembers(default);
 
                 default:
                     return declaration;
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 GenerateModifiers(namedType, destination, options),
                 namedType.Name.ToIdentifierToken(),
                 baseList: baseList,
-                members: default(SeparatedSyntaxList<EnumMemberDeclarationSyntax>));
+                members: default);
         }
 
         private static SyntaxList<AttributeListSyntax> GenerateAttributeDeclarations(

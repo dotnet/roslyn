@@ -1,7 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 session.UndoManager.CreateStartRenameUndoTransaction(workspace, subjectBuffer, session);
 
-                _isBufferReadOnly = new DynamicReadOnlyRegionQuery((isEdit) => !_session._isApplyingEdit);
+                _isBufferReadOnly = new DynamicReadOnlyRegionQuery(isEdit => !_session._isApplyingEdit);
                 UpdateReadOnlyRegions();
             }
 
@@ -308,7 +309,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
+            private Task<LinkedFileMergeSessionResult> ComputeMergeResultAsync(Solution newSolution, CancellationToken cancellationToken)
+            {
+                var preMergeSolution = _session._baseSolution;
+
+                var diffMergingSession = new LinkedFileDiffMergingSession(preMergeSolution, newSolution, newSolution.GetChanges(preMergeSolution), logSessionInfo: true);
+                return diffMergingSession.MergeDiffsAsync(mergeConflictHandler: null, cancellationToken: cancellationToken);
+            }
+
+            [Obsolete("Update code to call ComputeMergeResultAsync prior to calling the other overload of ApplyConflictResolutionEdits.")]
             internal void ApplyConflictResolutionEdits(IInlineRenameReplacementInfo conflictResolution, IEnumerable<Document> documents, CancellationToken cancellationToken)
+            {
+                AssertIsForeground();
+
+                var mergeResult = ComputeMergeResultAsync(conflictResolution.NewSolution, cancellationToken).WaitAndGetResult(cancellationToken);
+                ApplyConflictResolutionEdits(conflictResolution, mergeResult, documents, cancellationToken);
+            }
+
+            internal void ApplyConflictResolutionEdits(IInlineRenameReplacementInfo conflictResolution, LinkedFileMergeSessionResult mergeResult, IEnumerable<Document> documents, CancellationToken cancellationToken)
             {
                 AssertIsForeground();
 
@@ -322,12 +340,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 {
                     // 1. Undo any previous edits and update the buffer to resulting document after conflict resolution
                     _session.UndoManager.UndoTemporaryEdits(_subjectBuffer, disconnect: false);
-
-                    var preMergeSolution = _session._baseSolution;
-                    var postMergeSolution = conflictResolution.NewSolution;
-
-                    var diffMergingSession = new LinkedFileDiffMergingSession(preMergeSolution, postMergeSolution, postMergeSolution.GetChanges(preMergeSolution), logSessionInfo: true);
-                    var mergeResult = diffMergingSession.MergeDiffsAsync(mergeConflictHandler: null, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
 
                     var newDocument = mergeResult.MergedSolution.GetDocument(documents.First().Id);
                     var originalDocument = _baseDocuments.Single(d => d.Id == newDocument.Id);
@@ -355,6 +367,88 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     // so they get classified/tagged correctly in the editor.
                     _conflictResolutionRenameTrackingSpans.Clear();
 
+                    var documentReplacements = documents
+                        .Select(document => (document, conflictResolution.GetReplacements(document.Id).Where(r => GetRenameSpanKind(r.Kind) != RenameSpanKind.None).ToImmutableArray()))
+                        .ToImmutableArray();
+
+                    var firstDocumentReplacements = documentReplacements.FirstOrDefault(d => !d.Item2.IsEmpty);
+                    var bufferContainsLinkedDocuments = documentReplacements.Length > 1 && firstDocumentReplacements.document != null;
+                    var linkedDocumentsMightConflict = bufferContainsLinkedDocuments;
+                    if (linkedDocumentsMightConflict)
+                    {
+                        // When changes are made and linked documents are involved, some of the linked documents may
+                        // have changes that differ from others. When these changes conflict (both differ and overlap),
+                        // the inline rename UI reveals the conflicts. However, the merge process for finding these
+                        // conflicts is slow, so we want to avoid it when possible. This code block attempts to set
+                        // linkedDocumentsMightConflict back to false, eliminating the need to merge the changes as part
+                        // of the conflict detection process. Currently we only special case one scenario: ignoring
+                        // documents that have no changes at all, we check if all linked documents have exactly the same
+                        // set of changes.
+
+                        // 1. Check if all documents have the same replacement spans (or no replacements)
+                        var spansMatch = true;
+                        foreach (var (document, replacements) in documentReplacements)
+                        {
+                            if (document == firstDocumentReplacements.document || replacements.IsEmpty)
+                            {
+                                continue;
+                            }
+
+                            if (replacements.Length != firstDocumentReplacements.Item2.Length)
+                            {
+                                spansMatch = false;
+                                break;
+                            }
+
+                            for (var i = 0; i < replacements.Length; i++)
+                            {
+                                if (!replacements[i].Equals(firstDocumentReplacements.Item2[i]))
+                                {
+                                    spansMatch = false;
+                                    break;
+                                }
+                            }
+
+                            if (!spansMatch)
+                            {
+                                break;
+                            }
+                        }
+
+                        // 2. If spans match, check content
+                        if (spansMatch)
+                        {
+                            linkedDocumentsMightConflict = false;
+
+                            // Only need to check the new span's content
+                            var firstDocumentNewText = conflictResolution.NewSolution.GetDocument(firstDocumentReplacements.document.Id).GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                            var firstDocumentNewSpanText = firstDocumentReplacements.Item2.SelectAsArray(replacement => firstDocumentNewText.ToString(replacement.NewSpan));
+                            foreach (var (document, replacements) in documentReplacements)
+                            {
+                                if (document == firstDocumentReplacements.document || replacements.IsEmpty)
+                                {
+                                    continue;
+                                }
+
+                                var documentNewText = conflictResolution.NewSolution.GetDocument(document.Id).GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                                for (var i = 0; i < replacements.Length; i++)
+                                {
+                                    if (documentNewText.ToString(replacements[i].NewSpan) != firstDocumentNewSpanText[i])
+                                    {
+                                        // Have to use the slower merge process
+                                        linkedDocumentsMightConflict = true;
+                                        break;
+                                    }
+                                }
+
+                                if (linkedDocumentsMightConflict)
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
                     foreach (var document in documents)
                     {
                         var relevantReplacements = conflictResolution.GetReplacements(document.Id).Where(r => GetRenameSpanKind(r.Kind) != RenameSpanKind.None);
@@ -363,8 +457,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                             continue;
                         }
 
-                        var bufferContainsLinkedDocuments = documents.Skip(1).Any();
-                        var mergedReplacements = bufferContainsLinkedDocuments
+                        var mergedReplacements = linkedDocumentsMightConflict
                             ? GetMergedReplacementInfos(
                                 relevantReplacements,
                                 conflictResolution.NewSolution.GetDocument(document.Id),
@@ -430,6 +523,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                                 }
                             }
                         }
+
+                        if (!linkedDocumentsMightConflict)
+                        {
+                            break;
+                        }
                     }
 
                     UpdateReadOnlyRegions();
@@ -440,7 +538,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            private static async Task<IEnumerable<TextChange>> GetTextChangesFromTextDifferencingServiceAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken = default(CancellationToken))
+            private static async Task<IEnumerable<TextChange>> GetTextChangesFromTextDifferencingServiceAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken = default)
             {
                 try
                 {
@@ -569,9 +667,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 {
                     _openTextBufferManager = openTextBufferManager;
                     _anchor = null;
-                    _anchorSpan = default(TextSpan);
+                    _anchorSpan = default;
                     _active = null;
-                    _activeSpan = default(TextSpan);
+                    _activeSpan = default;
 
                     var textView = openTextBufferManager.ActiveTextview;
                     if (textView == null)
@@ -587,7 +685,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         // GetSpanInView() can return an empty collection if the tracking span isn't mapped to anything
                         // in the current view, specifically a `@model SomeModelClass` directive in a Razor file.
                         var ss = textView.GetSpanInView(kvp.Value.TrackingSpan.GetSpan(snapshot)).FirstOrDefault();
-                        if (ss != default(SnapshotSpan) && (ss.IntersectsWith(selection.ActivePoint.Position) || ss.IntersectsWith(selection.AnchorPoint.Position)))
+                        if (ss != default && (ss.IntersectsWith(selection.ActivePoint.Position) || ss.IntersectsWith(selection.AnchorPoint.Position)))
                         {
                             return Tuple.Create(kvp.Key, ss);
                         }

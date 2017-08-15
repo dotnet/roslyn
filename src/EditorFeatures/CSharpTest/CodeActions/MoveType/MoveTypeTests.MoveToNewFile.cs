@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -59,7 +59,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
             var codeAfterMove = @"class Class2 { }";
 
             var expectedDocumentName = "Class1.cs";
-            var destinationDocumentText = @"class Class1 { }";
+            var destinationDocumentText = @"class Class1 { }
+";
 
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
@@ -78,10 +79,12 @@ class Class2 { }
         </Document>
     </Project>
 </Workspace>";
-            var codeAfterMove = @"class Class2 { }";
+            var codeAfterMove = @"class Class2 { }
+        ";
 
             var expectedDocumentName = "Class1.cs";
-            var destinationDocumentText = @"class Class1 { }";
+            var destinationDocumentText = @"class Class1 { }
+        ";
 
             await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName,
@@ -107,7 +110,8 @@ class Class2 { }";
             var codeAfterMove = @"class Class2 { }";
 
             var expectedDocumentName = "Class1.cs";
-            var destinationDocumentText = @"class Class1 { }";
+            var destinationDocumentText = @"class Class1 { }
+";
 
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
@@ -121,7 +125,8 @@ class Class2 { }";
             var codeAfterMove = @"class Class2 { }";
 
             var expectedDocumentName = "Class1.cs";
-            var destinationDocumentText = @"class Class1 { }";
+            var destinationDocumentText = @"class Class1 { }
+";
 
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
@@ -139,12 +144,13 @@ class Class2 { }";
             var codeAfterMove =
 @"// Banner Text
 using System;
-
 class Class2 { }";
 
             var expectedDocumentName = "Class1.cs";
             var destinationDocumentText =
-@"class Class1 { }";
+@"// Banner Text
+class Class1 { }
+";
 
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
@@ -167,12 +173,11 @@ class Class2 { }";
 
             var codeAfterMove =
 @"// Banner Text
-
 class Class2 { }";
 
             var expectedDocumentName = "Class1.cs";
             var destinationDocumentText =
-@"
+@"// Banner Text
 using System;
 class Class1 
 { 
@@ -180,7 +185,8 @@ class Class1
     {
         Console.WriteLine(x);
     }
-}";
+}
+";
 
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
@@ -222,7 +228,7 @@ class Class2
 
             var expectedDocumentName = "Class1.cs";
             var destinationDocumentText =
-@"
+@"// Banner Text
 using System;
 class Class1 
 { 
@@ -230,7 +236,8 @@ class Class1
     {
         Console.WriteLine(x);
     }
-}";
+}
+";
 
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
@@ -244,7 +251,8 @@ class Class2 { }";
             var codeAfterMove = @"class Class2 { }";
 
             var expectedDocumentName = "IMoveType.cs";
-            var destinationDocumentText = @"interface IMoveType { }";
+            var destinationDocumentText = @"interface IMoveType { }
+";
 
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
@@ -258,7 +266,8 @@ class Class2 { }";
             var codeAfterMove = @"class Class2 { }";
 
             var expectedDocumentName = "MyStruct.cs";
-            var destinationDocumentText = @"struct MyStruct { }";
+            var destinationDocumentText = @"struct MyStruct { }
+";
 
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
@@ -272,7 +281,8 @@ class Class2 { }";
             var codeAfterMove = @"class Class2 { }";
 
             var expectedDocumentName = "MyEnum.cs";
-            var destinationDocumentText = @"enum MyEnum { }";
+            var destinationDocumentText = @"enum MyEnum { }
+";
 
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
@@ -290,7 +300,7 @@ class Class2 { }";
             var codeAfterMove =
 @"namespace N1
 {
-        class Class2 { }
+    class Class2 { }
 }";
 
             var expectedDocumentName = "Class1.cs";
@@ -319,10 +329,10 @@ class Class2 { }";
             var codeAfterMove =
 @"namespace N1
 {
-    partial class Class1
+    partial class Class1 
     {
-
     }
+    
 }";
 
             var expectedDocumentName = "Class2.cs";
@@ -332,10 +342,9 @@ class Class2 { }";
 {
     partial class Class1 
     {
-        class Class2
-        {
-        }
+        class Class2 { }
     }
+    
 }";
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
@@ -356,10 +365,10 @@ class Class2 { }";
             var codeAfterMove =
 @"namespace N1
 {
-    abstract partial class Class1
+    abstract partial class Class1 
     {
-
     }
+    
 }";
 
             var expectedDocumentName = "Class2.cs";
@@ -369,10 +378,9 @@ class Class2 { }";
 {
     abstract partial class Class1 
     {
-        class Class2
-        {
-        }
+        class Class2 { }
     }
+    
 }";
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
@@ -397,10 +405,10 @@ class Class2 { }";
 @"namespace N1
 {
     [Outer]
-    partial class Class1
+    partial class Class1 
     {
-
     }
+    
 }";
 
             var expectedDocumentName = "Class2.cs";
@@ -411,10 +419,9 @@ class Class2 { }";
     partial class Class1 
     {
         [Inner]
-        class Class2
-        {
-        }
+        class Class2 { }
     }
+    
 }";
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
@@ -479,10 +486,10 @@ class Class2 { }";
             var codeAfterMove =
 @"namespace N1
 {
-    partial class Class1
+    partial class Class1 
     {
-
     }
+    
 }";
 
             var expectedDocumentName = "Class1.Class2.cs";
@@ -492,10 +499,9 @@ class Class2 { }";
 {
     partial class Class1 
     {
-        class Class2
-        {
-        }
+        class Class2 { }
     }
+    
 }";
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText, index: 1);
         }
@@ -520,12 +526,13 @@ class Class2 { }";
             var codeAfterMove =
 @"namespace N1
 {
-    partial class Class1
+    partial class Class1 
     {
         private int _field1;
 
         public void Method1() { }
     }
+    
 }";
 
             var expectedDocumentName = "Class2.cs";
@@ -535,10 +542,9 @@ class Class2 { }";
 {
     partial class Class1 
     {
-        class Class2
-        {
-        }
+        class Class2 { }
     }
+    
 }";
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
@@ -567,14 +573,14 @@ class Class2 { }";
             var codeAfterMove =
 @"namespace N1
 {
-    partial class Class1
+    partial class Class1 
     {
         private int _field1;
 
         public void Method1() { }
     }
 
-    internal class Class3
+    internal class Class3 
     {
         private void Method1() { }
     }
@@ -587,9 +593,7 @@ class Class2 { }";
 {
     partial class Class1 
     {
-        class Class2
-        {
-        }
+        class Class2 { }
     }
 }";
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
@@ -618,7 +622,7 @@ class Class2 { }";
             var codeAfterMove =
 @"namespace N1
 {
-    partial class Class1
+    partial class Class1 
     {
         private int _field1;
 
@@ -633,7 +637,7 @@ class Class2 { }";
 {
     partial class Class1 
     {
-        class Class2
+        class Class2 
         {
             private string _field1;
             public void InnerMethod() { }
@@ -711,6 +715,7 @@ namespace OuterN2.N2
     {
         partial class OuterClass2
         {
+
             class InnerClass4
             {
             }
@@ -731,14 +736,15 @@ namespace OuterN2.N2
             }
         }
     }
-}";
+}
+";
 
             var expectedDocumentName = "InnerClass2.cs";
 
             var destinationDocumentText =
-@"
-namespace OuterN1.N1
+@"namespace OuterN1.N1
 {
+
     namespace InnerN3.N3
     {
         partial class OuterClass2
@@ -751,7 +757,8 @@ namespace OuterN1.N1
             }
         }
     }
-}";
+}
+";
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
@@ -772,10 +779,12 @@ class Outer {
     }
 }";
             var codeAfterMove = @"
+// Only used by inner type.
+
 // Unused by both types.
 using System.Collections;
 
-partial class Outer {
+partial class Outer { 
 }";
 
             var expectedDocumentName = "Inner.cs";
@@ -784,8 +793,10 @@ partial class Outer {
 // Only used by inner type.
 using System;
 
+// Unused by both types.
+
 partial class Outer {
-    class Inner { 
+    class Inner {
         DateTime d;
     }
 }";
@@ -935,7 +946,8 @@ partial class Outer : IComparable {
             var expectedDocumentName = "Inner.cs";
             var destinationDocumentText =
 @"
-partial class Outer { 
+partial class Outer
+{
     class Inner : IWhatever {
         DateTime d;
     }

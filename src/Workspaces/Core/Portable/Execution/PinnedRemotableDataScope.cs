@@ -78,16 +78,16 @@ namespace Microsoft.CodeAnalysis.Execution
         /// TODO: currently, this asset must be something <see cref="Serializer"/> can understand
         ///       this should be changed so that custom serializer can be discoverable by <see cref="RemotableData.Kind"/> 
         /// </summary>
-        public void AddAdditionalAsset(CustomAsset asset, CancellationToken cancellationToken)
+        public void AddAdditionalAsset(CustomAsset asset)
         {
-            _storage.AddAdditionalAsset(asset, cancellationToken);
+            _storage.AddAdditionalAsset(asset);
         }
 
         public RemotableData GetRemotableData(Checksum checksum, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.PinnedRemotableDataScope_GetRemotableData, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
             {
-                return _storages.GetRemotableData(this, checksum, cancellationToken);
+                return _storages.GetRemotableData(SolutionInfo.ScopeId, checksum, cancellationToken);
             }
         }
 
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Execution
         {
             using (Logger.LogBlock(FunctionId.PinnedRemotableDataScope_GetRemotableData, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
             {
-                return _storages.GetRemotableData(this, checksums, cancellationToken);
+                return _storages.GetRemotableData(SolutionInfo.ScopeId, checksums, cancellationToken);
             }
         }
 

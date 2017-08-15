@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.Next.UnitTests.Mocks;
 using Xunit;
@@ -15,18 +17,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public void TestCreation()
         {
-            var sessionId = 0;
-
             var storage = new AssetStorage();
-            var source = new TestAssetSource(storage, sessionId);
+            var source = new TestAssetSource(storage);
 
-            var stored = storage.TryGetAssetSource(sessionId);
+            var stored = storage.AssetSource;
             Assert.Equal(source, stored);
-
-            storage.UnregisterAssetSource(sessionId);
-
-            var none = storage.TryGetAssetSource(sessionId);
-            Assert.Null(none);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
@@ -34,7 +29,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var storage = new AssetStorage();
 
-            var checksum = new Checksum(Guid.NewGuid().ToByteArray());
+            var checksum = Checksum.Create(WellKnownSynchronizationKind.Null, ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
             var data = new object();
 
             Assert.True(storage.TryAddAsset(checksum, data));
@@ -48,7 +43,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var storage = new AssetStorage(cleanupInterval: TimeSpan.FromMilliseconds(1), purgeAfter: TimeSpan.FromMilliseconds(2));
 
-            var checksum = new Checksum(Guid.NewGuid().ToByteArray());
+            var checksum = Checksum.Create(WellKnownSynchronizationKind.Null, ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
             var data = new object();
 
             Assert.True(storage.TryAddAsset(checksum, data));

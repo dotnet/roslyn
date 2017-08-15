@@ -140,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     PredefinedTextViewRoles.Document,
                     PredefinedTextViewRoles.Editable);
 
-                var content = new ElisionBufferDeferredContent(
+                var content = new ProjectionBufferDeferredContent(
                     snapshotSpan,
                     Presenter.ProjectionBufferFactoryService,
                     Presenter.EditorOptionsFactoryService,

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var right = node.Right;
             Debug.Assert(right.Conversion.Kind == ConversionKind.Deconstruction);
 
-            return RewriteDeconstruction(node.Left, right.Conversion, right.Operand);
+            return RewriteDeconstruction(node.Left, right.Conversion, right.Operand, node.IsUsed);
         }
 
         /// <summary>
@@ -32,20 +32,43 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// - the conversion phase
         /// - the assignment phase
         /// </summary>
-        private BoundExpression RewriteDeconstruction(BoundTupleExpression left, Conversion conversion, BoundExpression right)
+        private BoundExpression RewriteDeconstruction(BoundTupleExpression left, Conversion conversion, BoundExpression right, bool isUsed)
         {
             var temps = ArrayBuilder<LocalSymbol>.GetInstance();
             var effects = DeconstructionSideEffects.GetInstance();
             ArrayBuilder<Binder.DeconstructionVariable> lhsTargets = GetAssignmentTargetsAndSideEffects(left, temps, effects.init);
 
-            BoundExpression returnTuple = ApplyDeconstructionConversion(lhsTargets, right, conversion, temps, effects, inInit: true);
-            if (!returnTuple.HasErrors)
-            {
-                returnTuple = VisitExpression(returnTuple);
-            }
-            BoundExpression result = _factory.Sequence(temps.ToImmutableAndFree(), effects.ToImmutableAndFree(), returnTuple);
-            Binder.DeconstructionVariable.FreeDeconstructionVariables(lhsTargets);
+            BoundExpression returnValue = ApplyDeconstructionConversion(lhsTargets, right, conversion, temps, effects, isUsed, inInit: true);
+            effects.Consolidate();
 
+            BoundExpression result;
+            if (!isUsed)
+            {
+                // When a deconstruction is not used, the last effect is used as return value
+                Debug.Assert(returnValue is null);
+                var last = effects.PopLast();
+                if (last is null)
+                {
+                    // Deconstructions with no effects lower to nothing. For example, `(_, _) = (1, 2);`
+                    result = null;
+                    temps.Free();
+                    _ = effects.ToImmutableAndFree();
+                }
+                else
+                {
+                    result = _factory.Sequence(temps.ToImmutableAndFree(), effects.ToImmutableAndFree(), last);
+                }
+            }
+            else
+            {
+                if (!returnValue.HasErrors)
+                {
+                    returnValue = VisitExpression(returnValue);
+                }
+                result = _factory.Sequence(temps.ToImmutableAndFree(), effects.ToImmutableAndFree(), returnValue);
+            }
+
+            Binder.DeconstructionVariable.FreeDeconstructionVariables(lhsTargets);
             return result;
         }
 
@@ -57,9 +80,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// invocation, subsequent side-effects from the right go into the deconstructions bucket (otherwise they would
         /// be evaluated out of order).
         /// </summary>
-        private BoundTupleLiteral ApplyDeconstructionConversion(ArrayBuilder<Binder.DeconstructionVariable> leftTargets,
+        private BoundExpression ApplyDeconstructionConversion(ArrayBuilder<Binder.DeconstructionVariable> leftTargets,
             BoundExpression right, Conversion conversion, ArrayBuilder<LocalSymbol> temps, DeconstructionSideEffects effects,
-            bool inInit)
+            bool isUsed, bool inInit)
         {
             Debug.Assert(conversion.Kind == ConversionKind.Deconstruction);
             ImmutableArray<BoundExpression> rightParts = GetRightParts(right, conversion, ref temps, effects, ref inInit);
@@ -68,14 +91,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!underlyingConversions.IsDefault);
             Debug.Assert(leftTargets.Count == rightParts.Length && leftTargets.Count == conversion.UnderlyingConversions.Length);
 
-            var builder = ArrayBuilder<BoundExpression>.GetInstance(leftTargets.Count);
+            var builder = isUsed ? ArrayBuilder<BoundExpression>.GetInstance(leftTargets.Count) : null;
             for (int i = 0; i < leftTargets.Count; i++)
             {
                 BoundExpression resultPart;
                 if (leftTargets[i].HasNestedVariables)
                 {
                     resultPart = ApplyDeconstructionConversion(leftTargets[i].NestedVariables, rightParts[i],
-                        underlyingConversions[i], temps, effects, inInit);
+                        underlyingConversions[i], temps, effects, isUsed, inInit);
                 }
                 else
                 {
@@ -95,14 +118,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                             used: true, isChecked: false, isCompoundAssignment: false));
                     }
                 }
-                builder.Add(resultPart);
+                builder?.Add(resultPart);
             }
 
-            var tupleType = TupleTypeSymbol.Create(locationOpt: null, elementTypes: builder.SelectAsArray(e => e.Type),
-                elementLocations: default(ImmutableArray<Location>), elementNames: default(ImmutableArray<string>),
-                compilation: _compilation, shouldCheckConstraints: false, errorPositions: default(ImmutableArray<bool>));
+            if (isUsed)
+            {
+                var tupleType = TupleTypeSymbol.Create(locationOpt: null, elementTypes: builder.SelectAsArray(e => e.Type),
+                    elementLocations: default, elementNames: default,
+                    compilation: _compilation, shouldCheckConstraints: false, errorPositions: default);
 
-            return new BoundTupleLiteral(right.Syntax, default(ImmutableArray<string>), default(ImmutableArray<bool>), builder.ToImmutableAndFree(), tupleType);
+                return new BoundTupleLiteral(right.Syntax, argumentNamesOpt: default, inferredNamesOpt: default,
+                    arguments: builder.ToImmutableAndFree(), type: tupleType);
+            }
+            else
+            {
+                return null;
+            }
         }
 
         private ImmutableArray<BoundExpression> GetRightParts(BoundExpression right, Conversion conversion,
@@ -191,6 +222,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < numElements; i++)
             {
                 var field = fields[i];
+
+                // Use default field rather than implicitly named fields since
+                // fields from inferred names are not usable in C# 7.0.
+                field = field.CorrespondingTupleField ?? field;
 
                 DiagnosticInfo useSiteInfo = field.GetUseSiteDiagnostic();
                 if ((object)useSiteInfo != null && useSiteInfo.Severity == DiagnosticSeverity.Error)
@@ -320,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            internal ImmutableArray<BoundExpression> ToImmutableAndFree()
+            internal void Consolidate()
             {
                 init.AddRange(deconstructions);
                 init.AddRange(conversions);
@@ -329,7 +364,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 deconstructions.Free();
                 conversions.Free();
                 assignments.Free();
+            }
 
+            internal BoundExpression PopLast()
+            {
+                if (init.Count == 0)
+                {
+                    return null;
+                }
+
+                var last = init.Last();
+                init.RemoveLast();
+                return last;
+            }
+
+            // This can only be called after Consolidate
+            internal ImmutableArray<BoundExpression> ToImmutableAndFree()
+            {
                 return init.ToImmutableAndFree();
             }
         }

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -90,11 +90,14 @@ index:=1, ignoreTrivia:=False)
     [|Dim x As New V|]
 End Class",
 "Imports System.Collections.Generic
+
 Partial Class c1(Of V As {New}, U)
     Dim x As New V
+
     Public Overrides Function Equals(obj As Object) As Boolean
         Dim c = TryCast(obj, c1(Of V, U))
-        Return c IsNot Nothing AndAlso EqualityComparer(Of V).Default.Equals(x, c.x)
+        Return c IsNot Nothing AndAlso
+               EqualityComparer(Of V).Default.Equals(x, c.x)
     End Function
 End Class")
         End Function
@@ -219,7 +222,7 @@ End structure",
 Imports System
 Imports System.Collections.Generic
 
-Structure Program
+structure Program
     Implements IEquatable(Of Program)
 
     Public s As String
@@ -231,7 +234,7 @@ Structure Program
     Public Function Equals(other As Program) As Boolean Implements IEquatable(Of Program).Equals
         Return s = other.s
     End Function
-End Structure",
+End structure",
 chosenSymbols:=Nothing,
 optionsCallback:=Sub(Options) EnableOption(Options, ImplementIEquatableId),
 ignoreTrivia:=False)

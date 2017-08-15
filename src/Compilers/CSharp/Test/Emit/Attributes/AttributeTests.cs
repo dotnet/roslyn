@@ -110,11 +110,11 @@ public class A: Attribute
 public class Derived: Base
 {
     internal const string Str = ""temp"";
-    public override int Foo { get { return 1; } }
+    public override int Goo { get { return 1; } }
 }
 public class Base
 {
-    public virtual int Foo { get { return 0; } }
+    public virtual int Goo { get { return 0; } }
 }
 ";
             CompileAndVerify(source);
@@ -221,8 +221,8 @@ class C
         {
             var compilation = CreateStandardCompilation(@"
 using System;
-[Attr(Foo.p)]
-class Foo
+[Attr(Goo.p)]
+class Goo
 {
     private const object p = null;
 }
@@ -235,7 +235,7 @@ class C
     public static void Main() { }
 }
 ");
-            var attrs = compilation.SourceModule.GlobalNamespace.GetMember("Foo").GetAttributes();
+            var attrs = compilation.SourceModule.GlobalNamespace.GetMember("Goo").GetAttributes();
             Assert.Equal(1, attrs.Length);
             attrs.First().VerifyValue<object>(0, TypedConstantKind.Primitive, null);
         }
@@ -938,7 +938,7 @@ using AN = CustomAttribute.AttrName;
 // [module: AttrName(TypeField = typeof(System.IO.FileStream))]
 namespace AttributeTest
 {
-    class Foo
+    class Goo
     {
         public class NestedClass
         {
@@ -979,7 +979,7 @@ namespace AttributeTest
                 attrs[1].VerifyNamedArgumentValue<ushort>(0, "UShortField", TypedConstantKind.Primitive, 1234);
 
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
-                var top = (NamedTypeSymbol)ns.GetMember("Foo");
+                var top = (NamedTypeSymbol)ns.GetMember("Goo");
                 var type = top.GetMember<NamedTypeSymbol>("NestedClass");
 
                 var field = type.GetMember<FieldSymbol>("Field");
@@ -1027,7 +1027,7 @@ using CustomAttribute;
 
 namespace AttributeTest
 {
-    public class Foo
+    public class Goo
     {
         [AllInheritMultiple(new object[] { 0, """", null }, 255, -127 - 1, AryProp = new object[] { new object[] { """", typeof(IList<string>) } })]
         public delegate void NestedSubDele([AllInheritMultiple()]string p1, [Derived(typeof(string[, ,]))]string p2);
@@ -1043,7 +1043,7 @@ namespace AttributeTest
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
-                var type = (NamedTypeSymbol)ns.GetMember("Foo");
+                var type = (NamedTypeSymbol)ns.GetMember("Goo");
 
                 var dele = (NamedTypeSymbol)type.GetTypeMember("NestedSubDele");
                 var attrs = dele.GetAttributes();
@@ -1070,7 +1070,7 @@ namespace AttributeTest
 using System;
 namespace AttributeTest
 {
-    public interface IFoo
+    public interface IGoo
     {
         [CustomAttribute.Derived(new object[] { 1, null, ""Hi"" }, ObjectField = 2)]
         int F(int p);
@@ -1085,7 +1085,7 @@ namespace AttributeTest
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
-                var type = (NamedTypeSymbol)ns.GetMember("IFoo");
+                var type = (NamedTypeSymbol)ns.GetMember("IGoo");
                 var attrs = type.GetMember<MethodSymbol>("F").GetAttributes();
 
                 Assert.Equal(@"CustomAttribute.DerivedAttribute({1, null, ""Hi""}, ObjectField = 2)", attrs.First().ToString());
@@ -1306,7 +1306,7 @@ using CustomAttribute;
 namespace AttributeTest
 {
     [AllInheritMultiple(new char[] { ' '}, """")]
-    public interface IFoo
+    public interface IGoo
     {
     }
 }
@@ -1319,7 +1319,7 @@ namespace AttributeTest
             Action<ModuleSymbol> sourceAttributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
-                var type = (NamedTypeSymbol)ns.GetMember("IFoo");
+                var type = (NamedTypeSymbol)ns.GetMember("IGoo");
                 var attrs = type.GetAttributes();
                 attrs.First().VerifyValue<char[]>(0, TypedConstantKind.Array, new char[] { ' ' });
                 attrs.First().VerifyValue<string[]>(1, TypedConstantKind.Array, new string[] { "" });
@@ -1330,7 +1330,7 @@ namespace AttributeTest
             Action<ModuleSymbol> mdAttributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
-                var type = (NamedTypeSymbol)ns.GetMember("IFoo");
+                var type = (NamedTypeSymbol)ns.GetMember("IGoo");
                 var attrs = type.GetAttributes();
                 attrs.First().VerifyValue<char[]>(0, TypedConstantKind.Array, new char[] { ' ' });
                 attrs.First().VerifyValue<string[]>(1, TypedConstantKind.Array, new string[] { "" });
@@ -1443,7 +1443,7 @@ using CustomAttribute;
 namespace AttributeTest
 {
     [AllInheritMultiple(new char[] { ' ' }, new string[] { ""whatever"" })]
-    public interface IFoo
+    public interface IGoo
     {
     }
 }
@@ -1456,7 +1456,7 @@ namespace AttributeTest
             Action<ModuleSymbol> sourceAttributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
-                var type = (NamedTypeSymbol)ns.GetMember("IFoo");
+                var type = (NamedTypeSymbol)ns.GetMember("IGoo");
                 var attrs = type.GetAttributes();
                 attrs.First().VerifyValue<char[]>(0, TypedConstantKind.Array, new char[] { ' ' });
                 attrs.First().VerifyValue<string[]>(1, TypedConstantKind.Array, new string[] { "whatever" });
@@ -1467,7 +1467,7 @@ namespace AttributeTest
             Action<ModuleSymbol> mdAttributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
-                var type = (NamedTypeSymbol)ns.GetMember("IFoo");
+                var type = (NamedTypeSymbol)ns.GetMember("IGoo");
                 var attrs = type.GetAttributes();
                 attrs.First().VerifyValue<char[]>(0, TypedConstantKind.Array, new char[] { ' ' });
                 attrs.First().VerifyValue<string[]>(1, TypedConstantKind.Array, new string[] { "whatever" });
@@ -1623,7 +1623,7 @@ using CustomAttribute;
 
 namespace AttributeTest
 {    
-    public class Foo
+    public class Goo
     {
         int p;
         public int Property
@@ -1655,7 +1655,7 @@ namespace AttributeTest
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
-                var type = (NamedTypeSymbol)ns.GetMember("Foo");
+                var type = (NamedTypeSymbol)ns.GetMember("Goo");
 
                 var property = (PropertySymbol)type.GetMember("Property");
                 var getter = property.GetMethod;
@@ -2502,19 +2502,19 @@ class Program
 
             var ref1 = MetadataReference.CreateFromStream(metadataStream1);
 
-            var metadataStream2 = CSharpCompilation.Create("foo.dll", references: new[] { MscorlibRef, ref1 },
+            var metadataStream2 = CSharpCompilation.Create("goo.dll", references: new[] { MscorlibRef, ref1 },
                 syntaxTrees: new[] {
                     SyntaxFactory.ParseSyntaxTree(
                         "public class Ca : System.Attribute { public Ca(object o) { } } " +
                         "[Ca(Bar.Baz)]" +
-                        "public class Foo { }") }).EmitToStream(options: new EmitOptions(metadataOnly: true));
+                        "public class Goo { }") }).EmitToStream(options: new EmitOptions(metadataOnly: true));
 
             var ref2 = MetadataReference.CreateFromStream(metadataStream2);
 
             var compilation = CSharpCompilation.Create("moo.dll", references: new[] { MscorlibRef, ref1, ref2 });
 
-            var foo = compilation.GetTypeByMetadataName("Foo");
-            var ca = foo.GetAttributes().First().CommonConstructorArguments.First();
+            var goo = compilation.GetTypeByMetadataName("Goo");
+            var ca = goo.GetAttributes().First().CommonConstructorArguments.First();
 
             Assert.Equal("Bar", ca.Type.Name);
         }
@@ -2624,12 +2624,12 @@ class A : Attribute { }
 partial class Program
 {
     [A] 
-    static partial void Foo();
-    static partial void Foo() { }
+    static partial void Goo();
+    static partial void Goo() { }
 
     static void Main()
     {
-        Console.WriteLine(((Action) Foo).Method.GetCustomAttributesData().Count);
+        Console.WriteLine(((Action) Goo).Method.GetCustomAttributesData().Count);
     }
 }
 ";
@@ -2652,7 +2652,7 @@ partial class Program
 {
     [A1]
     [return: B1]
-    static partial void Foo<[C1] T, [D1] U>([E1]int x);
+    static partial void Goo<[C1] T, [D1] U>([E1]int x);
 }
 ";
 
@@ -2670,7 +2670,7 @@ partial class Program
 {
     [A2]
     [return: B2]
-    static partial void Foo<[C2] U, [D2] T>([E2]int y) { }
+    static partial void Goo<[C2] U, [D2] T>([E2]int y) { }
 
     static void Main()
     {}
@@ -2682,16 +2682,16 @@ partial class Program
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var programClass = m.GlobalNamespace.GetTypeMember("Program");
-                var fooMethod = (MethodSymbol)programClass.GetMember("Foo");
+                var gooMethod = (MethodSymbol)programClass.GetMember("Goo");
 
-                TestAttributeOnPartialMethodHelper(m, fooMethod);
+                TestAttributeOnPartialMethodHelper(m, gooMethod);
             };
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null, expectedOutput: "");
         }
 
-        private void TestAttributeOnPartialMethodHelper(ModuleSymbol m, MethodSymbol fooMethod)
+        private void TestAttributeOnPartialMethodHelper(ModuleSymbol m, MethodSymbol gooMethod)
         {
             var a1Class = m.GlobalNamespace.GetTypeMember("A1");
             var a2Class = m.GlobalNamespace.GetTypeMember("A2");
@@ -2704,21 +2704,21 @@ partial class Program
             var e1Class = m.GlobalNamespace.GetTypeMember("E1");
             var e2Class = m.GlobalNamespace.GetTypeMember("E2");
 
-            Assert.Equal(1, fooMethod.GetAttributes(a1Class).Count());
-            Assert.Equal(1, fooMethod.GetAttributes(a2Class).Count());
+            Assert.Equal(1, gooMethod.GetAttributes(a1Class).Count());
+            Assert.Equal(1, gooMethod.GetAttributes(a2Class).Count());
 
-            Assert.Equal(1, fooMethod.GetReturnTypeAttributes().Where(a => a.AttributeClass == b1Class).Count());
-            Assert.Equal(1, fooMethod.GetReturnTypeAttributes().Where(a => a.AttributeClass == b2Class).Count());
+            Assert.Equal(1, gooMethod.GetReturnTypeAttributes().Where(a => a.AttributeClass == b1Class).Count());
+            Assert.Equal(1, gooMethod.GetReturnTypeAttributes().Where(a => a.AttributeClass == b2Class).Count());
 
-            var typeParam1 = fooMethod.TypeParameters[0];
+            var typeParam1 = gooMethod.TypeParameters[0];
             Assert.Equal(1, typeParam1.GetAttributes(c1Class).Count());
             Assert.Equal(1, typeParam1.GetAttributes(c2Class).Count());
 
-            var typeParam2 = fooMethod.TypeParameters[1];
+            var typeParam2 = gooMethod.TypeParameters[1];
             Assert.Equal(1, typeParam2.GetAttributes(d1Class).Count());
             Assert.Equal(1, typeParam2.GetAttributes(d2Class).Count());
 
-            var param = fooMethod.Parameters[0];
+            var param = gooMethod.Parameters[0];
             Assert.Equal(1, param.GetAttributes(e1Class).Count());
             Assert.Equal(1, param.GetAttributes(e2Class).Count());
         }
@@ -3599,7 +3599,7 @@ static class AttributeMod
 {
     [Derived('Q')]
     [Derived('C')]
-    public class Foo
+    public class Goo
     {
     }
     [BaseAttribute(1)]
@@ -3869,7 +3869,7 @@ public class Test
 using System;
 [AttributeUsage(null)]
 public class Att1 : Attribute { }
-public class Foo
+public class Goo
 
 
 
@@ -3891,20 +3891,20 @@ public class Foo
         public void AttributeContainsGeneric()
         {
             string source = @"
-[Foo<int>]
+[Goo<int>]
 class G
 {
 }
-class Foo<T>
+class Goo<T>
 {
 }
 ";
 
             var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics(
-                // (2,2): error CS0404: Cannot apply attribute class 'Foo<T>' because it is generic
-                // [Foo<int>]
-                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Foo<int>").WithArguments("Foo<T>").WithLocation(2, 2));
+                // (2,2): error CS0404: Cannot apply attribute class 'Goo<T>' because it is generic
+                // [Goo<int>]
+                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Goo<int>").WithArguments("Goo<T>").WithLocation(2, 2));
         }
 
         /// <summary>
@@ -3919,7 +3919,7 @@ using System;
 [AttributeUsage(null)]
 public class Attr : Attribute { }
 
-public class Foo
+public class Goo
 {
     public static void Main()
     {
@@ -3942,11 +3942,11 @@ public class Foo
         public void CS0404ERR_GenericAttributeError()
         {
             string source = @"
-[Foo<int>]
+[Goo<int>]
 class G
 {
 }
-class Foo<T>
+class Goo<T>
 {
 }
 ";
@@ -3954,9 +3954,9 @@ class Foo<T>
             var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics(
-                // (2,2): error CS0404: Cannot apply attribute class 'Foo<T>' because it is generic
-                // [Foo<int>]
-                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Foo<int>").WithArguments("Foo<T>").WithLocation(2, 2));
+                // (2,2): error CS0404: Cannot apply attribute class 'Goo<T>' because it is generic
+                // [Goo<int>]
+                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Goo<int>").WithArguments("Goo<T>").WithLocation(2, 2));
         }
 
         [WorkItem(541423, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541423")]
@@ -5165,11 +5165,11 @@ partial class C
 {
     [return: B]
     [A]
-    static partial void Foo();
+    static partial void Goo();
     
     [return: B]
     [A]
-    static partial void Foo() { }
+    static partial void Goo() { }
 }
 ";
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
@@ -5192,26 +5192,26 @@ class A : System.Attribute { }
 
 partial class C
 {
-    static partial void Foo<[A] T>();
-    static partial void Foo<[A] T>() { }
+    static partial void Goo<[A] T>();
+    static partial void Goo<[A] T>() { }
 
     // partial method without implementation, but another method with same name
-    static partial void Foo2<[A] T>();
-    static void Foo2<[A] T>() { }
+    static partial void Goo2<[A] T>();
+    static void Goo2<[A] T>() { }
 
     // partial method without implementation, but another member with same name
-    static partial void Foo3<[A] T>();
-    private int Foo3;
+    static partial void Goo3<[A] T>();
+    private int Goo3;
 
     // partial method without implementation
-    static partial void Foo4<[A][A] T>();
+    static partial void Goo4<[A][A] T>();
 
     // partial methods differing by signature
-    static partial void Foo5<[A] T>(int x);
-    static partial void Foo5<[A] T>();
+    static partial void Goo5<[A] T>(int x);
+    static partial void Goo5<[A] T>();
 
     // partial method without defining declaration
-    static partial void Foo6<[A][A] T>() { }
+    static partial void Goo6<[A][A] T>() { }
 
 }
 ";
@@ -5219,27 +5219,27 @@ partial class C
 
             var compilation = CreateStandardCompilation(source, null, options: opt);
             compilation.VerifyDiagnostics(
-                // (25,25): error CS0759: No defining declaration found for implementing declaration of partial method 'C.Foo6<T>()'
-                //     static partial void Foo6<[A][A] T>() { }
-                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "Foo6").WithArguments("C.Foo6<T>()").WithLocation(25, 25),
-                // (11,17): error CS0111: Type 'C' already defines a member called 'Foo2' with the same parameter types
-                //     static void Foo2<[A] T>() { }
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Foo2").WithArguments("Foo2", "C").WithLocation(11, 17),
-                // (15,17): error CS0102: The type 'C' already contains a definition for 'Foo3'
-                //     private int Foo3;
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Foo3").WithArguments("C", "Foo3").WithLocation(15, 17),
+                // (25,25): error CS0759: No defining declaration found for implementing declaration of partial method 'C.Goo6<T>()'
+                //     static partial void Goo6<[A][A] T>() { }
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "Goo6").WithArguments("C.Goo6<T>()").WithLocation(25, 25),
+                // (11,17): error CS0111: Type 'C' already defines a member called 'Goo2' with the same parameter types
+                //     static void Goo2<[A] T>() { }
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Goo2").WithArguments("Goo2", "C").WithLocation(11, 17),
+                // (15,17): error CS0102: The type 'C' already contains a definition for 'Goo3'
+                //     private int Goo3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Goo3").WithArguments("C", "Goo3").WithLocation(15, 17),
                 // (18,34): error CS0579: Duplicate 'A' attribute
-                //     static partial void Foo4<[A][A] T>();
+                //     static partial void Goo4<[A][A] T>();
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A").WithArguments("A").WithLocation(18, 34),
                 // (25,34): error CS0579: Duplicate 'A' attribute
-                //     static partial void Foo6<[A][A] T>() { }
+                //     static partial void Goo6<[A][A] T>() { }
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A").WithArguments("A").WithLocation(25, 34),
                 // (7,30): error CS0579: Duplicate 'A' attribute
-                //     static partial void Foo<[A] T>() { }
+                //     static partial void Goo<[A] T>() { }
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A").WithArguments("A").WithLocation(7, 30),
-                // (15,17): warning CS0169: The field 'C.Foo3' is never used
-                //     private int Foo3;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "Foo3").WithArguments("C.Foo3").WithLocation(15, 17));
+                // (15,17): warning CS0169: The field 'C.Goo3' is never used
+                //     private int Goo3;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Goo3").WithArguments("C.Goo3").WithLocation(15, 17));
         }
 
         [WorkItem(542625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542625")]
@@ -5251,26 +5251,26 @@ class A : System.Attribute { }
 
 partial class C
 {
-    static partial void Foo([param: A]int y);
-    static partial void Foo([A] int y) { }
+    static partial void Goo([param: A]int y);
+    static partial void Goo([A] int y) { }
 
     // partial method without implementation, but another method with same name
-    static partial void Foo2([A] int y);
-    static void Foo2([A] int y) { }
+    static partial void Goo2([A] int y);
+    static void Goo2([A] int y) { }
 
     // partial method without implementation, but another member with same name
-    static partial void Foo3([A] int y);
-    private int Foo3;
+    static partial void Goo3([A] int y);
+    private int Goo3;
 
     // partial method without implementation
-    static partial void Foo4([A][param: A] int y);
+    static partial void Goo4([A][param: A] int y);
 
     // partial methods differing by signature
-    static partial void Foo5([A] int y);
-    static partial void Foo5([A] int y, int z);
+    static partial void Goo5([A] int y);
+    static partial void Goo5([A] int y, int z);
 
     // partial method without defining declaration
-    static partial void Foo6([A][A] int y) { }
+    static partial void Goo6([A][A] int y) { }
 }
 ";
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
@@ -5278,27 +5278,27 @@ partial class C
             var compilation = CreateStandardCompilation(source, null, options: opt);
 
             compilation.VerifyDiagnostics(
-                // (25,25): error CS0759: No defining declaration found for implementing declaration of partial method 'C.Foo6(int)'
-                //     static partial void Foo6([A][A] int y) { }
-                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "Foo6").WithArguments("C.Foo6(int)").WithLocation(25, 25),
-                // (11,17): error CS0111: Type 'C' already defines a member called 'Foo2' with the same parameter types
-                //     static void Foo2([A] int y) { }
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Foo2").WithArguments("Foo2", "C").WithLocation(11, 17),
-                // (15,17): error CS0102: The type 'C' already contains a definition for 'Foo3'
-                //     private int Foo3;
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Foo3").WithArguments("C", "Foo3").WithLocation(15, 17),
+                // (25,25): error CS0759: No defining declaration found for implementing declaration of partial method 'C.Goo6(int)'
+                //     static partial void Goo6([A][A] int y) { }
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "Goo6").WithArguments("C.Goo6(int)").WithLocation(25, 25),
+                // (11,17): error CS0111: Type 'C' already defines a member called 'Goo2' with the same parameter types
+                //     static void Goo2([A] int y) { }
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Goo2").WithArguments("Goo2", "C").WithLocation(11, 17),
+                // (15,17): error CS0102: The type 'C' already contains a definition for 'Goo3'
+                //     private int Goo3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Goo3").WithArguments("C", "Goo3").WithLocation(15, 17),
                 // (18,41): error CS0579: Duplicate 'A' attribute
-                //     static partial void Foo4([A][param: A] int y);
+                //     static partial void Goo4([A][param: A] int y);
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A").WithArguments("A").WithLocation(18, 41),
                 // (25,34): error CS0579: Duplicate 'A' attribute
-                //     static partial void Foo6([A][A] int y) { }
+                //     static partial void Goo6([A][A] int y) { }
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A").WithArguments("A").WithLocation(25, 34),
                 // (6,37): error CS0579: Duplicate 'A' attribute
-                //     static partial void Foo([param: A]int y);
+                //     static partial void Goo([param: A]int y);
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A").WithArguments("A").WithLocation(6, 37),
-                // (15,17): warning CS0169: The field 'C.Foo3' is never used
-                //     private int Foo3;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "Foo3").WithArguments("C.Foo3").WithLocation(15, 17));
+                // (15,17): warning CS0169: The field 'C.Goo3' is never used
+                //     private int Goo3;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Goo3").WithArguments("C.Goo3").WithLocation(15, 17));
         }
 
         [Fact]
@@ -5341,17 +5341,17 @@ using System;
 class A : Attribute { }
 partial class Program
 {
-    static partial void Foo(int x);
+    static partial void Goo(int x);
     [A]
-    static partial void Foo(int x) { }
+    static partial void Goo(int x) { }
  
-    static partial void Foo();
+    static partial void Goo();
     [A]
-    static partial void Foo() { }
+    static partial void Goo() { }
  
     static void Main()
     {
-        Console.WriteLine(((Action) Foo).Method.GetCustomAttributesData().Count);
+        Console.WriteLine(((Action) Goo).Method.GetCustomAttributesData().Count);
     }
 }
 ";
@@ -5368,8 +5368,8 @@ class A : System.Attribute { }
  
 partial class C
 {
-    static partial void Foo<T,[A] S>();
-    static partial void Foo<[A]>() { }
+    static partial void Goo<T,[A] S>();
+    static partial void Goo<[A]>() { }
 }";
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
@@ -5377,11 +5377,11 @@ partial class C
 
             compilation.VerifyDiagnostics(
                 // (7,32): error CS1001: Identifier expected
-                //     static partial void Foo<[A]>() { }
+                //     static partial void Goo<[A]>() { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ">"),
-                // (7,25): error CS0759: No defining declaration found for implementing declaration of partial method 'C.Foo<>()'
-                //     static partial void Foo<[A]>() { }
-                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "Foo").WithArguments("C.Foo<>()"));
+                // (7,25): error CS0759: No defining declaration found for implementing declaration of partial method 'C.Goo<>()'
+                //     static partial void Goo<[A]>() { }
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "Goo").WithArguments("C.Goo<>()"));
         }
 
         [WorkItem(542909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542909")]
@@ -5773,13 +5773,13 @@ class X
 using System;
 
 [AttributeUsage(AttributeTargets.All)]
-public class Foo : Attribute
+public class Goo : Attribute
 {
-    public Foo(int sName) { }
+    public Goo(int sName) { }
 }
 
 public class Class1 {
-    [field: Foo(((System.Func<int>)(() => 5))())]
+    [field: Goo(((System.Func<int>)(() => 5))())]
     public event EventHandler Click;
 
     public static void Main()
@@ -5790,7 +5790,7 @@ public class Class1 {
 
             CreateStandardCompilation(source).VerifyDiagnostics(
                 // (11,17): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                //     [field: Foo(((System.Func<int>)(() => 5))())]
+                //     [field: Goo(((System.Func<int>)(() => 5))())]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "((System.Func<int>)(() => 5))()"),
                 // (12,31): warning CS0067: The event 'Class1.Click' is never used
                 //     public event EventHandler Click;
@@ -5885,7 +5885,7 @@ public class MyAttribute2 : Attribute
 
 public class Test
 {
-	public void foo([MyAttribute2(Types = new Type[
+	public void goo([MyAttribute2(Types = new Type[
 ";
             var compilation = CreateStandardCompilation(source);
 
@@ -6032,9 +6032,9 @@ namespace X
             // Multiple from PE, one from Source with alias
             var source7 = @"
 using System;
-using X = Foo;
+using X = Goo;
 [X]
-class Foo: Attribute
+class Goo: Attribute
 {
 }
 ";
@@ -6259,7 +6259,7 @@ public class IA
 {
 }
 
-.class public abstract auto ansi sealed Library1.Foo
+.class public abstract auto ansi sealed Library1.Goo
        extends [mscorlib]System.Object
 {
   .custom instance void [FSharp.Core]Microsoft.FSharp.Core.CompilationMappingAttribute::.ctor(valuetype [FSharp.Core]Microsoft.FSharp.Core.SourceConstructFlags) = ( 01 00 07 00 00 00 00 00 ) 
@@ -6272,15 +6272,15 @@ public class IA
     IL_0002:  ldc.i4.1
     IL_0003:  add
     IL_0004:  ret
-  } // end of method Foo::inc
+  } // end of method Goo::inc
 
-} // end of class Library1.Foo
+} // end of class Library1.Goo
 ";
             var reference1 = CompileIL(source1, prependDefaultHeader: false);
 
             var compilation = CreateStandardCompilation("", new[] { reference1 });
 
-            var type = compilation.GetTypeByMetadataName("Library1.Foo");
+            var type = compilation.GetTypeByMetadataName("Library1.Goo");
             Assert.Equal(0, type.GetAttributes()[0].ConstructorArguments.Count());
         }
 

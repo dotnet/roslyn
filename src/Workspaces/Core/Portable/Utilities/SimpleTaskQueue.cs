@@ -45,28 +45,28 @@ namespace Roslyn.Utilities
             }
         }
 
-        public Task ScheduleTask(Action taskAction, CancellationToken cancellationToken = default(CancellationToken))
+        public Task ScheduleTask(Action taskAction, CancellationToken cancellationToken = default)
         {
             return ScheduleTaskWorker<Task>(delay => _latestTask.ContinueWithAfterDelay(
                 taskAction, cancellationToken, delay, TaskContinuationOptions.None, _taskScheduler),
                 cancellationToken);
         }
 
-        public Task<T> ScheduleTask<T>(Func<T> taskFunc, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<T> ScheduleTask<T>(Func<T> taskFunc, CancellationToken cancellationToken = default)
         {
             return ScheduleTaskWorker<Task<T>>(delay => _latestTask.ContinueWithAfterDelay(
                 t => taskFunc(), cancellationToken, delay, TaskContinuationOptions.None, _taskScheduler),
                 cancellationToken);
         }
 
-        public Task ScheduleTask(Func<Task> taskFuncAsync, CancellationToken cancellationToken = default(CancellationToken))
+        public Task ScheduleTask(Func<Task> taskFuncAsync, CancellationToken cancellationToken = default)
         {
             return ScheduleTaskWorker<Task>(delay => _latestTask.ContinueWithAfterDelayFromAsync(
                 t => taskFuncAsync(), cancellationToken, delay, TaskContinuationOptions.None, _taskScheduler),
                 cancellationToken);
         }
 
-        public Task<T> ScheduleTask<T>(Func<Task<T>> taskFuncAsync, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<T> ScheduleTask<T>(Func<Task<T>> taskFuncAsync, CancellationToken cancellationToken = default)
         {
             return ScheduleTaskWorker<Task<T>>(delay => _latestTask.ContinueWithAfterDelayFromAsync(
                 t => taskFuncAsync(), cancellationToken, delay, TaskContinuationOptions.None, _taskScheduler),

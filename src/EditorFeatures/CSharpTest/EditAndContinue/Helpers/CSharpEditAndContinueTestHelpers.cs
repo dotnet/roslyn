@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue
         public override ImmutableArray<SyntaxNode> GetDeclarators(ISymbol method)
         {
             Assert.True(method is MethodSymbol, "Only methods should have a syntax map.");
-            return LocalVariableDeclaratorsCollector.GetDeclarators((SourceMethodSymbol)method);
+            return LocalVariableDeclaratorsCollector.GetDeclarators((SourceMemberMethodSymbol)method);
         }
     }
 }

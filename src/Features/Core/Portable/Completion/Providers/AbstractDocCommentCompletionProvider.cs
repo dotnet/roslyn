@@ -96,9 +96,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected CompletionItem GetItem(string n)
         {
-            if (_tagMap.ContainsKey(n))
+            if (_tagMap.TryGetValue(n, out var value))
             {
-                var value = _tagMap[n];
                 return CreateCompletionItem(n, value[0], value[1]);
             }
 
@@ -184,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return $"<{kind} {NameAttributeName}=\"{name}\"/>";
         }
 
-        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitChar = default(char?), CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitChar = default, CancellationToken cancellationToken = default)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 

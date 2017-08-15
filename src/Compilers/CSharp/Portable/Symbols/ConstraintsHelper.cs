@@ -323,6 +323,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             diagnostics.Add(location, useSiteDiagnostics);
         }
 
+        internal static ImmutableArray<TypeParameterConstraintClause> MakeTypeParameterConstraints(
+            this SourceMethodSymbol containingSymbol,
+            Binder binder,
+            ImmutableArray<TypeParameterSymbol> typeParameters,
+            SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses,
+            Location location,
+            DiagnosticBag diagnostics)
+        {
+            if (typeParameters.Length == 0 || constraintClauses.Count == 0)
+            {
+                return ImmutableArray<TypeParameterConstraintClause>.Empty;
+            }
+
+            // Wrap binder from factory in a generic constraints specific binder
+            // to avoid checking constraints when binding type names.
+            Debug.Assert(!binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
+            binder = binder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks);
+
+            var result = binder.BindTypeParameterConstraintClauses(containingSymbol, typeParameters, constraintClauses, diagnostics);
+            containingSymbol.CheckConstraintTypesVisibility(location, result, diagnostics);
+            return result;
+        }
+
         // Based on SymbolLoader::SetOverrideConstraints.
         private static void CheckOverrideConstraints(
             TypeParameterSymbol typeParameter,

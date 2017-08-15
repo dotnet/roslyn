@@ -4,26 +4,15 @@
 
 Linux and Mac support for developing Roslyn is very much a work in progress.  Not everything is supported at the moment and the steps detailed on this page will change very frequently.  If this is an area you are interested in then please check back frequently for updates.
 
-## Building using a pre-made toolset
+## Building
 
-Right now Roslyn builds on *nix using a mix of Mono and CoreCLR. Patching the right Mono version and acquiring all the tools
-can be very difficult, so we've saved pre-built versions on Azure.
+Build all cross-platform projects with: `dotnet build CrossPlatform.sln`.
 
-Running `make` should download all these toolset binaries and kick off a build using MSBuild running on Mono.
+If you do not have a system-wide `dotnet` install, you can obtain one with `./build/scripts/obtain_dotnet.sh`. This will install a compatible version of the CLI to `./Binaries/dotnet-cli` - add this to your PATH before trying to build `CrossPlatform.sln`. Alternatively, sourcing the script with `source ./build/scripts/obtain_dotnet.sh` will add it to your PATH for you.
 
 ## Using the compiler
 
-After building there should be at least two versions of `csc.exe` in your output directory.
-
-The first is in the `Binaries/Debug` directory. This is the "full .NET framework" version. That means it expects to run on a
-full .NET framework, like either the Windows .NET framework or Mono. You would run this like you run other mono programs, i.e.
-`mono csc.exe`.
-
-The second copy is in the `Binaries/Debug/csccore` directory. This is a version running directly on CoreCLR -- no Mono necessary.
-Just run `csc` in that directory. Note that this version includes a copy of CoreCLR in the output directory, so it is not portable.
-The version of CoreCLR copied is specific to whatever machine you built with, so if you're running OS X, this will only run on OS X.
-Similarly with Linux (and whatever distro you're using). 
-
+After building, there will be a `csc` in the `Binaries/Debug/Exes/CscCore` directory.
 
 ### Known issues when running `csc.exe`
 

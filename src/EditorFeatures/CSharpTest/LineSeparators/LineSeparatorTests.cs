@@ -475,7 +475,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
         public async Task IncompleteMethod()
         {
-            await AssertTagsOnBracesOrSemicolonsAsync(@"void foo() {");
+            await AssertTagsOnBracesOrSemicolonsAsync(@"void goo() {");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)]

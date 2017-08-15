@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Threading.Tasks;
@@ -555,6 +555,192 @@ public static class C
         if (parent != null)
         {
             parent = parent.Parent;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestInlineNullCheck1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        [|string|] x;
+        if ((x = o as string) != null)
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        if (o is string x)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestInlineNullCheck2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        [|string|] x;
+        if (null != (x = o as string))
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        if (o is string x)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestInlineNullCheck3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        [|string|] x;
+        while ((x = o as string) != null)
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        while (o is string x)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestInlineNullCheck4()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        [|string|] x;
+        while (null != (x = o as string))
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        while (o is string x)
+        {
+        }
+    }
+}");
+        }
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestWhileDefiniteAssignment1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        [|string|] x;
+        while ((x = o as string) != null)
+        {
+        }
+
+        var readAfterWhile = x;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestWhileDefiniteAssignment2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        [|string|] x;
+        while ((x = o as string) != null)
+        {
+        }
+
+        x = ""writeAfterWhile"";
+    }
+}");
+        }
+        
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestWhileDefiniteAssignment3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        [|string|] x;
+        x = ""writeBeforeWhile"";
+        while ((x = o as string) != null)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestWhileDefiniteAssignment4()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        [|string|] x = null;
+        var readBeforeWhile = x;
+        while ((x = o as string) != null)
+        {
+        }
+    }
+}");
+        }
+
+        [WorkItem(21172, "https://github.com/dotnet/roslyn/issues/21172")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestMissingWithDynamic()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(object o)
+    {
+        [|var|] x = o as dynamic;
+        if (x != null)
+        {
         }
     }
 }");

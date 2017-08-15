@@ -2142,13 +2142,13 @@ public delegate void MyDelegate();
 [ComEventInterface(typeof(InterfaceEvents), typeof(int))]
 public interface Interface1_Event
 {
-    event MyDelegate Foo;
+    event MyDelegate Goo;
 }
 
 [ComImport(), Guid(""84374891-a3b1-4f8f-8310-99ea58059b10"")]
 public interface InterfaceEvents
 {
-    void Foo();
+    void Goo();
 }
 ";
 
@@ -2165,7 +2165,7 @@ class UsePia
 
     public void Test(Interface1_Event x)
     {
-    	x.Foo += Handler;	
+    	x.Goo += Handler;	
     }
 
     void Handler()
@@ -2197,7 +2197,7 @@ class UsePia
                     Assert.Equal("System.Runtime.InteropServices.ComEventInterfaceAttribute(typeof(InterfaceEvents), typeof(InterfaceEvents))", attributes[1].ToString());
                     Assert.Equal(@"System.Runtime.InteropServices.TypeIdentifierAttribute(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"", ""Interface1_Event"")", attributes[2].ToString());
 
-                    var foo = (PEEventSymbol)interface1_Event.GetMembers("Foo").Single();
+                    var goo = (PEEventSymbol)interface1_Event.GetMembers("Goo").Single();
 
                     var interfaceEvents = (PENamedTypeSymbol)module.GlobalNamespace.GetTypeMembers("InterfaceEvents").Single();
 
@@ -2207,7 +2207,7 @@ class UsePia
                     Assert.Equal(@"System.Runtime.InteropServices.GuidAttribute(""84374891-a3b1-4f8f-8310-99ea58059b10"")", attributes[1].ToString());
                     Assert.Equal("System.Runtime.InteropServices.TypeIdentifierAttribute", attributes[2].ToString());
 
-                    var foo1 = (PEMethodSymbol)interfaceEvents.GetMembers("Foo").Single();
+                    var goo1 = (PEMethodSymbol)interfaceEvents.GetMembers("Goo").Single();
                 };
 
             var expected =
@@ -2217,7 +2217,7 @@ class UsePia
   .maxstack  4
   IL_0000:  ldtoken    ""Interface1_Event""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_000a:  ldstr      ""Foo""
+  IL_000a:  ldstr      ""Goo""
   IL_000f:  newobj     ""System.Runtime.InteropServices.ComAwareEventInfo..ctor(System.Type, string)""
   IL_0014:  ldarg.1
   IL_0015:  ldarg.0
@@ -2253,13 +2253,13 @@ public delegate void MyDelegate();
 [ComEventInterface(typeof(InterfaceEvents), typeof(int))]
 public interface Interface1_Event
 {
-    event MyDelegate Foo;
+    event MyDelegate Goo;
 }
 
 [ComImport(), Guid(""84374891-a3b1-4f8f-8310-99ea58059b10"")]
 public interface InterfaceEvents
 {
-    void Foo(int x);
+    void Goo(int x);
 }
 
 [ComImport(), Guid(""84374c91-a3b1-4f8f-8310-99ea58059b10"")]
@@ -2282,7 +2282,7 @@ class UsePia
 
     public void Test(Interface1 x)
     {
-    	x.Foo -= Handler;	
+    	x.Goo -= Handler;	
     }
 
     void Handler()
@@ -2304,7 +2304,7 @@ class UsePia
   .maxstack  4
   IL_0000:  ldtoken    ""Interface1_Event""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_000a:  ldstr      ""Foo""
+  IL_000a:  ldstr      ""Goo""
   IL_000f:  newobj     ""System.Runtime.InteropServices.ComAwareEventInfo..ctor(System.Type, string)""
   IL_0014:  ldarg.1
   IL_0015:  ldarg.0
@@ -2340,7 +2340,7 @@ public delegate void MyDelegate();
 [ComEventInterface(typeof(InterfaceEvents), typeof(int))]
 public interface Interface1_Event
 {
-    event MyDelegate Foo;
+    event MyDelegate Goo;
 }
 
 [ComImport(), Guid(""84374891-a3b1-4f8f-8310-99ea58059b10"")]
@@ -2362,7 +2362,7 @@ class UsePia
 
     public void Test(Interface1_Event x)
     {
-    	x.Foo -= Handler;	
+    	x.Goo -= Handler;	
     }
 
     void Handler()
@@ -2371,9 +2371,9 @@ class UsePia
 ";
 
             DiagnosticDescription[] expected = {
-                // (10,6): error CS1766: Source interface 'InterfaceEvents' is missing method 'Foo' which is required to embed event 'Interface1_Event.Foo'.
-                //     	x.Foo -= Handler;	
-                Diagnostic(ErrorCode.ERR_MissingMethodOnSourceInterface, "x.Foo -= Handler").WithArguments("InterfaceEvents", "Foo", "Interface1_Event.Foo")
+                // (10,6): error CS1766: Source interface 'InterfaceEvents' is missing method 'Goo' which is required to embed event 'Interface1_Event.Goo'.
+                //     	x.Goo -= Handler;	
+                Diagnostic(ErrorCode.ERR_MissingMethodOnSourceInterface, "x.Goo -= Handler").WithArguments("InterfaceEvents", "Goo", "Interface1_Event.Goo")
                                                };
 
             var compilation1 = CreateStandardCompilation(consumer, options: TestOptions.ReleaseExe,
@@ -2484,7 +2484,7 @@ public delegate void MyDelegate();
 [Guid(""84374891-a3b1-4f8f-8310-99ea58059b10"")]
 public interface Interface1_Event
 {
-    event MyDelegate Foo;
+    event MyDelegate Goo;
 }
 ";
 
@@ -2501,7 +2501,7 @@ class UsePia
 
     public void Test(Interface1_Event x)
     {
-    	x.Foo -= Handler;	
+    	x.Goo -= Handler;	
     }
 
     void Handler()
@@ -2511,8 +2511,8 @@ class UsePia
 
             DiagnosticDescription[] expected = {
                 // (10,6): error CS1756: Interop type 'Interface1_Event' cannot be embedded because it is missing the required 'System.Runtime.InteropServices.ComImportAttribute' attribute.
-                //     	x.Foo -= Handler;	
-                Diagnostic(ErrorCode.ERR_InteropTypeMissingAttribute, "x.Foo -= Handler").WithArguments("Interface1_Event", "System.Runtime.InteropServices.ComImportAttribute")
+                //     	x.Goo -= Handler;	
+                Diagnostic(ErrorCode.ERR_InteropTypeMissingAttribute, "x.Goo -= Handler").WithArguments("Interface1_Event", "System.Runtime.InteropServices.ComImportAttribute")
                                                };
 
             DiagnosticDescription[] expectedMetadataOnly = {
@@ -2588,20 +2588,20 @@ class UsePia
 .class interface public abstract auto ansi import Interface1_Event
 {
   .method public hidebysig newslot specialname abstract virtual 
-          instance void  add_Foo(class MyDelegate 'value') cil managed
+          instance void  add_Goo(class MyDelegate 'value') cil managed
   {
-  } // end of method Interface1_Event::add_Foo
+  } // end of method Interface1_Event::add_Goo
 
   .method public hidebysig newslot specialname abstract virtual 
-          instance void  remove_Foo(class MyDelegate 'value') cil managed
+          instance void  remove_Goo(class MyDelegate 'value') cil managed
   {
-  } // end of method Interface1_Event::remove_Foo
+  } // end of method Interface1_Event::remove_Goo
 
-  .event MyDelegate Foo
+  .event MyDelegate Goo
   {
-    .removeon instance void Interface1_Event::remove_Foo(class MyDelegate)
-    .addon instance void Interface1_Event::add_Foo(class MyDelegate)
-  } // end of event Interface1_Event::Foo
+    .removeon instance void Interface1_Event::remove_Goo(class MyDelegate)
+    .addon instance void Interface1_Event::add_Goo(class MyDelegate)
+  } // end of event Interface1_Event::Goo
 } // end of class Interface1_Event
 ";
 
@@ -2616,7 +2616,7 @@ class UsePia
 
     public void Test(Interface1_Event x)
     {
-    	x.Foo -= Handler;	
+    	x.Goo -= Handler;	
     }
 
     void Handler()
@@ -2626,8 +2626,8 @@ class UsePia
 
             DiagnosticDescription[] expected = {
                 // (10,6): error CS1756: Interop type 'Interface1_Event' cannot be embedded because it is missing the required 'System.Runtime.InteropServices.GuidAttribute' attribute.
-                //     	x.Foo -= Handler;	
-                Diagnostic(ErrorCode.ERR_InteropTypeMissingAttribute, "x.Foo -= Handler").WithArguments("Interface1_Event", "System.Runtime.InteropServices.GuidAttribute")
+                //     	x.Goo -= Handler;	
+                Diagnostic(ErrorCode.ERR_InteropTypeMissingAttribute, "x.Goo -= Handler").WithArguments("Interface1_Event", "System.Runtime.InteropServices.GuidAttribute")
                                                };
 
             DiagnosticDescription[] expectedMetadataOnly = {
@@ -5585,13 +5585,13 @@ public delegate void MyDelegate();
 [ComEventInterface(typeof(InterfaceEvents), typeof(int))]
 public interface Interface1_Event
 {
-    event MyDelegate Foo;
+    event MyDelegate Goo;
 }
 
 [ComImport(), Guid(""84374891-a3b1-4f8f-8310-99ea58059b10"")]
 public interface InterfaceEvents
 {
-    void Foo();
+    void Goo();
 }
 ";
 
@@ -5608,7 +5608,7 @@ class UsePia
 
     public void Test(Interface1_Event x)
     {
-    	x.Foo += Handler;	
+    	x.Goo += Handler;	
     }
 
     void Handler()
@@ -5621,8 +5621,8 @@ class UsePia
 
             DiagnosticDescription[] expected = {
                 // (10,6): error CS0656: Missing compiler required member 'System.Runtime.InteropServices.ComAwareEventInfo..ctor'
-                //     	x.Foo += Handler;	
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x.Foo += Handler").WithArguments("System.Runtime.InteropServices.ComAwareEventInfo", ".ctor").WithLocation(10, 6)
+                //     	x.Goo += Handler;	
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x.Goo += Handler").WithArguments("System.Runtime.InteropServices.ComAwareEventInfo", ".ctor").WithLocation(10, 6)
                                                };
 
             VerifyEmitDiagnostics(compilation1, true, expected);

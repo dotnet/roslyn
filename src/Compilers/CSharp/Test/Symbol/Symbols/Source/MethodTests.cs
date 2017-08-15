@@ -457,7 +457,7 @@ namespace NS
 {
   public class Abc {}
 
-  public interface IFoo<T>
+  public interface IGoo<T>
   {
     void M(ref T t);
   }
@@ -481,18 +481,18 @@ using System.Collections.Generic;
 
 namespace NS.NS1
 {
-  public class Impl : I2, IFoo<string>, I1
+  public class Impl : I2, IGoo<string>, I1
   {
-    void IFoo<string>.M(ref string p) { }
+    void IGoo<string>.M(ref string p) { }
     void I1.M(ref string p) { }
     public int M1(short p1, params object[] ary) { return p1; }
     public void M21() {}
     public Abc M22(ref Abc p) { return p; }
   }
 
-  struct S<T>: IFoo<T>
+  struct S<T>: IGoo<T>
   {
-    void IFoo<T>.M(ref T t) {}
+    void IGoo<T>.M(ref T t) {}
   }
 }";
 
@@ -527,7 +527,7 @@ namespace NS.NS1
             var structImpl = ns1.GetTypeMembers("S").Single() as NamedTypeSymbol;
             Assert.Equal(1, structImpl.Interfaces.Length);
             itfc = structImpl.Interfaces.First() as NamedTypeSymbol;
-            Assert.Equal("NS.IFoo<T>", itfc.ToTestDisplayString());
+            Assert.Equal("NS.IGoo<T>", itfc.ToTestDisplayString());
             //var mem2 = structImpl.GetMembers("M").Single() as MethodSymbol;
             // not impl
             // Assert.Equal(1, mem2.ExplicitInterfaceImplementation.Count());
@@ -538,7 +538,7 @@ namespace NS.NS1
         {
             var text = @"
 namespace MT  {
-    public interface IFoo  {
+    public interface IGoo  {
         void M0();
     }
 }
@@ -547,7 +547,7 @@ namespace MT  {
             var text1 = @"
 namespace N1  {
     using MT;
-    public abstract class Abc : IFoo  {
+    public abstract class Abc : IGoo  {
         public abstract void M0();
         public char M1;
         public abstract object M2(ref object p1);
@@ -709,7 +709,7 @@ namespace N1.N2  {
         {
             var text = @"
 namespace MT  {
-    public interface IFoo  {
+    public interface IGoo  {
         void M0();
     }
 }
@@ -718,7 +718,7 @@ namespace MT  {
             var text1 = @"
 namespace N1  {
     using MT;
-    public abstract class Abc : IFoo  {
+    public abstract class Abc : IGoo  {
         public abstract void M0();
         public char M1;
         public abstract object M2(ref object p1);
@@ -1292,7 +1292,7 @@ interface ISubFuncProp
 
 interface Interface3
 {
-   System.Collections.Generic.List<ISubFuncProp> Foo();
+   System.Collections.Generic.List<ISubFuncProp> Goo();
 }
 
 interface Interface3Derived : Interface3
@@ -1301,12 +1301,12 @@ interface Interface3Derived : Interface3
 
 public class DerivedClass : Interface3Derived
 {
-  System.Collections.Generic.List<ISubFuncProp> Interface3.Foo()
+  System.Collections.Generic.List<ISubFuncProp> Interface3.Goo()
   {
     return null;
   }
 
-  System.Collections.Generic.List<ISubFuncProp> Foo()
+  System.Collections.Generic.List<ISubFuncProp> Goo()
   {
     return null;
   }
@@ -1846,10 +1846,10 @@ class C
 
             var @class = (NamedTypeSymbol)comp.GlobalNamespace.GetTypeMembers("C").Single();
 
-            var method1 = (SourceMethodSymbol)@class.GetMembers("Method1").Single();
-            var method2 = (SourceMethodSymbol)@class.GetMembers("Method2").Single();
-            var method3 = (SourceMethodSymbol)@class.GetMembers("Method3").Single();
-            var method4 = (SourceMethodSymbol)@class.GetMembers("Method4").Single();
+            var method1 = (SourceMemberMethodSymbol)@class.GetMembers("Method1").Single();
+            var method2 = (SourceMemberMethodSymbol)@class.GetMembers("Method2").Single();
+            var method3 = (SourceMemberMethodSymbol)@class.GetMembers("Method3").Single();
+            var method4 = (SourceMemberMethodSymbol)@class.GetMembers("Method4").Single();
 
             Assert.True(method1.IsVirtual);
             Assert.True(method2.IsVirtual);

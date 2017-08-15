@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
         public async Task TestTouchingItems()
         {
-            var code = "public class C {\r\n  public void Foo(){}\r\n}";
+            var code = "public class C {\r\n  public void Goo(){}\r\n}";
             using (var workspace = TestWorkspace.CreateCSharp(code, Options.Script))
             {
                 var buffer = workspace.Documents.First().GetTextBuffer();
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
         public async Task TestAngles()
         {
-            var code = "/// <summary>Foo</summary>\r\npublic class C<T> {\r\n  void Foo() {\r\n    bool a = b < c;\r\n    bool d = e > f;\r\n  }\r\n} ";
+            var code = "/// <summary>Goo</summary>\r\npublic class C<T> {\r\n  void Goo() {\r\n    bool a = b < c;\r\n    bool d = e > f;\r\n  }\r\n} ";
             using (var workspace = TestWorkspace.CreateCSharp(code, parseOptions: Options.Script))
             {
                 var buffer = workspace.Documents.First().GetTextBuffer();

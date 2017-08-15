@@ -40,6 +40,13 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
         /// <param name="exception">Exception that triggered this non-fatal error</param>
         public static void Report(string description, Exception exception)
         {
+            // if given exception is non recoverable exception,
+            // crash instead of NFW
+            if (IsNonRecoverableException(exception))
+            {
+                CodeAnalysis.FailFast.OnFatalException(exception);
+            }
+
             SessionOpt?.PostFault(
                 eventName: FunctionId.NonFatalWatson.GetEventName(),
                 description: description,
@@ -52,6 +59,11 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
                     // we always send watson since dump itself can have valuable data
                     return 0;
                 });
+        }
+
+        private static bool IsNonRecoverableException(Exception exception)
+        {
+            return exception is OutOfMemoryException;
         }
     }
 }

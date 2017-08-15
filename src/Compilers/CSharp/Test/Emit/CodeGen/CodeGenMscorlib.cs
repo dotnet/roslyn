@@ -785,14 +785,14 @@ namespace System
             return unchecked((int)((long)m_value));
         }
 
-        public unsafe static IntPtr Foo() 
+        public unsafe static IntPtr Goo() 
         {
             return new IntPtr(0);
         }
 
         public unsafe static bool Bar(IntPtr value1) 
         {
-            return value1.m_value == Foo().m_value;
+            return value1.m_value == Goo().m_value;
         }
     }
 
@@ -892,7 +892,7 @@ namespace System
   .locals init (System.IntPtr V_0)
   IL_0000:  ldarga.s   V_0
   IL_0002:  ldfld      ""void* System.IntPtr.m_value""
-  IL_0007:  call       ""System.IntPtr System.IntPtr.Foo()""
+  IL_0007:  call       ""System.IntPtr System.IntPtr.Goo()""
   IL_000c:  stloc.0
   IL_000d:  ldloca.s   V_0
   IL_000f:  ldfld      ""void* System.IntPtr.m_value""

@@ -181,33 +181,38 @@ namespace Roslyn.Test.Utilities
             Equal(expected, (IEnumerable<T>)actual, comparer, message, itemSeparator);
         }
 
-        public static void Equal<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null, string message = null,
-            string itemSeparator = null, Func<T, string> itemInspector = null)
+        public static void Equal<T>(
+            IEnumerable<T> expected, 
+            IEnumerable<T> actual, 
+            IEqualityComparer<T> comparer = null,
+            string message = null,
+            string itemSeparator = null, 
+            Func<T, string> itemInspector = null,
+            string expectedValueSourcePath = null,
+            int expectedValueSourceLine = 0)
         {
-            if (ReferenceEquals(expected, actual))
+            if (expected == null)
+            {
+                Assert.Null(actual);
+            }
+            else
+            {
+                Assert.NotNull(actual);
+            }
+
+            if (SequenceEqual(expected, actual, comparer))
             {
                 return;
             }
 
-            if (expected == null)
-            {
-                Fail("expected was null, but actual wasn't\r\n" + message);
-            }
-            else if (actual == null)
-            {
-                Fail("actual was null, but expected wasn't\r\n" + message);
-            }
-            else if (!SequenceEqual(expected, actual, comparer))
-            {
-                string assertMessage = GetAssertMessage(expected, actual, comparer, itemInspector, itemSeparator);
+            string assertMessage = GetAssertMessage(expected, actual, comparer, itemInspector, itemSeparator, expectedValueSourcePath, expectedValueSourceLine);
 
-                if (message != null)
-                {
-                    assertMessage = message + "\r\n" + assertMessage;
-                }
-
-                Assert.True(false, assertMessage);
+            if (message != null)
+            {
+                assertMessage = message + "\r\n" + assertMessage;
             }
+
+            Assert.True(false, assertMessage);
         }
 
         public static void NotEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null, string message = null,
@@ -230,6 +235,11 @@ namespace Roslyn.Test.Utilities
 
         private static bool SequenceEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null)
         {
+            if (ReferenceEquals(expected, actual))
+            {
+                return true;
+            }
+
             var enumerator1 = expected.GetEnumerator();
             var enumerator2 = actual.GetEnumerator();
 
@@ -448,10 +458,6 @@ namespace Roslyn.Test.Utilities
                 {
                     itemInspector = b => $"0x{b:X2}";
                 }
-                else if (expected is IEnumerable<string>)
-                {
-                    itemInspector = new Func<T, string>(obj => (obj != null) ? string.Format("\"{0}\"", obj.ToString()) : "<null>");
-                }
                 else
                 {
                     itemInspector = new Func<T, string>(obj => (obj != null) ? obj.ToString() : "<null>");
@@ -530,6 +536,30 @@ namespace Roslyn.Test.Utilities
             {
                 Fail($"Expected 0 items but found {list.Count}: {message}\r\nItems:\r\n    {string.Join("\r\n    ", list)}");
             }
+        }
+
+        private sealed class LineComparer : IEqualityComparer<string>
+        {
+            public static readonly LineComparer Instance = new LineComparer();
+
+            public bool Equals(string left, string right) => left.Trim() == right.Trim();
+            public int GetHashCode(string str) => str.Trim().GetHashCode();
+        }
+
+        public static void AssertLinesEqual(string expected, string actual, string message, string expectedValueSourcePath, int expectedValueSourceLine, bool escapeQuotes)
+        {
+            IEnumerable<string> GetLines(string str) =>
+                str.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+            AssertEx.Equal(
+                GetLines(expected),
+                GetLines(actual),
+                comparer: LineComparer.Instance,
+                message: message,
+                itemInspector: escapeQuotes ? new Func<string, string>(line => line.Replace("\"", "\"\"")) : null,
+                itemSeparator: Environment.NewLine,
+                expectedValueSourcePath: expectedValueSourcePath,
+                expectedValueSourceLine: expectedValueSourceLine);
         }
     }
 }

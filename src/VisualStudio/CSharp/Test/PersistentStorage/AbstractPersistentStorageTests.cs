@@ -29,8 +29,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         private readonly Encoding _encoding = Encoding.UTF8;
         internal readonly IOptionService _persistentEnabledOptionService = new OptionServiceMock(new Dictionary<IOption, object>
         {
-            { PersistentStorageOptions.Enabled, true },
-            { PersistentStorageOptions.EsentPerformanceMonitor, false }
+            { PersistentStorageOptions.Enabled, true }
         });
 
         private readonly string _persistentFolder;
@@ -388,28 +387,29 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             {
                 var projectFile = Path.Combine(Path.GetDirectoryName(solutionFile), "Project1.csproj");
                 File.WriteAllText(projectFile, "");
-                solution = solution.AddProject(ProjectInfo.Create(ProjectId.CreateNewId(), VersionStamp.Create(), "Project1", "Project1", LanguageNames.CSharp, 
+                solution = solution.AddProject(ProjectInfo.Create(ProjectId.CreateNewId(), VersionStamp.Create(), "Project1", "Project1", LanguageNames.CSharp,
                     filePath: nullPaths ? null : projectFile));
                 var project = solution.Projects.Single();
 
                 var documentFile = Path.Combine(Path.GetDirectoryName(projectFile), "Document1.cs");
                 File.WriteAllText(documentFile, "");
-                solution = solution.AddDocument(DocumentInfo.Create(DocumentId.CreateNewId(project.Id), "Document1", 
+                solution = solution.AddDocument(DocumentInfo.Create(DocumentId.CreateNewId(project.Id), "Document1",
                     filePath: nullPaths ? null : documentFile));
             }
 
             return solution;
         }
 
-        protected IPersistentStorage GetStorage(Solution solution)
+        internal IPersistentStorage GetStorage(
+            Solution solution, IPersistentStorageFaultInjector faultInjectorOpt = null)
         {
-            var storage = GetStorageService().GetStorage(solution);
+            var storage = GetStorageService(faultInjectorOpt).GetStorage(solution);
 
             Assert.NotEqual(NoOpPersistentStorage.Instance, storage);
             return storage;
         }
 
-        protected abstract IPersistentStorageService GetStorageService();
+        internal abstract IPersistentStorageService GetStorageService(IPersistentStorageFaultInjector faultInjector);
 
         protected Stream EncodeString(string text)
         {

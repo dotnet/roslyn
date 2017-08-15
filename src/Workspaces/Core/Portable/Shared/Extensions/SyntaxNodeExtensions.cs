@@ -47,7 +47,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static TNode GetAncestor<TNode>(this SyntaxNode node)
             where TNode : SyntaxNode
         {
-            return node?.GetAncestors<TNode>().FirstOrDefault();
+            var current = node.Parent;
+            while (current != null)
+            {
+                if (current is TNode tNode)
+                {
+                    return tNode;
+                }
+
+                current = current.GetParent();
+            }
+
+            return null;
         }
 
         public static TNode GetAncestorOrThis<TNode>(this SyntaxNode node)
@@ -403,12 +414,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 // compute replacements for all nodes that will go in the same batch
                 // only spans that do not overlap go in the same batch.                
-                TextSpan previous = default(TextSpan);
+                TextSpan previous = default;
                 foreach (var span in spans)
                 {
                     // only add to replacement map if we don't intersect with the previous node. This taken with the sort order
                     // should ensure that parent nodes are not processed in the same batch as child nodes.
-                    if (previous == default(TextSpan) || !previous.IntersectsWith(span))
+                    if (previous == default || !previous.IntersectsWith(span))
                     {
                         if (nodesToReplace.TryGetValue(span, out var currentNode))
                         {
@@ -419,7 +430,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         else if (tokensToReplace.TryGetValue(span, out var currentToken))
                         {
                             var original = (SyntaxToken)retryAnnotations.GetAnnotations(currentToken).SingleOrDefault();
-                            if (original == default(SyntaxToken))
+                            if (original == default)
                             {
                                 original = currentToken;
                             }
@@ -430,7 +441,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         else if (triviaToReplace.TryGetValue(span, out var currentTrivia))
                         {
                             var original = (SyntaxTrivia)retryAnnotations.GetAnnotations(currentTrivia).SingleOrDefault();
-                            if (original == default(SyntaxTrivia))
+                            if (original == default)
                             {
                                 original = currentTrivia;
                             }
@@ -546,7 +557,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
-            return default(SyntaxToken);
+            return default;
         }
 
         /// <summary>
@@ -577,7 +588,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
-            return default(SyntaxToken);
+            return default;
         }
 
         private static SyntaxToken GetInitialToken(
@@ -603,7 +614,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             bool includeDirectives = false,
             bool includeDocumentationComments = false)
         {
-            var findSkippedToken = includeSkipped ? s_findSkippedTokenForward : ((l, p) => default(SyntaxToken));
+            var findSkippedToken = includeSkipped ? s_findSkippedTokenForward : ((l, p) => default);
 
             var token = GetInitialToken(root, position, includeSkipped, includeDirectives, includeDocumentationComments);
 
@@ -642,7 +653,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             bool includeDirectives = false,
             bool includeDocumentationComments = false)
         {
-            var findSkippedToken = includeSkipped ? s_findSkippedTokenBackward : ((l, p) => default(SyntaxToken));
+            var findSkippedToken = includeSkipped ? s_findSkippedTokenBackward : ((l, p) => default);
 
             var token = GetInitialToken(root, position, includeSkipped, includeDirectives, includeDocumentationComments);
 
@@ -768,7 +779,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
-            return default(TNode);
+            return default;
         }
     }
 }

@@ -63,6 +63,37 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _tagSource.TagsChangedForBuffer += OnTagsChangedForBuffer;
                 _tagSource.Paused += OnPaused;
                 _tagSource.Resumed += OnResumed;
+
+                // There is a many-to-one relationship between Taggers and TagSources.  i.e. one
+                // tag-source can be used by many Taggers.  As such, we may be a tagger that is 
+                // wrapping a tag-source that has already produced tags and had sent out the 
+                // notifications about those tags.
+                //
+                // However, we still want to notify the code consuming us that we have tags to
+                // display.  That way, tags can display as soon as possible when someone creates
+                // a new tagger for a view/buffer.
+                //
+                // Note: we have to do this in the future instead of right now because we haven't
+                // even been returned to the caller for them to hook up to change notifications
+                // from us.
+                notificationService.RegisterNotification(
+                    () =>
+                    {
+                        if (this.TagsChanged == null)
+                        {
+                            // don't bother reporting tags if no one is listening.
+                            return;
+                        }
+
+                        var tags = _tagSource.TryGetTagIntervalTreeForBuffer(_subjectBuffer);
+                        if (tags != null)
+                        {
+                            var collection = new NormalizedSnapshotSpanCollection(
+                                tags.GetSpans(_subjectBuffer.CurrentSnapshot).Select(ts => ts.Span));
+                            this.NotifyEditorNow(collection);
+                        }
+                    },
+                    listener.BeginAsyncOperation(GetType().FullName + ".ctor-ReportInitialTags"));
             }
 
             public void Dispose()
@@ -79,7 +110,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private void OnResumed(object sender, EventArgs e)
                 => _batchChangeNotifier.Resume();
 
-            private void OnTagsChangedForBuffer(ICollection<KeyValuePair<ITextBuffer, DiffResult>> changes)
+            private void OnTagsChangedForBuffer(
+                ICollection<KeyValuePair<ITextBuffer, DiffResult>> changes, bool initialTags)
             {
                 _tagSource.AssertIsForeground();
 
@@ -98,8 +130,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     // Now report them back to the UI on the main thread.
 
                     // We ask to update UI immediately for removed tags
-                    NotifyEditors(change.Value.Removed, _tagSource.RemovedTagNotificationDelay);
-                    NotifyEditors(change.Value.Added, _tagSource.AddedTagNotificationDelay);
+                    NotifyEditors(change.Value.Removed, initialTags ? TaggerDelay.NearImmediate : _tagSource.RemovedTagNotificationDelay);
+                    NotifyEditors(change.Value.Added, initialTags ? TaggerDelay.NearImmediate : _tagSource.AddedTagNotificationDelay);
                 }
             }
 

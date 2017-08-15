@@ -91,6 +91,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
+        protected async Task TestDiagnosticMissingAsync(
+            string initialMarkup,
+            TestParameters parameters = default(TestParameters))
+        {
+            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
+            {
+                var diagnostics = await GetDiagnosticsWorkerAsync(workspace, parameters);
+                Assert.Equal(0, diagnostics.Length);
+            }
+        }
+
         protected async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
@@ -98,6 +109,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         }
 
         protected abstract Task<ImmutableArray<CodeAction>> GetCodeActionsWorkerAsync(
+            TestWorkspace workspace, TestParameters parameters);
+
+
+        protected abstract Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(
             TestWorkspace workspace, TestParameters parameters);
 
         protected async Task TestSmartTagTextAsync(
@@ -147,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             ImmutableArray<string> expectedContainers,
             string expectedDocumentName,
             int index = 0,
-            bool ignoreTrivia = true,
+            bool ignoreTrivia = false,
             TestParameters parameters = default(TestParameters))
         {
             await TestAddDocument(
@@ -169,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             int index,
             string expectedDocumentName,
             ImmutableArray<string> expectedContainers,
-            bool ignoreTrivia = true)
+            bool ignoreTrivia = false)
         {
             var codeActions = await GetCodeActionsAsync(workspace, parameters);
             return await TestAddDocument(
@@ -183,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             ImmutableArray<string> expectedContainers,
             string expectedDocumentName,
             int index = 0,
-            bool ignoreTrivia = true,
+            bool ignoreTrivia = false,
             TestParameters parameters = default(TestParameters))
         {
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
@@ -298,7 +313,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string initialMarkup,
             string expectedMarkup,
             int index = 0,
-            bool ignoreTrivia = true,
+            bool ignoreTrivia = false,
             CodeActionPriority? priority = null,
             CompilationOptions compilationOptions = null,
             IDictionary<OptionKey, object> options = null,
@@ -314,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string initialMarkup,
             string expectedMarkup,
             int index = 0,
-            bool ignoreTrivia = true,
+            bool ignoreTrivia = false,
             CodeActionPriority? priority = null,
             TestParameters parameters = default(TestParameters))
         {
@@ -326,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string initialMarkup, string expectedMarkup,
             ParseOptions parseOptions,
             CompilationOptions compilationOptions = null,
-            int index = 0, bool ignoreTrivia = true,
+            int index = 0, bool ignoreTrivia = false,
             IDictionary<OptionKey, object> options = null,
             string fixAllActionEquivalenceKey = null,
             object fixProviderData = null,
@@ -349,11 +364,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             TestParameters parameters)
         {
             MarkupTestFile.GetSpans(
-                expectedMarkup.NormalizeLineEndings(), out var expected, out IDictionary<string, ImmutableArray<TextSpan>> spanMap);
+                expectedMarkup.NormalizeLineEndings(), 
+                out var expected, out IDictionary<string, ImmutableArray<TextSpan>> spanMap);
 
             var conflictSpans = spanMap.GetOrAdd("Conflict", _ => ImmutableArray<TextSpan>.Empty);
             var renameSpans = spanMap.GetOrAdd("Rename", _ => ImmutableArray<TextSpan>.Empty);
             var warningSpans = spanMap.GetOrAdd("Warning", _ => ImmutableArray<TextSpan>.Empty);
+            var navigationSpans = spanMap.GetOrAdd("Navigation", _ => ImmutableArray<TextSpan>.Empty);
 
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
@@ -365,7 +382,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 await TestActionsAsync(
                     workspace, expected, index,
                     actions,
-                    conflictSpans, renameSpans, warningSpans,
+                    conflictSpans, renameSpans, warningSpans, navigationSpans,
                     ignoreTrivia: ignoreTrivia,
                     parseOptions: parameters.parseOptions,
                     priority: priority);
@@ -378,12 +395,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             ImmutableArray<TextSpan> conflictSpans,
             ImmutableArray<TextSpan> renameSpans,
             ImmutableArray<TextSpan> warningSpans,
+            ImmutableArray<TextSpan> navigationSpans,
             bool ignoreTrivia,
             ParseOptions parseOptions = null,
             CodeActionPriority? priority = null)
         {
             var operations = await VerifyInputsAndGetOperationsAsync(index, actions, priority);
-            return await TestOperationsAsync(workspace, expected, operations, conflictSpans, renameSpans, warningSpans, ignoreTrivia, expectedChangedDocumentId: null, parseOptions: parseOptions);
+            return await TestOperationsAsync(
+                workspace, expected, operations, conflictSpans, renameSpans,
+                warningSpans, navigationSpans, ignoreTrivia, expectedChangedDocumentId: null, parseOptions: parseOptions);
         }
 
         protected async Task<Tuple<Solution, Solution>> TestOperationsAsync(
@@ -393,6 +413,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             ImmutableArray<TextSpan> conflictSpans,
             ImmutableArray<TextSpan> renameSpans,
             ImmutableArray<TextSpan> warningSpans,
+            ImmutableArray<TextSpan> navigationSpans,
             bool ignoreTrivia,
             DocumentId expectedChangedDocumentId,
             ParseOptions parseOptions = null)
@@ -424,6 +445,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             TestAnnotations(conflictSpans, ConflictAnnotation.Kind);
             TestAnnotations(renameSpans, RenameAnnotation.Kind);
             TestAnnotations(warningSpans, WarningAnnotation.Kind);
+            TestAnnotations(navigationSpans, NavigationAnnotation.Kind);
 
             return Tuple.Create(oldSolution, newSolution);
 

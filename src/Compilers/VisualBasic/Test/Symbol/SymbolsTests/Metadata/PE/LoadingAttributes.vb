@@ -771,13 +771,13 @@ End Class]]>
             Dim interopNS = DirectCast(runtimeNS.GetMember("InteropServices"), NamespaceSymbol)
 
             Dim appNS = DirectCast(assemblies(0).Modules(0).GlobalNamespace.GetMember("Interop"), NamespaceSymbol)
-            Dim ifoo = DirectCast(appNS.GetMember("IFoo"), NamedTypeSymbol)
+            Dim igoo = DirectCast(appNS.GetMember("IFoo"), NamedTypeSymbol)
             ' ComImport is Pseudo attr
-            Assert.Equal(4, ifoo.GetAttributes().Length)
+            Assert.Equal(4, igoo.GetAttributes().Length)
 
             ' get attr by NamedTypeSymbol
             Dim attrObj = DirectCast(interopNS.GetTypeMembers("GuidAttribute").Single(), NamedTypeSymbol)
-            Dim attrSym = ifoo.GetAttribute(attrObj)
+            Dim attrSym = igoo.GetAttribute(attrObj)
             'Assert.Null(attrSym.NamedArguments)
             Assert.Equal(GetType(String), attrSym.CommonConstructorArguments(0).Value.GetType())
             Assert.Equal("ABCDEF5D-2448-447A-B786-64682CBEF123", attrSym.CommonConstructorArguments(0).Value)
@@ -785,24 +785,24 @@ End Class]]>
             attrObj = DirectCast(interopNS.GetTypeMembers("InterfaceTypeAttribute").Single(), NamedTypeSymbol)
             ' use first ctor
             Dim ctor = attrObj.InstanceConstructors.First()
-            attrSym = ifoo.GetAttributes(ctor).First
+            attrSym = igoo.GetAttributes(ctor).First
             ' param in ctor is Int16, but Int32 in MD
             Assert.Equal(GetType(Int32), attrSym.CommonConstructorArguments(0).Value.GetType())
             Assert.Equal(1, attrSym.CommonConstructorArguments(0).Value)
 
             attrObj = DirectCast(interopNS.GetTypeMembers("TypeLibImportClassAttribute").Single(), NamedTypeSymbol)
             Dim msym = attrObj.InstanceConstructors.First()
-            attrSym = ifoo.GetAttributes(msym).First
+            attrSym = igoo.GetAttributes(msym).First
             Assert.Equal("Object", CType(attrSym.CommonConstructorArguments(0).Value, Symbol).ToString())
 
             ' =============================
-            Dim mem = DirectCast(ifoo.GetMember("DoSomething"), MethodSymbol)
+            Dim mem = DirectCast(igoo.GetMember("DoSomething"), MethodSymbol)
             Assert.Equal(1, mem.GetAttributes().Length)
-            mem = DirectCast(ifoo.GetMember("Register"), MethodSymbol)
+            mem = DirectCast(igoo.GetMember("Register"), MethodSymbol)
             Assert.Equal(1, mem.GetAttributes().Length)
-            mem = DirectCast(ifoo.GetMember("UnRegister"), MethodSymbol)
+            mem = DirectCast(igoo.GetMember("UnRegister"), MethodSymbol)
             Assert.Equal(1, mem.GetAttributes().Length)
-            mem = DirectCast(ifoo.GetMember("LibFunc"), MethodSymbol)
+            mem = DirectCast(igoo.GetMember("LibFunc"), MethodSymbol)
             attrSym = mem.GetAttributes().First()
             Assert.Equal(1, attrSym.CommonConstructorArguments.Length)
             Assert.Equal(32, attrSym.CommonConstructorArguments(0).Value)
@@ -1059,9 +1059,9 @@ End Class]]>
             '    V Method([param: DerivedAttribute(new sbyte[] {-1, 0, 1}, ObjectField = typeof(IList<>))]T t);
             '}
             ' 
-            Dim ifoo = DirectCast(appNS.GetMember("IFoo"), NamedTypeSymbol)
+            Dim igoo = DirectCast(appNS.GetMember("IFoo"), NamedTypeSymbol)
             ' attribute on type parameter of interface
-            Dim tp = ifoo.TypeParameters(0)
+            Dim tp = igoo.TypeParameters(0)
             Dim attrSym = tp.GetAttributes().First()
             Assert.Equal("AllInheritMultipleAttribute", attrSym.AttributeClass.Name)
             ' p2 is optional
@@ -1070,7 +1070,7 @@ End Class]]>
             ' NYI: default optional
             ' Assert.Equal(CByte(1), attrSym.ConstructorArguments(1).Value) 'enum
 
-            tp = ifoo.TypeParameters(1)
+            tp = igoo.TypeParameters(1)
             attrSym = tp.GetAttribute(attrObj1)
             Assert.Equal(3, attrSym.CommonConstructorArguments.Length)
             Assert.Equal("q"c, attrSym.CommonConstructorArguments(0).Value)
@@ -1080,7 +1080,7 @@ End Class]]>
 
             ' attribute on method
             ' [AllInheritMultiple(p3:1.234f, p2: 1056, p1: "555")]
-            Dim mtd = DirectCast(ifoo.GetMember("Method"), MethodSymbol)
+            Dim mtd = DirectCast(igoo.GetMember("Method"), MethodSymbol)
             Assert.Equal(1, mtd.GetAttributes().Length)
             attrSym = mtd.GetAttributes().First()
             Assert.Equal(4, attrSym.CommonConstructorArguments.Length) ' p4 is default optional

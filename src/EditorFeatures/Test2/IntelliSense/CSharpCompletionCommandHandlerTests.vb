@@ -202,7 +202,7 @@ using System.Collections.Generic;
 
 class C
 {
-    public void Foo()
+    public void Goo()
     {
         List<int> list = new$$
     }
@@ -234,7 +234,7 @@ class C
                   <Document><![CDATA[
 class C
 {
-    public void Foo()
+    public void Goo()
     {
        var ($$
     }
@@ -251,7 +251,7 @@ class C
                   <Document><![CDATA[
 class C
 {
-    public void Foo()
+    public void Goo()
     {
        var (a, $$
     }
@@ -268,7 +268,7 @@ class C
                   <Document><![CDATA[
 class C
 {
-    public void Foo()
+    public void Goo()
     {
        var ($$) = (1, 2);
     }
@@ -285,7 +285,7 @@ class C
                   <Document><![CDATA[
 class Variable
 {
-    public void Foo()
+    public void Goo()
     {
        (var a$$) = (1, 2);
     }
@@ -302,7 +302,7 @@ class Variable
                   <Document><![CDATA[
 class Variable
 {
-    public void Foo()
+    public void Goo()
     {
        (var a, var a$$) = (1, 2);
     }
@@ -319,7 +319,7 @@ class Variable
                   <Document><![CDATA[
 class Variable
 {
-    public void Foo()
+    public void Goo()
     {
        (var a, var ($$)) = (1, 2);
     }
@@ -341,7 +341,7 @@ class Variable
                   <Document><![CDATA[
 class Variable
 {
-    public void Foo()
+    public void Goo()
     {
         $$
     }
@@ -365,7 +365,7 @@ class Variable
                   <Document><![CDATA[
 class Variable
 {
-    public void Foo()
+    public void Goo()
     {
        ($$) = (1, 2);
     }
@@ -391,7 +391,7 @@ class Variable
                   <Document><![CDATA[
 class Integer
 {
-    public void Foo()
+    public void Goo()
     {
        ($$) = (1, 2);
     }
@@ -417,7 +417,7 @@ class Integer
                   <Document><![CDATA[
 class Variable
 {
-    public void Foo()
+    public void Goo()
     {
        ($$
     }
@@ -450,7 +450,7 @@ class Variable
                   <Document><![CDATA[
 class Variable
 {
-    public void Foo()
+    public void Goo()
     {
        ($$)
     }
@@ -482,7 +482,7 @@ class Variable
                   <Document><![CDATA[
 class Variable
 {
-    public void Foo()
+    public void Goo()
     {
        (var as$$
     }
@@ -512,7 +512,7 @@ class Variable
                   <Document><![CDATA[
 class Variable
 {
-    public void Foo()
+    public void Goo()
     {
        (var as$$)
     }
@@ -544,7 +544,7 @@ class Variable
 using System;
 class C
 {
-    public object Foo()
+    public object Goo()
     {
         return null ?? throw new$$
     }
@@ -563,7 +563,7 @@ class C
 using System;
 class C
 {
-    public object Foo()
+    public object Goo()
     {
         throw new$$
     }
@@ -581,14 +581,14 @@ class C
                   <Document><![CDATA[
 class C
 {
-    public void Foo()
+    public void Fo()
     {
         ($$)
     }
 }]]></Document>)
 
                 state.SendTypeChars("F")
-                Await state.AssertSelectedCompletionItem(displayText:="Foo", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="Fo", isHardSelected:=True)
                 state.SendTypeChars(":")
                 Assert.Contains("(F:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -601,14 +601,14 @@ class C
                   <Document><![CDATA[
 class C
 {
-    public void Foo()
+    public void Fo()
     {
         (x, $$)
     }
 }]]></Document>)
 
                 state.SendTypeChars("F")
-                Await state.AssertSelectedCompletionItem(displayText:="Foo", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="Fo", isHardSelected:=True)
                 state.SendTypeChars(":")
                 Assert.Contains("(x, F:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -753,7 +753,7 @@ class C
                   <Document><![CDATA[
 class C
 {
-    public void Foo()
+    public void Goo()
     {
         ($$)
     }
@@ -773,7 +773,7 @@ class C
                   <Document><![CDATA[
 class C
 {
-    public void Foo()
+    public void Goo()
     {
         ($$)
     }
@@ -793,7 +793,7 @@ class C
                   <Document><![CDATA[
 class C
 {
-    public void Foo()
+    public void Goo()
     {
         switch(true)
         {
@@ -816,16 +816,16 @@ class C
                   <Document><![CDATA[
 class C
 {
-    public void Foo()
+    public void Fo()
     {
         ($$)
     }
 }]]></Document>)
 
                 state.SendTypeChars("F")
-                Await state.AssertSelectedCompletionItem(displayText:="Foo", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="Fo", isHardSelected:=True)
                 state.SendTypeChars(".")
-                Assert.Contains("(Foo.", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("(Fo.", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -836,16 +836,16 @@ class C
                   <Document><![CDATA[
 class C
 {
-    public void Foo(int Alice)
+    public void Goo(int Alice)
     {
-        Foo($$)
+        Goo($$)
     }
 }]]></Document>)
 
                 state.SendTypeChars("A")
                 Await state.AssertSelectedCompletionItem(displayText:="Alice", isHardSelected:=True)
                 state.SendTypeChars(":")
-                Assert.Contains("Foo(Alice:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("Goo(Alice:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -856,16 +856,16 @@ class C
                   <Document><![CDATA[
 class C
 {
-    public void Foo(int Alice, int Bob)
+    public void Goo(int Alice, int Bob)
     {
-        Foo(1, $$)
+        Goo(1, $$)
     }
 }]]></Document>)
 
                 state.SendTypeChars("B")
                 Await state.AssertSelectedCompletionItem(displayText:="Bob", isHardSelected:=True)
                 state.SendTypeChars(":")
-                Assert.Contains("Foo(1, Bob:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("Goo(1, Bob:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -876,7 +876,7 @@ class C
                   <Document><![CDATA[
 class C
 {
-    public void Foo()
+    public void Fo()
     {
         switch (1)
         {
@@ -887,9 +887,9 @@ class C
 
                 state.SendTypeChars("F")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem(displayText:="Foo", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="Fo", isHardSelected:=True)
                 state.SendTypeChars(":")
-                Assert.Contains("case Foo:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("case Fo:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -940,7 +940,7 @@ class C
                   <Document><![CDATA[
 class @return
 {
-    void foo()
+    void goo()
     {
         $$
     }
@@ -1068,7 +1068,7 @@ class Program
                               <Document>
 class C
 {
-    void Foo()
+    void Goo()
     {
         string s = new$$
     }
@@ -1087,7 +1087,7 @@ class C
         Public Async Function NoKeywordsOrSymbolsAfterNamedParameter() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document>
-class Foo
+class Goo
 {
     void Test()
     {
@@ -1115,7 +1115,7 @@ class Foo
             Using state = TestState.CreateCSharpTestState(
                               <Document>
 enum Numeros { Uno, Dos }
-class Foo
+class Goo
 {
     void Bar(int a, Numeros n) { }
     void Baz()
@@ -1138,7 +1138,7 @@ class Foo
             Using state = TestState.CreateCSharpTestState(
                               <Document>
 enum Numeros { Uno, Dos }
-class Foo
+class Goo
 {
     void Bar(int a, Numeros? n) { }
     void Baz()
@@ -1160,7 +1160,7 @@ class Foo
             Using state = TestState.CreateCSharpTestState(
                 <Document>
 enum Numeros { Uno, Dos }
-class Foo
+class Goo
 {
     void Bar()
     {
@@ -1187,7 +1187,7 @@ class Foo
             Using state = TestState.CreateCSharpTestState(
                 <Document>
 enum Numeros { Uno, Dos }
-class Foo
+class Goo
 {
     void Bar()
     {
@@ -1213,9 +1213,9 @@ class Foo
                               <Document>
 class Program
 {
-    void Foo(int @int)
+    void Goo(int @int)
     {
-        Foo($$
+        Goo($$
     }
 }
                               </Document>)
@@ -1249,16 +1249,16 @@ class Program
 
 class Bar { }
 
-class Foo<T> : IFoo<T>
+class Goo<T> : IGoo<T>
 {
 }
 
-interface IFoo<T>
+interface IGoo<T>
 {
 }]]>
                               </Document>)
 
-                state.SendTypeChars("IFoo<Bar> a = new ")
+                state.SendTypeChars("IGoo<Bar> a = new ")
                 Await state.AssertNoCompletionSession()
             End Using
         End Function
@@ -1315,10 +1315,10 @@ class Program
 {
     static void Main(string[] args)
     {
-        Foo($$)
+        Goo($$)
     }
 
-    void Foo(CancellationToken cancellationToken)
+    void Goo(CancellationToken cancellationToken)
     {
     }
 }
@@ -1327,7 +1327,7 @@ class Program
                 state.SendTypeChars("can")
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
-                Assert.Contains("Foo(cancellationToken)", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("Goo(cancellationToken)", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -1367,7 +1367,7 @@ class MyAttribute : System.Attribute
 }
 
 [MyAttribute($$
-public class Foo
+public class Goo
 {
 }
                             </Document>)
@@ -1389,7 +1389,7 @@ class MyAttribute : System.Attribute
 }
 
 [MyAttribute($$
-public class Foo
+public class Goo
 {
 }
                             </Document>)
@@ -1410,7 +1410,7 @@ class MyAttribute : System.Attribute
 }
 
 [MyAttribute($$
-public class Foo
+public class Goo
 {
 }
                             </Document>)
@@ -1427,7 +1427,7 @@ public class Foo
                 <Document><![CDATA[
 class C
 {
-    public virtual void Foo<S>(S x = default(S))
+    public virtual void Goo<S>(S x = default(S))
     {
     }
 }
@@ -1437,10 +1437,10 @@ class D : C
     override $$
 }
             ]]></Document>)
-                state.SendTypeChars(" Foo")
+                state.SendTypeChars(" Goo")
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
-                Assert.Contains("public override void Foo<S>(S x = default(S))", state.SubjectBuffer.CurrentSnapshot.GetText(), StringComparison.Ordinal)
+                Assert.Contains("public override void Goo<S>(S x = default(S))", state.SubjectBuffer.CurrentSnapshot.GetText(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -1451,12 +1451,12 @@ class D : C
                 <Document><![CDATA[
 class A
 {
-    public virtual void Foo(int x = 0, int[] y = null) { }
+    public virtual void Goo(int x = 0, int[] y = null) { }
 }
 
 class B : A
 {
-public override void Foo(int x = 0, params int[] y) { }
+public override void Goo(int x = 0, params int[] y) { }
 }
 
 class C : B
@@ -1464,10 +1464,10 @@ class C : B
     override$$
 }
             ]]></Document>)
-                state.SendTypeChars(" Foo")
+                state.SendTypeChars(" Goo")
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
-                Assert.Contains("    public override void Foo(int x = 0, int[] y = null)", state.SubjectBuffer.CurrentSnapshot.GetText(), StringComparison.Ordinal)
+                Assert.Contains("    public override void Goo(int x = 0, int[] y = null)", state.SubjectBuffer.CurrentSnapshot.GetText(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -1513,7 +1513,7 @@ class C
                 <Document><![CDATA[
 class Program
 {
-    void Foo(string s) { }
+    void Goo(string s) { }
 
     static void Main()
     {
@@ -1537,7 +1537,7 @@ class Program
                 Await state.AssertNoCompletionSession()
 
                 ' ensure we still select the named param even though 'string' is in the MRU.
-                state.SendTypeChars("Foo(s")
+                state.SendTypeChars("Goo(s")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("s:")
             End Using
@@ -1550,7 +1550,7 @@ class Program
                 <Document><![CDATA[
 class A
 {
-    void Foo()
+    void Goo()
     {
         var v = new$$
     }
@@ -1568,7 +1568,7 @@ class A
                 <Document><![CDATA[
 class A
 {
-    void Foo()
+    void Goo()
     {
         var v = new $$
     }
@@ -1913,7 +1913,7 @@ class C
     }
 }
             ]]></Document>)
-                state.SendTypeChars("var @this = ""foo""")
+                state.SendTypeChars("var @this = ""goo""")
                 state.SendReturn()
                 state.SendTypeChars("string str = this.ToString();")
                 state.SendReturn()
@@ -1946,7 +1946,7 @@ class AtAttribute : System.Attribute { }]]></Document>)
 using System;
 class C
 {
-    Exception foo() {
+    Exception goo() {
         return new $$
     }
 }]]></Document>)
@@ -1961,10 +1961,10 @@ class C
         Public Async Function CommitNameAfterAlias() As Task
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
-using foo = System$$]]></Document>)
+using goo = System$$]]></Document>)
                 state.SendTypeChars(".act<")
                 Await state.WaitForAsynchronousOperationsAsync()
-                state.AssertMatchesTextStartingAtLine(1, "using foo = System.Action<")
+                state.AssertMatchesTextStartingAtLine(1, "using goo = System.Action<")
             End Using
         End Function
 
@@ -2054,7 +2054,7 @@ class C
 }]]></Document>)
                 state.SendInvokeCompletionList()
                 Await state.AssertNoCompletionSession()
-                state.SendTypeChars("foo")
+                state.SendTypeChars("goo")
                 Await state.AssertNoCompletionSession()
             End Using
         End Function
@@ -2147,9 +2147,9 @@ class C
                 <Document><![CDATA[
 class C
 {
-    void foo()
+    void goo()
     {
-        foo($$
+        goo($$
     }
 }]]></Document>, {slowProvider})
 
@@ -2172,7 +2172,7 @@ class C
                 <Document><![CDATA[
 class C
 {
-    void foo(int x)
+    void goo(int x)
     {
        [|$$ |]
     }
@@ -2223,7 +2223,7 @@ class Program
                 <Document><![CDATA[
 class C
 {
-    void foo(int x)
+    void goo(int x)
     {
         $$]]></Document>)
                 ' Note: the caret is at the file, so the Select All command's movement
@@ -2243,7 +2243,7 @@ class C
                 <Document><![CDATA[
 class C
 {
-    void foo(int x)
+    void goo(int x)
     {
         int doodle;
 $$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
@@ -2276,7 +2276,7 @@ $$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.T
                 <Document><![CDATA[
 class C
 {
-    void foo(int x)
+    void goo(int x)
     {$$
         /********/
         int doodle;
@@ -2316,7 +2316,7 @@ class C
                                <Document><![CDATA[
         class C
         {
-            void foo(int x)
+            void goo(int x)
             {
                 string.$$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
                     state.SendTypeChars("is")
@@ -2335,7 +2335,7 @@ class C
                                <Document><![CDATA[
         class C
         {
-            void foo(int x)
+            void goo(int x)
             {
                 string.$$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
                     state.SendTypeChars("ı")
@@ -2477,11 +2477,11 @@ class Program
 {
     bool f;
 
-    void foo(bool x) { }
+    void goo(bool x) { }
 
     void Main(string[] args) 
     {
-        foo($$) // Not "Equals"
+        goo($$) // Not "Equals"
     }
 }]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
                 state.SendInvokeCompletionList()
@@ -3193,7 +3193,7 @@ class C
 using System;
 class C
 {
-    void foo() {
+    void goo() {
         return $$
     }
 }]]></Document>, {provider})
@@ -3215,7 +3215,7 @@ class C
 using System;
 class C
 {
-    void foo() {
+    void goo() {
         return InsertedItem
     }
 }", finalText)
@@ -3242,7 +3242,7 @@ class C
 using System;
 class C
 {
-    void foo() {
+    void goo() {
         return InsertedItem1
     }
 }", finalText)
@@ -3258,7 +3258,7 @@ class C
 using System;
 class C
 {
-    void foo() {
+    void goo() {
         return Custom$$
     }
 }]]></Document>, {provider})
@@ -3280,7 +3280,7 @@ class C
 using System;
 class C
 {
-    void foo() {
+    void goo() {
         return InsertedItem
     }
 }", finalText)
@@ -3307,7 +3307,7 @@ class C
 using System;
 class C
 {
-    void foo() {
+    void goo() {
         return InsertedItem1
     }
 }", finalText)
@@ -3342,7 +3342,7 @@ class C
 using System;
 class C
 {
-    void foo() {
+    void goo() {
         return InsertedItem"
 
                 Dim change = CompletionChange.Create(

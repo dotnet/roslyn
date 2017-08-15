@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             {
                 editor.ReplaceNode(
                     methodDeclaration,
-                    methodDeclaration.WithSemicolonToken(default(SyntaxToken))
+                    methodDeclaration.WithSemicolonToken(default)
                                      .WithBody(SyntaxFactory.Block(statement)));
             }
         }

@@ -360,7 +360,7 @@ public class Test
 {
     static public int Main(string[] args)
     {
-        foreach (var var in ""foo"")
+        foreach (var var in ""goo"")
         {
             if (!var.GetType().Equals(typeof(char)))
             {

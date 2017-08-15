@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             int position,
             CancellationToken cancellationToken)
         {
-            if (token != default(SyntaxToken) &&
+            if (token != default &&
                 token.Span.IntersectsWith(position))
             {
                 var deferredContent = await BuildContentAsync(document, token, cancellationToken).ConfigureAwait(false);
@@ -151,9 +151,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             return new DocumentationCommentDeferredContent(documentationComment, _typeMap);
         }
 
-        protected IDeferredQuickInfoContent CreateElisionBufferDeferredContent(SnapshotSpan span)
+        protected IDeferredQuickInfoContent CreateProjectionBufferDeferredContent(SnapshotSpan span)
         {
-            return new ElisionBufferDeferredContent(
+            return new ProjectionBufferDeferredContent(
                 span, _projectionBufferFactoryService, _editorOptionsFactoryService, _textEditorFactoryService);
         }
     }

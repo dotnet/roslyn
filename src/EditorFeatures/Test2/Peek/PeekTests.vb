@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
 Imports System.Threading
@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
         Public Sub TestPeekDefinitionWhenInvokedOnLiteral()
             Using workspace = TestWorkspace.Create(<Workspace>
                                                        <Project Language="C#" CommonReferences="true">
-                                                           <Document>class C { string s = $$"Foo"; }</Document>
+                                                           <Document>class C { string s = $$"Goo"; }</Document>
                                                        </Project>
                                                    </Workspace>)
                 Dim result = GetPeekResultCollection(workspace)

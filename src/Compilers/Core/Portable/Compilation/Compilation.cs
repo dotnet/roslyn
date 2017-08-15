@@ -1094,7 +1094,7 @@ namespace Microsoft.CodeAnalysis
 
         #region Diagnostics
 
-        internal static readonly CompilationStage DefaultDiagnosticsStage = CompilationStage.Compile;
+        internal const CompilationStage DefaultDiagnosticsStage = CompilationStage.Compile;
 
         /// <summary>
         /// Gets the diagnostics produced during the parsing stage.
@@ -2123,14 +2123,12 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.StreamMustSupportRead, nameof(sourceLinkStream));
             }
 
-            if (embeddedTexts != null && !embeddedTexts.IsEmpty())
+            if (embeddedTexts != null && 
+                !embeddedTexts.IsEmpty() && 
+                pdbStream == null && 
+                options?.DebugInformationFormat != DebugInformationFormat.Embedded)
             {
-                if (options == null || 
-                    options.DebugInformationFormat == DebugInformationFormat.Pdb ||
-                    options.DebugInformationFormat == DebugInformationFormat.PortablePdb && pdbStream == null)
-                {
-                    throw new ArgumentException(CodeAnalysisResources.EmbeddedTextsRequirePortablePdb, nameof(embeddedTexts));
-                }
+                throw new ArgumentException(CodeAnalysisResources.EmbeddedTextsRequirePdb, nameof(embeddedTexts));
             }
 
             return Emit(

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
             {
                 var block = GetImmediatelyContainingBlock();
 
-                // if we're the start of a "catch(Foo e)" clause, then add "e".
+                // if we're the start of a "catch(Goo e)" clause, then add "e".
                 if (block != null && block.IsParentKind(SyntaxKind.CatchClause))
                 {
                     var catchClause = (CatchClauseSyntax)block.Parent;

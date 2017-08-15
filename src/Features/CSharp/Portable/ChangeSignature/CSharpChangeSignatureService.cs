@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
             var token = root.FindToken(position != tree.Length ? position : Math.Max(0, position - 1));
 
-            // Allow the user to invoke Change-Sig if they've written:   Foo(a, b, c);$$ 
+            // Allow the user to invoke Change-Sig if they've written:   Goo(a, b, c);$$ 
             if (token.Kind() == SyntaxKind.SemicolonToken && token.Parent is StatementSyntax)
             {
                 token = token.GetPreviousToken();

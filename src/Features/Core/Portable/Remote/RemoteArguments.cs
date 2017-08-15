@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return new NavigateToSearchResult(
                 AdditionalInformation, Kind, MatchKind, IsCaseSensitive,
-                Name, NameMatchSpans.ToImmutableArray(),
+                Name, NameMatchSpans,
                 SecondarySort, Summary, NavigableItem.Rehydrate(solution));
         }
 
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 ? ImmutableArray<INavigableItem>.Empty
                 : ChildItems.SelectAsArray(c => c.Rehydrate(solution));
             return new NavigableItem(
-                Glyph, DisplayTaggedParts.ToImmutableArray(),
+                Glyph, DisplayTaggedParts,
                 DisplayFileLocation, IsImplicitlyDeclared,
                 solution.GetDocument(Document),
                 SourceSpan,

@@ -2194,12 +2194,12 @@ Imports System
 Imports System.Linq.Expressions
 
 Module Form1
-    Private Function Foo(p As Expression(Of Func(Of Object, Object))) As Expression(Of Func(Of Object, Object))
+    Private Function Goo(p As Expression(Of Func(Of Object, Object))) As Expression(Of Func(Of Object, Object))
         Return p
     End Function
 
     Public Sub Main()
-        Dim ret As Expression(Of Func(Of Object, Object, Object, Object)) = Function(x, y, z) Foo(Function() Function(w) w)
+        Dim ret As Expression(Of Func(Of Object, Object, Object, Object)) = Function(x, y, z) Goo(Function() Function(w) w)
         Console.WriteLine(ret.Dump)
     End Sub
 End Module
@@ -2224,7 +2224,7 @@ Lambda(
     Convert(
       Call(
         <NULL>
-        method: System.Linq.Expressions.Expression`1[System.Func`2[System.Object,System.Object]] Foo(System.Linq.Expressions.Expression`1[System.Func`2[System.Object,System.Object]]) in Form1 (
+        method: System.Linq.Expressions.Expression`1[System.Func`2[System.Object,System.Object]] Goo(System.Linq.Expressions.Expression`1[System.Func`2[System.Object,System.Object]]) in Form1 (
           Quote(
             Lambda(
               Parameter(
@@ -2286,12 +2286,12 @@ Imports System
 Imports System.Linq.Expressions
 
 Module Form1
-    Private Function Foo(p As Expression(Of Func(Of Object, Object))) As Expression(Of Func(Of Object, Object))
+    Private Function Goo(p As Expression(Of Func(Of Object, Object))) As Expression(Of Func(Of Object, Object))
         Return p
     End Function
 
     Public Sub Main()
-        Dim ret As Expression(Of Func(Of Object, Object, Object, Object)) = Function(x, y, z) Foo(Function(w) w)
+        Dim ret As Expression(Of Func(Of Object, Object, Object, Object)) = Function(x, y, z) Goo(Function(w) w)
         Console.WriteLine(ret.Dump)
     End Sub
 End Module
@@ -2316,7 +2316,7 @@ Lambda(
     Convert(
       Call(
         <NULL>
-        method: System.Linq.Expressions.Expression`1[System.Func`2[System.Object,System.Object]] Foo(System.Linq.Expressions.Expression`1[System.Func`2[System.Object,System.Object]]) in Form1 (
+        method: System.Linq.Expressions.Expression`1[System.Func`2[System.Object,System.Object]] Goo(System.Linq.Expressions.Expression`1[System.Func`2[System.Object,System.Object]]) in Form1 (
           Quote(
             Lambda(
               Parameter(
@@ -2354,7 +2354,7 @@ Imports System
 Imports System.Linq.Expressions
 
 Module Form1
-    Private Function Foo(p As Expression(Of Func(Of Object, Func(Of Object, Object)))) As Func(Of Object, Object)
+    Private Function Goo(p As Expression(Of Func(Of Object, Func(Of Object, Object)))) As Func(Of Object, Object)
         Return p.Compile.Invoke(Nothing)
     End Function
 
@@ -2363,7 +2363,7 @@ Module Form1
     End Function
 
     Public Sub Main()
-        Dim ret As Expression(Of Func(Of Object, Object, Object, Object)) = Function(x, y, z) Foo(Function() AddressOf Bar)
+        Dim ret As Expression(Of Func(Of Object, Object, Object, Object)) = Function(x, y, z) Goo(Function() AddressOf Bar)
         Console.WriteLine(ret.Dump)
     End Sub
 End Module
@@ -2389,7 +2389,7 @@ Lambda(
     Convert(
       Call(
         <NULL>
-        method: System.Func`2[System.Object,System.Object] Foo(System.Linq.Expressions.Expression`1[System.Func`2[System.Object,System.Func`2[System.Object,System.Object]]]) in Form1 (
+        method: System.Func`2[System.Object,System.Object] Goo(System.Linq.Expressions.Expression`1[System.Func`2[System.Object,System.Func`2[System.Object,System.Object]]]) in Form1 (
           Quote(
             Lambda(
               Parameter(
@@ -2459,7 +2459,7 @@ Imports System
 Imports System.Linq.Expressions
 
 Module Form1
-    Private Function Foo(p As Expression(Of Func(Of Object, Func(Of Object, Object)))) As Func(Of Object, Object)
+    Private Function Goo(p As Expression(Of Func(Of Object, Func(Of Object, Object)))) As Func(Of Object, Object)
         Return p.Compile.Invoke(Nothing)
     End Function
 
@@ -2468,7 +2468,7 @@ Module Form1
     End Function
 
     Public Sub Main()
-        Dim ret As Expression(Of Func(Of Object, Object, Object, Object)) = Function(x, y, z) Foo(Function() AddressOf Bar)
+        Dim ret As Expression(Of Func(Of Object, Object, Object, Object)) = Function(x, y, z) Goo(Function() AddressOf Bar)
         Console.WriteLine(ret.Dump)
     End Sub
 End Module
@@ -2494,7 +2494,7 @@ Lambda(
     Convert(
       Call(
         <NULL>
-        method: System.Func`2[System.Object,System.Object] Foo(System.Linq.Expressions.Expression`1[System.Func`2[System.Object,System.Func`2[System.Object,System.Object]]]) in Form1 (
+        method: System.Func`2[System.Object,System.Object] Goo(System.Linq.Expressions.Expression`1[System.Func`2[System.Object,System.Func`2[System.Object,System.Object]]]) in Form1 (
           Quote(
             Lambda(
               Parameter(
@@ -2559,14 +2559,14 @@ Imports System
 Imports System.Linq.Expressions
 
 Module Form1
-    Private Function Foo(p As Expression(Of Func(Of Object, Func(Of Object, Object)))) As Func(Of Object, Object)
+    Private Function Goo(p As Expression(Of Func(Of Object, Func(Of Object, Object)))) As Func(Of Object, Object)
         Return p.Compile.Invoke(Nothing)
     End Function
 
     Public Sub Main()
-        Dim ret1 = DirectCast(Function(x, y, z) Foo(Function() Function(w) w), Expression(Of Func(Of Object, Object, Object, Object)))
+        Dim ret1 = DirectCast(Function(x, y, z) Goo(Function() Function(w) w), Expression(Of Func(Of Object, Object, Object, Object)))
         Console.WriteLine(ret1.Dump)
-        Dim ret2 = TryCast(Function(x, y, z) Foo(Function() Function(w) w), Expression(Of Func(Of Object, Object, Object, Object)))
+        Dim ret2 = TryCast(Function(x, y, z) Goo(Function() Function(w) w), Expression(Of Func(Of Object, Object, Object, Object)))
         Console.WriteLine(ret2.Dump)
     End Sub
 End Module
@@ -2591,7 +2591,7 @@ Lambda(
     Convert(
       Call(
         <NULL>
-        method: System.Func`2[System.Object,System.Object] Foo(System.Linq.Expressions.Expression`1[System.Func`2[System.Object,System.Func`2[System.Object,System.Object]]]) in Form1 (
+        method: System.Func`2[System.Object,System.Object] Goo(System.Linq.Expressions.Expression`1[System.Func`2[System.Object,System.Func`2[System.Object,System.Object]]]) in Form1 (
           Quote(
             Lambda(
               Parameter(
@@ -2657,7 +2657,7 @@ Lambda(
     Convert(
       Call(
         <NULL>
-        method: System.Func`2[System.Object,System.Object] Foo(System.Linq.Expressions.Expression`1[System.Func`2[System.Object,System.Func`2[System.Object,System.Object]]]) in Form1 (
+        method: System.Func`2[System.Object,System.Object] Goo(System.Linq.Expressions.Expression`1[System.Func`2[System.Object,System.Func`2[System.Object,System.Object]]]) in Form1 (
           Quote(
             Lambda(
               Parameter(
@@ -2716,14 +2716,14 @@ Imports System
 Imports System.Linq.Expressions
 
 Module Form1
-    Private Function Foo(p As Expression(Of Func(Of Object, Object))) As Expression(Of Func(Of Object, Object))
+    Private Function Goo(p As Expression(Of Func(Of Object, Object))) As Expression(Of Func(Of Object, Object))
         Return p
     End Function
 
     Public Sub Main()
         Dim a As Integer = 1
         Dim b As Double = 2
-        Dim ret As Expression(Of Func(Of Object, Object, Object, Object)) = Function(x, y, z) Foo(Function(w) a + b + w)
+        Dim ret As Expression(Of Func(Of Object, Object, Object, Object)) = Function(x, y, z) Goo(Function(w) a + b + w)
         Console.WriteLine(ret.Dump)
     End Sub
 End Module
@@ -2748,7 +2748,7 @@ Lambda(
     Convert(
       Call(
         <NULL>
-        method: System.Linq.Expressions.Expression`1[System.Func`2[System.Object,System.Object]] Foo(System.Linq.Expressions.Expression`1[System.Func`2[System.Object,System.Object]]) in Form1 (
+        method: System.Linq.Expressions.Expression`1[System.Func`2[System.Object,System.Object]] Goo(System.Linq.Expressions.Expression`1[System.Func`2[System.Object,System.Object]]) in Form1 (
           Quote(
             Lambda(
               Parameter(
@@ -3524,7 +3524,7 @@ Module Form1
     Function Func3(Optional ByVal x As Integer = 42) As Long
         Return Nothing
     End Function
-    Function Foo(ByVal ds As DeleSub1) As Boolean
+    Function Goo(ByVal ds As DeleSub1) As Boolean
         Return Nothing
     End Function
 
@@ -3533,7 +3533,7 @@ Module Form1
         Console.WriteLine(l1.Dump)
         Dim l2 As Expression(Of Func(Of DeleFunc1)) = Function() New DeleFunc1(AddressOf Func1)
         Console.WriteLine(l2.Dump)
-        Dim l3 As Expression(Of Func(Of Boolean)) = Function() Foo(AddressOf Func2)
+        Dim l3 As Expression(Of Func(Of Boolean)) = Function() Goo(AddressOf Func2)
         Console.WriteLine(l3.Dump)
         Dim l4 As Expression(Of Func(Of DeleFunc2)) = Function() CType(AddressOf Func3, DeleFunc2)
         Console.WriteLine(l4.Dump)
@@ -3608,7 +3608,7 @@ Lambda(
   body {
     Call(
       <NULL>
-      method: Boolean Foo(DeleSub1) in Form1 (
+      method: Boolean Goo(DeleSub1) in Form1 (
         Lambda(
           Parameter(
             a0
@@ -3765,22 +3765,22 @@ Module Form1
         Function GetY() As Object
             Return From s In queryObj Where y Select s
         End Function
-        Function FooToTheX() As Object
-            Return From s In queryObj Where Foo(x) Select s
+        Function GooToTheX() As Object
+            Return From s In queryObj Where Goo(x) Select s
         End Function
-        Function FooToTheY() As Object
-            Return From s In queryObj Where Foo(y) Select s
+        Function GooToTheY() As Object
+            Return From s In queryObj Where Goo(y) Select s
         End Function
-        Function FooToTheLocal() As Object
+        Function GooToTheLocal() As Object
             Dim t As Integer = 1
-            Return From s In queryObj Where Foo(t) Select s
+            Return From s In queryObj Where Goo(t) Select s
         End Function
-        Function FooToTheLocalAndCopyBack() As Object
+        Function GooToTheLocalAndCopyBack() As Object
             Dim t As String = "1"
-            Return From s In queryObj Where Foo(t) Select s
+            Return From s In queryObj Where Goo(t) Select s
         End Function
     End Class
-    Function Foo(ByRef x As Integer) As Boolean
+    Function Goo(ByRef x As Integer) As Boolean
         x = 42
         Return Nothing
     End Function
@@ -3789,10 +3789,10 @@ Module Form1
         Dim c1 As New Class1
         c1.GetX()
         c1.GetY()
-        c1.FooToTheX()
-        c1.FooToTheY()
-        c1.FooToTheLocal()
-        c1.FooToTheLocalAndCopyBack()
+        c1.GooToTheX()
+        c1.GooToTheY()
+        c1.GooToTheLocal()
+        c1.GooToTheLocalAndCopyBack()
     End Sub
 End Module
 ]]></file>
@@ -3873,7 +3873,7 @@ Lambda(
   body {
     Call(
       <NULL>
-      method: Boolean Foo(Int32 ByRef) in Form1 (
+      method: Boolean Goo(Int32 ByRef) in Form1 (
         Constant(
           -3
           type: System.Int32
@@ -3909,7 +3909,7 @@ Lambda(
   body {
     Call(
       <NULL>
-      method: Boolean Foo(Int32 ByRef) in Form1 (
+      method: Boolean Goo(Int32 ByRef) in Form1 (
         ConvertChecked(
           MemberAccess(
             Constant(
@@ -3952,7 +3952,7 @@ Lambda(
   body {
     Call(
       <NULL>
-      method: Boolean Foo(Int32 ByRef) in Form1 (
+      method: Boolean Goo(Int32 ByRef) in Form1 (
         MemberAccess(
           Constant(
             Form1+Class1+_Closure$__7-0
@@ -3992,7 +3992,7 @@ Lambda(
   body {
     Call(
       <NULL>
-      method: Boolean Foo(Int32 ByRef) in Form1 (
+      method: Boolean Goo(Int32 ByRef) in Form1 (
         ConvertChecked(
           MemberAccess(
             Constant(
@@ -4869,11 +4869,11 @@ Option Explicit Off
 
 Module Form1
     Dim queryObj As New QueryHelper(Of String)
-    Function Foo(ByVal x As Integer) As String
+    Function Goo(ByVal x As Integer) As String
         Return Nothing
     End Function
     Sub Main()
-        Dim scenario3 = From var1 In queryObj, var2 In queryObj From var3 In queryObj Select expr3 = Foo(var1) & var3
+        Dim scenario3 = From var1 In queryObj, var2 In queryObj From var3 In queryObj Select expr3 = Goo(var1) & var3
     End Sub
 End Module
 ]]></file>
@@ -4925,7 +4925,7 @@ Lambda(
       method: System.String Concat(System.String, System.String) in System.String (
         Call(
           <NULL>
-          method: System.String Foo(Int32) in Form1 (
+          method: System.String Goo(Int32) in Form1 (
             ConvertChecked(
               MemberAccess(
                 Parameter(
@@ -4967,11 +4967,11 @@ Imports System.Collections.Generic
 
 Module Form1
     Dim queryObj As New QueryHelper(Of String)
-    Function Foo(ByVal x As Integer) As String
+    Function Goo(ByVal x As Integer) As String
         Return Nothing
     End Function
     Sub Main()
-        Dim scenario3 = From var1 In queryObj, var2 In queryObj From var3 In queryObj Select expr3 = Foo(var1) & var3
+        Dim scenario3 = From var1 In queryObj, var2 In queryObj From var3 In queryObj Select expr3 = Goo(var1) & var3
     End Sub
 End Module
 ]]></file>
@@ -5093,7 +5093,7 @@ End Module
   IL_0168:  dup
   IL_0169:  ldc.i4.0
   IL_016a:  ldnull
-  IL_016b:  ldtoken    "Function Form1.Foo(Integer) As String"
+  IL_016b:  ldtoken    "Function Form1.Goo(Integer) As String"
   IL_0170:  call       "Function System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle) As System.Reflection.MethodBase"
   IL_0175:  castclass  "System.Reflection.MethodInfo"
   IL_017a:  ldc.i4.1
@@ -5343,8 +5343,8 @@ Module Form1
     Dim i2 As SByte = -2
     Dim d3? As Decimal = 3.3
 
-    Delegate Sub Foo()
-    Function Bar(ByVal s As Foo) As Boolean
+    Delegate Sub Goo()
+    Function Bar(ByVal s As Goo) As Boolean
         Return Nothing
     End Function
     Sub SubRoutine()
@@ -5366,7 +5366,7 @@ Module Form1
 
         Dim scenario1 = From s In queryObj Where c1.Prop Select s
         Dim scenario2 = From s In queryObj Where c1.Prop And c1.field2 Select s
-        Dim scenario3 = From s In queryObj Where c1!Foo Select s
+        Dim scenario3 = From s In queryObj Where c1!Goo Select s
         Dim scenario4 = From s In queryObj Where c2!Day = c2.datetime2 Select s
         Dim scenario5 = From s In queryObj Where RefParam(c2.MyProperty3) Select s
         Dim scenario6 = From s In queryObj Where RefParam((c2.MyProperty3)) Select s
@@ -5377,7 +5377,7 @@ Module Form1
         Dim q2 = From i In col Where i > 2 Select i Group Join j In col1 On i Equals j Into Count(), Sum(j)
         Dim q3 = From i In col Where i > 2 Select i Group Join j In col1 On i Equals j Into Count() From k In col Where k > 2 Select k
 
-        Dim d As Foo = Nothing
+        Dim d As Goo = Nothing
         Dim scenario7 = From s In queryObj Where Bar(AddressOf SubRoutine) Select s
         Dim scenario8 = From s In queryObj Where Bar(d) Select s
     End Sub
@@ -5410,11 +5410,11 @@ Module Form1
     Class Class2 : Inherits Class1
     End Class
 
-    Sub Foo1(Of T As Structure)(ByVal x As T?)
+    Sub Goo1(Of T As Structure)(ByVal x As T?)
         F(Function() If(x, Nothing))
         F(Function() x is Nothing)
     End Sub
-    'Sub Foo2(Of T As Structure)(ByVal x As T?)
+    'Sub Goo2(Of T As Structure)(ByVal x As T?)
     '    F(Function() If(x, CObj(3.3)))
     'End Sub
 
@@ -5439,10 +5439,10 @@ Module Form1
         Dim x? As Struct1 = New Struct1()
         Dim c2 As Class2 = New Class2()
 
-        Foo1(Of Struct1)(Nothing)
-        Foo1(x)
-        'Foo2(Of Struct1)(Nothing)
-        'Foo2(x)
+        Goo1(Of Struct1)(Nothing)
+        Goo1(x)
+        'Goo2(Of Struct1)(Nothing)
+        'Goo2(x)
         Bar(Of Class2)(Nothing)
         Bar(c2)
         Moo(Of Class2, Class2)(Nothing)
@@ -5473,7 +5473,7 @@ Module Form1
         End Operator
     End Structure
 
-    Sub Foo2(Of T As Structure)(ByVal x As T?)
+    Sub Goo2(Of T As Structure)(ByVal x As T?)
         F(Function() If(x, CObj(3.3)))
     End Sub
 
@@ -5484,8 +5484,8 @@ Module Form1
     Sub Main()
         Dim x? As Struct1 = New Struct1()
 
-        Foo2(Of Struct1)(Nothing)
-        Foo2(x)
+        Goo2(Of Struct1)(Nothing)
+        Goo2(x)
     End Sub
 End Module
 ]]></file>
@@ -5604,18 +5604,18 @@ Module Form1
     Structure Struct1
         Public a As Integer
     End Structure
-    Public Function Foo(Of T As Structure)(ByVal x As T?) As Integer
+    Public Function Goo(Of T As Structure)(ByVal x As T?) As Integer
         Return Nothing
     End Function
 
     <System.Runtime.CompilerServices.Extension()>
-    Sub Foo(ByVal x As Integer)
-        Console.WriteLine("Printed From 'Sub Foo(ByVal x As Integer)'")
+    Sub Goo(ByVal x As Integer)
+        Console.WriteLine("Printed From 'Sub Goo(ByVal x As Integer)'")
         Console.WriteLine()
     End Sub
 
     Sub Main()
-        Dim q0 As Expression(Of Func(Of Integer)) = Function() Foo(Of Struct1)(Nothing)
+        Dim q0 As Expression(Of Func(Of Integer)) = Function() Goo(Of Struct1)(Nothing)
         Console.WriteLine(q0.Dump)
         Console.WriteLine("Result: " + q0.Compile()().ToString())
 
@@ -5635,7 +5635,7 @@ Module Form1
         Console.WriteLine(q4.Dump)
         Call q4.Compile()()("11")
 
-        Dim q5 As Expression(Of Func(Of Action)) = Function() AddressOf 0.Foo
+        Dim q5 As Expression(Of Func(Of Action)) = Function() AddressOf 0.Goo
         Console.WriteLine(q5.Dump)
         Call q5.Compile()()()
     End Sub
@@ -6748,14 +6748,14 @@ Imports System.Linq.Expressions
 
 
 Module Module1
-    Sub Foo(Of A, B, C)(q As Expression(Of Func(Of A, B, C)))
+    Sub Goo(Of A, B, C)(q As Expression(Of Func(Of A, B, C)))
         Console.WriteLine("Infer A={0}", GetType(A))
         Console.WriteLine("Infer B={0}", GetType(B))
         Console.WriteLine("Infer C={0}", GetType(C))
     End Sub
 
     Sub Main()
-        Foo(Function(x As Decimal, y As String) 4)
+        Goo(Function(x As Decimal, y As String) 4)
     End Sub
 End Module
 ]]></file>
@@ -7657,22 +7657,22 @@ Module Program
     Delegate Function MyFuncV(Of T)(ByVal x As T, ByVal y As T) As T
     Delegate Function MyFunc2V(Of T)(ByVal x As T) As T
  
-    Sub Foo(Of T)(ByVal x As Expression(Of MyFunc(Of T)))
+    Sub Goo(Of T)(ByVal x As Expression(Of MyFunc(Of T)))
     End Sub
-    Sub Foo2(Of T)(ByVal x As Expression(Of MyFunc2(Of T)))
+    Sub Goo2(Of T)(ByVal x As Expression(Of MyFunc2(Of T)))
     End Sub
-    Sub Foo3(Of T)(ByVal x As Expression(Of MyFuncV(Of T)))
+    Sub Goo3(Of T)(ByVal x As Expression(Of MyFuncV(Of T)))
     End Sub
-    Sub Foo4(Of T)(ByVal x As Expression(Of MyFunc2V(Of T)))
+    Sub Goo4(Of T)(ByVal x As Expression(Of MyFunc2V(Of T)))
     End Sub
  
     Sub Main(args As String())
         'COMPILEERROR: BC36538, "Function(ByRef x As Double, y As Integer) 1.1"
-        Foo(Function(ByRef x As Double, y As Integer) 1.1) 'Causes compile time error
+        Goo(Function(ByRef x As Double, y As Integer) 1.1) 'Causes compile time error
         'COMPILEERROR: BC36538, "Function(ByRef x As Double) 1.1"
-        Foo2(Function(ByRef x As Double) 1.1) 'Regression Scenario - Previously No compile time error 
+        Goo2(Function(ByRef x As Double) 1.1) 'Regression Scenario - Previously No compile time error 
         'COMPILEERROR: BC36538, "Function() 1.1"
-        Foo(Function() 1.1)
+        Goo(Function() 1.1)
     End Sub
 End Module
 ]]></file>
@@ -7680,13 +7680,13 @@ End Module
             VerifyExpressionTreesDiagnostics(file,
 <errors>
 BC36538: References to 'ByRef' parameters cannot be converted to an expression tree.
-        Foo(Function(ByRef x As Double, y As Integer) 1.1) 'Causes compile time error
+        Goo(Function(ByRef x As Double, y As Integer) 1.1) 'Causes compile time error
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC36538: References to 'ByRef' parameters cannot be converted to an expression tree.
-        Foo2(Function(ByRef x As Double) 1.1) 'Regression Scenario - Previously No compile time error 
+        Goo2(Function(ByRef x As Double) 1.1) 'Regression Scenario - Previously No compile time error 
              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC36538: References to 'ByRef' parameters cannot be converted to an expression tree.
-        Foo(Function() 1.1)
+        Goo(Function() 1.1)
             ~~~~~~~~~~~~~~
 </errors>)
         End Sub
@@ -7946,17 +7946,17 @@ Module Form1
 
     Dim queryObj As New QueryHelper(Of String)
     Public x
-    Function Foo(ByVal x As Long)
+    Function Goo(ByVal x As Long)
         Return Nothing
     End Function
-    Function Foo(ByVal x As Short)
+    Function Goo(ByVal x As Short)
         Return Nothing
     End Function
 
     Sub Main()
-        Dim scenario1 = From s In queryObj Where x.Foo() Select s
-        Dim scenario2 = From s In queryObj Where Foo(x) Select s
-        Dim scenario3 = From s In queryObj Where CBool(Foo(x)) Select s
+        Dim scenario1 = From s In queryObj Where x.Goo() Select s
+        Dim scenario2 = From s In queryObj Where Goo(x) Select s
+        Dim scenario3 = From s In queryObj Where CBool(Goo(x)) Select s
     End Sub
 End Module
 ]]></file>
@@ -7964,13 +7964,13 @@ End Module
             VerifyExpressionTreesDiagnostics(file,
 <errors>
 BC36604: Late binding operations cannot be converted to an expression tree.
-        Dim scenario1 = From s In queryObj Where x.Foo() Select s
+        Dim scenario1 = From s In queryObj Where x.Goo() Select s
                                                  ~~~~~~~
 BC36604: Late binding operations cannot be converted to an expression tree.
-        Dim scenario2 = From s In queryObj Where Foo(x) Select s
+        Dim scenario2 = From s In queryObj Where Goo(x) Select s
                                                  ~~~~~~
 BC36604: Late binding operations cannot be converted to an expression tree.
-        Dim scenario3 = From s In queryObj Where CBool(Foo(x)) Select s
+        Dim scenario3 = From s In queryObj Where CBool(Goo(x)) Select s
                                                        ~~~~~~
 </errors>)
         End Sub
@@ -8248,19 +8248,19 @@ Friend Module M
     End Structure
 
     Sub Main()
-        Foo1(Of X)(Nothing)
-        Foo1(New X())
-        Foo2(Of X)()
+        Goo1(Of X)(Nothing)
+        Goo1(New X())
+        Goo2(Of X)()
     End Sub
 
-    Sub Foo1(Of T As Structure)(ByVal x As T?)
+    Sub Goo1(Of T As Structure)(ByVal x As T?)
         ExprTest(Function() x Is Nothing)
         ExprTest(Function() x IsNot Nothing)
         ExprTest(Function() Nothing Is x)
         ExprTest(Function() Nothing IsNot x)
     End Sub
 
-    Sub Foo2(Of T As Structure)()
+    Sub Goo2(Of T As Structure)()
         ExprTest(Function() CType(Nothing, X?))
         ExprTest(Function() CType(Nothing, X))
         ExprTest(Function() CType(Nothing, T?))
@@ -8307,19 +8307,19 @@ Friend Module M
     End Structure
 
     Sub Main()
-        Foo1(Of X)(Nothing)
-        Foo1(New X())
-        Foo2(Of X)()
+        Goo1(Of X)(Nothing)
+        Goo1(New X())
+        Goo2(Of X)()
     End Sub
 
-    Sub Foo1(Of T As Structure)(ByVal x As T?)
+    Sub Goo1(Of T As Structure)(ByVal x As T?)
         ExprTest(Function() x Is Nothing)
         ExprTest(Function() x IsNot Nothing)
         ExprTest(Function() Nothing Is x)
         ExprTest(Function() Nothing IsNot x)
     End Sub
 
-    Sub Foo2(Of T As Structure)()
+    Sub Goo2(Of T As Structure)()
         ExprTest(Function() CType(Nothing, X?))
         ExprTest(Function() CType(Nothing, X))
         ExprTest(Function() CType(Nothing, T?))

@@ -1,44 +1,26 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{066F0DBD-C46C-4C20-AFEC-99829A172625}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.Scripting</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.Scripting</AssemblyName>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
-      <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
-      <Name>CSharpCodeAnalysis</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj" />
     <ProjectReference Include="..\Core\Scripting.csproj">
-      <Project>{12A68549-4E8C-42D6-8703-A09335F97997}</Project>
-      <Name>Scripting</Name>
       <Aliases>global,Scripting</Aliases>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <Compile Include="Hosting\CommandLine\Csi.cs" />
-    <Compile Include="CSharpMemberFilter.cs" />
-    <Compile Include="Hosting\ObjectFormatter\CSharpObjectFormatterImpl.cs" />
-    <Compile Include="Hosting\ObjectFormatter\CSharpPrimitiveFormatter.cs" />
-    <Compile Include="Hosting\ObjectFormatter\CSharpTypeNameFormatter.cs" />
-    <Compile Include="Hosting\ObjectFormatter\CSharpObjectFormatter.cs" />
-    <Compile Include="CSharpScript.cs" />
-    <Compile Include="CSharpScriptCompiler.cs" />
-    <Compile Include="CSharpScriptingResources.Designer.cs">
+    <Compile Update="CSharpScriptingResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>CSharpScriptingResources.resx</DependentUpon>
@@ -62,7 +44,7 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="CSharpScriptingResources.resx">
+    <EmbeddedResource Update="CSharpScriptingResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>CSharpScriptingResources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>

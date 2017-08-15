@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,14 +24,14 @@ namespace Microsoft.CodeAnalysis.AddImport
         private class RemoteSymbolSearchService : IRemoteSymbolSearchUpdateEngine
         {
             private readonly ISymbolSearchService _symbolSearchService;
-            private readonly CancellationToken _cancellationToken;
+            private readonly CancellationToken _shutdownCancellation;
 
             public RemoteSymbolSearchService(
                 ISymbolSearchService symbolSearchService,
-                CancellationToken cancellationToken)
+                CancellationToken shutdownCancellationToken)
             {
                 _symbolSearchService = symbolSearchService;
-                _cancellationToken = cancellationToken;
+                _shutdownCancellation = shutdownCancellationToken;
             }
 
             public Task UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory)
@@ -39,25 +40,25 @@ namespace Microsoft.CodeAnalysis.AddImport
                 throw new NotImplementedException();
             }
 
-            public Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
-                string source, string name, int arity)
+            public Task<IList<PackageWithTypeResult>> FindPackagesWithTypeAsync(
+                string source, string name, int arity, CancellationToken cancellationToken)
             {
                 return _symbolSearchService.FindPackagesWithTypeAsync(
-                    source, name, arity, _cancellationToken);
+                    source, name, arity, cancellationToken);
             }
 
-            public Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
-                string source, string name)
+            public Task<IList<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
+                string source, string name, CancellationToken cancellationToken)
             {
                 return _symbolSearchService.FindPackagesWithAssemblyAsync(
-                    source, name, _cancellationToken);
+                    source, name, cancellationToken);
             }
 
-            public Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
-                string name, int arity)
+            public Task<IList<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
+                string name, int arity, CancellationToken cancellationToken)
             {
                 return _symbolSearchService.FindReferenceAssembliesWithTypeAsync(
-                    name, arity, _cancellationToken);
+                    name, arity, cancellationToken);
             }
         }
     }

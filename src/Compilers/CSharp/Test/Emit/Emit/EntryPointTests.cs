@@ -808,7 +808,7 @@ class B
     }
 } 
 ";
-            CompileConsoleApp(source).VerifyDiagnostics(/// (4,24): warning CS0028: 'B.Main(string[][])' has the wrong signature to be an entry point
+            CompileConsoleApp(source).VerifyDiagnostics(// (4,24): warning CS0028: 'B.Main(string[][])' has the wrong signature to be an entry point
                 //     public static void Main(string[][] args)
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("B.Main(string[][])"),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
@@ -1310,7 +1310,7 @@ class D
 }
 ";
             CreateStandardCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("d")).VerifyDiagnostics(
-                /// error CS1555: Could not find 'd' specified for Main method
+                // error CS1555: Could not find 'd' specified for Main method
                 Diagnostic(ErrorCode.ERR_MainClassNotFound).WithArguments("d"));
         }
 
@@ -1351,7 +1351,7 @@ static class Main
 }
 ";
             CreateStandardCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("Main")).VerifyDiagnostics(
-                /// (2,14): error CS1558: 'Main' does not have a suitable static Main method
+                // (2,14): error CS1558: 'Main' does not have a suitable static Main method
                 // static class Main
                 Diagnostic(ErrorCode.ERR_NoMainInClass, "Main").WithArguments("Main"));
         }

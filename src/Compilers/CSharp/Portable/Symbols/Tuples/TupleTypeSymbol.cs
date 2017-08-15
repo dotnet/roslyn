@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var constructedType = Create(underlyingType, elementNames, errorPositions, locationOpt, elementLocations);
-            if (shouldCheckConstraints)
+            if (shouldCheckConstraints && diagnostics != null)
             {
                 constructedType.CheckConstraints(compilation.Conversions, syntax, elementLocations, compilation, diagnostics);
             }

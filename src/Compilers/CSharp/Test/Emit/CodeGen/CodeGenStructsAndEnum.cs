@@ -178,21 +178,21 @@ class Program
     {
         public int x;
 
-        public void Foo()
+        public void Goo()
         {
             x = 123;
         }
     }
 
-    public static S1 foo()
+    public static S1 goo()
     {
         return new S1();
     }
 
     static void Main()
     {
-        foo().ToString();
-        Console.Write(foo().x);
+        goo().ToString();
+        Console.Write(goo().x);
     }
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"0");
@@ -202,13 +202,13 @@ class Program
   // Code size       36 (0x24)
   .maxstack  1
   .locals init (Program.S1 V_0)
-  IL_0000:  call       ""Program.S1 Program.foo()""
+  IL_0000:  call       ""Program.S1 Program.goo()""
   IL_0005:  stloc.0
   IL_0006:  ldloca.s   V_0
   IL_0008:  constrained. ""Program.S1""
   IL_000e:  callvirt   ""string object.ToString()""
   IL_0013:  pop
-  IL_0014:  call       ""Program.S1 Program.foo()""
+  IL_0014:  call       ""Program.S1 Program.goo()""
   IL_0019:  ldfld      ""int Program.S1.x""
   IL_001e:  call       ""void System.Console.Write(int)""
   IL_0023:  ret
@@ -406,12 +406,12 @@ namespace NS
 
     namespace N2
     {
-        public interface IFoo<T>
+        public interface IGoo<T>
         {
             void M(T t);
         }
 
-        struct S<T, V> : IFoo<T>
+        struct S<T, V> : IGoo<T>
         {
             public S(V v)
             {
@@ -432,9 +432,9 @@ namespace NS
         
         static void Main()
         {
-            IFoo<string> foo = new S<string, byte>(255);
-            foo.M(""Abc"");
-            Console.WriteLine(((S<string, byte>)foo).field);
+            IGoo<string> goo = new S<string, byte>(255);
+            goo.M(""Abc"");
+            Console.WriteLine(((S<string, byte>)goo).field);
 
             ary = new S<N2, char>[3];
             ary[0] = ary[1] = ary[2] = new S<N2, char>('q');
@@ -458,7 +458,7 @@ q");
   IL_000a:  box        ""NS.N2.S<string, byte>""
   IL_000f:  dup
   IL_0010:  ldstr      ""Abc""
-  IL_0015:  callvirt   ""void NS.N2.IFoo<string>.M(string)""
+  IL_0015:  callvirt   ""void NS.N2.IGoo<string>.M(string)""
   IL_001a:  unbox      ""NS.N2.S<string, byte>""
   IL_001f:  ldfld      ""byte NS.N2.S<string, byte>.field""
   IL_0024:  call       ""void System.Console.WriteLine(int)""

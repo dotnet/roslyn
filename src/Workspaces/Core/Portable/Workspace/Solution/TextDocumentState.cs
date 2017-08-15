@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                version = default(VersionStamp);
+                version = default;
                 return false;
             }
         }

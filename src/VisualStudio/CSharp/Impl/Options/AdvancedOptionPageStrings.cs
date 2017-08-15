@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
@@ -149,9 +149,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         }
 
         public static string Option_PlaceSystemNamespaceFirst
-        {
-            get { return CSharpVSResources.Place_System_directives_first_when_sorting_usings; }
-        }
+            => CSharpVSResources.Place_System_directives_first_when_sorting_usings;
+
+        public static string Option_SeparateImportGroups
+            => CSharpVSResources.Separate_using_directive_groups;
 
         public static string Option_Using_Directives =>
             CSharpVSResources.Using_Directives;
@@ -161,5 +162,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Suggest_usings_for_types_in_NuGet_packages =>
             CSharpVSResources.Suggest_usings_for_types_in_NuGet_packages;
+
+        public static string Option_Report_invalid_placeholders_in_string_dot_format_calls =>
+            CSharpVSResources.Report_invalid_placeholders_in_string_dot_format_calls; 
     }
 }

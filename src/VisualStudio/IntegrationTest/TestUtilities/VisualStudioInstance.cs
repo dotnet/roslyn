@@ -1,8 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
@@ -249,6 +253,40 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             });
 
             return result;
+        }
+
+        public TelemetryVerifier EnableTestTelemetryChannel()
+        {
+            _inProc.EnableTestTelemetryChannel();
+            return new TelemetryVerifier(this);
+        }
+
+        private void DisableTestTelemetryChannel()
+            => _inProc.DisableTestTelemetryChannel();
+
+        private void WaitForTelemetryEvents(string[] names)
+            => _inProc.WaitForTelemetryEvents(names);
+
+        public class TelemetryVerifier : IDisposable
+        {
+            internal VisualStudioInstance _instance;
+
+            public TelemetryVerifier(VisualStudioInstance instance)
+            {
+                _instance = instance;
+            }
+
+            public void Dispose() => _instance.DisableTestTelemetryChannel();
+
+            /// <summary>
+            /// Asserts that a telemetry event of the given name was fired. Does not
+            /// do any additional validation (of performance numbers, etc).
+            /// </summary>
+            /// <param name="expectedEventNames"></param>
+            public void VerifyFired(params string[] expectedEventNames)
+            {
+                _instance.WaitForTelemetryEvents(expectedEventNames);
+            }
         }
     }
 }

@@ -1,4 +1,4 @@
-#r "System.Xml.XDocument.dll"
+﻿#r "System.Xml.XDocument.dll"
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -34,7 +34,7 @@ var BuildingReleaseNugets = IsReleaseVersion(BuildVersion);
 var NuspecDirPath = Path.Combine(SolutionRoot, "src/NuGet");
 var OutDir = Path.GetFullPath(Args[2]).TrimEnd('\\');
 
-var CommitSha = Args[3].Replace("<", "").Replace(">", "");
+var CommitSha = Args[3];
 var CommitIsDeveloperBuild = CommitSha == "<developer build>";
 if (!CommitIsDeveloperBuild && !Regex.IsMatch(CommitSha, "[A-Fa-f0-9]+"))
 {
@@ -191,7 +191,11 @@ var errors = new List<string>();
 void ReportError(string message)
 {
     errors.Add(message);
+    PrintError(message);
+}
 
+void PrintError(string message)
+{
     var color = Console.ForegroundColor;
     Console.ForegroundColor = ConsoleColor.Red;
     Console.Error.WriteLine(message);
@@ -281,9 +285,8 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
         }
 
         p.StartInfo.UseShellExecute = false;
-        p.StartInfo.RedirectStandardError = true;
 
-        Console.WriteLine($"{Environment.NewLine}Running: nuget pack {file} {commonArgs}");
+        Console.WriteLine($"Packing {file}");
 
         p.Start();
         p.WaitForExit();
@@ -291,23 +294,8 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
         var currentExit = p.ExitCode;
         if (currentExit != 0)
         {
-            var stdErr = p.StandardError.ReadToEnd();
-            string message;
-            if (BuildingReleaseNugets && stdErr.Contains("A stable release of a package should not have a prerelease dependency."))
-            {
-                // If we are building release nugets and if any packages have dependencies on prerelease packages
-                // then we want to ignore the error and allow the build to succeed.
-                currentExit = 0;
-                message = $"{file}: {stdErr}";
-                Console.WriteLine(message);
-            }
-            else
-            {
-                message = $"{file}: error: {stdErr}";
-                ReportError(message);
-            }
-
-            File.AppendAllText(ErrorLogFile, Environment.NewLine + message);
+            Console.WriteLine($"nuget pack {p.StartInfo.Arguments}");
+            ReportError($"Pack operation failed with {currentExit}");
         }
 
         // We want to try and generate all nugets and log any errors encountered along the way.
@@ -408,7 +396,7 @@ catch
 
 foreach (var error in errors)
 {
-    ReportError(error);
+    PrintError(error);
 }
 
 Environment.Exit(exit);
