@@ -453,54 +453,5 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             return null;
         }
-
-        /// <summary>
-        /// Finds projects in this solution that have a reference to an assembly with the 
-        /// identity provided.  Projects will be ordered such that those that have a 
-        /// reference that is <see cref="AssemblyIdentityComparer.ComparisonResult.Equivalent"/>
-        /// will be returned before those that are 
-        /// <see cref="AssemblyIdentityComparer.ComparisonResult.EquivalentIgnoringVersion"/>.
-        /// </summary>
-        public static IEnumerable<Project> ProjectsWithReferenceToAssembly(
-            this Solution solution, AssemblyIdentity identity)
-        {
-            var projectMatchesIgnoringVersion = new List<Project>();
-            foreach (var project in solution.Projects)
-            {
-                var referenceType = project.GetAssemblyReferenceType(a =>
-                    {
-                        var result = AssemblyIdentityComparer.Default.Compare(a.Identity, identity);
-
-                        // If the assembly and the identity are NotEquivalent, return null to indicate
-                        // that we need to keep checking the rest of the assemblies.  Otherwise,
-                        // return the result we got which will bubble out into 'referenceType'.
-                        return result == AssemblyIdentityComparer.ComparisonResult.NotEquivalent
-                            ? (AssemblyIdentityComparer.ComparisonResult?)null
-                            : result;
-                    });
-
-                if (referenceType.HasValue)
-                {
-                    if (referenceType.Value == AssemblyIdentityComparer.ComparisonResult.Equivalent)
-                    {
-                        // We found an assembly reference exactly matching the assembly identity.
-                        // Return it immediately.
-                        yield return project;
-                    }
-                    else if (referenceType.Value == AssemblyIdentityComparer.ComparisonResult.EquivalentIgnoringVersion)
-                    {
-                        // We found an assembly reference matching the assembly identity if
-                        // versions were ignored.  Return it after all the exact matches are
-                        // returned.
-                        projectMatchesIgnoringVersion.Add(project);
-                    }
-                }
-            }
-
-            foreach (var project in projectMatchesIgnoringVersion)
-            {
-                yield return project;
-            }
-        }
     }
 }

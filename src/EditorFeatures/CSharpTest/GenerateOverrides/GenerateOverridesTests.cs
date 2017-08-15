@@ -46,8 +46,7 @@ class C
     {
         return base.ToString();
     }
-}
-", new[] { "Equals", "GetHashCode", "ToString" });
+}", new[] { "Equals", "GetHashCode", "ToString" });
         }
 
         [WorkItem(17698, "https://github.com/dotnet/roslyn/issues/17698")]
@@ -93,8 +92,7 @@ class Derived : Base
     {
         return ref base.X();
     }
-}
-", new[] { "X", "Y", "this[]" });
+}", new[] { "X", "Y", "this[]" });
         }
     }
 }

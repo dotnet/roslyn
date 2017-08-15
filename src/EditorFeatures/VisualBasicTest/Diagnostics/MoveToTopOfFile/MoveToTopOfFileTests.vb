@@ -51,10 +51,12 @@ End Module")
     End Sub
 End Module
 [|Imports System|]",
-"Imports System Module Program 
- Sub Main(args As String())
-End Sub
-End Module")
+"Imports System
+Module Program
+    Sub Main(args As String())
+    End Sub
+End Module
+")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
@@ -77,7 +79,8 @@ Module Program
     Sub Main(args As String())
 
     End Sub
-End Module</File>
+End Module
+</File>
 
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
@@ -102,7 +105,8 @@ Module Program
     Sub Main(args As String())
 
     End Sub
-End Module</File>
+End Module
+</File>
 
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
@@ -127,7 +131,8 @@ Module Program
     Sub Main(args As String())
 
     End Sub
-End Module</File>
+End Module
+</File>
 
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
@@ -152,7 +157,8 @@ Module Program
     Sub Main(args As String())
 
     End Sub
-End Module</File>
+End Module
+</File>
 
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
@@ -208,7 +214,8 @@ End Module
 Module Program
     Sub Main(args As String())
     End Sub
-End Module")
+End Module
+")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
@@ -231,7 +238,8 @@ Module Program
     Sub Main(args As String())
 
     End Sub
-End Module</File>
+End Module
+</File>
 
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
@@ -256,7 +264,8 @@ Module Program
     Sub Main(args As String())
 
     End Sub
-End Module</File>
+End Module
+</File>
 
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
@@ -281,7 +290,8 @@ Module Program
     Sub Main(args As String())
 
     End Sub
-End Module</File>
+End Module
+</File>
 
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
@@ -307,7 +317,8 @@ Module Program
     Sub Main(args As String())
 
     End Sub
-End Module</File>
+End Module
+</File>
 
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
@@ -335,7 +346,8 @@ Module Program
     Sub Main(args As String())
 
     End Sub
-End Module</File>
+End Module
+</File>
 
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
@@ -363,7 +375,8 @@ Module Program
     Sub Main(args As String())
 
     End Sub
-End Module</File>
+End Module
+</File>
 
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
@@ -381,15 +394,16 @@ Module Program
 End Module
 [|Option Compare Binary|]</File>
 
-            Dim expected = <File>
-Option Compare Binary
+            Dim expected = <File>Option Compare Binary
+
 #Const A = 5
 
 Module Program
     Sub Main(args As String())
 
     End Sub
-End Module</File>
+End Module
+</File>
 
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
@@ -421,7 +435,8 @@ Module Program
     Sub Main(args As String())
 
     End Sub
-End Module</File>
+End Module
+</File>
 
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
@@ -469,8 +484,8 @@ End Module
 &lt;[|Assembly:|] Reflection.AssemblyCultureAttribute("de")&gt;
 </File>
 
-            Dim expected = <File>
-&lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt;                               
+            Dim expected = <File>&lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt;
+
 Module Program
     Sub Main(args As String())
 
@@ -491,12 +506,13 @@ Module Program
 End Module 
 </File>
 
-            Dim expected = <File>
-&lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt;
+            Dim expected = <File>&lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt;
+
 Module Program
     Sub Main(args As String())
+
     End Sub
-End Module
+End Module 
 </File>
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
@@ -518,8 +534,9 @@ End Module
 &lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt; 'Another Comment
 Module Program
     Sub Main(args As String())
+
     End Sub
-End Module
+End Module 
 </File>
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
@@ -539,10 +556,10 @@ End Module
 &lt;[|Assembly:|] Reflection.AssemblyCultureAttribute("de")&gt;
 </File>
 
-            Dim expected = <File>
+            Dim expected = <File>&lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt;
+
 ' Copyright
 ' License information.
-&lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt;
 
 Module Program
     Sub Main(args As String())
@@ -576,9 +593,10 @@ End Class
 &lt;Assembly:CLSCompliant(True)&gt;
 [|Imports System|]</File>
 
-            Dim expected = <File>
-[|Imports System|]
-&lt;Assembly:CLSCompliant(True)&gt;</File>
+            Dim expected = <File>[|Imports System|]
+
+&lt;Assembly:CLSCompliant(True)&gt;
+</File>
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
