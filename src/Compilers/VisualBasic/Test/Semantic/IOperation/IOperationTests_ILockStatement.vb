@@ -178,7 +178,7 @@ BC30451: 'InvalidReference' is not declared. It may be inaccessible due to its p
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub ILockExpression_MissingEndLock()
+        Public Sub ILockStatement_MissingEndLock()
             Dim source = <![CDATA[
 Option Strict On
 
@@ -199,7 +199,7 @@ ILockStatement (OperationKind.LockStatement, IsInvalid) (Syntax: 'SyncLock o' ..
             Dim expectedDiagnostics = <![CDATA[
 BC30675: 'SyncLock' statement must end with a matching 'End SyncLock'.
         SyncLock o'BIND:"SyncLock o"
-                                                                                         ~
+        ~~~~~~~~~~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of SyncLockBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
