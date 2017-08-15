@@ -18,6 +18,8 @@ This document is meant to be a comprehensive list of Roslyn features for use in 
         - Critical IDE features in the areas of **Typing**, **Navigating**, and **Viewing** must function as expected. Any non-trivial issues in these areas block language feature merging.
             - These are marked with a :fast_forward:.
         - All product features have been considered/tested are free of crashes, asserts, and hangs.
+            -All issues discovered (even non-crash/non-blocking) must be filed and linked here.
+                - _All feature descriptions and testing suggestions are merely examples. Each language feature should be carefully considered independently against each IDE feature to find interesting intersections_
     - **Feature Signoff**: Per-feature signoff with links to non-blocking issues.
     - **Feature Suggestions**: What can we add to the product to make the new language feature delightful to use?
 
@@ -38,23 +40,17 @@ This document is meant to be a comprehensive list of Roslyn features for use in 
 
 # Testing tags
 
-:mag: = Scenarios that are regularly tested against internal builds
-
-:fast_forward: = Scenarios that must work as expected before new language features are merged
+- :mag: = Scenarios that are regularly tested against internal builds
+- :fast_forward: = Scenarios that must work as expected before new language features are merged
 
 When doing a test pass, copy this page and consider using these status indicators:
 
-:white_check_mark: = Tested & Approved (possibly with linked bugs)
-
-:x: = Merge blocking
-
-:construction: = Non-blocking bugs
-
-:ok: = Issue has been fixed
-
-:free: = No expected impact
-
-:question: = Open question
+- :white_check_mark: = Tested & Approved (possibly with linked bugs)
+- :x: = Merge blocking
+- :construction: = Non-blocking bugs
+- :ok: = Issue has been fixed
+- :free: = No expected impact
+- :question: = Open question
 
 <a name="testfootnote1"><sup>1</sup></a> Feature updated by compiler team, with appropriate unit tests.
 
@@ -75,10 +71,6 @@ When doing a test pass, copy this page and consider using these status indicator
 | | :mag: :fast_forward: **Find All References** <br />- Lists references to a symbol in "Find Symbol Results" window<br />- Shows results in hierarchy grouped by definition [Visual Studio 2015]<br />- Results should be groupable/filterable/classified appropriately [Visual Studio 2017] <br />- Find All References on literals [Visual Studio 2017 version 15.3] | | | |
 | **Viewing** | :mag: :fast_forward: **Colorization** <br />- Keywords, literals, and identifiers colored appropriately in code<br />- Colors should theme appropriately<br />- The "Blue Theme (Additional Contrast)" should have sufficiently dark colors | | | |
 | | :fast_forward: **Error Squiggles** <br />- Squiggles appear as expected on reasonable spans | | | |
-
-##  <a name="featuresignoff">IDE Features (Feature Signoff)</a>
-For the remaining set of IDE features, only crashes and asserts are considered blocking. However, *all* issues discovered must be filed and linked here.
-*All feature descriptions and testing suggestions are merely examples. Each language feature should be carefully considered independently against each IDE feature to find interesting intersections*
 
 ### Code Transformations
 | Category | Feature/Description | C# Signoff/Notes | VB Signoff/Notes | F# Signoff/Notes |
