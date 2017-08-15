@@ -283,5 +283,53 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new Conversion(ConversionKind.MethodGroup, method, methodGroup.IsExtensionMethodGroup);
         }
+
+        public override Conversion GetStackAllocConversion(BoundStackAllocArrayCreation sourceExpression, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            Debug.Assert((object)sourceExpression.Type == null);
+            Debug.Assert(sourceExpression.ElementType != null);
+
+            var pointerConversion = default(Conversion);
+
+            if (sourceExpression.Syntax.IsVariableDeclarationInitialization())
+            {
+                var sourceAsPointer = new PointerTypeSymbol(sourceExpression.ElementType);
+                pointerConversion = ClassifyImplicitConversionFromType(sourceAsPointer, destination, ref useSiteDiagnostics);
+            }
+
+            if (pointerConversion.IsValid)
+            {
+                // Report unsafe errors
+                _binder.ReportUnsafeIfNotAllowed(sourceExpression.Syntax.Location, ref useSiteDiagnostics);
+
+                return Conversion.MakeStackAllocToPointerType(pointerConversion);
+            }
+            else
+            {
+                var spanType = _binder.GetWellKnownType(WellKnownType.System_Span_T, ref useSiteDiagnostics).Construct(sourceExpression.ElementType);
+                var spanConversion = ClassifyImplicitConversionFromType(spanType, destination, ref useSiteDiagnostics);
+
+                if (spanConversion.Exists)
+                {
+                    // Report errors if Span ctor is missing, or using an older C# version
+                    Binder.CheckFeatureAvailability(sourceExpression.Syntax, MessageID.IDS_FeatureRefStructs, ref useSiteDiagnostics);
+                    Binder.GetWellKnownTypeMember(_binder.Compilation, WellKnownMember.System_Span_T__ctor, out DiagnosticInfo memberDiagnosticInfo);
+                    HashSetExtensions.InitializeAndAdd(ref useSiteDiagnostics, memberDiagnosticInfo);
+
+                    if (!sourceExpression.Syntax.IsLegalSpanStackAllocPosition())
+                    {
+                        // PROTOTYPE(span) short work around until we look into spilling stackalloc expressions
+                        // Because the instruction cannot have any values on the stack before CLR execution.
+                        // Limit it to assignments and conditional expressions for now.
+
+                        HashSetExtensions.InitializeAndAdd(ref useSiteDiagnostics, new CSDiagnosticInfo(ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(SyntaxKind.StackAllocKeyword)));
+                    }
+
+                    return Conversion.MakeStackAllocToSpanType(spanConversion);
+                }
+            }
+
+            return Conversion.NoConversion;
+        }
     }
 }

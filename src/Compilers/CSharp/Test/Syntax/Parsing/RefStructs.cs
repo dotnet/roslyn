@@ -109,5 +109,81 @@ class Program
             var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll);
             comp.VerifyDiagnostics();
         }
+
+        [Fact]
+        public void StackAllocParsedAsSpan_Declaration()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class Test
+{
+    unsafe public void M()
+    {
+        int* a = stackalloc int[10];
+        var b = stackalloc int[10];
+        Span<int> c = stackalloc int [10];
+    }
+}", TestOptions.UnsafeDebugDll).GetParseDiagnostics().Verify();
+        }
+
+        [Fact]
+        public void StackAllocParsedAsSpan_LocalFunction()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class Test
+{
+    public void M()
+    {
+        unsafe void local()
+        {
+            int* x = stackalloc int[10];
+        }
+    }
+}").GetParseDiagnostics().Verify();
+        }
+
+        [Fact]
+        public void StackAllocParsedAsSpan_MethodCall()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class Test
+{
+    public void M()
+    {
+        Visit(stackalloc int [10]);
+    }
+    public void Visit(Span<int> s) { }
+}").GetParseDiagnostics().Verify();
+        }
+
+        [Fact]
+        public void StackAllocParsedAsSpan_DotAccess()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class Test
+{
+    public void M()
+    {
+        Console.WriteLine((stackalloc int [10]).Length);
+    }
+}").GetParseDiagnostics().Verify();
+        }
+
+        [Fact]
+        public void StackAllocParsedAsSpan_Cast()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class Test
+{
+    public void M()
+    {
+        void* x = (void*)(stackalloc int[10]);
+    }
+}").GetParseDiagnostics().Verify();
+        }
     }
 }

@@ -1110,7 +1110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundTypeExpression boundType = new BoundTypeExpression(typeSyntax, alias, type, typeHasErrors);
             ConstantValue constantValue = GetConstantSizeOf(type);
-            bool hasErrors = ReferenceEquals(constantValue, null) && ReportUnsafeIfNotAllowed(node, type, diagnostics);
+            bool hasErrors = ReferenceEquals(constantValue, null) && ReportUnsafeIfNotAllowed(node, diagnostics, type);
             return new BoundSizeOfOperator(node, boundType, constantValue,
                 this.GetSpecialType(SpecialType.System_Int32, diagnostics, node), hasErrors);
         }
@@ -1937,35 +1937,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            // TODO: report more specific diagnostics here for failed method group conversions
-            if (operand.Kind == BoundKind.MethodGroup)
+            switch (operand.Kind)
             {
-                diagnostics.Add(ErrorCode.ERR_NoExplicitConv, syntax.Location, MessageID.IDS_SK_METHOD.Localize(), targetType);
-                return;
-            }
+                case BoundKind.MethodGroup:
+                    {
+                        // TODO: report more specific diagnostics here for failed method group conversions
+                        diagnostics.Add(ErrorCode.ERR_NoExplicitConv, syntax.Location, MessageID.IDS_SK_METHOD.Localize(), targetType);
+                        return;
+                    }
+                case BoundKind.TupleLiteral:
+                    {
+                        var tuple = (BoundTupleLiteral)operand;
+                        var targetElementTypes = default(ImmutableArray<TypeSymbol>);
 
-            if (operand.Kind == BoundKind.TupleLiteral)
-            {
-                var tuple = (BoundTupleLiteral)operand;
-                var targetElementTypes = default(ImmutableArray<TypeSymbol>);
+                        // If target is a tuple or compatible type with the same number of elements,
+                        // report errors for tuple arguments that failed to convert, which would be more useful.
+                        if (targetType.TryGetElementTypesIfTupleOrCompatible(out targetElementTypes) &&
+                            targetElementTypes.Length == tuple.Arguments.Length)
+                        {
+                            GenerateExplicitConversionErrorsForTupleLiteralArguments(diagnostics, tuple.Arguments, targetElementTypes);
+                            return;
+                        }
 
-                // If target is a tuple or compatible type with the same number of elements,
-                // report errors for tuple arguments that failed to convert, which would be more useful.
-                if (targetType.TryGetElementTypesIfTupleOrCompatible(out targetElementTypes) &&
-                    targetElementTypes.Length == tuple.Arguments.Length)
-                {
-                    GenerateExplicitConversionErrorsForTupleLiteralArguments(diagnostics, tuple.Arguments, targetElementTypes);
-                    return;
-                }
+                        // target is not compatible with source and source does not have a type
+                        if ((object)tuple.Type == null)
+                        {
+                            Error(diagnostics, ErrorCode.ERR_ConversionNotTupleCompatible, syntax, tuple.Arguments.Length, targetType);
+                            return;
+                        }
 
-                // target is not compatible with source and source does not have a type
-                if ((object)tuple.Type == null)
-                {
-                    Error(diagnostics, ErrorCode.ERR_ConversionNotTupleCompatible, syntax, tuple.Arguments.Length, targetType);
-                    return;
-                }
-
-                // Otherwise it is just a regular conversion failure from T1 to T2.
+                        // Otherwise it is just a regular conversion failure from T1 to T2.
+                        break;
+                    }
+                case BoundKind.StackAllocArrayCreation:
+                    {
+                        var stackAllocExpression = (BoundStackAllocArrayCreation)operand;
+                        Error(diagnostics, ErrorCode.ERR_StackAllocConversionNotPossible, syntax, stackAllocExpression.ElementType, targetType);
+                        return;
+                    }
             }
 
             Debug.Assert((object)operand.Type != null);
@@ -3000,15 +3009,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindStackAllocArrayCreationExpression(
             StackAllocArrayCreationExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            if (!IsLegalStackAllocLocation(node))
-            { 
+            bool hasErrors = false;
+
+            if (!IsInMethodBody && !IsLocalFunctionsScopeBinder)
+            {
+                hasErrors = true;
                 diagnostics.Add(
                     ErrorCode.ERR_InvalidExprTerm,
                     node.StackAllocKeyword.GetLocation(),
                     SyntaxFacts.GetText(SyntaxKind.StackAllocKeyword));
             }
-
-            bool hasErrors = ReportUnsafeIfNotAllowed(node, diagnostics);
 
             // Check if we're syntactically within a catch or finally clause.
             if (this.Flags.Includes(BinderFlags.InCatchBlock) ||
@@ -3034,9 +3044,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ArrayTypeSyntax arrayTypeSyntax = (ArrayTypeSyntax)typeSyntax;
             TypeSyntax elementTypeSyntax = arrayTypeSyntax.ElementType;
-
             TypeSymbol elementType = BindType(elementTypeSyntax, diagnostics);
-            PointerTypeSymbol pointerType = new PointerTypeSymbol(elementType);
 
             bool typeHasErrors = elementType.IsErrorType();
             if (!typeHasErrors && elementType.IsManagedType)
@@ -3073,7 +3081,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     LookupResultKind.Empty,
                     ImmutableArray<Symbol>.Empty,
                     builder.ToImmutableAndFree(),
-                    pointerType);
+                    new PointerTypeSymbol(elementType));
             }
 
             ExpressionSyntax countSyntax = rankSpecifiers[0].Sizes[0];
@@ -3089,41 +3097,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundStackAllocArrayCreation(node, count, pointerType, hasErrors || typeHasErrors);
-        }
-
-        private static bool IsLegalStackAllocLocation(StackAllocArrayCreationExpressionSyntax node)
-        {
-            // First, StackAllocs are only legal in variable declaration initializers.
-            if (node.Parent == null ||
-                node.Parent.Kind() != SyntaxKind.EqualsValueClause ||
-                node.Parent.Parent.Kind() != SyntaxKind.VariableDeclarator ||
-                node.Parent.Parent.Parent.Kind() != SyntaxKind.VariableDeclaration)
-            {
-                return false;
-            }
-
-            // However, they're not legal for the variable declarations in fields/event-fields.
-            var variableDeclaration = (VariableDeclarationSyntax)node.Parent.Parent.Parent;
-            var owner = variableDeclaration.Parent;
-            if (owner.Kind() == SyntaxKind.FieldDeclaration ||
-                owner.Kind() == SyntaxKind.EventFieldDeclaration)
-            {
-                return false;
-            }
-
-            // This leaves variable-declarations inside a method-body.  Stack-allocs are legal
-            // in all cases here except for const-locals.
-            if (owner.Kind() == SyntaxKind.LocalDeclarationStatement)
-            {
-                var localDeclaration = (LocalDeclarationStatementSyntax)owner;
-                if (localDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword))
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            return new BoundStackAllocArrayCreation(node, default(ConversionKind), elementType, count, null, hasErrors || typeHasErrors);
         }
 
         private static int? GetIntegerConstantForArraySize(BoundExpression expression)
@@ -5294,8 +5268,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     default:
                         {
-                            // Can't dot into the null literal.
-                            if (boundLeft.Kind == BoundKind.Literal && ((BoundLiteral)boundLeft).ConstantValueOpt == ConstantValue.Null)
+                            // Can't dot into the null literal or stackalloc expressions.
+                            if ((boundLeft.Kind == BoundKind.Literal && ((BoundLiteral)boundLeft).ConstantValueOpt == ConstantValue.Null) ||
+                                boundLeft.Kind == BoundKind.StackAllocArrayCreation)
                             {
                                 if (!boundLeft.HasAnyErrors)
                                 {

@@ -1040,8 +1040,179 @@ class Program
             // tuple type
             type = (TypeSymbol)comp.CreateTupleTypeSymbol(ImmutableArray.Create<ITypeSymbol>(comp.ObjectType, comp.ObjectType));
             Assert.False(type.IsReadOnly);
-
         }
 
+        [Fact]
+        public void CorrectOverloadOfStackAllocSpanChosen()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class Test
+{
+    unsafe public static void Main()
+    {
+        bool condition = false;
+
+        var span1 = condition ? stackalloc int[1] : new Span<int>(null, 2);
+        Console.Write(span1.Length);
+
+        var span2 = condition ? new Span<int>(null, 3) : stackalloc int[4];
+        Console.Write(span2.Length);
+    }
+}", TestOptions.UnsafeReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "24");
+        }
+
+        [Fact]
+        public void StackAllocExpressionIL()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class Test
+{
+    public static void Main()
+    {
+        Span<int> x = stackalloc int[10];
+        Console.WriteLine(x.Length);
+    }
+}", TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "10", verify: false).VerifyIL("Test.Main", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  .locals init (System.Span<int> V_0, //x
+                int V_1)
+  IL_0000:  ldc.i4.s   10
+  IL_0002:  stloc.1
+  IL_0003:  ldloc.1
+  IL_0004:  conv.u
+  IL_0005:  ldc.i4.4
+  IL_0006:  mul.ovf.un
+  IL_0007:  localloc
+  IL_0009:  ldloc.1
+  IL_000a:  newobj     ""System.Span<int>..ctor(void*, int)""
+  IL_000f:  stloc.0
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       ""int System.Span<int>.Length.get""
+  IL_0017:  call       ""void System.Console.WriteLine(int)""
+  IL_001c:  ret
+}");
+        }
+
+        [Fact]
+        public void StackAllocSpanLengthNotEvaluatedTwice()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class Test
+{
+    private static int length = 0;
+
+    private static int GetLength()
+    {
+        return ++length;
+    }
+
+    public static void Main()
+    {
+        Span<int> x = default;
+        
+        for (int i = 0; i < 5; i++)
+        {
+            x = stackalloc int[GetLength()];
+            Console.Write(x.Length);
+        }
+    }
+}", TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "12345", verify: false).VerifyIL("Test.Main", @"
+{
+  // Code size       52 (0x34)
+  .maxstack  2
+  .locals init (System.Span<int> V_0, //x
+                int V_1, //i
+                int V_2)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""System.Span<int>""
+  IL_0008:  ldc.i4.0
+  IL_0009:  stloc.1
+  IL_000a:  br.s       IL_002f
+  IL_000c:  call       ""int Test.GetLength()""
+  IL_0011:  stloc.2
+  IL_0012:  ldloc.2
+  IL_0013:  conv.u
+  IL_0014:  ldc.i4.4
+  IL_0015:  mul.ovf.un
+  IL_0016:  localloc
+  IL_0018:  ldloc.2
+  IL_0019:  newobj     ""System.Span<int>..ctor(void*, int)""
+  IL_001e:  stloc.0
+  IL_001f:  ldloca.s   V_0
+  IL_0021:  call       ""int System.Span<int>.Length.get""
+  IL_0026:  call       ""void System.Console.Write(int)""
+  IL_002b:  ldloc.1
+  IL_002c:  ldc.i4.1
+  IL_002d:  add
+  IL_002e:  stloc.1
+  IL_002f:  ldloc.1
+  IL_0030:  ldc.i4.5
+  IL_0031:  blt.s      IL_000c
+  IL_0033:  ret
+}");
+        }
+
+        [Fact]
+        public void ImplicitCastOperatorOnStackAllocIsLoweredCorrectly()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+unsafe class Test
+{
+    public static void Main()
+    {
+        Test obj1 = stackalloc int[10];
+        Console.Write(""|"");
+        Test obj2 = stackalloc double[10];
+    }
+    
+    public static implicit operator Test(Span<int> value) 
+    {
+        Console.Write(""SpanOpCalled"");
+        return default(Test);
+    }
+    
+    public static implicit operator Test(double* value) 
+    {
+        Console.Write(""PointerOpCalled"");
+        return default(Test);
+    }
+}", TestOptions.UnsafeReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "SpanOpCalled|PointerOpCalled", verify: false);
+        }
+
+        [Fact]
+        public void ExplicitCastOperatorOnStackAllocIsLoweredCorrectly()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+unsafe class Test
+{
+    public static void Main()
+    {
+        Test obj1 = (Test)stackalloc int[10];
+    }
+    
+    public static explicit operator Test(Span<int> value) 
+    {
+        Console.Write(""SpanOpCalled"");
+        return default(Test);
+    }
+}", TestOptions.UnsafeReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "SpanOpCalled", verify: false);
+        }
     }
 }

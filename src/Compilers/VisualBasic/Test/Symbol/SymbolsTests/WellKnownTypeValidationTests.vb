@@ -501,7 +501,8 @@ End Namespace
                         ' Only present when embedding VB Core.
                         Continue For
                     Case WellKnownType.System_FormattableString,
-                         WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory
+                         WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory,
+                         WellKnownType.System_Span_T
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -538,7 +539,8 @@ End Namespace
                         ' Not embedded, so not available.
                         Continue For
                     Case WellKnownType.System_FormattableString,
-                         WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory
+                         WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory,
+                         WellKnownType.System_Span_T
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -581,7 +583,8 @@ End Namespace
                     Case WellKnownMember.Count
                         ' Not a real value.
                         Continue For
-                    Case WellKnownMember.System_Array__Empty
+                    Case WellKnownMember.System_Array__Empty,
+                         WellKnownMember.System_Span_T__ctor
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
@@ -664,7 +667,8 @@ End Namespace
                          WellKnownMember.Microsoft_VisualBasic_Interaction__CallByName
                         ' The type is not embedded, so the member is not available.
                         Continue For
-                    Case WellKnownMember.System_Array__Empty
+                    Case WellKnownMember.System_Array__Empty,
+                         WellKnownMember.System_Span_T__ctor
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,

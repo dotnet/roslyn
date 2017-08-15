@@ -88,6 +88,7 @@
     <Compile Include="Semantics\BindingAsyncTasklikeTests.cs" />
     <Compile Include="Semantics\RefExtensionMethodsTests.cs" />
     <Compile Include="Semantics\ReadOnlyStructsTests.cs" />
+    <Compile Include="Semantics\StackAllocSpanExpressionsTests.cs" />
     <Compile Include="Semantics\TargetTypedDefaultTests.cs" />
     <Compile Include="Semantics\DeconstructionTests.cs" />
     <Compile Include="Semantics\ImportsTests.cs" />

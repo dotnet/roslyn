@@ -23,3 +23,5 @@ Consider the case where the type of `a` is `System.Func<bool>` and you write `va
  - https://github.com/dotnet/roslyn/issues/17963 In C# 7.0 and before C# 7.1, the compiler used to consider tuple element name differences and dynamic-ness differences as significant when using the "as" operator with a nullable tuple type. For instance, `(1, 1) as (int, int x)?` and `(1, new object()) as (int, dynamic)?` would always be considered `null`. The compiler now produces the correct value, instead of `null`, and no "always null" warning.
 
 - https://github.com/dotnet/roslyn/issues/20208 In C# 7.0 and before C# 7.2, the compiler considered a local declared with a `var` type and a tuple literal value to be used. So it would not report a warning if that local was not used. The compiler now produces a diagnostic. For example, `var unused = (1, 2);`.
+
+- https://github.com/dotnet/roslyn/pull/21006 In this PR, stackalloc expressions are target typed, instead of always being of type T* pointer. This affects the semantic model, as getting type info about such nodes will return null types. Users can still access the implicit conversion to know the new target type.

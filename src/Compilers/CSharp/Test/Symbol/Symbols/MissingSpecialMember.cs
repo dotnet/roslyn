@@ -560,6 +560,7 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory:
                     case WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute:
+                    case WellKnownType.System_Span_T:
                     // Not yet in the platform.
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
                         // Not always available.
@@ -858,6 +859,7 @@ namespace System
                         // C# can't embed VB core.
                         continue;
                     case WellKnownMember.System_Array__Empty:
+                    case WellKnownMember.System_Span_T__ctor:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:

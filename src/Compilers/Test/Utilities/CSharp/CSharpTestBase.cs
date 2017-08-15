@@ -1057,5 +1057,75 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         }
 
         #endregion
+
+        #region Span
+        //PROTOTYPE(span): this will be updated when rules for defining span are implemented
+        //                 most likely we would just pick the actual binary/corlib where
+        //                 span lives.
+        protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        {
+            var reference = CreateCompilation(
+                spanSource,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
+                options: TestOptions.UnsafeReleaseDll);
+
+            reference.VerifyDiagnostics();
+
+            var comp = CreateCompilation(
+                text,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
+                options: options ?? TestOptions.ReleaseExe,
+                parseOptions: parseOptions);
+
+
+            return comp;
+        }
+
+        //PROTOTYPE(span): this will be updated when rules for defining span are implemented
+        //                 most likely we would just pick the actual binary/corlib where
+        //                 span lives.
+        protected static CSharpCompilation CreateCompilationWithMscorlibAndSpanSrc(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        {
+            var textWitSpan = new string[] { text, spanSource };
+            var comp = CreateCompilation(
+                textWitSpan,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
+                options: options ?? TestOptions.UnsafeReleaseDll,
+                parseOptions: parseOptions);
+
+            return comp;
+        }
+
+        //PROTOTYPE(span): this will be updated when rules for defining span are implemented
+        //                 most likely we would just pick the actual binary/corlib where
+        //                 span lives.
+        private static string spanSource = @"
+namespace System
+{
+    public ref struct Span<T> 
+    {
+        public ref T this[int i] => throw null;
+        public override int GetHashCode() => 1;
+        public int Length { get; private set; }
+
+        unsafe public Span(void* pointer, int length)
+        {
+            this.Length = length;
+        }
+    }
+
+    public ref struct ReadOnlySpan<T>
+    {
+        public ref readonly T this[int i] => throw null;
+        public override int GetHashCode() => 2;
+    }
+
+    public ref struct SpanLike<T>
+    {
+        public Span<T> field;
+    }
+}
+";
+        #endregion
     }
 }

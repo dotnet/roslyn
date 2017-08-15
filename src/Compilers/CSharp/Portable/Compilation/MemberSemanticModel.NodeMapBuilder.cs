@@ -224,6 +224,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <param name="currentBoundNode">The bound node.</param>
             private bool ShouldAddNode(BoundNode currentBoundNode)
             {
+                // stackalloc conversion nodes should always be added, as information about their types exist on the conversion, not the operand node.
+                if (currentBoundNode.Kind == BoundKind.Conversion)
+                {
+                    switch (((BoundConversion)currentBoundNode).Conversion.Kind)
+                    {
+                        case ConversionKind.StackAllocToPointerType:
+                        case ConversionKind.StackAllocToSpanType:
+                            return true;
+                    }
+                }
+
                 // Do not add compiler generated nodes.
                 if (currentBoundNode.WasCompilerGenerated)
                 {

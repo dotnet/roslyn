@@ -180,8 +180,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // like compound assignment does (extra flag only passed when it is an expression
             // statement means that this constraint is not violated).
             // Dynamic type will be erased in emit phase. It is considered equivalent to Object in lowered bound trees.
+            // stackalloc bound nodes have no type, and they are updated to the appropriate type after lowering
             Debug.Assert(visited == null || visited.HasErrors || ReferenceEquals(visited.Type, node.Type) ||
-                    visited.Type.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                    visited.Type.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames) ||
+                    node.Kind == BoundKind.StackAllocArrayCreation);
 
             return visited;
         }

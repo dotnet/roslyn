@@ -83,6 +83,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case ConversionKind.PointerToVoid:
                 case ConversionKind.PointerToPointer:
                     return; //no-op since they all have the same runtime representation
+                case ConversionKind.StackAllocToPointerType:
+                case ConversionKind.StackAllocToSpanType:
+                    // no-op since operand (which contains the lowered expression) is already emitted
+                    return;
                 case ConversionKind.PointerToInteger:
                 case ConversionKind.IntegerToPointer:
                     var fromType = conversion.Operand.Type;

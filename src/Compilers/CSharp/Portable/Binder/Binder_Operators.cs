@@ -2196,6 +2196,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             return true;
                         }
+                    case BoundKind.Conversion:
+                        {
+                            switch (expr.GetConversion().Kind)
+                            {
+                                case ConversionKind.StackAllocToPointerType:
+                                case ConversionKind.StackAllocToSpanType:
+                                    return true;
+                                default:
+                                    return false;
+                            }
+                        }
                     case BoundKind.PropertyAccess: // Never a variable.
                     case BoundKind.IndexerAccess: // Never a variable.
                     default:

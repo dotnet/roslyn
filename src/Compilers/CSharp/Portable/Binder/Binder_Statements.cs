@@ -884,6 +884,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
+                else if (initializerOpt is BoundStackAllocArrayCreation boundStackAlloc)
+                {
+                    declTypeOpt = new PointerTypeSymbol(boundStackAlloc.ElementType);
+                    initializerOpt = GenerateConversionForAssignment(declTypeOpt, boundStackAlloc, diagnostics, false, localSymbol.RefKind);
+                }
                 else
                 {
                     declTypeOpt = CreateErrorType("var");
@@ -909,7 +914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert((object)declTypeOpt != null);
-
+            
             if (kind == LocalDeclarationKind.FixedVariable)
             {
                 // NOTE: this is an error, but it won't prevent further binding.
@@ -1050,9 +1055,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 initializerOpt = GenerateConversionForAssignment(declType, initializerOpt, diagnostics);
                 if (!initializerOpt.HasAnyErrors)
                 {
-                    Debug.Assert(initializerOpt.Kind == BoundKind.Conversion &&
-                        (((BoundConversion)initializerOpt).Operand.IsLiteralNull() ||
-                            ((BoundConversion)initializerOpt).Operand.Kind == BoundKind.DefaultExpression),
+                    Debug.Assert(initializerOpt is BoundConversion conversion && (
+                        conversion.Operand.IsLiteralNull() ||
+                        conversion.Operand.Kind == BoundKind.DefaultExpression ||
+                        conversion.Operand.Kind == BoundKind.StackAllocArrayCreation),
                         "All other typeless expressions should have conversion errors");
 
                     // CONSIDER: this is a very confusing error message, but it's what Dev10 reports.
@@ -1807,90 +1813,100 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (operand.Kind == BoundKind.BadExpression)
+            switch (operand.Kind)
             {
-                return;
-            }
+                case BoundKind.BadExpression:
+                    {
+                        return;
+                    }
+                case BoundKind.UnboundLambda:
+                    {
+                        GenerateAnonymousFunctionConversionError(diagnostics, syntax, (UnboundLambda)operand, targetType);
+                        return;
+                    }
+                case BoundKind.TupleLiteral:
+                    {
+                        var tuple = (BoundTupleLiteral)operand;
+                        var targetElementTypes = default(ImmutableArray<TypeSymbol>);
 
-            if (operand.Kind == BoundKind.UnboundLambda)
-            {
-                GenerateAnonymousFunctionConversionError(diagnostics, syntax, (UnboundLambda)operand, targetType);
-                return;
-            }
+                        // If target is a tuple or compatible type with the same number of elements,
+                        // report errors for tuple arguments that failed to convert, which would be more useful.
+                        if (targetType.TryGetElementTypesIfTupleOrCompatible(out targetElementTypes) &&
+                            targetElementTypes.Length == tuple.Arguments.Length)
+                        {
+                            GenerateImplicitConversionErrorsForTupleLiteralArguments(diagnostics, tuple.Arguments, targetElementTypes);
+                            return;
+                        }
 
-            if (operand.Kind == BoundKind.TupleLiteral)
-            {
-                var tuple = (BoundTupleLiteral)operand;
-                var targetElementTypes = default(ImmutableArray<TypeSymbol>);
+                        // target is not compatible with source and source does not have a type
+                        if ((object)tuple.Type == null)
+                        {
+                            Error(diagnostics, ErrorCode.ERR_ConversionNotTupleCompatible, syntax, tuple.Arguments.Length, targetType);
+                            return;
+                        }
 
-                // If target is a tuple or compatible type with the same number of elements,
-                // report errors for tuple arguments that failed to convert, which would be more useful.
-                if (targetType.TryGetElementTypesIfTupleOrCompatible(out targetElementTypes) &&
-                    targetElementTypes.Length == tuple.Arguments.Length)
-                {
-                    GenerateImplicitConversionErrorsForTupleLiteralArguments(diagnostics, tuple.Arguments, targetElementTypes);
-                    return;
-                }
+                        // Otherwise it is just a regular conversion failure from T1 to T2.
+                        break;
+                    }
+                case BoundKind.MethodGroup:
+                    {
+                        var methodGroup = (BoundMethodGroup)operand;
+                        if (!Conversions.ReportDelegateMethodGroupDiagnostics(this, methodGroup, targetType, diagnostics))
+                        {
+                            var nodeForSquiggle = syntax;
+                            while (nodeForSquiggle.Kind() == SyntaxKind.ParenthesizedExpression)
+                            {
+                                nodeForSquiggle = ((ParenthesizedExpressionSyntax)nodeForSquiggle).Expression;
+                            }
 
-                // target is not compatible with source and source does not have a type
-                if ((object)tuple.Type == null)
-                {
-                    Error(diagnostics, ErrorCode.ERR_ConversionNotTupleCompatible, syntax, tuple.Arguments.Length, targetType);
-                    return;
-                }
+                            if (nodeForSquiggle.Kind() == SyntaxKind.SimpleMemberAccessExpression || nodeForSquiggle.Kind() == SyntaxKind.PointerMemberAccessExpression)
+                            {
+                                nodeForSquiggle = ((MemberAccessExpressionSyntax)nodeForSquiggle).Name;
+                            }
 
-                // Otherwise it is just a regular conversion failure from T1 to T2.
+                            var location = nodeForSquiggle.Location;
+
+                            if (ReportDelegateInvokeUseSiteDiagnostic(diagnostics, targetType, location))
+                            {
+                                return;
+                            }
+
+                            Error(diagnostics,
+                                targetType.IsDelegateType() ? ErrorCode.ERR_MethDelegateMismatch : ErrorCode.ERR_MethGrpToNonDel,
+                                location, methodGroup.Name, targetType);
+                        }
+
+                        return;
+                    }
+                case BoundKind.Literal:
+                    {
+                        if (operand.IsLiteralNull())
+                        {
+                            if (targetType.TypeKind == TypeKind.TypeParameter)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_TypeVarCantBeNull, syntax, targetType);
+                                return;
+                            }
+                            if (targetType.IsValueType)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_ValueCantBeNull, syntax, targetType);
+                                return;
+                            }
+                        }
+                        break;
+                    }
+                case BoundKind.StackAllocArrayCreation:
+                    {
+                        var stackAllocExpression = (BoundStackAllocArrayCreation)operand;
+                        Error(diagnostics, ErrorCode.ERR_StackAllocConversionNotPossible, syntax, stackAllocExpression.ElementType, targetType);
+                        return;
+                    }
             }
 
             var sourceType = operand.Type;
             if ((object)sourceType != null)
             {
                 GenerateImplicitConversionError(diagnostics, this.Compilation, syntax, conversion, sourceType, targetType, operand.ConstantValue);
-                return;
-            }
-
-            if (operand.IsLiteralNull())
-            {
-                if (targetType.TypeKind == TypeKind.TypeParameter)
-                {
-                    Error(diagnostics, ErrorCode.ERR_TypeVarCantBeNull, syntax, targetType);
-                    return;
-                }
-                if (targetType.IsValueType)
-                {
-                    Error(diagnostics, ErrorCode.ERR_ValueCantBeNull, syntax, targetType);
-                    return;
-                }
-            }
-
-            if (operand.Kind == BoundKind.MethodGroup)
-            {
-                var methodGroup = (BoundMethodGroup)operand;
-                if (!Conversions.ReportDelegateMethodGroupDiagnostics(this, methodGroup, targetType, diagnostics))
-                {
-                    var nodeForSquiggle = syntax;
-                    while (nodeForSquiggle.Kind() == SyntaxKind.ParenthesizedExpression)
-                    {
-                        nodeForSquiggle = ((ParenthesizedExpressionSyntax)nodeForSquiggle).Expression;
-                    }
-
-                    if (nodeForSquiggle.Kind() == SyntaxKind.SimpleMemberAccessExpression || nodeForSquiggle.Kind() == SyntaxKind.PointerMemberAccessExpression)
-                    {
-                        nodeForSquiggle = ((MemberAccessExpressionSyntax)nodeForSquiggle).Name;
-                    }
-
-                    var location = nodeForSquiggle.Location;
-
-                    if (ReportDelegateInvokeUseSiteDiagnostic(diagnostics, targetType, location))
-                    {
-                        return;
-                    }
-
-                    Error(diagnostics,
-                        targetType.IsDelegateType() ? ErrorCode.ERR_MethDelegateMismatch : ErrorCode.ERR_MethGrpToNonDel,
-                        location, methodGroup.Name, targetType);
-                }
-
                 return;
             }
 

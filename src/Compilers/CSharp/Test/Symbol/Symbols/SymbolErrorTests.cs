@@ -2713,6 +2713,28 @@ class Program
         }
 
         [Fact]
+        public void CS0214ERR_UnsafeNeeded04()
+        {
+            var text = @"
+namespace System
+{
+    public class TestType
+    {
+        public void TestMethod()
+        {
+            var x = stackalloc int[10];         // ERROR
+            Span<int> y = stackalloc int[10];   // OK
+        }
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (8,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //             var x = stackalloc int[10];    // ERROR
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc int[10]").WithLocation(8, 21));
+        }
+
+        [Fact]
         public void CS0215ERR_OpTFRetType()
         {
             var text = @"class MyClass
