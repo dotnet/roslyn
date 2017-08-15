@@ -17,9 +17,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
         Public ReadOnly Catalog As ComposableCatalog = TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
                         GetType(MockDocumentNavigationServiceFactory),
                         GetType(DefaultSymbolNavigationServiceFactory),
-                        GetType(GeneratedCodeRecognitionService),
                         GetType(CSharpGoToDefinitionSymbolService),
-                        GetType(VisualBasicGoToDefinitionSymbolService))
+                        GetType(VisualBasicGoToDefinitionSymbolService),
                         GetType(CSharpGeneratedCodeRecognitionService),
                         GetType(VisualBasicGeneratedCodeRecognitionService))
 
