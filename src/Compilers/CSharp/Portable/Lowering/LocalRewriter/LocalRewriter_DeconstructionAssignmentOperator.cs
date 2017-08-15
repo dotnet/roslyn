@@ -189,18 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<BoundExpression>.GetInstance(numElements);
             for (int i = 0; i < numElements; i++)
             {
-                var field = fields[i];
-
-                // Use default field rather than implicitly named fields since
-                // fields from inferred names are not usable in C# 7.0.
-                field = field.CorrespondingTupleField ?? field;
-
-                DiagnosticInfo useSiteInfo = field.GetUseSiteDiagnostic();
-                if ((object)useSiteInfo != null && useSiteInfo.Severity == DiagnosticSeverity.Error)
-                {
-                    Symbol.ReportUseSiteDiagnostic(useSiteInfo, _diagnostics, expression.Syntax.Location);
-                }
-                var fieldAccess = MakeTupleFieldAccess(expression.Syntax, field, tuple, null, LookupResultKind.Empty);
+                var fieldAccess = MakeTupleFieldAccessAndReportUseSiteDiagnostics(tuple, expression.Syntax, fields[i]);
                 builder.Add(fieldAccess);
             }
             return builder.ToImmutableAndFree();

@@ -649,16 +649,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < numElements; i++)
             {
-                var field = srcElementFields[i];
-
-                DiagnosticInfo useSiteInfo = field.GetUseSiteDiagnostic();
-                if ((object)useSiteInfo != null && useSiteInfo.Severity == DiagnosticSeverity.Error)
-                {
-                    Symbol.ReportUseSiteDiagnostic(useSiteInfo, _diagnostics, syntax.Location);
-                }
-                var fieldAccess = MakeTupleFieldAccess(syntax, field, savedTuple, null, LookupResultKind.Empty);
+                var fieldAccess = MakeTupleFieldAccessAndReportUseSiteDiagnostics(savedTuple, syntax, srcElementFields[i]);
                 var convertedFieldAccess = MakeConversionNode(syntax, fieldAccess, elementConversions[i], destElementTypes[i], @checked, explicitCastInCode);
-
                 fieldAccessorsBuilder.Add(convertedFieldAccess);
             }
 
