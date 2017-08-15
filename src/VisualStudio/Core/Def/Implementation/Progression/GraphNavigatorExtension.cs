@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 if (symbol != null &&
                     !(symbol is ITypeSymbol) &&
                     !symbol.IsConstructor() &&
-                    symbolNavigationService.TrySymbolNavigationNotify(symbol, project.Solution, CancellationToken.None))
+                    symbolNavigationService.TrySymbolNavigationNotify(symbol, project, CancellationToken.None))
                 {
                     return;
                 }

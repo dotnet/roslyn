@@ -86,7 +86,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    public C() { Bar(); }
+    public C()
+    {
+        Bar();
+    }
 }", parameters: new TestParameters(options: UseExpressionBody));
         }
     }

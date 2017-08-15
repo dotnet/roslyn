@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -10,9 +9,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -346,6 +343,114 @@ namespace Root
 }");
         }
 
+        [WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoNotChangeToAliasInNameOfIfItChangesNameOfName()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+using Foo = SimplifyInsideNameof.Program;
+
+namespace SimplifyInsideNameof
+{
+  class Program
+  {
+    static void Main(string[] args)
+    {
+      Console.WriteLine(nameof([|SimplifyInsideNameof.Program|]));
+    }
+  }
+}",
+@"using System;
+using Foo = SimplifyInsideNameof.Program;
+
+namespace SimplifyInsideNameof
+{
+  class Program
+  {
+    static void Main(string[] args)
+    {
+      Console.WriteLine(nameof(Program));
+    }
+  }
+}");
+        }
+
+        [WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoChangeToAliasInNameOfIfItDoesNotAffectName1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using Goo = SimplifyInsideNameof.Program;
+
+namespace SimplifyInsideNameof
+{
+  class Program
+  {
+    static void Main(string[] args)
+    {
+      Console.WriteLine(nameof([|SimplifyInsideNameof.Program|].Main));
+    }
+  }
+}",
+
+@"using System;
+using Goo = SimplifyInsideNameof.Program;
+
+namespace SimplifyInsideNameof
+{
+  class Program
+  {
+    static void Main(string[] args)
+    {
+      Console.WriteLine(nameof(Goo.Main));
+    }
+  }
+}");
+        }
+
+        [WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoChangeToAliasInNameOfIfItDoesNotAffectName2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using Goo = N.Goo;
+
+namespace N {
+    class Goo { }
+}
+
+namespace SimplifyInsideNameof
+{
+  class Program
+  {
+    static void Main(string[] args)
+    {
+      Console.WriteLine(nameof([|N.Goo|]));
+    }
+  }
+}",
+@"using System;
+using Goo = N.Goo;
+
+namespace N {
+    class Goo { }
+}
+
+namespace SimplifyInsideNameof
+{
+  class Program
+  {
+    static void Main(string[] args)
+    {
+      Console.WriteLine(nameof(Goo));
+    }
+  }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TwoAliases()
         {
@@ -513,7 +618,7 @@ namespace Root
             var content =
 @"class A
 {
-     [|[||]|] i;
+    [|[||]|] i;
 }
 ";
 
@@ -746,9 +851,7 @@ namespace Root
     {
         public class A2
         {
-            public class A1
-            {
-            }
+            public class A1 { }
 
             A1 a;
         }
@@ -2380,7 +2483,7 @@ class A
 @"using System;
 using System.Collections.Generic;
 /// <summary>
-/// <see cref=""A.M{T}(List{Nullable{T}}, T?})""/>
+/// <see cref=""A.M{T}(List{Nullable{T}}, T?)""/>
 /// </summary>
 class A
 {
@@ -2493,7 +2596,7 @@ class Program
 {
     static void Main()
     {
-        Program a = null;
+        Program a = null; 
     }
 }", parseOptions: null);
 
@@ -2548,7 +2651,7 @@ static class M
             await TestInRegularAndScriptAsync(source,
 @"class Preserve
 {
-    public static int Y;
+	public static int Y;
 }
 
 class Z<T> : Preserve
@@ -2557,10 +2660,10 @@ class Z<T> : Preserve
 
 static class M
 {
-    public static void Main()
-    {
-        int k = Preserve.Y;
-    }
+	public static void Main()
+	{
+		int k = Preserve.Y;
+	}
 }");
         }
 
@@ -2591,10 +2694,10 @@ class M
             await TestInRegularAndScriptAsync(source,
 @"class Preserve
 {
-    public class X
-    {
-        public static int Y;
-    }
+	public class X
+	{
+		public static int Y;
+	}
 }
 
 class Z<T> : Preserve
@@ -2603,10 +2706,10 @@ class Z<T> : Preserve
 
 class M
 {
-    public static void Main()
-    {
-        int k = Preserve.X.Y;
-    }
+	public static void Main()
+	{
+		int k = Preserve.X.Y;
+	}
 }");
         }
 

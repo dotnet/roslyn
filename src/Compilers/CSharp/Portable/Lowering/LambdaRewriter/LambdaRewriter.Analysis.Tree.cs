@@ -119,6 +119,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public ClosureEnvironment ContainingEnvironmentOpt;
 
+                private bool _capturesThis;
+
+                /// <summary>
+                /// True if this closure directly or transitively captures 'this' (captures
+                /// a local function which directly or indirectly captures 'this').
+                /// Calculated in <see cref="MakeAndAssignEnvironments"/>.
+                /// </summary>
+                public bool CapturesThis
+                {
+                    get => _capturesThis;
+                    set
+                    {
+                        Debug.Assert(value);
+                        _capturesThis = value;
+                    }
+                }
+
                 public Closure(MethodSymbol symbol)
                 {
                     Debug.Assert(symbol != null);
@@ -132,81 +149,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            /// <summary>
-            /// Optimizes local functions such that if a local function only references other local functions
-            /// that capture no variables, we don't need to create capture environments for any of them.
-            /// </summary>
-            private void RemoveUnneededReferences(ParameterSymbol thisParam)
+            public sealed class ClosureEnvironment
             {
-                var methodGraph = new MultiDictionary<MethodSymbol, MethodSymbol>();
-                var capturesThis = new HashSet<MethodSymbol>();
-                var capturesVariable = new HashSet<MethodSymbol>();
-                var visitStack = new Stack<MethodSymbol>();
-                VisitClosures(ScopeTree, (scope, closure) =>
+                public readonly SetWithInsertionOrder<Symbol> CapturedVariables;
+                
+                /// <summary>
+                /// Represents a <see cref="SynthesizedEnvironment"/> that had its environment
+                /// pointer (a local pointing to the environment) captured like a captured
+                /// variable. Assigned in
+                /// <see cref="ComputeLambdaScopesAndFrameCaptures(ParameterSymbol)"/>
+                /// </summary>
+                public bool CapturesParent;
+
+                public readonly bool IsStruct;
+                internal SynthesizedClosureEnvironment SynthesizedEnvironment;
+
+                public ClosureEnvironment(IEnumerable<Symbol> capturedVariables, bool isStruct)
                 {
-                    foreach (var capture in closure.CapturedVariables)
+                    CapturedVariables = new SetWithInsertionOrder<Symbol>();
+                    foreach (var item in capturedVariables)
                     {
-                        if (capture is MethodSymbol localFunc)
-                        {
-                            methodGraph.Add(localFunc, closure.OriginalMethodSymbol);
-                        }
-                        else if (capture == thisParam)
-                        {
-                            if (capturesThis.Add(closure.OriginalMethodSymbol))
-                            {
-                                visitStack.Push(closure.OriginalMethodSymbol);
-                            }
-                        }
-                        else if (capturesVariable.Add(closure.OriginalMethodSymbol) &&
-                                 !capturesThis.Contains(closure.OriginalMethodSymbol))
-                        {
-                            visitStack.Push(closure.OriginalMethodSymbol);
-                        }
+                        CapturedVariables.Add(item);
                     }
-                });
-
-                while (visitStack.Count > 0)
-                {
-                    var current = visitStack.Pop();
-                    var setToAddTo = capturesVariable.Contains(current) ? capturesVariable : capturesThis;
-                    foreach (var capturesCurrent in methodGraph[current])
-                    {
-                        if (setToAddTo.Add(capturesCurrent))
-                        {
-                            visitStack.Push(capturesCurrent);
-                        }
-                    }
-                }
-
-                // True if there are any closures in the tree which
-                // capture 'this' and another variable
-                bool captureMoreThanThis = false;
-
-                VisitClosures(ScopeTree, (scope, closure) =>
-                {
-                    if (!capturesVariable.Contains(closure.OriginalMethodSymbol))
-                    {
-                        closure.CapturedVariables.Clear();
-                    }
-
-                    if (capturesThis.Contains(closure.OriginalMethodSymbol))
-                    {
-                        closure.CapturedVariables.Add(thisParam);
-                        if (closure.CapturedVariables.Count > 1)
-                        {
-                            captureMoreThanThis |= true;
-                        }
-                    }
-                });
-
-                if (!captureMoreThanThis && capturesThis.Count > 0)
-                {
-                    // If we have closures which capture 'this', and nothing else, we can
-                    // remove 'this' from the declared variables list, since we don't need
-                    // to create an environment to hold 'this' (since we can emit the
-                    // lowered methods directly onto the containing class)
-                    bool removed = ScopeTree.DeclaredVariables.Remove(thisParam);
-                    Debug.Assert(removed);
+                    IsStruct = isStruct;
                 }
             }
 
@@ -224,6 +189,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     VisitClosures(nested, action);
                 }
+            }
+
+            /// <summary>
+            /// Visit all the closures and return true when the <paramref name="func"/> returns
+            /// true. Otherwise, returns false.
+            /// </summary>
+            public static bool CheckClosures(Scope scope, Func<Scope, Closure, bool> func)
+            {
+                foreach (var closure in scope.Closures)
+                {
+                    if (func(scope, closure))
+                    {
+                        return true;
+                    }
+                }
+
+                foreach (var nested in scope.NestedScopes)
+                {
+                    if (CheckClosures(nested, func))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
             }
 
             /// <summary>
@@ -488,6 +478,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (symbol is LocalSymbol local && local.IsConst)
                     {
                         // consts aren't captured since they're inlined
+                        return;
+                    }
+
+                    if (symbol is MethodSymbol method &&
+                        _currentClosure.OriginalMethodSymbol == method)
+                    {
+                        // Is this recursion? If so there's no capturing
                         return;
                     }
 

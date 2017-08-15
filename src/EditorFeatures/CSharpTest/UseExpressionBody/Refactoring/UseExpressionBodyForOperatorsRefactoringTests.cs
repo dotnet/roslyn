@@ -86,7 +86,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    public static bool operator +(C c1, C c2) { return Bar(); }
+    public static bool operator +(C c1, C c2)
+    {
+        return Bar();
+    }
 }", parameters: new TestParameters(options: UseExpressionBody));
         }
     }

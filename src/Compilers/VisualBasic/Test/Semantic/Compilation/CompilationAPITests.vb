@@ -287,8 +287,8 @@ End Namespace
 
             Assert.Throws(Of ArgumentException)("embeddedTexts", Sub() comp.Emit(
                 peStream:=New MemoryStream(),
-                pdbStream:=New MemoryStream(),
-                options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb),
+                pdbStream:=Nothing,
+                options:=Nothing,
                 embeddedTexts:={EmbeddedText.FromStream("_", New MemoryStream())}))
 
             Assert.Throws(Of ArgumentException)("embeddedTexts", Sub() comp.Emit(

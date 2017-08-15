@@ -2508,14 +2508,12 @@ count: 1);
             await TestInRegularAndScriptAsync(
 Initial,
 @"class C
-{
-    const int y = 1;
+{   
+    const int y = 1 ;
     private const bool undeclared;
 
-    public void Goo(bool x = undeclared)
-    {
-    }
-}");
+    public void Goo ( bool x = undeclared ) { }
+} ");
         }
 
         [WorkItem(542900, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542900")]
@@ -3815,6 +3813,7 @@ index: 1);
 #if true
         // Banner Line 1
         // Banner Line 2
+
         int local;
         int.TryParse(""123"", out [|local|]);
 #endif
@@ -4346,7 +4345,8 @@ class C
             await TestExactActionSetOfferedAsync(code, new[] { string.Format(FeaturesResources.Generate_local_0, "Bar") });
 
             await TestInRegularAndScriptAsync(code,
-@"class C
+@"
+class C
 {
 #line 1 ""goo""
     void Goo()
@@ -4355,7 +4355,8 @@ class C
     }
 #line default
 #line hidden
-}", options: ImplicitTypingEverywhere());
+}
+", options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(546027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546027")]
@@ -6778,7 +6779,8 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<int> goo = () => {
+        Func<int> goo = () =>
+        {
             return 0;
         };
     }
@@ -7140,7 +7142,8 @@ public class Goo
         [|String|] = goo;
     }
 }",
-@"using System;
+@"
+using System;
 
 public class Goo
 {
@@ -7168,7 +7171,8 @@ public class Goo
         [|String|] = goo;
     }
 }",
-@"using System;
+@"
+using System;
 
 public class Goo
 {
@@ -7436,7 +7440,6 @@ class C
 {
     public bool isDisposed;
     private int y;
-
     public readonly int x;
     public readonly int m;
 
@@ -7470,7 +7473,6 @@ class C
     public readonly int x;
     public readonly int m;
     private readonly int y;
-
     public bool isDisposed;
 
     public C()

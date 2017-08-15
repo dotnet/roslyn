@@ -18,6 +18,8 @@ Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Imports Microsoft.DiaSymReader
+Imports Roslyn.Test.PdbUtilities
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Test.Utilities.SharedResourceHelpers
 Imports Roslyn.Utilities
@@ -2778,18 +2780,14 @@ End Class")
             parsedArgs = DefaultParse({"/embed:a.txt", "/debug-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_CannotEmbedWithoutPdb))
 
-            ' These should fail when native PDB support is added.
             parsedArgs = DefaultParse({"/embed", "/debug:full", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_CannotEmbedWithoutPdb))
-
-            parsedArgs = DefaultParse({"/embed", "/debug:full", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_CannotEmbedWithoutPdb))
+            parsedArgs.Errors.Verify()
 
             parsedArgs = DefaultParse({"/embed", "/debug:pdbonly", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_CannotEmbedWithoutPdb))
+            parsedArgs.Errors.Verify()
 
             parsedArgs = DefaultParse({"/embed", "/debug+", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_CannotEmbedWithoutPdb))
+            parsedArgs.Errors.Verify()
         End Sub
 
         <Theory>
@@ -2801,6 +2799,10 @@ End Class")
         <InlineData("/debug:embedded", "/embed:embed.vb", {"embed.vb", "embed.xyz"})>
         <InlineData("/debug:embedded", "/embed:embed2.vb", {"embed2.vb"})>
         <InlineData("/debug:embedded", "/embed:embed.xyz", {"embed.xyz"})>
+        <InlineData("/debug:full", "/embed", {"embed.vb", "embed2.vb", "embed.xyz"})>
+        <InlineData("/debug:full", "/embed:embed.vb", {"embed.vb", "embed.xyz"})>
+        <InlineData("/debug:full", "/embed:embed2.vb", {"embed2.vb"})>
+        <InlineData("/debug:full", "/embed:embed.xyz", {"embed.xyz"})>
         Public Sub Embed_EndToEnd(debugSwitch As String, embedSwitch As String, expectedEmbedded As String())
             ' embed.vb: large enough To compress, has #line directives
             Const embed_vb =
@@ -2858,13 +2860,26 @@ print Goodbye, World"
             Assert.Equal("", output.ToString().Trim())
             Assert.Equal(0, exitCode)
 
-            Dim embedded = (debugSwitch = "/debug:embedded")
+            Select Case debugSwitch
+                Case "/debug:embedded"
+                    ValidateEmbeddedSources_Portable(expectedEmbeddedMap, dir, isEmbeddedPdb:=True)
+                Case "/debug:portable"
+                    ValidateEmbeddedSources_Portable(expectedEmbeddedMap, dir, isEmbeddedPdb:=False)
+                Case "/debug:full"
+                    ValidateEmbeddedSources_Windows(expectedEmbeddedMap, dir)
+            End Select
+
+            Assert.Empty(expectedEmbeddedMap)
+            CleanupAllGeneratedFiles(src.Path)
+        End Sub
+
+        Private Shared Sub ValidateEmbeddedSources_Portable(expectedEmbeddedMap As Dictionary(Of String, String), dir As TempDirectory, isEmbeddedPdb As Boolean)
             Using peReader As New PEReader(File.OpenRead(Path.Combine(dir.Path, "embed.exe")))
                 Dim entry = peReader.ReadDebugDirectory().SingleOrDefault(Function(e) e.Type = DebugDirectoryEntryType.EmbeddedPortablePdb)
-                Assert.Equal(embedded, entry.DataSize > 0)
+                Assert.Equal(isEmbeddedPdb, entry.DataSize > 0)
 
                 Using mdProvider As MetadataReaderProvider = If(
-                    embedded,
+                    isEmbeddedPdb,
                     peReader.ReadEmbeddedPortablePdbDebugDirectoryData(entry),
                     MetadataReaderProvider.FromPortablePdbStream(File.OpenRead(Path.Combine(dir.Path, "embed.pdb"))))
 
@@ -2884,9 +2899,30 @@ print Goodbye, World"
                     Next
                 End Using
             End Using
+        End Sub
 
-            Assert.Empty(expectedEmbeddedMap)
-            CleanupAllGeneratedFiles(src.Path)
+        Private Shared Sub ValidateEmbeddedSources_Windows(expectedEmbeddedMap As Dictionary(Of String, String), dir As TempDirectory)
+            Dim symReader As ISymUnmanagedReader5 = Nothing
+
+            Try
+                symReader = SymReaderFactory.CreateReader(File.OpenRead(Path.Combine(dir.Path, "embed.pdb")))
+
+                For Each doc In symReader.GetDocuments()
+                    Dim docPath = doc.GetName()
+
+                    Dim sourceBlob = doc.GetEmbeddedSource()
+                    If sourceBlob.Array Is Nothing Then
+                        Continue For
+                    End If
+
+                    Dim sourceStr = Encoding.UTF8.GetString(sourceBlob.Array, sourceBlob.Offset, sourceBlob.Count)
+
+                    Assert.Equal(expectedEmbeddedMap(docPath), sourceStr)
+                    Assert.True(expectedEmbeddedMap.Remove(docPath))
+                Next
+            Finally
+                symReader?.Dispose()
+            End Try
         End Sub
 
         <CompilerTrait(CompilerFeature.Determinism)>
