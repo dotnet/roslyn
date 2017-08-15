@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents a anonymous function expression, such as a lambda or anonymous delegate.
+    /// Represents an anonymous function expression, such as a lambda or anonymous delegate.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
