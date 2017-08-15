@@ -2,6 +2,7 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -171,12 +172,14 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
 
             var start = span.Start;
             var end = span.Start;
-            while (start > 0 && ExpandBackward(sourceText, start, fullyQualifiedName))
+            while (start > 0 &&
+                   ShouldExpandSpanBackwardOneCharacter(sourceText, start, fullyQualifiedName))
             {
                 start--;
             }
 
-            while (end < sourceText.Length && ExpandForward(sourceText, end, fullyQualifiedName))
+            while (end < sourceText.Length && 
+                   ShouldExpandSpanForwardOneCharacter(sourceText, end, fullyQualifiedName))
             {
                 end++;
             }
@@ -184,7 +187,7 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
             return TextSpan.FromBounds(start, end);
         }
 
-        private bool ExpandForward(SourceText sourceText, int end, bool fullyQualifiedName)
+        private bool ShouldExpandSpanForwardOneCharacter(SourceText sourceText, int end, bool fullyQualifiedName)
         {
             var currentChar = sourceText[end];
 
@@ -204,9 +207,11 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
             return false;
         }
 
-        private bool ExpandBackward(
+        private bool ShouldExpandSpanBackwardOneCharacter(
             SourceText sourceText, int start, bool fullyQualifiedName)
         {
+            Debug.Assert(start > 0);
+
             var previousCharacter = sourceText[start - 1];
             if (char.IsLetterOrDigit(previousCharacter))
             {
