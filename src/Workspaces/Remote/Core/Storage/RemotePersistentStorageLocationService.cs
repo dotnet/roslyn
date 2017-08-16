@@ -44,7 +44,8 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
                 }
                 else
                 {
-                    _idToStorageLocation[id] = storageLocation;
+                    // Store the esent database in a different location for the out of proc server.
+                    _idToStorageLocation[id] = Path.Combine(storageLocation, "Server");
                 }
             }
         }

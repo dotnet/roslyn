@@ -94,7 +94,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
         }
 
-        private static async Task RegisterWorkspaceHostAsync(Workspace workspace, RemoteHostClient client)
+        // internal for debugging purpose
+        internal static async Task RegisterWorkspaceHostAsync(Workspace workspace, RemoteHostClient client)
         {
             var vsWorkspace = workspace as VisualStudioWorkspaceImpl;
             if (vsWorkspace == null)
