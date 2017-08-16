@@ -196,6 +196,21 @@ namespace Microsoft.CodeAnalysis.SQLite
             // are definitely persisted to the DB.
             try
             {
+                CloseWorker();
+            }
+            finally
+            {
+                // let the lock go
+                _dbOwnershipLock.Dispose();
+            }
+        }
+
+        private void CloseWorker()
+        {
+            // Flush all pending writes so that all data our features wanted written
+            // are definitely persisted to the DB.
+            try
+            {
                 FlushAllPendingWritesAsync(CancellationToken.None).Wait();
             }
             catch (Exception e)
@@ -216,9 +231,6 @@ namespace Microsoft.CodeAnalysis.SQLite
                     connection.Close_OnlyForUseBySqlPersistentStorage();
                 }
             }
-
-            // let the lock go
-            _dbOwnershipLock.Dispose();
         }
 
         private PooledConnection GetPooledConnection()
