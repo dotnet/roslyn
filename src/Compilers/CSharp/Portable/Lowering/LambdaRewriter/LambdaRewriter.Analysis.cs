@@ -246,9 +246,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    // Class-based 'this' closures can move member functions
-                    // to the top-level type and environments which capture
-                    // the 'this' environment can capture 'this' directly
+                    // Class-based 'this' closures can move member functions to
+                    // the top-level type and environments which capture the 'this'
+                    // environment can capture 'this' directly.
+                    // Note: the top-level type is treated as the initial containing
+                    // environment, so by removing the 'this' environment, all
+                    // nested environments which captured a pointer to the 'this'
+                    // environment will now capture 'this'
                     RemoveEnv();
                     VisitClosures(ScopeTree, (scope, closure) =>
                     {
@@ -257,35 +261,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             closure.ContainingEnvironmentOpt = null;
                         }
                     });
-
-                    // Find all environments in the scope below that could
-                    // capture the parent. If there are any, add 'this' to
-                    // the list of captured variables and remove the parent
-                    // link
-                    VisitFirstLevelScopes(ScopeTree);
-                    void VisitFirstLevelScopes(Scope scope)
-                    {
-                        var classEnvs = scope.DeclaredEnvironments.Where(e => !e.IsStruct);
-                        if (classEnvs.IsEmpty())
-                        {
-                            // Keep looking for nested environments
-                            foreach (var nested in scope.NestedScopes)
-                            {
-                                VisitFirstLevelScopes(nested);
-                            }
-                        }
-                        else
-                        {
-                            foreach (var declEnv in classEnvs)
-                            {
-                                if (declEnv.CapturesParent)
-                                {
-                                    declEnv.CapturedVariables.Insert(0, thisParam);
-                                    declEnv.CapturesParent = false;
-                                }
-                            }
-                        }
-                    }
                 }
 
                 void RemoveEnv()

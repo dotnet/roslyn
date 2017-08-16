@@ -187,8 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _assignLocals = assignLocals;
             _currentTypeParameters = method.TypeParameters;
             _currentLambdaBodyTypeMap = TypeMap.Empty;
-            _innermostFramePointer = null;
-            _currentFrameThis = thisParameterOpt;
+            _innermostFramePointer = _currentFrameThis = thisParameterOpt;
             _framePointers[thisType] = thisParameterOpt;
             _seenBaseCall = method.MethodKind != MethodKind.Constructor; // only used for ctors
             _synthesizedFieldNameIdDispenser = 1;

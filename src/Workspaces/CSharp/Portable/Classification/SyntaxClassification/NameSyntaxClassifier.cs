@@ -123,17 +123,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             CancellationToken cancellationToken,
             out ClassifiedSpan classifiedSpan)
         {
-            if (symbol != null)
+            // Classify a reference to an attribute constructor in an attribute location
+            // as if we were classifying the attribute type itself.
+            if (symbol.IsConstructor() && name.IsParentKind(SyntaxKind.Attribute))
             {
-                // see through using aliases
-                if (symbol.Kind == SymbolKind.Alias)
-                {
-                    symbol = (symbol as IAliasSymbol).Target;
-                }
-                else if (symbol.IsConstructor() && name.IsParentKind(SyntaxKind.Attribute))
-                {
-                    symbol = symbol.ContainingType;
-                }
+                symbol = symbol.ContainingType;
             }
 
             if (name.IsVar &&
@@ -153,18 +147,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 }
             }
 
-            if (symbol != null)
+            // Use .Equals since we can't rely on object identity for constructed types.
+            if (symbol is ITypeSymbol typeSymbol)
             {
-                // Use .Equals since we can't rely on object identity for constructed types.
-                if (symbol is ITypeSymbol typeSymbol)
+                var classification = GetClassificationForType(typeSymbol);
+                if (classification != null)
                 {
-                    var classification = GetClassificationForType(typeSymbol);
-                    if (classification != null)
-                    {
-                        var token = name.GetNameToken();
-                        classifiedSpan = new ClassifiedSpan(token.Span, classification);
-                        return true;
-                    }
+                    var token = name.GetNameToken();
+                    classifiedSpan = new ClassifiedSpan(token.Span, classification);
+                    return true;
                 }
             }
 

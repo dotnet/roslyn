@@ -31,6 +31,72 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
         [Fact]
+        public void CaptureThisInDifferentScopes()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    int _x;
+    void M()
+    {
+        {
+            int y = 0;
+            Func<int> f1 = () => _x + y;
+        }
+        {
+            int y = 0;
+            Func<int> f2 = () => _x + y;
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public void CaptureThisInDifferentScopes2()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    int _x;
+    void M()
+    {
+        {
+            int y = 0;
+            int L1() => _x + y;
+        }
+        {
+            int y = 0;
+            int L2() => _x + y;
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public void CaptureFramePointerInDifferentScopes()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    void M(int x)
+    {
+        Func<int> f1 = () => x;
+        {
+            int z = 0;
+            Func<int> f2 = () => x + z;
+        }
+        {
+            int z = 0;
+            Func<int> f3 = () => x + z;
+        }
+    }
+}");
+        }
+
+        [Fact]
         public void EnvironmentChainContainsStructEnvironment()
         {
             CompileAndVerify(@"
