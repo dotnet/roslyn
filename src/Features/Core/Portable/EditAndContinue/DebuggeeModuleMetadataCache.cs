@@ -73,8 +73,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 if (cache.TryGetValue(mvid, out var entry))
                 {
-                    entry.Dispose();
                     cache.Remove(mvid);
+                    entry.Dispose();
                     return true;
                 }
             }
