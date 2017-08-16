@@ -772,7 +772,7 @@
     <Compile Include="Formatting\TriviaEngine\LineColumnDelta.cs" />
     <Compile Include="Formatting\TriviaEngine\LineColumnRule.cs" />
     <Compile Include="Formatting\TriviaEngine\TriviaList.cs" />
-    <Compile Include="GeneratedCodeRecognition\GeneratedCodeRecognitionServiceFactory.cs" />
+    <Compile Include="GeneratedCodeRecognition\AbstractGeneratedCodeRecognitionService.cs" />
     <Compile Include="GeneratedCodeRecognition\IGeneratedCodeRecognitionService.cs" />
     <Compile Include="IOrderableMetadata.cs" />
     <Compile Include="Utilities\ImmutableArrayExtensions.cs" />
