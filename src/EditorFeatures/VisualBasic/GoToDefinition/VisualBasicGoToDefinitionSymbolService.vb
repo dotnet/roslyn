@@ -7,13 +7,12 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
-    <ExportLanguageService(GetType(IGoToDefinitionService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicGoToDefinitionService
-        Inherits AbstractGoToDefinitionService
+    <ExportLanguageService(GetType(IGoToDefinitionSymbolService), LanguageNames.VisualBasic), [Shared]>
+    Friend Class VisualBasicGoToDefinitionSymbolService
+        Inherits AbstractGoToDefinitionSymbolService
 
-        <ImportingConstructor>
-        Public Sub New(<ImportMany> streamingPresenters As IEnumerable(Of Lazy(Of IStreamingFindUsagesPresenter)))
-            MyBase.New(streamingPresenters)
-        End Sub
+        Protected Overrides Function FindRelatedExplicitlyDeclaredSymbol(symbol As ISymbol, compilation As Compilation) As ISymbol
+            Return symbol.FindRelatedExplicitlyDeclaredSymbol(compilation)
+        End Function
     End Class
 End Namespace

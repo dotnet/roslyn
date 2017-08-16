@@ -9,14 +9,12 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
 {
-    [ExportLanguageService(typeof(IGoToDefinitionService), LanguageNames.CSharp), Shared]
-    internal class CSharpGoToDefinitionService : AbstractGoToDefinitionService
+    [ExportLanguageService(typeof(IGoToDefinitionSymbolService), LanguageNames.CSharp), Shared]
+    internal class CSharpGoToDefinitionSymbolService : AbstractGoToDefinitionSymbolService
     {
-        [ImportingConstructor]
-        public CSharpGoToDefinitionService(
-            [ImportMany]IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters) 
-            : base(streamingPresenters)
+        protected override ISymbol FindRelatedExplicitlyDeclaredSymbol(ISymbol symbol, Compilation compilation)
         {
+            return symbol;
         }
     }
 }
