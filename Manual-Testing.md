@@ -96,6 +96,7 @@ When doing a test pass, copy this page and consider using these status indicator
 | | **Move Declaration Near Reference** [Visual Studio 2017 version 15.5] | | | N/A |
 | | **Introduce Pattern Matching** [Visual Studio 2017 version 15.5] | | | N/A |
 | | **Simplify Inferred Tuple Names** [Visual Studio 2017 version 15.5] | | | N/A |
+| | **Convert keyword and symbol references to doc comment tags** [Visual Studio 2017 version 15.5] | | | N/A |
 | **Fixes** | **Add Using**<br />- Triggers on appropriate constructs<br />- Including NuGet references<br />- Including Referenced Assemblies<br />- Includes spelling fixes | | | |
 | | **Generate Local**<br />- Select an expression and introduce a local variable to represent it<br />- This should start an Inline Rename session | | | N/A |
 | | **Generate Field**<br />- Select an expression and introduce a field to represent it<br />- This should start an Inline Rename session | | | N/A |
@@ -125,6 +126,7 @@ When doing a test pass, copy this page and consider using these status indicator
 | | **Resolve git merge conflicts** [Visual Studio 2017 version 15.3] | | | N/A |
 | | **Add argument name** [Visual Studio 2017 version 15.3 | | | N/A |
 | | **Fade and remove unreachable code** [Visual Studio 2017 version 15.5] | | | N/A |
+| | **Add missing file banner** [Visual Studio 2017 version 15.5] | | | N/A |
 
 ### IDE Features
 | Category | Feature/Description | C# Signoff/Notes | VB Signoff/Notes | F# Signoff/Notes |
