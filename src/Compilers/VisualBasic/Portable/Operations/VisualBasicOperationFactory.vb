@@ -26,11 +26,12 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
             ' this should be removed once this issue is fixed
             ' https://github.com/dotnet/roslyn/issues/21186
-            If TypeOf boundNode Is BoundValuePlaceholderBase Then
-                ' since same place holder bound node appears in multiple places in the tree
+            ' https://github.com/dotnet/roslyn/issues/21554
+            If TypeOf boundNode Is BoundValuePlaceholderBase OrElse
+               (TypeOf boundNode Is BoundParameter AndAlso boundNode.WasCompilerGenerated) Then
+                ' since same bound node appears in multiple places in the tree
                 ' we can't use bound node to operation map.
-                ' for now, we will just create new operation and return clone but we need to figure out
-                ' what we want to do with place holder node such as just returning nothing
+                ' for now, we will just create new operation and return cloned
                 Return _semanticModel.CloneOperation(CreateInternal(boundNode))
             End If
 
