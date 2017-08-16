@@ -635,23 +635,23 @@ namespace Microsoft.CodeAnalysis.Semantics
             // We are counting on the fact that will do the error recovery and actually create the BoundLambda node appropriate for
             // this syntax node.
             var lambdaOperation = _semanticModel.GetOperationInternal(unboundLambda.Syntax);
-            Debug.Assert(lambdaOperation.Kind == OperationKind.LambdaExpression);
+            Debug.Assert(lambdaOperation.Kind == OperationKind.AnonymousFunctionExpression);
             return lambdaOperation;
         }
 
-        private ILambdaExpression CreateBoundLambdaOperation(BoundLambda boundLambda)
+        private IAnonymousFunctionExpression CreateBoundLambdaOperation(BoundLambda boundLambda)
         {
-            IMethodSymbol signature = boundLambda.Symbol;
+            IMethodSymbol symbol = boundLambda.Symbol;
             Lazy<IBlockStatement> body = new Lazy<IBlockStatement>(() => (IBlockStatement)Create(boundLambda.Body));
             SyntaxNode syntax = boundLambda.Syntax;
             // This matches the SemanticModel implementation. This is because in VB, lambdas by themselves
             // do not have a type. To get the type of a lambda expression in the SemanticModel, you need to look at
             // TypeInfo.ConvertedType, rather than TypeInfo.Type. We replicate that behavior here. To get the type of
-            // an ILambdaExpression, you need to look at the parent IConversionExpression.
+            // an IAnonymousFunctionExpression, you need to look at the parent IConversionExpression.
             ITypeSymbol type = null;
             Optional<object> constantValue = ConvertToOptional(boundLambda.ConstantValue);
             bool isImplicit = boundLambda.WasCompilerGenerated;
-            return new LazyLambdaExpression(signature, body, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyAnonymousFunctionExpression(symbol, body, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ILocalFunctionStatement CreateBoundLocalFunctionStatementOperation(BoundLocalFunctionStatement boundLocalFunctionStatement)

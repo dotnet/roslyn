@@ -2645,20 +2645,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         protected override IOperation LabeledStatementImpl => _lazyLabeledStatement.Value;
     }
 
-    /// <summary>
-    /// Represents a lambda expression.
-    /// </summary>
-    internal abstract partial class BaseLambdaExpression : Operation, ILambdaExpression
+    internal abstract partial class BaseAnonymousFunctionExpression : Operation, IAnonymousFunctionExpression
     {
-        protected BaseLambdaExpression(IMethodSymbol signature, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-                    base(OperationKind.LambdaExpression, semanticModel, syntax, type, constantValue, isImplicit)
+        protected BaseAnonymousFunctionExpression(IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+                    base(OperationKind.AnonymousFunctionExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Signature = signature;
+            Symbol = symbol;
         }
-        /// <summary>
-        /// Signature of the lambda.
-        /// </summary>
-        public IMethodSymbol Signature { get; }
+        public IMethodSymbol Symbol { get; }
         protected abstract IBlockStatement BodyImpl { get; }
         public override IEnumerable<IOperation> Children
         {
@@ -2667,27 +2661,21 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Body;
             }
         }
-        /// <summary>
-        /// Body of the lambda.
-        /// </summary>
         public IBlockStatement Body => Operation.SetParentOperation(BodyImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitLambdaExpression(this);
+            visitor.VisitAnonymousFunctionExpression(this);
         }
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitLambdaExpression(this, argument);
+            return visitor.VisitAnonymousFunctionExpression(this, argument);
         }
     }
 
-    /// <summary>
-    /// Represents a lambda expression.
-    /// </summary>
-    internal sealed partial class LambdaExpression : BaseLambdaExpression, ILambdaExpression
+    internal sealed partial class AnonymousFunctionExpression : BaseAnonymousFunctionExpression, IAnonymousFunctionExpression
     {
-        public LambdaExpression(IMethodSymbol signature, IBlockStatement body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(signature, semanticModel, syntax, type, constantValue, isImplicit)
+        public AnonymousFunctionExpression(IMethodSymbol symbol, IBlockStatement body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
             BodyImpl = body;
         }
@@ -2695,14 +2683,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         protected override IBlockStatement BodyImpl { get; }
     }
 
-    /// <summary>
-    /// Represents a lambda expression.
-    /// </summary>
-    internal sealed partial class LazyLambdaExpression : BaseLambdaExpression, ILambdaExpression
+    internal sealed partial class LazyAnonymousFunctionExpression : BaseAnonymousFunctionExpression, IAnonymousFunctionExpression
     {
         private readonly Lazy<IBlockStatement> _lazyBody;
 
-        public LazyLambdaExpression(IMethodSymbol signature, Lazy<IBlockStatement> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(signature, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyAnonymousFunctionExpression(IMethodSymbol symbol, Lazy<IBlockStatement> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }

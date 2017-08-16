@@ -294,9 +294,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new TypeOfExpression(operation.TypeOperand, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        public override IOperation VisitLambdaExpression(ILambdaExpression operation, object argument)
+        public override IOperation VisitAnonymousFunctionExpression(IAnonymousFunctionExpression operation, object argument)
         {
-            return new LambdaExpression(operation.Signature, Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new AnonymousFunctionExpression(operation.Symbol, Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitLiteralExpression(ILiteralExpression operation, object argument)

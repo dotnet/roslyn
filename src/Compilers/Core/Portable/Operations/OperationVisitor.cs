@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitLambdaExpression(ILambdaExpression operation)
+        public virtual void VisitAnonymousFunctionExpression(IAnonymousFunctionExpression operation)
         {
             DefaultVisit(operation);
         }
@@ -760,7 +760,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitLambdaExpression(ILambdaExpression operation, TArgument argument)
+        public virtual TResult VisitAnonymousFunctionExpression(IAnonymousFunctionExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
