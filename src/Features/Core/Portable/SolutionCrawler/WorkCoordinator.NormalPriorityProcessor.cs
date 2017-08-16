@@ -321,8 +321,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                                 if (document != null)
                                 {
-                                    await TrackSemanticVersionsAsync(document, workItem, cancellationToken).ConfigureAwait(false);
-
                                     // if we are called because a document is opened, we invalidate the document so that
                                     // it can be re-analyzed. otherwise, since newly opened document has same version as before
                                     // analyzer will simply return same data back
@@ -370,33 +368,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             // remove one that is finished running
                             _workItemQueue.RemoveCancellationSource(workItem.DocumentId);
                         }
-                    }
-
-                    private async Task TrackSemanticVersionsAsync(Document document, WorkItem workItem, CancellationToken cancellationToken)
-                    {
-                        if (workItem.IsRetry ||
-                            workItem.InvocationReasons.Contains(PredefinedInvocationReasons.DocumentAdded) ||
-                            !workItem.InvocationReasons.Contains(PredefinedInvocationReasons.SyntaxChanged))
-                        {
-                            return;
-                        }
-
-                        var service = document.Project.Solution.Workspace.Services.GetService<ISemanticVersionTrackingService>();
-                        if (service == null)
-                        {
-                            return;
-                        }
-
-                        // we already reported about this project for same snapshot, don't need to do it again
-                        if (_currentSnapshotVersionTrackingSet.Contains(document.Project.Id))
-                        {
-                            return;
-                        }
-
-                        await service.RecordSemanticVersionsAsync(document.Project, cancellationToken).ConfigureAwait(false);
-
-                        // mark this project as already processed.
-                        _currentSnapshotVersionTrackingSet.Add(document.Project.Id);
                     }
 
                     private async Task ProcessOpenDocumentIfNeeded(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, Document document, bool isOpen, CancellationToken cancellationToken)
