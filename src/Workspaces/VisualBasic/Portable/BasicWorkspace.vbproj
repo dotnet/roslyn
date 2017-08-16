@@ -164,6 +164,7 @@
     <Compile Include="Formatting\Rules\NodeBasedFormattingRule.vb" />
     <Compile Include="Formatting\Rules\StructuredTriviaFormattingRule.vb" />
     <Compile Include="Formatting\VisualBasicSyntaxFormattingService.vb" />
+    <Compile Include="GeneratedCodeRecognition\VisualBasicGeneratedCodeRecognitionService.vb" />
     <Compile Include="LanguageServices\VisualBasicCompilationFactoryService.vb" />
     <Compile Include="LanguageServices\VisualBasicCommandLineParserService.vb" />
     <Compile Include="LanguageServices\VisualBasicDocumentationCommentService.vb" />
