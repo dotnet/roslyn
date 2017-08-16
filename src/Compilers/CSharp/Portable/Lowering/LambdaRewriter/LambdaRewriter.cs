@@ -375,16 +375,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var hoistedField = LambdaCapturedVariable.Create(frame, captured, ref _synthesizedFieldNameIdDispenser);
                         proxies.Add(captured, new CapturedToFrameSymbolReplacement(hoistedField, isReusable: false));
                         CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, hoistedField);
-
-                        //PROTOTYPE(span): move the check to the binding?
-                        if (hoistedField.Type.IsRestrictedType())
-                        {
-                            foreach (CSharpSyntaxNode syntax in _analysis.CapturedVariables[captured])
-                            {
-                                // CS4013: Instance of type '{0}' cannot be used inside an anonymous function, query expression, iterator block or async method
-                                this.Diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, hoistedField.Type);
-                            }
-                        }
                     }
 
                     _frames.Add(scope.BoundNode, env);

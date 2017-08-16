@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -41,13 +42,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int DeclarationModifiersOffset = 5;
 
             private const int MethodKindMask = 0x1F;
-            private const int DeclarationModifiersMask = 0x1FFFFF;
+            private const int DeclarationModifiersMask = 0x3FFFFF;
 
-            private const int ReturnsVoidBit = 1 << 26;
-            private const int IsExtensionMethodBit = 1 << 27;
-            private const int IsMetadataVirtualIgnoringInterfaceChangesBit = 1 << 28;
-            private const int IsMetadataVirtualBit = 1 << 29;
-            private const int IsMetadataVirtualLockedBit = 1 << 30;
+            private const int ReturnsVoidBit = 1 << 27;
+            private const int IsExtensionMethodBit = 1 << 28;
+            private const int IsMetadataVirtualIgnoringInterfaceChangesBit = 1 << 29;
+            private const int IsMetadataVirtualBit = 1 << 30;
+            private const int IsMetadataVirtualLockedBit = 1 << 31;
 
             private int _flags;
 
@@ -963,9 +964,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.GetReturnTypeAttributesBag().Attributes;
         }
 
-        internal override void AddSynthesizedReturnTypeAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedReturnTypeAttributes(ref attributes);
+            base.AddSynthesizedReturnTypeAttributes(moduleBuilder, ref attributes);
 
             if (this.ReturnType.ContainsDynamic())
             {
@@ -1121,6 +1122,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (VerifyObsoleteAttributeAppliedToMethod(ref arguments, AttributeDescription.DeprecatedAttribute))
             {
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsReadOnlyAttribute))
+            {
+                // IsReadOnlyAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsReadOnlyAttribute.FullName);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsByRefLikeAttribute))
+            {
+                // IsByRefLikeAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsByRefLikeAttribute.FullName);
+            }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.CaseSensitiveExtensionAttribute))
             {
                 // [Extension] attribute should not be set explicitly.
@@ -1240,6 +1251,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // DynamicAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsReadOnlyAttribute))
+            {
+                // IsReadOnlyAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsReadOnlyAttribute.FullName);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsByRefLikeAttribute))
+            {
+                // IsByRefLikeAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsByRefLikeAttribute.FullName);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
             {
@@ -1522,9 +1543,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedAttributes(compilationState, ref attributes);
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             if (this.IsAsync || this.IsIterator)
             {
@@ -1534,7 +1555,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // only emitting metadata the method body will not have been rewritten, and the async state machine
                 // type will not have been created. In this case, omit the attribute.
                 NamedTypeSymbol stateMachineType;
-                if (compilationState.TryGetStateMachineType(this, out stateMachineType))
+                if (moduleBuilder.CompilationState.TryGetStateMachineType(this, out stateMachineType))
                 {
                     WellKnownMember ctor = this.IsAsync ?
                         WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor :
