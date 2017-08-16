@@ -2127,6 +2127,7 @@ class Program
                 // (6,9): error CS0126: An object of a type convertible to 'int' is required
                 //         return;
                 Diagnostic(ErrorCode.ERR_RetObjectRequired, "return").WithArguments("int").WithLocation(6, 9)
+                );
         }
 
         [Fact]
