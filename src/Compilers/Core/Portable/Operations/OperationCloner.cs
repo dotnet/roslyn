@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IOperation VisitLocalFunctionStatement(ILocalFunctionStatement operation, object argument)
         {
-            return new LocalFunctionStatement(operation.LocalFunctionSymbol, Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new LocalFunctionStatement(operation.Symbol, Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitInterpolatedStringExpression(IInterpolatedStringExpression operation, object argument)

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 
@@ -16,10 +16,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Local function symbol.
         /// </summary>
-        IMethodSymbol LocalFunctionSymbol { get; }
+        IMethodSymbol Symbol { get; }
         /// <summary>
         /// Body of the local function.
         /// </summary>
+        /// <remarks>
+        /// Expression-bodied local functions are normalized here to be a single expression inside
+        /// of a block statement.
+        /// </remarks>
         IBlockStatement Body { get; }
     }
 }

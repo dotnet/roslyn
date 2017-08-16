@@ -1201,7 +1201,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(ILocalFunctionStatement));
 
-            LogSymbol(operation.LocalFunctionSymbol, header: " (Local Function");
+            LogSymbol(operation.Symbol, header: " (Local Function");
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
