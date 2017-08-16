@@ -38,6 +38,7 @@ interface IGoo
     void Method11();
     void Method12();
     void Method13();
+    void Method14();
 }
 
 abstract partial class AbstractGoo : IGoo
@@ -59,48 +60,53 @@ abstract partial class AbstractGoo : IGoo
     extern void IGoo.Method11(); //not an error (in dev10 or roslyn)
     static void IGoo.Method12() { }
     partial void IGoo.Method13();
+
+    private protected void IGoo.Method14() { }
 }";
 
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (21,24): error CS0106: The modifier 'abstract' is not valid for this item
+                // (22,24): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract void IGoo.Method1() { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method1").WithArguments("abstract"),
-                // (22,23): error CS0106: The modifier 'virtual' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method1").WithArguments("abstract").WithLocation(22, 24),
+                // (23,23): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual void IGoo.Method2() { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method2").WithArguments("virtual"),
-                // (23,24): error CS0106: The modifier 'override' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method2").WithArguments("virtual").WithLocation(23, 23),
+                // (24,24): error CS0106: The modifier 'override' is not valid for this item
                 //     override void IGoo.Method3() { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method3").WithArguments("override"),
-                // (25,22): error CS0106: The modifier 'sealed' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method3").WithArguments("override").WithLocation(24, 24),
+                // (26,22): error CS0106: The modifier 'sealed' is not valid for this item
                 //     sealed void IGoo.Method4() { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method4").WithArguments("sealed"),
-                // (27,19): error CS0106: The modifier 'new' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method4").WithArguments("sealed").WithLocation(26, 22),
+                // (28,19): error CS0106: The modifier 'new' is not valid for this item
                 //     new void IGoo.Method5() { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method5").WithArguments("new"),
-                // (29,22): error CS0106: The modifier 'public' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method5").WithArguments("new").WithLocation(28, 19),
+                // (30,22): error CS0106: The modifier 'public' is not valid for this item
                 //     public void IGoo.Method6() { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method6").WithArguments("public"),
-                // (30,25): error CS0106: The modifier 'protected' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method6").WithArguments("public").WithLocation(30, 22),
+                // (31,25): error CS0106: The modifier 'protected' is not valid for this item
                 //     protected void IGoo.Method7() { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method7").WithArguments("protected"),
-                // (31,24): error CS0106: The modifier 'internal' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method7").WithArguments("protected").WithLocation(31, 25),
+                // (32,24): error CS0106: The modifier 'internal' is not valid for this item
                 //     internal void IGoo.Method8() { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method8").WithArguments("internal"),
-                // (32,34): error CS0106: The modifier 'protected internal' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method8").WithArguments("internal").WithLocation(32, 24),
+                // (33,34): error CS0106: The modifier 'protected internal' is not valid for this item
                 //     protected internal void IGoo.Method9() { } //roslyn considers 'protected internal' one modifier (two in dev10)
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method9").WithArguments("protected internal"),
-                // (33,23): error CS0106: The modifier 'private' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method9").WithArguments("protected internal").WithLocation(33, 34),
+                // (34,23): error CS0106: The modifier 'private' is not valid for this item
                 //     private void IGoo.Method10() { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method10").WithArguments("private"),
-                // (36,22): error CS0106: The modifier 'static' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method10").WithArguments("private").WithLocation(34, 23),
+                // (37,22): error CS0106: The modifier 'static' is not valid for this item
                 //     static void IGoo.Method12() { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method12").WithArguments("static"),
-                // (37,23): error CS0754: A partial method may not explicitly implement an interface method
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method12").WithArguments("static").WithLocation(37, 22),
+                // (40,33): error CS0106: The modifier 'private protected' is not valid for this item
+                //     private protected void IGoo.Method14() { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method14").WithArguments("private protected").WithLocation(40, 33),
+                // (38,23): error CS0754: A partial method may not explicitly implement an interface method
                 //     partial void IGoo.Method13();
-                Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "Method13"),
-                // (35,22): warning CS0626: Method, operator, or accessor 'AbstractGoo.IGoo.Method11()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "Method13").WithLocation(38, 23),
+                // (36,22): warning CS0626: Method, operator, or accessor 'AbstractGoo.IGoo.Method11()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern void IGoo.Method11(); //not an error (in dev10 or roslyn)
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "Method11").WithArguments("AbstractGoo.IGoo.Method11()")
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "Method11").WithArguments("AbstractGoo.IGoo.Method11()").WithLocation(36, 22)
                 );
         }
 
