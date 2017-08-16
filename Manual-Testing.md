@@ -90,7 +90,7 @@ When doing a test pass, copy this page and consider using these status indicator
 | | **Convert `Get*` Methods to Properties**<br />*Add Description* | | | N/A |
 | | :mag: **Encapsulate Field**<br />- Select a field and convert it to a property backed by the field<br />- Try selecting multiple fields at once | | | N/A |
 | | **Modifier Ordering** [Visual Studio 2017 version 15.5] | | | N/A |
-| | **Convert `Reference.Equals` to `is null`** [Visual Studio 2017 version 15.5] | | | N/A |
+| | **Convert `ReferenceEquals` to `is null`** [Visual Studio 2017 version 15.5] | | | N/A |
 | | **Add Missing Modifiers** [Visual Studio 2017 version 15.5] | | | N/A |
 | | **Convert Lambda to Local Function** [Visual Studio 2017 version 15.5] | | | N/A |
 | | **Move Declaration Near Reference** [Visual Studio 2017 version 15.5] | | | N/A |
