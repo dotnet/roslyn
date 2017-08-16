@@ -545,5 +545,16 @@ end sub
 
             Await TestInClassAsync(text)
         End Function
+
+        <WorkItem(21524, "https://github.com/dotnet/roslyn/issues/21524")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestAttribute() As Task
+            Await TestAsync("Imports System
+
+<AttributeUsage()>
+Class Program
+End Class",
+                [Class]("AttributeUsage"))
+        End Function
     End Class
 End Namespace
