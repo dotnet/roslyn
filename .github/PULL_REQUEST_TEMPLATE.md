@@ -34,4 +34,4 @@ How did we miss it?  What tests are we adding to guard against it in the future?
 
 **Test documentation updated?**
 
-If this is a new non-compiler feature, update https://github.com/dotnet/roslyn/wiki/Manual-Testing once you know which release it is targeting.		 +If this is a new non-compiler feature, or a significant improvement to an existing feature, update https://github.com/dotnet/roslyn/wiki/Manual-Testing once you know which release it is targeting.
+If this is a new non-compiler feature or a significant improvement to an existing feature, update https://github.com/dotnet/roslyn/wiki/Manual-Testing once you know which release it is targeting.
