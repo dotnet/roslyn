@@ -1143,5 +1143,23 @@ CodeStyleOptions.QualifyEventAccess);
 }",
 CodeStyleOptions.QualifyEventAccess);
         }
+
+        [WorkItem(21519, "https://github.com/dotnet/roslyn/issues/21519")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyPropertyAccess_NameofArgument()
+        {
+            await TestAsyncWithOption(
+@"class Program
+{
+    public int Foo { get; set; }
+    public string Bar = nameof([|Foo|]);
+}",
+@"class Program
+{
+    public int Foo { get; set; }
+    public string Bar = nameof(this.Foo);
+}",
+CodeStyleOptions.QualifyPropertyAccess);
+        }
     }
 }
