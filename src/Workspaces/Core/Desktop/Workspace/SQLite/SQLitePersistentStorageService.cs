@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionSize;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.SQLite
 
         private static IDisposable TryGetDatabaseOwnership(string databaseFilePath)
         {
-            try
+            return IOUtilities.PerformIO<IDisposable>(() =>
             {
                 // make sure directory exist first.
                 EnsureDirectory(databaseFilePath);
@@ -65,11 +66,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 return File.Open(
                     Path.Combine(Path.GetDirectoryName(databaseFilePath), LockFile),
                     FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
-            }
-            catch (Exception)
-            {
-                return null;
-            }
+            });
         }
 
         private static void EnsureDirectory(string databaseFilePath)
