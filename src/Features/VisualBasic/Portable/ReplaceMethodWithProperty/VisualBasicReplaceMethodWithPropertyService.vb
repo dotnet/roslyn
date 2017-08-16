@@ -15,10 +15,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
         Inherits AbstractReplaceMethodWithPropertyService
         Implements IReplaceMethodWithPropertyService
 
-        Public Function GetMethodName(methodNode As SyntaxNode) As String Implements IReplaceMethodWithPropertyService.GetMethodName
-            Return DirectCast(methodNode, MethodStatementSyntax).Identifier.ValueText
-        End Function
-
         Public Function GetMethodDeclaration(token As SyntaxToken) As SyntaxNode Implements IReplaceMethodWithPropertyService.GetMethodDeclaration
             Dim containingMethod = token.Parent.FirstAncestorOrSelf(Of MethodStatementSyntax)
             If containingMethod Is Nothing Then
@@ -153,12 +149,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 End If
             End If
 
-            Dim trivia As IEnumerable(Of SyntaxTrivia) = getMethodStatement.GetLeadingTrivia()
-            If setMethodStatement IsNot Nothing Then
-                trivia = trivia.Concat(setMethodStatement.GetLeadingTrivia())
-            End If
-
-            newPropertyDeclaration = newPropertyDeclaration.WithLeadingTrivia(trivia)
+            newPropertyDeclaration = SetLeadingTrivia(
+                VisualBasicSyntaxFactsService.Instance, getAndSetMethods, newPropertyDeclaration)
 
             Return newPropertyDeclaration.WithAdditionalAnnotations(Formatter.Annotation)
         End Function

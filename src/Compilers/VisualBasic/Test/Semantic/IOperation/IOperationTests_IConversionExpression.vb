@@ -762,7 +762,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: a As System.Action(Of System.Int32)
     Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action(Of System.Int32)) (Syntax: 'Sub(i As In ... End Sub')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: ILambdaExpression (Signature: Sub (i As System.Int32)) (OperationKind.LambdaExpression, Type: null) (Syntax: 'Sub(i As In ... End Sub')
+        Operand: IAnonymousFunctionExpression (Symbol: Sub (i As System.Int32)) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub(i As In ... End Sub')
             IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'Sub(i As In ... End Sub')
               ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Sub')
                 LabeledStatement: null
@@ -795,7 +795,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: a As System.Action(Of System.Int32)
     Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action(Of System.Int32)) (Syntax: 'Sub()'BIND: ... End Sub')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: ILambdaExpression (Signature: Sub ()) (OperationKind.LambdaExpression, Type: null) (Syntax: 'Sub()'BIND: ... End Sub')
+        Operand: IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub()'BIND: ... End Sub')
             IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'Sub()'BIND: ... End Sub')
               ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Sub')
                 LabeledStatement: null
@@ -828,7 +828,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: a As System.Action
     Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid) (Syntax: 'Sub(i As In ... End Sub')
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: ILambdaExpression (Signature: Sub (i As System.Int32)) (OperationKind.LambdaExpression, Type: null, IsInvalid) (Syntax: 'Sub(i As In ... End Sub')
+        Operand: IAnonymousFunctionExpression (Symbol: Sub (i As System.Int32)) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub(i As In ... End Sub')
             IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Sub(i As In ... End Sub')
               ILabelStatement (Label: exit) (OperationKind.LabelStatement, IsInvalid) (Syntax: 'End Sub')
                 LabeledStatement: null
@@ -867,7 +867,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: a As System.Func(Of System.Int64)
     Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.Int64)) (Syntax: 'Function()  ... nd Function')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: ILambdaExpression (Signature: Function () As System.Int32) (OperationKind.LambdaExpression, Type: null) (Syntax: 'Function()  ... nd Function')
+        Operand: IAnonymousFunctionExpression (Symbol: Function () As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Function()  ... nd Function')
             IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Function()  ... nd Function')
               Locals: Local_1: <anonymous local> As System.Int32
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return 1')
@@ -904,7 +904,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: a As System.Action(Of System.Int32)
     Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action(Of System.Int32)) (Syntax: 'Function()  ... nd Function')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: ILambdaExpression (Signature: Function () As System.Int32) (OperationKind.LambdaExpression, Type: null) (Syntax: 'Function()  ... nd Function')
+        Operand: IAnonymousFunctionExpression (Symbol: Function () As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Function()  ... nd Function')
             IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Function()  ... nd Function')
               Locals: Local_1: <anonymous local> As System.Int32
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return 1')
@@ -940,7 +940,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: a As System.Func(Of System.Int32)
     Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.Int32), IsInvalid) (Syntax: 'Sub()'BIND: ... End Sub')
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: ILambdaExpression (Signature: Sub ()) (OperationKind.LambdaExpression, Type: null, IsInvalid) (Syntax: 'Sub()'BIND: ... End Sub')
+        Operand: IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub()'BIND: ... End Sub')
             IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Sub()'BIND: ... End Sub')
               ILabelStatement (Label: exit) (OperationKind.LabelStatement, IsInvalid) (Syntax: 'End Sub')
                 LabeledStatement: null
@@ -2098,7 +2098,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: expr As System.Linq.Expressions.Expression(Of System.Func(Of System.Int32, System.Boolean))
     Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Linq.Expressions.Expression(Of System.Func(Of System.Int32, System.Boolean))) (Syntax: 'Function(num) num < 5')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: ILambdaExpression (Signature: Function (num As System.Int32) As System.Boolean) (OperationKind.LambdaExpression, Type: null) (Syntax: 'Function(num) num < 5')
+        Operand: IAnonymousFunctionExpression (Symbol: Function (num As System.Int32) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Function(num) num < 5')
             IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Function(num) num < 5')
               Locals: Local_1: <anonymous local> As System.Boolean
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'num < 5')
@@ -2138,7 +2138,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: expr As System.Linq.Expressions.Expression(Of System.Func(Of System.Int32, System.Boolean))
     Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Linq.Expressions.Expression(Of System.Func(Of System.Int32, System.Boolean)), IsInvalid) (Syntax: 'Function(num) num')
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: ILambdaExpression (Signature: Function (num As System.Int32) As System.Boolean) (OperationKind.LambdaExpression, Type: null, IsInvalid) (Syntax: 'Function(num) num')
+        Operand: IAnonymousFunctionExpression (Symbol: Function (num As System.Int32) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Function(num) num')
             IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Function(num) num')
               Locals: Local_1: <anonymous local> As System.Boolean
               IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'num')

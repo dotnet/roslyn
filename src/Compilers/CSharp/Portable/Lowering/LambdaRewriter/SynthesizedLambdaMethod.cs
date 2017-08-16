@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal SynthesizedLambdaMethod(
             NamedTypeSymbol containingType,
-            ImmutableArray<ClosureEnvironment> structEnvironments,
+            ImmutableArray<SynthesizedClosureEnvironment> structEnvironments,
             ClosureKind closureKind,
             MethodSymbol topLevelMethod,
             DebugId topLevelMethodId,
@@ -43,9 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeMap typeMap;
             ImmutableArray<TypeParameterSymbol> typeParameters;
             ImmutableArray<TypeParameterSymbol> constructedFromTypeParameters;
-            ClosureEnvironment lambdaFrame;
+            SynthesizedClosureEnvironment lambdaFrame;
 
-            lambdaFrame = this.ContainingType as ClosureEnvironment;
+            lambdaFrame = this.ContainingType as SynthesizedClosureEnvironment;
             switch (closureKind)
             {
                 case ClosureKind.Singleton: // all type parameters on method (except the top level method's)

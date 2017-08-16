@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.M
             originalCode As XElement,
             Optional expectedCode As XElement = Nothing,
             Optional expectedCodeAction As Boolean = True,
-            Optional ignoreTrivia As Boolean = True
+            Optional ignoreTrivia As Boolean = False
         ) As Task
 
             Dim expectedText As String = Nothing
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.M
             originalCode As XElement,
             Optional expectedDocumentName As String = Nothing,
             Optional expectedCodeAction As Boolean = True,
-            Optional ignoreTrivia As Boolean = True
+            Optional ignoreTrivia As Boolean = False
         ) As Task
 
             Return MyBase.TestRenameFileToMatchTypeAsync(
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.M
             Optional destinationDocumentContainers As ImmutableArray(Of String) = Nothing,
             Optional expectedCodeAction As Boolean = True,
             Optional index As Integer = 0,
-            Optional ignoreTrivia As Boolean = True
+            Optional ignoreTrivia As Boolean = False
         ) As Task
 
             Dim originalCodeText = originalCode.ConvertTestSourceTag()

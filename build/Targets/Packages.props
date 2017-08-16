@@ -34,10 +34,10 @@
     <MicrosoftCSharpVersion>4.3.0</MicrosoftCSharpVersion>
     <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>
     <MicrosoftDiagnosticsTracingTraceEventVersion>1.0.35</MicrosoftDiagnosticsTracingTraceEventVersion>
-    <MicrosoftDiaSymReaderVersion>1.1.0</MicrosoftDiaSymReaderVersion>
-    <MicrosoftDiaSymReaderConverterXmlVersion>1.0.0-beta1-61708-01</MicrosoftDiaSymReaderConverterXmlVersion>
-    <MicrosoftDiaSymReaderNativeVersion>1.6.0-beta2-25304</MicrosoftDiaSymReaderNativeVersion>
-    <MicrosoftDiaSymReaderPortablePdbVersion>1.3.0</MicrosoftDiaSymReaderPortablePdbVersion>
+    <MicrosoftDiaSymReaderVersion>1.2.0-beta1-62008-01</MicrosoftDiaSymReaderVersion>
+    <MicrosoftDiaSymReaderConverterXmlVersion>1.1.0-beta1-62008-01</MicrosoftDiaSymReaderConverterXmlVersion>
+    <MicrosoftDiaSymReaderNativeVersion>1.7.0-private-25604</MicrosoftDiaSymReaderNativeVersion>
+    <MicrosoftDiaSymReaderPortablePdbVersion>1.3.0-beta1-62008-01</MicrosoftDiaSymReaderPortablePdbVersion>
     <MicrosoftDotNetIBCMerge>4.7.2-alpha-00001</MicrosoftDotNetIBCMerge>
     <MicrosoftDotNetVersionToolsVersion>1.0.27-prerelease-01811-02</MicrosoftDotNetVersionToolsVersion>
     <MicrosoftIdentityModelClientsActiveDirectoryVersion>3.13.8</MicrosoftIdentityModelClientsActiveDirectoryVersion>
@@ -194,6 +194,7 @@
     <SystemRuntimeSerializationPrimitivesVersion>4.3.0</SystemRuntimeSerializationPrimitivesVersion>
     <SystemSecurityAccessControlVersion>4.3.0</SystemSecurityAccessControlVersion>
     <SystemSecurityCryptographyAlgorithmsVersion>4.3.0</SystemSecurityCryptographyAlgorithmsVersion>
+    <SystemSecurityCryptographyCspVersion>4.3.0</SystemSecurityCryptographyCspVersion>
     <SystemSecurityCryptographyEncodingVersion>4.3.0</SystemSecurityCryptographyEncodingVersion>
     <SystemSecurityCryptographyPrimitivesVersion>4.3.0</SystemSecurityCryptographyPrimitivesVersion>
     <SystemSecurityCryptographyX509CertificatesVersion>4.3.0</SystemSecurityCryptographyX509CertificatesVersion>

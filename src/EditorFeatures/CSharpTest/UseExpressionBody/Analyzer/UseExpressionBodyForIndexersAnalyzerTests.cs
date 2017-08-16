@@ -163,7 +163,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 {
     int this[int i]
     {
-        get { return Bar(); }
+        get
+        {
+            return Bar();
+        }
     }
 }", options: UseBlockBodyExceptAccessor);
         }

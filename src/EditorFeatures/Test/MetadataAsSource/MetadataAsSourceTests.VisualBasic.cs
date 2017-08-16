@@ -20,8 +20,7 @@ Module M
     Public Class D
     End Class
 End Module";
-                await GenerateAndVerifySourceAsync(metadataSource, "M+D", LanguageNames.VisualBasic, $@"
-#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+                await GenerateAndVerifySourceAsync(metadataSource, "M+D", LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 

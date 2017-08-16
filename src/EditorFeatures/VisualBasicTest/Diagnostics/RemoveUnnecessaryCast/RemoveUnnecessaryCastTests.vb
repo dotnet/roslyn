@@ -348,6 +348,7 @@ Module Module1
                                                           End Function
     End Sub
 End Module
+
 </File>
 
             Await TestAsync(markup, expected, ignoreTrivia:=False)
@@ -1510,6 +1511,7 @@ Module Program
         If True Then : Dim x As Action = (Sub() If True Then) : Else : Return : End If
     End Sub
 End Module
+
 </File>
 
             Await TestAsync(markup, expected, ignoreTrivia:=False)
@@ -1571,6 +1573,7 @@ Module Program
         x() : Console.WriteLine() 
     End Sub
 End Module
+
 </File>
 
             Await TestAsync(markup, expected, ignoreTrivia:=False)

@@ -161,7 +161,7 @@ IOperation:  (OperationKind.None) (Syntax: 'from cust i ... t cust.Name')
                   IArgument (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument) (Syntax: 'cust.Name')
                     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func<Customer, System.String>) (Syntax: 'cust.Name')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      Operand: ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: 'cust.Name')
+                      Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'cust.Name')
                           IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'cust.Name')
                             IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'cust.Name')
                               ReturnedValue: IPropertyReferenceExpression: System.String Customer.Name { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'cust.Name')
@@ -263,7 +263,7 @@ class Class
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'new Action( ... })')
   Children(1):
-      ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: '() => ... }')
+      IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => ... }')
         IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
           IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a();')
             Expression: IInvocationExpression (virtual void System.Action.Invoke()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'a()')

@@ -286,8 +286,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             SyntaxNode syntax = increment.Syntax;
             ITypeSymbol type = increment.Type;
             Optional<object> constantValue = new Optional<object>(1);
-
-            return new LiteralExpression(text, semanticModel, syntax, type, constantValue);
+            return new LiteralExpression(text, semanticModel, syntax, type, constantValue, increment.IsImplicit);
         }
 
         private static int Abs(int value)
@@ -1332,7 +1331,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             context.RegisterOperationAction(
                  (operationContext) =>
                  {
-                     var lambdaExpression = (ILambdaExpression)operationContext.Operation;
+                     var lambdaExpression = (IAnonymousFunctionExpression)operationContext.Operation;
                      operationContext.ReportDiagnostic(Diagnostic.Create(LambdaExpressionDescriptor, operationContext.Operation.Syntax.GetLocation()));
                      var block = lambdaExpression.Body;
                      // TODO: Can this possibly be null? Remove check if not.
@@ -1358,7 +1357,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                          operationContext.ReportDiagnostic(Diagnostic.Create(NoneOperationInLambdaExpressionDescriptor, operationContext.Operation.Syntax.GetLocation()));
                      }
                  },
-                 OperationKind.LambdaExpression);
+                 OperationKind.AnonymousFunctionExpression);
         }
     }
 

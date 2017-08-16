@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new IntroduceVariableCodeRefactoringProvider();
 
-        protected Task TestAsync(string initial, string expected, int index = 0, bool ignoreTrivia = true)
+        protected Task TestAsync(string initial, string expected, int index = 0, bool ignoreTrivia = false)
         {
             return TestAsync(initial, expected, Options.Script, null, index, ignoreTrivia);
         }

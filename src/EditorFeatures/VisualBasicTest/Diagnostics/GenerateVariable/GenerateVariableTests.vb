@@ -28,6 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
 End Module",
 "Module Program
     Public Property Bar As Object
+
     Sub Main(args As String())
         Goo(Bar)
     End Sub
@@ -44,6 +45,7 @@ End Module")
 End Module",
 "Module Program
     Private Bar As Object
+
     Sub Main(args As String())
         Goo(Bar)
     End Sub
@@ -61,6 +63,7 @@ index:=1)
 End Module",
 "Module Program
     Private ReadOnly Bar As Object
+
     Sub Main(args As String())
         Goo(Bar)
     End Sub
@@ -79,6 +82,7 @@ index:=2)
 End Class",
 "Class C
     Private Shared Goo As Integer
+
     Shared Sub M
         Goo = 3
     End Sub
@@ -249,6 +253,7 @@ Class C
 End Class",
 "Module Program
     Public Property P As Integer
+
     Sub Main(args As String())
     End Sub
 End Module
@@ -274,6 +279,7 @@ Class C
 End Class",
 "Module Program
     Friend P As Integer
+
     Sub Main(args As String())
     End Sub
 End Module
@@ -296,6 +302,7 @@ index:=1)
 End Module",
 "Module Program
     Private HERE As Object
+
     Sub Main(args As String())
         HERE.ToString()
     End Sub
@@ -341,6 +348,7 @@ End Class")
 End Module",
 "Module Program
     Public Property P As Integer
+
     Function Fun() As Integer
         Return P
     End Function
@@ -359,6 +367,7 @@ End Module")
 End Module",
 "Module Program
     Public Property P As Integer
+
     Sub Main(args As String())
         Dim x As Integer
         x = P
@@ -376,6 +385,7 @@ End Module")
 End Class",
 "Class GenPropTest
     Private Shared genStaticUnqualified As String
+
     Public Shared Sub Main()
         genStaticUnqualified = """"
     End Sub
@@ -392,6 +402,7 @@ End Class")
 End Class",
 "Class GenPropTest
     Private Shared genStaticUnqualified As String
+
     Public Sub Main()
         GenPropTest.genStaticUnqualified = """"
     End Sub
@@ -408,6 +419,7 @@ End Class")
 End Class",
 "Class GenPropTest
     Private field As String
+
     Public Sub Main()
         Me.field = """"
     End Sub
@@ -424,6 +436,7 @@ End Class")
 End Class",
 "Class GenPropTest
     Private field As String
+
     Public Sub Main()
         field = """"
     End Sub
@@ -528,6 +541,7 @@ End Class", index:=1)
 End Module",
 "Module Program
     Private field As Integer
+
     Sub Main(args As String())
         field = 5
     End Sub
@@ -544,6 +558,7 @@ End Module")
 End Module",
 "Module Program
     Public Property Field As Integer
+
     Sub Main(args As String())
         Field = 5
     End Sub
@@ -590,6 +605,7 @@ Class C(Of T)
 End Class",
 "Class A
     Private field As C(Of B)
+
     Sub Main()
         field = New C(Of B)
     End Sub
@@ -641,6 +657,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Class A
     Private z As Type
+
     Sub Goo(Of T)
         z = GetType(T)
     End Sub
@@ -685,6 +702,7 @@ End Interface")
 End Class",
 "Class [Class]
     Public Property [Enum] As Integer
+
     Private Sub Method(i As Integer)
         [Enum] = 5
     End Sub
@@ -701,6 +719,7 @@ End Class")
 End Class",
 "Class [Class]
     Private [Enum] As Integer
+
     Private Sub Method(i As Integer)
         [Enum] = 5
     End Sub
@@ -723,6 +742,7 @@ index:=1)
 End Class",
 "Class [Class]
     Private test As Object
+
     Private Sub Method()
         test = Function(ByRef x As Integer) InlineAssignHelper(x, 10)
     End Sub
@@ -954,6 +974,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Private a As Object
+
     Sub Main(args As String())
         a = New With {.a = ., .b = 1}
     End Sub
@@ -983,6 +1004,7 @@ Module StringExtensions
 End Module
 Module M
     Private s As String
+
     Sub Main()
         Print(s)
     End Sub
@@ -1015,6 +1037,7 @@ Module StringExtensions
 End Module
 Module M
     Private s As String
+
     Sub Main()
         Print(s)
     End Sub
@@ -1035,6 +1058,7 @@ parseOptions:=Nothing) ' TODO (tomat): Modules nested in Script class not suppor
 End Module",
 "Module P
     Public Property Goo As Integer
+
     Sub M()
         Dim t As System.Action = Sub()
                                      P.Goo = 5
@@ -1085,6 +1109,7 @@ End Module
 End Module",
 "Module Program
     Private a As Integer
+
     Sub Main(args As String())
         Main(a + b)
     End Sub
@@ -1101,6 +1126,7 @@ End Module")
 End Module",
 "Module Program
     Private b As Integer
+
     Sub Main(args As String())
         Main(a + b)
     End Sub
@@ -1117,6 +1143,7 @@ End Module")
 End Module",
 "Module Program
     Private bar As Object
+
     Sub Main(args As String())
         Goo(bar)
     End Sub
@@ -1171,6 +1198,7 @@ Module Program
 #If True
         ' Banner Line 1
         ' Banner Line 2
+
         Dim local As Integer = Nothing
         Integer.TryParse(""123"", local)
 #End If
@@ -1213,6 +1241,7 @@ End Module",
 "Imports System.Linq
 Module Program
     Private v As Object
+
     Sub Main(args As String())
         Dim q = From a In args
                 Select v
@@ -1233,6 +1262,7 @@ End Module",
 "Module Program
     Sub Main()
         Dim a As Object = Nothing
+
         If (a Mod b <> 0) Then
         End If
     End Sub
@@ -1265,8 +1295,10 @@ End Module")
  End Function
 End Module",
 "Imports System
+
 Module Program
     Private d As Func(Of String)
+
     Sub Main(args As String())
         d = AddressOf test
     End Sub
@@ -1375,6 +1407,7 @@ End Class",
 "Imports System
 Public Class A
     Private MyExp As Exception
+
     Public Sub B()
         Throw MyExp
     End Sub
@@ -1394,6 +1427,7 @@ End Class",
 "Imports System
 Class C
     Public Property Z As Object
+
     Sub M()
         Dim x = NameOf(Z)
     End Sub
@@ -1413,6 +1447,7 @@ End Class",
 "Imports System
 Class C
     Private Z As Object
+
     Sub M()
         Dim x = NameOf(Z)
     End Sub
@@ -1432,6 +1467,7 @@ End Class",
 "Imports System
 Class C
     Private ReadOnly Z As Object
+
     Sub M()
         Dim x = NameOf(Z)
     End Sub
@@ -1468,6 +1504,7 @@ End Class", index:=3)
 End Class",
 "Public Class C
     Public Property B As C
+
     Sub Main(a As C)
         Dim x As C = a?.B
     End Sub
@@ -1485,6 +1522,7 @@ End Class")
 End Class",
 "Public Class C
     Public Property B As Object
+
     Sub Main(a As C)
         Dim x = a?.B
     End Sub
@@ -1502,6 +1540,7 @@ End Class")
 End Class",
 "Public Class C
     Public Property B As Integer
+
     Sub Main(a As C)
         Dim x As Integer? = a?.B
     End Sub
@@ -1519,6 +1558,7 @@ End Class")
 End Class",
 "Public Class C
     Public Property B As C
+
     Sub Main(a As C)
         Dim x As C? = a?.B
     End Sub
@@ -1536,6 +1576,7 @@ End Class")
 End Class",
 "Public Class C
     Private B As C
+
     Sub Main(a As C)
         Dim x As C = a?.B
     End Sub
@@ -1554,6 +1595,7 @@ index:=1)
 End Class",
 "Public Class C
     Private B As Object
+
     Sub Main(a As C)
         Dim x = a?.B
     End Sub
@@ -1572,6 +1614,7 @@ index:=1)
 End Class",
 "Public Class C
     Private B As Integer
+
     Sub Main(a As C)
         Dim x As Integer? = a?.B
     End Sub
@@ -1590,6 +1633,7 @@ index:=1)
 End Class",
 "Public Class C
     Private B As C
+
     Sub Main(a As C)
         Dim x As C? = a?.B
     End Sub
@@ -1608,6 +1652,7 @@ index:=1)
 End Class",
 "Public Class C
     Private ReadOnly B As C
+
     Sub Main(a As C)
         Dim x As C = a?.B
     End Sub
@@ -1626,6 +1671,7 @@ index:=2)
 End Class",
 "Public Class C
     Private ReadOnly B As Object
+
     Sub Main(a As C)
         Dim x = a?.B
     End Sub
@@ -1644,6 +1690,7 @@ index:=2)
 End Class",
 "Public Class C
     Private ReadOnly B As Integer
+
     Sub Main(a As C)
         Dim x As Integer? = a?.B
     End Sub
@@ -1662,6 +1709,7 @@ index:=2)
 End Class",
 "Public Class C
     Private ReadOnly B As C
+
     Sub Main(a As C)
         Dim x As C? = a?.B
     End Sub
@@ -2135,6 +2183,7 @@ Friend Class Customer
 End Class",
 "Module Program
     Public Property name As Object
+
     Sub Main(args As String())
         Dim x As New Customer With {.Name = name}
     End Sub
@@ -2198,6 +2247,7 @@ Friend Class Customer
 End Class",
 "Module Program
     Private name As Object
+
     Sub Main(args As String())
         Dim x As New Customer With {.Name = name}
     End Sub
@@ -2263,6 +2313,7 @@ index:=3)
 End Module",
 "Module C
     Public Property B As String
+
     Sub Test()
         If TypeOf B Is String Then
         End If
@@ -2281,6 +2332,7 @@ End Module")
 End Module",
 "Module C
     Private B As String
+
     Sub Test()
         If TypeOf B Is String Then
         End If
@@ -2300,6 +2352,7 @@ index:=1)
 End Module",
 "Module C
     Private ReadOnly B As String
+
     Sub Test()
         If TypeOf B Is String Then
         End If
@@ -2320,6 +2373,7 @@ End Module",
 "Module C
     Sub Test()
         Dim B As String = Nothing
+
         If TypeOf B Is String Then
         End If
     End Sub
@@ -2345,6 +2399,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Public Property Prop As TypeOfIsNotDerived
+
     Sub M()
         If TypeOf Prop IsNot TypeOfIsNotDerived Then
         End If
@@ -2370,6 +2425,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Private Prop As TypeOfIsNotDerived
+
     Sub M()
         If TypeOf Prop IsNot TypeOfIsNotDerived Then
         End If
@@ -2396,6 +2452,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Private ReadOnly Prop As TypeOfIsNotDerived
+
     Sub M()
         If TypeOf Prop IsNot TypeOfIsNotDerived Then
         End If
@@ -2423,6 +2480,7 @@ Imports System.Linq
 Module Program
     Sub M()
         Dim Prop As TypeOfIsNotDerived = Nothing
+
         If TypeOf Prop IsNot TypeOfIsNotDerived Then
         End If
     End Sub
@@ -2508,6 +2566,7 @@ index:=2)
 End Class",
 "Class [Class]
     Private tuple As (Integer, String)
+
     Private Sub Method(i As (Integer, String))
         Method(tuple)
     End Sub
@@ -2523,8 +2582,9 @@ End Class")
     End Sub
 End Class",
 "Class [Class]
-    Private tuple As (a As Integer, String) 
-  Private Sub Method(i As (a As Integer, String))
+    Private tuple As (a As Integer, String)
+
+    Private Sub Method(i As (a As Integer, String)) 
  Method(tuple)
     End Sub
 End Class")
@@ -2540,6 +2600,7 @@ End Class")
 End Class",
 "Class [Class]
     Private tuple As (Integer, String)
+
     Private Sub Method()
         tuple = (1, ""hello"") 
  End Sub
@@ -2555,8 +2616,9 @@ End Class")
  End Sub
 End Class",
 "Class [Class]
-    Private tuple As (a As Integer, String) 
-  Private Sub Method()
+    Private tuple As (a As Integer, String)
+
+    Private Sub Method()
         tuple = (a:=1, ""hello"") 
  End Sub
 End Class")
@@ -2677,7 +2739,6 @@ end class",
 class C
     public isDisposed as boolean
     Private y As Integer
-
     public readonly x as integer
     public readonly m as integer
 
@@ -2706,7 +2767,6 @@ class C
     public readonly x as integer
     public readonly m as integer
     Private ReadOnly y As Integer
-
     public isDisposed as boolean
 
     public sub new()

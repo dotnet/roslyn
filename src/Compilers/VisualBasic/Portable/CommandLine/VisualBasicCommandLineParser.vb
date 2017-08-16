@@ -1274,12 +1274,8 @@ lVbRuntimePlus:
                 embeddedFiles.AddRange(sourceFiles)
             End If
 
-            If embeddedFiles.Count > 0 Then
-                ' Restricted to portable PDBs for now, but the IsPortable condition should be removed
-                ' And the error message adjusted accordingly when native PDB support Is added.
-                If Not emitPdb OrElse Not debugInformationFormat.IsPortable() Then
-                    AddDiagnostic(diagnostics, ERRID.ERR_CannotEmbedWithoutPdb)
-                End If
+            If embeddedFiles.Count > 0 And Not emitPdb Then
+                AddDiagnostic(diagnostics, ERRID.ERR_CannotEmbedWithoutPdb)
             End If
 
             ' Validate root namespace if specified
