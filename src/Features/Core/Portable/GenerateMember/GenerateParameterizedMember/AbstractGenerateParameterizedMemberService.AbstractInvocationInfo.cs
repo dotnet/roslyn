@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             {
                 if (IsIdentifierName())
                 {
-                    // If the user wrote something like Foo(x) then we still might want to generate
+                    // If the user wrote something like Goo(x) then we still might want to generate
                     // a generic method if the expression 'x' captured any method type variables.
                     var capturedTypeParameters = GetCapturedTypeParameters(cancellationToken);
                     var availableTypeParameters = this.State.TypeToGenerateIn.GetAllTypeParameters();
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 }
 
                 return CodeGenerationSymbolFactory.CreateTypeParameter(
-                    attributes: default(ImmutableArray<AttributeData>),
+                    attributes: default,
                     varianceKind: typeParameter.Variance,
                     name: typeParameter.Name,
                     constraintTypes: constraints.AsImmutable<ITypeSymbol>(),
@@ -87,13 +87,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     {
                         if (j != i)
                         {
-                            // For example 'FooAttribute'.
+                            // For example 'GooAttribute'.
                             var type2 = classTypes[j];
 
                             if (IsImplicitReferenceConversion(compilation, type2, type1))
                             {
                                 // If there's an implicit reference conversion (i.e. from
-                                // FooAttribute to Attribute), then we don't need Attribute as it's
+                                // GooAttribute to Attribute), then we don't need Attribute as it's
                                 // implied by the second attribute;
                                 classTypes.RemoveAt(i);
                                 break;

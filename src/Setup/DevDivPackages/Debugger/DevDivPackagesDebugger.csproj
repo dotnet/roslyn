@@ -46,6 +46,9 @@
     <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation">
       <Version>$(SystemRuntimeInteropServicesRuntimeInformationVersion)</Version>
     </PackageReference>
+    <PackageReference Include="System.Runtime.Serialization.Primitives">
+      <Version>$(SystemRuntimeSerializationPrimitivesVersion)</Version>
+    </PackageReference>
     <PackageReference Include="System.Security.Cryptography.X509Certificates">
       <Version>$(SystemSecurityCryptographyX509CertificatesVersion)</Version>
     </PackageReference>

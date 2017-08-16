@@ -140,6 +140,13 @@ namespace RunTests.Cache
         {
             try
             {
+                // This is a spot check to avoid dumping entries into the log file if the 
+                // directory doesn't exist
+                if (!Directory.Exists(_storagePath))
+                {
+                    return;
+                }
+
                 var files = Directory.GetFiles(_storagePath);
                 if (files.Length < MaxStorageCount)
                 {

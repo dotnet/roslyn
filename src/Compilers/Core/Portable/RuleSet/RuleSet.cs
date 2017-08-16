@@ -151,9 +151,9 @@ namespace Microsoft.CodeAnalysis
                 // Copy every rule in the ruleset and change the action if there's a stricter one.
                 foreach (var item in effectiveRuleset.SpecificDiagnosticOptions)
                 {
-                    if (effectiveSpecificOptions.ContainsKey(item.Key))
+                    if (effectiveSpecificOptions.TryGetValue(item.Key, out var value))
                     {
-                        if (IsStricterThan(item.Value, effectiveSpecificOptions[item.Key]))
+                        if (IsStricterThan(item.Value, value))
                         {
                             effectiveSpecificOptions[item.Key] = item.Value;
                         }

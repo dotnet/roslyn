@@ -79,11 +79,11 @@ namespace Microsoft.CodeAnalysis.Completion
             string filterText = null,
             string sortText = null,
             ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default(ImmutableArray<string>),
+            ImmutableArray<string> tags = default,
             CompletionItemRules rules = null)
         {
             return new CompletionItem(
-                span: default(TextSpan),
+                span: default,
                 displayText: displayText,
                 filterText: filterText,
                 sortText: sortText,
@@ -124,13 +124,13 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         private CompletionItem With(
-            Optional<TextSpan> span = default(Optional<TextSpan>),
-            Optional<string> displayText = default(Optional<string>),
-            Optional<string> filterText = default(Optional<string>),
-            Optional<string> sortText = default(Optional<string>),
-            Optional<ImmutableDictionary<string, string>> properties = default(Optional<ImmutableDictionary<string, string>>),
-            Optional<ImmutableArray<string>> tags = default(Optional<ImmutableArray<string>>),
-            Optional<CompletionItemRules> rules = default(Optional<CompletionItemRules>))
+            Optional<TextSpan> span = default,
+            Optional<string> displayText = default,
+            Optional<string> filterText = default,
+            Optional<string> sortText = default,
+            Optional<ImmutableDictionary<string, string>> properties = default,
+            Optional<ImmutableArray<string>> tags = default,
+            Optional<CompletionItemRules> rules = default)
         {
             var newSpan = span.HasValue ? span.Value : this.Span;
             var newDisplayText = displayText.HasValue ? displayText.Value : this.DisplayText;

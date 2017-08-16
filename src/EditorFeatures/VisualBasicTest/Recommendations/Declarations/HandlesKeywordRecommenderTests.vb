@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
@@ -7,40 +7,40 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function HandlesAfterMethodInClassTest() As Task
             Await VerifyRecommendationsContainAsync(<File>
-Class Foo
-Sub Foo() |
+Class Goo
+Sub Goo() |
 |</File>, "Handles")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function HandlesAfterMethodInModuleTest() As Task
             Await VerifyRecommendationsContainAsync(<File>
-Module Foo
-Sub Foo() |
+Module Goo
+Sub Goo() |
 |</File>, "Handles")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function HandlesAfterFunctionTest() As Task
             Await VerifyRecommendationsContainAsync(<File>
-Module Foo
-Function Foo() As Integer |
+Module Goo
+Function Goo() As Integer |
 |</File>, "Handles")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function HandlesNotAfterMethodInStructureTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>
-Structure Foo
-Sub Foo() |
+Structure Goo
+Sub Goo() |
 |</File>, "Handles")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function HandlesNotAfterNewLineTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>
-Class Foo
-Sub Foo() 
+Class Goo
+Sub Goo() 
         |
 </File>, "Handles")
         End Function

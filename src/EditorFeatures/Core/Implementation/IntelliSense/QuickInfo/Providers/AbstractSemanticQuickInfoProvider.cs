@@ -57,8 +57,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                     cancellationToken: cancellationToken).ConfigureAwait(false);
             }
 
-            // Linked files/shared projects: imagine the following when FOO is false
-            // #if FOO
+            // Linked files/shared projects: imagine the following when GOO is false
+            // #if GOO
             // int x = 3;
             // #endif 
             // var y = x$$;
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 var linkedDocument = document.Project.Solution.GetDocument(link);
                 var linkedToken = await FindTokenInLinkedDocument(token, document, linkedDocument, cancellationToken).ConfigureAwait(false);
 
-                if (linkedToken != default(SyntaxToken))
+                if (linkedToken != default)
                 {
                     // Not in an inactive region, so this file is a candidate.
                     candidateProjects.Add(link.ProjectId);
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         {
             if (!linkedDocument.SupportsSyntaxTree)
             {
-                return default(SyntaxToken);
+                return default;
             }
 
             var root = await linkedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 FatalError.Report(linkedFileException);
             }
 
-            return default(SyntaxToken);
+            return default;
         }
 
         protected async Task<IDeferredQuickInfoContent> CreateContentAsync(
@@ -163,16 +163,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
             var sections = await descriptionService.ToDescriptionGroupsAsync(workspace, semanticModel, token.SpanStart, symbols.AsImmutable(), cancellationToken).ConfigureAwait(false);
 
+            ImmutableArray<TaggedText> parts;
+
             var mainDescriptionBuilder = new List<TaggedText>();
-            if (sections.ContainsKey(SymbolDescriptionGroups.MainDescription))
+            if (sections.TryGetValue(SymbolDescriptionGroups.MainDescription, out parts))
             {
-                mainDescriptionBuilder.AddRange(sections[SymbolDescriptionGroups.MainDescription]);
+                mainDescriptionBuilder.AddRange(parts);
             }
 
             var typeParameterMapBuilder = new List<TaggedText>();
-            if (sections.ContainsKey(SymbolDescriptionGroups.TypeParameterMap))
+            if (sections.TryGetValue(SymbolDescriptionGroups.TypeParameterMap, out parts))
             {
-                var parts = sections[SymbolDescriptionGroups.TypeParameterMap];
                 if (!parts.IsDefaultOrEmpty)
                 {
                     typeParameterMapBuilder.AddLineBreak();
@@ -181,9 +182,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             }
 
             var anonymousTypesBuilder = new List<TaggedText>();
-            if (sections.ContainsKey(SymbolDescriptionGroups.AnonymousTypes))
+            if (sections.TryGetValue(SymbolDescriptionGroups.AnonymousTypes, out parts))
             {
-                var parts = sections[SymbolDescriptionGroups.AnonymousTypes];
                 if (!parts.IsDefaultOrEmpty)
                 {
                     anonymousTypesBuilder.AddLineBreak();
@@ -192,9 +192,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             }
 
             var usageTextBuilder = new List<TaggedText>();
-            if (sections.ContainsKey(SymbolDescriptionGroups.AwaitableUsageText))
+            if (sections.TryGetValue(SymbolDescriptionGroups.AwaitableUsageText, out parts))
             {
-                var parts = sections[SymbolDescriptionGroups.AwaitableUsageText];
                 if (!parts.IsDefaultOrEmpty)
                 {
                     usageTextBuilder.AddRange(parts);
@@ -207,9 +206,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             }
 
             var exceptionsTextBuilder = new List<TaggedText>();
-            if (sections.ContainsKey(SymbolDescriptionGroups.Exceptions))
+            if (sections.TryGetValue(SymbolDescriptionGroups.Exceptions, out parts))
             {
-                var parts = sections[SymbolDescriptionGroups.Exceptions];
                 if (!parts.IsDefaultOrEmpty)
                 {
                     exceptionsTextBuilder.AddRange(parts);
@@ -250,10 +248,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             ISyntaxFactsService syntaxFactsService,
             CancellationToken cancellationToken)
         {
-            if (sections.ContainsKey(SymbolDescriptionGroups.Documentation))
+            if (sections.TryGetValue(SymbolDescriptionGroups.Documentation, out var parts))
             {
                 var documentationBuilder = new List<TaggedText>();
-                documentationBuilder.AddRange(sections[SymbolDescriptionGroups.Documentation]);
+                documentationBuilder.AddRange(parts);
                 return CreateClassifiableDeferredContent(documentationBuilder);
             }
             else if (symbols.Any())

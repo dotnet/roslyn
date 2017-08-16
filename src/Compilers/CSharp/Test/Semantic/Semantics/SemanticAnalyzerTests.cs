@@ -903,7 +903,7 @@ class C
             string source = @"
 class Program
 {
-    void foo(dynamic d)
+    void goo(dynamic d)
     {
         d = (int)d;
     }

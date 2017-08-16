@@ -387,7 +387,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <remarks></remarks>
         Friend Function GetSpecialType(type As SpecialType) As NamedTypeSymbol
             If type <= SpecialType.None OrElse type > SpecialType.Count Then
-                Throw New ArgumentOutOfRangeException()
+                Throw New ArgumentOutOfRangeException(NameOf(type), $"Unexpected SpecialType: '{CType(type, Integer)}'.")
             End If
 
             Return CorLibrary.GetDeclaredSpecialType(type)

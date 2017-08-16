@@ -695,8 +695,8 @@ class Program
             var source =
 @"public class SomeClass
 {
-    public const string FooName = nameof(SomeClass.Foo);
-    public static int Foo()
+    public const string GooName = nameof(SomeClass.Goo);
+    public static int Goo()
     {
         return 1;
     }
@@ -704,10 +704,10 @@ class Program
             var compilation = CreateStandardCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "SomeClass.Foo").OfType<ExpressionSyntax>().First();
+            var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "SomeClass.Goo").OfType<ExpressionSyntax>().First();
             var symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
             Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason);
-            Assert.Equal("Foo", symbolInfo.CandidateSymbols[0].Name);
+            Assert.Equal("Goo", symbolInfo.CandidateSymbols[0].Name);
         }
 
         [Fact]
@@ -717,12 +717,12 @@ class Program
             var source =
 @"public class SomeClass
 {
-    public const string FooName = nameof(SomeClass.Foo);
-    public static int Foo()
+    public const string GooName = nameof(SomeClass.Goo);
+    public static int Goo()
     {
         return 1;
     }
-    public static string Foo()
+    public static string Goo()
     {
         return string.Empty;
     }
@@ -730,7 +730,7 @@ class Program
             var compilation = CreateStandardCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "SomeClass.Foo").OfType<ExpressionSyntax>().First();
+            var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "SomeClass.Goo").OfType<ExpressionSyntax>().First();
             var symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
             Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason);
             Assert.Equal(2, symbolInfo.CandidateSymbols.Length);

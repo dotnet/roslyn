@@ -86,8 +86,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return SpecializedTasks.EmptyImmutableArray<ISymbol>();
             }
 
-            // Looks syntactically good.  See what interfaces our containing class/struct has
             var typeDeclaration = typeNode.GetAncestor<TypeDeclarationSyntax>();
+            if (typeDeclaration == null)
+            {
+                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+            }
+
+            // Looks syntactically good.  See what interfaces our containing class/struct has
             Debug.Assert(IsClassOrStruct(typeDeclaration));
 
             var semanticModel = context.SemanticModel;

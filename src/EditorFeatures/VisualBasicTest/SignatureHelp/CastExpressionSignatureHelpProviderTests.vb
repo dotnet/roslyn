@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
         Public Async Function TestInvocationForCType() As Task
             Dim markup = <a><![CDATA[
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x = CType($$
     End Sub
 End Class
@@ -41,7 +41,7 @@ End Class
         Public Async Function TestInvocationForCTypeAfterComma() As Task
             Dim markup = <a><![CDATA[
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x = CType(bar, $$
     End Sub
 End Class
@@ -62,7 +62,7 @@ End Class
         Public Async Function TestInvocationForDirectCast() As Task
             Dim markup = <a><![CDATA[
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x = DirectCast($$
     End Sub
 End Class
@@ -83,7 +83,7 @@ End Class
         Public Async Function TestInvocationForTryCast() As Task
             Dim markup = <a><![CDATA[
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x = [|TryCast($$
     |]End Sub
 End Class

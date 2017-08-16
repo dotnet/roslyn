@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -183,7 +183,7 @@ Partial Structure $$</text>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestPartialClassesInSameNamespace() As Task
             Dim text = <text>Namespace N
-    Partial Class Foo
+    Partial Class Goo
 
     End Class
 End Namespace
@@ -193,13 +193,13 @@ Namespace N
 
 End Namespace</text>
 
-            Await VerifyItemExistsAsync(text.Value, "Foo")
+            Await VerifyItemExistsAsync(text.Value, "Goo")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNotPartialClassesAcrossDifferentNamespaces() As Task
             Dim text = <text>Namespace N
-    Partial Class Foo
+    Partial Class Goo
 
     End Class
 End Namespace

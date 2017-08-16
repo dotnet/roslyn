@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-                                class $$Foo
+                                class $$Goo
                                 {
                                 }
                             </Document>
@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Submission Language="C#" CommonReferences="true">  
-                        object $$foo;  
+                        object $$goo;  
                     </Submission>
                 </Workspace>,
                 workspaceKind:=WorkspaceKind.Interactive,
@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-Class [|Fo$$o|]
+Class [|Go$$o|]
 
 End Class
                             </Document>
@@ -171,7 +171,7 @@ End Class
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-                                class Foo
+                                class Goo
                                 {
                                     int |$$|x = 0;
                                 }
@@ -196,7 +196,7 @@ End Class
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                                class $$Foo
+                                class $$Goo
                                 {
                                 }
                             </Document>
@@ -227,9 +227,9 @@ End Class
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                                class $$Foo
+                                class $$Goo
                                 {
-                                    Foo f;
+                                    Goo f;
                                 }
                             </Document>
                     </Project>
@@ -269,9 +269,9 @@ End Class
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-class $$Foo // comment
+class $$Goo // comment
 {
-Foo f;
+Goo f;
 }
                             </Document>
                     </Project>
@@ -316,7 +316,7 @@ Foo f;
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-class [|$$Foo|] // comment
+class [|$$Goo|] // comment
 {
 }
                             </Document>
@@ -362,9 +362,9 @@ class [|$$Foo|] // comment
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-class $$Foo // comment
+class $$Goo // comment
 {
-Foo f;
+Goo f;
 }
                             </Document>
                     </Project>
@@ -451,7 +451,7 @@ Foo f;
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-                                Class [|Fo$$o|]
+                                Class [|Go$$o|]
                                 End Class
                             </Document>
                     </Project>
@@ -469,7 +469,7 @@ Foo f;
                 editorOperations.MoveToNextCharacter(extendSelection:=False)
                 commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "$"c), Sub() editorOperations.InsertText("$"))
 
-                Await VerifyTagsAreCorrect(workspace, "Foo")
+                Await VerifyTagsAreCorrect(workspace, "Goo")
 
                 session.Cancel()
             End Using
@@ -482,9 +482,9 @@ Foo f;
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                                class [|$$Foo|]
+                                class [|$$Goo|]
                                 {
-                                    [|Foo|] f;
+                                    [|Goo|] f;
                                 }
                             </Document>
                     </Project>
@@ -513,7 +513,7 @@ Foo f;
                 ' Now let's type and that should commit Rename
                 commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "Z"c), Sub() editorOperations.InsertText("Z"))
 
-                Await VerifyTagsAreCorrect(workspace, "BFoo")
+                Await VerifyTagsAreCorrect(workspace, "BGoo")
 
                 ' Rename session was indeed committed and is no longer active
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
@@ -531,9 +531,9 @@ Foo f;
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                                class [|$$Foo|]
+                                class [|$$Goo|]
                                 {
-                                    [|Foo|] f;
+                                    [|Goo|] f;
                                 }
                             </Document>
                     </Project>
@@ -569,9 +569,9 @@ Foo f;
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                                class [|Fo$$o|]
+                                class [|Go$$o|]
                                 {
-                                    [|Foo|] f;
+                                    [|Goo|] f;
                                 }
                             </Document>
                     </Project>
@@ -592,7 +592,7 @@ Foo f;
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
                 commandHandler.ExecuteCommand(New BackspaceKeyCommandArgs(view, view.TextBuffer), Sub() editorOperations.Backspace())
 
-                Await VerifyTagsAreCorrect(workspace, "Fo")
+                Await VerifyTagsAreCorrect(workspace, "Go")
                 Assert.NotNull(workspace.GetService(Of IInlineRenameService).ActiveSession)
 
                 session.Cancel()
@@ -606,9 +606,9 @@ Foo f;
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                                class [|$$Foo|]
+                                class [|$$Goo|]
                                 {
-                                    [|Foo|] f;
+                                    [|Goo|] f;
                                 }
                             </Document>
                     </Project>
@@ -637,7 +637,7 @@ Foo f;
                 ' Now let's type and that should commit Rename
                 commandHandler.ExecuteCommand(New DeleteKeyCommandArgs(view, view.TextBuffer), Sub() editorOperations.Delete())
 
-                Await VerifyTagsAreCorrect(workspace, "BFoo")
+                Await VerifyTagsAreCorrect(workspace, "BGoo")
 
                 ' Rename session was indeed committed and is no longer active
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
@@ -652,9 +652,9 @@ Foo f;
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                            class [|$$Foo|]
+                            class [|$$Goo|]
                             {
-                                [|Foo|] f;
+                                [|Goo|] f;
                             }
                         </Document>
                         <Document>
@@ -689,7 +689,7 @@ Foo f;
                 ' Type the char at the beginning of the file
                 commandHandler.ExecuteCommand(New TypeCharCommandArgs(newview, newview.TextBuffer, "Z"c), Sub() editorOperations.InsertText("Z"))
 
-                Await VerifyTagsAreCorrect(workspace, "BFoo")
+                Await VerifyTagsAreCorrect(workspace, "BGoo")
 
                 ' Rename session was indeed committed and is no longer active
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
@@ -847,7 +847,7 @@ partial class [|Program|]
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                                class Foo
+                                class Goo
                                 {
                                     int ba$$r;
                                 }
@@ -886,7 +886,7 @@ partial class [|Program|]
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                                class Foo
+                                class Goo
                                 {
                                     int ba$$r;
                                 }
@@ -928,7 +928,7 @@ partial class [|Program|]
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                                class Foo
+                                class Goo
                                 {
                                     int ba$$r;
                                 }
@@ -967,7 +967,7 @@ partial class [|Program|]
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-                                Class [|Fo$$o|]
+                                Class [|Go$$o|]
                                 End Class
                             </Document>
                     </Project>
@@ -1003,7 +1003,7 @@ partial class [|Program|]
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-                                Class [|Fo$$o|]
+                                Class [|Go$$o|]
                                 End Class
                             </Document>
                     </Project>
@@ -1039,9 +1039,9 @@ partial class [|Program|]
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                                class [|$$Foo|]
+                                class [|$$Goo|]
                                 {
-                                    [|Foo|] f;
+                                    [|Goo|] f;
                                 }
                             </Document>
                     </Project>
@@ -1065,7 +1065,7 @@ partial class [|Program|]
                 ' Now save the document, which should commit Rename
                 commandHandler.ExecuteCommand(New SaveCommandArgs(view, view.TextBuffer), Sub() Exit Sub)
 
-                Await VerifyTagsAreCorrect(workspace, "BFoo")
+                Await VerifyTagsAreCorrect(workspace, "BGoo")
 
                 ' Rename session was indeed committed and is no longer active
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)

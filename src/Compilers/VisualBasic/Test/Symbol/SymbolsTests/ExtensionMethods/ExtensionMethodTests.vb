@@ -2181,12 +2181,12 @@ BC42030: Variable 'x' is passed by reference before it has been assigned a value
             '{
             '    public static class C
             '    {
-            '        public static void Foo(this int x) { }
+            '        public static void Goo(this int x) { }
             '    }
 
             '    public static class D
             '    {
-            '        public static void Foo(this int x) { }
+            '        public static void Goo(this int x) { }
             '    }
             '}
 
@@ -2194,7 +2194,7 @@ BC42030: Variable 'x' is passed by reference before it has been assigned a value
             '{
             '    public static class C
             '    {
-            '        public static void Foo(this int x) { }
+            '        public static void Goo(this int x) { }
             '    }
             '}
 
@@ -2211,7 +2211,7 @@ BC42030: Variable 'x' is passed by reference before it has been assigned a value
 .class public abstract auto ansi sealed beforefieldinit Extensions.C
 {
   .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
-  .method public hidebysig static void  Foo(int32 x) cil managed
+  .method public hidebysig static void  Goo(int32 x) cil managed
   {
     .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
     ret
@@ -2221,7 +2221,7 @@ BC42030: Variable 'x' is passed by reference before it has been assigned a value
 .class public abstract auto ansi sealed beforefieldinit Extensions.D
 {
   .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
-  .method public hidebysig static void  Foo(int32 x) cil managed
+  .method public hidebysig static void  Goo(int32 x) cil managed
   {
     .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
     ret
@@ -2231,7 +2231,7 @@ BC42030: Variable 'x' is passed by reference before it has been assigned a value
 .class public abstract auto ansi sealed beforefieldinit extensions.C
 {
   .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
-  .method public hidebysig static void  Foo(int32 x) cil managed
+  .method public hidebysig static void  Goo(int32 x) cil managed
   {
     .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
     ret
@@ -2251,14 +2251,14 @@ Imports Extensions
 Module Program
     Sub Main
         Dim x As Integer = 1
-        x.Foo
+        x.Goo
     End Sub
 End Module
         </file>
         </compilation>, {ILRef})
 
                 compilation1.VerifyDiagnostics(
-                    Diagnostic(ERRID.ERR_NameNotMember2, "x.Foo").WithArguments("Foo", "Integer"),
+                    Diagnostic(ERRID.ERR_NameNotMember2, "x.Goo").WithArguments("Goo", "Integer"),
                     Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports Extensions"))
             End Using
 

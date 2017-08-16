@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -257,7 +257,7 @@ class C
             installerServiceMock.Verify();
         }
 
-        private Task<ImmutableArray<PackageWithTypeResult>> CreateSearchResult(
+        private Task<IList<PackageWithTypeResult>> CreateSearchResult(
             string packageName, string typeName, ImmutableArray<string> containingNamespaceNames)
         {
             return CreateSearchResult(new PackageWithTypeResult(
@@ -265,8 +265,8 @@ class C
                 rank: 0, containingNamespaceNames: containingNamespaceNames));
         }
 
-        private Task<ImmutableArray<PackageWithTypeResult>> CreateSearchResult(params PackageWithTypeResult[] results)
-            => Task.FromResult(ImmutableArray.Create(results));
+        private Task<IList<PackageWithTypeResult>> CreateSearchResult(params PackageWithTypeResult[] results)
+            => Task.FromResult<IList<PackageWithTypeResult>>(ImmutableArray.Create(results));
 
         private ImmutableArray<string> CreateNameParts(params string[] parts) => parts.ToImmutableArray();
     }

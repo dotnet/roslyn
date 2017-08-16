@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
     {
         public static bool TryMapSpanFromSecondaryBufferToPrimaryBuffer(this VsTextSpan spanInSecondaryBuffer, Workspace workspace, DocumentId documentId, out VsTextSpan spanInPrimaryBuffer)
         {
-            spanInPrimaryBuffer = default(VsTextSpan);
+            spanInPrimaryBuffer = default;
 
             var visualStudioWorkspace = workspace as VisualStudioWorkspaceImpl;
             if (visualStudioWorkspace == null)

@@ -31,6 +31,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class LocalFunctionTests : LocalFunctionsTestBase
     {
         [Fact]
+        public void ConstraintBinding()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    void M()
+    {
+        void Local<T, U>()
+            where T : U
+            where U : class
+        { }
+
+        Local<object, object>();
+    }
+}");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ConstraintBinding2()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    void M()
+    {
+        void Local<T, U>(T t)
+            where T : U
+            where U : t
+        { }
+
+        Local<object, object>(null);
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (8,23): error CS0246: The type or namespace name 't' could not be found (are you missing a using directive or an assembly reference?)
+                //             where U : t
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "t").WithArguments("t").WithLocation(8, 23),
+                // (11,9): error CS0311: The type 'object' cannot be used as type parameter 'U' in the generic type or method 'Local<T, U>(T)'. There is no implicit reference conversion from 'object' to 't'.
+                //         Local<object, object>(null);
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "Local<object, object>").WithArguments("Local<T, U>(T)", "t", "U", "object").WithLocation(11, 9));
+        }
+
+        [Fact]
         [WorkItem(17014, "https://github.com/dotnet/roslyn/pull/17014")]
         public void RecursiveLocalFuncsAsParameterTypes()
         {
@@ -1438,10 +1482,10 @@ class Program
     }
 }";
             VerifyDiagnostics(source,
-    // (6,14): error CS0501: 'Local(int)' must declare a body because it is not marked abstract, extern, or partial
-    //         void Local(int x);
-    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Local").WithArguments("Local(int)").WithLocation(6, 14)
-    );
+                // (6,14): error CS8112: 'Local(int)' is a local function and must therefore always have a body.
+                //         void Local(int x);
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "Local").WithArguments("Local(int)").WithLocation(6, 14)
+            );
         }
 
         [Fact]
@@ -1548,7 +1592,7 @@ class Program
             Console.Write(x);
         }
         Label:
-        Action foo = Local;
+        Action goo = Local;
     }
     static void Main(string[] args)
     {
@@ -1560,7 +1604,7 @@ class Program
                 //         int x = 2;
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "int").WithLocation(9, 9),
                 // (15,22): error CS0165: Use of unassigned local variable 'x'
-                //         Action foo = Local;
+                //         Action goo = Local;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "Local").WithArguments("x").WithLocation(15, 22)
     );
         }
@@ -2108,7 +2152,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        int Foo
+        int Goo
         {
             get
             {
@@ -2121,7 +2165,7 @@ class Program
 ";
             VerifyDiagnostics(source,
     // (6,16): error CS1002: ; expected
-    //         int Foo
+    //         int Goo
     Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 16),
     // (8,16): error CS1002: ; expected
     //             get
@@ -2144,9 +2188,9 @@ class Program
     // (13,9): warning CS0162: Unreachable code detected
     //         int Bar => 2;
     Diagnostic(ErrorCode.WRN_UnreachableCode, "int").WithLocation(13, 9),
-    // (6,13): warning CS0168: The variable 'Foo' is declared but never used
-    //         int Foo
-    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo").WithArguments("Foo").WithLocation(6, 13),
+    // (6,13): warning CS0168: The variable 'Goo' is declared but never used
+    //         int Goo
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Goo").WithArguments("Goo").WithLocation(6, 13),
     // (13,13): warning CS0168: The variable 'Bar' is declared but never used
     //         int Bar => 2;
     Diagnostic(ErrorCode.WRN_UnreferencedVar, "Bar").WithArguments("Bar").WithLocation(13, 13)
@@ -3092,7 +3136,10 @@ class C
             comp.VerifyEmitDiagnostics(
                 // (8,18): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
                 //         L(m => L(d => d, m), null);
-                Diagnostic(ErrorCode.ERR_BadDynamicMethodArgLambda, "d => d").WithLocation(8, 18));
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArgLambda, "d => d").WithLocation(8, 18),
+                // (8,16): error CS8322: Cannot pass argument with dynamic type to generic local function 'L' with inferred type arguments.
+                //         L(m => L(d => d, m), null);
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionTypeParameter, "L(d => d, m)").WithArguments("L").WithLocation(8, 16));
         }
 
         [Fact]
@@ -3115,9 +3162,74 @@ class C
                 // (8,37): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
                 //             => await L(async m => L(async d => await d, m), p);
                 Diagnostic(ErrorCode.ERR_BadDynamicMethodArgLambda, "async d => await d").WithLocation(8, 37),
+                // (8,35): error CS8322: Cannot pass argument with dynamic type to generic local function 'L' with inferred type arguments.
+                //             => await L(async m => L(async d => await d, m), p);
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionTypeParameter, "L(async d => await d, m)").WithArguments("L").WithLocation(8, 35),
                 // (8,32): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //             => await L(async m => L(async d => await d, m), p);
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(8, 32));
+        }
+
+        [Fact]
+        [WorkItem(21317, "https://github.com/dotnet/roslyn/issues/21317")]
+        [CompilerTrait(CompilerFeature.Dynamic)]
+        public void DynamicGenericArg()
+        {
+            var src = @"
+using System.Collections.Generic;
+class C
+{
+    static void M()
+    {
+        dynamic val = 2;
+        dynamic dynamicList = new List<int>();
+
+        void L1<T>(T x) { }
+        L1(val);
+
+        void L2<T>(int x, T y) { }
+        L2(1, val);
+        L2(val, 3.0f);
+
+        void L3<T>(List<T> x) { }
+        L3(dynamicList);
+
+        void L4<T>(int x, params T[] y) { }
+        L4(1, 2, val);
+        L4(val, 3, 4);
+
+        void L5<T>(T x, params int[] y) { }
+        L5(val, 1, 2);
+        L5(1, 3, val);
+    }
+}
+";
+            VerifyDiagnostics(src,
+                // (11,9): error CS8322: Cannot pass argument with dynamic type to generic local function 'L1'. Try specifying the type arguments explicitly.
+                //         L1(val);
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionTypeParameter, "L1(val)").WithArguments("L1").WithLocation(11, 9),
+                // (14,9): error CS8322: Cannot pass argument with dynamic type to generic local function 'L2'. Try specifying the type arguments explicitly.
+                //         L2(1, val);
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionTypeParameter, "L2(1, val)").WithArguments("L2").WithLocation(14, 9),
+                // (15,9): error CS8322: Cannot pass argument with dynamic type to generic local function 'L2'. Try specifying the type arguments explicitly.
+                //         L2(val, 3.0f);
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionTypeParameter, "L2(val, 3.0f)").WithArguments("L2").WithLocation(15, 9),
+                // (18,9): error CS8322: Cannot pass argument with dynamic type to generic local function 'L3'. Try specifying the type arguments explicitly.
+                //         L3(dynamicList);
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionTypeParameter, "L3(dynamicList)").WithArguments("L3").WithLocation(18, 9),
+                // (21,9): error CS8322: Cannot pass argument with dynamic type to generic local function 'L4'. Try specifying the type arguments explicitly.
+                //         L4(1, 2, val);
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionTypeParameter, "L4(1, 2, val)").WithArguments("L4").WithLocation(21, 9),
+                // (22,9): error CS8322: Cannot pass argument with dynamic type to generic local function 'L4'. Try specifying the type arguments explicitly.
+                //         L4(val, 3, 4);
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionTypeParameter, "L4(val, 3, 4)").WithArguments("L4").WithLocation(22, 9),
+                // (25,9): error CS8322: Cannot pass argument with dynamic type to generic local function 'L5'. Try specifying the type arguments explicitly.
+                //         L5(val, 1, 2);
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionTypeParameter, "L5(val, 1, 2)").WithArguments("L5").WithLocation(25, 9),
+                // (26,9): error CS8322: Cannot pass argument with dynamic type to generic local function 'L5'. Try specifying the type arguments explicitly.
+                //         L5(1, 3, val);
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionTypeParameter, "L5(1, 3, val)").WithArguments("L5").WithLocation(26, 9)
+                );
         }
     }
 }

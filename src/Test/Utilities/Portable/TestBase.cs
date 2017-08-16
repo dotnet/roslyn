@@ -53,6 +53,19 @@ namespace Roslyn.Test.Utilities
 
         #region Metadata References
 
+        /// <summary>
+        /// Helper for atomically acquiring and saving a metadata reference. Necessary
+        /// if the acquired reference will ever be used in object identity comparisons.
+        /// </summary>
+        private static MetadataReference GetOrCreateMetadataReference(ref MetadataReference field, Func<MetadataReference> getReference)
+        {
+            if (field == null)
+            {
+                Interlocked.CompareExchange(ref field, getReference(), null);
+            }
+            return field;
+        }
+
         private static MetadataReference[] s_lazyDefaultVbReferences;
         private static MetadataReference[] s_lazyLatestVbReferences;
 
@@ -143,22 +156,10 @@ namespace Roslyn.Test.Utilities
 
         private static MetadataReference s_systemCoreRef;
         public static MetadataReference SystemCoreRef
-        {
-            get
-            {
-                if (s_systemCoreRef == null)
-                {
-                    // We rely on reference equality in CreateSharedCompilation, so
-                    // we must use a CompareExchange here.
-                    Interlocked.CompareExchange(
-                        ref s_systemCoreRef,
-                        AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Core).GetReference(display: "System.Core.v4_0_30319.dll"),
-                        null);
-                }
-
-                return s_systemCoreRef;
-            }
-        }
+            // We rely on reference equality in CreateSharedCompilation, so
+            // we must use a CompareExchange here.
+            => GetOrCreateMetadataReference(ref s_systemCoreRef,
+                () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Core).GetReference(display: "System.Core.v4_0_30319.dll"));
 
         private static MetadataReference s_systemCoreRef_v4_0_30319_17929;
         public static MetadataReference SystemCoreRef_v4_0_30319_17929
@@ -232,17 +233,10 @@ namespace Roslyn.Test.Utilities
 
         private static MetadataReference s_mscorlibRef;
         public static MetadataReference MscorlibRef
-        {
-            get
-            {
-                if (s_mscorlibRef == null)
-                {
-                    s_mscorlibRef = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib).GetReference(display: "mscorlib.v4_0_30319.dll");
-                }
-
-                return s_mscorlibRef;
-            }
-        }
+            // We rely on reference equality in CreateSharedCompilation, so
+            // we must use a CompareExchange here.
+            => GetOrCreateMetadataReference(ref s_mscorlibRef,
+                () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib).GetReference(display: "mscorlib.v4_0_30319.dll"));
 
         private static MetadataReference s_mscorlibRefPortable;
         public static MetadataReference MscorlibRefPortable
@@ -415,22 +409,8 @@ namespace Roslyn.Test.Utilities
 
         private static MetadataReference s_systemRef;
         public static MetadataReference SystemRef
-        {
-            get
-            {
-                if (s_systemRef == null)
-                {
-                    // We rely on reference equality in CreateSharedCompilation, so
-                    // we must use a CompareExchange here.
-                    Interlocked.CompareExchange(
-                        ref s_systemRef,
-                        AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System).GetReference(display: "System.v4_0_30319.dll"),
-                        null);
-                }
-
-                return s_systemRef;
-            }
-        }
+            => GetOrCreateMetadataReference(ref s_systemRef,
+                () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System).GetReference(display: "System.v4_0_30319.dll"));
 
         private static MetadataReference s_systemRef_v46;
         public static MetadataReference SystemRef_v46

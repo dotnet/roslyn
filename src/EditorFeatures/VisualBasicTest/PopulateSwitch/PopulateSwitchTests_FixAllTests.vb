@@ -14,7 +14,7 @@ Enum MyEnum1
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum1.Fizz
         {|FixAllInDocument:|}Select Case e
@@ -43,7 +43,7 @@ Enum MyEnum2
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum2.Fizz
         Select Case e
@@ -66,7 +66,7 @@ Enum MyEnum3
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum3.Fizz
         Select Case e
@@ -91,7 +91,7 @@ Enum MyEnum1
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum1.Fizz
         Select Case e
@@ -124,7 +124,7 @@ Enum MyEnum2
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum2.Fizz
         Select Case e
@@ -147,7 +147,7 @@ Enum MyEnum3
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum3.Fizz
         Select Case e
@@ -179,7 +179,7 @@ Enum MyEnum1
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum1.Fizz
         {|FixAllInProject:|}Select Case e
@@ -199,7 +199,7 @@ Enum MyEnum2
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum2.Fizz
         Select Case e
@@ -222,7 +222,7 @@ Enum MyEnum3
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum3.Fizz
         Select Case e
@@ -247,7 +247,7 @@ Enum MyEnum1
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum1.Fizz
         Select Case e
@@ -269,7 +269,7 @@ Enum MyEnum2
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum2.Fizz
         Select Case e
@@ -294,7 +294,7 @@ Enum MyEnum3
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum3.Fizz
         Select Case e
@@ -326,7 +326,7 @@ Enum MyEnum1
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum1.Fizz
         {|FixAllInSolution:|}Select Case e
@@ -344,7 +344,7 @@ Enum MyEnum2
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum2.Fizz
         Select Case e
@@ -365,7 +365,7 @@ Enum MyEnum3
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum3.Fizz
         Select Case e
@@ -388,7 +388,7 @@ Enum MyEnum1
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum1.Fizz
         Select Case e
@@ -410,7 +410,7 @@ Enum MyEnum2
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum2.Fizz
         Select Case e
@@ -435,7 +435,7 @@ Enum MyEnum3
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum3.Fizz
         Select Case e

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -1263,11 +1263,9 @@ class Program
 
             CompileAndVerifyRef(text, options: TestOptions.UnsafeReleaseDll).VerifyIL("Program.Main()", @"
 {
-  // Code size      285 (0x11d)
+  // Code size      291 (0x123)
   .maxstack  4
-  .locals init (pinned int& V_0, //i
-                pinned int& V_1, //i
-                pinned int& V_2) //i
+  .locals init (pinned int& V_0)
   IL_0000:  newobj     ""Program..ctor()""
   IL_0005:  dup
   IL_0006:  callvirt   ""ref int Program.P.get""
@@ -1299,108 +1297,114 @@ class Program
   IL_003c:  dup
   IL_003d:  callvirt   ""ref int Program.P.get""
   IL_0042:  stloc.0
-  IL_0043:  ldc.i4.0
-  IL_0044:  conv.u
-  IL_0045:  stloc.0
-  IL_0046:  dup
-  IL_0047:  callvirt   ""ref int Program.P.get""
-  IL_004c:  mkrefany   ""int""
-  IL_0051:  pop
-  IL_0052:  dup
-  IL_0053:  ldc.i4.0
-  IL_0054:  callvirt   ""ref int Program.this[int].get""
-  IL_0059:  ldc.i4.0
-  IL_005a:  stind.i4
-  IL_005b:  dup
-  IL_005c:  ldc.i4.0
-  IL_005d:  callvirt   ""ref int Program.this[int].get""
-  IL_0062:  dup
-  IL_0063:  ldind.i4
-  IL_0064:  ldc.i4.1
-  IL_0065:  add
-  IL_0066:  stind.i4
-  IL_0067:  dup
-  IL_0068:  ldc.i4.0
-  IL_0069:  callvirt   ""ref int Program.this[int].get""
-  IL_006e:  dup
-  IL_006f:  ldind.i4
-  IL_0070:  ldc.i4.1
-  IL_0071:  add
-  IL_0072:  stind.i4
-  IL_0073:  dup
-  IL_0074:  dup
-  IL_0075:  ldc.i4.0
-  IL_0076:  callvirt   ""ref int Program.this[int].get""
-  IL_007b:  callvirt   ""ref int Program.M(ref int)""
-  IL_0080:  pop
-  IL_0081:  dup
-  IL_0082:  dup
-  IL_0083:  ldc.i4.0
-  IL_0084:  callvirt   ""ref int Program.this[int].get""
-  IL_0089:  callvirt   ""void Program.N(out int)""
-  IL_008e:  dup
-  IL_008f:  ldc.i4.0
-  IL_0090:  callvirt   ""ref int Program.this[int].get""
-  IL_0095:  stloc.1
-  IL_0096:  ldc.i4.0
-  IL_0097:  conv.u
-  IL_0098:  stloc.1
-  IL_0099:  dup
+  IL_0043:  ldloc.0
+  IL_0044:  pop
+  IL_0045:  ldc.i4.0
+  IL_0046:  conv.u
+  IL_0047:  stloc.0
+  IL_0048:  dup
+  IL_0049:  callvirt   ""ref int Program.P.get""
+  IL_004e:  mkrefany   ""int""
+  IL_0053:  pop
+  IL_0054:  dup
+  IL_0055:  ldc.i4.0
+  IL_0056:  callvirt   ""ref int Program.this[int].get""
+  IL_005b:  ldc.i4.0
+  IL_005c:  stind.i4
+  IL_005d:  dup
+  IL_005e:  ldc.i4.0
+  IL_005f:  callvirt   ""ref int Program.this[int].get""
+  IL_0064:  dup
+  IL_0065:  ldind.i4
+  IL_0066:  ldc.i4.1
+  IL_0067:  add
+  IL_0068:  stind.i4
+  IL_0069:  dup
+  IL_006a:  ldc.i4.0
+  IL_006b:  callvirt   ""ref int Program.this[int].get""
+  IL_0070:  dup
+  IL_0071:  ldind.i4
+  IL_0072:  ldc.i4.1
+  IL_0073:  add
+  IL_0074:  stind.i4
+  IL_0075:  dup
+  IL_0076:  dup
+  IL_0077:  ldc.i4.0
+  IL_0078:  callvirt   ""ref int Program.this[int].get""
+  IL_007d:  callvirt   ""ref int Program.M(ref int)""
+  IL_0082:  pop
+  IL_0083:  dup
+  IL_0084:  dup
+  IL_0085:  ldc.i4.0
+  IL_0086:  callvirt   ""ref int Program.this[int].get""
+  IL_008b:  callvirt   ""void Program.N(out int)""
+  IL_0090:  dup
+  IL_0091:  ldc.i4.0
+  IL_0092:  callvirt   ""ref int Program.this[int].get""
+  IL_0097:  stloc.0
+  IL_0098:  ldloc.0
+  IL_0099:  pop
   IL_009a:  ldc.i4.0
-  IL_009b:  callvirt   ""ref int Program.this[int].get""
-  IL_00a0:  mkrefany   ""int""
-  IL_00a5:  pop
-  IL_00a6:  dup
-  IL_00a7:  dup
-  IL_00a8:  ldflda     ""int Program.field""
-  IL_00ad:  callvirt   ""ref int Program.M(ref int)""
-  IL_00b2:  ldc.i4.0
-  IL_00b3:  stind.i4
-  IL_00b4:  dup
-  IL_00b5:  dup
-  IL_00b6:  ldflda     ""int Program.field""
-  IL_00bb:  callvirt   ""ref int Program.M(ref int)""
-  IL_00c0:  dup
-  IL_00c1:  ldind.i4
-  IL_00c2:  ldc.i4.1
-  IL_00c3:  add
-  IL_00c4:  stind.i4
-  IL_00c5:  dup
-  IL_00c6:  dup
-  IL_00c7:  ldflda     ""int Program.field""
-  IL_00cc:  callvirt   ""ref int Program.M(ref int)""
-  IL_00d1:  dup
-  IL_00d2:  ldind.i4
-  IL_00d3:  ldc.i4.1
-  IL_00d4:  add
-  IL_00d5:  stind.i4
-  IL_00d6:  dup
-  IL_00d7:  dup
-  IL_00d8:  dup
-  IL_00d9:  ldflda     ""int Program.field""
-  IL_00de:  callvirt   ""ref int Program.M(ref int)""
-  IL_00e3:  callvirt   ""ref int Program.M(ref int)""
-  IL_00e8:  pop
-  IL_00e9:  dup
-  IL_00ea:  dup
-  IL_00eb:  dup
-  IL_00ec:  ldflda     ""int Program.field""
-  IL_00f1:  callvirt   ""ref int Program.M(ref int)""
-  IL_00f6:  callvirt   ""void Program.N(out int)""
-  IL_00fb:  dup
-  IL_00fc:  dup
-  IL_00fd:  ldflda     ""int Program.field""
-  IL_0102:  callvirt   ""ref int Program.M(ref int)""
-  IL_0107:  stloc.2
-  IL_0108:  ldc.i4.0
-  IL_0109:  conv.u
-  IL_010a:  stloc.2
-  IL_010b:  dup
-  IL_010c:  ldflda     ""int Program.field""
-  IL_0111:  callvirt   ""ref int Program.M(ref int)""
-  IL_0116:  mkrefany   ""int""
-  IL_011b:  pop
-  IL_011c:  ret
+  IL_009b:  conv.u
+  IL_009c:  stloc.0
+  IL_009d:  dup
+  IL_009e:  ldc.i4.0
+  IL_009f:  callvirt   ""ref int Program.this[int].get""
+  IL_00a4:  mkrefany   ""int""
+  IL_00a9:  pop
+  IL_00aa:  dup
+  IL_00ab:  dup
+  IL_00ac:  ldflda     ""int Program.field""
+  IL_00b1:  callvirt   ""ref int Program.M(ref int)""
+  IL_00b6:  ldc.i4.0
+  IL_00b7:  stind.i4
+  IL_00b8:  dup
+  IL_00b9:  dup
+  IL_00ba:  ldflda     ""int Program.field""
+  IL_00bf:  callvirt   ""ref int Program.M(ref int)""
+  IL_00c4:  dup
+  IL_00c5:  ldind.i4
+  IL_00c6:  ldc.i4.1
+  IL_00c7:  add
+  IL_00c8:  stind.i4
+  IL_00c9:  dup
+  IL_00ca:  dup
+  IL_00cb:  ldflda     ""int Program.field""
+  IL_00d0:  callvirt   ""ref int Program.M(ref int)""
+  IL_00d5:  dup
+  IL_00d6:  ldind.i4
+  IL_00d7:  ldc.i4.1
+  IL_00d8:  add
+  IL_00d9:  stind.i4
+  IL_00da:  dup
+  IL_00db:  dup
+  IL_00dc:  dup
+  IL_00dd:  ldflda     ""int Program.field""
+  IL_00e2:  callvirt   ""ref int Program.M(ref int)""
+  IL_00e7:  callvirt   ""ref int Program.M(ref int)""
+  IL_00ec:  pop
+  IL_00ed:  dup
+  IL_00ee:  dup
+  IL_00ef:  dup
+  IL_00f0:  ldflda     ""int Program.field""
+  IL_00f5:  callvirt   ""ref int Program.M(ref int)""
+  IL_00fa:  callvirt   ""void Program.N(out int)""
+  IL_00ff:  dup
+  IL_0100:  dup
+  IL_0101:  ldflda     ""int Program.field""
+  IL_0106:  callvirt   ""ref int Program.M(ref int)""
+  IL_010b:  stloc.0
+  IL_010c:  ldloc.0
+  IL_010d:  pop
+  IL_010e:  ldc.i4.0
+  IL_010f:  conv.u
+  IL_0110:  stloc.0
+  IL_0111:  dup
+  IL_0112:  ldflda     ""int Program.field""
+  IL_0117:  callvirt   ""ref int Program.M(ref int)""
+  IL_011c:  mkrefany   ""int""
+  IL_0121:  pop
+  IL_0122:  ret
 }");
         }
 
@@ -2018,7 +2022,7 @@ using System;
 
 class Program
 {
-    class C1<T> where T : IFoo<T>, new()
+    class C1<T> where T : IGoo<T>, new()
     {
         T inst = new T();
 
@@ -2036,21 +2040,21 @@ class Program
 
     static void Main(string[] args)
     {
-        var v = new C1<Foo>();
+        var v = new C1<Goo>();
         v.Test();
     }
 }
 
-interface IFoo<T>
+interface IGoo<T>
 {
     void Blah(ref T arg);
 }
 
-class Foo : IFoo<Foo>
+class Goo : IGoo<Goo>
 {
     public int disposed;
 
-    public void Blah(ref Foo arg)
+    public void Blah(ref Goo arg)
     {
         arg = null;
         disposed++;
@@ -2085,7 +2089,7 @@ class Foo : IFoo<Foo>
   IL_002f:  ldarg.0
   IL_0030:  ldflda     ""T Program.C1<T>.inst""
   IL_0035:  constrained. ""T""
-  IL_003b:  callvirt   ""void IFoo<T>.Blah(ref T)""
+  IL_003b:  callvirt   ""void IGoo<T>.Blah(ref T)""
   IL_0040:  ldarg.0
   IL_0041:  ldfld      ""T Program.C1<T>.inst""
   IL_0046:  box        ""T""
@@ -2104,7 +2108,7 @@ using System;
 
 class Program
 {
-    class C1<T> where T : IFoo<T>, new()
+    class C1<T> where T : IGoo<T>, new()
     {
         T inst = new T();
 
@@ -2134,21 +2138,21 @@ class Program
 
     static void Main(string[] args)
     {
-        var v = new C1<Foo>();
+        var v = new C1<Goo>();
         v.Test();
     }
 }
 
-interface IFoo<T>
+interface IGoo<T>
 {
     void Blah(ref T arg);
 }
 
-class Foo : IFoo<Foo>
+class Goo : IGoo<Goo>
 {
     public int disposed;
 
-    public void Blah(ref Foo arg)
+    public void Blah(ref Goo arg)
     {
         arg = null;
         disposed++;
@@ -2189,7 +2193,7 @@ class Foo : IFoo<Foo>
   IL_0036:  br.s       IL_0044
   IL_0038:  ldloc.0
   IL_0039:  constrained. ""T""
-  IL_003f:  callvirt   ""void IFoo<T>.Blah(ref T)""
+  IL_003f:  callvirt   ""void IGoo<T>.Blah(ref T)""
   IL_0044:  ldloc.0
   IL_0045:  ldobj      ""T""
   IL_004a:  box        ""T""
@@ -2221,7 +2225,7 @@ class Foo : IFoo<Foo>
   IL_0097:  br.s       IL_00a5
   IL_0099:  ldloc.0
   IL_009a:  constrained. ""T""
-  IL_00a0:  callvirt   ""void IFoo<T>.Blah(ref T)""
+  IL_00a0:  callvirt   ""void IGoo<T>.Blah(ref T)""
   IL_00a5:  ldloc.0
   IL_00a6:  ldobj      ""T""
   IL_00ab:  box        ""T""
@@ -3097,7 +3101,7 @@ public class C
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "d.Length").WithLocation(14, 26),
                 // (14,20): error CS8164: Cannot return by reference a result of 'C.G(ref dynamic)' because the argument passed to parameter 'd' cannot be returned by reference
                 //         return ref G(ref d.Length);
-                Diagnostic(ErrorCode.ERR_RefReturnCall, "G(ref d.Length)").WithArguments("C.G(ref dynamic)", "d")
+                Diagnostic(ErrorCode.ERR_RefReturnCall, "G(ref d.Length)").WithArguments("C.G(ref dynamic)", "d").WithLocation(14, 20)
             );
         }
 

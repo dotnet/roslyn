@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -17,16 +17,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
             Dim src1 = <compilation name="C2CTypeSymbolUnchanged01">
                            <file name="a.vb">
 Imports System
-Public Delegate Sub DFoo(p1 As Integer, p2 As String)
+Public Delegate Sub DGoo(p1 As Integer, p2 As String)
 Namespace N1.N2
 
-    Public Interface IFoo
+    Public Interface IGoo
     End Interface
 
     Namespace N3
-        Public Class CFoo
-            Public Structure SFoo
-                Public Enum EFoo
+        Public Class CGoo
+            Public Structure SGoo
+                Public Enum EGoo
                     Zero
                     One
                 End Enum
@@ -39,18 +39,18 @@ End Namespace
 
             Dim src2 = <compilation name="C2CTypeSymbolUnchanged01">
                            <file name="b.vb">
-Public Delegate Sub DFoo(p1 As Integer, p2 As String)
+Public Delegate Sub DGoo(p1 As Integer, p2 As String)
 Namespace N1.N2
 
-    Public Interface IFoo
-        Function GetClass() As N3.CFoo
+    Public Interface IGoo
+        Function GetClass() As N3.CGoo
     End Interface
 
     Namespace N3
-        Public Class CFoo
-            Public Structure SFoo
+        Public Class CGoo
+            Public Structure SGoo
                 ' Update member
-                Public Enum EFoo
+                Public Enum EGoo
                     Zero
                     One
                     Two
@@ -81,9 +81,9 @@ End Namespace
             Dim src1 = <compilation name="C2CTypeSymbolCaseChangeOnly">
                            <file name="a.vb">
 Imports System
-Namespace NFOO
-    Public Interface IFOO
-        Delegate Sub DFOO(p As Integer)
+Namespace NGOO
+    Public Interface IGOO
+        Delegate Sub DGOO(p As Integer)
     End Interface
 End Namespace
                          </file>
@@ -92,9 +92,9 @@ End Namespace
             Dim src2 = <compilation name="C2CTypeSymbolCaseChangeOnly">
                            <file name="b.vb">
 Imports System
-Namespace nFOO
-    Public Interface IFoo ' case
-        Delegate Sub DfOO(p As Integer)
+Namespace nGOO
+    Public Interface IGoo ' case
+        Delegate Sub DgOO(p As Integer)
     End Interface
 End Namespace
                            </file>
@@ -133,20 +133,20 @@ End Namespace
             Dim src1 = <compilation name="C2CTypeSymbolChanged01">
                            <file name="a.vb">
 Imports System
-Public Delegate Sub DFoo(p As Integer)
+Public Delegate Sub DGoo(p As Integer)
 
 Namespace N1.N2
 
     Public Interface IBase
     End Interface
 
-    Public Interface IFoo
+    Public Interface IGoo
     End Interface
 
     Namespace N3
-        Public Class CFoo
-            Public Structure SFoo
-                Public Enum EFoo
+        Public Class CGoo
+            Public Structure SGoo
+                Public Enum EGoo
                     Zero
                     One
                 End Enum
@@ -159,24 +159,24 @@ End Namespace
 
             Dim src2 = <compilation name="C2CTypeSymbolChanged01">
                            <file name="a.vb">
-Public Delegate Sub DFoo(p1 As Integer, p2 As String) ' One more param
+Public Delegate Sub DGoo(p1 As Integer, p2 As String) ' One more param
 
 Namespace N1.N2
 
     Public Interface IBase
     End Interface
 
-    Public Interface IFoo
+    Public Interface IGoo
         Inherits IBase ' base
     End Interface
 
     Namespace N3
-        Public Class cFoo
-            Implements Ifoo ' impl
+        Public Class cGoo
+            Implements Igoo ' impl
 
-            Private Structure SFOO ' modifier
+            Private Structure SGOO ' modifier
 
-                Public Enum efoo As Long ' change base, case
+                Public Enum egoo As Long ' change base, case
                     Zero
                     ONE
                 End Enum

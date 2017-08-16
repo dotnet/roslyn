@@ -2411,7 +2411,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /embed switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded)..
+        ///   Looks up a localized string similar to /embed switch is only supported when emitting a PDB..
         /// </summary>
         internal static string ERR_CannotEmbedWithoutPdb {
             get {
@@ -3757,6 +3757,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_DynamicLocalFunctionParamsParameter {
             get {
                 return ResourceManager.GetString("ERR_DynamicLocalFunctionParamsParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot pass argument with dynamic type to generic local function &apos;{0}&apos; with inferred type arguments..
+        /// </summary>
+        internal static string ERR_DynamicLocalFunctionTypeParameter {
+            get {
+                return ResourceManager.GetString("ERR_DynamicLocalFunctionTypeParameter", resourceCulture);
             }
         }
         
@@ -5642,6 +5651,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unable to read debug information of method &apos;{0}&apos; (token 0x{1:X8}) from assembly &apos;{2}&apos;.
+        /// </summary>
+        internal static string ERR_InvalidDebugInfo {
+            get {
+                return ResourceManager.GetString("ERR_InvalidDebugInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid debug information format: {0}.
         /// </summary>
         internal static string ERR_InvalidDebugInformationFormat {
@@ -5989,6 +6007,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_LocalDuplicate {
             get {
                 return ResourceManager.GetString("ERR_LocalDuplicate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is a local function and must therefore always have a body..
+        /// </summary>
+        internal static string ERR_LocalFunctionMissingBody {
+            get {
+                return ResourceManager.GetString("ERR_LocalFunctionMissingBody", resourceCulture);
             }
         }
         
@@ -7541,15 +7568,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Only methods, classes, structs, or interfaces may be partial.
-        /// </summary>
-        internal static string ERR_PartialMethodOnlyMethods {
-            get {
-                return ResourceManager.GetString("ERR_PartialMethodOnlyMethods", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to A partial method may not have multiple implementing declarations.
         /// </summary>
         internal static string ERR_PartialMethodOnlyOneActual {
@@ -8423,7 +8441,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot return by reference a member of parameter &apos;{0}&apos; by reference because it is not a ref or out parameter.
+        ///   Looks up a localized string similar to Cannot return a member of parameter &apos;{0}&apos; by reference because it is not a ref or out parameter.
         /// </summary>
         internal static string ERR_RefReturnParameter2 {
             get {
@@ -8864,7 +8882,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Instance of type &apos;{0}&apos; cannot be used inside an anonymous function, query expression, iterator block or async method.
+        ///   Looks up a localized string similar to Instance of type &apos;{0}&apos; cannot be used inside a nested function, query expression, iterator block or async method.
         /// </summary>
         internal static string ERR_SpecialByRefInLambda {
             get {

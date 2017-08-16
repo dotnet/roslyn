@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
@@ -50,17 +50,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                 Return asKeyword
             End If
 
-            ' Sub Foo(Of T |
+            ' Sub Goo(Of T |
             If targetToken.IsChildToken(Of TypeParameterSyntax)(Function(typeParameter) typeParameter.Identifier) Then
                 Return asKeyword
             End If
 
-            ' Enum Foo |
+            ' Enum Goo |
             If targetToken.IsChildToken(Of EnumStatementSyntax)(Function(enumDeclaration) enumDeclaration.Identifier) Then
                 Return asKeyword
             End If
 
-            ' Catch foo
+            ' Catch goo
             If targetToken.IsFromIdentifierNode(Of CatchStatementSyntax)(Function(catchStatement) catchStatement.IdentifierName) Then
                 Return asKeyword
             End If
@@ -76,23 +76,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                 End If
             End If
 
-            ' Function Foo |
+            ' Function Goo |
             If targetToken.IsChildToken(Of MethodStatementSyntax)(Function(functionDeclaration) functionDeclaration.Identifier) AndAlso
                 Not targetToken.GetAncestor(Of MethodBaseSyntax)().IsKind(SyntaxKind.SubStatement) Then
                 Return asKeyword
             End If
 
-            ' Property Foo |
+            ' Property Goo |
             If targetToken.IsChildToken(Of PropertyStatementSyntax)(Function(propertyDeclaration) propertyDeclaration.Identifier) Then
                 Return asKeyword
             End If
 
-            ' Custom Event Foo |
+            ' Custom Event Goo |
             If targetToken.IsChildToken(Of EventStatementSyntax)(Function(eventDeclaration) eventDeclaration.Identifier) Then
                 Return asKeyword
             End If
 
-            ' Using foo |
+            ' Using goo |
             Dim usingStatement = targetToken.GetAncestor(Of UsingStatementSyntax)()
             If usingStatement IsNot Nothing AndAlso usingStatement.Expression IsNot Nothing AndAlso Not usingStatement.Expression.IsMissing Then
                 If usingStatement.Expression Is targetToken.Parent Then
@@ -115,8 +115,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                 End If
             End If
 
-            ' Dim foo |
-            ' Using foo as new O, foo2 |
+            ' Dim goo |
+            ' Using goo as new O, goo2 |
             Dim variableDeclarator = targetToken.GetAncestor(Of VariableDeclaratorSyntax)()
             If variableDeclarator IsNot Nothing Then
                 If variableDeclarator.Names.Any(Function(name) name.Identifier = targetToken AndAlso name.Identifier.GetTypeCharacter() = TypeCharacter.None) Then

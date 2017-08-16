@@ -1,19 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{6FC8E6F5-659C-424D-AEB5-331B95883E29}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <!-- Microsoft.VisualStudio.Debugger.Engine 15.0.26201-gamma is not compatible with netstandard1.3 -->
-    <PackageTargetFallback>portable-net45+win8</PackageTargetFallback>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences>
   </PropertyGroup>
   <ItemGroup>
@@ -38,27 +34,9 @@
     <Compile Include="..\..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxKindFacts.cs">
       <Link>CSharp\Compiler\SyntaxKindFacts.cs</Link>
     </Compile>
-    <Compile Include="..\ExpressionCompiler\MetadataUtilities_Exceptions.cs">
-      <Link>ExpressionCompiler\MetadataUtilities_Exceptions.cs</Link>
+    <Compile Include="..\ExpressionCompiler\DkmExceptionUtilities.cs">
+      <Link>ExpressionCompiler\DkmExceptionUtilities.cs</Link>
     </Compile>
-    <Compile Include="CSharp\CSharpFunctionResolver.cs" />
-    <Compile Include="CSharp\GreenNode.cs" />
-    <Compile Include="CSharp\MemberSignatureParser.cs" />
-    <Compile Include="CSharp\Scanner.cs" />
-    <Compile Include="FunctionResolver.cs" />
-    <Compile Include="FunctionResolverBase.cs" />
-    <Compile Include="MetadataDecoder.cs" />
-    <Compile Include="MetadataResolver.cs" />
-    <Compile Include="Name.cs" />
-    <Compile Include="ParameterSignature.cs" />
-    <Compile Include="RequestSignature.cs" />
-    <Compile Include="SpecialTypeExtensions.cs" />
-    <Compile Include="TypeSignature.cs" />
-    <Compile Include="VisualBasic\Keywords.cs" />
-    <Compile Include="VisualBasic\MemberSignatureParser.cs" />
-    <Compile Include="VisualBasic\Scanner.cs" />
-    <Compile Include="VisualBasic\SyntaxKind.cs" />
-    <Compile Include="VisualBasic\VisualBasicFunctionResolver.cs" />
     <VsdConfigXml Include="CSharp\FunctionResolver.vsdconfigxml" />
     <VsdConfigXml Include="VisualBasic\FunctionResolver.vsdconfigxml" />
   </ItemGroup>

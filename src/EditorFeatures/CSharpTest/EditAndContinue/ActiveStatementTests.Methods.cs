@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.EditAndContinue;
@@ -21,10 +21,10 @@ class C
 {
     static void Main(string[] args)
     {
-        <AS:1>Foo(1);</AS:1>
+        <AS:1>Goo(1);</AS:1>
     }
 
-    static void Foo(int a)
+    static void Goo(int a)
     {
         <AS:0>Console.WriteLine(a);</AS:0>
     }
@@ -34,7 +34,7 @@ class C
 {
     static void Main(string[] args)
     {
-        <AS:1>Foo(1);</AS:1>
+        <AS:1>Goo(1);</AS:1>
     }
 }
 ";

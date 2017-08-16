@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Friend Module AdvancedOptionPageStrings
@@ -179,23 +179,26 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Get
         End Property
 
+        Public ReadOnly Property Option_Report_invalid_placeholders_in_string_dot_format_calls As String
+            Get
+                Return BasicVSResources.Report_invalid_placeholders_in_string_dot_format_calls
+            End Get
+        End Property
+
         Public ReadOnly Property Option_RenameTrackingPreview As String
             Get
                 Return BasicVSResources.Show_preview_for_rename_tracking
             End Get
         End Property
 
-        Public ReadOnly Property Option_Import_Directives As String
-            Get
-                Return BasicVSResources.Import_Directives
-            End Get
-        End Property
+        Public ReadOnly Property Option_Import_Directives As String =
+            BasicVSResources.Import_Directives
 
-        Public ReadOnly Property Option_PlaceSystemNamespaceFirst As String
-            Get
-                Return BasicVSResources.Place_System_directives_first_when_sorting_imports
-            End Get
-        End Property
+        Public ReadOnly Property Option_PlaceSystemNamespaceFirst As String =
+            BasicVSResources.Place_System_directives_first_when_sorting_imports
+
+        Public ReadOnly Property Option_SeparateImportGroups As String =
+            BasicVSResources.Separate_import_directive_groups
 
         Public ReadOnly Property Option_Suggest_imports_for_types_in_reference_assemblies As String
             Get

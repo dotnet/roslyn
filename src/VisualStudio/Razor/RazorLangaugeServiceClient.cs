@@ -47,24 +47,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                 _inner = inner;
             }
 
-            public Task InvokeAsync(string targetName, params object[] arguments)
+            public Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
             {
-                return _inner.InvokeAsync(targetName, arguments);
+                return _inner.InvokeAsync(targetName, arguments, cancellationToken);
             }
 
-            public Task<T> InvokeAsync<T>(string targetName, params object[] arguments)
+            public Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
             {
-                return _inner.InvokeAsync<T>(targetName, arguments);
+                return _inner.InvokeAsync<T>(targetName, arguments, cancellationToken);
             }
 
-            public Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync)
+            public Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
             {
-                return _inner.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync);
+                return _inner.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
             }
 
-            public Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync)
+            public Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
             {
-                return _inner.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync);
+                return _inner.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
             }
 
             public void Dispose()

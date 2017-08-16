@@ -672,7 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
                     else if (RequiresVariableReceiver(receiver, eventSymbol.AssociatedField) && // NOTE: using field, not event
-                        !CheckIsValidReceiverForVariable(eventSyntax, receiver, BindValueKind.Assignable, diagnostics))
+                        !CheckIsValidReceiverForVariable(eventSyntax, receiver, valueKind, diagnostics))
                     {
                         return false;
                     }

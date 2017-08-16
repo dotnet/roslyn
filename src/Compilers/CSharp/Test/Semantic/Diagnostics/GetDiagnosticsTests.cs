@@ -95,7 +95,7 @@ class C : Abracadabra
             var source = @"
 class C
 {
-    public void Foo()
+    public void Goo()
     {
         int x;
     }

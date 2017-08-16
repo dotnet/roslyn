@@ -13,7 +13,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal abstract class SourceDelegateMethodSymbol : SourceMethodSymbol
+    internal abstract class SourceDelegateMethodSymbol : SourceMemberMethodSymbol
     {
         private ImmutableArray<ParameterSymbol> _parameters;
         private readonly TypeSymbol _returnType;
@@ -135,6 +135,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray<TypeParameterSymbol>.Empty;
             }
         }
+
+        public override ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraintClauses
+            => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
         public sealed override TypeSymbol ReturnType
         {
@@ -383,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 InitializeParameters(parameters.ToImmutableAndFree());
             }
 
-            protected override SourceMethodSymbol BoundAttributesSource => _invoke;
+            protected override SourceMemberMethodSymbol BoundAttributesSource => _invoke;
 
             public override string Name => WellKnownMemberNames.DelegateEndInvokeName;
 

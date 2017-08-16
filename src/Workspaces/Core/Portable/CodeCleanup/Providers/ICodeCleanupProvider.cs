@@ -21,13 +21,13 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         /// <summary>
         /// This should apply its code clean up logic to the spans of the document.
         /// </summary>
-        Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken = default(CancellationToken));
+        Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// This will run all provided code cleaners in an order that is given to the method.
         /// 
         /// This will do cleanups that don't require any semantic information
         /// </summary>
-        Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken = default(CancellationToken));
+        Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken = default);
     }
 }

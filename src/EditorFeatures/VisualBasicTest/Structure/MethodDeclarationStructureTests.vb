@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Structure
@@ -16,130 +16,130 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
         Public Async Function TestSub() As Task
             Const code = "
 Class C
-    {|span:Sub $$Foo()
-    End Sub|} ' Foo
+    {|span:Sub $$Goo()
+    End Sub|} ' Goo
 End Class
 "
 
             Await VerifyBlockSpansAsync(code,
-                Region("span", "Sub Foo() ...", autoCollapse:=True))
+                Region("span", "Sub Goo() ...", autoCollapse:=True))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestSubWithGenericTypeParameter() As Task
             Const code = "
 Class C
-    {|span:Sub $$Foo(Of T)()
+    {|span:Sub $$Goo(Of T)()
     End Sub|}
 End Class
 "
 
             Await VerifyBlockSpansAsync(code,
-                Region("span", "Sub Foo(Of T)() ...", autoCollapse:=True))
+                Region("span", "Sub Goo(Of T)() ...", autoCollapse:=True))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestSubWithGenericTypeParameterAndSingleConstraint() As Task
             Const code = "
 Class C
-    {|span:Sub $$Foo(Of T As Class)()
+    {|span:Sub $$Goo(Of T As Class)()
     End Sub|}
 End Class
 "
 
             Await VerifyBlockSpansAsync(code,
-                Region("span", "Sub Foo(Of T As Class)() ...", autoCollapse:=True))
+                Region("span", "Sub Goo(Of T As Class)() ...", autoCollapse:=True))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestSubWithGenericTypeParameterAndMultipleConstraint() As Task
             Const code = "
 Class C
-    {|span:Sub $$Foo(Of T As {Class, New})()
+    {|span:Sub $$Goo(Of T As {Class, New})()
     End Sub|}
 End Class
 "
 
             Await VerifyBlockSpansAsync(code,
-                Region("span", "Sub Foo(Of T As {Class, New})() ...", autoCollapse:=True))
+                Region("span", "Sub Goo(Of T As {Class, New})() ...", autoCollapse:=True))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestPrivateSub() As Task
             Const code = "
 Class C
-    {|span:Private Sub $$Foo()
+    {|span:Private Sub $$Goo()
     End Sub|}
 End Class
 "
 
             Await VerifyBlockSpansAsync(code,
-                Region("span", "Private Sub Foo() ...", autoCollapse:=True))
+                Region("span", "Private Sub Goo() ...", autoCollapse:=True))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestSubWithByRefParameter() As Task
             Const code = "
 Class C
-    {|span:Sub $$Foo(ByRef i As Integer)
+    {|span:Sub $$Goo(ByRef i As Integer)
     End Sub|}
 End Class
 "
 
             Await VerifyBlockSpansAsync(code,
-                Region("span", "Sub Foo(ByRef i As Integer) ...", autoCollapse:=True))
+                Region("span", "Sub Goo(ByRef i As Integer) ...", autoCollapse:=True))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestSubWithByValParameter() As Task
             Const code = "
 Class C
-    {|span:Sub $$Foo(ByVal i As Integer)
+    {|span:Sub $$Goo(ByVal i As Integer)
     End Sub|}
 End Class
 "
 
             Await VerifyBlockSpansAsync(code,
-                Region("span", "Sub Foo(ByVal i As Integer) ...", autoCollapse:=True))
+                Region("span", "Sub Goo(ByVal i As Integer) ...", autoCollapse:=True))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestSubWithOptionalParameter() As Task
             Const code = "
 Class C
-    {|span:Sub $$Foo(Optional i As Integer = 1)
+    {|span:Sub $$Goo(Optional i As Integer = 1)
     End Sub|}
 End Class
 "
 
             Await VerifyBlockSpansAsync(code,
-                Region("span", "Sub Foo(Optional i As Integer = 1) ...", autoCollapse:=True))
+                Region("span", "Sub Goo(Optional i As Integer = 1) ...", autoCollapse:=True))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestSubWithHandlesClause() As Task
             Const code = "
 Class C
-    {|span:Sub $$Foo() Handles Bar.Baz
+    {|span:Sub $$Goo() Handles Bar.Baz
     End Sub|}
 End Class
 "
 
             Await VerifyBlockSpansAsync(code,
-                Region("span", "Sub Foo() Handles Bar.Baz ...", autoCollapse:=True))
+                Region("span", "Sub Goo() Handles Bar.Baz ...", autoCollapse:=True))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestSubWithImplementsClause() As Task
             Const code = "
 Class C
-    {|span:Sub $$Foo() Implements Bar.Baz
+    {|span:Sub $$Goo() Implements Bar.Baz
     End Sub|}
 End Class
 "
 
             Await VerifyBlockSpansAsync(code,
-                Region("span", "Sub Foo() Implements Bar.Baz ...", autoCollapse:=True))
+                Region("span", "Sub Goo() Implements Bar.Baz ...", autoCollapse:=True))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
@@ -148,14 +148,14 @@ End Class
 Class C
     {|span1:'My
     'Constructor|}
-    {|span2:Sub $$Foo() Implements Bar.Baz
+    {|span2:Sub $$Goo() Implements Bar.Baz
     End Sub|}
 End Class
 "
 
             Await VerifyBlockSpansAsync(code,
                 Region("span1", "' My ...", autoCollapse:=True),
-                Region("span2", "Sub Foo() Implements Bar.Baz ...", autoCollapse:=True))
+                Region("span2", "Sub Goo() Implements Bar.Baz ...", autoCollapse:=True))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>

@@ -36,13 +36,13 @@ static class Program
 
     static async void f()
     {
-        await foo;
+        await goo;
     }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (8,15): error CS0103: The name 'foo' does not exist in the current context
-                //         await foo;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "foo").WithArguments("foo"));
+                // (8,15): error CS0103: The name 'goo' does not exist in the current context
+                //         await goo;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "goo").WithArguments("goo"));
         }
 
         [Fact]
@@ -2583,15 +2583,15 @@ class C
 {
     async void M()
     {
-        using (await foo())
+        using (await goo())
         {
         }
     }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (6,22): error CS0103: The name 'foo' does not exist in the current context
-                //         using (await foo())
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "foo").WithArguments("foo"));
+                // (6,22): error CS0103: The name 'goo' does not exist in the current context
+                //         using (await goo())
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "goo").WithArguments("goo"));
         }
 
         [Fact]
@@ -2600,11 +2600,11 @@ class C
             var source = @"
 class Test
 {
-    public void foo() { }
+    public void goo() { }
 
     public async void awaitVoid()
     {
-        await foo();
+        await goo();
     }
 
     public async void awaitNull()
@@ -2614,7 +2614,7 @@ class Test
 
     public async void awaitMethodGroup()
     {
-        await foo;
+        await goo;
     }
 
     public async void awaitLambda()
@@ -2626,14 +2626,14 @@ class Test
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (8,9): error CS4008: Cannot await 'void'
-                //         await foo();
-                Diagnostic(ErrorCode.ERR_BadAwaitArgVoidCall, "await foo()"),
+                //         await goo();
+                Diagnostic(ErrorCode.ERR_BadAwaitArgVoidCall, "await goo()"),
                 // (13,9): error CS4001: Cannot await '<null>;'
                 //         await null;
                 Diagnostic(ErrorCode.ERR_BadAwaitArgIntrinsic, "await null").WithArguments("<null>"),
                 // (18,9): error CS4001: Cannot await 'method group'
-                //         await foo;
-                Diagnostic(ErrorCode.ERR_BadAwaitArgIntrinsic, "await foo").WithArguments("method group"),
+                //         await goo;
+                Diagnostic(ErrorCode.ERR_BadAwaitArgIntrinsic, "await goo").WithArguments("method group"),
                 // (23,9): error CS4001: Cannot await 'lambda expression'
                 //         await (x => x);
                 Diagnostic(ErrorCode.ERR_BadAwaitArgIntrinsic, "await (x => x)").WithArguments("lambda expression"));
@@ -2647,22 +2647,22 @@ using System.Threading.Tasks;
 
 class Test
 {
-    public async void foo()
+    public async void goo()
     {
         await Task.Factory.StartNew(() => { });
     }
 
     public async void bar()
     {
-        await foo();
+        await goo();
     }
 
     public static void Main() { }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (10,9): error CS4008: Cannot await 'void'
-                //         await foo();
-                Diagnostic(ErrorCode.ERR_BadAwaitArgVoidCall, "await foo()"));
+                //         await goo();
+                Diagnostic(ErrorCode.ERR_BadAwaitArgVoidCall, "await goo()"));
         }
 
         [Fact, WorkItem(531356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531356")]

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new IntroduceVariableCodeRefactoringProvider();
 
-        protected Task TestAsync(string initial, string expected, int index = 0, bool ignoreTrivia = true)
+        protected Task TestAsync(string initial, string expected, int index = 0, bool ignoreTrivia = false)
         {
             return TestAsync(initial, expected, Options.Script, null, index, ignoreTrivia);
         }
@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         public async Task TestMethodFix1()
         {
             await TestAsync(
-@"void Foo()
+@"void Goo()
 {
     Bar([|1 + 1|]);
     Bar(1 + 1);
 }",
-@"void Foo()
+@"void Goo()
 {
     const int {|Rename:V|} = 1 + 1;
     Bar(V);
@@ -40,12 +40,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         public async Task TestMethodFix2()
         {
             await TestAsync(
-@"void Foo()
+@"void Goo()
 {
     Bar([|1 + 1|]);
     Bar(1 + 1);
 }",
-@"void Foo()
+@"void Goo()
 {
     const int {|Rename:V|} = 1 + 1;
     Bar(V);
@@ -114,13 +114,13 @@ void Bar(int i = V, int j = V)
         public async Task TestAttributeFix1()
         {
             await TestAsync(
-@"[Foo([|1 + 1|], 1 + 1)]
+@"[Goo([|1 + 1|], 1 + 1)]
 void Bar()
 {
 }",
 @"private const int {|Rename:V|} = 1 + 1;
 
-[Foo(V, 1 + 1)]
+[Goo(V, 1 + 1)]
 void Bar()
 {
 }",
@@ -131,13 +131,13 @@ void Bar()
         public async Task TestAttributeFix2()
         {
             await TestAsync(
-@"[Foo([|1 + 1|], 1 + 1)]
+@"[Goo([|1 + 1|], 1 + 1)]
 void Bar()
 {
 }",
 @"private const int {|Rename:V|} = 1 + 1;
 
-[Foo(V, V)]
+[Goo(V, V)]
 void Bar()
 {
 }",

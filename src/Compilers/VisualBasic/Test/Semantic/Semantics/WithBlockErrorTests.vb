@@ -330,12 +330,12 @@ Option Strict On
 Class S
     Sub S()
         With New Object()
-            Dim x = .Foo()
+            Dim x = .Goo()
         End With
     End Sub
 End Class
     </file>
-</compilation>).VerifyDiagnostics(Diagnostic(ERRID.ERR_StrictDisallowsLateBinding, ".Foo"))
+</compilation>).VerifyDiagnostics(Diagnostic(ERRID.ERR_StrictDisallowsLateBinding, ".Goo"))
         End Sub
 
         <Fact()>

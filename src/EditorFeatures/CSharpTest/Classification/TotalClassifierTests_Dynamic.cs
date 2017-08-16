@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 
 class C
 {
-    dynamic::Foo a;
+    dynamic::Goo a;
 }",
                 Keyword("extern"),
                 Keyword("alias"),
@@ -151,7 +151,7 @@ class C
                 Punctuation.OpenCurly,
                 Identifier("dynamic"),
                 Operators.Text("::"),
-                Identifier("Foo"),
+                Identifier("Goo"),
                 Identifier("a"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly);
