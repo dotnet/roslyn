@@ -79,8 +79,16 @@ public class Derived : Base
 @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""WantsIVTAccess"")]
 public class Base
 {
+    private protected const int Constant = 3;
     private protected int Field1;
     protected private int Field2;
+    private protected void Method() { }
+    private protected event System.Action Event1;
+    private protected int Property1 { set {} }
+    public int Property2 { private protected set {} get { return 4; } }
+    private protected int this[int x] { set { } get { return 6; } }
+    public int this[string x] { private protected set { } get { return 5; } }
+    private protected Base() { Event1?.Invoke(); }
 }";
             var baseCompilation = CreateStandardCompilation(source1, parseOptions: TestOptions.Regular7_2, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
 
@@ -89,9 +97,17 @@ public class Base
 {
     void M()
     {
-        Field1 = 1;
-        Field2 = 2;
+        Field1 = Constant;
+        Field2 = Constant;
+        Method();
+        Event1 += null;
+        Property1 = Constant;
+        Property2 = Constant;
+        this[1] = 2;
+        this[string.Empty] = 4;
     }
+    Derived(int x) : base() {}
+    Derived(long x) {} // implicit base()
 }
 ";
             CreateStandardCompilation(source2, parseOptions: TestOptions.Regular7_2,
@@ -100,11 +116,50 @@ public class Base
                 options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider))
             .VerifyDiagnostics(
                 // (5,9): error CS0122: 'Base.Field1' is inaccessible due to its protection level
-                //         Field1 = 1;
+                //         Field1 = Constant;
                 Diagnostic(ErrorCode.ERR_BadAccess, "Field1").WithArguments("Base.Field1").WithLocation(5, 9),
+                // (5,18): error CS0122: 'Base.Constant' is inaccessible due to its protection level
+                //         Field1 = Constant;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Constant").WithArguments("Base.Constant").WithLocation(5, 18),
                 // (6,9): error CS0122: 'Base.Field2' is inaccessible due to its protection level
-                //         Field2 = 2;
-                Diagnostic(ErrorCode.ERR_BadAccess, "Field2").WithArguments("Base.Field2").WithLocation(6, 9)
+                //         Field2 = Constant;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Field2").WithArguments("Base.Field2").WithLocation(6, 9),
+                // (6,18): error CS0122: 'Base.Constant' is inaccessible due to its protection level
+                //         Field2 = Constant;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Constant").WithArguments("Base.Constant").WithLocation(6, 18),
+                // (7,9): error CS0122: 'Base.Method()' is inaccessible due to its protection level
+                //         Method();
+                Diagnostic(ErrorCode.ERR_BadAccess, "Method").WithArguments("Base.Method()").WithLocation(7, 9),
+                // (8,9): error CS0122: 'Base.Event1' is inaccessible due to its protection level
+                //         Event1 += null;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Event1").WithArguments("Base.Event1").WithLocation(8, 9),
+                // (8,9): error CS0122: 'Base.Event1.add' is inaccessible due to its protection level
+                //         Event1 += null;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Event1 += null").WithArguments("Base.Event1.add").WithLocation(8, 9),
+                // (9,9): error CS0122: 'Base.Property1' is inaccessible due to its protection level
+                //         Property1 = Constant;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Property1").WithArguments("Base.Property1").WithLocation(9, 9),
+                // (9,21): error CS0122: 'Base.Constant' is inaccessible due to its protection level
+                //         Property1 = Constant;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Constant").WithArguments("Base.Constant").WithLocation(9, 21),
+                // (10,9): error CS0272: The property or indexer 'Base.Property2' cannot be used in this context because the set accessor is inaccessible
+                //         Property2 = Constant;
+                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "Property2").WithArguments("Base.Property2").WithLocation(10, 9),
+                // (10,21): error CS0122: 'Base.Constant' is inaccessible due to its protection level
+                //         Property2 = Constant;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Constant").WithArguments("Base.Constant").WithLocation(10, 21),
+                // (11,14): error CS1503: Argument 1: cannot convert from 'int' to 'string'
+                //         this[1] = 2;
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "string").WithLocation(11, 14),
+                // (12,9): error CS0272: The property or indexer 'Base.this[string]' cannot be used in this context because the set accessor is inaccessible
+                //         this[string.Empty] = 4;
+                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "this[string.Empty]").WithArguments("Base.this[string]").WithLocation(12, 9),
+                // (14,22): error CS0122: 'Base.Base()' is inaccessible due to its protection level
+                //     Derived(int x) : base() {}
+                Diagnostic(ErrorCode.ERR_BadAccess, "base").WithArguments("Base.Base()").WithLocation(14, 22),
+                // (15,5): error CS0122: 'Base.Base()' is inaccessible due to its protection level
+                //     Derived(long x) {} // implicit base()
+                Diagnostic(ErrorCode.ERR_BadAccess, "Derived").WithArguments("Base.Base()").WithLocation(15, 5)
                 );
             CreateStandardCompilation(source2, parseOptions: TestOptions.Regular7_2,
                 references: new[] { MetadataReference.CreateFromImage(baseCompilation.EmitToArray()) },
@@ -112,11 +167,50 @@ public class Base
                 options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider))
             .VerifyDiagnostics(
                 // (5,9): error CS0122: 'Base.Field1' is inaccessible due to its protection level
-                //         Field1 = 1;
+                //         Field1 = Constant;
                 Diagnostic(ErrorCode.ERR_BadAccess, "Field1").WithArguments("Base.Field1").WithLocation(5, 9),
+                // (5,18): error CS0122: 'Base.Constant' is inaccessible due to its protection level
+                //         Field1 = Constant;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Constant").WithArguments("Base.Constant").WithLocation(5, 18),
                 // (6,9): error CS0122: 'Base.Field2' is inaccessible due to its protection level
-                //         Field2 = 2;
-                Diagnostic(ErrorCode.ERR_BadAccess, "Field2").WithArguments("Base.Field2").WithLocation(6, 9)
+                //         Field2 = Constant;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Field2").WithArguments("Base.Field2").WithLocation(6, 9),
+                // (6,18): error CS0122: 'Base.Constant' is inaccessible due to its protection level
+                //         Field2 = Constant;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Constant").WithArguments("Base.Constant").WithLocation(6, 18),
+                // (7,9): error CS0122: 'Base.Method()' is inaccessible due to its protection level
+                //         Method();
+                Diagnostic(ErrorCode.ERR_BadAccess, "Method").WithArguments("Base.Method()").WithLocation(7, 9),
+                // (8,9): error CS0122: 'Base.Event1' is inaccessible due to its protection level
+                //         Event1 += null;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Event1").WithArguments("Base.Event1").WithLocation(8, 9),
+                // (8,9): error CS0122: 'Base.Event1.add' is inaccessible due to its protection level
+                //         Event1 += null;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Event1 += null").WithArguments("Base.Event1.add").WithLocation(8, 9),
+                // (9,9): error CS0122: 'Base.Property1' is inaccessible due to its protection level
+                //         Property1 = Constant;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Property1").WithArguments("Base.Property1").WithLocation(9, 9),
+                // (9,21): error CS0122: 'Base.Constant' is inaccessible due to its protection level
+                //         Property1 = Constant;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Constant").WithArguments("Base.Constant").WithLocation(9, 21),
+                // (10,9): error CS0272: The property or indexer 'Base.Property2' cannot be used in this context because the set accessor is inaccessible
+                //         Property2 = Constant;
+                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "Property2").WithArguments("Base.Property2").WithLocation(10, 9),
+                // (10,21): error CS0122: 'Base.Constant' is inaccessible due to its protection level
+                //         Property2 = Constant;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Constant").WithArguments("Base.Constant").WithLocation(10, 21),
+                // (11,14): error CS1503: Argument 1: cannot convert from 'int' to 'string'
+                //         this[1] = 2;
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "string").WithLocation(11, 14),
+                // (12,9): error CS0272: The property or indexer 'Base.this[string]' cannot be used in this context because the set accessor is inaccessible
+                //         this[string.Empty] = 4;
+                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "this[string.Empty]").WithArguments("Base.this[string]").WithLocation(12, 9),
+                // (14,22): error CS0122: 'Base.Base()' is inaccessible due to its protection level
+                //     Derived(int x) : base() {}
+                Diagnostic(ErrorCode.ERR_BadAccess, "base").WithArguments("Base.Base()").WithLocation(14, 22),
+                // (15,5): error CS0122: 'Base.Base()' is inaccessible due to its protection level
+                //     Derived(long x) {} // implicit base()
+                Diagnostic(ErrorCode.ERR_BadAccess, "Derived").WithArguments("Base.Base()").WithLocation(15, 5)
                 );
 
             CreateStandardCompilation(source2, parseOptions: TestOptions.Regular7_2,
