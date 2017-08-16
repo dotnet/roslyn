@@ -51,7 +51,9 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         {
             faultInjector?.OnNewConnection();
 
-            var flags = OpenFlags.SQLITE_OPEN_CREATE | OpenFlags.SQLITE_OPEN_READWRITE;
+            // Enable shared cache so that multiple connections inside of same process share cache
+            // see https://sqlite.org/threadsafe.html for more detail
+            var flags = OpenFlags.SQLITE_OPEN_CREATE | OpenFlags.SQLITE_OPEN_READWRITE | OpenFlags.SQLITE_OPEN_SHAREDCACHE;
             var result = (Result)raw.sqlite3_open_v2(databasePath, out var handle, (int)flags, vfs: null);
 
             if (result != Result.OK)
