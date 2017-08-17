@@ -172,6 +172,19 @@ namespace Microsoft.CodeAnalysis.Completion
             return bestItems.ToImmutableAndFree();
         }
 
+        internal static async Task<CompletionDescription> GetDescriptionAsync(
+            CompletionItem item, CancellationToken cancellationToken = default)
+        {
+            var document = item.Document;
+            if (document == null)
+            {
+                return CompletionDescription.Empty;
+            }
+
+            var service = GetService(document);
+            return await service.GetDescriptionAsync(item.Document, item, cancellationToken).ConfigureAwait(false);
+        }
+
         internal static async Task<CompletionList> GetCompletionsAsync(
             CompletionService service, Document documentOpt, int caretPosition,
             CompletionTrigger trigger = default, ImmutableHashSet<string> roles = null,

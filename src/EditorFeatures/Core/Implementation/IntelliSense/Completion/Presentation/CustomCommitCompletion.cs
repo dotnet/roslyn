@@ -54,17 +54,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 // to give them something non-empty so they know to go get the async description.
                 "...";
 
-        public async Task<CompletionDescription> GetDescriptionAsync(CancellationToken cancellationToken)
-        {
-            var document = this.CompletionItem.Document;
-            if (document == null)
-            {
-                return CompletionDescription.Empty;
-            }
-
-            var service = CompletionService.GetService(document);
-            return await service.GetDescriptionAsync(document, this.CompletionItem, cancellationToken).ConfigureAwait(false);
-        }
+        public Task<CompletionDescription> GetDescriptionAsync(CancellationToken cancellationToken)
+            => CompletionService.GetDescriptionAsync(this.CompletionItem, cancellationToken);
 
         public string GetDescription_TestingOnly()
         {
