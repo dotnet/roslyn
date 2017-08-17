@@ -291,9 +291,16 @@ public class Derived // : Base
 {
     static private protected int Field1 = 2;
 }
+sealed class D
+{
+    static private protected int Field2 = 2;
+}
 ";
             CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
+                // (7,34): warning CS0628: 'D.Field2': new protected member declared in sealed class
+                //     static private protected int Field2 = 2;
+                Diagnostic(ErrorCode.WRN_ProtectedInSealed, "Field2").WithArguments("D.Field2").WithLocation(7, 34),
                 // (3,34): error CS1057: 'C.Field1': static classes cannot contain protected members
                 //     static private protected int Field1 = 2;
                 Diagnostic(ErrorCode.ERR_ProtectedInStatic, "Field1").WithArguments("C.Field1").WithLocation(3, 34)

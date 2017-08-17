@@ -286,6 +286,10 @@ BC30435: Members in a Structure cannot be declared 'Protected'.
 Private Protected Module Frog
     Private Protected Field As Integer
 End Module
+Public NotInheritable Class D
+    Private Protected Field As Integer
+    Protected Field2 As Integer
+End Class
 ]]>
                              </file>
                          </compilation>
