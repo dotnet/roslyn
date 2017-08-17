@@ -26,8 +26,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Compile Remove="csharp\typing\CSharpTyping2.cs" />
+    <Content Remove="csharp\csharp_compiler.csx" />
     <Content Remove="csharp\typing\CSharpTyping2.cs" />
     <Content Remove="csharp\typing\TypingDelayAnalyzer.exe" />
+    <Content Remove="helloworld\hello_world.csx" />
     <None Include="csharp\typing\CSharpGoldilocksInput-MultipliedDelay.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
