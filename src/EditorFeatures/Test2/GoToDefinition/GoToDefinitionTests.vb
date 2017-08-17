@@ -292,7 +292,7 @@ end class
         <Document>
             class ConsumingClass
             {
-                void foo()
+                void goo()
                 {
                     Some$$Class x;
                 }
@@ -319,7 +319,7 @@ end class
         <Document>
             partial class Test
             {
-                void Foo()
+                void Goo()
                 {
                     var t = new Test();
                     t.M$$();
@@ -737,9 +737,9 @@ class C
 {
     void M()
     {
-    [|Foo|]:
-        int Foo;
-        goto $$Foo;
+    [|Goo|]:
+        int Goo;
+        goto $$Goo;
     }
 }]]>
         </Document>
@@ -1222,7 +1222,7 @@ namespace System
             <ParseOptions Kind="Script"/>
             class ConsumingClass
             {
-                void foo()
+                void goo()
                 {
                     Some$$Class x;
                 }
@@ -1530,7 +1530,7 @@ End Class
         </Document>
         <Document>
             Class ConsumingClass
-                Sub foo()
+                Sub goo()
                     Dim obj As Some$$Class
                 End Sub
             End Class
@@ -1583,7 +1583,7 @@ End Class
         </Document>
         <Document>
             Class ConsumingClass
-                Sub foo()
+                Sub goo()
                     Dim obj As $$SomeClass
                 End Sub
             End Class
@@ -1606,7 +1606,7 @@ End Class
         </Document>
         <Document>
             Class ConsumingClass
-                Sub foo()
+                Sub goo()
                     Dim obj As SomeClass$$
                 End Sub
             End Class
@@ -1634,14 +1634,14 @@ Class [|C|]
  
     Sub New()
         MyBase.New()
-        MyClass.Foo()
+        MyClass.Goo()
         $$Me.Bar()
     End Sub
  
     Private Sub Bar()
     End Sub
  
-    Private Sub Foo()
+    Private Sub Goo()
     End Sub
 End Class
         </Document>
@@ -1668,14 +1668,14 @@ Class [|C|]
  
     Sub New()
         MyBase.New()
-        $$MyClass.Foo()
+        $$MyClass.Goo()
         Me.Bar()
     End Sub
  
     Private Sub Bar()
     End Sub
  
-    Private Sub Foo()
+    Private Sub Goo()
     End Sub
 End Class
         </Document>
@@ -1702,14 +1702,14 @@ Class C
  
     Sub New()
         $$MyBase.New()
-        MyClass.Foo()
+        MyClass.Goo()
         Me.Bar()
     End Sub
  
     Private Sub Bar()
     End Sub
  
-    Private Sub Foo()
+    Private Sub Goo()
     End Sub
 End Class
         </Document>
@@ -1798,7 +1798,7 @@ End Class
         </Document>
         <Document>
             Class ConsumingClass
-                Sub foo()
+                Sub goo()
                     Dim obj As SomeClass$$
                 End Sub
             End Class
@@ -2152,12 +2152,12 @@ End Class
     <Project Language="Visual Basic" CommonReferences="true">
         <ProjectReference>VBAssembly</ProjectReference>
         <CompilationOptions>
-            <GlobalImport>Foo = Importable.ImportMe</GlobalImport>
+            <GlobalImport>Goo = Importable.ImportMe</GlobalImport>
         </CompilationOptions>
         <Document>
 Public Class Class2
     Sub Test()
-        Dim x as Fo$$o
+        Dim x as Go$$o
     End Sub
 End Class
 

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         public async Task TestClass()
         {
-            await TestAsync("class F$$oo { }", "Foo", 0);
+            await TestAsync("class G$$oo { }", "Goo", 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]

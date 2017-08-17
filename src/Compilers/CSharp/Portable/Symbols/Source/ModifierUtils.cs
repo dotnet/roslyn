@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 default:
                     // This happens when you have a mix of accessibilities.
                     //
-                    // i.e.: public private void Foo()
+                    // i.e.: public private void Goo()
                     return Accessibility.Public;
             }
         }
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 default:
                     // This happens when you have a mix of accessibilities.
                     //
-                    // i.e.: public private void Foo()
+                    // i.e.: public private void Goo()
                     return false;
             }
         }

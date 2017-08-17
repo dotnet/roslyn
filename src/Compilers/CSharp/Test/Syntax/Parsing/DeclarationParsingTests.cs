@@ -2013,7 +2013,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestDelegateWithBuiltInReturnType(SyntaxKind.ObjectKeyword);
         }
 
-        public void TestDelegateWithBuiltInReturnType(SyntaxKind builtInType)
+        private void TestDelegateWithBuiltInReturnType(SyntaxKind builtInType)
         {
             var typeText = SyntaxFacts.GetText(builtInType);
             var text = "delegate " + typeText + " b();";
@@ -2059,7 +2059,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestDelegateWithBuiltInParameterType(SyntaxKind.ObjectKeyword);
         }
 
-        public void TestDelegateWithBuiltInParameterType(SyntaxKind builtInType)
+        private void TestDelegateWithBuiltInParameterType(SyntaxKind builtInType)
         {
             var typeText = SyntaxFacts.GetText(builtInType);
             var text = "delegate a b(" + typeText + " c);";
@@ -2482,6 +2482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, ms.SemicolonToken.Kind());
         }
 
+        [Fact]
         public void TestClassMethodWithRef()
         {
             var text = "class a { ref }";
@@ -2876,7 +2877,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestClassMethodWithBuiltInReturnType(SyntaxKind.ObjectKeyword);
         }
 
-        public void TestClassMethodWithBuiltInReturnType(SyntaxKind type)
+        private void TestClassMethodWithBuiltInReturnType(SyntaxKind type)
         {
             var typeText = SyntaxFacts.GetText(type);
             var text = "class a { " + typeText + " M() { } }";
@@ -2941,7 +2942,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestClassMethodWithBuiltInParameterType(SyntaxKind.ObjectKeyword);
         }
 
-        public void TestClassMethodWithBuiltInParameterType(SyntaxKind type)
+        private void TestClassMethodWithBuiltInParameterType(SyntaxKind type)
         {
             var typeText = SyntaxFacts.GetText(type);
             var text = "class a { b X(" + typeText + " c) { } }";
@@ -3299,7 +3300,7 @@ class Class1<T>{
             TestClassFieldWithBuiltInType(SyntaxKind.ObjectKeyword);
         }
 
-        public void TestClassFieldWithBuiltInType(SyntaxKind type)
+        private void TestClassFieldWithBuiltInType(SyntaxKind type)
         {
             var typeText = SyntaxFacts.GetText(type);
             var text = "class a { " + typeText + " c; }";
@@ -3873,7 +3874,7 @@ class Class1<T>{
             TestClassPropertyWithBuiltInType(SyntaxKind.ObjectKeyword);
         }
 
-        public void TestClassPropertyWithBuiltInType(SyntaxKind type)
+        private void TestClassPropertyWithBuiltInType(SyntaxKind type)
         {
             var typeText = SyntaxFacts.GetText(type);
             var text = "class a { " + typeText + " c { get; set; } }";
@@ -4065,7 +4066,7 @@ class Class1<T>{
             TestClassEventWithValue(SyntaxKind.RemoveAccessorDeclaration, SyntaxKind.RemoveKeyword, SyntaxKind.IdentifierToken);
         }
 
-        public void TestClassPropertyWithValue(SyntaxKind accessorKind, SyntaxKind accessorKeyword, SyntaxKind tokenKind)
+        private void TestClassPropertyWithValue(SyntaxKind accessorKind, SyntaxKind accessorKeyword, SyntaxKind tokenKind)
         {
             bool isEvent = accessorKeyword == SyntaxKind.AddKeyword || accessorKeyword == SyntaxKind.RemoveKeyword;
             var text = "class a { " + (isEvent ? "event" : string.Empty) + " b c { " + SyntaxFacts.GetText(accessorKeyword) + " { x = value; } } }";
@@ -4122,7 +4123,7 @@ class Class1<T>{
             Assert.Equal(tokenKind, ((IdentifierNameSyntax)bx.Right).Identifier.Kind());
         }
 
-        public void TestClassEventWithValue(SyntaxKind accessorKind, SyntaxKind accessorKeyword, SyntaxKind tokenKind)
+        private void TestClassEventWithValue(SyntaxKind accessorKind, SyntaxKind accessorKeyword, SyntaxKind tokenKind)
         {
             var text = "class a { event b c { " + SyntaxFacts.GetText(accessorKeyword) + " { x = value; } } }";
             var file = this.ParseFile(text);
@@ -5835,7 +5836,7 @@ class C
             var tree = UsingTree(@"
 class C
 {
-    void Foo()
+    void Goo()
     {
         M(out var x);
     }
@@ -5853,7 +5854,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "Foo");
+                        N(SyntaxKind.IdentifierToken, "Goo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);

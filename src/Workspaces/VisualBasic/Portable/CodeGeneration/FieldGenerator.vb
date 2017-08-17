@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                             SyntaxFactory.SimpleAsClause(field.Type.GenerateTypeSyntax()),
                             initializer)))
 
-            Return AddCleanupAnnotationsTo(ConditionallyAddDocumentationCommentTo(EnsureLastElasticTrivia(fieldDeclaration), field, options))
+            Return AddFormatterAndCodeGeneratorAnnotationsTo(ConditionallyAddDocumentationCommentTo(EnsureLastElasticTrivia(fieldDeclaration), field, options))
         End Function
 
         Private Function GenerateEqualsValue(field As IFieldSymbol) As EqualsValueSyntax

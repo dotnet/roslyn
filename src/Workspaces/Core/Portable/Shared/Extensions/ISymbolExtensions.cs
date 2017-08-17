@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 case IMethodSymbol m: return m.Parameters;
                 case IPropertySymbol nt: return nt.Parameters;
-                default: return ImmutableArray.Create<IParameterSymbol>();
+                default: return ImmutableArray<IParameterSymbol>.Empty;
             }
         }
 
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 case IMethodSymbol m: return m.TypeParameters;
                 case INamedTypeSymbol nt: return nt.TypeParameters;
-                default: return ImmutableArray.Create<ITypeParameterSymbol>();
+                default: return ImmutableArray<ITypeParameterSymbol>.Empty;
             }
         }
 
@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         /// <summary>
         /// Returns true if this symbol contains anything unsafe within it.  for example
-        /// List&lt;int*[]&gt; is unsafe, as it "int* Foo { get; }"
+        /// List&lt;int*[]&gt; is unsafe, as it "int* Goo { get; }"
         /// </summary>
         public static bool IsUnsafe(this ISymbol member)
         {

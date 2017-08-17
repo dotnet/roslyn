@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
@@ -45,6 +46,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public ReadOnly Property ElasticMarker As SyntaxTrivia Implements ISyntaxFactsService.ElasticMarker
+            Get
+                Return SyntaxFactory.ElasticMarker
+            End Get
+        End Property
+
         Public ReadOnly Property ElasticCarriageReturnLineFeed As SyntaxTrivia Implements ISyntaxFactsService.ElasticCarriageReturnLineFeed
             Get
                 Return SyntaxFactory.ElasticCarriageReturnLineFeed
@@ -63,6 +70,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function SupportsThrowExpression(options As ParseOptions) As Boolean Implements ISyntaxFactsService.SupportsThrowExpression
             Return False
+        End Function
+
+        Public Function ParseToken(text As String) As SyntaxToken Implements ISyntaxFactsService.ParseToken
+            Return SyntaxFactory.ParseToken(text, startStatement:=True)
         End Function
 
         Public Function IsAwaitKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsAwaitKeyword
@@ -200,6 +211,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function GetDefaultOfParameter(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetDefaultOfParameter
             Return TryCast(node, ParameterSyntax)?.Default
+        End Function
+
+        Public Function GetParameterList(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetParameterList
+            Return VisualBasicSyntaxGenerator.GetParameterList(node)
         End Function
 
         Public Function IsSkippedTokensTrivia(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsSkippedTokensTrivia
@@ -1581,6 +1596,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return GetFileBanner(root)
         End Function
 
+        Private Function ISyntaxFactsService_GetFileBanner(firstToken As SyntaxToken) As ImmutableArray(Of SyntaxTrivia) Implements ISyntaxFactsService.GetFileBanner
+            Return GetFileBanner(firstToken)
+        End Function
+
         Protected Overrides Function ContainsInterleavedDirective(span As TextSpan, token As SyntaxToken, cancellationToken As CancellationToken) As Boolean
             Return token.ContainsInterleavedDirective(span, cancellationToken)
         End Function
@@ -1597,8 +1616,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return trivia.Kind() = SyntaxKind.DocumentationCommentExteriorTrivia
         End Function
 
-        Private Function ISyntaxFactsService_GetBannerText(documentationCommentTriviaSyntax As SyntaxNode, cancellationToken As CancellationToken) As String Implements ISyntaxFactsService.GetBannerText
-            Return GetBannerText(documentationCommentTriviaSyntax, cancellationToken)
+        Private Function ISyntaxFactsService_GetBannerText(documentationCommentTriviaSyntax As SyntaxNode, maxBannerLength As Integer, cancellationToken As CancellationToken) As String Implements ISyntaxFactsService.GetBannerText
+            Return GetBannerText(documentationCommentTriviaSyntax, maxBannerLength, cancellationToken)
         End Function
 
         Public Function GetModifiers(node As SyntaxNode) As SyntaxTokenList Implements ISyntaxFactsService.GetModifiers

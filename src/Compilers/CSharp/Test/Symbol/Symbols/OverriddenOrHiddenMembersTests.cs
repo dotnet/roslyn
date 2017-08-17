@@ -1868,21 +1868,21 @@ namespace A
 {
     public class Base<T>
     {
-        public class Foo<U> { }
+        public class Goo<U> { }
 
         public class Nested<U>
         {
-            public static Foo<U> sFld = new Foo<U>();
+            public static Goo<U> sFld = new Goo<U>();
         }
     }
 
     public class Derived<T> : Base<T>
     {
-        public class Foo<U, V> { } // Roslyn warning CS0108
+        public class Goo<U, V> { } // Roslyn warning CS0108
 
         public class Nested<U, V> // Roslyn warning CS0108
         {
-            public static Foo<U, V> sFld = new Foo<U, V>();
+            public static Goo<U, V> sFld = new Goo<U, V>();
         }
     }
 }
@@ -1927,15 +1927,15 @@ public class TestClass3 : TestClass2
             var text = @"
 interface I1
 {
-    int Foo { get; set; }
+    int Goo { get; set; }
 }
 class B1
 {
-    public int Foo { get { return 1; } set { } }
+    public int Goo { get { return 1; } set { } }
 }
 class B2 : B1, I1
 {
-    private new int Foo { get { return 1; } }
+    private new int Goo { get { return 1; } }
 }
 ";
             var comp = CreateStandardCompilation(text);
@@ -1943,9 +1943,9 @@ class B2 : B1, I1
 
             var global = comp.GlobalNamespace;
             Assert.Equal(
-                global.GetMember<NamedTypeSymbol>("B1").GetMember<PropertySymbol>("Foo"),
+                global.GetMember<NamedTypeSymbol>("B1").GetMember<PropertySymbol>("Goo"),
                 global.GetMember<NamedTypeSymbol>("B2").FindImplementationForInterfaceMember(
-                    global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Foo")));
+                    global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Goo")));
         }
 
         [WorkItem(540383, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540383")]
@@ -1955,15 +1955,15 @@ class B2 : B1, I1
             var text = @"
 interface I1
 {
-    int Foo { get; set; }
+    int Goo { get; set; }
 }
 class B1
 {
-    public int Foo { get { return 1; } set { } }
+    public int Goo { get { return 1; } set { } }
 }
 class B2 : B1, I1
 {
-    public static new int Foo { get { return 1; } }
+    public static new int Goo { get { return 1; } }
 }
 ";
             var comp = CreateStandardCompilation(text);
@@ -1971,9 +1971,9 @@ class B2 : B1, I1
 
             var global = comp.GlobalNamespace;
             Assert.Equal(
-                global.GetMember<NamedTypeSymbol>("B1").GetMember<PropertySymbol>("Foo"),
+                global.GetMember<NamedTypeSymbol>("B1").GetMember<PropertySymbol>("Goo"),
                 global.GetMember<NamedTypeSymbol>("B2").FindImplementationForInterfaceMember(
-                    global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Foo")));
+                    global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Goo")));
         }
 
         [WorkItem(540383, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540383")]
@@ -1983,15 +1983,15 @@ class B2 : B1, I1
             var text = @"
 interface I1
 {
-    int Foo { get; set; }
+    int Goo { get; set; }
 }
 class B1
 {
-    public int Foo { get { return 1; } set { } }
+    public int Goo { get { return 1; } set { } }
 }
 class B2 : B1, I1
 {
-    public new float Foo { get { return 1; } }
+    public new float Goo { get { return 1; } }
 }
 ";
             var comp = CreateStandardCompilation(text);
@@ -1999,9 +1999,9 @@ class B2 : B1, I1
 
             var global = comp.GlobalNamespace;
             Assert.Equal(
-                global.GetMember<NamedTypeSymbol>("B1").GetMember<PropertySymbol>("Foo"),
+                global.GetMember<NamedTypeSymbol>("B1").GetMember<PropertySymbol>("Goo"),
                 global.GetMember<NamedTypeSymbol>("B2").FindImplementationForInterfaceMember(
-                    global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Foo")));
+                    global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Goo")));
         }
 
         [WorkItem(540383, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540383")]
@@ -2011,26 +2011,26 @@ class B2 : B1, I1
             var text = @"
 interface I1
 {
-    int Foo { get; set; }
+    int Goo { get; set; }
 }
 class B1
 {
-    public float Foo { get { return 1; } set { } }
+    public float Goo { get { return 1; } set { } }
 }
 class B2 : B1, I1
 {
-    private new int Foo { get { return 1; } }
+    private new int Goo { get { return 1; } }
 }
 ";
             var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
-                // (10,16): error CS0737: 'B2' does not implement interface member 'I1.Foo'. 'B2.Foo' cannot implement an interface member because it is not public.
+                // (10,16): error CS0737: 'B2' does not implement interface member 'I1.Goo'. 'B2.Goo' cannot implement an interface member because it is not public.
                 // class B2 : B1, I1
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "I1").WithArguments("B2", "I1.Foo", "B2.Foo").WithLocation(10, 16));
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "I1").WithArguments("B2", "I1.Goo", "B2.Goo").WithLocation(10, 16));
 
             var global = comp.GlobalNamespace;
             Assert.Null(global.GetMember<NamedTypeSymbol>("B2").FindImplementationForInterfaceMember(
-                    global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Foo")));
+                    global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Goo")));
         }
 
         [WorkItem(540383, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540383")]
@@ -2040,26 +2040,26 @@ class B2 : B1, I1
             var text = @"
 interface I1
 {
-    int Foo { get; set; }
+    int Goo { get; set; }
 }
 class B1
 {
-    public float Foo { get { return 1; } set { } }
+    public float Goo { get { return 1; } set { } }
 }
 class B2 : B1, I1
 {
-    public static new int Foo { get { return 1; } }
+    public static new int Goo { get { return 1; } }
 }
 ";
             var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
-                // (10,16): error CS0736: 'B2' does not implement interface member 'I1.Foo'. 'B2.Foo' cannot implement an interface member because it is static.
+                // (10,16): error CS0736: 'B2' does not implement interface member 'I1.Goo'. 'B2.Goo' cannot implement an interface member because it is static.
                 // class B2 : B1, I1
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "I1").WithArguments("B2", "I1.Foo", "B2.Foo").WithLocation(10, 16));
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "I1").WithArguments("B2", "I1.Goo", "B2.Goo").WithLocation(10, 16));
 
             var global = comp.GlobalNamespace;
             Assert.Null(global.GetMember<NamedTypeSymbol>("B2").FindImplementationForInterfaceMember(
-                    global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Foo")));
+                    global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Goo")));
         }
 
         /// <summary>
@@ -2107,26 +2107,26 @@ class B3 : I
             var text = @"
 interface I1
 {
-    int Foo { get; set; }
+    int Goo { get; set; }
 }
 class B1
 {
-    public float Foo { get { return 1; } set { } }
+    public float Goo { get { return 1; } set { } }
 }
 class B2 : B1, I1
 {
-    public new float Foo { get { return 1; } }
+    public new float Goo { get { return 1; } }
 }
 ";
             var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
-                // (10,16): error CS0738: 'B2' does not implement interface member 'I1.Foo'. 'B2.Foo' cannot implement 'I1.Foo' because it does not have the matching return type of 'int'.
+                // (10,16): error CS0738: 'B2' does not implement interface member 'I1.Goo'. 'B2.Goo' cannot implement 'I1.Goo' because it does not have the matching return type of 'int'.
                 // class B2 : B1, I1
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1").WithArguments("B2", "I1.Foo", "B2.Foo", "int").WithLocation(10, 16));
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1").WithArguments("B2", "I1.Goo", "B2.Goo", "int").WithLocation(10, 16));
 
             var global = comp.GlobalNamespace;
             Assert.Null(global.GetMember<NamedTypeSymbol>("B2").FindImplementationForInterfaceMember(
-                    global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Foo")));
+                    global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Goo")));
         }
 
         [WorkItem(540420, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540420")]
@@ -2412,7 +2412,7 @@ internal partial class CSharpGenerateMethodService :
             var csharp = @"
 class Test
 {
-    void Foo()
+    void Goo()
     {
         C c = new C();
 

@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         {
             string source = @"
 /*<span>*/extern alias A;/*</span>*/
-/*<span>*/using Z = Foo.Bar;/*</span>*/
+/*<span>*/using Z = Goo.Bar;/*</span>*/
 
 [assembly: /*<span>*/A(1,2,3,4)/*</span>*/, /*<span>*/B/*</span>*/]
 
@@ -190,7 +190,7 @@ class C
         /*<span>*/switch (expr)/*</span>*/ { case 1: break; };
         switch (expr) { case 1: /*<span>*/goto case 1;/*</span>*/ };
         switch (expr) { case 1: /*<span>*/goto case default;/*</span>*/ };
-        /*<span>*/label/*</span>*/: Foo();
+        /*<span>*/label/*</span>*/: Goo();
         /*<span>*/checked/*</span>*/ { };
         /*<span>*/unchecked/*</span>*/ { };
         /*<span>*/unsafe/*</span>*/ { };
@@ -606,7 +606,7 @@ namespace N
                 var project = workspace.CurrentSolution.Projects.Single();
                 var newDocId = DocumentId.CreateNewId(project.Id);
                 var oldSolution = workspace.CurrentSolution;
-                var newSolution = oldSolution.AddDocument(newDocId, "foo.cs", SourceText.From(source2));
+                var newSolution = oldSolution.AddDocument(newDocId, "goo.cs", SourceText.From(source2));
 
                 workspace.TryApplyChanges(newSolution);
 
@@ -656,7 +656,7 @@ namespace N
                 var project = workspace.CurrentSolution.Projects.Single();
                 var newDocId = DocumentId.CreateNewId(project.Id);
                 var oldSolution = workspace.CurrentSolution;
-                var newSolution = oldSolution.AddDocument(newDocId, "foo.cs", SourceText.From(source2));
+                var newSolution = oldSolution.AddDocument(newDocId, "goo.cs", SourceText.From(source2));
 
                 workspace.TryApplyChanges(newSolution);
 

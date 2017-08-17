@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             var conflict = semanticModel.GetSpeculativeSymbolInfo(typeName.SpanStart, candidateReplacementNode, SpeculativeBindingOption.BindAsTypeOrNamespace).Symbol;
             if (conflict?.IsKind(SymbolKind.NamedType) == true)
             {
-                issueSpan = default(TextSpan);
+                issueSpan = default;
                 return false;
             }
 
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 // implicitly typed variables cannot be constants.
                 if ((variableDeclaration.Parent as LocalDeclarationStatementSyntax)?.IsConst == true)
                 {
-                    issueSpan = default(TextSpan);
+                    issueSpan = default;
                     return false;
                 }
 
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 return true;
             }
 
-            issueSpan = default(TextSpan);
+            issueSpan = default;
             return false;
         }
 

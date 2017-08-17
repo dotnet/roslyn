@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.MSBuild.Util</RootNamespace>
     <AssemblyName>Roslyn.MSBuild.Util</AssemblyName>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>net46</TargetFramework>
     <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />

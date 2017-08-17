@@ -21,10 +21,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateMethod
         Friend Const BC30520 As String = "BC30520" ' error BC30520: Argument matching parameter 'blah' narrows from 'A' to 'B'.
         Friend Const BC30521 As String = "BC30521" ' error BC30521: Overload resolution failed because no accessible 'Baz' is most specific for these arguments.
         Friend Const BC30112 As String = "BC30112" ' error BC30112: 'blah' is a namespace and cannot be used as a type/
-        Friend Const BC30451 As String = "BC30451" ' error BC30451: 'Foo' is not declared. It may be inaccessible due to its protection level.
+        Friend Const BC30451 As String = "BC30451" ' error BC30451: 'Goo' is not declared. It may be inaccessible due to its protection level.
         Friend Const BC30455 As String = "BC30455" ' error BC30455: Argument not specified for parameter 'two' of 'Public Sub Baz(one As System.Func(Of String), two As Integer)'.
-        Friend Const BC30456 As String = "BC30456" ' error BC30456: 'Foo' is not a member of 'Sibling'.
-        Friend Const BC30401 As String = "BC30401" ' error BC30401: 'Blah' cannot implement 'Snarf' because there is no matching sub on interface 'IFoo'.
+        Friend Const BC30456 As String = "BC30456" ' error BC30456: 'Goo' is not a member of 'Sibling'.
+        Friend Const BC30401 As String = "BC30401" ' error BC30401: 'Blah' cannot implement 'Snarf' because there is no matching sub on interface 'IGoo'.
         Friend Const BC30516 As String = "BC30516" ' error BC30516: Overload resolution failed because no accessible 'Blah' accepts this number of arguments.
         Friend Const BC32016 As String = "BC32016" ' error BC32016: 'blah' has no parameters and its return type cannot be indexed.
         Friend Const BC32045 As String = "BC32045" ' error BC32045: 'Private Sub Blah()' has no type parameters and so cannot have type arguments.

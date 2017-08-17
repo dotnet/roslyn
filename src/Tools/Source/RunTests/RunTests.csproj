@@ -26,8 +26,5 @@
     <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
     <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\..\..\Test\Utilities\Portable\FX\DumpProcRunner.cs" />
-  </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

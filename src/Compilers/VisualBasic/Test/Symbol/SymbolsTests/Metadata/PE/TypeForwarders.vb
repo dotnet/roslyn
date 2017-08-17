@@ -453,7 +453,7 @@ End Class
        extends [mscorlib]System.Object
 {
   .method public hidebysig instance class [pe1]Cycle 
-          Foo() cil managed
+          Goo() cil managed
   {
     ldnull
     ret
@@ -477,7 +477,7 @@ Option Strict On
 Class Derived 
     Shared Sub Main()
         Dim us as New UseSite()
-        us.Foo()
+        us.Goo()
     End Sub
 End Class
         </file>
@@ -502,7 +502,7 @@ End Class
             Assert.Equal("pe3", ilAssembly3.Name)
 
             compilation.VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_TypeFwdCycle2, "us.Foo()").WithArguments("Cycle", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"))
+                Diagnostic(ERRID.ERR_TypeFwdCycle2, "us.Goo()").WithArguments("Cycle", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"))
         End Sub
 
         ''' <summary>

@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
         Friend Overloads Async Function TestAsync(initialMarkup As String,
                                                   expectedMarkup As String,
                                                   Optional index As Integer = 0,
-                                                  Optional ignoreTrivia As Boolean = True,
+                                                  Optional ignoreTrivia As Boolean = False,
                                                   Optional priority As CodeActionPriority? = Nothing,
                                                   Optional placeSystemFirst As Boolean = True) As Task
             Await TestAsync(initialMarkup, expectedMarkup, index, ignoreTrivia, priority, placeSystemFirst, outOfProcess:=False)
@@ -66,6 +66,7 @@ Namespace SomeNamespace
     End Class
 End Namespace",
 "Imports SomeNamespace
+
 Class Class1
     Dim v As SomeClass1
 End Class
@@ -88,8 +89,7 @@ Class Class1
     Inherits [|Textbox|]
 
 End Class",
-"
-Imports N1
+"Imports N1
 
 Namespace N1
     Public Class TextBox
@@ -109,6 +109,7 @@ End Class", priority:=CodeActionPriority.Medium)
     Dim v As [|Thread|]
 End Class",
 "Imports System.Threading
+
 Class Class1
     Dim v As Thread
 End Class")
@@ -133,6 +134,7 @@ End Namespace
 Class SomeClass(Of x As [|Base|])
 End Class",
 "Imports SomeNamespace
+
 Namespace SomeNamespace
     Class Base
     End Class
@@ -150,19 +152,20 @@ End Class")
 End Namespace
 Class GenericClass(Of T)
 End Class
-Class Foo
+Class Goo
     Sub Method1()
         Dim q As GenericClass(Of [|SomeClass|])
     End Sub
 End Class",
 "Imports SomeNamespace
+
 Namespace SomeNamespace
     Class SomeClass
     End Class
 End Namespace
 Class GenericClass(Of T)
 End Class
-Class Foo
+Class Goo
     Sub Method1()
         Dim q As GenericClass(Of SomeClass)
     End Sub
@@ -176,16 +179,17 @@ End Class")
     Class SomeClass
     End Class
 End Namespace
-Class Foo
+Class Goo
     Sub Method1(Of T As [|SomeClass|])
     End Sub
 End Class",
 "Imports SomeNamespace
+
 Namespace SomeNamespace
     Class SomeClass
     End Class
 End Namespace
-Class Foo
+Class Goo
     Sub Method1(Of T As SomeClass)
     End Sub
 End Class")
@@ -198,7 +202,7 @@ End Class")
     Class SomeClass
     End Class
 End Namespace
-Class Foo
+Class Goo
     Sub Method1(Of T)
     End Sub
     Sub Method2()
@@ -206,11 +210,12 @@ Class Foo
     End Sub
 End Class",
 "Imports SomeNamespace
+
 Namespace SomeNamespace
     Class SomeClass
     End Class
 End Namespace
-Class Foo
+Class Goo
     Sub Method1(Of T)
     End Sub
     Sub Method2()
@@ -223,7 +228,7 @@ End Class")
         Public Async Function TestAttributeApplication() As Task
             Await TestAsync(
 "<[|Something|]()>
-Class Foo
+Class Goo
 End Class
 Namespace SomeNamespace
     Class SomethingAttribute
@@ -231,8 +236,9 @@ Namespace SomeNamespace
     End Class
 End Namespace",
 "Imports SomeNamespace
+
 <Something()>
-Class Foo
+Class Goo
 End Class
 Namespace SomeNamespace
     Class SomethingAttribute
@@ -246,7 +252,7 @@ End Namespace")
             Await TestAsync(
 "<Existing()>
 <[|Something|]()>
-Class Foo
+Class Goo
 End Class
 Class ExistingAttribute
     Inherits System.Attribute
@@ -257,9 +263,10 @@ Namespace SomeNamespace
     End Class
 End Namespace",
 "Imports SomeNamespace
+
 <Existing()>
 <Something()>
-Class Foo
+Class Goo
 End Class
 Class ExistingAttribute
     Inherits System.Attribute
@@ -276,7 +283,7 @@ End Namespace")
             Await TestAsync(
 "<[|Something|]()>
 <Existing()>
-Class Foo
+Class Goo
 End Class
 Class ExistingAttribute
     Inherits System.Attribute
@@ -287,9 +294,10 @@ Namespace SomeNamespace
     End Class
 End Namespace",
 "Imports SomeNamespace
+
 <Something()>
 <Existing()>
-Class Foo
+Class Goo
 End Class
 Class ExistingAttribute
     Inherits System.Attribute
@@ -312,6 +320,7 @@ Namespace [Namespace]
     End Class
 End Namespace",
 "Imports [Namespace]
+
 Class SomeClass
     Dim x As Something
 End Class
@@ -334,6 +343,7 @@ Namespace Outer
     End Namespace
 End Namespace",
 "Imports Outer.Namespace
+
 Class SomeClass
     Dim x As Something
 End Class
@@ -361,7 +371,7 @@ End Namespace")
         Public Async Function TestAddImportsNotSuggestedForGenericTypeParametersOfClause() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class SomeClass
-    Sub Foo(Of [|SomeClass|])(x As SomeClass)
+    Sub Goo(Of [|SomeClass|])(x As SomeClass)
     End Sub
 End Class
 Namespace SomeNamespace
@@ -374,7 +384,7 @@ End Namespace")
         Public Async Function TestAddImportsNotSuggestedForGenericTypeParametersAsClause() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class SomeClass
-    Sub Foo(Of SomeClass)(x As [|SomeClass|])
+    Sub Goo(Of SomeClass)(x As [|SomeClass|])
     End Sub
 End Class
 Namespace SomeNamespace
@@ -387,7 +397,7 @@ End Namespace")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestCaseSensitivity1() As Task
             Await TestAsync(
-"Class Foo
+"Class Goo
     Dim x As [|someclass|]
 End Class
 Namespace SomeNamespace
@@ -395,7 +405,8 @@ Namespace SomeNamespace
     End Class
 End Namespace",
 "Imports SomeNamespace
-Class Foo
+
+Class Goo
     Dim x As SomeClass
 End Class
 Namespace SomeNamespace
@@ -407,12 +418,13 @@ End Namespace")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestTypeFromMultipleNamespaces1() As Task
             Await TestAsync(
-"Class Foo
+"Class Goo
     Function F() As [|IDictionary|]
     End Function
 End Class",
 "Imports System.Collections
-Class Foo
+
+Class Goo
     Function F() As IDictionary
     End Function
 End Class")
@@ -421,12 +433,13 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestTypeFromMultipleNamespaces2() As Task
             Await TestAsync(
-"Class Foo
+"Class Goo
     Function F() As [|IDictionary|]
     End Function
 End Class",
 "Imports System.Collections.Generic
-Class Foo
+
+Class Goo
     Function F() As IDictionary
     End Function
 End Class",
@@ -436,12 +449,13 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestGenericWithNoArgs() As Task
             Await TestAsync(
-"Class Foo
+"Class Goo
     Function F() As [|List|]
     End Function
 End Class",
 "Imports System.Collections.Generic
-Class Foo
+
+Class Goo
     Function F() As List
     End Function
 End Class")
@@ -450,12 +464,13 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestGenericWithCorrectArgs() As Task
             Await TestAsync(
-"Class Foo
+"Class Goo
     Function F() As [|List(Of Integer)|]
     End Function
 End Class",
 "Imports System.Collections.Generic
-Class Foo
+
+Class Goo
     Function F() As List(Of Integer)
     End Function
 End Class")
@@ -464,7 +479,7 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestGenericWithWrongArgs1() As Task
             Await TestMissingInRegularAndScriptAsync(
-"Class Foo
+"Class Goo
     Function F() As [|List(Of Integer, String, Boolean)|]
     End Function
 End Class")
@@ -473,7 +488,7 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestGenericWithWrongArgs2() As Task
             Await TestMissingInRegularAndScriptAsync(
-"Class Foo
+"Class Goo
     Function F() As [|List(Of Integer, String)|]
     End Function
 End Class")
@@ -482,13 +497,14 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestGenericInLocalDeclaration() As Task
             Await TestAsync(
-"Class Foo
+"Class Goo
     Sub Test()
         Dim x As New [|List(Of Integer)|]
     End Sub
 End Class",
 "Imports System.Collections.Generic
-Class Foo
+
+Class Goo
     Sub Test()
         Dim x As New List(Of Integer)
     End Sub
@@ -498,13 +514,14 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestGenericItemType() As Task
             Await TestAsync(
-"Class Foo
+"Class Goo
     Sub Test()
         Dim x As New List(Of [|Int32|])
     End Sub
 End Class",
 "Imports System
-Class Foo
+
+Class Goo
     Sub Test()
         Dim x As New List(Of Int32)
     End Sub
@@ -515,14 +532,15 @@ End Class")
         Public Async Function TestGenerateWithExistingUsings() As Task
             Await TestAsync(
 "Imports System
-Class Foo
+Class Goo
     Sub Test()
         Dim x As New [|List(Of Integer)|]
     End Sub
 End Class",
 "Imports System
 Imports System.Collections.Generic
-Class Foo
+
+Class Goo
     Sub Test()
         Dim x As New List(Of Integer)
     End Sub
@@ -534,7 +552,7 @@ End Class")
             Await TestAsync(
 "Imports System
 Namespace NS
-    Class Foo
+    Class Goo
         Sub Test()
             Dim x As New [|List(Of Integer)|]
         End Sub
@@ -542,8 +560,9 @@ Namespace NS
 End Namespace",
 "Imports System
 Imports System.Collections.Generic
+
 Namespace NS
-    Class Foo
+    Class Goo
         Sub Test()
             Dim x As New List(Of Integer)
         End Sub
@@ -557,7 +576,7 @@ End Namespace")
             Await TestActionCountAsync(
 "Imports System.Collections.Generic
 Namespace NS
-    Class Foo
+    Class Goo
         Function Test() As [|IDictionary|]
         End Function
     End Class
@@ -571,7 +590,7 @@ count:=1)
             Await TestAsync(
 "Imports System.Collections.Generic
 Namespace NS
-    Class Foo
+    Class Goo
         Function Test() As [|IDictionary|]
         End Function
     End Class
@@ -579,7 +598,7 @@ End Namespace",
 "Imports System.Collections
 Imports System.Collections.Generic
 Namespace NS
-    Class Foo
+    Class Goo
         Function Test() As IDictionary
         End Function
     End Class
@@ -598,6 +617,7 @@ Class Test
 End Class",
 "Imports System.Collections.Generic
 Imports System.Linq
+
 Class Test
     Private Sub Method(args As IList(Of Integer))
         args.Where()
@@ -631,7 +651,7 @@ End Module")
             Await TestAsync(
 "Imports System.Collections.Generic
 Namespace NS
-    Class Foo
+    Class Goo
         Function Test() As [|IDictionary|]
         End Function
     End Class
@@ -639,7 +659,7 @@ End Namespace",
 "Imports System.Collections
 Imports System.Collections.Generic
 Namespace NS
-    Class Foo
+    Class Goo
         Function Test() As IDictionary
         End Function
     End Class
@@ -650,7 +670,7 @@ End Namespace")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestImportNamespace() As Task
             Await TestAsync(
-"Class FOo
+"Class GOo
     Sub bar()
         Dim q As [|innernamespace|].someClass
     End Sub
@@ -662,7 +682,8 @@ Namespace SomeNamespace
     End Namespace
 End Namespace",
 "Imports SomeNamespace
-Class FOo
+
+Class GOo
     Sub bar()
         Dim q As InnerNamespace.SomeClass
     End Sub
@@ -678,7 +699,7 @@ End Namespace")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestCaseSensitivity2() As Task
             Await TestAsync(
-"Class FOo
+"Class GOo
     Sub bar()
         Dim q As [|innernamespace|].someClass
     End Sub
@@ -690,7 +711,8 @@ Namespace SomeNamespace
     End Namespace
 End Namespace",
 "Imports SomeNamespace
-Class FOo
+
+Class GOo
     Sub bar()
         Dim q As InnerNamespace.SomeClass
     End Sub
@@ -709,24 +731,25 @@ End Namespace")
             Await TestAsync(
 "Module Program
     Sub Main(args As String())
-        Dim x As [|foo|]
+        Dim x As [|goo|]
     End Sub
 End Module
 Namespace OUTER
     Namespace INNER
-        Friend Class FOO
+        Friend Class GOO
         End Class
     End Namespace
 End Namespace",
 "Imports OUTER.INNER
+
 Module Program
     Sub Main(args As String())
-        Dim x As FOO
+        Dim x As GOO
     End Sub
 End Module
 Namespace OUTER
     Namespace INNER
-        Friend Class FOO
+        Friend Class GOO
         End Class
     End Namespace
 End Namespace")
@@ -746,7 +769,7 @@ Module Program
 End Module
 
 &lt;[|SomeAttr|]&gt;
-Class Foo
+Class Goo
 End Class
 Namespace SomeNamespace
     Friend Class SomeAttrAttribute
@@ -764,7 +787,7 @@ Module Program
 End Module
 
 &lt;SomeAttr&gt;
-Class Foo
+Class Goo
 End Class
 Namespace SomeNamespace
     Friend Class SomeAttrAttribute
@@ -786,6 +809,7 @@ ignoreTrivia:=False)
     End Sub
 End Class",
 "Imports System.Linq
+
 Class Program
     Public Sub Linq1()
         Dim numbers() As Integer = New Integer(9) {5, 4, 1, 3, 9, 8, 6, 7, 2, 0}
@@ -809,6 +833,7 @@ Class Program
 End Class",
 "Imports System.Collections.Generic
 Imports System.Linq
+
 Class Program
     Public Sub Linq1()
         Dim numbers() As Integer = New Integer(9) {5, 4, 1, 3, 9, 8, 6, 7, 2, 0}
@@ -824,7 +849,7 @@ End Class")
             Await TestMissingInRegularAndScriptAsync(
 "Imports System
 Class C1
-    Sub foo()
+    Sub goo()
         Dim s = .[|first|]
     End Sub
 End Class")
@@ -840,6 +865,7 @@ End Class")
     End Sub
 End Module",
 "Imports System.IO
+
 Module Program
     Sub Main(args As String())
         File
@@ -855,18 +881,18 @@ Imports System
 #End ExternalSource
 #ExternalSource (""Default.aspx"", 2) 
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x As New [|StreamReader|]
 #End ExternalSource
     End Sub
 End Class",
-"#ExternalSource (""Default.aspx"", 1) 
+"#ExternalSource (""Default.aspx"", 1)
 Imports System
 Imports System.IO
 #End ExternalSource
-#ExternalSource (""Default.aspx"", 2) 
+#ExternalSource (""Default.aspx"", 2)
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x As New [|StreamReader|]
 #End ExternalSource
     End Sub
@@ -879,7 +905,7 @@ End Class")
 "Imports System
 #ExternalSource (""Default.aspx"", 2) 
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x As New [|StreamReader|]
 #End ExternalSource
     End Sub
@@ -938,14 +964,15 @@ ignoreTrivia:=False)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestUnknownIdentifierInModule() As Task
             Await TestAsync(
-"Module Foo
+"Module Goo
     Sub Bar(args As String())
         Dim a = From f In args
                 Let ext = [|Path|]
     End Sub
 End Module",
 "Imports System.IO
-Module Foo
+
+Module Goo
     Sub Bar(args As String())
         Dim a = From f In args
                 Let ext = Path
@@ -957,14 +984,15 @@ End Module")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestConflictedGenericName() As Task
             Await TestAsync(
-"Module Foo
+"Module Goo
     Sub Bar(args As String())
         Dim a = From f In args
                 Let ext = [|Path|]
     End Sub
 End Module",
 "Imports System.IO
-Module Foo
+
+Module Goo
     Sub Bar(args As String())
         Dim a = From f In args
                 Let ext = Path
@@ -982,18 +1010,19 @@ Namespace N
     End Class
 End Namespace
 Class C
-    Public Function Foo()
+    Public Function Goo()
         [|Log|]
     End Function
 End Class",
 "Imports System.Diagnostics
 Imports N
+
 Namespace N
     Public Class Log
     End Class
 End Namespace
 Class C
-    Public Function Foo()
+    Public Function Goo()
         Log
     End Function
 End Class", index:=1)
@@ -1006,6 +1035,7 @@ End Class", index:=1)
 "<[|Description|]> Public Class Description
 End Class",
 "Imports System.ComponentModel
+
 <[|Description|]> Public Class Description
 End Class")
         End Function
@@ -1020,40 +1050,41 @@ Namespace NS1
     Class Program
         Sub main()
             Dim c = New C()
-            [|c.Foo(4)|]
+            [|c.Goo(4)|]
         End Sub
     End Class
     Class C
-        Sub Foo(ByVal m As String)
+        Sub Goo(ByVal m As String)
         End Sub
     End Class
 End Namespace
 Namespace NS2
     Module A
         <Extension()>
-        Sub Foo(ByVal ec As NS1.C, ByVal n As Integer)
+        Sub Goo(ByVal ec As NS1.C, ByVal n As Integer)
         End Sub
     End Module
 End Namespace",
 "Option Strict On
 Imports System.Runtime.CompilerServices
 Imports NS2
+
 Namespace NS1
     Class Program
         Sub main()
             Dim c = New C()
-            c.Foo(4)
+            c.Goo(4)
         End Sub
     End Class
     Class C
-        Sub Foo(ByVal m As String)
+        Sub Goo(ByVal m As String)
         End Sub
     End Class
 End Namespace
 Namespace NS2
     Module A
         <Extension()>
-        Sub Foo(ByVal ec As NS1.C, ByVal n As Integer)
+        Sub Goo(ByVal ec As NS1.C, ByVal n As Integer)
         End Sub
     End Module
 End Namespace")
@@ -1070,40 +1101,41 @@ Namespace NS1
     Class Program
         Sub main()
             Dim c = New C()
-            [|c.Foo(4)|]
+            [|c.Goo(4)|]
         End Sub
     End Class
     Class C
-        Private Sub Foo(ByVal m As Integer)
+        Private Sub Goo(ByVal m As Integer)
         End Sub
     End Class
 End Namespace
 Namespace NS2
     Module A
         <Extension()>
-        Sub Foo(ByVal ec As NS1.C, ByVal n As Integer)
+        Sub Goo(ByVal ec As NS1.C, ByVal n As Integer)
         End Sub
     End Module
 End Namespace",
 "Option Strict On
 Imports System.Runtime.CompilerServices
 Imports NS2
+
 Namespace NS1
     Class Program
         Sub main()
             Dim c = New C()
-            c.Foo(4)
+            c.Goo(4)
         End Sub
     End Class
     Class C
-        Private Sub Foo(ByVal m As Integer)
+        Private Sub Goo(ByVal m As Integer)
         End Sub
     End Class
 End Namespace
 Namespace NS2
     Module A
         <Extension()>
-        Sub Foo(ByVal ec As NS1.C, ByVal n As Integer)
+        Sub Goo(ByVal ec As NS1.C, ByVal n As Integer)
         End Sub
     End Module
 End Namespace")
@@ -1121,18 +1153,18 @@ Namespace NS1
     Class Program
         Sub main()
             Dim c = New C()
-            [|c.Foo(4)|]
+            [|c.Goo(4)|]
         End Sub
     End Class
     Class C
-        Sub Foo(ByVal m As String)
+        Sub Goo(ByVal m As String)
         End Sub
     End Class
 End Namespace
 Namespace NS2
     Module A
         <Extension()>
-        Private Sub Foo(ByVal ec As NS1.C, ByVal n As Integer)
+        Private Sub Goo(ByVal ec As NS1.C, ByVal n As Integer)
         End Sub
     End Module
 End Namespace
@@ -1140,7 +1172,7 @@ End Namespace
 Namespace NS3
     Module A
         <Extension()>
-        Sub Foo(ByVal ec As NS1.C, ByVal n As Integer)
+        Sub Goo(ByVal ec As NS1.C, ByVal n As Integer)
         End Sub
     End Module
 End Namespace",
@@ -1148,22 +1180,23 @@ End Namespace",
 Imports System.Runtime.CompilerServices
 Imports NS2
 Imports NS3
+
 Namespace NS1
     Class Program
         Sub main()
             Dim c = New C()
-            [|c.Foo(4)|]
+            [|c.Goo(4)|]
         End Sub
     End Class
     Class C
-        Sub Foo(ByVal m As String)
+        Sub Goo(ByVal m As String)
         End Sub
     End Class
 End Namespace
 Namespace NS2
     Module A
         <Extension()>
-        Private Sub Foo(ByVal ec As NS1.C, ByVal n As Integer)
+        Private Sub Goo(ByVal ec As NS1.C, ByVal n As Integer)
         End Sub
     End Module
 End Namespace
@@ -1171,7 +1204,7 @@ End Namespace
 Namespace NS3
     Module A
         <Extension()>
-        Sub Foo(ByVal ec As NS1.C, ByVal n As Integer)
+        Sub Goo(ByVal ec As NS1.C, ByVal n As Integer)
         End Sub
     End Module
 End Namespace")
@@ -1224,14 +1257,14 @@ End Interface"
         Public Async Function TestAddImportForCref3() As Task
             Dim initialText =
 "
-Namespace Foo
+Namespace Goo
     Public Class C
         Public Sub M(a As Bar.D)
         End Sub
     End Class
 End Namespace
 
-Namespace Foo.Bar
+Namespace Goo.Bar
     Public Class D
     End Class
 End Namespace
@@ -1246,16 +1279,16 @@ End Module
 "
             Dim expectedText =
 "
-Imports Foo
+Imports Goo
 
-Namespace Foo
+Namespace Goo
     Public Class C
         Public Sub M(a As Bar.D)
         End Sub
     End Class
 End Namespace
 
-Namespace Foo.Bar
+Namespace Goo.Bar
     Public Class D
     End Class
 End Namespace
@@ -1280,16 +1313,16 @@ End Module
         Public Async Function TestAddImportForCref4() As Task
             Dim initialText =
 "
-Imports Foo
+Imports Goo
 
-Namespace Foo
+Namespace Goo
     Public Class C
         Public Sub M(a As Bar.D)
         End Sub
     End Class
 End Namespace
 
-Namespace Foo.Bar
+Namespace Goo.Bar
     Public Class D
     End Class
 End Namespace
@@ -1304,17 +1337,17 @@ End Module
 "
             Dim expectedText =
 "
-Imports Foo
-Imports Foo.Bar
+Imports Goo
+Imports Goo.Bar
 
-Namespace Foo
+Namespace Goo
     Public Class C
         Public Sub M(a As Bar.D)
         End Sub
     End Class
 End Namespace
 
-Namespace Foo.Bar
+Namespace Goo.Bar
     Public Class D
     End Class
 End Namespace
@@ -1380,17 +1413,17 @@ End Class
 Imports System.Runtime.CompilerServices
 Namespace NS1
     Class C
-        Sub Foo(ByVal m As String)
+        Sub Goo(ByVal m As String)
         End Sub
         Sub Bar()
-            [|Foo(5)|]
+            [|Goo(5)|]
         End Sub
     End Class
 End Namespace
 Namespace NS2
     Module A
         <Extension()>
-        Sub Foo(ByVal ec As NS1.C, ByVal n As Integer)
+        Sub Goo(ByVal ec As NS1.C, ByVal n As Integer)
         End Sub
     End Module
 End Namespace",
@@ -1400,17 +1433,17 @@ Imports NS2
 
 Namespace NS1
     Class C
-        Sub Foo(ByVal m As String)
+        Sub Goo(ByVal m As String)
         End Sub
         Sub Bar()
-            Foo(5)
+            Goo(5)
         End Sub
     End Class
 End Namespace
 Namespace NS2
     Module A
         <Extension()>
-        Sub Foo(ByVal ec As NS1.C, ByVal n As Integer)
+        Sub Goo(ByVal ec As NS1.C, ByVal n As Integer)
         End Sub
     End Module
 End Namespace",)
@@ -1477,7 +1510,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
     End Class
 End Namespace",
 "Imports System
-Imports Microsoft.VisualStudio.Utilities 
+Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.VisualStudio.Utilities
     Public Class ContentTypeAttribute
@@ -1877,6 +1910,7 @@ End Namespace",
 Imports System.Collections
 Imports System.Runtime.CompilerServices
 Imports Ext
+
 Class X
     Implements IEnumerable
     Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
@@ -1919,6 +1953,7 @@ End Namespace",
 Imports System.Collections
 Imports System.Runtime.CompilerServices
 Imports Ext
+
 Class X
     Implements IEnumerable
     Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
@@ -1961,6 +1996,7 @@ End Namespace",
 Imports System.Collections
 Imports System.Runtime.CompilerServices
 Imports Ext
+
 Class X
     Implements IEnumerable
     Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
@@ -2003,6 +2039,7 @@ End Namespace",
 Imports System.Collections
 Imports System.Runtime.CompilerServices
 Imports Ext
+
 Class X
     Implements IEnumerable
     Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
@@ -2045,6 +2082,7 @@ End Namespace",
 Imports System.Collections
 Imports System.Runtime.CompilerServices
 Imports Ext
+
 Class X
     Implements IEnumerable
     Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
@@ -2094,6 +2132,7 @@ End Namespace",
 Imports System.Collections
 Imports System.Runtime.CompilerServices
 Imports Ext
+
 Class X
     Implements IEnumerable
     Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
@@ -2150,6 +2189,7 @@ End Namespace",
 Imports System.Collections
 Imports System.Runtime.CompilerServices
 Imports Ext2
+
 Class X
     Implements IEnumerable
     Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
@@ -2197,6 +2237,7 @@ End Namespace",
 "Imports System.Linq
 Imports System.Runtime.CompilerServices
 Imports X
+
 Module Program
     Sub Main(args As String())
         Dim i = 0.All()
@@ -2235,6 +2276,7 @@ End Namespace",
 "Imports System.Linq
 Imports System.Runtime.CompilerServices
 Imports X
+
 Module Program
     Sub Main(args As String())
         Dim a = New Integer?
@@ -2282,6 +2324,7 @@ End Namespace",
 "Imports System.Runtime.CompilerServices
 Imports X
 Imports Y
+
 Module Program
     Sub Main(args As String())
         Dim a = 0
@@ -2337,6 +2380,7 @@ End Namespace",
 "Imports System.Runtime.CompilerServices
 Imports X
 Imports Y
+
 Module Program
     Sub Main(args As String())
         Dim a = New Integer?
@@ -2436,6 +2480,7 @@ End Namespace", placeSystemFirst:=True)
     <[|Extension|]>
 End Class",
 "Imports System.Runtime.CompilerServices
+
 Class Class1
     <Extension>
 End Class")
@@ -2452,6 +2497,7 @@ End Class")
     <C([|List(Of Integer)|])>
 End Class",
 "Imports System.Collections.Generic
+
 Class C
     Inherits Attribute
     Public Sub New(x As System.Type)
@@ -2468,6 +2514,7 @@ End Class")
     <[|Tasks.Task|]>
 End Class",
 "Imports System.Threading
+
 Class Class1
     <Tasks.Task>
 End Class")
@@ -2477,20 +2524,22 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestUnknownAttributeInModule() As Task
             Await TestAsync(
-"Module Foo
+"Module Goo
     <[|Extension|]>
 End Module",
 "Imports System.Runtime.CompilerServices
-Module Foo
+
+Module Goo
     <Extension>
 End Module")
 
             Await TestAsync(
-"Module Foo
+"Module Goo
     <[|Extension()|]>
 End Module",
 "Imports System.Runtime.CompilerServices
-Module Foo
+
+Module Goo
     <Extension()>
 End Module")
         End Function
@@ -2526,6 +2575,7 @@ Namespace T
     End Class
 End Namespace",
 "Imports T
+
 Class A
     Dim a As Action = Sub()
                           Try
@@ -2554,6 +2604,7 @@ Class C
                               Dim a = New [|Test|]()",
 "Imports System.Linq
 Imports X
+
 Namespace X
     Class Test
     End Class

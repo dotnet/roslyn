@@ -10,7 +10,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.Scripting.Test</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.Scripting.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
     <RoslynProjectType>UnitTestPortable</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">

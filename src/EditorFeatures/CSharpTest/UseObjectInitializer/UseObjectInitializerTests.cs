@@ -324,7 +324,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 
     void M()
     {
-        var v = new C(() => {
+        var v = new C(() =>
+        {
             var v2 = new C
             {
                 i = 1
@@ -364,7 +365,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
     {
         var v = new C
         {
-            j = () => {
+            j = () =>
+            {
                 var v2 = new C
                 {
                     i = 1
@@ -429,7 +431,7 @@ class C
     void M()
     {
         var c = [||]new C();
-        c.i = 1; // Foo
+        c.i = 1; // Goo
         c.j = 2; // Bar
     }
 }",
@@ -442,7 +444,7 @@ class C
     {
         var c = new C
         {
-            i = 1, // Foo
+            i = 1, // Goo
             j = 2 // Bar
         };
     }
@@ -474,7 +476,7 @@ ignoreTrivia: false);
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         dynamic body = [||]new ExpandoObject();
         body.content = new ExpandoObject();
@@ -488,13 +490,13 @@ class C
         {
             await TestMissingInRegularAndScriptAsync(
 @"
-public class Foo
+public class Goo
 {
     public void M()
     {
-        var foo = [||]new Foo();
+        var goo = [||]new Goo();
 #if true
-        foo.Value = "";
+        goo.Value = "";
 #endif
     }
 
@@ -508,25 +510,25 @@ public class Foo
         {
             await TestInRegularAndScript1Async(
 @"
-public class Foo
+public class Goo
 {
     public void M()
     {
 #if true
-        var foo = [||]new Foo();
-        foo.Value = "";
+        var goo = [||]new Goo();
+        goo.Value = "";
 #endif
     }
 
     public string Value { get; set; }
 }",
 @"
-public class Foo
+public class Goo
 {
     public void M()
     {
 #if true
-        var foo = new Foo
+        var goo = new Goo
         {
             Value = "";
         };
@@ -543,7 +545,7 @@ public class Foo
         {
             await TestInRegularAndScript1Async(
 @"
-class Foo
+class Goo
 {
     public int Bar { get; set; }
 }
@@ -552,14 +554,14 @@ class MyClass
 {
     public void Main()
     {
-        var foo = [||]new Foo();
-        foo.Bar = 1;
+        var goo = [||]new Goo();
+        goo.Bar = 1;
 
         int horse = 1;
     }
 }",
 @"
-class Foo
+class Goo
 {
     public int Bar { get; set; }
 }
@@ -568,7 +570,7 @@ class MyClass
 {
     public void Main()
     {
-        var foo = new Foo
+        var goo = new Goo
         {
             Bar = 1
         };

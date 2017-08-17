@@ -149,9 +149,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         }
 
         public static string Option_PlaceSystemNamespaceFirst
-        {
-            get { return CSharpVSResources.Place_System_directives_first_when_sorting_usings; }
-        }
+            => CSharpVSResources.Place_System_directives_first_when_sorting_usings;
+
+        public static string Option_SeparateImportGroups
+            => CSharpVSResources.Separate_using_directive_groups;
 
         public static string Option_Using_Directives =>
             CSharpVSResources.Using_Directives;

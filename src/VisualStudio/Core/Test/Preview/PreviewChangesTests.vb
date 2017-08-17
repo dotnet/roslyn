@@ -21,7 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Preview
             Using workspace = TestWorkspace.CreateCSharp(<text>
 Class C
 {
-    void Foo()
+    void Goo()
     {
         $$
     }
@@ -64,7 +64,7 @@ Class C
                         <Document FilePath="test1.cs">
 Class C
 {
-    void Foo()
+    void Goo()
     {
         $$
     }
@@ -121,7 +121,7 @@ Class C
             Using workspace = TestWorkspace.CreateCSharp(<text>
 Class C
 {
-    void Foo()
+    void Goo()
     {
         $$
     }
@@ -170,7 +170,7 @@ Class C
                         <Document FilePath="test1.cs">
 Class C
 {
-    void Foo()
+    void Goo()
     {
         $$
     }

@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 <compilation name="C">
     <file>
 Namespace N
-    Sub Foo
+    Sub Goo
     End Sub
 End Namespace
     </file>
@@ -54,7 +54,7 @@ End Namespace
             Dim c = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="C">
     <file>
-Sub Foo
+Sub Goo
 End Sub
     </file>
 </compilation>, parseOptions:=TestOptions.Script)

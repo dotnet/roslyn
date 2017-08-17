@@ -659,26 +659,26 @@ Call New List(Of Integer)().ToString()
         Public Async Function TestInlineWithCast1() As Task
             Dim code =
 <ClassDeclaration>
-Sub Foo(o As Object)
+Sub Goo(o As Object)
 End Sub
-Sub Foo(i As Integer)
+Sub Goo(i As Integer)
 End Sub
 
 Sub Test()
     Dim [||]i As Object = 1
-    Foo(i)
+    Goo(i)
 End Sub
 </ClassDeclaration>
 
             Dim expected =
 <ClassDeclaration>
-Sub Foo(o As Object)
+Sub Goo(o As Object)
 End Sub
-Sub Foo(i As Integer)
+Sub Goo(i As Integer)
 End Sub
 
 Sub Test()
-    Foo(CObj(1))
+    Goo(CObj(1))
 End Sub
 </ClassDeclaration>
 
@@ -689,26 +689,26 @@ End Sub
         Public Async Function TestInlineWithCast2() As Task
             Dim code =
 <ClassDeclaration>
-Sub Foo(l As Long)
+Sub Goo(l As Long)
 End Sub
-Sub Foo(i As Integer)
+Sub Goo(i As Integer)
 End Sub
 
 Sub Test()
     Dim [||]i As Long = 1
-    Foo(i)
+    Goo(i)
 End Sub
 </ClassDeclaration>
 
             Dim expected =
 <ClassDeclaration>
-Sub Foo(l As Long)
+Sub Goo(l As Long)
 End Sub
-Sub Foo(i As Integer)
+Sub Goo(i As Integer)
 End Sub
 
 Sub Test()
-    Foo(CLng(1))
+    Goo(CLng(1))
 End Sub
 </ClassDeclaration>
 
@@ -719,26 +719,26 @@ End Sub
         Public Async Function TestInlineWithCast3() As Task
             Dim code =
 <ClassDeclaration>
-Sub Foo(l As Long)
+Sub Goo(l As Long)
 End Sub
-Sub Foo(i As Integer)
+Sub Goo(i As Integer)
 End Sub
 
 Sub Test()
     Dim [||]i As Long = CByte(1)
-    Foo(i)
+    Goo(i)
 End Sub
 </ClassDeclaration>
 
             Dim expected =
 <ClassDeclaration>
-Sub Foo(l As Long)
+Sub Goo(l As Long)
 End Sub
-Sub Foo(i As Integer)
+Sub Goo(i As Integer)
 End Sub
 
 Sub Test()
-    Foo(CLng(CByte(1)))
+    Goo(CLng(CByte(1)))
 End Sub
 </ClassDeclaration>
 
@@ -749,26 +749,26 @@ End Sub
         Public Async Function TestInlineWithCast4() As Task
             Dim code =
 <ClassDeclaration>
-Sub Foo(o As Object)
+Sub Goo(o As Object)
 End Sub
-Sub Foo(s As String)
+Sub Goo(s As String)
 End Sub
 
 Sub Test()
     Dim [||]s As String = Nothing
-    Foo(s)
+    Goo(s)
 End Sub
 </ClassDeclaration>
 
             Dim expected =
 <ClassDeclaration>
-Sub Foo(o As Object)
+Sub Goo(o As Object)
 End Sub
-Sub Foo(s As String)
+Sub Goo(s As String)
 End Sub
 
 Sub Test()
-    Foo(Nothing)
+    Goo(Nothing)
 End Sub
 </ClassDeclaration>
 
@@ -779,26 +779,26 @@ End Sub
         Public Async Function TestInlineWithCast5() As Task
             Dim code =
 <ClassDeclaration>
-Sub Foo(o As Object)
+Sub Goo(o As Object)
 End Sub
-Sub Foo(s As String)
+Sub Goo(s As String)
 End Sub
 
 Sub Test()
     Dim [||]o As Object = Nothing
-    Foo(o)
+    Goo(o)
 End Sub
 </ClassDeclaration>
 
             Dim expected =
 <ClassDeclaration>
-Sub Foo(o As Object)
+Sub Goo(o As Object)
 End Sub
-Sub Foo(s As String)
+Sub Goo(s As String)
 End Sub
 
 Sub Test()
-    Foo(CObj(Nothing))
+    Goo(CObj(Nothing))
 End Sub
 </ClassDeclaration>
 
@@ -843,7 +843,7 @@ End Class
 Option Strict On
 Imports System
 Module M
-    Sub Foo()
+    Sub Goo()
         Dim x[||] As Long() = {1, 2, 3}
         Dim y = x
         Dim z As IComparable(Of Long) = y(0)
@@ -856,7 +856,7 @@ End Module
 Option Strict On
 Imports System
 Module M
-    Sub Foo()
+    Sub Goo()
         Dim y = CType({1, 2, 3}, Long())
         Dim z As IComparable(Of Long) = y(0)
     End Sub
@@ -994,11 +994,11 @@ End Class
             Dim code =
 <File>
 Module M
-    Function Foo(Of T)(x As T, y As T) As T
+    Function Goo(Of T)(x As T, y As T) As T
     End Function
     Sub Main()
         Dim [||]x As Long = 1
-        Dim y As IComparable(Of Long) = Foo(x, x)
+        Dim y As IComparable(Of Long) = Goo(x, x)
     End Sub
 End Module
 </File>
@@ -1006,10 +1006,10 @@ End Module
             Dim expected =
 <File>
 Module M
-    Function Foo(Of T)(x As T, y As T) As T
+    Function Goo(Of T)(x As T, y As T) As T
     End Function
     Sub Main()
-        Dim y As IComparable(Of Long) = Foo(Of Long)(1, 1)
+        Dim y As IComparable(Of Long) = Goo(Of Long)(1, 1)
     End Sub
 End Module
 </File>
@@ -1725,7 +1725,7 @@ Dim y = New IEnumerable(Of Char)() {(From x In "ABC" Select x), From x In "ABC" 
         Public Async Function TestParenthesizeIfNecessary6() As Task
             Dim code =
 <ModuleDeclaration>
-Sub Foo()
+Sub Goo()
     Dim [||]z As IEnumerable(Of Char) = From x In "ABC" Select x ' Inline z
     Bar(z, z)
 End Sub
@@ -1736,7 +1736,7 @@ End Sub
 
             Dim expected =
 <ModuleDeclaration>
-Sub Foo()
+Sub Goo()
     ' Inline z
     Bar((From x In "ABC" Select x), From x In "ABC" Select x)
 End Sub
@@ -1753,7 +1753,7 @@ End Sub
         Public Async Function TestParenthesizeIfNecessary7() As Task
             Dim code =
 <ModuleDeclaration>
-Sub Foo()
+Sub Goo()
     Dim [||]z As Func(Of IEnumerable(Of Char)) = Function() From x In "ABC" Select x
     Bar(z, z)
 End Sub
@@ -1764,7 +1764,7 @@ End Sub
 
             Dim expected =
 <ModuleDeclaration>
-Sub Foo()
+Sub Goo()
     Bar((Function() From x In "ABC" Select x), Function() From x In "ABC" Select x)
 End Sub
 
@@ -1797,7 +1797,7 @@ Dim a = (From y In "" Select y Order By y), b
         Public Async Function TestParenthesizeIfNecessary9() As Task
             Dim code =
 <ModuleDeclaration>
-Sub Foo()
+Sub Goo()
     Dim [||]z As Func(Of IEnumerable(Of IEnumerable(Of Char))) = Function() From x In "ABC" Select From y In "ABC" Select y
     Bar(z, z)
 End Sub
@@ -1808,7 +1808,7 @@ End Sub
 
             Dim expected =
 <ModuleDeclaration>
-Sub Foo()
+Sub Goo()
     Bar((Function() From x In "ABC" Select From y In "ABC" Select y), Function() From x In "ABC" Select From y In "ABC" Select y)
 End Sub
 
@@ -2153,27 +2153,27 @@ End Module
             Dim code =
 <ModuleDeclaration>
 Sub Main()
-    Dim [||]x = Foo
+    Dim [||]x = Goo
     Dim y As Integer = x(0)
 End Sub
 
-Function Foo As Integer()
+Function Goo As Integer()
 End Function
 
-Function Foo(x As Integer) As Integer()
+Function Goo(x As Integer) As Integer()
 End Function
 </ModuleDeclaration>
 
             Dim expected =
 <ModuleDeclaration>
 Sub Main()
-    Dim y As Integer = Foo()(0)
+    Dim y As Integer = Goo()(0)
 End Sub
 
-Function Foo As Integer()
+Function Goo As Integer()
 End Function
 
-Function Foo(x As Integer) As Integer()
+Function Goo(x As Integer) As Integer()
 End Function
 </ModuleDeclaration>
 
@@ -2186,27 +2186,27 @@ End Function
             Dim code =
 <ModuleDeclaration>
 Sub Main()
-    Dim [||]x = Foo(Of Integer)
+    Dim [||]x = Goo(Of Integer)
     Dim y As Integer = x(0)
 End Sub
 
-Function Foo(Of T) As Integer()
+Function Goo(Of T) As Integer()
 End Function
 
-Function Foo(Of T)(x As Integer) As Integer()
+Function Goo(Of T)(x As Integer) As Integer()
 End Function
 </ModuleDeclaration>
 
             Dim expected =
 <ModuleDeclaration>
 Sub Main()
-    Dim y As Integer = Foo(Of Integer)()(0)
+    Dim y As Integer = Goo(Of Integer)()(0)
 End Sub
 
-Function Foo(Of T) As Integer()
+Function Goo(Of T) As Integer()
 End Function
 
-Function Foo(Of T)(x As Integer) As Integer()
+Function Goo(Of T)(x As Integer) As Integer()
 End Function
 </ModuleDeclaration>
 
@@ -2219,13 +2219,13 @@ End Function
             Dim code =
 <ModuleDeclaration>
 Sub Main()
-    Dim [||]x = Foo
+    Dim [||]x = Goo
     Dim y As Integer = x(0)
 End Sub
 
-Property Foo As Integer()
+Property Goo As Integer()
 
-ReadOnly Property Foo(x As Integer) As Integer()
+ReadOnly Property Goo(x As Integer) As Integer()
     Get
     End Get
 End Property
@@ -2234,12 +2234,12 @@ End Property
             Dim expected =
 <ModuleDeclaration>
 Sub Main()
-    Dim y As Integer = Foo()(0)
+    Dim y As Integer = Goo()(0)
 End Sub
 
-Property Foo As Integer()
+Property Goo As Integer()
 
-ReadOnly Property Foo(x As Integer) As Integer()
+ReadOnly Property Goo(x As Integer) As Integer()
     Get
     End Get
 End Property
@@ -2501,12 +2501,12 @@ Console.WriteLine(1)
 Module Program
     Sub Main(args As String())
         Dim bar[||] As String = "TEST"
-        foo(bar)
+        goo(bar)
         Console.WriteLine(bar)
     End Sub
 
-    Private Sub foo(ByRef bar As String)
-        bar = "foo"
+    Private Sub goo(ByRef bar As String)
+        bar = "goo"
     End Sub
 End Module
 </File>
@@ -2516,12 +2516,12 @@ End Module
 Module Program
     Sub Main(args As String())
         Dim bar As String = "TEST"
-        foo({|Conflict:bar|})
+        goo({|Conflict:bar|})
         Console.WriteLine("TEST")
     End Sub
 
-    Private Sub foo(ByRef bar As String)
-        bar = "foo"
+    Private Sub goo(ByRef bar As String)
+        bar = "goo"
     End Sub
 End Module
 </File>
@@ -2695,8 +2695,8 @@ End Module
         Public Async Function TestDontInlineInUnterminatedBlock() As Task
             Dim markup =
 <File>
-Interface IFoo
-    Function Foo(baz As IBaz) As IBar
+Interface IGoo
+    Function Goo(baz As IBaz) As IBar
 End Interface
  
 Interface IBar
@@ -2706,13 +2706,13 @@ Interface IBaz
 End Interface
  
 Module M
-    Dim foo As IFoo
+    Dim goo As IGoo
  
     Sub M()
         Using nonexistent
-            Dim [||]localFoo = foo
+            Dim [||]localGoo = goo
         Dim baz As IBaz
-        Dim result = localFoo.Foo(baz)
+        Dim result = localGoo.Goo(baz)
     End Sub
 End Module
 </File>
@@ -3152,6 +3152,7 @@ Module M
         Dim z = 1
     End Sub
 End Module
+
 </File>
             Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function
@@ -3162,7 +3163,7 @@ End Module
             Dim code =
 <File>
 Module M
-    Sub Foo()
+    Sub Goo()
         Dim x[||] = &lt;x/&gt;.GetHashCode
         Dim y = 1 &lt; x
         Dim z = x
@@ -3173,7 +3174,7 @@ End Module
             Dim expected =
 <File>
 Module M
-    Sub Foo()
+    Sub Goo()
         Dim y = 1 &lt; (&lt;x/&gt;.GetHashCode)
         Dim z = &lt;x/&gt;.GetHashCode
     End Sub
@@ -3368,7 +3369,7 @@ Module Program
     Sub Main()
         Dim s = ""
         Dim y[||] = 1
-        s.Foo(y)
+        s.Goo(y)
     End Sub
 End Module
 
@@ -3376,13 +3377,13 @@ Module M
     Sub Main()
     End Sub
     &lt;Extension>
-    Sub Foo(x As String, ByRef y As Long)
+    Sub Goo(x As String, ByRef y As Long)
     End Sub
 End Module
 
 Module N
     &lt;Extension>
-    Sub Foo(x As String, y As Long)
+    Sub Goo(x As String, y As Long)
     End Sub
 End Module
 </File>
@@ -3396,7 +3397,7 @@ Imports System.Runtime.CompilerServices
 Module Program
     Sub Main()
         Dim s = ""
-        N.Foo(s, 1)
+        N.Goo(s, 1)
     End Sub
 End Module
 
@@ -3404,13 +3405,13 @@ Module M
     Sub Main()
     End Sub
     &lt;Extension>
-    Sub Foo(x As String, ByRef y As Long)
+    Sub Goo(x As String, ByRef y As Long)
     End Sub
 End Module
 
 Module N
     &lt;Extension>
-    Sub Foo(x As String, y As Long)
+    Sub Goo(x As String, y As Long)
     End Sub
 End Module
 </File>
@@ -3692,10 +3693,10 @@ End Class
 Public Class A
     Public Shared Sub Main()
         Dim a[||] = New A() ' Inline a
-        Foo(a)
+        Goo(a)
     End Sub
 
-    Private Shared Sub Foo(x As Long)
+    Private Shared Sub Goo(x As Long)
         Console.WriteLine(x)
     End Sub
 
@@ -3714,10 +3715,10 @@ End Class
 Public Class A
     Public Shared Sub Main()
         ' Inline a
-        Foo(New A())
+        Goo(New A())
     End Sub
 
-    Private Shared Sub Foo(x As Long)
+    Private Shared Sub Goo(x As Long)
         Console.WriteLine(x)
     End Sub
 
@@ -3781,10 +3782,10 @@ Imports System.Threading.Tasks
 Class X
     Public Async Sub Test(i As Integer)
         Dim s[||] = Await Task.Run(Function() i)
-        Foo(s, 5)
+        Goo(s, 5)
         Console.WriteLine(i)
     End Sub
-    Public Sub Foo(i1 as Integer, i2 as Integer)
+    Public Sub Goo(i1 as Integer, i2 as Integer)
     End Sub
 End Class
 </File>
@@ -3797,10 +3798,10 @@ Imports System.Linq
 Imports System.Threading.Tasks
 Class X
     Public Async Sub Test(i As Integer)
-        Foo(Await Task.Run(Function() i), 5)
+        Goo(Await Task.Run(Function() i), 5)
         Console.WriteLine(i)
     End Sub
-    Public Sub Foo(i1 as Integer, i2 as Integer)
+    Public Sub Goo(i1 as Integer, i2 as Integer)
     End Sub
 End Class
 </File>

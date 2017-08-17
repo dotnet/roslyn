@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                     generateTypeServiceStateOptions.IsMembersWithModule = true;
                 }
 
-                // case: class Foo<T> where T: MyType
+                // case: class Goo<T> where T: MyType
                 if (nameOrMemberAccessExpression.GetAncestors<TypeConstraintSyntax>().Any())
                 {
                     generateTypeServiceStateOptions.IsClassInterfaceTypes = true;
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 if (nameOrMemberAccessExpression.GetAncestors<EventFieldDeclarationSyntax>().Any() ||
                     nameOrMemberAccessExpression.GetAncestors<EventDeclarationSyntax>().Any())
                 {
-                    // Case : event foo name11
+                    // Case : event goo name11
                     // Only Delegate
                     if (simpleName.Parent != null && !(simpleName.Parent is QualifiedNameSyntax))
                     {
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                         return true;
                     }
 
-                    // Case : event SomeSymbol.foo name11
+                    // Case : event SomeSymbol.goo name11
                     if (nameOrMemberAccessExpression is QualifiedNameSyntax)
                     {
                         // Only Namespace, Class, Struct and Module are allowed to contain Delegate
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 
             // Cases:
             // // 1 - Function Address
-            // var s2 = new MyD2(foo);
+            // var s2 = new MyD2(goo);
 
             // // 2 - Delegate
             // MyD1 d = null;
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 
             if (generateTypeServiceStateOptions.IsDelegateAllowed)
             {
-                // MyD1 z1 = foo;
+                // MyD1 z1 = goo;
                 if (nameOrMemberAccessExpression.Parent.IsKind(SyntaxKind.VariableDeclaration))
                 {
                     var variableDeclaration = (VariableDeclarationSyntax)nameOrMemberAccessExpression.Parent;
@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                     }
                 }
 
-                // var w1 = (MyD1)foo;
+                // var w1 = (MyD1)goo;
                 if (nameOrMemberAccessExpression.Parent.IsKind(SyntaxKind.CastExpression))
                 {
                     var castExpression = (CastExpressionSyntax)nameOrMemberAccessExpression.Parent;
@@ -894,16 +894,16 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 name: propertyName.Identifier.ValueText,
                 type: propertyType,
                 returnsByRef: false,
-                parameters: default(ImmutableArray<IParameterSymbol>),
+                parameters: default,
                 getMethod: s_accessor,
                 setMethod: s_accessor,
                 isIndexer: false);
         }
 
         private static readonly IMethodSymbol s_accessor = CodeGenerationSymbolFactory.CreateAccessorSymbol(
-            attributes: default(ImmutableArray<AttributeData>),
+            attributes: default,
             accessibility: Accessibility.Public,
-            statements: default(ImmutableArray<SyntaxNode>));
+            statements: default);
 
         internal override bool TryGenerateProperty(
             SimpleNameSyntax propertyName,
