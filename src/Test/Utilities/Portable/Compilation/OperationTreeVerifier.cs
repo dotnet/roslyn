@@ -510,14 +510,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
         }
 
-        public override void VisitThrowStatement(IThrowStatement operation)
-        {
-            LogString(nameof(IThrowStatement));
-            LogCommonPropertiesAndNewLine(operation);
-
-            Visit(operation.ThrownObject, "ThrownObject");
-        }
-
         public override void VisitReturnStatement(IReturnStatement operation)
         {
             LogString(nameof(IReturnStatement));
@@ -531,7 +523,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(ILockStatement));
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.LockedObject, "LockedObject");
+            Visit(operation.Expression, "Expression");
             Visit(operation.Body, "Body");
         }
 
@@ -865,13 +857,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.IfFalseValue, "IfFalse");
         }
 
-        public override void VisitNullCoalescingExpression(INullCoalescingExpression operation)
+        public override void VisitCoalesceExpression(ICoalesceExpression operation)
         {
-            LogString(nameof(INullCoalescingExpression));
+            LogString(nameof(ICoalesceExpression));
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.PrimaryOperand, "Left");
-            Visit(operation.SecondaryOperand, "Right");
+            Visit(operation.Expression, "Expression");
+            Visit(operation.WhenNull, "WhenNull");
         }
 
         public override void VisitIsTypeExpression(IIsTypeExpression operation)
@@ -906,15 +898,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogTypeOperationExpressionCommon(operation);
         }
 
-        public override void VisitLambdaExpression(ILambdaExpression operation)
+        public override void VisitAnonymousFunctionExpression(IAnonymousFunctionExpression operation)
         {
-            LogString(nameof(ILambdaExpression));
+            LogString(nameof(IAnonymousFunctionExpression));
 
-            LogSymbol(operation.Signature, header: " (Signature");
+            LogSymbol(operation.Symbol, header: " (Symbol");
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
-            base.VisitLambdaExpression(operation);
+            base.VisitAnonymousFunctionExpression(operation);
         }
 
         public override void VisitLiteralExpression(ILiteralExpression operation)

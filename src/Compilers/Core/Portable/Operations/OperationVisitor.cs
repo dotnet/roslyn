@@ -110,11 +110,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitThrowStatement(IThrowStatement operation)
-        {
-            DefaultVisit(operation);
-        }
-
         public virtual void VisitReturnStatement(IReturnStatement operation)
         {
             DefaultVisit(operation);
@@ -270,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitNullCoalescingExpression(INullCoalescingExpression operation)
+        public virtual void VisitCoalesceExpression(ICoalesceExpression operation)
         {
             DefaultVisit(operation);
         }
@@ -290,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitLambdaExpression(ILambdaExpression operation)
+        public virtual void VisitAnonymousFunctionExpression(IAnonymousFunctionExpression operation)
         {
             DefaultVisit(operation);
         }
@@ -580,11 +575,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitThrowStatement(IThrowStatement operation, TArgument argument)
-        {
-            return DefaultVisit(operation, argument);
-        }
-
         public virtual TResult VisitReturnStatement(IReturnStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
@@ -740,7 +730,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitNullCoalescingExpression(INullCoalescingExpression operation, TArgument argument)
+        public virtual TResult VisitCoalesceExpression(ICoalesceExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -760,7 +750,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitLambdaExpression(ILambdaExpression operation, TArgument argument)
+        public virtual TResult VisitAnonymousFunctionExpression(IAnonymousFunctionExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

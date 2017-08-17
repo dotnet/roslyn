@@ -119,11 +119,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new EmptyStatement(((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        public override IOperation VisitThrowStatement(IThrowStatement operation, object argument)
-        {
-            return new ThrowStatement(Visit(operation.ThrownObject), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
         public override IOperation VisitReturnStatement(IReturnStatement operation, object argument)
         {
             return new ReturnStatement(operation.Kind, Visit(operation.ReturnedValue), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
@@ -131,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IOperation VisitLockStatement(ILockStatement operation, object argument)
         {
-            return new LockStatement(Visit(operation.LockedObject), Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new LockStatement(Visit(operation.Expression), Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitTryStatement(ITryStatement operation, object argument)
@@ -274,9 +269,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new ConditionalChoiceExpression(Visit(operation.Condition), Visit(operation.IfTrueValue), Visit(operation.IfFalseValue), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        public override IOperation VisitNullCoalescingExpression(INullCoalescingExpression operation, object argument)
+        public override IOperation VisitCoalesceExpression(ICoalesceExpression operation, object argument)
         {
-            return new NullCoalescingExpression(Visit(operation.PrimaryOperand), Visit(operation.SecondaryOperand), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new CoalesceExpression(Visit(operation.Expression), Visit(operation.WhenNull), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitIsTypeExpression(IIsTypeExpression operation, object argument)
@@ -294,9 +289,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new TypeOfExpression(operation.TypeOperand, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        public override IOperation VisitLambdaExpression(ILambdaExpression operation, object argument)
+        public override IOperation VisitAnonymousFunctionExpression(IAnonymousFunctionExpression operation, object argument)
         {
-            return new LambdaExpression(operation.Signature, Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new AnonymousFunctionExpression(operation.Symbol, Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitLiteralExpression(ILiteralExpression operation, object argument)

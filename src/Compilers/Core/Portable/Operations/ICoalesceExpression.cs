@@ -11,16 +11,16 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface INullCoalescingExpression : IOperation
+    public interface ICoalesceExpression : IOperation
     {
         /// <summary>
         /// Value to be unconditionally evaluated.
         /// </summary>
-        IOperation PrimaryOperand { get; }
+        IOperation Expression { get; }
         /// <summary>
-        /// Value to be evaluated if Primary evaluates to null/Nothing.
+        /// Value to be evaluated if <see cref="Expression"/> evaluates to null/Nothing.
         /// </summary>
-        IOperation SecondaryOperand { get; }
+        IOperation WhenNull { get; }
     }
 }
 

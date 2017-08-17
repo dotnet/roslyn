@@ -310,7 +310,7 @@ IDynamicObjectCreationExpression (Name: C) (OperationKind.TypeParameterObjectCre
   ApplicableSymbols(1):
     Symbol: C..ctor(System.Action a, System.Action y)
   Arguments(2):
-      ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null, IsInvalid) (Syntax: 'delegate { }')
+      IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'delegate { }')
         IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ }')
           IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: '{ }')
             ReturnedValue: null

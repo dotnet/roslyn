@@ -234,14 +234,15 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             Left: ILocalReferenceExpression: value (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'value')
             Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 100) (Syntax: '100')
         IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If value >  ... End If')
-            IThrowStatement (OperationKind.ThrowStatement) (Syntax: 'Throw New S ... occurred.")')
-              ThrownObject: IObjectCreationExpression (Constructor: Sub System.Exception..ctor(message As System.String)) (OperationKind.ObjectCreationExpression, Type: System.Exception) (Syntax: 'New System. ... occurred.")')
-                  Arguments(1):
-                      IArgument (ArgumentKind.Explicit, Matching Parameter: message) (OperationKind.Argument) (Syntax: '"An excepti ...  occurred."')
-                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "An exception has occurred.") (Syntax: '"An excepti ...  occurred."')
-                        InConversion: null
-                        OutConversion: null
-                  Initializer: null
+            IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Throw New S ... occurred.")')
+              Expression: IThrowExpression (OperationKind.ThrowExpression, Type: System.Exception) (Syntax: 'Throw New S ... occurred.")')
+                  IObjectCreationExpression (Constructor: Sub System.Exception..ctor(message As System.String)) (OperationKind.ObjectCreationExpression, Type: System.Exception) (Syntax: 'New System. ... occurred.")')
+                    Arguments(1):
+                        IArgument (ArgumentKind.Explicit, Matching Parameter: message) (OperationKind.Argument) (Syntax: '"An excepti ...  occurred."')
+                          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "An exception has occurred.") (Syntax: '"An excepti ...  occurred."')
+                          InConversion: null
+                          OutConversion: null
+                    Initializer: null
         IfFalse: null
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... statement")')
         Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... statement")')
@@ -888,10 +889,11 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
                               Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
         Catch clauses(0)
         Finally: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Finally ... Exception()')
-            IThrowStatement (OperationKind.ThrowStatement) (Syntax: 'Throw New S ... Exception()')
-              ThrownObject: IObjectCreationExpression (Constructor: Sub System.Exception..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Exception) (Syntax: 'New System.Exception()')
-                  Arguments(0)
-                  Initializer: null]]>.Value
+            IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Throw New S ... Exception()')
+              Expression: IThrowExpression (OperationKind.ThrowExpression, Type: System.Exception) (Syntax: 'Throw New S ... Exception()')
+                  IObjectCreationExpression (Constructor: Sub System.Exception..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Exception) (Syntax: 'New System.Exception()')
+                    Arguments(0)
+                    Initializer: null]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
         End Sub

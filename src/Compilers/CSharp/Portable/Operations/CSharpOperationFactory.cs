@@ -634,23 +634,23 @@ namespace Microsoft.CodeAnalysis.Semantics
             // We are counting on the fact that will do the error recovery and actually create the BoundLambda node appropriate for
             // this syntax node.
             var lambdaOperation = _semanticModel.GetOperationInternal(unboundLambda.Syntax);
-            Debug.Assert(lambdaOperation.Kind == OperationKind.LambdaExpression);
+            Debug.Assert(lambdaOperation.Kind == OperationKind.AnonymousFunctionExpression);
             return lambdaOperation;
         }
 
-        private ILambdaExpression CreateBoundLambdaOperation(BoundLambda boundLambda)
+        private IAnonymousFunctionExpression CreateBoundLambdaOperation(BoundLambda boundLambda)
         {
-            IMethodSymbol signature = boundLambda.Symbol;
+            IMethodSymbol symbol = boundLambda.Symbol;
             Lazy<IBlockStatement> body = new Lazy<IBlockStatement>(() => (IBlockStatement)Create(boundLambda.Body));
             SyntaxNode syntax = boundLambda.Syntax;
             // This matches the SemanticModel implementation. This is because in VB, lambdas by themselves
             // do not have a type. To get the type of a lambda expression in the SemanticModel, you need to look at
             // TypeInfo.ConvertedType, rather than TypeInfo.Type. We replicate that behavior here. To get the type of
-            // an ILambdaExpression, you need to look at the parent IConversionExpression.
+            // an IAnonymousFunctionExpression, you need to look at the parent IConversionExpression.
             ITypeSymbol type = null;
             Optional<object> constantValue = ConvertToOptional(boundLambda.ConstantValue);
             bool isImplicit = boundLambda.WasCompilerGenerated;
-            return new LazyLambdaExpression(signature, body, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyAnonymousFunctionExpression(symbol, body, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ILocalFunctionStatement CreateBoundLocalFunctionStatementOperation(BoundLocalFunctionStatement boundLocalFunctionStatement)
@@ -913,15 +913,15 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyConditionalChoiceExpression(condition, ifTrueValue, ifFalseValue, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private INullCoalescingExpression CreateBoundNullCoalescingOperatorOperation(BoundNullCoalescingOperator boundNullCoalescingOperator)
+        private ICoalesceExpression CreateBoundNullCoalescingOperatorOperation(BoundNullCoalescingOperator boundNullCoalescingOperator)
         {
-            Lazy<IOperation> primaryOperand = new Lazy<IOperation>(() => Create(boundNullCoalescingOperator.LeftOperand));
-            Lazy<IOperation> secondaryOperand = new Lazy<IOperation>(() => Create(boundNullCoalescingOperator.RightOperand));
+            Lazy<IOperation> expression = new Lazy<IOperation>(() => Create(boundNullCoalescingOperator.LeftOperand));
+            Lazy<IOperation> whenNull = new Lazy<IOperation>(() => Create(boundNullCoalescingOperator.RightOperand));
             SyntaxNode syntax = boundNullCoalescingOperator.Syntax;
             ITypeSymbol type = boundNullCoalescingOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundNullCoalescingOperator.ConstantValue);
             bool isImplicit = boundNullCoalescingOperator.WasCompilerGenerated;
-            return new LazyNullCoalescingExpression(primaryOperand, secondaryOperand, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyCoalesceExpression(expression, whenNull, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IAwaitExpression CreateBoundAwaitExpressionOperation(BoundAwaitExpression boundAwaitExpression)
@@ -1266,14 +1266,16 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyUsingStatement(body, declaration, value, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private IThrowStatement CreateBoundThrowStatementOperation(BoundThrowStatement boundThrowStatement)
+        private IExpressionStatement CreateBoundThrowStatementOperation(BoundThrowStatement boundThrowStatement)
         {
             Lazy<IOperation> thrownObject = new Lazy<IOperation>(() => Create(boundThrowStatement.ExpressionOpt));
             SyntaxNode syntax = boundThrowStatement.Syntax;
-            ITypeSymbol type = null;
+            ITypeSymbol throwExpressionType = boundThrowStatement.ExpressionOpt?.Type;
+            ITypeSymbol statementType = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundThrowStatement.WasCompilerGenerated;
-            return new LazyThrowStatement(thrownObject, _semanticModel, syntax, type, constantValue, isImplicit);
+            IOperation throwExpression = new LazyThrowExpression(thrownObject, _semanticModel, syntax, throwExpressionType, constantValue, isImplicit);
+            return new ExpressionStatement(throwExpression, _semanticModel, syntax, statementType, constantValue, isImplicit);
         }
 
         private IReturnStatement CreateBoundReturnStatementOperation(BoundReturnStatement boundReturnStatement)
@@ -1298,14 +1300,14 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private ILockStatement CreateBoundLockStatementOperation(BoundLockStatement boundLockStatement)
         {
-            Lazy<IOperation> lockedObject = new Lazy<IOperation>(() => Create(boundLockStatement.Argument));
+            Lazy<IOperation> expression = new Lazy<IOperation>(() => Create(boundLockStatement.Argument));
             Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundLockStatement.Body));
             SyntaxNode syntax = boundLockStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundLockStatement.WasCompilerGenerated;
 
-            return new LazyLockStatement(lockedObject, body, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyLockStatement(expression, body, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IInvalidStatement CreateBoundBadStatementOperation(BoundBadStatement boundBadStatement)

@@ -154,11 +154,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitEmptyStatement(operation);
         }
 
-        public override void VisitThrowStatement(IThrowStatement operation)
-        {
-            base.VisitThrowStatement(operation);
-        }
-
         public override void VisitReturnStatement(IReturnStatement operation)
         {
             base.VisitReturnStatement(operation);
@@ -372,9 +367,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitConditionalChoiceExpression(operation);
         }
 
-        public override void VisitNullCoalescingExpression(INullCoalescingExpression operation)
+        public override void VisitCoalesceExpression(ICoalesceExpression operation)
         {
-            base.VisitNullCoalescingExpression(operation);
+            base.VisitCoalesceExpression(operation);
         }
 
         public override void VisitIsTypeExpression(IIsTypeExpression operation)
@@ -398,11 +393,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitTypeOfExpression(operation);
         }
 
-        public override void VisitLambdaExpression(ILambdaExpression operation)
+        public override void VisitAnonymousFunctionExpression(IAnonymousFunctionExpression operation)
         {
-            var signature = operation.Signature;
+            var signature = operation.Symbol;
 
-            base.VisitLambdaExpression(operation);
+            base.VisitAnonymousFunctionExpression(operation);
         }
 
         public override void VisitLocalFunctionStatement(ILocalFunctionStatement operation)

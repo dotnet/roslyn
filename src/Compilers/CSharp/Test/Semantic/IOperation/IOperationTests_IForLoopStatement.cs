@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -973,10 +973,11 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
                 Initializer: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
         AtLoopBottom(0)
         Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-            IThrowStatement (OperationKind.ThrowStatement) (Syntax: 'throw new S ... xception();')
-              ThrownObject: IObjectCreationExpression (Constructor: System.Exception..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Exception) (Syntax: 'new System.Exception()')
-                  Arguments(0)
-                  Initializer: null
+            IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'throw new S ... xception();')
+              Expression: IThrowExpression (OperationKind.ThrowExpression, Type: System.Exception) (Syntax: 'throw new S ... xception();')
+                  IObjectCreationExpression (Constructor: System.Exception..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Exception) (Syntax: 'new System.Exception()')
+                    Arguments(0)
+                    Initializer: null
 ";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
@@ -1400,7 +1401,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (IE
                                                                       IArgument (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument) (Syntax: 'x.ToString()')
                                                                         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func<System.Char, <anonymous type: System.Char x, System.String z>>) (Syntax: 'x.ToString()')
                                                                           Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                                                          Operand: ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: 'x.ToString()')
+                                                                          Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'x.ToString()')
                                                                               IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'x.ToString()')
                                                                                 IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x.ToString()')
                                                                                   ReturnedValue: IObjectCreationExpression (Constructor: <anonymous type: System.Char x, System.String z>..ctor(System.Char x, System.String z)) (OperationKind.ObjectCreationExpression, Type: <anonymous type: System.Char x, System.String z>) (Syntax: 'let z = x.ToString()')
@@ -1423,7 +1424,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (IE
                                                         IArgument (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument) (Syntax: 'z')
                                                           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func<<anonymous type: System.Char x, System.String z>, System.String>) (Syntax: 'z')
                                                             Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                                            Operand: ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: 'z')
+                                                            Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'z')
                                                                 IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'z')
                                                                   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'z')
                                                                     ReturnedValue: IOperation:  (OperationKind.None) (Syntax: 'z')
@@ -1434,7 +1435,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (IE
                                           IArgument (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument) (Syntax: 'w')
                                             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func<System.String, System.String>) (Syntax: 'w')
                                               Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                              Operand: ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: 'w')
+                                              Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'w')
                                                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'w')
                                                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'w')
                                                       ReturnedValue: IOperation:  (OperationKind.None) (Syntax: 'w')
@@ -1540,7 +1541,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
                                                                     IArgument (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument) (Syntax: 'x.ToString()')
                                                                       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func<System.Char, <anonymous type: System.Char x, System.String z>>) (Syntax: 'x.ToString()')
                                                                         Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                                                        Operand: ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: 'x.ToString()')
+                                                                        Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'x.ToString()')
                                                                             IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'x.ToString()')
                                                                               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x.ToString()')
                                                                                 ReturnedValue: IObjectCreationExpression (Constructor: <anonymous type: System.Char x, System.String z>..ctor(System.Char x, System.String z)) (OperationKind.ObjectCreationExpression, Type: <anonymous type: System.Char x, System.String z>) (Syntax: 'let z = x.ToString()')
@@ -1563,7 +1564,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
                                                       IArgument (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument) (Syntax: 'z')
                                                         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func<<anonymous type: System.Char x, System.String z>, System.String>) (Syntax: 'z')
                                                           Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                                          Operand: ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: 'z')
+                                                          Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'z')
                                                               IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'z')
                                                                 IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'z')
                                                                   ReturnedValue: IOperation:  (OperationKind.None) (Syntax: 'z')
@@ -1574,7 +1575,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
                                         IArgument (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument) (Syntax: 'w')
                                           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func<System.String, System.String>) (Syntax: 'w')
                                             Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                            Operand: ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: 'w')
+                                            Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'w')
                                                 IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'w')
                                                   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'w')
                                                     ReturnedValue: IOperation:  (OperationKind.None) (Syntax: 'w')
@@ -1615,7 +1616,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (e 
             Left: ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>) (Syntax: 'e')
             Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>) (Syntax: 'x => x * x')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Operand: ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: 'x => x * x')
+                Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'x => x * x')
                     IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'x * x')
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x * x')
                         ReturnedValue: IBinaryOperatorExpression (BinaryOperationKind.IntegerMultiply) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x * x')
@@ -1687,7 +1688,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
             Left: ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>) (Syntax: 'e')
             Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Int32>>) (Syntax: 'x => x * x')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Operand: ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: 'x => x * x')
+                Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'x => x * x')
                     IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'x * x')
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x * x')
                         ReturnedValue: IBinaryOperatorExpression (BinaryOperationKind.IntegerMultiply) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x * x')

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,9 +14,9 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal partial class CodeAnalysisService : IRemoteAddImportFeatureService
     {
-        public async Task<ImmutableArray<AddImportFixData>> GetFixesAsync(
+        public async Task<IList<AddImportFixData>> GetFixesAsync(
             DocumentId documentId, TextSpan span, string diagnosticId, bool placeSystemNamespaceFirst,
-            bool searchReferenceAssemblies, ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
+            bool searchReferenceAssemblies, IList<PackageSource> packageSources, CancellationToken cancellationToken)
         {
             using (UserOperationBooster.Boost())
             {
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var result = await service.GetFixesAsync(
                     document, span, diagnosticId, placeSystemNamespaceFirst,
                     symbolSearchService, searchReferenceAssemblies,
-                    packageSources, cancellationToken).ConfigureAwait(false);
+                    packageSources.ToImmutableArray(), cancellationToken).ConfigureAwait(false);
 
                 return result;
             }
@@ -54,28 +55,28 @@ namespace Microsoft.CodeAnalysis.Remote
                 this.codeAnalysisService = codeAnalysisService;
             }
 
-            public async Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
+            public async Task<IList<PackageWithTypeResult>> FindPackagesWithTypeAsync(
                 string source, string name, int arity, CancellationToken cancellationToken)
             {
-                var result = await codeAnalysisService.Rpc.InvokeAsync<ImmutableArray<PackageWithTypeResult>>(
+                var result = await codeAnalysisService.Rpc.InvokeAsync<IList<PackageWithTypeResult>>(
                     nameof(FindPackagesWithTypeAsync), source, name, arity).ConfigureAwait(false);
 
                 return result;
             }
 
-            public async Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
+            public async Task<IList<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
                 string source, string assemblyName, CancellationToken cancellationToken)
             {
-                var result = await codeAnalysisService.Rpc.InvokeAsync<ImmutableArray<PackageWithAssemblyResult>>(
+                var result = await codeAnalysisService.Rpc.InvokeAsync<IList<PackageWithAssemblyResult>>(
                     nameof(FindPackagesWithAssemblyAsync), source, assemblyName).ConfigureAwait(false);
 
                 return result;
             }
 
-            public async Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
+            public async Task<IList<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
                 string name, int arity, CancellationToken cancellationToken)
             {
-                var result = await codeAnalysisService.Rpc.InvokeAsync<ImmutableArray<ReferenceAssemblyWithTypeResult>>(
+                var result = await codeAnalysisService.Rpc.InvokeAsync<IList<ReferenceAssemblyWithTypeResult>>(
                     nameof(FindReferenceAssembliesWithTypeAsync), name, arity).ConfigureAwait(false);
 
                 return result;

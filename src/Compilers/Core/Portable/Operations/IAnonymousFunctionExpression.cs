@@ -5,20 +5,20 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents a lambda expression.
+    /// Represents an anonymous function expression, such as a lambda or anonymous delegate.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface ILambdaExpression : IOperation
+    public interface IAnonymousFunctionExpression : IOperation
     {
         /// <summary>
-        /// Signature of the lambda.
+        /// Symbol of the anonymous function.
         /// </summary>
-        IMethodSymbol Signature { get; }
+        IMethodSymbol Symbol { get; }
         /// <summary>
-        /// Body of the lambda.
+        /// Body of the anonymous function.
         /// </summary>
         IBlockStatement Body { get; }
     }

@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     public interface ILockStatement : IOperation
     {
         /// <summary>
-        /// Value to be locked.
+        /// Expression producing a value to be locked.
         /// </summary>
-        IOperation LockedObject { get; }
+        IOperation Expression { get; }
         /// <summary>
         /// Body of the lock, to be executed while holding the lock.
         /// </summary>
