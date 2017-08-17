@@ -96,8 +96,26 @@ BC36716: Visual Basic 15.3 does not support Private Protected.
                                   <![CDATA[
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("WantsIVTAccess")>
 Public Class Base
+    Private Protected Const Constant As Integer = 3
     Private Protected Field1 As Integer
     Protected Private Field2 As Integer
+    Private Protected Sub Method() : End Sub
+    Private Protected Event Event1 As System.Action
+    Private Protected WriteOnly Property Property1
+        Set
+        End Set
+    End Property
+    Public Property Property2
+        Private Protected Set
+        End Set
+        Get
+            Return 4
+        End Get
+    End Property
+    Private Protected Sub New()
+    End Sub
+    Public Sub New(x As String) ' Unused
+    End Sub
 End Class
 ]]>
                               </file>
@@ -116,8 +134,19 @@ End Class
 Public Class Derived
         Inherits Base
     Sub M()
-        Field1 = 1
+        Field1 = Constant
         Field2 = 2
+        Method()
+        AddHandler Event1, Sub()
+                           End Sub
+        Property1 = 3
+        Property2 = 4
+    End Sub
+    Sub New(x As Integer)
+        MyBase.New()
+    End Sub
+    Sub New(x As Long)
+        ' MyBase.New()
     End Sub
 End Class
 ]]>
@@ -132,11 +161,32 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(derivedCompilation,
 <errors>
 BC30389: 'Base.Field1' is not accessible in this context because it is 'Private Protected'.
-        Field1 = 1
+        Field1 = Constant
         ~~~~~~
+BC30389: 'Base.Constant' is not accessible in this context because it is 'Private Protected'.
+        Field1 = Constant
+                 ~~~~~~~~
 BC30389: 'Base.Field2' is not accessible in this context because it is 'Private Protected'.
         Field2 = 2
         ~~~~~~
+BC30390: 'Base.Private Protected Sub Method()' is not accessible in this context because it is 'Private Protected'.
+        Method()
+        ~~~~~~
+BC30389: 'Base.Event1' is not accessible in this context because it is 'Private Protected'.
+        AddHandler Event1, Sub()
+                   ~~~~~~
+BC30389: 'Base.Property1' is not accessible in this context because it is 'Private Protected'.
+        Property1 = 3
+        ~~~~~~~~~
+BC31102: 'Set' accessor of property 'Property2' is not accessible.
+        Property2 = 4
+        ~~~~~~~~~~~~~
+BC30455: Argument not specified for parameter 'x' of 'Public Sub New(x As String)'.
+        MyBase.New()
+               ~~~
+BC30148: First statement of this 'Sub New' must be a call to 'MyBase.New' or 'MyClass.New' because base class 'Base' of 'Derived' does not have an accessible 'Sub New' that can be called with no arguments.
+    Sub New(x As Long)
+        ~~~
 </errors>)
             derivedCompilation = CreateCompilationWithMscorlibAndVBRuntime(
                     source2,
@@ -147,11 +197,32 @@ BC30389: 'Base.Field2' is not accessible in this context because it is 'Private 
             CompilationUtils.AssertTheseDiagnostics(derivedCompilation,
 <errors>
 BC30389: 'Base.Field1' is not accessible in this context because it is 'Private Protected'.
-        Field1 = 1
+        Field1 = Constant
         ~~~~~~
+BC30389: 'Base.Constant' is not accessible in this context because it is 'Private Protected'.
+        Field1 = Constant
+                 ~~~~~~~~
 BC30389: 'Base.Field2' is not accessible in this context because it is 'Private Protected'.
         Field2 = 2
         ~~~~~~
+BC30390: 'Base.Private Protected Sub Method()' is not accessible in this context because it is 'Private Protected'.
+        Method()
+        ~~~~~~
+BC30389: 'Base.Event1' is not accessible in this context because it is 'Private Protected'.
+        AddHandler Event1, Sub()
+                   ~~~~~~
+BC30389: 'Base.Property1' is not accessible in this context because it is 'Private Protected'.
+        Property1 = 3
+        ~~~~~~~~~
+BC31102: 'Set' accessor of property 'Property2' is not accessible.
+        Property2 = 4
+        ~~~~~~~~~~~~~
+BC30455: Argument not specified for parameter 'x' of 'Public Sub New(x As String)'.
+        MyBase.New()
+               ~~~
+BC30148: First statement of this 'Sub New' must be a call to 'MyBase.New' or 'MyClass.New' because base class 'Base' of 'Derived' does not have an accessible 'Sub New' that can be called with no arguments.
+    Sub New(x As Long)
+        ~~~
 </errors>)
             derivedCompilation = CreateCompilationWithMscorlibAndVBRuntime(
                     source2,
