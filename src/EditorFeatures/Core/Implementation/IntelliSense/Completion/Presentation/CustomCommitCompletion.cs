@@ -56,14 +56,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         public async Task<CompletionDescription> GetDescriptionAsync(CancellationToken cancellationToken)
         {
-            var document = await GetDocumentAsync(cancellationToken).ConfigureAwait(false);
+            var document = this.CompletionItem.Document;
+            if (document == null)
+            {
+                return CompletionDescription.Empty;
+            }
+
             var service = CompletionService.GetService(document);
             return await service.GetDescriptionAsync(document, this.CompletionItem, cancellationToken).ConfigureAwait(false);
-        }
-
-        private Task<Document> GetDocumentAsync(CancellationToken cancellationToken)
-        {
-            return _completionPresenterSession.SubjectBuffer.CurrentSnapshot.AsText().GetDocumentWithFrozenPartialSemanticsAsync(cancellationToken);
         }
 
         public string GetDescription_TestingOnly()

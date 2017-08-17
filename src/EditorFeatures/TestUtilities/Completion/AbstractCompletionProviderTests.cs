@@ -73,10 +73,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         }
 
         internal Task<CompletionList> GetCompletionListAsync(
-            CompletionService service,
-            Document document, int position, CompletionTrigger triggerInfo, OptionSet options = null)
+            CompletionService service, Document document, int position, 
+            CompletionTrigger triggerInfo, OptionSet options = null)
         {
-            return service.GetCompletionsAsync(document, position, triggerInfo, options: options);
+            return CompletionService.GetCompletionsAsync(service, document, position, triggerInfo, options: options);
         }
 
         protected async Task CheckResultsAsync(

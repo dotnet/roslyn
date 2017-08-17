@@ -21,14 +21,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             </Workspace>
             Using workspace = TestWorkspace.Create(workspaceDefinition)
                 Dim document = workspace.CurrentSolution.Projects.First.Documents.First
-                Dim completionService = New TestCompletionService(workspace)
+                Dim service = New TestCompletionService(workspace)
 
-                Dim list = Await completionService.GetCompletionsAsync(
-                    document:=document,
-                    caretPosition:=0,
-                    trigger:=CompletionTrigger.Invoke,
-                    options:=Nothing,
-                    cancellationToken:=Nothing)
+                Dim list = Await CompletionService.GetCompletionsAsync(
+                    service, document, caretPosition:=0, trigger:=CompletionTrigger.Invoke)
 
                 Assert.NotNull(list)
                 Assert.NotEmpty(list.Items)

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -150,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var workspace = document.Project.Solution.Workspace;
 
-            var position = await GetDescriptionPositionAsync(document, item, cancellationToken).ConfigureAwait(false);
+            var position = GetDescriptionPosition(item);
             if (position == -1)
             {
                 position = item.Span.Start;
@@ -216,19 +217,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return null;
         }
 
-        public static async Task<int> GetContextPositionAsync(
-            Document document, CompletionItem item, CancellationToken cancellationToken)
+        public static int GetContextPosition(CompletionItem item)
         {
             if (item.Properties.TryGetValue("ContextPosition", out var text) &&
                 int.TryParse(text, out var number))
             {
-                // We have no access to the editor at this layer.  So it's not 
-                // possible for us to map the original context position forward
-                // to the current position in the file.  So we need to cap the
-                // positoin to make sure it's within the bounds of the current
-                // text.
-                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                return Math.Min(number, sourceText.Length);
+                return number;
             }
             else
             {
@@ -236,8 +230,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        public static Task<int> GetDescriptionPositionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-            => GetContextPositionAsync(document, item, cancellationToken);
+        public static int GetDescriptionPosition(CompletionItem item)
+            => GetContextPosition(item);
 
         public static string GetInsertionText(CompletionItem item)
         {
@@ -306,8 +300,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var workspace = document.Project.Solution.Workspace;
 
-            var position = await SymbolCompletionItem.GetDescriptionPositionAsync(document, item, cancellationToken).ConfigureAwait(false);
-            var supportedPlatforms = SymbolCompletionItem.GetSupportedPlatforms(item, workspace);
+            var position = GetDescriptionPosition(item);
+            var supportedPlatforms = GetSupportedPlatforms(item, workspace);
 
             var contextDocument = FindAppropriateDocumentForDescriptionContext(document, supportedPlatforms);
 
