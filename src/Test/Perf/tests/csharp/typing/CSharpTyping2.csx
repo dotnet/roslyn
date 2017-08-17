@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-#r "../../../../Dlls/Perf.Utilities/Roslyn.Test.Performance.Utilities.dll"
-#r "../../../../Dlls/VisualStudioIntegrationTestUtilities/Microsoft.VisualStudio.IntegrationTest.Utilities.dll"
-#r "../../../../UnitTests/VisualStudioIntegrationTests/Roslyn.VisualStudio.IntegrationTests.dll"
+#r "../../Roslyn.Test.Performance.Utilities.dll"
+#r "../../Microsoft.VisualStudio.IntegrationTest.Utilities.dll"
+#r "../../Roslyn.VisualStudio.IntegrationTests.dll"
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -76,6 +76,9 @@ class CSharpTyping2 : PerfTest
         VisualStudio.Close();
     }
 }
-
+//ShellOutVital("cd.exe", "", workingDirectory: ".");
+// CSI is 64-bit so remove the 32-bit flag from these assemblies so we can reference them
+ShellOutVital("corflags.exe", @"/32BITREQ- /FORCE ..\..\UnitTests\Perf.Tests\Microsoft.VisualStudio.IntegrationTest.Utilities.dll");
+ShellOutVital("corflags.exe", @"/32BITREQ- /FORCE ..\..\UnitTests\Perf.Tests\Roslyn.VisualStudio.IntegrationTests.dll");
 TestThisPlease(
     new CSharpTyping2());
