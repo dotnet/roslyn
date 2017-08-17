@@ -3628,7 +3628,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             oldLocalCapturesBySyntax.Free();
         }
 
-        private void ReportLambdaSignatureRudeEdits(
+        protected virtual void ReportLambdaSignatureRudeEdits(
             SemanticModel oldModel,
             SyntaxNode oldLambdaBody,
             SemanticModel newModel,

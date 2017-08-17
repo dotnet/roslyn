@@ -2919,6 +2919,16 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Switching between a lambda and a local function will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Switching_between_lambda_and_local_function_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Switching_between_lambda_and_local_function_will_prevent_the_debug_session_from_c" +
+                        "ontinuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Take &apos;{0}&apos;.
         /// </summary>
         internal static string Take_0 {
