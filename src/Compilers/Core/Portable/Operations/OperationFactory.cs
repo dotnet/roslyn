@@ -24,12 +24,12 @@ namespace Microsoft.CodeAnalysis.Semantics
                 isImplicit: false); // variable declaration is always explicit
         }
 
-        public static IConditionalExpression CreateConditionalExpression(IOperation condition, IOperation ifTrue, IOperation ifFalse, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
+        public static IConditionalExpression CreateConditionalExpression(IOperation condition, IOperation whenTrue, IOperation whenFalse, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
         {
             return new ConditionalExpression(
                 condition,
-                ifTrue,
-                ifFalse,
+                whenTrue,
+                whenFalse,
                 semanticModel,
                 syntax,
                 resultType,

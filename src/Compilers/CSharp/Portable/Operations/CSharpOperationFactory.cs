@@ -905,13 +905,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         private IConditionalExpression CreateBoundConditionalOperatorOperation(BoundConditionalOperator boundConditionalOperator)
         {
             Lazy<IOperation> condition = new Lazy<IOperation>(() => Create(boundConditionalOperator.Condition));
-            Lazy<IOperation> ifTrueValue = new Lazy<IOperation>(() => Create(boundConditionalOperator.Consequence));
-            Lazy<IOperation> ifFalseValue = new Lazy<IOperation>(() => Create(boundConditionalOperator.Alternative));
+            Lazy<IOperation> whenTrue = new Lazy<IOperation>(() => Create(boundConditionalOperator.Consequence));
+            Lazy<IOperation> whenFalse = new Lazy<IOperation>(() => Create(boundConditionalOperator.Alternative));
             SyntaxNode syntax = boundConditionalOperator.Syntax;
             ITypeSymbol type = boundConditionalOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundConditionalOperator.ConstantValue);
             bool isImplicit = boundConditionalOperator.WasCompilerGenerated;
-            return new LazyConditionalExpression(condition, ifTrueValue, ifFalseValue, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyConditionalExpression(condition, whenTrue, whenFalse, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ICoalesceExpression CreateBoundNullCoalescingOperatorOperation(BoundNullCoalescingOperator boundNullCoalescingOperator)

@@ -547,13 +547,13 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundTernaryConditionalExpressionOperation(boundTernaryConditionalExpression As BoundTernaryConditionalExpression) As IConditionalExpression
             Dim condition As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundTernaryConditionalExpression.Condition))
-            Dim ifTrueValue As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundTernaryConditionalExpression.WhenTrue))
-            Dim ifFalseValue As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundTernaryConditionalExpression.WhenFalse))
+            Dim whenTrue As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundTernaryConditionalExpression.WhenTrue))
+            Dim whenFalse As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundTernaryConditionalExpression.WhenFalse))
             Dim syntax As SyntaxNode = boundTernaryConditionalExpression.Syntax
             Dim type As ITypeSymbol = boundTernaryConditionalExpression.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundTernaryConditionalExpression.ConstantValueOpt)
             Dim isImplicit As Boolean = boundTernaryConditionalExpression.WasCompilerGenerated
-            Return New LazyConditionalExpression(condition, ifTrueValue, ifFalseValue, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyConditionalExpression(condition, whenTrue, whenFalse, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundTypeOfOperation(boundTypeOf As BoundTypeOf) As IIsTypeExpression
