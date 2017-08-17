@@ -115,22 +115,43 @@ class C
         {
             var test = @"
 public class C
-    {
+{
     private internal void f() {}
-    public static int Main()
-        {
+    public private int F = 1;
+    public private int P { get => 1; }
+    public int Q { get => 1; private public set {} }
+    public private C() {}
+    public private static int Main()
+    {
         return 1;
-        }
     }
+}
 ";
 
+            ParseAndValidate(test);
             CreateStandardCompilation(test).VerifyDiagnostics(
-                // (4,13): error CS0107: More than one protection modifier
-                //     private internal void f() {}
-                Diagnostic(ErrorCode.ERR_BadMemberProtection, "internal").WithLocation(4, 13),
                 // (4,27): error CS0107: More than one protection modifier
                 //     private internal void f() {}
-                Diagnostic(ErrorCode.ERR_BadMemberProtection, "f").WithLocation(4, 27));
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "f").WithLocation(4, 27),
+                // (5,24): error CS0107: More than one protection modifier
+                //     public private int F = 1;
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "F").WithLocation(5, 24),
+                // (6,24): error CS0107: More than one protection modifier
+                //     public private int P { get => 1; }
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "P").WithLocation(6, 24),
+                // (7,45): error CS0107: More than one protection modifier
+                //     public int Q { get => 1; private public set {} }
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "set").WithLocation(7, 45),
+                // (7,45): error CS0273: The accessibility modifier of the 'C.Q.set' accessor must be more restrictive than the property or indexer 'C.Q'
+                //     public int Q { get => 1; private public set {} }
+                Diagnostic(ErrorCode.ERR_InvalidPropertyAccessMod, "set").WithArguments("C.Q.set", "C.Q").WithLocation(7, 45),
+                // (8,20): error CS0107: More than one protection modifier
+                //     public private C() {}
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "C").WithLocation(8, 20),
+                // (9,31): error CS0107: More than one protection modifier
+                //     public private static int Main()
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "Main").WithLocation(9, 31)
+                );
         }
 
         [Fact, WorkItem(543622, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543622")]

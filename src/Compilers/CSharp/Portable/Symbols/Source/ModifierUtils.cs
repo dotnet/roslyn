@@ -62,7 +62,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (isMethod && ((result & (DeclarationModifiers.Partial | DeclarationModifiers.Private)) == (DeclarationModifiers.Partial | DeclarationModifiers.Private)))
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodInvalidModifier, errorLocation);
+                modifierErrors = true;
             }
+
+            if ((result & DeclarationModifiers.PrivateProtected) != 0)
+            {
+                modifierErrors |= !Binder.CheckFeatureAvailability(errorLocation.SourceTree, MessageID.IDS_FeaturePrivateProtected, diagnostics, errorLocation);
+            }
+
             return result;
         }
 
@@ -230,24 +237,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         modifierToken.GetLocation(),
                         SyntaxFacts.GetText(modifierToken.Kind()));
                     seenNoDuplicates = false;
-                }
-            }
-            else
-            {
-                if ((allModifiers & DeclarationModifiers.AccessibilityMask) != 0 && (modifierKind & DeclarationModifiers.AccessibilityMask) != 0)
-                {
-                    // Can't have two different access modifiers.
-                    // Exception: "internal protected" or "protected internal" is allowed.
-                    if (!(((modifierKind == DeclarationModifiers.Protected) && (allModifiers & DeclarationModifiers.Internal) != 0) ||
-                          ((modifierKind == DeclarationModifiers.Internal) && (allModifiers & DeclarationModifiers.Protected) != 0)))
-                    {
-                        if (seenNoAccessibilityDuplicates)
-                        {
-                            diagnostics.Add(ErrorCode.ERR_BadMemberProtection, modifierToken.GetLocation());
-                        }
-
-                        seenNoAccessibilityDuplicates = false;
-                    }
                 }
             }
         }

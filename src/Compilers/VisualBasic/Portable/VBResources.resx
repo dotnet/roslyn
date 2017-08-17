@@ -5407,6 +5407,9 @@
   <data name="FEATURE_Tuples" xml:space="preserve">
     <value>tuples</value>
   </data>
+  <data name="FEATURE_PrivateProtected" xml:space="preserve">
+    <value>Private Protected</value>
+  </data>
   <data name="ERR_DebugEntryPointNotSourceMethodDefinition" xml:space="preserve">
     <value>Debug entry point must be a definition of a method declared in the current compilation.</value>
   </data>

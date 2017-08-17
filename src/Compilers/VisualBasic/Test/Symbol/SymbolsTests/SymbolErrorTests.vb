@@ -22010,7 +22010,7 @@ End Class
 </compilation>)
 
             Dim expectedErrors = <errors><![CDATA[
-BC30176: Only one of 'Public', 'Private', 'Protected', 'Friend', or 'Protected Friend' can be specified.
+BC36716: Visual Basic 15.0 does not support Private Protected.
     Protected Private Sub m1()
               ~~~~~~~
 BC30177: Only one of 'NotOverridable', 'MustOverride', or 'Overridable' can be specified.

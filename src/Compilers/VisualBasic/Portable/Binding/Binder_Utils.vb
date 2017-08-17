@@ -143,6 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         defaultAccessibility As Accessibility,
                                         diagBag As DiagnosticBag) As MemberModifiers
             Dim foundModifiers As SourceMemberFlags = Nothing
+            Dim privateProtectedToken As SyntaxToken = Nothing
 
             ' Go through each modifiers, accumulating flags of what we've seen and reporting errors.
             For Each keywordSyntax In syntax
@@ -160,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ElseIf (currentModifier And SourceMemberFlags.AllAccessibilityModifiers) <> 0 AndAlso
                        (foundModifiers And SourceMemberFlags.AllAccessibilityModifiers) <> 0 AndAlso
                        Not ((foundModifiers Or currentModifier) And SourceMemberFlags.AllAccessibilityModifiers) = (SourceMemberFlags.Protected Or SourceMemberFlags.Friend) AndAlso
-                       Not (((foundModifiers Or currentModifier) And SourceMemberFlags.AllAccessibilityModifiers) = (SourceMemberFlags.Protected Or SourceMemberFlags.Private) AndAlso Me.Compilation.Feature("privateProtected") <> Nothing) Then
+                       Not (((foundModifiers Or currentModifier) And SourceMemberFlags.AllAccessibilityModifiers) = (SourceMemberFlags.Protected Or SourceMemberFlags.Private)) Then
                     ReportDiagnostic(diagBag, keywordSyntax, ERRID.ERR_DuplicateAccessCategoryUsed)
                 ElseIf (currentModifier And SourceMemberFlags.AllOverrideModifiers) <> 0 AndAlso
                        (foundModifiers And SourceMemberFlags.AllOverrideModifiers) <> 0 Then
@@ -198,6 +199,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     '  Note: Need to be present both MustInherit & NotInheritable for properly reporting #30926
                     foundModifiers = foundModifiers Or currentModifier
                 Else
+                    If currentModifier = SourceMemberFlags.Private OrElse currentModifier = SourceMemberFlags.Protected Then
+                        privateProtectedToken = keywordSyntax
+                    End If
                     foundModifiers = foundModifiers Or currentModifier
                 End If
             Next
@@ -210,6 +214,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 access = Accessibility.ProtectedOrFriend
             ElseIf (foundModifiers And (SourceMemberFlags.Private Or SourceMemberFlags.Protected)) = (SourceMemberFlags.Private Or SourceMemberFlags.Protected) Then
                 access = Accessibility.ProtectedAndFriend
+                InternalSyntax.Parser.CheckFeatureAvailability(
+                    diagBag,
+                    privateProtectedToken.GetLocation(),
+                    DirectCast(privateProtectedToken.SyntaxTree, VisualBasicSyntaxTree).Options.LanguageVersion,
+                    InternalSyntax.Feature.PrivateProtected)
             ElseIf (foundModifiers And SourceMemberFlags.Friend) <> 0 Then
                 access = Accessibility.Friend
             ElseIf (foundModifiers And SourceMemberFlags.Protected) <> 0 Then
@@ -660,58 +669,58 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 ' default type is object.
-                Return GetSpecialType(specialType.System_Object, identifier, diagBag)
+                Return GetSpecialType(SpecialType.System_Object, identifier, diagBag)
             End If
         End Function
 
         Public Shared Function GetSpecialTypeForTypeCharacter(typeChar As TypeCharacter, ByRef typeCharacterString As String) As SpecialType
-            Dim specialType As SpecialType = specialType.None
+            Dim specialType As SpecialType = SpecialType.None
 
             Select Case typeChar
                 Case TypeCharacter.Decimal
-                    specialType = specialType.System_Decimal
+                    specialType = SpecialType.System_Decimal
                     typeCharacterString = "@"
                 Case TypeCharacter.DecimalLiteral
-                    specialType = specialType.System_Decimal
+                    specialType = SpecialType.System_Decimal
                     typeCharacterString = "D"
                 Case TypeCharacter.Double
-                    specialType = specialType.System_Double
+                    specialType = SpecialType.System_Double
                     typeCharacterString = "#"
                 Case TypeCharacter.DoubleLiteral
-                    specialType = specialType.System_Double
+                    specialType = SpecialType.System_Double
                     typeCharacterString = "R"
                 Case TypeCharacter.Integer
-                    specialType = specialType.System_Int32
+                    specialType = SpecialType.System_Int32
                     typeCharacterString = "%"
                 Case TypeCharacter.IntegerLiteral
-                    specialType = specialType.System_Int32
+                    specialType = SpecialType.System_Int32
                     typeCharacterString = "I"
                 Case TypeCharacter.Long
-                    specialType = specialType.System_Int64
+                    specialType = SpecialType.System_Int64
                     typeCharacterString = "&"
                 Case TypeCharacter.LongLiteral
-                    specialType = specialType.System_Int64
+                    specialType = SpecialType.System_Int64
                     typeCharacterString = "L"
                 Case TypeCharacter.ShortLiteral
-                    specialType = specialType.System_Int16
+                    specialType = SpecialType.System_Int16
                     typeCharacterString = "S"
                 Case TypeCharacter.Single
-                    specialType = specialType.System_Single
+                    specialType = SpecialType.System_Single
                     typeCharacterString = "!"
                 Case TypeCharacter.SingleLiteral
-                    specialType = specialType.System_Single
+                    specialType = SpecialType.System_Single
                     typeCharacterString = "F"
                 Case TypeCharacter.String
-                    specialType = specialType.System_String
+                    specialType = SpecialType.System_String
                     typeCharacterString = "$"
                 Case TypeCharacter.UIntegerLiteral
-                    specialType = specialType.System_UInt32
+                    specialType = SpecialType.System_UInt32
                     typeCharacterString = "UI"
                 Case TypeCharacter.ULongLiteral
-                    specialType = specialType.System_UInt64
+                    specialType = SpecialType.System_UInt64
                     typeCharacterString = "UL"
                 Case TypeCharacter.UShortLiteral
-                    specialType = specialType.System_UInt16
+                    specialType = SpecialType.System_UInt16
                     typeCharacterString = "US"
                 Case TypeCharacter.None
                     typeCharacterString = Nothing

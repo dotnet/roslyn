@@ -12100,6 +12100,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Private Protected.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_PrivateProtected() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_PrivateProtected", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to readonly auto-implemented properties.
         '''</summary>
         Friend ReadOnly Property FEATURE_ReadonlyAutoProperties() As String

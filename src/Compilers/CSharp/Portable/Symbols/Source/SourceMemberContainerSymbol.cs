@@ -332,18 +332,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     missingPartial = true;
                 }
 
+                if (!modifierErrors)
+                {
+                    mods = ModifierUtils.CheckModifiers(
+                        mods, allowedModifiers, declaration.Declarations[i].NameLocation, diagnostics,
+                        modifierTokensOpt: null, modifierErrors: out modifierErrors);
+
+                    // It is an error for the same modifier to appear multiple times.
+                    if (!modifierErrors)
+                    {
+                        var info = ModifierUtils.CheckAccessibility(mods);
+                        if (info != null)
+                        {
+                            diagnostics.Add(info, self.Locations[0]);
+                            modifierErrors = true;
+                        }
+                    }
+                }
+
                 if (result == DeclarationModifiers.Unset)
                 {
                     result = mods;
-                    continue;
+                }
+                else
+                {
+                    result |= mods;
                 }
 
-                result |= mods;
             }
-
-            result = ModifierUtils.CheckModifiers(
-                result, allowedModifiers, self.Locations[0], diagnostics, 
-                modifierTokensOpt: null, modifierErrors: out modifierErrors);
 
             if ((result & DeclarationModifiers.AccessibilityMask) == 0)
             {

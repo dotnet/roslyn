@@ -210,6 +210,9 @@
   <data name="IDS_FeatureDefaultLiteral" xml:space="preserve">
     <value>default literal</value>
   </data>
+  <data name="IDS_FeaturePrivateProtected" xml:space="preserve">
+    <value>private protected</value>
+  </data>
   <data name="IDS_FeatureNullable" xml:space="preserve">
     <value>nullable types</value>
   </data>
@@ -2471,7 +2474,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>A new expression requires (), [], or {} after type</value>
   </data>
   <data name="ERR_NoNamespacePrivate" xml:space="preserve">
-    <value>Elements defined in a namespace cannot be explicitly declared as private, protected, or protected internal</value>
+    <value>Elements defined in a namespace cannot be explicitly declared as private, protected, protected internal, or private protected</value>
   </data>
   <data name="ERR_BadVarDecl" xml:space="preserve">
     <value>Expected ; or = (cannot specify constructor arguments in declaration)</value>

@@ -2063,13 +2063,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, DiagnosticBag diagnostics, Location locationOpt = null)
         {
-            var options = (CSharpParseOptions)syntax.SyntaxTree.Options;
+            return CheckFeatureAvailability(syntax.SyntaxTree, feature, diagnostics, locationOpt ?? syntax.GetLocation());
+        }
+
+        internal static bool CheckFeatureAvailability(SyntaxTree tree, MessageID feature, DiagnosticBag diagnostics, Location location)
+        {
+            var options = (CSharpParseOptions)tree.Options;
             if (options.IsFeatureEnabled(feature))
             {
                 return true;
             }
 
-            var location = locationOpt ?? syntax.GetLocation();
             string requiredFeature = feature.RequiredFeature();
             if (requiredFeature != null)
             {
