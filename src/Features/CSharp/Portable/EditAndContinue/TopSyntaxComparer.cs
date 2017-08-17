@@ -379,8 +379,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             switch (node)
             {
-                case BaseMethodDeclarationSyntax baseMethodDeclarationSyntax: return baseMethodDeclarationSyntax.Body ?? (SyntaxNode)baseMethodDeclarationSyntax.ExpressionBody.Expression;
-                case AccessorDeclarationSyntax accessorDeclarationSyntax: return accessorDeclarationSyntax.Body ?? (SyntaxNode)accessorDeclarationSyntax.ExpressionBody.Expression;
+                case BaseMethodDeclarationSyntax baseMethodDeclarationSyntax: return baseMethodDeclarationSyntax.Body ?? (SyntaxNode)baseMethodDeclarationSyntax.ExpressionBody?.Expression;
+                case AccessorDeclarationSyntax accessorDeclarationSyntax: return accessorDeclarationSyntax.Body ?? (SyntaxNode)accessorDeclarationSyntax.ExpressionBody?.Expression;
                 default: throw ExceptionUtilities.UnexpectedValue(node);
             }
         }
