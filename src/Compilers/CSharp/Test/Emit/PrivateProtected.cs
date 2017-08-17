@@ -414,12 +414,15 @@ public class C
 {
     internal class Internal {}
     protected class Protected {}
+    private protected class PrivateProtected {}
     private protected void M(Internal x) {} // ok
     private protected void M(Protected x) {} // ok
+    private protected void M(PrivateProtected x) {} // ok
     private protected class Nested
     {
         public void M(Internal x) {} // ok
         public void M(Protected x) {} // ok
+        private protected void M(PrivateProtected x) {} // ok
     }
 }
 ";

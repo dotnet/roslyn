@@ -476,14 +476,20 @@ Public Class C
     End Class
     Protected Class Prot
     End Class
+    Private Protected Class PrivateProtected
+    End Class
     Private Protected Sub M1(x As Internal)
     End Sub
     Private Protected Sub M2(x As Prot)
+    End Sub
+    Private Protected Sub M3(x As PrivateProtected)
     End Sub
     Private Protected Class Nested
         Private Protected Sub M1(x As Internal)
         End Sub
         Private Protected Sub M2(x As Prot)
+        End Sub
+        Private Protected Sub M3(x As PrivateProtected)
         End Sub
     End Class
 End Class
