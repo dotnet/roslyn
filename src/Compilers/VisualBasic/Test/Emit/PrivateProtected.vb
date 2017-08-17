@@ -26,6 +26,7 @@ Public Class Base
     Private Friend Protected Field3 As Integer
     Friend Protected Private Field4 As Integer
     Private Public Protected Field5 As Integer
+    Private ReadOnly Protected Field6 As Integer ' ok
 End Class
 ]]>
                         </file>

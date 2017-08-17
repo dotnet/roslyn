@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     private internal protected int Field3;
     internal protected private int Field4;
     private public protected int Field5;
+    private readonly protected int Field6; // ok
 }
 ";
             CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
