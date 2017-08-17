@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitConditionalChoiceExpression(IConditionalChoiceExpression operation)
+        public virtual void VisitConditionalExpression(IConditionalExpression operation)
         {
             DefaultVisit(operation);
         }
@@ -735,7 +735,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitConditionalChoiceExpression(IConditionalChoiceExpression operation, TArgument argument)
+        public virtual TResult VisitConditionalExpression(IConditionalExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

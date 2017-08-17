@@ -1385,9 +1385,9 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID>) (Syntax: 'Conditional ... upplierID }')
         Left: IPropertyReferenceExpression: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID> <anonymous type: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID> Conditional>.Conditional { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID>) (Syntax: 'Conditional')
             Instance Receiver: null
-        Right: IConditionalChoiceExpression (OperationKind.ConditionalChoiceExpression, Type: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID>) (Syntax: 'false ? new ... upplierID }')
+        Right: IConditionalExpression (OperationKind.ConditionalExpression, Type: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID>) (Syntax: 'false ? new ... upplierID }')
             Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False) (Syntax: 'false')
-            IfTrue: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID>) (Syntax: 'new { p.Pro ... upplierID }')
+            WhenTrue: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID>) (Syntax: 'new { p.Pro ... upplierID }')
                 Initializers(3):
                     IFieldReferenceExpression: System.Int32 Product.ProductID (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'p.ProductID')
                       Instance Receiver: IParameterReferenceExpression: p (OperationKind.ParameterReferenceExpression, Type: Product) (Syntax: 'p')
@@ -1395,7 +1395,7 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
                       Instance Receiver: IParameterReferenceExpression: p (OperationKind.ParameterReferenceExpression, Type: Product) (Syntax: 'p')
                     IFieldReferenceExpression: System.Int32 Product.SupplierID (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'p.SupplierID')
                       Instance Receiver: IParameterReferenceExpression: p (OperationKind.ParameterReferenceExpression, Type: Product) (Syntax: 'p')
-            IfFalse: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID>) (Syntax: 'new { p.Pro ... upplierID }')
+            WhenFalse: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID>) (Syntax: 'new { p.Pro ... upplierID }')
                 Initializers(3):
                     IFieldReferenceExpression: System.Int32 Product.ProductID (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'p.ProductID')
                       Instance Receiver: IParameterReferenceExpression: p (OperationKind.ParameterReferenceExpression, Type: Product) (Syntax: 'p')
