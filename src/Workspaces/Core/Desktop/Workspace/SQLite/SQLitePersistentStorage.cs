@@ -122,6 +122,7 @@ namespace Microsoft.CodeAnalysis.SQLite
 
         private readonly CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
 
+        private readonly IDisposable _dbOwnershipLock;
         private readonly IPersistentStorageFaultInjector _faultInjectorOpt;
 
         // Accessors that allow us to retrieve/store data into specific DB tables.  The
@@ -146,10 +147,13 @@ namespace Microsoft.CodeAnalysis.SQLite
             string solutionFilePath,
             string databaseFile,
             Action<AbstractPersistentStorage> disposer,
+            IDisposable dbOwnershipLock,
             IPersistentStorageFaultInjector faultInjectorOpt)
             : base(optionService, workingFolderPath, solutionFilePath, databaseFile, disposer)
         {
+            _dbOwnershipLock = dbOwnershipLock;
             _faultInjectorOpt = faultInjectorOpt;
+
             _solutionAccessor = new SolutionAccessor(this);
             _projectAccessor = new ProjectAccessor(this);
             _documentAccessor = new DocumentAccessor(this);
@@ -187,6 +191,21 @@ namespace Microsoft.CodeAnalysis.SQLite
         }
 
         public override void Close()
+        {
+            // Flush all pending writes so that all data our features wanted written
+            // are definitely persisted to the DB.
+            try
+            {
+                CloseWorker();
+            }
+            finally
+            {
+                // let the lock go
+                _dbOwnershipLock.Dispose();
+            }
+        }
+
+        private void CloseWorker()
         {
             // Flush all pending writes so that all data our features wanted written
             // are definitely persisted to the DB.

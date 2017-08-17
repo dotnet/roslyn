@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -10,9 +9,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -343,6 +340,114 @@ namespace Root
             var c = Goo.MaxValue;
         }
     }
+}");
+        }
+
+        [WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoNotChangeToAliasInNameOfIfItChangesNameOfName()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+using Foo = SimplifyInsideNameof.Program;
+
+namespace SimplifyInsideNameof
+{
+  class Program
+  {
+    static void Main(string[] args)
+    {
+      Console.WriteLine(nameof([|SimplifyInsideNameof.Program|]));
+    }
+  }
+}",
+@"using System;
+using Foo = SimplifyInsideNameof.Program;
+
+namespace SimplifyInsideNameof
+{
+  class Program
+  {
+    static void Main(string[] args)
+    {
+      Console.WriteLine(nameof(Program));
+    }
+  }
+}");
+        }
+
+        [WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoChangeToAliasInNameOfIfItDoesNotAffectName1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using Goo = SimplifyInsideNameof.Program;
+
+namespace SimplifyInsideNameof
+{
+  class Program
+  {
+    static void Main(string[] args)
+    {
+      Console.WriteLine(nameof([|SimplifyInsideNameof.Program|].Main));
+    }
+  }
+}",
+
+@"using System;
+using Goo = SimplifyInsideNameof.Program;
+
+namespace SimplifyInsideNameof
+{
+  class Program
+  {
+    static void Main(string[] args)
+    {
+      Console.WriteLine(nameof(Goo.Main));
+    }
+  }
+}");
+        }
+
+        [WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoChangeToAliasInNameOfIfItDoesNotAffectName2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using Goo = N.Goo;
+
+namespace N {
+    class Goo { }
+}
+
+namespace SimplifyInsideNameof
+{
+  class Program
+  {
+    static void Main(string[] args)
+    {
+      Console.WriteLine(nameof([|N.Goo|]));
+    }
+  }
+}",
+@"using System;
+using Goo = N.Goo;
+
+namespace N {
+    class Goo { }
+}
+
+namespace SimplifyInsideNameof
+{
+  class Program
+  {
+    static void Main(string[] args)
+    {
+      Console.WriteLine(nameof(Goo));
+    }
+  }
 }");
         }
 

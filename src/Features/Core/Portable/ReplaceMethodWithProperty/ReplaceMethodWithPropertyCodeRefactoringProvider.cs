@@ -50,7 +50,8 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 
             // Ok, we're in the signature of the method.  Now see if the method is viable to be 
             // replaced with a property.
-            var methodName = service.GetMethodName(methodDeclaration);
+            var generator = SyntaxGenerator.GetGenerator(document);
+            var methodName = generator.GetName(methodDeclaration);
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var methodSymbol = semanticModel.GetDeclaredSymbol(methodDeclaration) as IMethodSymbol;

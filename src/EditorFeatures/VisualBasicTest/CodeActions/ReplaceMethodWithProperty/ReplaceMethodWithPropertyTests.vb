@@ -138,6 +138,106 @@ End class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestIfDefMethod2() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+#if true
+    function [||]GetGoo() as integer
+    End function
+
+    sub SetGoo(i as integer)
+    end sub
+#End if
+End class",
+"class C
+#if true
+    ReadOnly Property Goo as integer
+        Get
+        End Get
+    End Property
+
+    sub SetGoo(i as integer)
+    end sub
+#End if
+End class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestIfDefMethod3() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+#if true
+    function [||]GetGoo() as integer
+    End function
+
+    sub SetGoo(i as integer)
+    end sub
+#End if
+End class",
+"class C
+#if true
+    Property Goo as integer
+        Get
+        End Get
+        Set(i as integer)
+        End Set
+    End Property
+#End if
+End class", index:=1)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestIfDefMethod4() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+#if true
+    sub SetGoo(i as integer)
+    end sub
+
+    function [||]GetGoo() as integer
+    End function
+#End if
+End class",
+"class C
+#if true
+    sub SetGoo(i as integer)
+    end sub
+
+    ReadOnly Property Goo as integer
+        Get
+        End Get
+    End Property
+#End if
+End class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestIfDefMethod5() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+#if true
+    sub SetGoo(i as integer)
+    end sub
+
+    function [||]GetGoo() as integer
+    End function
+#End if
+End class",
+"class C
+
+#if true
+
+    Property Goo as integer
+        Get
+        End Get
+        Set(i as integer)
+        End Set
+    End Property
+#End if
+End class", index:=1)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
         Public Async Function TestMethodWithTrivia_2() As Task
             Await TestInRegularAndScriptAsync(
 "class C
