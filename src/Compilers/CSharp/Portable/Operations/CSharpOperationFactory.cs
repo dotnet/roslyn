@@ -698,7 +698,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             Lazy<IOperation> operand = new Lazy<IOperation>(() => Create(boundAsOperator.Operand));
             SyntaxNode syntax = boundAsOperator.Syntax;
-            Conversion conversion = _semanticModel.GetTypeInfoForNode(boundAsOperator.Operand, boundAsOperator, null).ImplicitConversion;
+            Conversion conversion = boundAsOperator.Conversion;
             bool isExplicit = true;
             bool isTryCast = true;
             bool isChecked = false;
