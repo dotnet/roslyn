@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
@@ -346,7 +347,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.RemoveAccessorDeclaration:
                     // When comparing method bodies we need to NOT ignore VariableDeclaration and VariableDeclarator children,
                     // but when comparing field definitions we should ignore VariableDeclarations children.
-                    ignoreChildFunction = childKind => HasLabel(childKind, ignoreVariableDeclarations: true);
+
+                    var leftBody = GetBody(left);
+                    var rightBody = GetBody(right);
+                    
+                    if (!SyntaxFactory.AreEquivalent(leftBody, rightBody, null))
+                    {
+                        return false;
+                    }
+
+                    ignoreChildFunction = childKind => childKind == SyntaxKind.Block || childKind == SyntaxKind.ArrowExpressionClause || HasLabel(childKind, ignoreVariableDeclarations: true);
                     break;
 
                 default:
@@ -363,6 +373,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             return SyntaxFactory.AreEquivalent(left, right, ignoreChildFunction);
+        }
+
+        private static SyntaxNode GetBody(SyntaxNode node)
+        {
+            switch (node)
+            {
+                case BaseMethodDeclarationSyntax baseMethodDeclarationSyntax: return baseMethodDeclarationSyntax.Body ?? (SyntaxNode)baseMethodDeclarationSyntax.ExpressionBody.Expression;
+                case AccessorDeclarationSyntax accessorDeclarationSyntax: return accessorDeclarationSyntax.Body ?? (SyntaxNode)accessorDeclarationSyntax.ExpressionBody.Expression;
+                default: throw ExceptionUtilities.UnexpectedValue(node);
+            }
         }
 
         protected override bool TryComputeWeightedDistance(SyntaxNode leftNode, SyntaxNode rightNode, out double distance)
