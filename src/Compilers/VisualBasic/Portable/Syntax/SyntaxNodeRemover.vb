@@ -162,32 +162,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                                 alternate.Add(withSeps, 0, i)
                             End If
 
-                            ' remove preceding separator if any, except for the case where
-                            ' the following separator immediately touches the item in the list
-                            ' and is followed by a newline.
-                            '
-                            ' In that case, we consider the next token to be more closely
-                            ' associated with the item, And it should be removed.
-                            '
-                            ' For example, if you have:
-                            '
-                            '      Goo(a, ' a stuff
-                            '          b, ' b stuff
-                            '          c)
-                            '
-                            ' If we're removing 'b', we should remove the comma after it.
-                            '
-                            ' If there Is no next comma, Or the next comma Is Not on the 
-                            ' same line, then just remove the preceding comma if there Is 
-                            ' one.  If there Is no next Or previous comma there's nothing
-                            ' in the list that needs to be fixed up.
+                            Dim nextTokenIsSeparator, nextSeparatorBelongsToNode As Boolean
 
-                            Dim nextTokenIsSeparator = i + 1 < n AndAlso withSeps(i + 1).IsToken
-                            Dim nextSeparatorBelongsToNode =
-                                nextTokenIsSeparator AndAlso
-                                Not withSeps(i + 1).HasLeadingTrivia AndAlso
-                                Not ContainsEndOfLine(node.GetTrailingTrivia()) AndAlso
-                                ContainsEndOfLine(withSeps(i + 1).AsToken().TrailingTrivia)
+                            CommonSyntaxNodeRemover.GetSeparatorInfo(
+                                withSeps, i, SyntaxKind.EndOfLineTrivia,
+                                nextTokenIsSeparator, nextSeparatorBelongsToNode)
 
                             If Not nextSeparatorBelongsToNode AndAlso
                                alternate.Count > 0 AndAlso
@@ -225,16 +204,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 End If
 
                 Return list
-            End Function
-
-            Private Function ContainsEndOfLine(triviaList As SyntaxTriviaList) As Boolean
-                For Each trivia In triviaList
-                    If trivia.IsKind(SyntaxKind.EndOfLineTrivia) Then
-                        Return True
-                    End If
-                Next
-
-                Return False
             End Function
 
             Private Sub AddTrivia(node As SyntaxNode)

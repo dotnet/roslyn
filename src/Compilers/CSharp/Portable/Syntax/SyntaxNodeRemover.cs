@@ -213,33 +213,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                                 alternate.Add(withSeps, 0, i);
                             }
 
-                            // remove preceding separator if any, except for the case where
-                            // the following separator immediately touches the item in the list
-                            // and is followed by a newline.
-                            // 
-                            // In that case, we consider the next token to be more closely
-                            // associated with the item, and it should be removed.
-                            //
-                            // For example, if you have:
-                            //
-                            //      Goo(a, // a stuff
-                            //          b, // b stuff
-                            //          c);
-                            //
-                            // If we're removing 'b', we should remove the comma after it.
-                            //
-                            // If there is no next comma, or the next comma is not on the 
-                            // same line, then just remove the preceding comma if there is 
-                            // one.  If there is no next or previous comma there's nothing
-                            // in the list that needs to be fixed up.
-
-                            var nextTokenIsSeparator = i + 1 < n && withSeps[i + 1].IsToken;
-                            var nextSeparatorBelongsToNode =
-                                nextTokenIsSeparator &&
-                                withSeps[i + 1].AsToken() is var nextSeparator &&
-                                !nextSeparator.HasLeadingTrivia &&
-                                !ContainsEndOfLine(node.GetTrailingTrivia()) &&
-                                ContainsEndOfLine(nextSeparator.TrailingTrivia);
+                            CommonSyntaxNodeRemover.GetSeparatorInfo(
+                                withSeps, i, (int)SyntaxKind.EndOfLineTrivia,
+                                out var nextTokenIsSeparator, out var nextSeparatorBelongsToNode);
 
                             if (!nextSeparatorBelongsToNode &&
                                 alternate.Count > 0 &&
@@ -260,11 +236,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                                 this.AddTrivia(node);
                             }
 
-                            visited = default(SyntaxNodeOrToken);
+                            visited = default;
                         }
                         else
                         {
-                            visited = this.VisitListElement((TNode)(SyntaxNode)item.AsNode());
+                            visited = this.VisitListElement((TNode)item.AsNode());
                         }
                     }
 
@@ -286,19 +262,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
 
                 return list;
-            }
-
-            private bool ContainsEndOfLine(SyntaxTriviaList triviaList)
-            {
-                foreach (var trivia in triviaList)
-                {
-                    if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
             }
 
             private void AddTrivia(SyntaxNode node)
