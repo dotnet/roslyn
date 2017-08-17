@@ -75,6 +75,11 @@ class CSharpTyping2 : PerfTest
         ETWActions.StopETWListener(VisualStudio);
         VisualStudio.Close();
     }
+
+    public override ITraceManager GetTraceManager()
+    {
+        return TraceManagerFactory.NoOpTraceManager();
+    }
 }
 //ShellOutVital("cd.exe", "", workingDirectory: ".");
 // CSI is 64-bit so remove the 32-bit flag from these assemblies so we can reference them
