@@ -138,10 +138,7 @@ namespace Roslyn.Test.Performance.Utilities
                 cancellationToken.Register(() => process.Kill());
             }
 
-            if (RuntimeSettings.IsVerbose)
-            {
-                Log($"running \"{file}\" with arguments \"{args}\" from directory {workingDirectory}");
-            }
+            Log($"running \"{file}\" with arguments \"{args}\" from directory {workingDirectory}");
 
             process.Start();
 

@@ -51,6 +51,8 @@ class CSharpTyping2 : PerfTest
 
     public override void Test()
     {
+        InstallVsixes();
+
         var factory = new VisualStudioInstanceFactory();
         var instance = factory.GetNewOrUsedInstance(SharedIntegrationHostFixture.RequiredPackageIds);
 
@@ -66,14 +68,24 @@ class CSharpTyping2 : PerfTest
         VisualStudio.ExecuteCommand("Edit.GoTo", "9524");
         ETWActions.WaitForIdleCPU();
         var typingResults = Path.Combine(TempDirectory, "typingResults");
+        var perfResults = Path.Combine(typingResults, "PerfResults");
         Directory.CreateDirectory(typingResults);
+        Directory.CreateDirectory(perfResults);
         using (DelayTracker.Start(typingResults, Path.Combine("csharp", "typing", "TypingDelayAnalyzer.exe"), "typing"))
         {
             VisualStudio.Editor.PlayBackTyping(Path.Combine("csharp", "typing", "CSharpGoldilocksInput-MultipliedDelay.txt"));
         }
+
         //System.Windows.Forms.MessageBox.Show("Done waiting!");
         ETWActions.StopETWListener(VisualStudio);
         VisualStudio.Close();
+
+        foreach (var xml in Directory.EnumerateFiles(perfResults, "*.xml"))
+        {
+            Benchview.UploadBenchviewReport(xml, "typing");
+        }
+
+        _logger.Flush();
     }
 
     public override ITraceManager GetTraceManager()
