@@ -271,8 +271,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
             If description IsNot Nothing Then
                 Dim document = Me.Workspace.CurrentSolution.Projects.First().Documents.First()
-
-                Dim itemDescription = Await CompletionService.GetDescriptionAsync(Me.CurrentCompletionPresenterSession.SelectedItem)
+                Dim service = CompletionService.GetService(document)
+                Dim itemDescription = Await CompletionService.GetDescriptionAsync(service, Me.CurrentCompletionPresenterSession.SelectedItem)
                 Assert.Equal(description, itemDescription.Text)
             End If
         End Function

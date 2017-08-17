@@ -55,7 +55,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 "...";
 
         public Task<CompletionDescription> GetDescriptionAsync(CancellationToken cancellationToken)
-            => CompletionService.GetDescriptionAsync(this.CompletionItem, cancellationToken);
+        {
+            var service = CompletionService.GetService(this.CompletionItem.Document);
+            return CompletionService.GetDescriptionAsync(service, this.CompletionItem, cancellationToken);
+        }
 
         public string GetDescription_TestingOnly()
         {

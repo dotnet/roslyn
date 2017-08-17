@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Gets the service corresponding to the specified document.
         /// </summary>
         public static CompletionService GetService(Document document)
-            => document.GetLanguageService<CompletionService>();
+            => document?.GetLanguageService<CompletionService>();
 
         /// <summary>
         /// The language from <see cref="LanguageNames"/> this service corresponds to.
@@ -173,16 +173,10 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         internal static async Task<CompletionDescription> GetDescriptionAsync(
-            CompletionItem item, CancellationToken cancellationToken = default)
+            CompletionService service, CompletionItem item, CancellationToken cancellationToken = default)
         {
             var document = item?.Document;
-            if (document == null)
-            {
-                return CompletionDescription.Empty;
-            }
-
-            var service = GetService(document);
-            if (service == null)
+            if (document == null || service == null)
             {
                 return CompletionDescription.Empty;
             }

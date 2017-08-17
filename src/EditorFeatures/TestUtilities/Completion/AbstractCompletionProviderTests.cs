@@ -94,8 +94,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 trigger = CompletionTrigger.CreateInsertionTrigger(insertedCharacter: code.ElementAt(position - 1));
             }
 
-            var completionService = GetCompletionService(document.Project.Solution.Workspace);
-            var completionList = await GetCompletionListAsync(completionService, document, position, trigger);
+            var service = GetCompletionService(document.Project.Solution.Workspace);
+            var completionList = await GetCompletionListAsync(service, document, position, trigger);
             var items = completionList == null ? ImmutableArray<CompletionItem>.Empty : completionList.Items;
 
             if (hasSuggestionModeItem != null)
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                     AssertEx.None(
                         items,
                         c => CompareItems(c.DisplayText, expectedItemOrNull) &&
-                            (expectedDescriptionOrNull != null ? CompletionService.GetDescriptionAsync(c).Result.Text == expectedDescriptionOrNull : true));
+                            (expectedDescriptionOrNull != null ? CompletionService.GetDescriptionAsync(service, c).Result.Text == expectedDescriptionOrNull : true));
                 }
             }
             else
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 else
                 {
                     AssertEx.Any(items, c => CompareItems(c.DisplayText, expectedItemOrNull)
-                        && (expectedDescriptionOrNull != null ? CompletionService.GetDescriptionAsync(c).Result.Text == expectedDescriptionOrNull : true)
+                        && (expectedDescriptionOrNull != null ? CompletionService.GetDescriptionAsync(service, c).Result.Text == expectedDescriptionOrNull : true)
                         && (glyph.HasValue ? c.Tags.SequenceEqual(GlyphTags.GetTags((Glyph)glyph.Value)) : true)
                         && (matchPriority.HasValue ? (int)c.Rules.MatchPriority == matchPriority.Value : true ));
                 }
@@ -564,15 +564,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
                 var triggerInfo = CompletionTrigger.Invoke;
 
-                var completionService = GetCompletionService(testWorkspace);
-                var completionList = await GetCompletionListAsync(completionService, document, position, triggerInfo);
+                var service = GetCompletionService(testWorkspace);
+                var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
 
                 if (expectedSymbols >= 1)
                 {
                     AssertEx.Any(completionList.Items, c => CompareItems(c.DisplayText, expectedItem));
 
                     var item = completionList.Items.First(c => CompareItems(c.DisplayText, expectedItem));
-                    var description = await CompletionService.GetDescriptionAsync(item);
+                    var description = await CompletionService.GetDescriptionAsync(service, item);
 
                     if (expectedSymbols == 1)
                     {
@@ -618,11 +618,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var document = solution.GetDocument(documentId);
 
                 var triggerInfo = CompletionTrigger.Invoke;
-                var completionService = GetCompletionService(testWorkspace);
-                var completionList = await GetCompletionListAsync(completionService, document, position, triggerInfo);
+                var service = GetCompletionService(testWorkspace);
+                var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
 
                 var item = completionList.Items.FirstOrDefault(i => i.DisplayText == expectedItem);
-                Assert.Equal(expectedDescription, (await CompletionService.GetDescriptionAsync(item)).Text);
+                Assert.Equal(expectedDescription, (await CompletionService.GetDescriptionAsync(service, item)).Text);
             }
         }
 
@@ -649,14 +649,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var document = solution.GetDocument(currentContextDocumentId);
 
                 var triggerInfo = CompletionTrigger.Invoke;
-                var completionService = GetCompletionService(testWorkspace);
-                var completionList = await GetCompletionListAsync(completionService, document, position, triggerInfo);
+                var service = GetCompletionService(testWorkspace);
+                var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
 
                 var item = completionList.Items.Single(c => c.DisplayText == expectedItem);
                 Assert.NotNull(item);
                 if (expectedDescription != null)
                 {
-                    var actualDescription = (await CompletionService.GetDescriptionAsync(item)).Text;
+                    var actualDescription = (await CompletionService.GetDescriptionAsync(service, item)).Text;
                     Assert.Equal(expectedDescription, actualDescription);
                 }
             }

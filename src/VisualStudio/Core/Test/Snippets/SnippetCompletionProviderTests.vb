@@ -26,8 +26,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                 Assert.Equal(testState.CurrentCompletionPresenterSession.SelectedItem.DisplayText, "Shortcut")
 
                 Dim document = testState.Workspace.CurrentSolution.Projects.First().Documents.First()
-
-                Dim itemDescription = Await CompletionService.GetDescriptionAsync(testState.CurrentCompletionPresenterSession.SelectedItem)
+                Dim service = CompletionService.GetService(document)
+                Dim itemDescription = Await CompletionService.GetDescriptionAsync(service, testState.CurrentCompletionPresenterSession.SelectedItem)
                 Assert.True(itemDescription.Text.StartsWith("Description"))
 
                 testState.SendTabToCompletion()
