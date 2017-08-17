@@ -190,21 +190,24 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionTrigger trigger = default, ImmutableHashSet<string> roles = null,
             OptionSet options = null, CancellationToken cancellationToken = default)
         {
-            if (documentOpt == null)
+            if (documentOpt == null || service == null)
             {
                 return null;
             }
 
             var completions = await service.GetCompletionsAsync(
                 documentOpt, caretPosition, trigger, roles, options, cancellationToken).ConfigureAwait(false);
-            foreach (var item in completions.Items)
+            if (completions != null)
             {
-                item.Document = documentOpt;
-            }
+                foreach (var item in completions.Items)
+                {
+                    item.Document = documentOpt;
+                }
 
-            if (completions.SuggestionModeItem != null)
-            {
-                completions.SuggestionModeItem.Document = documentOpt;
+                if (completions.SuggestionModeItem != null)
+                {
+                    completions.SuggestionModeItem.Document = documentOpt;
+                }
             }
 
             return completions;
