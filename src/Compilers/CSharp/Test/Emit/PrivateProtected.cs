@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     internal private int Field2;
     private internal protected int Field3;
     internal protected private int Field4;
+    private public protected int Field5;
 }
 ";
             CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
@@ -44,7 +45,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_BadMemberProtection, "Field3").WithLocation(5, 36),
                 // (6,36): error CS0107: More than one protection modifier
                 //     internal protected private int Field4;
-                Diagnostic(ErrorCode.ERR_BadMemberProtection, "Field4").WithLocation(6, 36)
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "Field4").WithLocation(6, 36),
+                // (7,34): error CS0107: More than one protection modifier
+                //     private public protected int Field5;
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "Field5").WithLocation(7, 34)
                 );
         }
 

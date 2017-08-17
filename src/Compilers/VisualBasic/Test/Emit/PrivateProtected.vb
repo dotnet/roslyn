@@ -25,6 +25,7 @@ Public Class Base
     Friend Private Field2 As Integer
     Private Friend Protected Field3 As Integer
     Friend Protected Private Field4 As Integer
+    Private Public Protected Field5 As Integer
 End Class
 ]]>
                         </file>
@@ -44,6 +45,9 @@ BC30176: Only one of 'Public', 'Private', 'Protected', 'Friend', 'Protected Frie
 BC30176: Only one of 'Public', 'Private', 'Protected', 'Friend', 'Protected Friend', or 'Private Protected' can be specified.
     Friend Protected Private Field4 As Integer
                      ~~~~~~~
+BC30176: Only one of 'Public', 'Private', 'Protected', 'Friend', 'Protected Friend', or 'Private Protected' can be specified.
+    Private Public Protected Field5 As Integer
+            ~~~~~~
 </errors>)
         End Sub
 
