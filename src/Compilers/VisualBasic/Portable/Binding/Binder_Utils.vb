@@ -199,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     '  Note: Need to be present both MustInherit & NotInheritable for properly reporting #30926
                     foundModifiers = foundModifiers Or currentModifier
                 Else
-                    If currentModifier = SourceMemberFlags.Private Or currentModifier = SourceMemberFlags.Protected Then
+                    If currentModifier = SourceMemberFlags.Private OrElse currentModifier = SourceMemberFlags.Protected Then
                         privateProtectedToken = keywordSyntax
                     End If
                     foundModifiers = foundModifiers Or currentModifier
@@ -214,16 +214,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 access = Accessibility.ProtectedOrFriend
             ElseIf (foundModifiers And (SourceMemberFlags.Private Or SourceMemberFlags.Protected)) = (SourceMemberFlags.Private Or SourceMemberFlags.Protected) Then
                 access = Accessibility.ProtectedAndFriend
-                Dim feature = InternalSyntax.Feature.PrivateProtected
-                Dim requiredVersion = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FeatureExtensions.GetLanguageVersion(feature)
-                Dim currentVersion = CType(privateProtectedToken.Parent.SyntaxTree.Options, VisualBasicParseOptions).LanguageVersion
-                If requiredVersion > currentVersion Then
-                    ' The Private Protected feature is not supported in this language version
-                    ReportDiagnostic(diagBag, privateProtectedToken, ERRID.ERR_LanguageVersion,
-                                     currentVersion.GetErrorName(),
-                                     ErrorFactory.ErrorInfo(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FeatureExtensions.GetResourceId(feature)),
-                                     New VisualBasicRequiredLanguageVersion(requiredVersion))
-                End If
+                InternalSyntax.Parser.CheckFeatureAvailability(
+                    diagBag,
+                    privateProtectedToken.GetLocation(),
+                    DirectCast(privateProtectedToken.SyntaxTree, VisualBasicSyntaxTree).Options.LanguageVersion,
+                    InternalSyntax.Feature.PrivateProtected)
             ElseIf (foundModifiers And SourceMemberFlags.Friend) <> 0 Then
                 access = Accessibility.Friend
             ElseIf (foundModifiers And SourceMemberFlags.Protected) <> 0 Then

@@ -3369,10 +3369,6 @@ class BAttribute : System.Attribute { }
                 //         private partial struct S { }
                 Diagnostic(ErrorCode.ERR_PartialModifierConflict, "S").WithArguments("NS.A.S").WithLocation(12, 32)
                 );
-            //var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-            //    new ErrorDescription { Code = (int)ErrorCode.ERR_PartialModifierConflict, Line = 3, Column = 30 },
-            //    new ErrorDescription { Code = (int)ErrorCode.ERR_PartialModifierConflict, Line = 9, Column = 32 },
-            //    new ErrorDescription { Code = (int)ErrorCode.ERR_PartialModifierConflict, Line = 12, Column = 32 });
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...
