@@ -1995,6 +1995,10 @@ ExitForFor:
                                                                     typeParameter As TypeParameterSymbol,
                                                                     options As LookupOptions,
                                                                     binder As Binder)
+                If typeParameter.TypeParameterKind = TypeParameterKind.Cref Then
+                    Return
+                End If
+
                 AddLookupSymbolsInfoInTypeParameterNoExtensionMethods(nameSet, typeParameter, options, binder)
 
                 ' Search for extension methods.
