@@ -78,7 +78,7 @@ class CSharpTyping2 : PerfTest
 }
 //ShellOutVital("cd.exe", "", workingDirectory: ".");
 // CSI is 64-bit so remove the 32-bit flag from these assemblies so we can reference them
-ShellOutVital("corflags.exe", @"/32BITREQ- /FORCE ..\..\UnitTests\Perf.Tests\Microsoft.VisualStudio.IntegrationTest.Utilities.dll");
-ShellOutVital("corflags.exe", @"/32BITREQ- /FORCE ..\..\UnitTests\Perf.Tests\Roslyn.VisualStudio.IntegrationTests.dll");
+ShellOutVital(@"C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.6.1 Tools\CorFlags.exe", @"/32BITREQ- /FORCE ..\..\UnitTests\Perf.Tests\Microsoft.VisualStudio.IntegrationTest.Utilities.dll");
+ShellOutVital(@"C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.6.1 Tools\CorFlags.exe", @"/32BITREQ- /FORCE ..\..\UnitTests\Perf.Tests\Roslyn.VisualStudio.IntegrationTests.dll");
 TestThisPlease(
     new CSharpTyping2());
