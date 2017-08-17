@@ -2645,20 +2645,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         protected override IOperation StatementImpl => _lazyStatement.Value;
     }
 
-    /// <summary>
-    /// Represents a lambda expression.
-    /// </summary>
-    internal abstract partial class BaseLambdaExpression : Operation, ILambdaExpression
+    internal abstract partial class BaseAnonymousFunctionExpression : Operation, IAnonymousFunctionExpression
     {
-        protected BaseLambdaExpression(IMethodSymbol signature, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-                    base(OperationKind.LambdaExpression, semanticModel, syntax, type, constantValue, isImplicit)
+        protected BaseAnonymousFunctionExpression(IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+                    base(OperationKind.AnonymousFunctionExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Signature = signature;
+            Symbol = symbol;
         }
-        /// <summary>
-        /// Signature of the lambda.
-        /// </summary>
-        public IMethodSymbol Signature { get; }
+        public IMethodSymbol Symbol { get; }
         protected abstract IBlockStatement BodyImpl { get; }
         public override IEnumerable<IOperation> Children
         {
@@ -2667,27 +2661,21 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Body;
             }
         }
-        /// <summary>
-        /// Body of the lambda.
-        /// </summary>
         public IBlockStatement Body => Operation.SetParentOperation(BodyImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitLambdaExpression(this);
+            visitor.VisitAnonymousFunctionExpression(this);
         }
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitLambdaExpression(this, argument);
+            return visitor.VisitAnonymousFunctionExpression(this, argument);
         }
     }
 
-    /// <summary>
-    /// Represents a lambda expression.
-    /// </summary>
-    internal sealed partial class LambdaExpression : BaseLambdaExpression, ILambdaExpression
+    internal sealed partial class AnonymousFunctionExpression : BaseAnonymousFunctionExpression, IAnonymousFunctionExpression
     {
-        public LambdaExpression(IMethodSymbol signature, IBlockStatement body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(signature, semanticModel, syntax, type, constantValue, isImplicit)
+        public AnonymousFunctionExpression(IMethodSymbol symbol, IBlockStatement body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
             BodyImpl = body;
         }
@@ -2695,14 +2683,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         protected override IBlockStatement BodyImpl { get; }
     }
 
-    /// <summary>
-    /// Represents a lambda expression.
-    /// </summary>
-    internal sealed partial class LazyLambdaExpression : BaseLambdaExpression, ILambdaExpression
+    internal sealed partial class LazyAnonymousFunctionExpression : BaseAnonymousFunctionExpression, IAnonymousFunctionExpression
     {
         private readonly Lazy<IBlockStatement> _lazyBody;
 
-        public LazyLambdaExpression(IMethodSymbol signature, Lazy<IBlockStatement> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(signature, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyAnonymousFunctionExpression(IMethodSymbol symbol, Lazy<IBlockStatement> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }
@@ -2861,20 +2846,20 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
         }
 
-        protected abstract IOperation LockedObjectImpl { get; }
+        protected abstract IOperation ExpressionImpl { get; }
         protected abstract IOperation BodyImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                yield return LockedObject;
+                yield return Expression;
                 yield return Body;
             }
         }
         /// <summary>
-        /// Value to be locked.
+        /// Expression producing a value to be locked.
         /// </summary>
-        public IOperation LockedObject => Operation.SetParentOperation(LockedObjectImpl, this);
+        public IOperation Expression => Operation.SetParentOperation(ExpressionImpl, this);
         /// <summary>
         /// Body of the lock, to be executed while holding the lock.
         /// </summary>
@@ -2894,14 +2879,14 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LockStatement : BaseLockStatement, ILockStatement
     {
-        public LockStatement(IOperation lockedObject, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public LockStatement(IOperation expression, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            LockedObjectImpl = lockedObject;
+            ExpressionImpl = expression;
             BodyImpl = body;
         }
 
-        protected override IOperation LockedObjectImpl { get; }
+        protected override IOperation ExpressionImpl { get; }
         protected override IOperation BodyImpl { get; }
     }
 
@@ -2910,16 +2895,16 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LazyLockStatement : BaseLockStatement, ILockStatement
     {
-        private readonly Lazy<IOperation> _lazyLockedObject;
+        private readonly Lazy<IOperation> _lazyExpression;
         private readonly Lazy<IOperation> _lazyBody;
 
         public LazyLockStatement(Lazy<IOperation> lockedObject, Lazy<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            _lazyLockedObject = lockedObject ?? throw new System.ArgumentNullException(nameof(lockedObject));
+            _lazyExpression = lockedObject ?? throw new System.ArgumentNullException(nameof(lockedObject));
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }
 
-        protected override IOperation LockedObjectImpl => _lazyLockedObject.Value;
+        protected override IOperation ExpressionImpl => _lazyExpression.Value;
 
         protected override IOperation BodyImpl => _lazyBody.Value;
     }
@@ -3039,74 +3024,74 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a null-coalescing expression.
     /// </summary>
-    internal abstract partial class BaseNullCoalescingExpression : Operation, INullCoalescingExpression
+    internal abstract partial class BaseCoalesceExpression : Operation, ICoalesceExpression
     {
-        protected BaseNullCoalescingExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-                    base(OperationKind.NullCoalescingExpression, semanticModel, syntax, type, constantValue, isImplicit)
+        protected BaseCoalesceExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+                    base(OperationKind.CoalesceExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
-        protected abstract IOperation PrimaryOperandImpl { get; }
-        protected abstract IOperation SecondaryOperandImpl { get; }
+        protected abstract IOperation ExpressionImpl { get; }
+        protected abstract IOperation WhenNullImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                yield return PrimaryOperand;
-                yield return SecondaryOperand;
+                yield return Expression;
+                yield return WhenNull;
             }
         }
         /// <summary>
         /// Value to be unconditionally evaluated.
         /// </summary>
-        public IOperation PrimaryOperand => Operation.SetParentOperation(PrimaryOperandImpl, this);
+        public IOperation Expression => Operation.SetParentOperation(ExpressionImpl, this);
         /// <summary>
-        /// Value to be evaluated if Primary evaluates to null/Nothing.
+        /// Value to be evaluated if <see cref="Expression"/> evaluates to null/Nothing.
         /// </summary>
-        public IOperation SecondaryOperand => Operation.SetParentOperation(SecondaryOperandImpl, this);
+        public IOperation WhenNull => Operation.SetParentOperation(WhenNullImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitNullCoalescingExpression(this);
+            visitor.VisitCoalesceExpression(this);
         }
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitNullCoalescingExpression(this, argument);
+            return visitor.VisitCoalesceExpression(this, argument);
         }
     }
 
     /// <summary>
     /// Represents a null-coalescing expression.
     /// </summary>
-    internal sealed partial class NullCoalescingExpression : BaseNullCoalescingExpression, INullCoalescingExpression
+    internal sealed partial class CoalesceExpression : BaseCoalesceExpression, ICoalesceExpression
     {
-        public NullCoalescingExpression(IOperation primaryOperand, IOperation secondaryOperand, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public CoalesceExpression(IOperation expression, IOperation whenNull, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            PrimaryOperandImpl = primaryOperand;
-            SecondaryOperandImpl = secondaryOperand;
+            ExpressionImpl = expression;
+            WhenNullImpl = whenNull;
         }
 
-        protected override IOperation PrimaryOperandImpl { get; }
-        protected override IOperation SecondaryOperandImpl { get; }
+        protected override IOperation ExpressionImpl { get; }
+        protected override IOperation WhenNullImpl { get; }
     }
 
     /// <summary>
     /// Represents a null-coalescing expression.
     /// </summary>
-    internal sealed partial class LazyNullCoalescingExpression : BaseNullCoalescingExpression, INullCoalescingExpression
+    internal sealed partial class LazyCoalesceExpression : BaseCoalesceExpression, ICoalesceExpression
     {
-        private readonly Lazy<IOperation> _lazyPrimaryOperand;
-        private readonly Lazy<IOperation> _lazySecondaryOperand;
+        private readonly Lazy<IOperation> _lazyExpression;
+        private readonly Lazy<IOperation> _lazyWhenNull;
 
-        public LazyNullCoalescingExpression(Lazy<IOperation> primaryOperand, Lazy<IOperation> secondaryOperand, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyCoalesceExpression(Lazy<IOperation> expression, Lazy<IOperation> whenNull, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            _lazyPrimaryOperand = primaryOperand ?? throw new System.ArgumentNullException(nameof(primaryOperand));
-            _lazySecondaryOperand = secondaryOperand ?? throw new System.ArgumentNullException(nameof(secondaryOperand));
+            _lazyExpression = expression ?? throw new System.ArgumentNullException(nameof(expression));
+            _lazyWhenNull = whenNull ?? throw new System.ArgumentNullException(nameof(whenNull));
         }
 
-        protected override IOperation PrimaryOperandImpl => _lazyPrimaryOperand.Value;
+        protected override IOperation ExpressionImpl => _lazyExpression.Value;
 
-        protected override IOperation SecondaryOperandImpl => _lazySecondaryOperand.Value;
+        protected override IOperation WhenNullImpl => _lazyWhenNull.Value;
     }
 
     /// <summary>

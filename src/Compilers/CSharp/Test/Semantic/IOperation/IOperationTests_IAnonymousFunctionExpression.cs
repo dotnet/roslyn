@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void ILambdaExpression_BoundLambda_HasValidLambdaExpressionTree()
+        public void IAnonymousFunctionExpression_BoundLambda_HasValidLambdaExpressionTree()
         {
             string source = @"
 using System;
@@ -35,7 +35,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: System.Action x
     Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action) (Syntax: '() => F()')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: '() => F()')
+        Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => F()')
             IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'F()')
               IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'F()')
                 Expression: IInvocationExpression (void Program.F()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'F()')
@@ -51,7 +51,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void ILambdaExpression_UnboundLambdaAsVar_HasValidLambdaExpressionTree()
+        public void IAnonymousFunctionExpression_UnboundLambdaAsVar_HasValidLambdaExpressionTree()
         {
             string source = @"
 using System;
@@ -72,7 +72,7 @@ class Program
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'var x /*<bi ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'var x /*<bi ... *</bind>*/;')
     Variables: Local_1: var x
-    Initializer: ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null, IsInvalid) (Syntax: '() => F()')
+    Initializer: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '() => F()')
         IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'F()')
           IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'F()')
             Expression: IInvocationExpression (void Program.F()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'F()')
@@ -90,7 +90,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void ILambdaExpression_UnboundLambdaAsDelegate_HasValidLambdaExpressionTree()
+        public void IAnonymousFunctionExpression_UnboundLambdaAsDelegate_HasValidLambdaExpressionTree()
         {
             string source = @"
 using System;
@@ -113,7 +113,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: System.Action<System.Int32> x
     Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action<System.Int32>, IsInvalid) (Syntax: '() => F()')
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null, IsInvalid) (Syntax: '() => F()')
+        Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '() => F()')
             IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'F()')
               IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'F()')
                 Expression: IInvocationExpression (void Program.F()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'F()')
@@ -131,7 +131,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void ILambdaExpression_UnboundLambda_ReferenceEquality()
+        public void IAnonymousFunctionExpression_UnboundLambda_ReferenceEquality()
         {
             string source = @"
 using System;
@@ -157,19 +157,19 @@ class Program
             var lambdaSyntax = (LambdaExpressionSyntax)variableDeclaration.Variables.Single().Initializer.Value;
 
             var variableDeclarationOperation = (IVariableDeclarationStatement)semanticModel.GetOperationInternal(variableDeclaration);
-            var variableTreeLambdaOperation = (ILambdaExpression)variableDeclarationOperation.Declarations.Single().Initializer;
-            var lambdaOperation = (ILambdaExpression)semanticModel.GetOperationInternal(lambdaSyntax);
+            var variableTreeLambdaOperation = (IAnonymousFunctionExpression)variableDeclarationOperation.Declarations.Single().Initializer;
+            var lambdaOperation = (IAnonymousFunctionExpression)semanticModel.GetOperationInternal(lambdaSyntax);
 
             // Assert that both ways of getting to the lambda (requesting the lambda directly, and requesting via the lambda syntax)
             // return the same bound node.
             Assert.Same(variableTreeLambdaOperation, lambdaOperation);
 
             var variableDeclarationOperationSecondRequest = (IVariableDeclarationStatement)semanticModel.GetOperationInternal(variableDeclaration);
-            var variableTreeLambdaOperationSecondRequest = (ILambdaExpression)variableDeclarationOperation.Declarations.Single().Initializer;
-            var lambdaOperationSecondRequest = (ILambdaExpression)semanticModel.GetOperationInternal(lambdaSyntax);
+            var variableTreeLambdaOperationSecondRequest = (IAnonymousFunctionExpression)variableDeclarationOperation.Declarations.Single().Initializer;
+            var lambdaOperationSecondRequest = (IAnonymousFunctionExpression)semanticModel.GetOperationInternal(lambdaSyntax);
 
             // Assert that, when request the variable declaration or the lambda for a second time, there is no rebinding of the
-            // underlying UnboundLambda, and we get the same ILambdaExpression as before
+            // underlying UnboundLambda, and we get the same IAnonymousFunctionExpression as before
             Assert.Same(variableTreeLambdaOperation, variableTreeLambdaOperationSecondRequest);
             Assert.Same(lambdaOperation, lambdaOperationSecondRequest);
         }
