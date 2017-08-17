@@ -154,11 +154,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitEmptyStatement(operation);
         }
 
-        public override void VisitThrowStatement(IThrowStatement operation)
-        {
-            base.VisitThrowStatement(operation);
-        }
-
         public override void VisitReturnStatement(IReturnStatement operation)
         {
             base.VisitReturnStatement(operation);

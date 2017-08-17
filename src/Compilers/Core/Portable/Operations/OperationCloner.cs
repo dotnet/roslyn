@@ -119,11 +119,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new EmptyStatement(((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        public override IOperation VisitThrowStatement(IThrowStatement operation, object argument)
-        {
-            return new ThrowStatement(Visit(operation.ThrownObject), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
         public override IOperation VisitReturnStatement(IReturnStatement operation, object argument)
         {
             return new ReturnStatement(operation.Kind, Visit(operation.ReturnedValue), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);

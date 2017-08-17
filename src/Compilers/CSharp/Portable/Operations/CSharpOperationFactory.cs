@@ -1267,14 +1267,16 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyUsingStatement(body, declaration, value, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private IThrowStatement CreateBoundThrowStatementOperation(BoundThrowStatement boundThrowStatement)
+        private IExpressionStatement CreateBoundThrowStatementOperation(BoundThrowStatement boundThrowStatement)
         {
             Lazy<IOperation> thrownObject = new Lazy<IOperation>(() => Create(boundThrowStatement.ExpressionOpt));
             SyntaxNode syntax = boundThrowStatement.Syntax;
-            ITypeSymbol type = null;
+            ITypeSymbol throwExpressionType = boundThrowStatement.ExpressionOpt?.Type;
+            ITypeSymbol statementType = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundThrowStatement.WasCompilerGenerated;
-            return new LazyThrowStatement(thrownObject, _semanticModel, syntax, type, constantValue, isImplicit);
+            IOperation throwExpression = new LazyThrowExpression(thrownObject, _semanticModel, syntax, throwExpressionType, constantValue, isImplicit);
+            return new ExpressionStatement(throwExpression, _semanticModel, syntax, statementType, constantValue, isImplicit);
         }
 
         private IReturnStatement CreateBoundReturnStatementOperation(BoundReturnStatement boundReturnStatement)

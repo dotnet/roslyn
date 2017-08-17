@@ -110,11 +110,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitThrowStatement(IThrowStatement operation)
-        {
-            DefaultVisit(operation);
-        }
-
         public virtual void VisitReturnStatement(IReturnStatement operation)
         {
             DefaultVisit(operation);
@@ -576,11 +571,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual TResult VisitEmptyStatement(IEmptyStatement operation, TArgument argument)
-        {
-            return DefaultVisit(operation, argument);
-        }
-
-        public virtual TResult VisitThrowStatement(IThrowStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

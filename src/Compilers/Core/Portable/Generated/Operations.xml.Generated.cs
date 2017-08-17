@@ -4257,67 +4257,6 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a C# throw or a VB Throw statement.
-    /// </summary>
-    internal abstract partial class BaseThrowStatement : Operation, IThrowStatement
-    {
-        protected BaseThrowStatement(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-                    base(OperationKind.ThrowStatement, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-        }
-
-        protected abstract IOperation ThrownObjectImpl { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                yield return ThrownObject;
-            }
-        }
-        /// <summary>
-        /// Value to be thrown.
-        /// </summary>
-        public IOperation ThrownObject => Operation.SetParentOperation(ThrownObjectImpl, this);
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitThrowStatement(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitThrowStatement(this, argument);
-        }
-    }
-
-    /// <summary>
-    /// Represents a C# throw or a VB Throw statement.
-    /// </summary>
-    internal sealed partial class ThrowStatement : BaseThrowStatement, IThrowStatement
-    {
-        public ThrowStatement(IOperation thrownObject, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            ThrownObjectImpl = thrownObject;
-        }
-
-        protected override IOperation ThrownObjectImpl { get; }
-    }
-
-    /// <summary>
-    /// Represents a C# throw or a VB Throw statement.
-    /// </summary>
-    internal sealed partial class LazyThrowStatement : BaseThrowStatement, IThrowStatement
-    {
-        private readonly Lazy<IOperation> _lazyThrownObject;
-
-        public LazyThrowStatement(Lazy<IOperation> thrownObject, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _lazyThrownObject = thrownObject ?? throw new System.ArgumentNullException(nameof(thrownObject));
-        }
-
-        protected override IOperation ThrownObjectImpl => _lazyThrownObject.Value;
-    }
-
-    /// <summary>
     /// Represents a C# try or a VB Try statement.
     /// </summary>
     internal abstract partial class BaseTryStatement : Operation, ITryStatement
