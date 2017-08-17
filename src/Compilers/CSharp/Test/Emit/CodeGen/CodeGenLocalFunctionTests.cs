@@ -31,6 +31,72 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
         [Fact]
+        public void CaptureThisInDifferentScopes()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    int _x;
+    void M()
+    {
+        {
+            int y = 0;
+            Func<int> f1 = () => _x + y;
+        }
+        {
+            int y = 0;
+            Func<int> f2 = () => _x + y;
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public void CaptureThisInDifferentScopes2()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    int _x;
+    void M()
+    {
+        {
+            int y = 0;
+            int L1() => _x + y;
+        }
+        {
+            int y = 0;
+            int L2() => _x + y;
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public void CaptureFramePointerInDifferentScopes()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    void M(int x)
+    {
+        Func<int> f1 = () => x;
+        {
+            int z = 0;
+            Func<int> f2 = () => x + z;
+        }
+        {
+            int z = 0;
+            Func<int> f3 = () => x + z;
+        }
+    }
+}");
+        }
+
+        [Fact]
         public void EnvironmentChainContainsStructEnvironment()
         {
             CompileAndVerify(@"
@@ -208,23 +274,23 @@ class C
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""void C.<M>g__L32_2(ref C.<>c__DisplayClass2_0)""
+  IL_0002:  call       ""void C.<M>g__L32_3(ref C.<>c__DisplayClass2_0)""
   IL_0007:  ret
 }");
             // Skip some... L5
-            verifier.VerifyIL("C.<M>g__L52_4(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
+            verifier.VerifyIL("C.<M>g__L52_5(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
 {
   // Code size       10 (0xa)
   .maxstack  3
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
   IL_0002:  ldarg.2
-  IL_0003:  call       ""int C.<M>g__L62_5(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)""
+  IL_0003:  call       ""int C.<M>g__L62_6(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)""
   IL_0008:  pop
   IL_0009:  ret
 }");
             // L6
-            verifier.VerifyIL("C.<M>g__L62_5(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
+            verifier.VerifyIL("C.<M>g__L62_6(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
 {
   // Code size       25 (0x19)
   .maxstack  4

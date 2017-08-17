@@ -19,8 +19,11 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public string FeatureName { get; }
 
         public FeatureMetadata(IDictionary<string, object> data)
+            : this((string)data.GetValueOrDefault("FeatureName"))
         {
-            this.FeatureName = (string)data.GetValueOrDefault("FeatureName");
         }
+
+        public FeatureMetadata(string featureName)
+            => FeatureName = featureName;
     }
 }
