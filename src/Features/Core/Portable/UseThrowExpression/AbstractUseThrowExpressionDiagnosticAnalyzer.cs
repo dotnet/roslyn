@@ -77,14 +77,14 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
             var cancellationToken = context.CancellationToken;
 
-            var throwExpression = (IThrowExpression)context.Operation;
-            var throwStatementOperation = throwExpression.Parent;
+            var throwExpressionOperation = (IThrowExpression)context.Operation;
+            var throwStatementOperation = throwExpressionOperation.Parent;
             if (throwStatementOperation.Kind != OperationKind.ExpressionStatement)
             {
                 return;
             }
 
-            var throwStatement = throwExpression.Syntax;
+            var throwStatementSyntax = throwExpressionOperation.Syntax;
             var options = context.Options;
             var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
@@ -92,16 +92,16 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 return;
             }
 
-            var option = optionSet.GetOption(CodeStyleOptions.PreferThrowExpression, throwStatement.Language);
+            var option = optionSet.GetOption(CodeStyleOptions.PreferThrowExpression, throwStatementSyntax.Language);
             if (!option.Value)
             {
                 return;
             }
 
             var compilation = context.Compilation;
-            var semanticModel = compilation.GetSemanticModel(throwStatement.SyntaxTree);
+            var semanticModel = compilation.GetSemanticModel(throwStatementSyntax.SyntaxTree);
             var semanticFacts = GetSemanticFactsService();
-            if (semanticFacts.IsInExpressionTree(semanticModel, throwStatement, expressionTypeOpt, cancellationToken))
+            if (semanticFacts.IsInExpressionTree(semanticModel, throwStatementSyntax, expressionTypeOpt, cancellationToken))
             {
                 return;
             }
@@ -165,18 +165,18 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
             var allLocations = ImmutableArray.Create(
                 ifOperation.Syntax.GetLocation(),
-                throwExpression.Expression.Syntax.GetLocation(),
+                throwExpressionOperation.Expression.Syntax.GetLocation(),
                 assignmentExpression.Value.Syntax.GetLocation());
 
             var descriptor = GetDescriptorWithSeverity(option.Notification.Value);
 
             context.ReportDiagnostic(
-                Diagnostic.Create(descriptor, throwStatement.GetLocation(), additionalLocations: allLocations));
+                Diagnostic.Create(descriptor, throwStatementSyntax.GetLocation(), additionalLocations: allLocations));
 
             // Fade out the rest of the if that surrounds the 'throw' exception.
 
-            var tokenBeforeThrow = throwStatement.GetFirstToken().GetPreviousToken();
-            var tokenAfterThrow = throwStatement.GetLastToken().GetNextToken();
+            var tokenBeforeThrow = throwStatementSyntax.GetFirstToken().GetPreviousToken();
+            var tokenAfterThrow = throwStatementSyntax.GetLastToken().GetNextToken();
             context.ReportDiagnostic(
                 Diagnostic.Create(UnnecessaryWithSuggestionDescriptor,
                     Location.Create(syntaxTree, TextSpan.FromBounds(
