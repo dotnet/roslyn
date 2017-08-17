@@ -13,9 +13,9 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private ReadOnly _cache As ConcurrentDictionary(Of BoundNode, IOperation) =
             New ConcurrentDictionary(Of BoundNode, IOperation)(concurrencyLevel:=2, capacity:=10)
 
-        Private ReadOnly _semanticModel As VBSemanticModel
+        Private ReadOnly _semanticModel As SemanticModel
 
-        Public Sub New(semanticModel As VBSemanticModel)
+        Public Sub New(semanticModel As SemanticModel)
             _semanticModel = semanticModel
         End Sub
 

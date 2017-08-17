@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         private readonly ConcurrentDictionary<BoundLocalDeclaration, IVariableDeclaration> _variableDeclarationCache =
             new ConcurrentDictionary<BoundLocalDeclaration, IVariableDeclaration>(concurrencyLevel: 2, capacity: 10);
 
-        private readonly CSharpSemanticModel _semanticModel;
+        private readonly SemanticModel _semanticModel;
 
-        public CSharpOperationFactory(CSharpSemanticModel semanticModel)
+        public CSharpOperationFactory(SemanticModel semanticModel)
         {
             _semanticModel = semanticModel;
         }
