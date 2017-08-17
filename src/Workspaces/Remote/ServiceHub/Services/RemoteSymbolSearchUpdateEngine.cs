@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading.Tasks;
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return _updateEngine.UpdateContinuouslyAsync(sourceName, localSettingsDirectory);
         }
 
-        public async Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity)
+        public async Task<IList<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity)
         {
             var results = await _updateEngine.FindPackagesWithTypeAsync(
                 source, name, arity).ConfigureAwait(false);
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return results;
         }
 
-        public async Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName)
+        public async Task<IList<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName)
         {
             var results = await _updateEngine.FindPackagesWithAssemblyAsync(
                 source, assemblyName).ConfigureAwait(false);
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return results;
         }
 
-        public async Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity)
+        public async Task<IList<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity)
         {
             var results = await _updateEngine.FindReferenceAssembliesWithTypeAsync(
                 name, arity).ConfigureAwait(false);

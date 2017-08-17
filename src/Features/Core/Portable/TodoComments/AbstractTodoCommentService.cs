@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.TodoComments
 
         protected abstract string GetNormalizedText(string message);
         protected abstract int GetCommentStartingIndex(string message);
-        protected abstract void AppendTodoComments(ImmutableArray<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, List<TodoComment> todoList);
+        protected abstract void AppendTodoComments(IList<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, List<TodoComment> todoList);
 
-        public async Task<IList<TodoComment>> GetTodoCommentsAsync(Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
+        public async Task<IList<TodoComment>> GetTodoCommentsAsync(Document document, IList<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
         {
             // same service run in both inproc and remote host, but remote host will not have RemoteHostClient service, 
             // so inproc one will always run
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         }
 
         private async Task<IList<TodoComment>> GetTodoCommentsInRemoteHostAsync(
-            RemoteHostClient client, Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
+            RemoteHostClient client, Document document, IList<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
         {
             return await client.RunCodeAnalysisServiceOnRemoteHostAsync<IList<TodoComment>>(
                 document.Project.Solution, nameof(IRemoteTodoCommentService.GetTodoCommentsAsync),
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         }
 
         private async Task<IList<TodoComment>> GetTodoCommentsInCurrentProcessAsync(
-            Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
+            Document document, IList<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             return PreprocessorHasComment(trivia) || IsSingleLineComment(trivia) || IsMultilineComment(trivia);
         }
 
-        protected void AppendTodoCommentInfoFromSingleLine(ImmutableArray<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, string message, int start, List<TodoComment> todoList)
+        protected void AppendTodoCommentInfoFromSingleLine(IList<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, string message, int start, List<TodoComment> todoList)
         {
             var index = GetCommentStartingIndex(message);
             if (index >= message.Length)
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             }
         }
 
-        protected void ProcessMultilineComment(ImmutableArray<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, int postfixLength, List<TodoComment> todoList)
+        protected void ProcessMultilineComment(IList<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, int postfixLength, List<TodoComment> todoList)
         {
             // this is okay since we know it is already alive
             var text = document.Text;

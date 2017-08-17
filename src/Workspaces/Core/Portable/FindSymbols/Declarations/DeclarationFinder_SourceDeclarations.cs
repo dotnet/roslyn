@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -118,7 +119,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 if (session != null)
                 {
-                    var result = await session.InvokeAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
+                    var result = await session.InvokeAsync<IList<SerializableSymbolAndProjectId>>(
                         nameof(IRemoteSymbolFinder.FindSolutionSourceDeclarationsWithNormalQueryAsync),
                         name, ignoreCase, criteria).ConfigureAwait(false);
 
@@ -141,7 +142,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     if (session != null)
                     {
-                        var result = await session.InvokeAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
+                        var result = await session.InvokeAsync<IList<SerializableSymbolAndProjectId>>(
                             nameof(IRemoteSymbolFinder.FindProjectSourceDeclarationsWithNormalQueryAsync),
                             project.Id, name, ignoreCase, criteria).ConfigureAwait(false);
 
@@ -165,7 +166,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     if (session != null)
                     {
-                        var result = await session.InvokeAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
+                        var result = await session.InvokeAsync<IList<SerializableSymbolAndProjectId>>(
                             nameof(IRemoteSymbolFinder.FindProjectSourceDeclarationsWithPatternAsync),
                             project.Id, pattern, criteria).ConfigureAwait(false);
 

@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.TodoComments
     Friend Class VisualBasicTodoCommentService
         Inherits AbstractTodoCommentService
 
-        Protected Overrides Sub AppendTodoComments(commentDescriptors As ImmutableArray(Of TodoCommentDescriptor), document As SyntacticDocument, trivia As SyntaxTrivia, todoList As List(Of TodoComment))
+        Protected Overrides Sub AppendTodoComments(commentDescriptors As IList(Of TodoCommentDescriptor), document As SyntacticDocument, trivia As SyntaxTrivia, todoList As List(Of TodoComment))
             If PreprocessorHasComment(trivia) Then
                 Dim commentTrivia = trivia.GetStructure().DescendantTrivia().First(Function(t) t.RawKind = SyntaxKind.CommentTrivia)
 

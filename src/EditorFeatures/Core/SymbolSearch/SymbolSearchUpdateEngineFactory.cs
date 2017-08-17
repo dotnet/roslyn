@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -122,11 +123,11 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     return ImmutableArray<PackageWithTypeResult>.Empty;
                 }
 
-                var results = await session.InvokeAsync<ImmutableArray<PackageWithTypeResult>>(
+                var results = await session.InvokeAsync<IList<PackageWithTypeResult>>(
                     nameof(IRemoteSymbolSearchUpdateEngine.FindPackagesWithTypeAsync),
                     source, name, arity).ConfigureAwait(false);
 
-                return results;
+                return results.ToImmutableArrayOrEmpty();
             }
 
             public async Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
@@ -139,11 +140,11 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     return ImmutableArray<PackageWithAssemblyResult>.Empty;
                 }
 
-                var results = await session.InvokeAsync<ImmutableArray<PackageWithAssemblyResult>>(
+                var results = await session.InvokeAsync<IList<PackageWithAssemblyResult>>(
                     nameof(IRemoteSymbolSearchUpdateEngine.FindPackagesWithAssemblyAsync),
                     source, assemblyName).ConfigureAwait(false);
 
-                return results;
+                return results.ToImmutableArrayOrEmpty();
             }
 
             public async Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
@@ -156,11 +157,11 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     return ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty;
                 }
 
-                var results = await session.InvokeAsync<ImmutableArray<ReferenceAssemblyWithTypeResult>>(
+                var results = await session.InvokeAsync<IList<ReferenceAssemblyWithTypeResult>>(
                     nameof(IRemoteSymbolSearchUpdateEngine.FindReferenceAssembliesWithTypeAsync),
                     name, arity).ConfigureAwait(false);
 
-                return results;
+                return results.ToImmutableArrayOrEmpty();
             }
 
             public async Task UpdateContinuouslyAsync(
