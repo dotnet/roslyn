@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal partial class CodeAnalysisService : IRemoteNavigateToSearchService
     {
-        public async Task<ImmutableArray<SerializableNavigateToSearchResult>> SearchDocumentAsync(
+        public async Task<IList<SerializableNavigateToSearchResult>> SearchDocumentAsync(
             DocumentId documentId, string searchPattern)
         {
             using (UserOperationBooster.Boost())
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<ImmutableArray<SerializableNavigateToSearchResult>> SearchProjectAsync(
+        public async Task<IList<SerializableNavigateToSearchResult>> SearchProjectAsync(
             ProjectId projectId, string searchPattern)
         {
             using (UserOperationBooster.Boost())

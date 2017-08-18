@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -144,11 +145,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return SymbolKey.Resolve(id, compilation).GetAnySymbol();
         }
 
-        public static async Task<CompletionDescription> GetDescriptionAsync(CompletionItem item, Document document, CancellationToken cancellationToken)
+        public static async Task<CompletionDescription> GetDescriptionAsync(
+            CompletionItem item, Document document, CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
 
-            var position = GetDescriptionPosition(item);
+            var position = await GetDescriptionPositionAsync(document, item, cancellationToken).ConfigureAwait(false);
             if (position == -1)
             {
                 position = item.Span.Start;
@@ -214,11 +216,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return null;
         }
 
-        public static int GetContextPosition(CompletionItem item)
+        public static async Task<int> GetContextPositionAsync(
+            Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            if (item.Properties.TryGetValue("ContextPosition", out var text) && int.TryParse(text, out var number))
+            if (item.Properties.TryGetValue("ContextPosition", out var text) &&
+                int.TryParse(text, out var number))
             {
-                return number;
+                // We have no access to the editor at this layer.  So it's not 
+                // possible for us to map the original context position forward
+                // to the current position in the file.  So we need to cap the
+                // positoin to make sure it's within the bounds of the current
+                // text.
+                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                return Math.Min(number, sourceText.Length);
             }
             else
             {
@@ -226,10 +236,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        public static int GetDescriptionPosition(CompletionItem item)
-        {
-            return GetContextPosition(item);
-        }
+        public static Task<int> GetDescriptionPositionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+            => GetContextPositionAsync(document, item, cancellationToken);
 
         public static string GetInsertionText(CompletionItem item)
         {
@@ -293,11 +301,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return null;
         }
 
-        public static async Task<CompletionDescription> GetDescriptionAsync(CompletionItem item, ImmutableArray<ISymbol> symbols, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)
+        public static async Task<CompletionDescription> GetDescriptionAsync(
+            CompletionItem item, ImmutableArray<ISymbol> symbols, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
 
-            var position = SymbolCompletionItem.GetDescriptionPosition(item);
+            var position = await SymbolCompletionItem.GetDescriptionPositionAsync(document, item, cancellationToken).ConfigureAwait(false);
             var supportedPlatforms = SymbolCompletionItem.GetSupportedPlatforms(item, workspace);
 
             var contextDocument = FindAppropriateDocumentForDescriptionContext(document, supportedPlatforms);

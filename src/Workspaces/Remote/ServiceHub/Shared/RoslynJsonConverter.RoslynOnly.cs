@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.AddImport;
@@ -165,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var typeName = ReadProperty<string>(reader);
                 var version = ReadProperty<string>(reader);
                 var rank = (int)ReadProperty<long>(reader);
-                var containingNamespaceNames = ReadProperty<ImmutableArray<string>>(serializer, reader);
+                var containingNamespaceNames = ReadProperty<IList<string>>(serializer, reader);
 
                 Contract.ThrowIfFalse(reader.Read());
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
@@ -237,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var assemblyName = ReadProperty<string>(reader);
                 var typeName = ReadProperty<string>(reader);
-                var containingNamespaceNames = ReadProperty<ImmutableArray<string>>(serializer, reader);
+                var containingNamespaceNames = ReadProperty<IList<string>>(serializer, reader);
 
                 Contract.ThrowIfFalse(reader.Read());
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
@@ -298,9 +299,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
 
                 var kind = (AddImportFixKind)ReadProperty<long>(reader);
-                var textChanges = ReadProperty<ImmutableArray<TextChange>>(serializer, reader);
+                var textChanges = ReadProperty<IList<TextChange>>(serializer, reader).ToImmutableArrayOrEmpty();
                 var title = ReadProperty<string>(reader);
-                var tags = ReadProperty<ImmutableArray<string>>(serializer, reader);
+                var tags = ReadProperty<IList<string>>(serializer, reader).ToImmutableArrayOrEmpty();
                 var priority = (CodeActionPriority)ReadProperty<long>(reader);
 
                 var projectReferenceToAdd = ReadProperty<ProjectId>(serializer, reader);
@@ -344,13 +345,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 writer.WriteValue((int)source.Kind);
 
                 writer.WritePropertyName(nameof(AddImportFixData.TextChanges));
-                serializer.Serialize(writer, source.TextChanges);
+                serializer.Serialize(writer, source.TextChanges ?? SpecializedCollections.EmptyList<TextChange>());
 
                 writer.WritePropertyName(nameof(AddImportFixData.Title));
                 writer.WriteValue(source.Title);
 
                 writer.WritePropertyName(nameof(AddImportFixData.Tags));
-                serializer.Serialize(writer, source.Tags.NullToEmpty());
+                serializer.Serialize(writer, source.Tags ?? SpecializedCollections.EmptyList<string>());
 
                 writer.WritePropertyName(nameof(AddImportFixData.Priority));
                 writer.WriteValue((int)source.Priority);

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                     return (succeeded: false, ImmutableArray<DocumentHighlights>.Empty);
                 }
 
-                var result = await session.InvokeAsync<ImmutableArray<SerializableDocumentHighlights>>(
+                var result = await session.InvokeAsync<IList<SerializableDocumentHighlights>>(
                     nameof(IRemoteDocumentHighlights.GetDocumentHighlightsAsync),
                     document.Id,
                     position,

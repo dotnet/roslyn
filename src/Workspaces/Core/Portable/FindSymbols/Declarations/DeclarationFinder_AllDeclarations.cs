@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -100,7 +101,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     if (session != null)
                     {
-                        var result = await session.InvokeAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
+                        var result = await session.InvokeAsync<IList<SerializableSymbolAndProjectId>>(
                             nameof(IRemoteSymbolFinder.FindAllDeclarationsWithNormalQueryAsync),
                             project.Id, query.Name, query.Kind, criteria).ConfigureAwait(false);
 
@@ -116,9 +117,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task<ImmutableArray<SymbolAndProjectId>> RehydrateAsync(
-            Solution solution, ImmutableArray<SerializableSymbolAndProjectId> array, CancellationToken cancellationToken)
+            Solution solution, IList<SerializableSymbolAndProjectId> array, CancellationToken cancellationToken)
         {
-            var result = ArrayBuilder<SymbolAndProjectId>.GetInstance(array.Length);
+            var result = ArrayBuilder<SymbolAndProjectId>.GetInstance(array.Count);
 
             foreach (var dehydrated in array)
             {

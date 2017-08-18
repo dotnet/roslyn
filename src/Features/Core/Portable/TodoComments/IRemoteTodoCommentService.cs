@@ -11,6 +11,6 @@ namespace Microsoft.CodeAnalysis.TodoComments
     /// </summary>
     internal interface IRemoteTodoCommentService
     {
-        Task<IList<TodoComment>> GetTodoCommentsAsync(DocumentId documentId, ImmutableArray<TodoCommentDescriptor> commentDescriptors);
+        Task<IList<TodoComment>> GetTodoCommentsAsync(DocumentId documentId, IList<TodoCommentDescriptor> commentDescriptors);
     }
 }

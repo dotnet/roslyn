@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -19,12 +20,12 @@ namespace Microsoft.CodeAnalysis.AddImport
             string diagnosticId, bool placeSystemNamespaceFirst,
             bool searchReferenceAssemblies, ImmutableArray<PackageSource> packageSources)
         {
-            var result = await session.InvokeAsync<ImmutableArray<AddImportFixData>>(
+            var result = await session.InvokeAsync<IList<AddImportFixData>>(
                 nameof(IRemoteAddImportFeatureService.GetFixesAsync),
                 document.Id, span, diagnosticId, placeSystemNamespaceFirst, 
                 searchReferenceAssemblies, packageSources).ConfigureAwait(false);
 
-            return result;
+            return result.AsImmutableOrEmpty();
         }
 
         /// <summary>
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 throw new NotImplementedException();
             }
 
-            public async Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
+            public async Task<IList<PackageWithTypeResult>> FindPackagesWithTypeAsync(
                 string source, string name, int arity)
             {
                 var result = await _symbolSearchService.FindPackagesWithTypeAsync(
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 return result;
             }
 
-            public async Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
+            public async Task<IList<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
                 string source, string name)
             {
                 var result = await _symbolSearchService.FindPackagesWithAssemblyAsync(
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 return result;
             }
 
-            public async Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
+            public async Task<IList<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
                 string name, int arity)
             {
                 var result = await _symbolSearchService.FindReferenceAssembliesWithTypeAsync(

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<ImmutableArray<SerializableSymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(
+        public async Task<IList<SerializableSymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(
             ProjectId projectId, string name, SearchKind searchKind, SymbolFilter criteria)
         {
             using (UserOperationBooster.Boost())
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<ImmutableArray<SerializableSymbolAndProjectId>> FindSolutionSourceDeclarationsWithNormalQueryAsync(
+        public async Task<IList<SerializableSymbolAndProjectId>> FindSolutionSourceDeclarationsWithNormalQueryAsync(
             string name, bool ignoreCase, SymbolFilter criteria)
         {
             using (UserOperationBooster.Boost())
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<ImmutableArray<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithNormalQueryAsync(
+        public async Task<IList<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithNormalQueryAsync(
             ProjectId projectId, string name, bool ignoreCase, SymbolFilter criteria)
         {
             using (UserOperationBooster.Boost())
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<ImmutableArray<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithPatternAsync(
+        public async Task<IList<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithPatternAsync(
             ProjectId projectId, string pattern, SymbolFilter criteria)
         {
             using (UserOperationBooster.Boost())
