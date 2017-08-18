@@ -155,8 +155,16 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 }
             }
 
-            // Ok, there were no intervening writes or accesses.  This check+assignment can be simplified.
+            // Also, have to make sure there is no read/write of the local/parameter on the left
+            // of the assignment.  For example: map[val.Id] = val;
+            var exprDataFlow = semanticModel.AnalyzeDataFlow(assignmentExpression.Target.Syntax);
+            if (exprDataFlow.ReadInside.Contains(localOrParameter) ||
+                exprDataFlow.WrittenInside.Contains(localOrParameter))
+            {
+                return;
+            }
 
+            // Ok, there were no intervening writes or accesses.  This check+assignment can be simplified.
             var allLocations = ImmutableArray.Create(
                 ifOperation.Syntax.GetLocation(),
                 throwOperation.ThrownObject.Syntax.GetLocation(),
