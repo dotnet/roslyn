@@ -56,7 +56,7 @@ class Z
 {
     int a;
 
-    public Z(int a{|Navigation:)|} => this . a = a ;
+    public Z(int a{|Navigation:)|} => this.a = a;
 }",
 options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
         }
@@ -77,7 +77,7 @@ class Z
 {
     int a;
 
-    public Z(int a{|Navigation:)|} => this . a = a ;
+    public Z(int a{|Navigation:)|} => this.a = a;
 }",
 options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
         }
@@ -102,8 +102,8 @@ class Z
 
     public Z(int a, int b{|Navigation:)|}
     {
-        this . a = a ;
-        this . b = b ;
+        this.a = a;
+        this.b = b;
     }
 }",
 options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
@@ -938,7 +938,7 @@ class Z
     protected C(int prop{|Navigation:)|}
     {
         Prop = prop;
-    } 
+    }
 
     public int Prop { get; set; }
 }",

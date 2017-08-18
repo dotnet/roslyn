@@ -3152,6 +3152,7 @@ Module M
         Dim z = 1
     End Sub
 End Module
+
 </File>
             Await TestAsync(code, expected, ignoreTrivia:=False)
         End Function

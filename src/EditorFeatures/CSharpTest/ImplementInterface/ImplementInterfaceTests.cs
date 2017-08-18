@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
 
         internal async Task TestWithAllCodeStyleOptionsOffAsync(
             string initialMarkup, string expectedMarkup,
-            int index = 0, bool ignoreTrivia = true,
+            int index = 0, bool ignoreTrivia = false,
             ParseOptions parseOptions = null)
         {
             await TestAsync(initialMarkup, expectedMarkup, parseOptions, null,
@@ -213,7 +213,8 @@ class Class : IInterface
     {
         throw new System.NotImplementedException();
     }
-}" + s_tupleElementNamesAttribute);
+}
+" + s_tupleElementNamesAttribute);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -241,7 +242,8 @@ class Class : IInterface
     {
         throw new System.NotImplementedException();
     }
-}" + s_tupleElementNamesAttribute,
+}
+" + s_tupleElementNamesAttribute,
 index: 1);
         }
 
@@ -278,7 +280,8 @@ class Class : IInterface
             throw new System.NotImplementedException();
         }
     }
-}" + s_tupleElementNamesAttribute);
+}
+" + s_tupleElementNamesAttribute);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -303,7 +306,8 @@ class Class : [|IInterface|]
 class Class : IInterface
 {
     public event Func<(int a, int b)> Event1;
-}" + s_tupleElementNamesAttribute);
+}
+" + s_tupleElementNamesAttribute);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -355,7 +359,8 @@ class Class : IInterface
     {
         throw new System.NotImplementedException();
     }
-}");
+}
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -374,8 +379,7 @@ interface IInterface2 : IInterface1
 class Class : [|IInterface2|]
 {
 }",
-@"
-interface IInterface1
+@"interface IInterface1
 {
     void Method1();
 }
@@ -2484,26 +2488,28 @@ class HasCanGoo : [|IGoo|]
 using System;
 
 interface IGoo
-{ 
-    event System.EventHandler E; 
+{
+    event System.EventHandler E;
 }
 
 class CanGoo : IGoo
-{ 
+{
     public event EventHandler E;
 }
 
 class HasCanGoo : IGoo
-{ 
+{
     CanGoo canGoo;
+
     public event EventHandler E
     {
         add
         {
             ((IGoo)canGoo).E += value;
         }
+
         remove
-        { 
+        {
             ((IGoo)canGoo).E -= value;
         }
     }
@@ -2515,7 +2521,23 @@ class HasCanGoo : IGoo
         {
             await TestInRegularAndScriptAsync(
 @"interface IGoo { event System . EventHandler E ; } class CanGoo : IGoo { event IGoo.EventHandler E; } class HasCanGoo : [|IGoo|] { CanGoo canGoo; } ",
-@"using System ; interface IGoo { event System . EventHandler E ; } class CanGoo : IGoo { event IGoo.EventHandler E; } class HasCanGoo : IGoo { CanGoo canGoo; public event EventHandler E { add { ((IGoo)canGoo).E += value; } remove { ((IGoo)canGoo).E -= value; } } } ",
+@"using System;
+
+interface IGoo { event System . EventHandler E ; } class CanGoo : IGoo { event IGoo.EventHandler E; } class HasCanGoo : IGoo { CanGoo canGoo;
+
+    public event EventHandler E
+    {
+        add
+        {
+            ((IGoo)canGoo).E += value;
+        }
+
+        remove
+        {
+            ((IGoo)canGoo).E -= value;
+        }
+    }
+} ",
 index: 1);
         }
 
@@ -2532,6 +2554,7 @@ abstract class Goo : [|IGoo|]
 {
 }",
 @"using System;
+
 interface IGoo
 {
     event System.EventHandler E;
@@ -2817,6 +2840,7 @@ class A : [|I|]
 {
 }",
 @"using System;
+
 interface I
 {
     void Goo<T>() where T : System.Attribute;
@@ -3978,7 +4002,14 @@ public class Goo : IGoo
         {
             await TestWithAllCodeStyleOptionsOffAsync(
 @"interface IGoo { void Goo ( string s = ""\"""" ) ; } class B : [|IGoo|] { } ",
-@"interface IGoo { void Goo ( string s = ""\"""" ) ; } class B : IGoo { public void Goo ( string s = ""\"""" ) { throw new System.NotImplementedException ( ) ; } } ");
+@"interface IGoo { void Goo ( string s = ""\"""" ) ; }
+class B : IGoo
+{
+    public void Goo(string s = ""\"""")
+    {
+        throw new System.NotImplementedException();
+    }
+} ");
         }
 
         [WorkItem(916114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916114")]
@@ -4914,7 +4945,8 @@ class C : I
     {
         throw new System.NotImplementedException();
     }
-}");
+}
+");
         }
 
         [WorkItem(545922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545922")]
@@ -5409,12 +5441,13 @@ class D : I
 class C : [|IServiceProvider|] @""",
 @"using System;
 
-class C : IServiceProvider @"""" {
+class C : IServiceProvider @""""{
     public object GetService(Type serviceType)
     {
         throw new NotImplementedException();
     }
-}");
+}
+");
         }
 
         [WorkItem(545939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545939")]
@@ -5427,12 +5460,13 @@ class C : IServiceProvider @"""" {
 class C : [|IServiceProvider|] """,
 @"using System;
 
-class C : IServiceProvider """" {
+class C : IServiceProvider """"{
     public object GetService(Type serviceType)
     {
         throw new NotImplementedException();
     }
-}");
+}
+");
         }
 
         [WorkItem(545939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545939")]
@@ -5445,12 +5479,13 @@ class C : IServiceProvider """" {
 class C : [|IServiceProvider|] @""",
 @"using System;
 
-class C : IServiceProvider @"""" {
+class C : IServiceProvider @""""{
     public object GetService(Type serviceType)
     {
         throw new NotImplementedException();
     }
-}");
+}
+");
         }
 
         [WorkItem(545939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545939")]
@@ -5463,12 +5498,13 @@ class C : IServiceProvider @"""" {
 class C : [|IServiceProvider|] """,
 @"using System;
 
-class C : IServiceProvider """" {
+class C : IServiceProvider """"{
     public object GetService(Type serviceType)
     {
         throw new NotImplementedException();
     }
-}");
+}
+");
         }
 
         [WorkItem(545940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545940")]
@@ -5943,7 +5979,7 @@ public class Test : IGoo
         throw new System.NotImplementedException();
     }
 }
-";
+        ";
 
             await TestWithAllCodeStyleOptionsOffAsync(initial, expected, index: 1);
         }
@@ -5982,13 +6018,13 @@ class C : I
     {
         throw new NotImplementedException();
     }
- 
+
     public void set_P(int x, object Value)
     {
         throw new NotImplementedException();
     }
 }
-";
+        ";
 
             await TestWithAllCodeStyleOptionsOffAsync(initial, expected, index: 0);
         }
@@ -6016,14 +6052,13 @@ class Goo : [|IComparable|]
 class Program : [|IDisposable|]
 {
 }",
-$@"
-using System;
+$@"using System;
 
 class Program : IDisposable
 {{
-{DisposePattern("protected virtual ", "C", "public void ")}
-}}
-", index: 1);
+
+{DisposePattern("protected virtual ", "Program", "public void ")}
+}}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -6036,15 +6071,14 @@ class Program : [|IDisposable|]
 {
     private bool DisposedValue;
 }",
-$@"
-using System;
+$@"using System;
 
 class Program : IDisposable
 {{
     private bool DisposedValue;
+
 {DisposePattern("protected virtual ", "Program", "void IDisposable.")}
-}}
-", index: 3);
+}}", index: 3);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -6106,14 +6140,13 @@ class Program : IDisposable
 sealed class Program : [|IDisposable|]
 {
 }",
-$@"
-using System;
+$@"using System;
 
 sealed class Program : IDisposable
 {{
+
 {DisposePattern("", "Program", "void IDisposable.")}
-}}
-", index: 3);
+}}", index: 3);
         }
 
         [WorkItem(939123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939123")]
@@ -6237,6 +6270,8 @@ class C : I
             throw new System.NotImplementedException();
         }
     }
+
+
     // Comment
 }");
         }
@@ -6675,7 +6710,6 @@ class Class : IInterface
     void M() { }
 
     public int Prop => throw new System.NotImplementedException();
-    
 }", options: Option(ImplementTypeOptions.InsertionBehavior, ImplementTypeInsertionBehavior.AtTheEnd));
         }
 
@@ -6699,7 +6733,8 @@ interface IComInterface
 class Class : [|IComInterface|]
 {
 }",
-@"using System.Runtime.InteropServices;
+@"
+using System.Runtime.InteropServices;
 
 [ComImport]
 interface IComInterface
@@ -6712,9 +6747,21 @@ interface IComInterface
 
 class Class : IComInterface
 {
-    public void MOverload() { throw new System.NotImplementedException(); }
-    public void X() { throw new System.NotImplementedException(); }
-    public void MOverload(int i) { throw new System.NotImplementedException(); }
+    public void MOverload()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public void X()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public void MOverload(int i)
+    {
+        throw new System.NotImplementedException();
+    }
+
     public int Prop => throw new System.NotImplementedException();
 }");
         }
@@ -6783,9 +6830,7 @@ class Class : [|IInterface|]
 class Class : IInterface
 {
     public int ReadOnlyProp { get; }
-
     public int ReadWriteProp { get; set; }
-
     public int WriteOnlyProp { set => throw new System.NotImplementedException(); }
 }", parameters: new TestParameters(options: Option(
     ImplementTypeOptions.PropertyGenerationBehavior,

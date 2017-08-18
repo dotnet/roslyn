@@ -120,8 +120,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
                             // separate out the leftmost expression and reconstruct the rest of conditions into a new
                             // expression, so that they would be evaluated entirely after "expr" e.g. "expr && (cond1 && cond2)".
                             // Afterwards, we can directly use it in a case guard e.g. "case pat when cond1 && cond2:".
-                            var condition = (leftmost.Parent.Parent as BinaryExpressionSyntax)
-                                ?.WithLeft(((BinaryExpressionSyntax)leftmost.Parent).Right);
+                            var parentBinary = (BinaryExpressionSyntax)leftmost.WalkUpParentheses().Parent;
+                            var grandparentBinary = parentBinary.WalkUpParentheses().Parent as BinaryExpressionSyntax;
+
+                            var condition = grandparentBinary?.WithLeft(parentBinary.Right);
 
                             return new Pattern.Guarded(pattern, (condition ?? node.Right).WalkDownParentheses());
                         }

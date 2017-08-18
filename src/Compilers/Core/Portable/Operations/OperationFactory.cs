@@ -20,10 +20,11 @@ namespace Microsoft.CodeAnalysis.Semantics
                 semanticModel,
                 syntax,
                 type: null,
-                constantValue: default(Optional<object>));
+                constantValue: default(Optional<object>),
+                isImplicit: false); // variable declaration is always explicit
         }
 
-        public static IConditionalChoiceExpression CreateConditionalChoiceExpression(IOperation condition, IOperation ifTrue, IOperation ifFalse, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax)
+        public static IConditionalChoiceExpression CreateConditionalChoiceExpression(IOperation condition, IOperation ifTrue, IOperation ifFalse, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
         {
             return new ConditionalChoiceExpression(
                 condition,
@@ -32,17 +33,18 @@ namespace Microsoft.CodeAnalysis.Semantics
                 semanticModel,
                 syntax,
                 resultType,
-                default(Optional<object>));
+                default(Optional<object>),
+                isImplicit);
         }
 
-        public static IExpressionStatement CreateSimpleAssignmentExpressionStatement(IOperation target, IOperation value, SemanticModel semanticModel, SyntaxNode syntax)
+        public static IExpressionStatement CreateSimpleAssignmentExpressionStatement(IOperation target, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
         {
-            var expression = new SimpleAssignmentExpression(target, value, semanticModel, syntax, target.Type, default(Optional<object>));
-            return new ExpressionStatement(expression, semanticModel, syntax, type: null, constantValue: default(Optional<object>));
+            var expression = new SimpleAssignmentExpression(target, value, semanticModel, syntax, target.Type, default(Optional<object>), isImplicit);
+            return new ExpressionStatement(expression, semanticModel, syntax, type: null, constantValue: default(Optional<object>), isImplicit: isImplicit);
         }
 
         public static IExpressionStatement CreateCompoundAssignmentExpressionStatement(
-            IOperation target, IOperation value, BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax)
+            IOperation target, IOperation value, BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
         {
             var expression = new CompoundAssignmentExpression(
                      operatorKind,
@@ -55,53 +57,55 @@ namespace Microsoft.CodeAnalysis.Semantics
                      semanticModel,
                      syntax,
                      target.Type,
-                     default(Optional<object>));
+                     default(Optional<object>),
+                     isImplicit);
 
-            return new ExpressionStatement(expression, semanticModel, syntax, type: null, constantValue: default(Optional<object>));
+            return new ExpressionStatement(expression, semanticModel, syntax, type: null, constantValue: default(Optional<object>), isImplicit: isImplicit);
         }
 
-        public static ILiteralExpression CreateLiteralExpression(long value, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax)
+        public static ILiteralExpression CreateLiteralExpression(long value, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
         {
-            return new LiteralExpression(value.ToString(), semanticModel, syntax, resultType, constantValue: new Optional<object>(value));
+            return new LiteralExpression(value.ToString(), semanticModel, syntax, resultType, constantValue: new Optional<object>(value), isImplicit: isImplicit);
         }
 
-        public static ILiteralExpression CreateLiteralExpression(ConstantValue value, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax)
+        public static ILiteralExpression CreateLiteralExpression(ConstantValue value, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
         {
-            return new LiteralExpression(value.GetValueToDisplay(), semanticModel, syntax, resultType, new Optional<object>(value.Value));
+            return new LiteralExpression(value.GetValueToDisplay(), semanticModel, syntax, resultType, new Optional<object>(value.Value), isImplicit);
         }
 
         public static IBinaryOperatorExpression CreateBinaryOperatorExpression(
-            BinaryOperatorKind operatorKind, IOperation left, IOperation right, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax, bool isLifted, bool isChecked, bool isCompareText)
+            BinaryOperatorKind operatorKind, IOperation left, IOperation right, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax, bool isLifted, bool isChecked, bool isCompareText, bool isImplicit)
         {
             return new BinaryOperatorExpression(
                 operatorKind, left, right,
                 isLifted: isLifted, isChecked: isChecked,
                 isCompareText: isCompareText, usesOperatorMethod: false, operatorMethod: null,
-                semanticModel: semanticModel, syntax: syntax, type: resultType, constantValue: default);
+                semanticModel: semanticModel, syntax: syntax, type: resultType, constantValue: default, isImplicit: isImplicit);
         }
 
         public static IArrayCreationExpression CreateArrayCreationExpression(
-            IArrayTypeSymbol arrayType, ImmutableArray<IOperation> elementValues, SemanticModel semanticModel, SyntaxNode syntax)
+            IArrayTypeSymbol arrayType, ImmutableArray<IOperation> elementValues, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
         {
-            var initializer = new ArrayInitializer(elementValues, semanticModel, syntax, arrayType, default(Optional<object>));
+            var initializer = new ArrayInitializer(elementValues, semanticModel, syntax, arrayType, default(Optional<object>), isImplicit);
             return new ArrayCreationExpression(
                 arrayType.ElementType,
-                ImmutableArray.Create<IOperation>(CreateLiteralExpression(elementValues.Count(), resultType: null, semanticModel: semanticModel, syntax: syntax)),
+                ImmutableArray.Create<IOperation>(CreateLiteralExpression(elementValues.Count(), resultType: null, semanticModel: semanticModel, syntax: syntax, isImplicit: isImplicit)),
                 initializer,
                 semanticModel,
                 syntax,
                 arrayType,
-                default(Optional<object>));
+                default(Optional<object>),
+                isImplicit);
         }
 
-        public static IInvalidExpression CreateInvalidExpression(SemanticModel semanticModel, SyntaxNode syntax)
+        public static IInvalidExpression CreateInvalidExpression(SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
         {
-            return CreateInvalidExpression(semanticModel, syntax, ImmutableArray<IOperation>.Empty);
+            return CreateInvalidExpression(semanticModel, syntax, ImmutableArray<IOperation>.Empty, isImplicit);
         }
 
-        public static IInvalidExpression CreateInvalidExpression(SemanticModel semanticModel, SyntaxNode syntax, ImmutableArray<IOperation> children)
+        public static IInvalidExpression CreateInvalidExpression(SemanticModel semanticModel, SyntaxNode syntax, ImmutableArray<IOperation> children, bool isImplicit)
         {
-            return new InvalidExpression(children, semanticModel, syntax, type: null, constantValue: default(Optional<object>));
+            return new InvalidExpression(children, semanticModel, syntax, type: null, constantValue: default(Optional<object>), isImplicit: isImplicit);
         }
     }
 }

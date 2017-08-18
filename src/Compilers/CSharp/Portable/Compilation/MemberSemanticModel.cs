@@ -1088,19 +1088,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bindableNode = this.GetBindableSyntaxNode(node);
 
-            // PROTOTYPE(IOperation)
-            // remove this check once we fix this issue
-            // https://github.com/dotnet/roslyn/issues/21180
-            if (!Root.FullSpan.Contains(bindableNode.FullSpan))
-            {
-                bindableNode = null;
-                lowestBoundNode = null;
-                highestBoundNode = null;
-                boundParent = null;
-                return;
-            }
-            ////
-
             CSharpSyntaxNode bindableParent = this.GetBindableParentNode(bindableNode);
 
             // Special handling for the Color Color case.
@@ -1776,7 +1763,7 @@ done:
             }
 
             var parent = node.Parent;
-            if (parent != null)
+            if (parent != null && node != this.Root)
             {
                 switch (node.Kind())
                 {

@@ -610,7 +610,8 @@ class C
     public void M1()
     {{
         // Leading trivia
-        /*1*/ {expectedReturn} /*2*/ M2/*3*/() /*4*/
+        /*1*/
+        {expectedReturn} /*2*/ M2/*3*/() /*4*/
         {{
             throw new NotImplementedException();
         }}
@@ -619,14 +620,14 @@ class C
         }
 
         [Theory]
-        [InlineData("", "Task<C>", "C")]
-        [InlineData("", "Task<int>", "int")]
-        [InlineData("", "Task", "void")]
-        [InlineData("", "void", "void")]
-        [InlineData("public", "Task<C>", "C")]
-        [InlineData("public", "Task<int>", "int")]
-        [InlineData("public", "Task", "void")]
-        [InlineData("public", "void", "void")]
+        [InlineData("", "Task<C>", "\r\n    C")]
+        [InlineData("", "Task<int>", "\r\n    int")]
+        [InlineData("", "Task", "\r\n    void")]
+        [InlineData("", "void", "\r\n    void")]
+        [InlineData("public", "Task<C>", " C")]
+        [InlineData("public", "Task<int>", " int")]
+        [InlineData("public", "Task", " void")]
+        [InlineData("public", "void", " void")]
         [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         [WorkItem(18307, "https://github.com/dotnet/roslyn/issues/18307")]
         public async Task RemoveAsyncKeepsTrivia(string modifiers, string asyncReturn, string expectedReturn)
@@ -649,7 +650,7 @@ using System.Threading.Tasks;
 class C
 {{
     // Leading trivia
-    {modifiers}/*1*/ {expectedReturn} /*2*/ M2/*3*/() /*4*/
+    {modifiers}/*1*/{expectedReturn} /*2*/ M2/*3*/() /*4*/
     {{
         throw new NotImplementedException();
     }}

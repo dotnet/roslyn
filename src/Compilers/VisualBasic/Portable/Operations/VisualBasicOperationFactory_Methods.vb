@@ -41,8 +41,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
             If child IsNot Nothing Then
                 Return child
             End If
-
-            Return OperationFactory.CreateInvalidExpression(_semanticModel, [operator].UnderlyingExpression.Syntax, ImmutableArray(Of IOperation).Empty)
+            Dim isImplicit As Boolean = [operator].WasCompilerGenerated
+            Return OperationFactory.CreateInvalidExpression(_semanticModel, [operator].UnderlyingExpression.Syntax, ImmutableArray(Of IOperation).Empty, isImplicit)
         End Function
 
         Private Shared Function GetUserDefinedBinaryOperatorChildBoundNode([operator] As BoundUserDefinedBinaryOperator, index As Integer) As BoundNode
@@ -72,6 +72,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function DeriveArgument(index As Integer, argument As BoundExpression, parameters As ImmutableArray(Of VisualBasic.Symbols.ParameterSymbol)) As IArgument
+            Dim isImplicit As Boolean = argument.WasCompilerGenerated
             Select Case argument.Kind
                 Case BoundKind.ByRefArgumentWithCopyBack
                     Dim byRefArgument = DirectCast(argument, BoundByRefArgumentWithCopyBack)
@@ -86,7 +87,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                         _semanticModel,
                         value.Syntax,
                         type:=Nothing,
-                        constantValue:=Nothing)
+                        constantValue:=Nothing,
+                        isImplicit:=isImplicit)
                 Case Else
                     Dim lastParameterIndex = parameters.Length - 1
                     If index = lastParameterIndex AndAlso ParameterIsParamArray(parameters(lastParameterIndex)) Then
@@ -107,7 +109,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                             semanticModel:=_semanticModel,
                             syntax:=value.Syntax,
                             type:=Nothing,
-                            constantValue:=Nothing)
+                            constantValue:=Nothing,
+                            isImplicit:=isImplicit)
                     Else
                         ' TODO: figure our if this is true:
                         '       a compiler generated argument for an Optional parameter is created iff
@@ -126,7 +129,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                             semanticModel:=_semanticModel,
                             syntax:=value.Syntax,
                             type:=Nothing,
-                            constantValue:=Nothing)
+                            constantValue:=Nothing,
+                            isImplicit:=isImplicit)
                     End If
             End Select
         End Function
@@ -140,8 +144,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
             If child IsNot Nothing Then
                 Return child
             End If
-
-            Return OperationFactory.CreateInvalidExpression(_semanticModel, parent.Syntax, ImmutableArray(Of IOperation).Empty)
+            Dim isImplicit As Boolean = parent.WasCompilerGenerated
+            Return OperationFactory.CreateInvalidExpression(_semanticModel, parent.Syntax, ImmutableArray(Of IOperation).Empty, isImplicit)
         End Function
 
         Private Shared Function GetChildOfBadExpressionBoundNode(parent As BoundNode, index As Integer) As BoundNode
@@ -175,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Dim syntax As SyntaxNode = If(value.Syntax?.Parent, expression.Syntax)
                 Dim type As ITypeSymbol = target.Type
                 Dim constantValue As [Optional](Of Object) = value.ConstantValue
-                Dim assignment = New SimpleAssignmentExpression(target, value, _semanticModel, syntax, type, constantValue)
+                Dim assignment = New SimpleAssignmentExpression(target, value, _semanticModel, syntax, type, constantValue, isImplicit:=value.IsImplicit)
                 builder.Add(assignment)
             Next i
 
@@ -189,20 +193,22 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     ' so we explicitly create an IOperation node for Case-Else clause to differentiate it from Case clause.
                     Dim clauses As ImmutableArray(Of ICaseClause)
                     Dim caseStatement = boundCaseBlock.CaseStatement
+                    Dim isImplicit As Boolean = boundCaseBlock.WasCompilerGenerated
                     If caseStatement.CaseClauses.IsEmpty AndAlso caseStatement.Syntax.Kind() = SyntaxKind.CaseElseStatement Then
                         clauses = ImmutableArray.Create(Of ICaseClause)(
                                                                     New DefaultCaseClause(
                                                                         _semanticModel,
                                                                         caseStatement.Syntax,
                                                                         type:=Nothing,
-                                                                        constantValue:=Nothing))
+                                                                        constantValue:=Nothing,
+                                                                        isImplicit:=isImplicit))
                     Else
                         clauses = caseStatement.CaseClauses.SelectAsArray(Function(n) DirectCast(Create(n), ICaseClause))
                     End If
 
                     Dim body = ImmutableArray.Create(Create(boundCaseBlock.Body))
                     Dim syntax = boundCaseBlock.Syntax
-                    Return DirectCast(New SwitchCase(clauses, body, _semanticModel, syntax, type:=Nothing, constantValue:=Nothing), ISwitchCase)
+                    Return DirectCast(New SwitchCase(clauses, body, _semanticModel, syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=isImplicit), ISwitchCase)
                 End Function)
         End Function
 
@@ -242,7 +248,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
             ' ControlVariable = InitialValue
             If controlVariable IsNot Nothing Then
-                statements.Add(OperationFactory.CreateSimpleAssignmentExpressionStatement(Create(controlVariable), Create(initialValue), _semanticModel, initialValue.Syntax))
+                statements.Add(OperationFactory.CreateSimpleAssignmentExpressionStatement(Create(controlVariable), Create(initialValue), _semanticModel, initialValue.Syntax, isImplicit:=controlVariable.WasCompilerGenerated))
             End If
 
             ' T0 = LimitValue
@@ -254,7 +260,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                             _semanticModel,
                                             limitValue.Syntax,
                                             limitValue.Type,
-                                            constantValue:=Nothing), limitValue, _semanticModel, limitValue.Syntax))
+                                            constantValue:=Nothing,
+                                            isImplicit:=limitValue.IsImplicit), limitValue, _semanticModel, limitValue.Syntax, limitValue.IsImplicit))
             End If
 
             ' T1 = StepValue
@@ -266,7 +273,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                         _semanticModel,
                                         stepValue.Syntax,
                                         stepValue.Type,
-                                        constantValue:=Nothing), stepValue, _semanticModel, stepValue.Syntax))
+                                        constantValue:=Nothing,
+                                        isImplicit:=stepValue.IsImplicit), stepValue, _semanticModel, stepValue.Syntax, stepValue.IsImplicit))
             End If
 
             Return statements.ToImmutableAndFree()
@@ -294,11 +302,12 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                             _semanticModel,
                                             value.Syntax,
                                             value.Type,
-                                            constantValue:=Nothing))
+                                            constantValue:=Nothing,
+                                            isImplicit:=value.IsImplicit))
                     statements.Add(OperationFactory.CreateCompoundAssignmentExpressionStatement(
                         controlVariable, stepOperand,
                         BinaryOperatorKind.Add, controlType.IsNullableType(), False,
-                        Nothing, _semanticModel, stepValueExpression.Syntax))
+                        Nothing, _semanticModel, stepValueExpression.Syntax, value.IsImplicit))
                 End If
             End If
 
@@ -320,7 +329,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                _semanticModel,
                                limitValueOperation.Syntax,
                                limitValueOperation.Type,
-                               constantValue:=Nothing))
+                               constantValue:=Nothing,
+                               isImplicit:=limitValueOperation.IsImplicit))
 
             ' controlVariable can be a BoundBadExpression in case of error
             Dim booleanType As ITypeSymbol = controlVariable.ExpressionSymbol?.DeclaringCompilation.GetSpecialType(SpecialType.System_Boolean)
@@ -342,7 +352,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Dim relationalCode As BinaryOperatorKind =
                         If(stepValue IsNot Nothing AndAlso stepValue.ConstantValueOpt.IsNegativeNumeric, BinaryOperatorKind.GreaterThanOrEqual, BinaryOperatorKind.LessThanOrEqual)
                     Return OperationFactory.CreateBinaryOperatorExpression(
-                        relationalCode, _semanticModel.CloneOperation(Create(controlVariable)), limitValueReference, booleanType, _semanticModel, limitValueReference.Syntax, isLifted, isChecked:=False, isCompareText:=False)
+                        relationalCode, _semanticModel.CloneOperation(Create(controlVariable)), limitValueReference, booleanType, _semanticModel, limitValueReference.Syntax, isLifted, isChecked:=False, isCompareText:=False, isImplicit:=limitValueReference.IsImplicit)
                 Else
                     ' If(StepValue >= 0, ControlVariable <= LimitValue, ControlVariable >= LimitValue)
                     Dim value = Create(stepValue)
@@ -351,27 +361,29 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                 _semanticModel,
                                 value.Syntax,
                                 value.Type,
-                                constantValue:=Nothing)
+                                constantValue:=Nothing,
+                                isImplicit:=value.IsImplicit)
 
                     Dim stepRelationalCode As BinaryOperatorKind = BinaryOperatorKind.GreaterThanOrEqual
                     Dim stepConditionIsLifted = stepValue.Type.IsNullableType()
                     Dim stepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(stepRelationalCode,
                                  stepValueReference,
-                                 OperationFactory.CreateLiteralExpression(Semantics.Expression.SynthesizeNumeric(stepValueReference.Type, 0), stepValue.Type, _semanticModel, stepValue.Syntax),
+                                 OperationFactory.CreateLiteralExpression(Semantics.Expression.SynthesizeNumeric(stepValueReference.Type, 0), stepValue.Type, _semanticModel, stepValue.Syntax, stepValueReference.IsImplicit),
                                  booleanType,
                                  _semanticModel,
                                  stepValue.Syntax,
                                  stepConditionIsLifted,
                                  isChecked:=False,
-                                 isCompareText:=False)
+                                 isCompareText:=False,
+                                 isImplicit:=stepValue.WasCompilerGenerated)
 
                     Dim positiveStepRelationalCode As BinaryOperatorKind = BinaryOperatorKind.LessThanOrEqual
-                    Dim positiveStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(positiveStepRelationalCode, _semanticModel.CloneOperation(Create(controlVariable)), limitValueReference, booleanType, _semanticModel, limitValueReference.Syntax, isLifted, isChecked:=False, isCompareText:=False)
+                    Dim positiveStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(positiveStepRelationalCode, _semanticModel.CloneOperation(Create(controlVariable)), limitValueReference, booleanType, _semanticModel, limitValueReference.Syntax, isLifted, isChecked:=False, isCompareText:=False, isImplicit:=limitValueReference.IsImplicit)
 
                     Dim negativeStepRelationalCode As BinaryOperatorKind = BinaryOperatorKind.GreaterThanOrEqual
-                    Dim negativeStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(negativeStepRelationalCode, _semanticModel.CloneOperation(Create(controlVariable)), _semanticModel.CloneOperation(limitValueReference), booleanType, _semanticModel, limitValueReference.Syntax, isLifted, isChecked:=False, isCompareText:=False)
+                    Dim negativeStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(negativeStepRelationalCode, _semanticModel.CloneOperation(Create(controlVariable)), _semanticModel.CloneOperation(limitValueReference), booleanType, _semanticModel, limitValueReference.Syntax, isLifted, isChecked:=False, isCompareText:=False, isImplicit:=limitValueReference.IsImplicit)
 
-                    Return OperationFactory.CreateConditionalChoiceExpression(stepCondition, positiveStepCondition, negativeStepCondition, booleanType, _semanticModel, limitValueReference.Syntax)
+                    Return OperationFactory.CreateConditionalChoiceExpression(stepCondition, positiveStepCondition, negativeStepCondition, booleanType, _semanticModel, limitValueReference.Syntax, limitValueReference.IsImplicit)
                 End If
             End If
         End Function
@@ -402,25 +414,16 @@ Namespace Microsoft.CodeAnalysis.Semantics
                             _semanticModel,
                             syntax,
                             type:=Nothing,
-                            constantValue:=Nothing)
+                            constantValue:=Nothing,
+                            isImplicit:=False) ' Declaration is always explicit
         End Function
 
-        Private Function GetAddHandlerStatementExpression(statement As BoundAddHandlerStatement) As IOperation
+        Private Function GetAddRemoveHandlerStatementExpression(statement As BoundAddRemoveHandlerStatement) As IOperation
             Dim eventAccess As BoundEventAccess = TryCast(statement.EventAccess, BoundEventAccess)
-            Dim [event] As IEventSymbol = eventAccess?.EventSymbol
-            Dim instance = If([event] Is Nothing OrElse [event].IsStatic, Nothing, If(eventAccess IsNot Nothing, Create(eventAccess.ReceiverOpt), Nothing))
-
+            Dim eventReference = If(eventAccess Is Nothing, Nothing, CreateBoundEventAccessOperation(eventAccess))
+            Dim adds = statement.Kind = BoundKind.AddHandlerStatement
             Return New EventAssignmentExpression(
-                        [event], instance, Create(statement.Handler), adds:=True, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing)
-        End Function
-
-        Private Function GetRemoveStatementExpression(statement As BoundRemoveHandlerStatement) As IOperation
-            Dim eventAccess As BoundEventAccess = TryCast(statement.EventAccess, BoundEventAccess)
-            Dim [event] As IEventSymbol = eventAccess?.EventSymbol
-            Dim instance = If([event] Is Nothing OrElse [event].IsStatic, Nothing, If(eventAccess IsNot Nothing, Create(eventAccess.ReceiverOpt), Nothing))
-
-            Return New EventAssignmentExpression(
-                [event], instance, Create(statement.Handler), adds:=False, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing)
+                eventReference, Create(statement.Handler), adds:=adds, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=statement.WasCompilerGenerated)
         End Function
 
         Private Shared Function GetConversionKind(kind As VisualBasic.ConversionKind) As Semantics.ConversionKind

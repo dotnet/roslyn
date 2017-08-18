@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -166,13 +167,28 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+        private static string ConstantToString(object constant, bool quoteString = true)
+        {
+            switch (constant)
+            {
+                case null:
+                    return "null";
+                case string s:
+                    if (quoteString)
+                    {
+                        return @"""" + s + @"""";
+                    }
+                    return s;
+                case IFormattable formattable:
+                    return formattable.ToString(null, CultureInfo.InvariantCulture);
+                default:
+                    return constant.ToString();
+            }
+        }
+
         private void LogConstant(object constant, string header = "Constant")
         {
-            var valueStr = constant != null ? constant.ToString() : "null";
-            if (constant is string)
-            {
-                valueStr = @"""" + valueStr + @"""";
-            }
+            string valueStr = ConstantToString(constant);
 
             LogString($"{header}: {valueStr}");
         }
@@ -494,14 +510,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
         }
 
-        public override void VisitThrowStatement(IThrowStatement operation)
-        {
-            LogString(nameof(IThrowStatement));
-            LogCommonPropertiesAndNewLine(operation);
-
-            Visit(operation.ThrownObject, "ThrownObject");
-        }
-
         public override void VisitReturnStatement(IReturnStatement operation)
         {
             LogString(nameof(IReturnStatement));
@@ -515,7 +523,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(ILockStatement));
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.LockedObject, "LockedObject");
+            Visit(operation.Expression, "Expression");
             Visit(operation.Body, "Body");
         }
 
@@ -740,11 +748,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var kindStr = operation.Adds ? "EventAdd" : "EventRemove";
             LogString($"{nameof(IEventAssignmentExpression)} ({kindStr})");
-            LogSymbol(operation.Event, header: " (Event: ");
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.EventInstance, header: "Event Instance");
+            Visit(operation.EventReference, header: "Event Reference");
             Visit(operation.HandlerValue, header: "Handler");
         }
 
@@ -861,13 +868,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.IfFalseValue, "IfFalse");
         }
 
-        public override void VisitNullCoalescingExpression(INullCoalescingExpression operation)
+        public override void VisitCoalesceExpression(ICoalesceExpression operation)
         {
-            LogString(nameof(INullCoalescingExpression));
+            LogString(nameof(ICoalesceExpression));
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.PrimaryOperand, "Left");
-            Visit(operation.SecondaryOperand, "Right");
+            Visit(operation.Expression, "Expression");
+            Visit(operation.WhenNull, "WhenNull");
         }
 
         public override void VisitIsTypeExpression(IIsTypeExpression operation)
@@ -902,23 +909,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogTypeOperationExpressionCommon(operation);
         }
 
-        public override void VisitLambdaExpression(ILambdaExpression operation)
+        public override void VisitAnonymousFunctionExpression(IAnonymousFunctionExpression operation)
         {
-            LogString(nameof(ILambdaExpression));
+            LogString(nameof(IAnonymousFunctionExpression));
 
-            LogSymbol(operation.Signature, header: " (Signature");
+            LogSymbol(operation.Symbol, header: " (Symbol");
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
-            base.VisitLambdaExpression(operation);
+            base.VisitAnonymousFunctionExpression(operation);
         }
 
         public override void VisitLiteralExpression(ILiteralExpression operation)
         {
             LogString(nameof(ILiteralExpression));
 
-            object value;
-            if (operation.ConstantValue.HasValue && ((value = operation.ConstantValue.Value) == null ? "null" : value.ToString()) == operation.Text)
+            if (operation.ConstantValue.HasValue && ConstantToString(operation.ConstantValue.Value, quoteString: false) == operation.Text)
             {
                 LogString($" (Text: {operation.Text})");
             }

@@ -537,35 +537,27 @@ class C : B
           <closure offset=""0"" />
           <lambda offset=""-2"" closure=""0"" />
           <lambda offset=""41"" closure=""0"" />
-          <lambda offset=""63"" closure=""this"" />
+          <lambda offset=""63"" closure=""0"" />
           <lambda offset=""87"" closure=""1"" />
         </encLambdaMap>
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" />
         <entry offset=""0x14"" startLine=""13"" startColumn=""30"" endLine=""13"" endColumn=""43"" />
-        <entry offset=""0x27"" hidden=""true"" />
-        <entry offset=""0x2d"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" />
-        <entry offset=""0x2e"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""19"" />
-        <entry offset=""0x35"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""21"" />
-        <entry offset=""0x47"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""23"" />
-        <entry offset=""0x59"" startLine=""18"" startColumn=""9"" endLine=""18"" endColumn=""21"" />
-        <entry offset=""0x6b"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" />
+        <entry offset=""0x2e"" hidden=""true"" />
+        <entry offset=""0x34"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" />
+        <entry offset=""0x35"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""19"" />
+        <entry offset=""0x3c"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""21"" />
+        <entry offset=""0x4e"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""23"" />
+        <entry offset=""0x60"" startLine=""18"" startColumn=""9"" endLine=""18"" endColumn=""21"" />
+        <entry offset=""0x72"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x6c"">
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x6c"" attributes=""0"" />
-        <scope startOffset=""0x27"" endOffset=""0x6c"">
-          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x27"" il_end=""0x6c"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x73"">
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x73"" attributes=""0"" />
+        <scope startOffset=""0x2e"" endOffset=""0x73"">
+          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x2e"" il_end=""0x73"" attributes=""0"" />
         </scope>
       </scope>
-    </method>
-    <method containingType=""C"" name=""&lt;.ctor&gt;b__3_2"">
-      <customDebugInfo>
-        <forward declaringType=""B"" methodName="".ctor"" parameterNames=""f"" />
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""17"" startColumn=""19"" endLine=""17"" endColumn=""22"" />
-      </sequencePoints>
     </method>
     <method containingType=""C+&lt;&gt;c__DisplayClass3_0"" name=""&lt;.ctor&gt;b__0"">
       <customDebugInfo>
@@ -581,6 +573,14 @@ class C : B
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""16"" startColumn=""19"" endLine=""16"" endColumn=""20"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""C+&lt;&gt;c__DisplayClass3_0"" name=""&lt;.ctor&gt;b__2"">
+      <customDebugInfo>
+        <forward declaringType=""B"" methodName="".ctor"" parameterNames=""f"" />
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""17"" startColumn=""19"" endLine=""17"" endColumn=""22"" />
       </sequencePoints>
     </method>
     <method containingType=""C+&lt;&gt;c__DisplayClass3_1"" name=""&lt;.ctor&gt;b__3"">
@@ -1128,11 +1128,11 @@ class C
         </encLocalSlotMap>
         <encLambdaMap>
           <methodOrdinal>1</methodOrdinal>
-          <closure offset=""102"" />
           <closure offset=""41"" />
-          <lambda offset=""149"" closure=""0"" />
-          <lambda offset=""73"" closure=""1"" />
-          <lambda offset=""87"" closure=""1"" />
+          <closure offset=""102"" />
+          <lambda offset=""149"" closure=""1"" />
+          <lambda offset=""73"" closure=""0"" />
+          <lambda offset=""87"" closure=""0"" />
         </encLambdaMap>
       </customDebugInfo>
       <sequencePoints>

@@ -7364,7 +7364,8 @@ class C
         ref int i = ref [|Bar|]();
     }
 }",
-@"using System;
+@"
+using System;
 
 class C 
 {

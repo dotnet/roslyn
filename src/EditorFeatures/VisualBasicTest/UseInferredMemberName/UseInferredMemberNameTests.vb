@@ -121,7 +121,7 @@ Class C
     Sub M()
         Dim a As Integer = 1
         Dim b As Integer = 2
-        Dim t = New With { a, b }
+        Dim t = New With {a, b}
     End Sub
 End Class
 ", parseOptions:=s_parseOptions)
