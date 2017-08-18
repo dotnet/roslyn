@@ -663,5 +663,32 @@ abstract class B : A
                 .VerifyDiagnostics(
                 );
         }
+
+        [Fact]
+        public void HidingInaccessible()
+        {
+            string source1 =
+@"public class A
+{
+    private protected void F() { }
+}
+";
+            var compilation1 = CreateStandardCompilation(source1, parseOptions: TestOptions.Regular7_2);
+            compilation1.VerifyDiagnostics();
+
+            string source2 =
+@"class B : A
+{
+    new void F() { } // CS0109
+}
+";
+            CreateStandardCompilation(source2, parseOptions: TestOptions.Regular7_2,
+                references: new[] { new CSharpCompilationReference(compilation1) })
+            .VerifyDiagnostics(
+                // (3,14): warning CS0109: The member 'B.F()' does not hide an accessible member. The new keyword is not required.
+                //     new void F() { } // CS0109
+                Diagnostic(ErrorCode.WRN_NewNotRequired, "F").WithArguments("B.F()").WithLocation(3, 14)
+                );
+        }
     }
 }

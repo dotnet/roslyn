@@ -775,6 +775,45 @@ BC31404: 'Private Protected Sub F()' cannot shadow a method declared 'MustOverri
                                   ~
 </errors>)
         End Sub
+
+        <Fact>
+        Public Sub HidingInaccessible()
+            Dim source1 = <compilation>
+                              <file name="a.vb">
+                                  <![CDATA[
+Public Class A
+    Private Protected Sub F()
+    End Sub
+End Class
+]]>
+                              </file>
+                          </compilation>
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(
+                    source1,
+                    parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
+            CompilationUtils.AssertTheseDiagnostics(compilation1,
+<errors>
+</errors>)
+
+            Dim source2 = <compilation>
+                              <file name="a.vb">
+                                  <![CDATA[
+Class B
+    Inherits A
+    Shadows Sub F()
+    End Sub
+End Class
+]]>
+                              </file>
+                          </compilation>
+            Dim derivedCompilation = CreateCompilationWithMscorlibAndVBRuntime(
+                    source2,
+                    parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5),
+                    additionalRefs:={New VisualBasicCompilationReference(compilation1)})
+            CompilationUtils.AssertTheseDiagnostics(derivedCompilation,
+<errors>
+</errors>)
+        End Sub
     End Class
 End Namespace
 
