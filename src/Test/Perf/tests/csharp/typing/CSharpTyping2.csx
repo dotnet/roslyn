@@ -17,7 +17,7 @@ using static Roslyn.Test.Performance.Utilities.TestUtilities;
 
 class CSharpTyping2 : PerfTest
 {
-    private const string _rootSuffix = "RoslynPerf";
+    private const string _rootSuffix = "RoslynDev";
     private static readonly string _nugetPackagesPath = System.Environment.GetEnvironmentVariable("NUGET_PACKAGES") ??
         Path.Combine(System.Environment.GetEnvironmentVariable("UserProfile"), ".nuget", "packages");
     private static readonly string _installerPath = Path.Combine(_nugetPackagesPath, "roslyntools.microsoft.vsixexpinstaller", "0.4.0-beta", "tools", "vsixexpinstaller.exe");
@@ -51,7 +51,7 @@ class CSharpTyping2 : PerfTest
 
     public override void Test()
     {
-        InstallVsixes();
+        //InstallVsixes();
 
         var factory = new VisualStudioInstanceFactory();
         var instance = factory.GetNewOrUsedInstance(SharedIntegrationHostFixture.RequiredPackageIds);

@@ -256,7 +256,7 @@ function Test-PerfCorrectness() {
 }
 
 function Test-PerfRun() { 
-    Run-MSBuild "Roslyn.sln /p:DeployExtension=false"
+    Run-MSBuild "Roslyn.sln /p:DeployExtension=true"
 
     # Check if we have credentials to upload to benchview
     $extraArgs = @()
