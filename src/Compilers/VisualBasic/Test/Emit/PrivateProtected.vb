@@ -748,6 +748,33 @@ BC30390: 'Base.Private Protected Sub M()' is not accessible in this context beca
         ~~~~~~~
 </errors>)
         End Sub
+
+        <Fact>
+        Public Sub HidingAbstract()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+MustInherit Class A
+    Friend MustOverride Sub F()
+End Class
+MustInherit Class B
+    Inherits A
+    Private Protected Shadows Sub F()
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+                    source,
+                    parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<errors>
+BC31404: 'Private Protected Sub F()' cannot shadow a method declared 'MustOverride'.
+    Private Protected Shadows Sub F()
+                                  ~
+</errors>)
+        End Sub
     End Class
 End Namespace
 

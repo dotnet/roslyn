@@ -646,5 +646,22 @@ class Other : Base
                 Diagnostic(ErrorCode.ERR_BadProtectedAccess, "M").WithArguments("Base.M()", "Other", "Derived").WithLocation(18, 15)
                 );
         }
+
+        [Fact]
+        public void HidingAbstract()
+        {
+            var source =
+@"abstract class A
+{
+    internal abstract void F();
+}
+abstract class B : A
+{
+    private protected new void F() { } // No CS0533
+}";
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
+                .VerifyDiagnostics(
+                );
+        }
     }
 }
