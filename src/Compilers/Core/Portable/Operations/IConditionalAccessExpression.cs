@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis.Semantics
     public interface IConditionalAccessExpression : IOperation
     {
         /// <summary>
-        /// Expression to be evaluated if the conditional instance is non null.
+        /// Expression to be evaluated if <see cref="Expression"/> is non null.
         /// </summary>
         IOperation WhenNotNull { get; }
         /// <summary>
-        /// Expresson that is conditionally accessed.
+        /// Expression that is conditionally accessed.
         /// </summary>
         IOperation Expression { get; }
     }
