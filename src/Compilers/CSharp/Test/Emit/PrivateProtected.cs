@@ -72,7 +72,7 @@ public class Derived : Base
     }
 }
 ";
-            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 );
         }
@@ -96,6 +96,21 @@ public class Base
     private protected Base() { Event1?.Invoke(); }
 }";
             var baseCompilation = CreateStandardCompilation(source1, parseOptions: TestOptions.Regular7_2, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
+            var bb = (INamedTypeSymbol)baseCompilation.GlobalNamespace.GetMember("Base");
+            foreach (var member in bb.GetMembers())
+            {
+                switch (member.Name)
+                {
+                    case "Property2":
+                    case "get_Property2":
+                    case "this[]":
+                    case "get_Item":
+                        break;
+                    default:
+                        Assert.Equal(Accessibility.ProtectedAndInternal, member.DeclaredAccessibility);
+                        break;
+                }
+            }
 
             string source2 =
 @"public class Derived : Base

@@ -132,6 +132,18 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(baseCompilation,
 <errors>
 </errors>)
+            Dim bb = CType(baseCompilation.GlobalNamespace.GetMember("Base"), INamedTypeSymbol)
+            For Each member In bb.GetMembers()
+                Select Case member.Name
+                    Case "Property2", "Event1Event", "get_Property2", ".ctor"
+                        ' not expected to be private protected
+                    Case Else
+                        If Accessibility.ProtectedAndInternal <> member.DeclaredAccessibility Then
+                            Assert.Equal("private protected member", member.Name)
+                        End If
+                        Assert.Equal(Accessibility.ProtectedAndInternal, member.DeclaredAccessibility)
+                End Select
+            Next
 
             Dim source2 = <compilation>
                               <file name="a.vb">
