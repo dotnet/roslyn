@@ -1107,7 +1107,7 @@ CodeStyleOptions.QualifyEventAccess);
     public int Foo { get; set; }
     public static string Bar = nameof([|Foo|]);
 }",
-CodeStyleOptions.QualifyEventAccess);
+CodeStyleOptions.QualifyPropertyAccess);
         }
 
         [WorkItem(21519, "https://github.com/dotnet/roslyn/issues/21519")]
@@ -1118,17 +1118,46 @@ CodeStyleOptions.QualifyEventAccess);
 @"class Program
 {
     public int Foo { get; set; }
-    static void Main(string[] args)
-    {
-        System.Console.WriteLine(nameof([|Foo|]));
-    }
+    public string Bar = nameof([|Foo|]);
 }",
-CodeStyleOptions.QualifyEventAccess);
+CodeStyleOptions.QualifyPropertyAccess);
         }
 
         [WorkItem(21519, "https://github.com/dotnet/roslyn/issues/21519")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task DoNotReportToQualify_IfInStaticContext3()
+        {
+            await TestMissingAsyncWithOption(
+@"class Program
+{
+    public int Foo { get; set; }
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine(nameof([|Foo|]));
+    }
+}",
+CodeStyleOptions.QualifyPropertyAccess);
+        }
+
+        [WorkItem(21519, "https://github.com/dotnet/roslyn/issues/21519")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task DoNotReportToQualify_IfInStaticContext4()
+        {
+            await TestMissingAsyncWithOption(
+@"class Program
+{
+    public int Foo;
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine(nameof([|Foo|]));
+    }
+}",
+CodeStyleOptions.QualifyFieldAccess);
+        }
+
+        [WorkItem(21519, "https://github.com/dotnet/roslyn/issues/21519")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task DoNotReportToQualify_IfInStaticContext5()
         {
             await TestMissingAsyncWithOption(
 @"class Program
@@ -1141,23 +1170,37 @@ CodeStyleOptions.QualifyEventAccess);
         Bar = nameof([|Foo|]);
     }
 }",
+CodeStyleOptions.QualifyPropertyAccess);
+        }
+
+        [WorkItem(21519, "https://github.com/dotnet/roslyn/issues/21519")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task DoNotReportToQualify_IfInStaticContext6()
+        {
+            await TestMissingAsyncWithOption(
+@"public class Foo
+{
+    public event EventHandler Bar;
+
+    private string Field = nameof([|Bar|]);
+}",
 CodeStyleOptions.QualifyEventAccess);
         }
 
         [WorkItem(21519, "https://github.com/dotnet/roslyn/issues/21519")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
-        public async Task QualifyPropertyAccess_NameofArgument()
+        public async Task QualifyPropertyAccess_InAccessorExpressionBody()
         {
             await TestAsyncWithOption(
-@"class Program
+@"public class C
 {
-    public int Foo { get; set; }
-    public string Bar = nameof([|Foo|]);
+    public string Foo { get; set; }
+    public string Bar { get => [|Foo|]; }
 }",
-@"class Program
+@"public class C
 {
-    public int Foo { get; set; }
-    public string Bar = nameof(this.Foo);
+    public string Foo { get; set; }
+    public string Bar { get => this.Foo; }
 }",
 CodeStyleOptions.QualifyPropertyAccess);
         }

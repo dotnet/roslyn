@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.GetAccessorDeclaration:
                     {
                         var t = (AccessorDeclarationSyntax)node;
-                        builder.Add(GetDeclarationInfo(model, node, getSymbol, t.Body, cancellationToken));
+                        builder.Add(GetDeclarationInfo(model, node, getSymbol, t.Body ?? (SyntaxNode)t.ExpressionBody, cancellationToken));
                         return;
                     }
 
