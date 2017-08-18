@@ -3193,7 +3193,7 @@ struct S2
                 // (71,14): warning CS8601: Possible null reference assignment.
                 //         u9 = x9;
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x9").WithLocation(71, 14),
-                // (76,14): error CS8600: Cannot convert null to non-nullable reference.
+                // (76,14): warning CS8600: Cannot convert null to non-nullable reference.
                 //         y9 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(76, 14),
                 // (83,15): warning CS8601: Possible null reference assignment.
@@ -3223,10 +3223,10 @@ struct S2
                 // (117,15): error CS0170: Use of possibly unassigned field 'F4'
                 //         u13 = y13.F4;
                 Diagnostic(ErrorCode.ERR_UseDefViolationField, "y13.F4").WithArguments("F4").WithLocation(117, 15),
-                // (123,18): error CS8600: Cannot convert null to non-nullable reference.
+                // (123,18): warning CS8600: Cannot convert null to non-nullable reference.
                 //         y14.F3 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(123, 18),
-                // (133,18): error CS8600: Cannot convert null to non-nullable reference.
+                // (133,18): warning CS8600: Cannot convert null to non-nullable reference.
                 //         y15.F3 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(133, 18),
                 // (136,15): warning CS8601: Possible null reference assignment.
@@ -3283,7 +3283,7 @@ struct S2
                 // (291,15): warning CS8602: Possible dereference of a null reference.
                 //         z30 = x30[y30];
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x30").WithLocation(291, 15),
-                // (296,15): error CS8600: Cannot convert null to non-nullable reference.
+                // (296,15): warning CS8600: Cannot convert null to non-nullable reference.
                 //         x31 = default(CL1);
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(CL1)").WithLocation(296, 15),
                 // (301,19): hidden CS8607: Expression is probably never null.
@@ -3468,7 +3468,7 @@ class CL0
 " }, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             c.VerifyDiagnostics(
-                // (10,31): error CS8600: Cannot convert null to non-nullable reference.
+                // (10,31): warning CS8600: Cannot convert null to non-nullable reference.
                 //         var y1 = new CL0() { [null] = x1 };
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 31)
                 );
@@ -3504,7 +3504,7 @@ class CL0 : System.Collections.IEnumerable
 " }, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             c.VerifyDiagnostics(
-                // (10,30): error CS8600: Cannot convert null to non-nullable reference.
+                // (10,30): warning CS8600: Cannot convert null to non-nullable reference.
                 //         var y1 = new CL0() { null };
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 30)
                 );
@@ -5825,49 +5825,49 @@ class C
 " }, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             c.VerifyDiagnostics(
-                // (11,14): error CS8600: Cannot convert null to non-nullable reference.
+                // (11,14): warning CS8600: Cannot convert null to non-nullable reference.
                 //         u1 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 14),
                 // (16,24): warning CS8619: Nullability of reference types in value of type 'object?[]' doesn't match target type 'object[]'.
                 //         object [] u2 = new [] { null, new object() };
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new [] { null, new object() }").WithArguments("object?[]", "object[]").WithLocation(16, 24),
-                // (21,34): error CS8600: Cannot convert null to non-nullable reference.
+                // (21,34): warning CS8600: Cannot convert null to non-nullable reference.
                 //         var u3 = new object [] { null, new object() };
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(21, 34),
-                // (32,25): error CS8600: Cannot convert null to non-nullable reference.
+                // (32,25): warning CS8600: Cannot convert null to non-nullable reference.
                 //         object? [] u5 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(32, 25),
-                // (38,28): error CS8600: Cannot convert null to non-nullable reference.
+                // (38,28): warning CS8600: Cannot convert null to non-nullable reference.
                 //         object [][,]? u6 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(38, 28),
                 // (40,9): warning CS8602: Possible dereference of a null reference.
                 //         u6[0][0,0] = null;
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u6[0]").WithLocation(40, 9),
-                // (40,22): error CS8600: Cannot convert null to non-nullable reference.
+                // (40,22): warning CS8600: Cannot convert null to non-nullable reference.
                 //         u6[0][0,0] = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(40, 22),
                 // (41,9): warning CS8602: Possible dereference of a null reference.
                 //         u6[0][0,0].ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u6[0]").WithLocation(41, 9),
-                // (46,27): error CS8600: Cannot convert null to non-nullable reference.
+                // (46,27): warning CS8600: Cannot convert null to non-nullable reference.
                 //         object [][,] u7 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(46, 27),
-                // (47,17): error CS8600: Cannot convert null to non-nullable reference.
+                // (47,17): warning CS8600: Cannot convert null to non-nullable reference.
                 //         u7[0] = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(47, 17),
-                // (48,22): error CS8600: Cannot convert null to non-nullable reference.
+                // (48,22): warning CS8600: Cannot convert null to non-nullable reference.
                 //         u7[0][0,0] = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(48, 22),
                 // (54,9): warning CS8602: Possible dereference of a null reference.
                 //         u8[0] = null;
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u8").WithLocation(54, 9),
-                // (54,17): error CS8600: Cannot convert null to non-nullable reference.
+                // (54,17): warning CS8600: Cannot convert null to non-nullable reference.
                 //         u8[0] = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(54, 17),
                 // (55,9): warning CS8602: Possible dereference of a null reference.
                 //         u8[0][0,0] = null;
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u8").WithLocation(55, 9),
-                // (55,22): error CS8600: Cannot convert null to non-nullable reference.
+                // (55,22): warning CS8600: Cannot convert null to non-nullable reference.
                 //         u8[0][0,0] = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(55, 22),
                 // (56,9): warning CS8602: Possible dereference of a null reference.
@@ -5882,7 +5882,7 @@ class C
                 // (63,9): warning CS8602: Possible dereference of a null reference.
                 //         u9[0][0,0] = null;
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u9[0]").WithLocation(63, 9),
-                // (63,22): error CS8600: Cannot convert null to non-nullable reference.
+                // (63,22): warning CS8600: Cannot convert null to non-nullable reference.
                 //         u9[0][0,0] = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(63, 22),
                 // (64,9): warning CS8602: Possible dereference of a null reference.
@@ -5947,49 +5947,49 @@ class C
 " }, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             c.VerifyDiagnostics(
-                // (16,54): error CS8600: Cannot convert null to non-nullable reference.
+                // (16,54): warning CS8600: Cannot convert null to non-nullable reference.
                 //                                     new object[,]? {{null}}};
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(16, 54),
                 // (18,9): warning CS8602: Possible dereference of a null reference.
                 //         u6[0][0,0] = null;
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u6[0]").WithLocation(18, 9),
-                // (18,22): error CS8600: Cannot convert null to non-nullable reference.
+                // (18,22): warning CS8600: Cannot convert null to non-nullable reference.
                 //         u6[0][0,0] = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(18, 22),
                 // (19,9): warning CS8602: Possible dereference of a null reference.
                 //         u6[0][0,0].ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u6[0]").WithLocation(19, 9),
-                // (24,36): error CS8600: Cannot convert null to non-nullable reference.
+                // (24,36): warning CS8600: Cannot convert null to non-nullable reference.
                 //         var u7 = new object [][,] {null, 
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(24, 36),
-                // (25,52): error CS8600: Cannot convert null to non-nullable reference.
+                // (25,52): warning CS8600: Cannot convert null to non-nullable reference.
                 //                                    new object[,] {{null}}};
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(25, 52),
-                // (26,17): error CS8600: Cannot convert null to non-nullable reference.
+                // (26,17): warning CS8600: Cannot convert null to non-nullable reference.
                 //         u7[0] = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(26, 17),
-                // (27,22): error CS8600: Cannot convert null to non-nullable reference.
+                // (27,22): warning CS8600: Cannot convert null to non-nullable reference.
                 //         u7[0][0,0] = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(27, 22),
-                // (32,37): error CS8600: Cannot convert null to non-nullable reference.
+                // (32,37): warning CS8600: Cannot convert null to non-nullable reference.
                 //         var u8 = new object []?[,] {null, 
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(32, 37),
-                // (33,53): error CS8600: Cannot convert null to non-nullable reference.
+                // (33,53): warning CS8600: Cannot convert null to non-nullable reference.
                 //                                     new object[,] {{null}}};
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(33, 53),
-                // (34,17): error CS8600: Cannot convert null to non-nullable reference.
+                // (34,17): warning CS8600: Cannot convert null to non-nullable reference.
                 //         u8[0] = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(34, 17),
-                // (35,22): error CS8600: Cannot convert null to non-nullable reference.
+                // (35,22): warning CS8600: Cannot convert null to non-nullable reference.
                 //         u8[0][0,0] = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(35, 22),
-                // (42,55): error CS8600: Cannot convert null to non-nullable reference.
+                // (42,55): warning CS8600: Cannot convert null to non-nullable reference.
                 //                                      new object[,]? {{null}}};
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(42, 55),
                 // (44,9): warning CS8602: Possible dereference of a null reference.
                 //         u9[0][0,0] = null;
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u9[0]").WithLocation(44, 9),
-                // (44,22): error CS8600: Cannot convert null to non-nullable reference.
+                // (44,22): warning CS8600: Cannot convert null to non-nullable reference.
                 //         u9[0][0,0] = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(44, 22),
                 // (45,9): warning CS8602: Possible dereference of a null reference.
@@ -8915,7 +8915,7 @@ class C
 " }, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
 
             c.VerifyDiagnostics(
-                // (10,14): error CS8600: Cannot convert null to non-nullable reference.
+                // (10,14): warning CS8600: Cannot convert null to non-nullable reference.
                 //         x1 = default(C);
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(C)").WithLocation(10, 14)
                 );
@@ -11019,7 +11019,7 @@ class Test
                 // (12,9): warning CS8602: Possible dereference of a null reference.
                 //         E1();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "E1").WithLocation(12, 9),
-                // (20,12): error CS8600: Cannot convert null to non-nullable reference.
+                // (20,12): warning CS8600: Cannot convert null to non-nullable reference.
                 //         E2(null);
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(20, 12),
                 // (28,21): warning CS8601: Possible null reference assignment.
@@ -14706,7 +14706,7 @@ struct S
                 new[] { source, attributesDefinitions },
                 parseOptions: TestOptions.Regular.WithNullCheckingFeature());
             comp.VerifyDiagnostics(
-                // (7,26): error CS8600: Cannot convert null to non-nullable reference.
+                // (7,26): warning CS8600: Cannot convert null to non-nullable reference.
                 //     public S(B b) : this(null, b)
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 26));
         }
@@ -14760,13 +14760,13 @@ class Program
                 new[] { source, attributesDefinitions },
                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings).WithLanguageVersion(LanguageVersion.CSharp7_1));
             comp.VerifyDiagnostics(
-                // (11,22): error CS8600: Cannot convert null to non-nullable reference.
+                // (11,22): warning CS8600: Cannot convert null to non-nullable reference.
                 //         p.LastName = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 22),
-                // (12,22): error CS8600: Cannot convert null to non-nullable reference.
+                // (12,22): warning CS8600: Cannot convert null to non-nullable reference.
                 //         p.LastName = (string)null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "(string)null").WithLocation(12, 22),
-                // (13,22): error CS8600: Cannot convert null to non-nullable reference.
+                // (13,22): warning CS8600: Cannot convert null to non-nullable reference.
                 //         p.LastName = (string?)null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "(string?)null").WithLocation(13, 22),
                 // (14,22): warning CS8601: Possible null reference assignment.
@@ -14775,10 +14775,10 @@ class Program
                 // (15,22): warning CS8601: Possible null reference assignment.
                 //         p.LastName = null as string?;
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null as string?").WithLocation(15, 22),
-                // (16,22): error CS8600: Cannot convert null to non-nullable reference.
+                // (16,22): warning CS8600: Cannot convert null to non-nullable reference.
                 //         p.LastName = default(string);
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(string)").WithLocation(16, 22),
-                // (17,22): error CS8600: Cannot convert null to non-nullable reference.
+                // (17,22): warning CS8600: Cannot convert null to non-nullable reference.
                 //         p.LastName = default;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(17, 22),
                 // (18,23): warning CS8601: Possible null reference assignment.
@@ -14842,13 +14842,13 @@ class Program
                 new[] { source, attributesDefinitions },
                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings).WithLanguageVersion(LanguageVersion.CSharp7_1));
             comp.VerifyDiagnostics(
-                // (11,11): error CS8600: Cannot convert null to non-nullable reference.
+                // (11,11): warning CS8600: Cannot convert null to non-nullable reference.
                 //         G(null);
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 11),
-                // (12,11): error CS8600: Cannot convert null to non-nullable reference.
+                // (12,11): warning CS8600: Cannot convert null to non-nullable reference.
                 //         G((string)null);
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "(string)null").WithLocation(12, 11),
-                // (13,11): error CS8600: Cannot convert null to non-nullable reference.
+                // (13,11): warning CS8600: Cannot convert null to non-nullable reference.
                 //         G((string?)null);
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "(string?)null").WithLocation(13, 11),
                 // (14,11): warning CS8604: Possible null reference argument for parameter 'name' in 'void Program.G(string name)'.
@@ -14857,10 +14857,10 @@ class Program
                 // (15,11): warning CS8604: Possible null reference argument for parameter 'name' in 'void Program.G(string name)'.
                 //         G(null as string?);
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null as string?").WithArguments("name", "void Program.G(string name)").WithLocation(15, 11),
-                // (16,11): error CS8600: Cannot convert null to non-nullable reference.
+                // (16,11): warning CS8600: Cannot convert null to non-nullable reference.
                 //         G(default(string));
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(string)").WithLocation(16, 11),
-                // (17,11): error CS8600: Cannot convert null to non-nullable reference.
+                // (17,11): warning CS8600: Cannot convert null to non-nullable reference.
                 //         G(default);
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(17, 11),
                 // (18,12): hidden CS8605: Result of the comparison is possibly always true.
@@ -14921,13 +14921,13 @@ class Program
                 new[] { source, attributesDefinitions },
                 parseOptions: TestOptions.Regular.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings).WithLanguageVersion(LanguageVersion.CSharp7_1));
             comp.VerifyDiagnostics(
-                // (9,27): error CS8600: Cannot convert null to non-nullable reference.
+                // (9,27): warning CS8600: Cannot convert null to non-nullable reference.
                 //     static string F1() => null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(9, 27),
-                // (10,27): error CS8600: Cannot convert null to non-nullable reference.
+                // (10,27): warning CS8600: Cannot convert null to non-nullable reference.
                 //     static string F2() => (string)null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "(string)null").WithLocation(10, 27),
-                // (11,27): error CS8600: Cannot convert null to non-nullable reference.
+                // (11,27): warning CS8600: Cannot convert null to non-nullable reference.
                 //     static string F3() => (string?)null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "(string?)null").WithLocation(11, 27),
                 // (12,27): warning CS8603: Possible null reference return.
@@ -14936,10 +14936,10 @@ class Program
                 // (13,27): warning CS8603: Possible null reference return.
                 //     static string F5() => null as string?;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null as string?").WithLocation(13, 27),
-                // (14,27): error CS8600: Cannot convert null to non-nullable reference.
+                // (14,27): warning CS8600: Cannot convert null to non-nullable reference.
                 //     static string F6() => default(string);
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(string)").WithLocation(14, 27),
-                // (15,27): error CS8600: Cannot convert null to non-nullable reference.
+                // (15,27): warning CS8600: Cannot convert null to non-nullable reference.
                 //     static string F7() => default;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(15, 27),
                 // (16,36): hidden CS8605: Result of the comparison is possibly always true.
@@ -15115,7 +15115,7 @@ class Program
                 new[] { source, attributesDefinitions },
                 parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "1"));
             comp.VerifyDiagnostics(
-                // (3,26): error CS8600: Cannot convert null to non-nullable reference.
+                // (3,26): warning CS8600: Cannot convert null to non-nullable reference.
                 //     static object F() => null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 26),
                 // (4,35): warning CS8603: Possible null reference return.
@@ -15134,7 +15134,7 @@ class Program
                 new[] { source, attributesDefinitions },
                 parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "3"));
             comp.VerifyDiagnostics(
-                // (3,26): error CS8600: Cannot convert null to non-nullable reference.
+                // (3,26): warning CS8600: Cannot convert null to non-nullable reference.
                 //     static object F() => null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 26),
                 // (4,35): warning CS8603: Possible null reference return.
