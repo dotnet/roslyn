@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
         Public Sub TestPeekDefinitionWhenInvokedOnLiteral()
             Using workspace = TestWorkspace.Create(<Workspace>
                                                        <Project Language="C#" CommonReferences="true">
-                                                           <Document>class C { string s = $$"Foo"; }</Document>
+                                                           <Document>class C { string s = $$"Goo"; }</Document>
                                                        </Project>
                                                    </Workspace>)
                 Dim result = GetPeekResultCollection(workspace)

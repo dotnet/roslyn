@@ -324,7 +324,6 @@ class D
     {
         return 0;
     }
-
     private void SetProp(int value)
     {
         var v = value;
@@ -357,7 +356,6 @@ class D
     {
         return 0;
     }
-
     private void SetProp(int value)
     {
         var v = value;
@@ -395,7 +393,6 @@ class D
     {
         return 0;
     }
-
     private void SetProp(int value)
     {
         var v = value;
@@ -438,7 +435,6 @@ class D
     {
         return 0;
     }
-
     private void SetProp(int value)
     {
         var v = value;
@@ -527,7 +523,6 @@ class D
     {
         return 0;
     }
-
     private void SetProp(int value)
     {
         var v = value;
@@ -570,7 +565,6 @@ class D
     {
         return 0;
     }
-
     private void SetProp(int value)
     {
         var v = value;
@@ -645,7 +639,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Foo
+    int [||]Goo
     {
         get
         {
@@ -660,7 +654,7 @@ class D
 }",
 @"class C
 {
-    private int GetFoo()
+    private int GetGoo()
     {
         int count;
         foreach (var x in y)
@@ -1153,17 +1147,17 @@ ignoreTrivia: false);
         public async Task TestWithConditionalBinding1()
         {
             await TestInRegularAndScriptAsync(
-@"public class Foo
+@"public class Goo
 {
     public bool [||]Any { get; } // Replace 'Any' with method
 
     public static void Bar()
     {
-        var foo = new Foo();
-        bool f = foo?.Any == true;
+        var goo = new Goo();
+        bool f = goo?.Any == true;
     }
 }",
-@"public class Foo
+@"public class Goo
 {
     private readonly bool any;
 
@@ -1174,8 +1168,8 @@ ignoreTrivia: false);
 
     public static void Bar()
     {
-        var foo = new Foo();
-        bool f = foo?.GetAny() == true;
+        var goo = new Goo();
+        bool f = goo?.GetAny() == true;
     }
 }");
         }
@@ -1650,14 +1644,14 @@ internal struct AStruct
         public async Task TestExplicitInterfaceImplementation()
         {
             await TestInRegularAndScriptAsync(
-@"interface IFoo
+@"interface IGoo
 {
-    int [||]Foo { get; set; }
+    int [||]Goo { get; set; }
 }
 
-class C : IFoo
+class C : IGoo
 {
-    int IFoo.Foo
+    int IGoo.Goo
     {
         get
         {
@@ -1670,19 +1664,19 @@ class C : IFoo
         }
     }
 }",
-@"interface IFoo
+@"interface IGoo
 {
-    int GetFoo();
-    void SetFoo(int value);
+    int GetGoo();
+    void SetGoo(int value);
 }
 
-class C : IFoo
+class C : IGoo
 {
-    int IFoo.GetFoo()
+    int IGoo.GetGoo()
     {
         throw new System.NotImplementedException();
     }
-    void IFoo.SetFoo(int value)
+    void IGoo.SetGoo(int value)
     {
         throw new System.NotImplementedException();
     }

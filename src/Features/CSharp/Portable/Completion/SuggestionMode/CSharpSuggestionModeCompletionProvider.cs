@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
     internal class CSharpSuggestionModeCompletionProvider : SuggestionModeCompletionProvider
     {
         protected override async Task<CompletionItem> GetSuggestionModeItemAsync(
-            Document document, int position, TextSpan itemSpan, CompletionTrigger trigger, CancellationToken cancellationToken = default(CancellationToken))
+            Document document, int position, TextSpan itemSpan, CompletionTrigger trigger, CancellationToken cancellationToken = default)
         {
             if (trigger.Kind != CompletionTriggerKind.Snippets)
             {
@@ -169,8 +169,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
             }
 
             // async lambda: 
-            //    Foo(async($$
-            //    Foo(async(p1, $$
+            //    Goo(async($$
+            //    Goo(async(p1, $$
             if (token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken) && token.Parent.IsKind(SyntaxKind.ArgumentList)
                 && token.Parent.Parent is InvocationExpressionSyntax invocation
                 && invocation.Expression is IdentifierNameSyntax identifier)

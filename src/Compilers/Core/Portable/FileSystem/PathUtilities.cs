@@ -283,13 +283,13 @@ namespace Roslyn.Utilities
             if (!IsUnixLikePlatform)
             {
                 // "\"
-                // "\foo"
+                // "\goo"
                 if (path.Length >= 1 && IsDirectorySeparator(path[0]))
                 {
                     return PathKind.RelativeToCurrentRoot;
                 }
 
-                // "C:foo"
+                // "C:goo"
 
                 if (path.Length >= 2 && path[1] == VolumeSeparatorChar && (path.Length <= 2 || !IsDirectorySeparator(path[2])))
                 {
@@ -297,7 +297,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            // "foo.dll"
+            // "goo.dll"
             return PathKind.Relative;
         }
 
@@ -324,7 +324,7 @@ namespace Roslyn.Utilities
             }
 
             // "\\machine\share"
-            // Including invalid/incomplete UNC paths (e.g. "\\foo")
+            // Including invalid/incomplete UNC paths (e.g. "\\goo")
             return path.Length >= 2 &&
                 IsDirectorySeparator(path[0]) &&
                 IsDirectorySeparator(path[1]);
@@ -428,13 +428,13 @@ namespace Roslyn.Utilities
 
         /// <summary>
         /// Determines if "path" contains 'component' within itself.
-        /// i.e. asking if the path "c:\foo\bar\baz" has component "bar" would return 'true'.
-        /// On the other hand, if you had "c:\foo\bar1\baz" then it would not have "bar" as a
+        /// i.e. asking if the path "c:\goo\bar\baz" has component "bar" would return 'true'.
+        /// On the other hand, if you had "c:\goo\bar1\baz" then it would not have "bar" as a
         /// component.
         /// 
         /// A path contains a component if any file name or directory name in the path
-        /// matches 'component'.  As such, if you had something like "\\foo" then that would
-        /// not have "foo" as a component. That's because here "foo" is the server name portion
+        /// matches 'component'.  As such, if you had something like "\\goo" then that would
+        /// not have "goo" as a component. That's because here "goo" is the server name portion
         /// of the UNC path, and not an actual directory or file name.
         /// </summary>
         public static bool ContainsPathComponent(string path, string component, bool ignoreCase)

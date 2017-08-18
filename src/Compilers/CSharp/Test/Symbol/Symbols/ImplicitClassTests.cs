@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var c = CreateCompilation(@"
 namespace N
 {
-    void Foo()
+    void Goo()
     {
     }
 }
@@ -48,7 +48,7 @@ namespace N
         {
             var c = CreateStandardCompilation(@"
 base.ToString();
-void Foo()
+void Goo()
 {
 }
 ", parseOptions: TestOptions.Script);
@@ -92,7 +92,7 @@ event System.Action e;
             var comp = CreateStandardCompilation(@"
 namespace N::A
 {
-    void Foo()
+    void Goo()
     {
     }
 }
@@ -103,8 +103,8 @@ namespace N::A
                 // namespace N::A
                 Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "N::A"),
                 // (4,10): error CS0116: A namespace does not directly contain members such as fields or methods
-                //     void Foo()
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Foo"));
+                //     void Goo()
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Goo"));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -113,7 +113,7 @@ namespace N::A
             var methodDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
 
             Assert.Equal("A", model.GetDeclaredSymbol(namespaceDecl).Name);
-            Assert.Equal("Foo", model.GetDeclaredSymbol(methodDecl).Name);
+            Assert.Equal("Goo", model.GetDeclaredSymbol(methodDecl).Name);
         }
     }
 }

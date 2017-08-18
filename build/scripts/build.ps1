@@ -344,6 +344,13 @@ function Test-XUnit() {
         $args += " -trait:Feature=NetCore"
     }
 
+    # Exclude out the multi-targetted netcore app projects
+    $dlls = $dlls | ?{ -not ($_.FullName -match ".*netcoreapp.*") }
+
+    # Exclude out the ref assemblies
+    $dlls = $dlls | ?{ -not ($_.FullName -match ".*\\ref\\.*") }
+    $dlls = $dlls | ?{ -not ($_.FullName -match ".*/ref/.*") }
+
     if ($cibuild) {
         # Use a 50 minute timeout on CI
         $args += " -xml -timeout:50"
@@ -445,7 +452,7 @@ function Ensure-ProcDump() {
         Remove-Item -Re $filePath -ErrorAction SilentlyContinue
         Create-Directory $outDir 
         $zipFilePath = Join-Path $toolsDir "procdump.zip"
-        Invoke-WebRequest "https://download.sysinternals.com/files/Procdump.zip" -outfile $zipFilePath | Out-Null
+        Invoke-WebRequest "https://download.sysinternals.com/files/Procdump.zip" -UseBasicParsing -outfile $zipFilePath | Out-Null
         Add-Type -AssemblyName System.IO.Compression.FileSystem
         [IO.Compression.ZipFile]::ExtractToDirectory($zipFilePath, $outDir)
     }

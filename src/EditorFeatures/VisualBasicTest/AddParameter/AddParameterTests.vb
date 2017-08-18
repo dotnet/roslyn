@@ -179,7 +179,8 @@ class D
     sub M()
         dim a = new C(1, true)
     end sub
-end class")
+end class
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
@@ -209,7 +210,8 @@ class D
     sub M()
         dim a = new C(true, 1)
     end sub
-end class")
+end class
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
@@ -239,7 +241,7 @@ class C
                    j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(true, 0, [|0|])
     end sub
 end class",
@@ -250,7 +252,7 @@ class C
                    j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(true, 0, 0)
     end sub
 end class",
@@ -267,7 +269,7 @@ class C
                    j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, true, [|0|])
     end sub
 end class",
@@ -278,7 +280,7 @@ class C
                    j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, true, 0)
     end sub
 end class",
@@ -295,7 +297,7 @@ class C
                    j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, 0, [|true|])
     end sub
 end class",
@@ -306,7 +308,7 @@ class C
                    v As Boolean)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, 0, true)
     end sub
 end class",
@@ -324,7 +326,7 @@ class C
         j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(true, 0, [|0|])
     end sub
 end class",
@@ -336,7 +338,7 @@ class C
         j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(true, 0, 0)
     end sub
 end class",
@@ -354,7 +356,7 @@ class C
         j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, true, [|0|])
     end sub
 end class",
@@ -366,7 +368,7 @@ class C
         j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, true, 0)
     end sub
 end class",
@@ -384,7 +386,7 @@ class C
         j as integer)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, 0, [|true|])
     end sub
 end class",
@@ -396,7 +398,7 @@ class C
         v As Boolean)
     end sub
 
-    private sub Foo()
+    private sub Goo()
         dim x = new C(0, 0, true)
     end sub
 end class",

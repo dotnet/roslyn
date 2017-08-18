@@ -1479,20 +1479,20 @@ class Program
 {
     static void Main(string[] args)
     {
-        Foo f1 = new Foo(), f2 = new Foo(), f3 = new Foo();
+        Goo f1 = new Goo(), f2 = new Goo(), f3 = new Goo();
         bool b = true;
-        f3 = b ? f1 = new Foo { i = 1 } : f2 = new Foo { i = 2 };
+        f3 = b ? f1 = new Goo { i = 1 } : f2 = new Goo { i = 2 };
         Console.WriteLine(f1.i);
         Console.WriteLine(f2.i);
         Console.WriteLine(f3.i);
         b = false;
-        f3 = b ? f1 = new Foo { i = 3 } : f2 = new Foo { i = 4 };
+        f3 = b ? f1 = new Goo { i = 3 } : f2 = new Goo { i = 4 };
         Console.WriteLine(f1.i);
         Console.WriteLine(f2.i);
         Console.WriteLine(f3.i);
     }
 }
-class Foo
+class Goo
 {
     public int i;
 }
@@ -1517,19 +1517,19 @@ class Program
     {
         bool b1 = true;
         bool b2 = false;
-        Foo f = new Foo
+        Goo f = new Goo
         {
             i = b1 ? 10 : -10
         };
         Console.WriteLine(f.i);
-        f = new Foo
+        f = new Goo
         {
             i = b2 ? 10 : -10
         };
         Console.WriteLine(f.i);
     }
 }
-class Foo
+class Goo
 {
     public int i;
 }
@@ -1995,18 +1995,18 @@ public static class Program
     public static void Main()
     {
         int a = 1;
-        IFoo<string> i = null;
-        FooVal e = new FooVal();
+        IGoo<string> i = null;
+        GooVal e = new GooVal();
 
         i = a > 1 ? i : e;
-        System.Console.Write(i.Foo());
+        System.Console.Write(i.Goo());
     }
 
-    interface IFoo<T> { T Foo(); }
+    interface IGoo<T> { T Goo(); }
 
-    struct FooVal : IFoo<string>
+    struct GooVal : IGoo<string>
     {
-        public string Foo() { return ""Val ""; }
+        public string Goo() { return ""Val ""; }
     }
 }";
             string expectedOutput = @"Val ";
@@ -2014,25 +2014,25 @@ public static class Program
 {
   // Code size       38 (0x26)
   .maxstack  2
-  .locals init (Program.IFoo<string> V_0, //i
-  Program.FooVal V_1, //e
-  Program.IFoo<string> V_2)
+  .locals init (Program.IGoo<string> V_0, //i
+  Program.GooVal V_1, //e
+  Program.IGoo<string> V_2)
   IL_0000:  ldc.i4.1
   IL_0001:  ldnull
   IL_0002:  stloc.0
   IL_0003:  ldloca.s   V_1
-  IL_0005:  initobj    ""Program.FooVal""
+  IL_0005:  initobj    ""Program.GooVal""
   IL_000b:  ldc.i4.1
   IL_000c:  bgt.s      IL_0018
   IL_000e:  ldloc.1
-  IL_000f:  box        ""Program.FooVal""
+  IL_000f:  box        ""Program.GooVal""
   IL_0014:  stloc.2
   IL_0015:  ldloc.2
   IL_0016:  br.s       IL_0019
   IL_0018:  ldloc.0
   IL_0019:  stloc.0
   IL_001a:  ldloc.0
-  IL_001b:  callvirt   ""string Program.IFoo<string>.Foo()""
+  IL_001b:  callvirt   ""string Program.IGoo<string>.Goo()""
   IL_0020:  call       ""void System.Console.Write(string)""
   IL_0025:  ret
 }";
@@ -2047,23 +2047,23 @@ public static class Program
 {
     public static void Main()
     {
-        IFoo<string> i = null;
-        FooVal e = new FooVal();
-        FooVal? n = e;
+        IGoo<string> i = null;
+        GooVal e = new GooVal();
+        GooVal? n = e;
 
         i = i ?? e;
-        System.Console.Write(i.Foo());
+        System.Console.Write(i.Goo());
 
         i = null;
         i = n ?? i;
-        System.Console.Write(i.Foo());
+        System.Console.Write(i.Goo());
     }
 
-    interface IFoo<T> { T Foo(); }
+    interface IGoo<T> { T Goo(); }
 
-    struct FooVal : IFoo<string>
+    struct GooVal : IGoo<string>
     {
-        public string Foo() { return ""Val ""; }
+        public string Goo() { return ""Val ""; }
     }
 }";
             string expectedOutput = @"Val Val ";
@@ -2071,42 +2071,42 @@ public static class Program
 {
   // Code size       81 (0x51)
   .maxstack  3
-  .locals init (Program.IFoo<string> V_0, //i
-  Program.FooVal V_1, //e
-  Program.FooVal? V_2,
-  Program.IFoo<string> V_3)
+  .locals init (Program.IGoo<string> V_0, //i
+  Program.GooVal V_1, //e
+  Program.GooVal? V_2,
+  Program.IGoo<string> V_3)
   IL_0000:  ldnull
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_1
-  IL_0004:  initobj    ""Program.FooVal""
+  IL_0004:  initobj    ""Program.GooVal""
   IL_000a:  ldloc.1
-  IL_000b:  newobj     ""Program.FooVal?..ctor(Program.FooVal)""
+  IL_000b:  newobj     ""Program.GooVal?..ctor(Program.GooVal)""
   IL_0010:  ldloc.0
   IL_0011:  dup
   IL_0012:  brtrue.s   IL_001b
   IL_0014:  pop
   IL_0015:  ldloc.1
-  IL_0016:  box        ""Program.FooVal""
+  IL_0016:  box        ""Program.GooVal""
   IL_001b:  stloc.0
   IL_001c:  ldloc.0
-  IL_001d:  callvirt   ""string Program.IFoo<string>.Foo()""
+  IL_001d:  callvirt   ""string Program.IGoo<string>.Goo()""
   IL_0022:  call       ""void System.Console.Write(string)""
   IL_0027:  ldnull
   IL_0028:  stloc.0
   IL_0029:  stloc.2
   IL_002a:  ldloca.s   V_2
-  IL_002c:  call       ""bool Program.FooVal?.HasValue.get""
+  IL_002c:  call       ""bool Program.GooVal?.HasValue.get""
   IL_0031:  brtrue.s   IL_0036
   IL_0033:  ldloc.0
   IL_0034:  br.s       IL_0044
   IL_0036:  ldloca.s   V_2
-  IL_0038:  call       ""Program.FooVal Program.FooVal?.GetValueOrDefault()""
-  IL_003d:  box        ""Program.FooVal""
+  IL_0038:  call       ""Program.GooVal Program.GooVal?.GetValueOrDefault()""
+  IL_003d:  box        ""Program.GooVal""
   IL_0042:  stloc.3
   IL_0043:  ldloc.3
   IL_0044:  stloc.0
   IL_0045:  ldloc.0
-  IL_0046:  callvirt   ""string Program.IFoo<string>.Foo()""
+  IL_0046:  callvirt   ""string Program.IGoo<string>.Goo()""
   IL_004b:  call       ""void System.Console.Write(string)""
   IL_0050:  ret
 }";

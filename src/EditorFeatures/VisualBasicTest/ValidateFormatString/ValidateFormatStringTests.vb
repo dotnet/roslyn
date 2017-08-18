@@ -267,13 +267,13 @@ End Class")
         Public Async Function FormatMethodOnGenericIdentifier() As Task
             Await TestDiagnosticMissingAsync("
 Class G(Of T)
-    Function Format(Of T)(foo as String)
+    Function Format(Of T)(goo as String)
         Return True
     End Function
 End Class
 
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim q As G(Of Integer)
         q.Format(Of Integer)(""TestStr[||]ing"")
     End Sub

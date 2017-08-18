@@ -817,8 +817,8 @@ class C
     {
         var customers = new List<Customer>();
         var expr = from c in customers
-                   where c.City == ""London""
-                   select c;
+                                     where c.City == ""London""
+                                     select c;
     }
 
     private class Customer

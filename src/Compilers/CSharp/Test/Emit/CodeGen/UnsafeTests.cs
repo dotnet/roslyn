@@ -138,10 +138,10 @@ unsafe class C
         S2* p2 = &s.s;
         int* p3 = &s.s.x;
 
-        Foo(s, p1, p2, p3);
+        Goo(s, p1, p2, p3);
     }
 
-    void Foo(S1 s, S1* p1, S2* p2, int* p3) { }
+    void Goo(S1 s, S1* p1, S2* p2, int* p3) { }
 }
 
 struct S1
@@ -180,7 +180,7 @@ struct S2
   IL_001d:  ldloc.1
   IL_001e:  ldloc.2
   IL_001f:  ldloc.3
-  IL_0020:  call       ""void C.Foo(S1, S1*, S2*, int*)""
+  IL_0020:  call       ""void C.Goo(S1, S1*, S2*, int*)""
   IL_0025:  ret
 }
 ");
@@ -195,10 +195,10 @@ unsafe class C
     static void M()
     {
         int x = 123;
-        Foo(&x); // should not optimize into 'Foo(&123)'
+        Goo(&x); // should not optimize into 'Goo(&123)'
     }
 
-    static void Foo(int* p) { }
+    static void Goo(int* p) { }
 }
 ";
             var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll);
@@ -211,7 +211,7 @@ unsafe class C
   IL_0002:  stloc.0
   IL_0003:  ldloca.s   V_0
   IL_0005:  conv.u
-  IL_0006:  call       ""void C.Foo(int*)""
+  IL_0006:  call       ""void C.Goo(int*)""
   IL_000b:  ret
 }
 ");
@@ -8179,11 +8179,11 @@ class Program
 {
     static void Main()
     {
-        Foo(x => { });
+        Goo(x => { });
     }
 
-    static void Foo(F1 f) { Console.WriteLine(1); }
-    static void Foo(F2 f) { Console.WriteLine(2); }
+    static void Goo(F1 f) { Console.WriteLine(1); }
+    static void Goo(F2 f) { Console.WriteLine(2); }
 }
 
 unsafe delegate void F1(int* x);
@@ -8493,6 +8493,7 @@ unsafe public struct FixedStruct
 ");
         }
 
+        [Fact]
         public void FixedBufferAndStatementWithFixedArrayElementAsInitializerExe()
         {
             var text = @"
@@ -8569,7 +8570,7 @@ using System.Collections.Generic;
 
 unsafe class C<T> where T : struct
 {
-    public void Foo()
+    public void Goo()
     {
         Func<T, char> d = delegate
         {
@@ -8589,7 +8590,7 @@ class A
 {
     static void Main()
     {
-        new C<int>().Foo();
+        new C<int>().Goo();
     }
 }
 ";

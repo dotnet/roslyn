@@ -68,10 +68,10 @@ End Namespace");
         {
             VisualStudio.Editor.SetText(@"
 Imports System
-Class Foo
+Class Goo
     Inherits Attribute
 End Class");
-            VisualStudio.Editor.PlaceCaret("Foo");
+            VisualStudio.Editor.PlaceCaret("Goo");
             VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "class name");
             VisualStudio.Editor.PlaceCaret("Attribute");
             VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "class name");

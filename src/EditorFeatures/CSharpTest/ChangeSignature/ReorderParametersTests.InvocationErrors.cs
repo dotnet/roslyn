@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
 using System;
 class MyClass$$
 {
-    public void Foo(int x, string y)
+    public void Goo(int x, string y)
     {
     }
 }";
@@ -33,7 +33,7 @@ class MyClass
 {
     int t$$ = 2;
 
-    public void Foo(int x, string y)
+    public void Goo(int x, string y)
     {
     }
 }";

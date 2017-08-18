@@ -40,7 +40,8 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null && a == program.a;
+        return program != null &&
+               a == program.a;
     }
 }");
         }
@@ -72,7 +73,8 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null && EqualityComparer<S>.Default.Equals(a, program.a);
+        return program != null &&
+               EqualityComparer<S>.Default.Equals(a, program.a);
     }
 }");
         }
@@ -104,7 +106,8 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null && a.Equals(program.a);
+        return program != null &&
+               a.Equals(program.a);
     }
 }");
         }
@@ -128,7 +131,8 @@ class ReallyLongName
     public override bool Equals(object obj)
     {
         var name = obj as ReallyLongName;
-        return name != null && a == name.a;
+        return name != null &&
+               a == name.a;
     }
 }");
         }
@@ -152,7 +156,8 @@ class ReallyLongLong
     public override bool Equals(object obj)
     {
         var @long = obj as ReallyLongLong;
-        return @long != null && a == @long.a;
+        return @long != null &&
+               a == @long.a;
     }
 }");
         }
@@ -180,7 +185,9 @@ class ReallyLongName
     public override bool Equals(object obj)
     {
         var name = obj as ReallyLongName;
-        return name != null && a == name.a && B == name.B;
+        return name != null &&
+               a == name.a &&
+               B == name.B;
     }
 }");
         }
@@ -208,7 +215,8 @@ class Program : Base
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null && i == program.i;
+        return program != null &&
+               i == program.i;
     }
 }");
         }
@@ -304,8 +312,10 @@ class Program : Middle
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null && base.Equals(obj) &&
-               i == program.i && S == program.S;
+        return program != null &&
+               base.Equals(obj) &&
+               i == program.i &&
+               S == program.S;
     }
 }");
         }
@@ -338,7 +348,8 @@ struct ReallyLongName
         }
 
         var name = (ReallyLongName)obj;
-        return i == name.i && S == name.S;
+        return i == name.i &&
+               S == name.S;
     }
 }");
         }
@@ -1033,11 +1044,8 @@ class Program
                s == program.s;
     }
 
-    public static bool operator ==(Program program1, Program program2)
-        => EqualityComparer<Program>.Default.Equals(program1, program2);
-
-    public static bool operator !=(Program program1, Program program2)
-        => !(program1 == program2);
+    public static bool operator ==(Program program1, Program program2) => EqualityComparer<Program>.Default.Equals(program1, program2);
+    public static bool operator !=(Program program1, Program program2) => !(program1 == program2);
 }",
 chosenSymbols: null,
 optionsCallback: options => EnableOption(options, GenerateOperatorsId),
@@ -1240,7 +1248,7 @@ public class Class1
     int i;
     [||]
 
-    public void Foo()
+    public void F()
     {
     }
 }
@@ -1258,7 +1266,7 @@ public class Class1
         return @class != null;
     }
 
-    public void Foo()
+    public void F()
     {
     }
 
@@ -1266,7 +1274,8 @@ public class Class1
     {
         return 0;
     }
-}",
+}
+        ",
 chosenSymbols: new string[] { },
 index: 1);
         }

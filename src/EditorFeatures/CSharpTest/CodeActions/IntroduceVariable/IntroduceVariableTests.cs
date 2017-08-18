@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         Bar([|1 + 1|]);
         Bar(1 + 1);
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
 }",
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         const int {|Rename:V|} = 1 + 1;
         Bar(V);
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         Bar([|1 + 1|]);
         Bar(1 + 1);
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
 }",
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         const int {|Rename:V|} = 1 + 1;
         Bar(V);
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             var code =
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         Bar(([|1 + 1|]));
         Bar((1 + 1));
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             var expected =
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         const int {|Rename:V|} = 1 + 1;
         Bar(V);
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             var code =
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         Bar(([|1 + 1|]));
         Bar((1 + 1));
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             var expected =
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         const int {|Rename:V|} = 1 + 1;
         Bar(V);
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    [Foo([|1 + 1|], 1 + 1)]
+    [Goo([|1 + 1|], 1 + 1)]
     void Bar()
     {
     }
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
 {
     private const int {|Rename:V|} = 1 + 1;
 
-    [Foo(V, 1 + 1)]
+    [Goo(V, 1 + 1)]
     void Bar()
     {
     }
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    [Foo([|1 + 1|], 1 + 1)]
+    [Goo([|1 + 1|], 1 + 1)]
     void Bar()
     {
     }
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
 {
     private const int {|Rename:V|} = 1 + 1;
 
-    [Foo(V, V)]
+    [Goo(V, V)]
     void Bar()
     {
     }
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         int V = 0;
         Bar([|1 + 1|]);
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
 }",
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         int V = 0;
         const int {|Rename:V1|} = 1 + 1;
@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
 {
     static int Baz;
 
-    void Foo()
+    void Goo()
     {
         Bar([|C.Baz|]);
         Bar(1 + 1);
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
 {
     static int Baz;
 
-    void Foo()
+    void Goo()
     {
         var {|Rename:baz|} = C.Baz;
         Bar(baz);
@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
 {
     static int Baz;
 
-    void Foo()
+    void Goo()
     {
         Bar([|C.Baz|]);
         Bar(1 + 1);
@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
 {
     static int Baz;
 
-    void Foo()
+    void Goo()
     {
         int {|Rename:baz|} = C.Baz;
         Bar(baz);
@@ -760,7 +760,7 @@ class Program
 {
     static void Main<T>(string[] args)
     {
-        Foo([|(T)2.ToString()|]);
+        Goo([|(T)2.ToString()|]);
     }
 }",
 @"using System;
@@ -772,7 +772,7 @@ class Program
     static void Main<T>(string[] args)
     {
         var {|Rename:t|} = (T)2.ToString();
-        Foo(t);
+        Goo(t);
     }
 }",
 options: ImplicitTypingEverywhere());
@@ -791,7 +791,7 @@ class Program
 {
     static void Main<T>(string[] args)
     {
-        Foo([|(T)2.ToString()|]);
+        Goo([|(T)2.ToString()|]);
     }
 }",
 count: 2);
@@ -865,28 +865,28 @@ index: 2);
         public async Task TestFieldConstant()
         {
             await TestInRegularAndScriptAsync(
-@"[Foo(2 + 3 + 4)]
+@"[Goo(2 + 3 + 4)]
 class Program
 {
     int x = [|2 + 3|] + 4;
 }
 
-internal class FooAttribute : System.Attribute
+internal class GooAttribute : System.Attribute
 {
-    public FooAttribute(int x)
+    public GooAttribute(int x)
     {
     }
 }",
-@"[Foo(V + 4)]
+@"[Goo(V + 4)]
 class Program
 {
     private const int {|Rename:V|} = 2 + 3;
     int x = V + 4;
 }
 
-internal class FooAttribute : System.Attribute
+internal class GooAttribute : System.Attribute
 {
-    public FooAttribute(int x)
+    public GooAttribute(int x)
     {
     }
 }",
@@ -1384,7 +1384,7 @@ class TestAttribute : Attribute
 }
 
 [Test([|a|]: 1)]
-class Foo
+class Goo
 {
 }");
         }
@@ -1473,7 +1473,7 @@ class C
     void Main()
     {
 #line default
-        Foo([|1 + 1|]);
+        Goo([|1 + 1|]);
     }
 }", new TestParameters(Options.Regular));
         }
@@ -1488,7 +1488,7 @@ class Program
 #line default
     void Main()
     {
-        Foo([|1 + 1|]);
+        Goo([|1 + 1|]);
     }
 #line hidden
 }
@@ -1500,7 +1500,7 @@ class Program
     void Main()
     {
         const int {|Rename:V|} = 1 + 1;
-        Foo(V);
+        Goo(V);
     }
 #line hidden
 }
@@ -1525,7 +1525,7 @@ ignoreTrivia: false);
         public async Task TestMissingInAttributeInPartiallyHiddenType()
         {
             await TestMissingAsync(
-@"[Foo([|1 + 1|])]
+@"[Goo([|1 + 1|])]
 class Program
 {
 #line hidden
@@ -1670,7 +1670,7 @@ parseOptions: Options.Regular);
 {
     void Main()
     {
-#line 1 ""foo""
+#line 1 ""goo""
         Console.WriteLine([|5|]);
 #line default
 #line hidden
@@ -1687,7 +1687,7 @@ class Program
 {
     void Main ( )
     {
-#line 1 ""foo""
+#line 1 ""goo""
         if (true)
         {
             Console.WriteLine([|5|]);
@@ -1705,7 +1705,7 @@ class Program
 {
     void Main ( )
     {
-#line 1 ""foo""
+#line 1 ""goo""
         if (true)
         {
             const int {|Rename:V|} = 5;
@@ -1724,7 +1724,7 @@ class Program
 @"
 class Program
 {
-#line 1 ""foo""
+#line 1 ""goo""
     void Main ( )
     {
         if (true)
@@ -1785,7 +1785,7 @@ public class Button
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         var s2 = [|""Hello""|] + ""World"";
     }
@@ -1794,7 +1794,7 @@ public class Button
 {
     private const string {|Rename:V|} = ""Hello"";
 
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         var s2 = V + ""World"";
     }
@@ -1808,7 +1808,7 @@ public class Button
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         var s2 = [|""Hello""|] + ""World"";
     }
@@ -1817,7 +1817,7 @@ public class Button
 {
     private const string {|Rename:V|} = ""Hello"";
 
-    void foo(string s = V)
+    void goo(string s = V)
     {
         var s2 = V + ""World"";
     }
@@ -1832,14 +1832,14 @@ index: 1);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         var s2 = [|""Hello""|] + ""World"";
     }
 }",
 @"class C
 {
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         const string {|Rename:V|} = ""Hello"";
         var s2 = V + ""World"";
@@ -1855,14 +1855,14 @@ index: 2);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         var s2 = [|""Hello""|] + ""World"";
     }
 }",
 @"class C
 {
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         const string {|Rename:V|} = ""Hello"";
         var s2 = V + ""World"";
@@ -1878,7 +1878,7 @@ index: 3);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         const string s1 = ""World"";
         var s2 = [|""Hello"" + s1|];
@@ -1886,7 +1886,7 @@ index: 3);
 }",
 @"class C
 {
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         const string s1 = ""World"";
         const string {|Rename:V|} = ""Hello"" + s1;
@@ -1902,7 +1902,7 @@ index: 3);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         const string s1 = ""World"";
         var s2 = [|""Hello"" + s1|];
@@ -1910,7 +1910,7 @@ index: 3);
 }",
 @"class C
 {
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         const string s1 = ""World"";
         const string {|Rename:V|} = ""Hello"" + s1;
@@ -1929,7 +1929,7 @@ index: 1);
 {
     const string s1 = ""World"";
 
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         var s2 = [|""Hello"" + s1|];
     }
@@ -1939,7 +1939,7 @@ index: 1);
     const string s1 = ""World"";
     private const string {|Rename:V|} = ""Hello"" + s1;
 
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         var s2 = V;
     }
@@ -1955,7 +1955,7 @@ index: 1);
 {
     const string s1 = ""World"";
 
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         var s2 = [|""Hello"" + s1|];
     }
@@ -1965,7 +1965,7 @@ index: 1);
     const string s1 = ""World"";
     private const string {|Rename:V|} = ""Hello"" + s1;
 
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         var s2 = V;
     }
@@ -1982,7 +1982,7 @@ index: 1);
 {
     const string s1 = ""World"";
 
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         var s2 = [|""Hello"" + s1|];
     }
@@ -1991,7 +1991,7 @@ index: 1);
 {
     const string s1 = ""World"";
 
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         const string {|Rename:V|} = ""Hello"" + s1;
         var s2 = V;
@@ -2009,7 +2009,7 @@ index: 2);
 {
     const string s1 = ""World"";
 
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         var s2 = [|""Hello"" + s1|];
     }
@@ -2018,7 +2018,7 @@ index: 2);
 {
     const string s1 = ""World"";
 
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         const string {|Rename:V|} = ""Hello"" + s1;
         var s2 = V;
@@ -2043,11 +2043,11 @@ static class C
     static void Outer(Action<string> x, object y) { Console.WriteLine(1); }
     static void Outer(Action<int> x, string y) { Console.WriteLine(2); }
 
-    static T Foo<T>(T x) { return x; }
+    static T Goo<T>(T x) { return x; }
 
     static void Main()
     {
-        Outer(y => Inner(x => { [|Foo(x)|].ToString(); }, y), null);
+        Outer(y => Inner(x => { [|Goo(x)|].ToString(); }, y), null);
     }
 }",
 
@@ -2062,11 +2062,11 @@ static class C
     static void Outer(Action<string> x, object y) { Console.WriteLine(1); }
     static void Outer(Action<int> x, string y) { Console.WriteLine(2); }
 
-    static T Foo<T>(T x) { return x; }
+    static T Goo<T>(T x) { return x; }
 
     static void Main()
     {
-        Outer(y => Inner(x => { var {|Rename:v|} = Foo(x); v.ToString(); }, y), null);
+        Outer(y => Inner(x => { var {|Rename:v|} = Goo(x); v.ToString(); }, y), null);
     }
 }",
 
@@ -2089,11 +2089,11 @@ static class C
     static void Outer(Action<string> x, object y) { Console.WriteLine(1); }
     static void Outer(Action<int> x, string y) { Console.WriteLine(2); }
 
-    static T Foo<T>(T x) { return x; }
+    static T Goo<T>(T x) { return x; }
 
     static void Main()
     {
-        Outer(y => Inner(x => { [|Foo(x)|].ToString(); }, y), null);
+        Outer(y => Inner(x => { [|Goo(x)|].ToString(); }, y), null);
     }
 }",
 
@@ -2108,11 +2108,11 @@ static class C
     static void Outer(Action<string> x, object y) { Console.WriteLine(1); }
     static void Outer(Action<int> x, string y) { Console.WriteLine(2); }
 
-    static T Foo<T>(T x) { return x; }
+    static T Goo<T>(T x) { return x; }
 
     static void Main()
     {
-        Outer(y => Inner(x => { string {|Rename:v|} = Foo(x); v.ToString(); }, y), (object)null);
+        Outer(y => Inner(x => { string {|Rename:v|} = Goo(x); v.ToString(); }, y), (object)null);
     }
 }",
 ignoreTrivia: false);
@@ -2130,11 +2130,11 @@ class Program
     static void Main()
     {
         byte z = 0;
-        Foo([|x => 0|], y => 0, z, z);
+        Goo([|x => 0|], y => 0, z, z);
     }
 
-    static void Foo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
-    static void Foo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
+    static void Goo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
+    static void Goo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
 }",
 
 @"using System;
@@ -2145,11 +2145,11 @@ class Program
     {
         byte z = 0;
         Func<byte, byte> {|Rename:p|} = x => 0;
-        Foo<byte, byte>(p, y => 0, z, z);
+        Goo<byte, byte>(p, y => 0, z, z);
     }
 
-    static void Foo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
-    static void Foo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
+    static void Goo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
+    static void Goo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
 }",
 
 ignoreTrivia: false);
@@ -2208,7 +2208,8 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<int, int> f = x => {
+        Func<int, int> f = x =>
+        {
             var {|Rename:v|} = x + 1;
             return v;
         };
@@ -2237,7 +2238,8 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<int, Func<int, int>> f = x => {
+        Func<int, Func<int, int>> f = x =>
+        {
             var {|Rename:v|} = x + 1;
             return y => v;
         };
@@ -2266,7 +2268,8 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<int, Func<int, int>> f = x => y => {
+        Func<int, Func<int, int>> f = x => y =>
+        {
             var {|Rename:v|} = y + 1;
             return v;
         };
@@ -2321,7 +2324,8 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<int, Func<int, int>> f = x => {
+        Func<int, Func<int, int>> f = x =>
+        {
             Func<int, int> {|Rename:p|} = y => x + 1;
             return p;
         };
@@ -2340,7 +2344,7 @@ class Program
 {
     void M()
     {
-        Action<int> foo = x => [|x.Foo|];
+        Action<int> goo = x => [|x.Goo|];
     }
 }",
 @"using System;
@@ -2349,8 +2353,9 @@ class Program
 {
     void M()
     {
-        Action<int> foo = x => {
-            object {|Rename:foo1|} = x.Foo;
+        Action<int> goo = x =>
+        {
+            object {|Rename:goo1|} = x.Goo;
         };
     }
 }");
@@ -2447,7 +2452,7 @@ options: ImplicitTypingEverywhere());
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         ([|(C.Bar)|].Invoke)();
     }
@@ -2459,7 +2464,7 @@ class C
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Action {|Rename:bar|} = (C.Bar);
         bar.Invoke();
@@ -2719,7 +2724,7 @@ options: ImplicitTypingEverywhere());
             var code =
     @"class C
 {
-    void Foo()
+    void Goo()
     {
         var d = [|true|] // TODO: comment
             ? 1
@@ -2730,7 +2735,7 @@ options: ImplicitTypingEverywhere());
             var expected =
     @"class C
 {
-    void Foo()
+    void Goo()
     {
         const bool {|Rename:V|} = true;
         var d = V // TODO: comment
@@ -2749,7 +2754,7 @@ options: ImplicitTypingEverywhere());
             var code =
     @"class C
 {
-    void Foo()
+    void Goo()
     {
         var d = true
             ? 1
@@ -2760,7 +2765,7 @@ options: ImplicitTypingEverywhere());
             var expected =
     @"class C
 {
-    void Foo()
+    void Goo()
     {
         const int {|Rename:V|} = 2;
         var d = true
@@ -2779,7 +2784,7 @@ options: ImplicitTypingEverywhere());
             var code =
     @"class C
 {
-    void Foo()
+    void Goo()
     {
         var s = $""Alpha Beta { [|int.Parse(""12345"")|] } Gamma"";
     }
@@ -2788,7 +2793,7 @@ options: ImplicitTypingEverywhere());
             var expected =
     @"class C
 {
-    void Foo()
+    void Goo()
     {
         var {|Rename:v|} = int.Parse(""12345"");
         var s = $""Alpha Beta { v } Gamma"";
@@ -2873,7 +2878,7 @@ string.Format(FeaturesResources.Introduce_local_for_0, @"$@""a b c"""));
     @"using System;
 class C
 {
-    static void Foo(string s)
+    static void Goo(string s)
     {
         var l = [|s?.Length|] ?? 0;
     }
@@ -2883,7 +2888,7 @@ class C
     @"using System;
 class C
 {
-    static void Foo(string s)
+    static void Goo(string s)
     {
         var {|Rename:length|} = s?.Length;
         var l = length ?? 0;
@@ -2901,7 +2906,7 @@ class C
     @"using System;
 class C
 {
-    static void Foo(string s)
+    static void Goo(string s)
     {
         var l = [|s?.ToLower()|] ?? string.Empty;
     }
@@ -2911,7 +2916,7 @@ class C
     @"using System;
 class C
 {
-    static void Foo(string s)
+    static void Goo(string s)
     {
         var {|Rename:v|} = s?.ToLower();
         var l = v ?? string.Empty;
@@ -4006,7 +4011,7 @@ class C
              TestInRegularAndScriptAsync(
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         Bar([|(1, ""hello"")|]);
         Bar((1, ""hello"");
@@ -4034,8 +4039,7 @@ class C
         }
     }
 }",
-@"
-class Program
+@"class Program
 {
     class MySpan { public int Start { get; } public int End { get; } }
     void Method(MySpan span)

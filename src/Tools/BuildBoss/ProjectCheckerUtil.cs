@@ -64,8 +64,6 @@ namespace BuildBoss
                 allGood &= CheckDeploymentSettings(textWriter);
             }
 
-            allGood &= CheckTestDeploymentProjects(textWriter);
-
             return allGood;
         }
 
@@ -97,7 +95,8 @@ namespace BuildBoss
 
             var allGood = true;
             allGood &= IsVsixCorrectlySpecified(textWriter, data);
-            allGood &= IsUnitTestCorrectlySpecified(textWriter, data);
+            allGood &= IsUnitTestNameCorrectlySpecified(textWriter, data);
+            allGood &= IsUnitTestPortableCorrectlySpecified(textWriter, data);
 
             return allGood;
         }
@@ -372,7 +371,7 @@ namespace BuildBoss
         /// suffixes: UnitTest and IntegrationTests. This check will verify that both test assemblies
         /// are properly named and non-test assemblies are not incorrectly named.
         /// </summary>
-        private bool IsUnitTestCorrectlySpecified(TextWriter textWriter, RoslynProjectData data)
+        private bool IsUnitTestNameCorrectlySpecified(TextWriter textWriter, RoslynProjectData data)
         {
             if (ProjectType != ProjectFileType.CSharp && ProjectType != ProjectFileType.Basic)
             {
@@ -415,59 +414,20 @@ namespace BuildBoss
             return true;
         }
 
-        /// <summary>
-        /// Verify our test deployment projects properly reference everything which is labeled as a portable
-        /// unit test.  This ensurse they are properly deployed during build and test.
-        /// </summary>
-        private bool CheckTestDeploymentProjects(TextWriter textWriter)
+        private bool IsUnitTestPortableCorrectlySpecified(TextWriter textWriter, RoslynProjectData data)
         {
-            var fileName = Path.GetFileNameWithoutExtension(_data.FileName);
-            var isDesktop = fileName == "DeployDesktopTestRuntime";
-            if (!isDesktop)
+            if (!data.IsAnyUnitTest)
             {
                 return true;
             }
 
-            var allGood = true;
-            var data = _projectUtil.TryGetRoslynProjectData();
-            if (data?.DeclaredKind != RoslynProjectKind.DeploymentTest)
+            if (data.EffectiveKind == RoslynProjectKind.UnitTest && _projectUtil.GetTargetFrameworks() != null)
             {
-                textWriter.WriteLine("Test deployment project must be marked as <RoslynProjectKind>DeploymentTest</RoslynProjectKind>");
-                allGood = false;
+                textWriter.WriteLine($"UnitTestPortable needs to be specified when using TargetFrameworks on a unit test project");
+                return false;
             }
 
-            var set = new HashSet<ProjectKey>(_projectUtil.GetDeclaredProjectReferences().Select(x => x.ProjectKey));
-            foreach (var projectData in _solutionMap.Values)
-            {
-                var rosData = projectData.ProjectUtil.TryGetRoslynProjectData();
-                if (rosData == null)
-                {
-                    continue;
-                }
-
-                var kind = rosData.Value.DeclaredKind;
-                bool include;
-                switch (kind)
-                {
-                    case RoslynProjectKind.UnitTestPortable:
-                        include = true;
-                        break;
-                    case RoslynProjectKind.UnitTestDesktop:
-                        include = isDesktop;
-                        break;
-                    default:
-                        include = false;
-                        break;
-                }
-
-                if (include && !set.Contains(projectData.Key))
-                {
-                    textWriter.WriteLine($"Portable unit test {projectData.FileName} must be referenced");
-                    allGood = false;
-                }
-            }
-
-            return allGood;
+            return true;
         }
     }
 }

@@ -660,7 +660,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var diagnosticsThisMethod = DiagnosticBag.GetInstance();
 
                     var method = methodWithBody.Method;
-                    var lambda = method as SynthesizedLambdaMethod;
+                    var lambda = method as SynthesizedClosureMethod;
                     var variableSlotAllocatorOpt = ((object)lambda != null) ?
                         _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(lambda, lambda.TopLevelMethod, diagnosticsThisMethod) :
                         _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(method, method, diagnosticsThisMethod);

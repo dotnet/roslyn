@@ -14,10 +14,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsCaseSensitive { get; }
         StringComparer StringComparer { get; }
 
+        SyntaxTrivia ElasticMarker { get; }
         SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
 
         bool SupportsIndexingInitializer(ParseOptions options);
         bool SupportsThrowExpression(ParseOptions options);
+
+        SyntaxToken ParseToken(string text);
 
         bool IsAwaitKeyword(SyntaxToken token);
         bool IsIdentifier(SyntaxToken token);
@@ -132,6 +135,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsNamedParameter(SyntaxNode node);
         SyntaxNode GetDefaultOfParameter(SyntaxNode node);
+        SyntaxNode GetParameterList(SyntaxNode node);
 
         bool IsSkippedTokensTrivia(SyntaxNode node);
 
@@ -302,11 +306,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         TSyntaxNode GetNodeWithoutLeadingBlankLines<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode;
 
         ImmutableArray<SyntaxTrivia> GetFileBanner(SyntaxNode root);
+        ImmutableArray<SyntaxTrivia> GetFileBanner(SyntaxToken firstToken);
 
         bool ContainsInterleavedDirective(SyntaxNode node, CancellationToken cancellationToken);
         bool ContainsInterleavedDirective(ImmutableArray<SyntaxNode> nodes, CancellationToken cancellationToken);
 
-        string GetBannerText(SyntaxNode documentationCommentTriviaSyntax, CancellationToken cancellationToken);
+        string GetBannerText(SyntaxNode documentationCommentTriviaSyntax, int maxBannerLength, CancellationToken cancellationToken);
 
         SyntaxTokenList GetModifiers(SyntaxNode node);
         SyntaxNode WithModifiers(SyntaxNode node, SyntaxTokenList modifiers);

@@ -151,7 +151,7 @@ class C
     void M()
     {
         throw new System.Exception();
-    
+
         void Local() {}
     }
 }");
@@ -181,7 +181,7 @@ class C
     void M()
     {
         throw new System.Exception();
-    
+
         void Local() {}
         void Local2() {}
     }
@@ -215,8 +215,9 @@ class C
     void M()
     {
         throw new System.Exception();
-    
+
         void Local() {}
+
         void Local2() {}
     }
 }");
@@ -250,8 +251,9 @@ class C
     void M()
     {
         throw new System.Exception();
-    
+
         void Local() {}
+
         void Local2() {}
     }
 }");
@@ -281,7 +283,7 @@ class C
     void M()
     {
         throw new System.Exception();
-    
+
         label:
             Console.WriteLine();
 

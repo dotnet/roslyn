@@ -1060,6 +1060,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Separate using directive groups.
+        /// </summary>
+        internal static string Separate_using_directive_groups {
+            get {
+                return ResourceManager.GetString("Separate_using_directive_groups", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Set other spacing options.
         /// </summary>
         internal static string Set_other_spacing_options {

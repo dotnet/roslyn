@@ -677,7 +677,7 @@ namespace Microsoft.CodeAnalysis
         {
             ArrayBuilder<ModifierInfo<TypeSymbol>> modifiers = null;
 
-            for (;;)
+            for (; ; )
             {
                 typeCode = signatureReader.ReadSignatureTypeCode();
 
@@ -711,10 +711,10 @@ namespace Microsoft.CodeAnalysis
             TypeSymbol type;
             bool isNoPiaLocalType;
 
-        // According to ECMA spec:
-        //  The CMOD_OPT or CMOD_REQD is followed by a metadata token that
-        //  indexes a row in the TypeDef table or the TypeRef table.
-        tryAgain:
+            // According to ECMA spec:
+            //  The CMOD_OPT or CMOD_REQD is followed by a metadata token that
+            //  indexes a row in the TypeDef table or the TypeRef table.
+            tryAgain:
             switch (token.Kind)
             {
                 case HandleKind.TypeDefinition:
@@ -1024,31 +1024,11 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal bool TryGetLocals(MethodDefinitionHandle handle, out ImmutableArray<LocalInfo<TypeSymbol>> localInfo)
+        internal ImmutableArray<LocalInfo<TypeSymbol>> GetLocalsOrThrow(StandaloneSignatureHandle handle)
         {
-            try
-            {
-                Debug.Assert(Module.HasIL);
-                var methodBody = Module.GetMethodBodyOrThrow(handle);
-
-                if (!methodBody.LocalSignature.IsNil)
-                {
-                    var signatureHandle = Module.MetadataReader.GetStandaloneSignature(methodBody.LocalSignature).Signature;
-                    var signatureReader = Module.GetMemoryReaderOrThrow(signatureHandle);
-                    localInfo = DecodeLocalSignatureOrThrow(ref signatureReader);
-                }
-                else
-                {
-                    localInfo = ImmutableArray<LocalInfo<TypeSymbol>>.Empty;
-                }
-            }
-            catch (Exception e) when (e is UnsupportedSignatureContent || e is BadImageFormatException || e is IOException)
-            {
-                localInfo = ImmutableArray<LocalInfo<TypeSymbol>>.Empty;
-                return false;
-            }
-
-            return true;
+            var signatureHandle = Module.MetadataReader.GetStandaloneSignature(handle).Signature;
+            var signatureReader = Module.MetadataReader.GetBlobReader(signatureHandle);
+            return DecodeLocalSignatureOrThrow(ref signatureReader);
         }
 
         /// <summary>
@@ -1102,7 +1082,7 @@ namespace Microsoft.CodeAnalysis
             if (typeCode == SignatureTypeCode.ByReference)
             {
                 info.IsByRef = true;
-                info.RefCustomModifiers = info.CustomModifiers; 
+                info.RefCustomModifiers = info.CustomModifiers;
                 info.CustomModifiers = DecodeModifiersOrThrow(ref signatureReader, out typeCode);
             }
 
@@ -1849,7 +1829,7 @@ namespace Microsoft.CodeAnalysis
                 SignatureTypeCode typeCode;
                 ArrayBuilder<ModifierInfo<TypeSymbol>> customModifierBuilder = null;
 
-                for (;;)
+                for (; ; )
                 {
                     typeCode = signatureReader.ReadSignatureTypeCode();
 

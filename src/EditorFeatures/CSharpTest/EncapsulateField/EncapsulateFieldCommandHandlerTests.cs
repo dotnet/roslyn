@@ -25,7 +25,7 @@ class C
 {
     private int f$$ield;
 
-    private void foo()
+    private void goo()
     {
         field = 3;
     }
@@ -48,7 +48,7 @@ class C
         }
     }
 
-    private void foo()
+    private void goo()
     {
         Field = 3;
     }
@@ -68,7 +68,7 @@ class C
 {
     protected int fi$$eld;
 
-    private void foo()
+    private void goo()
     {
         field = 3;
     }
@@ -91,7 +91,7 @@ class C
         }
     }
 
-    private void foo()
+    private void goo()
     {
         Field = 3;
     }
@@ -111,7 +111,7 @@ class$$ C
 {
     private int field;
 
-    private void foo()
+    private void goo()
     {
         field = 3;
     }
@@ -199,7 +199,7 @@ class Program
                     <Submission Language=""C#"" CommonReferences=""true"">  
                         class C
                         {
-                            object $$foo;
+                            object $$goo;
                         }
                     </Submission>
                 </Workspace> "),
