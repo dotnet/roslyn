@@ -84,8 +84,6 @@ class CSharpTyping2 : PerfTest
         {
             Benchview.UploadBenchviewReport(xml, "typing");
         }
-
-        _logger.Flush();
     }
 
     public override ITraceManager GetTraceManager()
