@@ -26,6 +26,7 @@ using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Text.Classification;
+using Xunit;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -709,5 +710,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var view = GetActiveVsTextView();
                 view.SendExplicitFocus();
             });
+
+        public void CopyText(string text)
+        {
+            InvokeOnUIThread(() =>
+            {
+                // Formatting paste tests sometimes fail with nothing pasted.
+                // Verify we're actually pasted the righ text.
+                System.Windows.Clipboard.SetText(text);
+                Assert.Equal(text, System.Windows.Clipboard.GetText());
+            });
+        }
     }
 }

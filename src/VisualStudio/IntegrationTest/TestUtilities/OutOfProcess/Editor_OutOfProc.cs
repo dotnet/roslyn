@@ -210,12 +210,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void Paste(string text)
         {
-            ExecuteOnSTAThread(() => Clipboard.SetText(text));
+            _editorInProc.CopyText(text);
             VisualStudioInstance.Dte.ExecuteCommand("Edit.Paste");
-
-            // Formatting paste tests sometimes fail with nothing pasted.
-            // Verify we're actually pasted the righ text.
-            ExecuteOnSTAThread(() => Assert.Equal(text, Clipboard.GetText()));
         }
 
         public void Undo()
