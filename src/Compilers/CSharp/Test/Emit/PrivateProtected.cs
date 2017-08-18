@@ -607,5 +607,44 @@ class Program
                 .VerifyDiagnostics(
                 );
         }
+
+        [Fact]
+        public void VerifyProtectedSemantics()
+        {
+            var source =
+@"class Base
+{
+    private protected void M()
+    {
+        System.Console.WriteLine(this.GetType().Name);
+    }
+}
+
+class Derived : Base
+{
+    public void Main()
+    {
+        Derived derived = new Derived();
+        derived.M();
+        Base bb = new Base();
+        bb.M(); // error 1
+        Other other = new Other();
+        other.M(); // error 2
+    }
+}
+
+class Other : Base
+{
+}";
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
+                .VerifyDiagnostics(
+                // (16,12): error CS1540: Cannot access protected member 'Base.M()' via a qualifier of type 'Base'; the qualifier must be of type 'Derived' (or derived from it)
+                //         bb.M(); // error 1
+                Diagnostic(ErrorCode.ERR_BadProtectedAccess, "M").WithArguments("Base.M()", "Base", "Derived").WithLocation(16, 12),
+                // (18,15): error CS1540: Cannot access protected member 'Base.M()' via a qualifier of type 'Other'; the qualifier must be of type 'Derived' (or derived from it)
+                //         other.M(); // error 2
+                Diagnostic(ErrorCode.ERR_BadProtectedAccess, "M").WithArguments("Base.M()", "Other", "Derived").WithLocation(18, 15)
+                );
+        }
     }
 }

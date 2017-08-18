@@ -704,6 +704,50 @@ End Class
 <errors>
 </errors>)
         End Sub
+
+        <Fact>
+        Public Sub VerifyProtectedSemantics()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Class Base
+    Private Protected Sub M()
+        System.Console.WriteLine(Me.GetType().Name)
+    End Sub
+End Class
+
+Class Derived
+    Inherits Base
+
+    Public Sub Main()
+        Dim derived As Derived = new Derived()
+        derived.M()
+        Dim bb As Base = new Base()
+        bb.M() ' error 1
+        Dim other As Other = new Other()
+        other.M() ' error 2
+    End Sub
+End Class
+
+Class Other
+    Inherits Base
+End Class
+]]>
+                             </file>
+                         </compilation>
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+                    source,
+                    parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<errors>
+BC30390: 'Base.Private Protected Sub M()' is not accessible in this context because it is 'Private Protected'.
+        bb.M() ' error 1
+        ~~~~
+BC30390: 'Base.Private Protected Sub M()' is not accessible in this context because it is 'Private Protected'.
+        other.M() ' error 2
+        ~~~~~~~
+</errors>)
+        End Sub
     End Class
 End Namespace
 
