@@ -716,5 +716,35 @@ abstract class B : A
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.F()").WithLocation(1, 7)
                 );
         }
+
+        [Fact]
+        public void ImplementInaccessible()
+        {
+            string source1 =
+@"public abstract class A
+{
+    private protected abstract void F();
+}
+";
+            var compilation1 = CreateStandardCompilation(source1, parseOptions: TestOptions.Regular7_2);
+            compilation1.VerifyDiagnostics();
+
+            string source2 =
+@"class B : A // CS0534
+{
+    override private protected void F() {}
+}
+";
+            CreateStandardCompilation(source2, parseOptions: TestOptions.Regular7_2,
+                references: new[] { new CSharpCompilationReference(compilation1) })
+            .VerifyDiagnostics(
+                // (3,37): error CS0115: 'B.F()': no suitable method found to override
+                //     override private protected void F() {}
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "F").WithArguments("B.F()").WithLocation(3, 37),
+                // (1,7): error CS0534: 'B' does not implement inherited abstract member 'A.F()'
+                // class B : A // CS0534
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.F()").WithLocation(1, 7)
+                );
+        }
     }
 }
