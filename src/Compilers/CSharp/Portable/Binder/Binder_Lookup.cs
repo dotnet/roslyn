@@ -1564,7 +1564,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void AddMemberLookupSymbolsInfoInNamespace(LookupSymbolsInfo result, NamespaceSymbol ns, LookupOptions options, Binder originalBinder)
         {
-            foreach (var symbol in GetCandidateMembers(ns, options, originalBinder))
+            var candidateMembers = result.FilterName != null ? GetCandidateMembers(ns, result.FilterName, options, originalBinder) : GetCandidateMembers(ns, options, originalBinder);
+            foreach (var symbol in candidateMembers)
             {
                 if (originalBinder.CanAddLookupSymbolInfo(symbol, options, result, null))
                 {
@@ -1575,7 +1576,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void AddMemberLookupSymbolsInfoWithoutInheritance(LookupSymbolsInfo result, TypeSymbol type, LookupOptions options, Binder originalBinder, TypeSymbol accessThroughType)
         {
-            foreach (var symbol in GetCandidateMembers(type, options, originalBinder))
+            var candidateMembers = result.FilterName != null ? GetCandidateMembers(type, result.FilterName, options, originalBinder) : GetCandidateMembers(type, options, originalBinder);
+            foreach (var symbol in candidateMembers)
             {
                 if (originalBinder.CanAddLookupSymbolInfo(symbol, options, result, accessThroughType))
                 {

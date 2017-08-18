@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis
 
         private readonly IEqualityComparer<string> _comparer;
         private readonly Dictionary<string, UniqueSymbolOrArities> _nameMap;
-        internal string FilterName { private get; set; }
+        internal string FilterName { get; set; }
 
         protected AbstractLookupSymbolsInfo(IEqualityComparer<string> comparer)
         {
