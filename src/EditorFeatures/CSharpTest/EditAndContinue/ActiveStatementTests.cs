@@ -2718,6 +2718,81 @@ class C
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "lock (G(a => a))", CSharpFeaturesResources.lock_statement));
         }
 
+        [Fact]
+        public void Lock_Update_LocalFunction1()
+        {
+            string src1 = @"
+class C
+{
+    static void Main(string[] args)
+    {
+        void F(int a) {}
+        lock (F)
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+        }
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void Main(string[] args)
+    {
+        void F(int a) {}
+        lock (F)
+        {
+            <AS:0>Console.WriteLine(2);</AS:0>
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "F", CSharpFeaturesResources.local_function)); // To be removed when we will enable EnC for local functions
+        }
+
+        [Fact]
+        public void Lock_Update_LocalFunction2()
+        {
+            string src1 = @"
+class C
+{
+    static void Main(string[] args)
+    {
+        void F(int a) {}
+        void G(int a) {}
+        lock (F)
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+        }
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void Main(string[] args)
+    {
+        void F(int a) {}
+        void G(int a) {}
+        lock (G)
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "F", "local function"), // To be removed when we will enable EnC for local functions
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "lock (G)", CSharpFeaturesResources.lock_statement));
+        }
+
         #endregion
 
         #region Fixed Statement
@@ -3143,6 +3218,81 @@ class C
 
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "fixed (byte* p = &G(a => a))", CSharpFeaturesResources.fixed_statement));
+        }
+
+        [Fact]
+        public void Fixed_Update_LocalFunction1()
+        {
+            string src1 = @"
+class C
+{
+    static unsafe void Main(string[] args)
+    {
+        Func<int, int> F(int a) => a;
+        fixed (byte* p = &F)
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+        }
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static unsafe void Main(string[] args)
+    {
+        Func<int, int> F(int a) => a + 1;
+        fixed (byte* p = &F)
+        {
+            <AS:0>Console.WriteLine(2);</AS:0>
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "F", CSharpFeaturesResources.local_function)); // To be removed when we will enable EnC for local functions
+        }
+
+        [Fact]
+        public void Fixed_Update_LocalFunction2()
+        {
+            string src1 = @"
+class C
+{
+    static unsafe void Main(string[] args)
+    {
+        Func<int, int> F(int a) => a;
+        Func<int, int> G(int a) => a + 1;
+        fixed (byte* p = &F(a))
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+        }
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static unsafe void Main(string[] args)
+    {
+        Func<int, int> F(int a) => a;
+        Func<int, int> G(int a) => a + 1;
+        fixed (byte* p = &G)
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "fixed (byte* p = &G)", CSharpFeaturesResources.fixed_statement),
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "F", CSharpFeaturesResources.local_function)); // To be removed when we will enable EnC for local functions
         }
 
         #endregion
@@ -4081,6 +4231,133 @@ class C
 
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "foreach (var a in G(a => a))", CSharpFeaturesResources.foreach_statement));
+        }
+
+        [Fact]
+        public void ForEach_LocalFunction1()
+        {
+            string src1 = @"
+class Test
+{
+    public static int[] e1 = new int[1];
+    public static int[] e2 = new int[1];
+    
+    static void Main(string[] args)
+    {
+        void f()
+        {
+            <AS:0>System.Console.Write();</AS:0>
+        }
+
+        <AS:1>f();</AS:1>
+    }
+}";
+            string src2 = @"
+class Test
+{
+    public static int[] e1 = new int[1];
+    public static int[] e2 = new int[1];
+    
+    static void Main(string[] args)
+    {
+        void f()
+        {                
+            foreach (var a in e1)
+            {
+                <AS:0>System.Console.Write();</AS:0>
+            }
+        }
+
+        foreach (var b in e1)
+        {
+            foreach (var c in e1)
+            {
+                <AS:1>f();</AS:1>
+            }
+        }
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "foreach (var a in e1)", CSharpFeaturesResources.foreach_statement),
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "f", CSharpFeaturesResources.local_function), // To be removed when we will enable EnC for local functions
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "foreach (var b in e1)", CSharpFeaturesResources.foreach_statement),
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "foreach (var c in e1)", CSharpFeaturesResources.foreach_statement));
+        }
+
+        [Fact]
+        public void ForEach_Update_LocalFunction1()
+        {
+            string src1 = @"
+class C
+{
+    static unsafe void Main(string[] args)
+    {
+        int f(int a) => a;
+        foreach (var a in F(localF))
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+        }
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static unsafe void Main(string[] args)
+    {
+        int f(int a) => a + 1;
+        foreach (var a in F(localF))
+        {
+            <AS:0>Console.WriteLine(2);</AS:0>
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "f", CSharpFeaturesResources.local_function)); // To be removed when we will enable EnC for local functions
+        }
+
+        [Fact]
+        public void ForEach_Update_LocalFunction2()
+        {
+            string src1 = @"
+class C
+{
+    static unsafe void Main(string[] args)
+    {
+        int f(int a) => a;
+        foreach (var a in F(f))
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+        }
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static unsafe void Main(string[] args)
+    {
+        int f(int a) => a;
+        foreach (var a in G(f))
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "f", CSharpFeaturesResources.local_function), // To be removed when we will enable EnC for local functions
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "foreach (var a in G(f))", CSharpFeaturesResources.foreach_statement));
         }
 
         #endregion
