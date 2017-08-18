@@ -690,5 +690,31 @@ abstract class B : A
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "F").WithArguments("B.F()").WithLocation(3, 14)
                 );
         }
+
+        [Fact]
+        public void UnimplementedInaccessible()
+        {
+            string source1 =
+@"public abstract class A
+{
+    private protected abstract void F();
+}
+";
+            var compilation1 = CreateStandardCompilation(source1, parseOptions: TestOptions.Regular7_2);
+            compilation1.VerifyDiagnostics();
+
+            string source2 =
+@"class B : A // CS0534
+{
+}
+";
+            CreateStandardCompilation(source2, parseOptions: TestOptions.Regular7_2,
+                references: new[] { new CSharpCompilationReference(compilation1) })
+            .VerifyDiagnostics(
+                // (1,7): error CS0534: 'B' does not implement inherited abstract member 'A.F()'
+                // class B : A // CS0534
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.F()").WithLocation(1, 7)
+                );
+        }
     }
 }

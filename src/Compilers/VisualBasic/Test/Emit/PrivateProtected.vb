@@ -814,6 +814,46 @@ End Class
 <errors>
 </errors>)
         End Sub
+
+        <Fact>
+        Public Sub UnimplementedInaccessible()
+            Dim source1 = <compilation>
+                              <file name="a.vb">
+                                  <![CDATA[
+Public MustInherit Class A
+    Private Protected MustOverride Sub F()
+End Class
+]]>
+                              </file>
+                          </compilation>
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(
+                    source1,
+                    parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
+            CompilationUtils.AssertTheseDiagnostics(compilation1,
+<errors>
+</errors>)
+
+            Dim source2 = <compilation>
+                              <file name="a.vb">
+                                  <![CDATA[
+Class B
+    Inherits A
+End Class
+]]>
+                              </file>
+                          </compilation>
+            Dim derivedCompilation = CreateCompilationWithMscorlibAndVBRuntime(
+                    source2,
+                    parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5),
+                    additionalRefs:={New VisualBasicCompilationReference(compilation1)})
+            CompilationUtils.AssertTheseDiagnostics(derivedCompilation,
+<errors>
+BC30610: Class 'B' must either be declared 'MustInherit' or override the following inherited 'MustOverride' member(s): 
+    A: Private Protected MustOverride Sub F().
+Class B
+      ~
+</errors>)
+        End Sub
     End Class
 End Namespace
 
