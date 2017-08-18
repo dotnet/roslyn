@@ -239,8 +239,7 @@ class Program
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18065"),
-         Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void ShiftEnterWithIntelliSenseAndBraceMatching()
         {
             SetUpEditor(@"
