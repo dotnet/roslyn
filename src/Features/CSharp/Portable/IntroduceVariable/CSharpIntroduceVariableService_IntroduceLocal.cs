@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
             var modifiers = isConstant
                 ? SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ConstKeyword))
-                : default(SyntaxTokenList);
+                : default;
 
             var options = await document.Document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 

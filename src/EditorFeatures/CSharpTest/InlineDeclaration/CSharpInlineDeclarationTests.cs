@@ -1124,7 +1124,7 @@ class C
     {
         if (x != null && TryBaz(out object s))
         {
-            Console.WriteLine(s); 
+            Console.WriteLine(s);
         }
     }
 
@@ -1603,7 +1603,7 @@ class C
 {
     static void Main(string[] args)
     {
-        for ( ; TryExtractTokenFromEmail(out string token); )
+        for (; TryExtractTokenFromEmail(out string token);)
         {
         }
     }

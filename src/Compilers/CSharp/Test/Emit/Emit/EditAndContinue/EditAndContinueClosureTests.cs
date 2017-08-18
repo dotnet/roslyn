@@ -549,10 +549,10 @@ class C
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
-                "C: {<F>b__1_2, <F>b__1_4, <>c__DisplayClass1_0, <>c__DisplayClass1_1, <>c}",
-                "C.<>c: {<>9__1_0, <>9__1_1, <>9__1_6, <F>b__1_0, <F>b__1_1, <F>b__1_6}",
-                "C.<>c__DisplayClass1_0: {<>h__TransparentIdentifier0, <F>b__3}",
-                "C.<>c__DisplayClass1_1: {<>h__TransparentIdentifier0, <F>b__5}",
+                "C.<>c__DisplayClass1_1: {<>h__TransparentIdentifier0, <F>b__6}",
+                "C.<>c__DisplayClass1_0: {<>h__TransparentIdentifier0, <F>b__5}",
+                "C.<>c: {<>9__1_0, <>9__1_1, <>9__1_4, <F>b__1_0, <F>b__1_1, <F>b__1_4}",
+                "C: {<F>b__1_2, <F>b__1_3, <>c__DisplayClass1_0, <>c__DisplayClass1_1, <>c}",
                 "<>f__AnonymousType0<<a>j__TPar, <b>j__TPar>: {Equals, GetHashCode, ToString}");
 
             var md1 = diff1.GetMetadata();
@@ -632,10 +632,10 @@ class C
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
-                "C: {<F>b__1_0, <>c__DisplayClass1_0, <>c}",
-                "C.<>c: {<>9__1_2, <F>b__1_2}",
-                "C.<>c__DisplayClass1_0: {a, <F>b__1}",
-                "<>f__AnonymousType0<<a>j__TPar, <b>j__TPar>: {Equals, GetHashCode, ToString}");
+                "C.<>c: {<>9__1_1, <F>b__1_1}",
+                "<>f__AnonymousType0<<a>j__TPar, <b>j__TPar>: {Equals, GetHashCode, ToString}",
+                "C.<>c__DisplayClass1_0: {a, <F>b__2}",
+                "C: {<F>b__1_0, <>c__DisplayClass1_0, <>c}");
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -714,10 +714,10 @@ class C
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
-               "C.<>c__DisplayClass1_2: {a, b, <F>b__5}",
-               "C.<>c__DisplayClass1_1: {b, <F>b__3}",
-               "C: {<F>b__1_0, <F>b__1_2, <F>b__1_4, <>c__DisplayClass1_0, <>c__DisplayClass1_1, <>c__DisplayClass1_2}",
-               "C.<>c__DisplayClass1_0: {a, <F>b__1}");
+                "C.<>c__DisplayClass1_1: {b, <F>b__4}",
+                "C.<>c__DisplayClass1_2: {a, b, <F>b__5}",
+                "C.<>c__DisplayClass1_0: {a, <F>b__3}",
+                "C: {<F>b__1_0, <F>b__1_1, <F>b__1_2, <>c__DisplayClass1_0, <>c__DisplayClass1_1, <>c__DisplayClass1_2}");
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -1408,8 +1408,8 @@ public class C
 
             var reader0 = md0.MetadataReader;
             CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C", "<>c__DisplayClass0_0", "<>c");
-            CheckNames(reader0, reader0.GetMethodDefNames(), "F", ".ctor", "<F>b__0_1", ".ctor", "<F>b__2", ".cctor", ".ctor", "<F>b__0_0");
-            CheckNames(reader0, reader0.GetFieldDefNames(), "a", "<>9", "<>9__0_0");
+            CheckNames(reader0, reader0.GetMethodDefNames(), "F", ".ctor", ".ctor", "<F>b__1", "<F>b__2", ".cctor", ".ctor", "<F>b__0_0");
+            CheckNames(reader0, reader0.GetFieldDefNames(), "<>4__this", "a", "<>9", "<>9__0_0");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
             var diff1 = compilation1.EmitDifference(
@@ -1420,13 +1420,13 @@ public class C
             var reader1 = diff1.GetMetadata().Reader;
 
             CheckNames(new[] { reader0, reader1 }, reader1.GetTypeDefNames(), "<>c__DisplayClass0#1_0#1");
-            CheckNames(new[] { reader0, reader1 }, reader1.GetMethodDefNames(), ".ctor", "F", "<F>b__0#1_1#1", ".ctor", "<F>b__2#1", "<F>b__0#1_0#1");
-            CheckNames(new[] { reader0, reader1 }, reader1.GetFieldDefNames(), "a", "<>9__0#1_0#1");
+            CheckNames(new[] { reader0, reader1 }, reader1.GetMethodDefNames(), ".ctor", "F", ".ctor", "<F>b__1#1", "<F>b__2#1", "<F>b__0#1_0#1");
+            CheckNames(new[] { reader0, reader1 }, reader1.GetFieldDefNames(), "<>4__this", "a", "<>9__0#1_0#1");
 
             diff1.VerifySynthesizedMembers(
-                "C: {<F>b__0#1_1#1, <>c__DisplayClass0#1_0#1, <>c}",
-                "C.<>c: {<>9__0#1_0#1, <F>b__0#1_0#1}",
-                "C.<>c__DisplayClass0#1_0#1: {a, <F>b__2#1}");
+                "C: {<>c__DisplayClass0#1_0#1, <>c}",
+                "C.<>c__DisplayClass0#1_0#1: {<>4__this, a, <F>b__1#1, <F>b__2#1}",
+                "C.<>c: {<>9__0#1_0#1, <F>b__0#1_0#1}");
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -1436,8 +1436,8 @@ public class C
             var reader2 = diff2.GetMetadata().Reader;
 
             CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetTypeDefNames(), "<>c__DisplayClass1#2_0#2");
-            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetMethodDefNames(), ".ctor", "F", "<F>b__1#2_1#2", ".ctor", "<F>b__2#2", "<F>b__1#2_0#2");
-            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetFieldDefNames(), "a", "<>9__1#2_0#2");
+            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetMethodDefNames(), ".ctor", "F", ".ctor", "<F>b__1#2", "<F>b__2#2", "<F>b__1#2_0#2");
+            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetFieldDefNames(), "<>4__this", "a", "<>9__1#2_0#2");
         }
 
         [Fact]
@@ -1525,8 +1525,8 @@ public class C
 
             var reader0 = md0.MetadataReader;
             CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C", "<>c__DisplayClass0_0`1", "<>c__0`1");
-            CheckNames(reader0, reader0.GetMethodDefNames(), "F", ".ctor", "<F>b__0_1", ".ctor", "<F>b__2", ".cctor", ".ctor", "<F>b__0_0");
-            CheckNames(reader0, reader0.GetFieldDefNames(), "a", "<>9", "<>9__0_0");
+            CheckNames(reader0, reader0.GetMethodDefNames(), "F", ".ctor", ".ctor", "<F>b__1", "<F>b__2", ".cctor", ".ctor", "<F>b__0_0");
+            CheckNames(reader0, reader0.GetFieldDefNames(), "<>4__this", "a", "<>9", "<>9__0_0");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
             var diff1 = compilation1.EmitDifference(
@@ -1537,13 +1537,13 @@ public class C
             var reader1 = diff1.GetMetadata().Reader;
 
             CheckNames(new[] { reader0, reader1 }, reader1.GetTypeDefNames(), "<>c__DisplayClass0#1_0#1`1", "<>c__0#1`1");
-            CheckNames(new[] { reader0, reader1 }, reader1.GetMethodDefNames(), "F", "<F>b__0#1_1#1", ".ctor", "<F>b__2#1", ".cctor", ".ctor", "<F>b__0#1_0#1");
-            CheckNames(new[] { reader0, reader1 }, reader1.GetFieldDefNames(), "a", "<>9", "<>9__0#1_0#1");
+            CheckNames(new[] { reader0, reader1 }, reader1.GetMethodDefNames(), "F", ".ctor", "<F>b__1#1", "<F>b__2#1", ".cctor", ".ctor", "<F>b__0#1_0#1");
+            CheckNames(new[] { reader0, reader1 }, reader1.GetFieldDefNames(), "<>4__this", "a", "<>9", "<>9__0#1_0#1");
 
             diff1.VerifySynthesizedMembers(
-                "C: {<F>b__0#1_1#1, <>c__DisplayClass0#1_0#1, <>c__0#1}",
                 "C.<>c__0#1<T>: {<>9__0#1_0#1, <F>b__0#1_0#1}",
-                "C.<>c__DisplayClass0#1_0#1<T>: {a, <F>b__2#1}");
+                "C: {<>c__DisplayClass0#1_0#1, <>c__0#1}",
+                "C.<>c__DisplayClass0#1_0#1<T>: {<>4__this, a, <F>b__1#1, <F>b__2#1}");
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -1553,8 +1553,8 @@ public class C
             var reader2 = diff2.GetMetadata().Reader;
 
             CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetTypeDefNames(), "<>c__DisplayClass1#2_0#2`1", "<>c__1#2`1");
-            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetMethodDefNames(), "F", "<F>b__1#2_1#2", ".ctor", "<F>b__2#2", ".cctor", ".ctor", "<F>b__1#2_0#2");
-            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetFieldDefNames(), "a", "<>9", "<>9__1#2_0#2");
+            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetMethodDefNames(), "F", ".ctor", "<F>b__1#2", "<F>b__2#2", ".cctor", ".ctor", "<F>b__1#2_0#2");
+            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetFieldDefNames(), "<>4__this", "a", "<>9", "<>9__1#2_0#2");
         }
 
         [Fact]
@@ -1669,9 +1669,9 @@ public class C
                     new SemanticEdit(SemanticEditKind.Update, main0, main1, preserveLocalVariables: true)));
 
             diff1.VerifySynthesizedMembers(
-                "C: {<F>b__1#1_1#1, <>c__DisplayClass1#1_0#1, <>c}",
                 "C.<>c: {<>9__1#1_0#1, <F>b__1#1_0#1}",
-                "C.<>c__DisplayClass1#1_0#1: {a, <F>b__2#1}");
+                "C.<>c__DisplayClass1#1_0#1: {<>4__this, a, <F>b__1#1, <F>b__2#1}",
+                "C: {<>c__DisplayClass1#1_0#1, <>c}");
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -1680,10 +1680,10 @@ public class C
                     new SemanticEdit(SemanticEditKind.Update, main1, main2, preserveLocalVariables: true)));
 
             diff2.VerifySynthesizedMembers(
-                "C: {<F>b__1#2_1#2, <>c__DisplayClass1#2_0#2, <>c, <F>b__1#1_1#1, <>c__DisplayClass1#1_0#1}",
+                "C.<>c__DisplayClass1#2_0#2: {<>4__this, a, <F>b__1#2, <F>b__2#2}",
+                "C: {<>c__DisplayClass1#2_0#2, <>c, <>c__DisplayClass1#1_0#1}",
                 "C.<>c: {<>9__1#2_0#2, <F>b__1#2_0#2, <>9__1#1_0#1, <F>b__1#1_0#1}",
-                "C.<>c__DisplayClass1#1_0#1: {a, <F>b__2#1}",
-                "C.<>c__DisplayClass1#2_0#2: {a, <F>b__2#2}");
+                "C.<>c__DisplayClass1#1_0#1: {<>4__this, a, <F>b__1#1, <F>b__2#1}");
 
             var diff3 = compilation3.EmitDifference(
                 diff2.NextGeneration,
@@ -1691,10 +1691,10 @@ public class C
                     new SemanticEdit(SemanticEditKind.Update, main2, main3, preserveLocalVariables: true)));
 
             diff3.VerifySynthesizedMembers(
-                "C: {<F>b__1#2_1#2, <>c__DisplayClass1#2_0#2, <>c, <F>b__1#1_1#1, <>c__DisplayClass1#1_0#1}",
+                "C.<>c__DisplayClass1#1_0#1: {<>4__this, a, <F>b__1#1, <F>b__2#1}",
                 "C.<>c: {<>9__1#2_0#2, <F>b__1#2_0#2, <>9__1#1_0#1, <F>b__1#1_0#1}",
-                "C.<>c__DisplayClass1#1_0#1: {a, <F>b__2#1}",
-                "C.<>c__DisplayClass1#2_0#2: {a, <F>b__2#2}");
+                "C.<>c__DisplayClass1#2_0#2: {<>4__this, a, <F>b__1#2, <F>b__2#2}",
+                "C: {<>c__DisplayClass1#2_0#2, <>c, <>c__DisplayClass1#1_0#1}");
         }
 
         [Fact]

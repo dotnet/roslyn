@@ -745,5 +745,25 @@ public static class C
     }
 }");
         }
+
+        [WorkItem(21551, "https://github.com/dotnet/roslyn/issues/21551")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestOverloadedUserOperator()
+        {
+            await TestMissingAsync(
+@"class C
+{
+  public static void Main()
+  {
+    object o = new C();
+    [|var|] c = o as C;
+    if (c != null)
+      System.Console.WriteLine();
+  }
+
+  public static bool operator ==(C c1, C c2) => false;
+  public static bool operator !=(C c1, C c2) => false;
+}");
+        }
     }
 }

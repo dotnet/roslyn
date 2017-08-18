@@ -31,6 +31,164 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
         [Fact]
+        public void CaptureThisInDifferentScopes()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    int _x;
+    void M()
+    {
+        {
+            int y = 0;
+            Func<int> f1 = () => _x + y;
+        }
+        {
+            int y = 0;
+            Func<int> f2 = () => _x + y;
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public void CaptureThisInDifferentScopes2()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    int _x;
+    void M()
+    {
+        {
+            int y = 0;
+            int L1() => _x + y;
+        }
+        {
+            int y = 0;
+            int L2() => _x + y;
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public void CaptureFramePointerInDifferentScopes()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    void M(int x)
+    {
+        Func<int> f1 = () => x;
+        {
+            int z = 0;
+            Func<int> f2 = () => x + z;
+        }
+        {
+            int z = 0;
+            Func<int> f3 = () => x + z;
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public void EnvironmentChainContainsStructEnvironment()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    void M(int x)
+    {
+        {
+            int y = 10;
+            void L() => Console.WriteLine(y);
+
+            {
+                int z = 5;
+                Action f2 = () => Console.WriteLine(z + x);
+                f2();
+            }
+            L();
+        }
+    }
+    public static void Main() => new C().M(3);
+}", expectedOutput: @"8
+10");
+        }
+
+        [Fact]
+        public void Repro20577()
+        {
+            var comp = CreateStandardCompilation(@"
+using System.Linq;
+
+public class Program {
+    public static void Main(string[] args) {
+        object v;
+
+        void AAA() {
+            object BBB(object v2) {
+                var a = v;
+                ((object[])v2).Select(i => BBB(i));
+                return null;
+            }
+        }
+    }
+}", references: new[] { LinqAssemblyRef });
+            CompileAndVerify(comp);
+        }
+
+        [Fact]
+        public void Repro19033()
+        {
+            CompileAndVerify(@"
+using System;
+
+class Program
+{
+    void Q(int n = 0)
+    {
+        {
+            object mc;
+
+            string B(object map)
+            {
+                Action<int> a = _ => B(new object());
+                return n.ToString();
+            }
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public void Repro19033_2()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    static void F(Action a)
+    {
+        object x = null;
+        {
+            object y = null;
+            void G(object z)
+            {
+                F(() => G(x));
+            }
+        }
+    }
+}");
+        }
+
+        [Fact]
         [WorkItem(18814, "https://github.com/dotnet/roslyn/issues/18814")]
         [WorkItem(18918, "https://github.com/dotnet/roslyn/issues/18918")]
         public void IntermediateStructClosures1()
@@ -78,7 +236,7 @@ class C
 1");
             verifier.VerifyIL("C.M()", @"
 {
-  // Code size       46 (0x2e)
+  // Code size       47 (0x2f)
   .maxstack  2
   .locals init (C.<>c__DisplayClass2_0 V_0) //CS$<>8__locals0
   IL_0000:  ldloca.s   V_0
@@ -90,24 +248,24 @@ class C
   IL_0010:  ldarg.0
   IL_0011:  ldfld      ""int C._x""
   IL_0016:  call       ""void System.Console.WriteLine(int)""
-  IL_001b:  ldloca.s   V_0
-  IL_001d:  call       ""void C.<M>g__L12_0(ref C.<>c__DisplayClass2_0)""
-  IL_0022:  ldarg.0
-  IL_0023:  ldfld      ""int C._x""
-  IL_0028:  call       ""void System.Console.WriteLine(int)""
-  IL_002d:  ret
+  IL_001b:  ldarg.0
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  call       ""void C.<M>g__L12_0(ref C.<>c__DisplayClass2_0)""
+  IL_0023:  ldarg.0
+  IL_0024:  ldfld      ""int C._x""
+  IL_0029:  call       ""void System.Console.WriteLine(int)""
+  IL_002e:  ret
 }");
 
             // L1
             verifier.VerifyIL("C.<M>g__L12_0(ref C.<>c__DisplayClass2_0)", @"
 {
-  // Code size       13 (0xd)
+  // Code size        8 (0x8)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""C C.<>c__DisplayClass2_0.<>4__this""
-  IL_0006:  ldarg.0
-  IL_0007:  call       ""void C.<M>g__L22_1(ref C.<>c__DisplayClass2_0)""
-  IL_000c:  ret
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""void C.<M>g__L22_1(ref C.<>c__DisplayClass2_0)""
+  IL_0007:  ret
 }");
             // L2
             verifier.VerifyIL("C.<M>g__L22_1(ref C.<>c__DisplayClass2_0)", @"
@@ -116,41 +274,40 @@ class C
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""void C.<M>g__L32_2(ref C.<>c__DisplayClass2_0)""
+  IL_0002:  call       ""void C.<M>g__L32_3(ref C.<>c__DisplayClass2_0)""
   IL_0007:  ret
 }");
             // Skip some... L5
-            verifier.VerifyIL("C.<M>g__L52_4(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
+            verifier.VerifyIL("C.<M>g__L52_5(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
 {
-  // Code size        9 (0x9)
-  .maxstack  2
+  // Code size       10 (0xa)
+  .maxstack  3
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""int C.<M>g__L62_5(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)""
-  IL_0007:  pop
-  IL_0008:  ret
+  IL_0002:  ldarg.2
+  IL_0003:  call       ""int C.<M>g__L62_6(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)""
+  IL_0008:  pop
+  IL_0009:  ret
 }");
             // L6
-            verifier.VerifyIL("C.<M>g__L62_5(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
+            verifier.VerifyIL("C.<M>g__L62_6(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
 {
-  // Code size       35 (0x23)
+  // Code size       25 (0x19)
   .maxstack  4
   .locals init (int V_0)
-  IL_0000:  ldarg.1
+  IL_0000:  ldarg.2
   IL_0001:  ldfld      ""int C.<>c__DisplayClass2_1.var2""
-  IL_0006:  ldarg.1
-  IL_0007:  ldfld      ""C C.<>c__DisplayClass2_1.<>4__this""
-  IL_000c:  ldarg.1
-  IL_000d:  ldfld      ""C C.<>c__DisplayClass2_1.<>4__this""
-  IL_0012:  ldfld      ""int C._x""
-  IL_0017:  stloc.0
-  IL_0018:  ldloc.0
-  IL_0019:  ldc.i4.1
-  IL_001a:  add
-  IL_001b:  stfld      ""int C._x""
-  IL_0020:  ldloc.0
-  IL_0021:  add
-  IL_0022:  ret
+  IL_0006:  ldarg.0
+  IL_0007:  ldarg.0
+  IL_0008:  ldfld      ""int C._x""
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  ldc.i4.1
+  IL_0010:  add
+  IL_0011:  stfld      ""int C._x""
+  IL_0016:  ldloc.0
+  IL_0017:  add
+  IL_0018:  ret
 }");
         }
 
@@ -3465,6 +3622,121 @@ class Program
 ";
             VerifyOutput(source, output: @"202
 00222");
+        }
+
+        [Fact]
+        [WorkItem(21317, "https://github.com/dotnet/roslyn/issues/21317")]
+        [CompilerTrait(CompilerFeature.Dynamic)]
+        public void DynamicGenericArg()
+        {
+            var src = @"
+void L1<T>(T x)
+{
+    Console.WriteLine($""{x}: {typeof(T)}"");
+}
+dynamic val = 2;
+L1<object>(val);
+L1<int>(val);
+L1<dynamic>(val);
+L1<dynamic>(4);
+
+void L2<T>(int x, T y) => Console.WriteLine($""{x}, {y}: {typeof(T)}"");
+L2<float>(val, 3.0f);
+
+List<dynamic> listOfDynamic = new List<dynamic> { 1, 2, 3 };
+void L3<T>(List<T> x) => Console.WriteLine($""{string.Join("", "", x)}: {typeof(T)}"");
+L3(listOfDynamic);
+
+void L4<T>(T x, params int[] y) => Console.WriteLine($""{x}, {string.Join("", "", y)}: {typeof(T)}"");
+L4<dynamic>(val, 3, 4);
+L4<int>(val, 3, 4);
+L4<int>(1, 3, val);
+
+void L5<T>(int x, params T[] y) => Console.WriteLine($""{x}, {string.Join("", "", y)}: {typeof(T)}"");
+L5<int>(val, 3, 4);
+L5<int>(1, 3, val);
+L5<dynamic>(1, 3, val);
+";
+            var output = @"
+2: System.Object
+2: System.Int32
+2: System.Object
+4: System.Object
+2, 3: System.Single
+1, 2, 3: System.Object
+2, 3, 4: System.Object
+2, 3, 4: System.Int32
+1, 3, 2: System.Int32
+2, 3, 4: System.Int32
+1, 3, 2: System.Int32
+1, 3, 2: System.Object
+";
+            VerifyOutputInMain(src, output, "System", "System.Collections.Generic");
+        }
+
+        [Fact]
+        [WorkItem(21317, "https://github.com/dotnet/roslyn/issues/21317")]
+        [CompilerTrait(CompilerFeature.Dynamic)]
+        public void DynamicGenericClassMethod()
+        {
+            var src = @"
+using System;
+class C1<T1>
+{
+    public static void M1<T2>()
+    {
+        void F(int x)
+        {
+            Console.WriteLine($""C1<{typeof(T1)}>.M1<{typeof(T2)}>.F({x})"");
+        }
+        F((dynamic)2);
+    }
+    public static void M2()
+    {
+        void F(int x)
+        {
+            Console.WriteLine($""C1<{typeof(T1)}>.M2.F({x})"");
+        }
+        F((dynamic)2);
+    }
+}
+class C2
+{
+    public static void M1<T2>()
+    {
+        void F(int x)
+        {
+            Console.WriteLine($""C2.M1<{typeof(T2)}>.F({x})"");
+        }
+        F((dynamic)2);
+    }
+    public static void M2()
+    {
+        void F(int x)
+        {
+            Console.WriteLine($""C2.M2.F({x})"");
+        }
+        F((dynamic)2);
+    }
+}
+class Program
+{
+    static void Main()
+    {
+        C1<int>.M1<float>();
+        C1<int>.M2();
+        C2.M1<float>();
+        C2.M2();
+    }
+}
+";
+            var output = @"
+C1<System.Int32>.M1<System.Single>.F(2)
+C1<System.Int32>.M2.F(2)
+C2.M1<System.Single>.F(2)
+C2.M2.F(2)
+";
+            VerifyOutput(src, output);
         }
 
         [Fact]
