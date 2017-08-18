@@ -388,8 +388,8 @@ Microsoft.CodeAnalysis.Semantics.ICompoundAssignmentExpression
 Microsoft.CodeAnalysis.Semantics.ICompoundAssignmentExpression.BinaryOperationKind.get -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
 Microsoft.CodeAnalysis.Semantics.ICompoundAssignmentExpression.IsLifted.get -> bool
 Microsoft.CodeAnalysis.Semantics.IConditionalAccessExpression
-Microsoft.CodeAnalysis.Semantics.IConditionalAccessExpression.ConditionalInstance.get -> Microsoft.CodeAnalysis.IOperation
-Microsoft.CodeAnalysis.Semantics.IConditionalAccessExpression.ConditionalValue.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Semantics.IConditionalAccessExpression.Expression.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Semantics.IConditionalAccessExpression.WhenNotNull.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IConditionalAccessInstanceExpression
 Microsoft.CodeAnalysis.Semantics.IConditionalChoiceExpression
 Microsoft.CodeAnalysis.Semantics.IConditionalChoiceExpression.Condition.get -> Microsoft.CodeAnalysis.IOperation

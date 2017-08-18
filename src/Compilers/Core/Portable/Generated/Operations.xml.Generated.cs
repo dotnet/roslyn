@@ -1029,24 +1029,24 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
         }
 
-        protected abstract IOperation ConditionalValueImpl { get; }
-        protected abstract IOperation ConditionalInstanceImpl { get; }
+        protected abstract IOperation WhenNotNullImpl { get; }
+        protected abstract IOperation ExpressionImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                yield return ConditionalInstance;
-                yield return ConditionalValue;
+                yield return Expression;
+                yield return WhenNotNull;
             }
         }
         /// <summary>
         /// Expression to be evaluated if the conditional instance is non null.
         /// </summary>
-        public IOperation ConditionalValue => Operation.SetParentOperation(ConditionalValueImpl, this);
+        public IOperation WhenNotNull => Operation.SetParentOperation(WhenNotNullImpl, this);
         /// <summary>
         /// Expresson that is conditionally accessed.
         /// </summary>
-        public IOperation ConditionalInstance => Operation.SetParentOperation(ConditionalInstanceImpl, this);
+        public IOperation Expression => Operation.SetParentOperation(ExpressionImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitConditionalAccessExpression(this);
@@ -1062,15 +1062,15 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class ConditionalAccessExpression : BaseConditionalAccessExpression, IConditionalAccessExpression
     {
-        public ConditionalAccessExpression(IOperation conditionalValue, IOperation conditionalInstance, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public ConditionalAccessExpression(IOperation whenNotNull, IOperation expression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            ConditionalValueImpl = conditionalValue;
-            ConditionalInstanceImpl = conditionalInstance;
+            WhenNotNullImpl = whenNotNull;
+            ExpressionImpl = expression;
         }
 
-        protected override IOperation ConditionalValueImpl { get; }
-        protected override IOperation ConditionalInstanceImpl { get; }
+        protected override IOperation WhenNotNullImpl { get; }
+        protected override IOperation ExpressionImpl { get; }
     }
 
     /// <summary>
@@ -1078,18 +1078,18 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LazyConditionalAccessExpression : BaseConditionalAccessExpression, IConditionalAccessExpression
     {
-        private readonly Lazy<IOperation> _lazyConditionalValue;
-        private readonly Lazy<IOperation> _lazyConditionalInstance;
+        private readonly Lazy<IOperation> _lazyWhenNotNull;
+        private readonly Lazy<IOperation> _lazyExpression;
 
-        public LazyConditionalAccessExpression(Lazy<IOperation> conditionalValue, Lazy<IOperation> conditionalInstance, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyConditionalAccessExpression(Lazy<IOperation> whenNotNull, Lazy<IOperation> expression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            _lazyConditionalValue = conditionalValue ?? throw new System.ArgumentNullException(nameof(conditionalValue));
-            _lazyConditionalInstance = conditionalInstance ?? throw new System.ArgumentNullException(nameof(conditionalInstance));
+            _lazyWhenNotNull = whenNotNull ?? throw new System.ArgumentNullException(nameof(whenNotNull));
+            _lazyExpression = expression ?? throw new System.ArgumentNullException(nameof(expression));
         }
 
-        protected override IOperation ConditionalValueImpl => _lazyConditionalValue.Value;
+        protected override IOperation WhenNotNullImpl => _lazyWhenNotNull.Value;
 
-        protected override IOperation ConditionalInstanceImpl => _lazyConditionalInstance.Value;
+        protected override IOperation ExpressionImpl => _lazyExpression.Value;
     }
 
     /// <summary>

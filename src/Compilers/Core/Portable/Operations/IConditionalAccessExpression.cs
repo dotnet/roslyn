@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Expression to be evaluated if the conditional instance is non null.
         /// </summary>
-        IOperation ConditionalValue { get; }
+        IOperation WhenNotNull { get; }
         /// <summary>
         /// Expresson that is conditionally accessed.
         /// </summary>
-        IOperation ConditionalInstance { get; }
+        IOperation Expression { get; }
     }
 }
 
