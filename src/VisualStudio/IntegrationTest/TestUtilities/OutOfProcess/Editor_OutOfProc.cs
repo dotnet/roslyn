@@ -13,6 +13,8 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Xunit;
+using System;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
@@ -198,14 +200,22 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             SendKeys(new KeyPress(VirtualKey.K, ShiftState.Ctrl), new KeyPress(VirtualKey.F, ShiftState.Ctrl));
         }
 
-        public void Paste(string text)
+        private void ExecuteOnSTAThread(ThreadStart a)
         {
-            var thread = new Thread(() => Clipboard.SetText(text));
+            var thread = new Thread(a);
             thread.SetApartmentState(ApartmentState.STA);
             thread.Start();
             thread.Join();
+        }
 
+        public void Paste(string text)
+        {
+            ExecuteOnSTAThread(() => Clipboard.SetText(text));
             VisualStudioInstance.Dte.ExecuteCommand("Edit.Paste");
+
+            // Formatting paste tests sometimes fail with nothing pasted.
+            // Verify we're actually pasted the righ text.
+            ExecuteOnSTAThread(() => Assert.Equal(text, Clipboard.GetText()));
         }
 
         public void Undo()
