@@ -25,44 +25,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
             Try
 
-            Dim compilationDef =
-<compilation name="VBBinaryOperators1">
-    <file name="lib.vb">
-        <%= My.Resources.Resource.PrintResultTestSource %>
-    </file>
-    <file name="a.vb">
-        <%= My.Resources.Resource.BinaryOperatorsTestSource1 %>
-    </file>
-</compilation>
-
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
-
-            Assert.True(compilation.Options.CheckOverflow)
-
-            CompileAndVerify(compilation, expectedOutput:=My.Resources.Resource.BinaryOperatorsTestBaseline1)
-
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOverflowChecks(False))
-
-            Assert.False(compilation.Options.CheckOverflow)
-
-            CompileAndVerify(compilation, expectedOutput:=My.Resources.Resource.BinaryOperatorsTestBaseline1)
-
-            Catch ex As Exception
-                Assert.Null(ex)
-            Finally
-                System.Threading.Thread.CurrentThread.CurrentCulture = currCulture
-            End Try
-
-        End Sub
-
-        <Fact>
-        Public Sub Test1_IOperation()
-
-            Dim currCulture = System.Threading.Thread.CurrentThread.CurrentCulture
-            System.Threading.Thread.CurrentThread.CurrentCulture = New System.Globalization.CultureInfo("en-US", useUserOverride:=False)
-
-            Try
-
                 Dim compilationDef =
 <compilation name="VBBinaryOperators1">
     <file name="lib.vb">
@@ -72,13 +34,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         <%= My.Resources.Resource.BinaryOperatorsTestSource1 %>
     </file>
 </compilation>
+
                 Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
-                Dim expectedOperationTree = My.Resources.Resource.BinaryOperatorsTestBaseline1_OperationTree
+                Assert.True(compilation.Options.CheckOverflow)
 
-                Dim expectedDiagnostics = String.Empty
+                CompileAndVerify(compilation, expectedOutput:=My.Resources.Resource.BinaryOperatorsTestBaseline1)
 
-                VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(Compilation, "a.vb", expectedOperationTree, expectedDiagnostics)
+                compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOverflowChecks(False))
+
+                Assert.False(compilation.Options.CheckOverflow)
+
+                CompileAndVerify(compilation, expectedOutput:=My.Resources.Resource.BinaryOperatorsTestBaseline1)
 
             Catch ex As Exception
                 Assert.Null(ex)

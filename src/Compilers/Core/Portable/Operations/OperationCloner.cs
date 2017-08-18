@@ -381,12 +381,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IOperation VisitCompoundAssignmentExpression(ICompoundAssignmentExpression operation, object argument)
         {
-            return new CompoundAssignmentExpression(operation.OperatorKind, operation.IsLifted, Visit(operation.Target), Visit(operation.Value), operation.UsesOperatorMethod, operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
+            return new CompoundAssignmentExpression(operation.OperatorKind, operation.IsLifted, operation.IsChecked, Visit(operation.Target), Visit(operation.Value), operation.UsesOperatorMethod, operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
         }
 
         public override IOperation VisitIncrementExpression(IIncrementExpression operation, object argument)
         {
-            return new IncrementExpression(operation.IsDecrement, operation.IsPostfix, operation.IsLifted, Visit(operation.Target), operation.UsesOperatorMethod, operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
+            return new IncrementExpression(operation.IsDecrement, operation.IsPostfix, operation.IsLifted, operation.IsChecked, Visit(operation.Target), operation.UsesOperatorMethod, operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue);
         }
 
         public override IOperation VisitParenthesizedExpression(IParenthesizedExpression operation, object argument)

@@ -31,7 +31,7 @@ End Class
 
 Dim expectedOperationTree = <![CDATA[
 IWhileUntilLoopStatement (IsTopTest: False, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'Do'BIND:"Do ... While i < 4')
-  Condition: IBinaryOperatorExpression (BinaryOperatorKind.LessThan, IsChecked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 4')
+  Condition: IBinaryOperatorExpression (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 4')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
       Right: ILiteralExpression (Text: 4) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
   Body: IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'Do'BIND:"Do ... While i < 4')
@@ -85,7 +85,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
                     InConversion: null
                     OutConversion: null
       IIfStatement (OperationKind.IfStatement) (Syntax: 'If value >  ... End If')
-        Condition: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, IsChecked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'value > 10')
+        Condition: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'value > 10')
             Left: ILocalReferenceExpression: value (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'value')
             Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
         IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If value >  ... End If')
@@ -121,7 +121,7 @@ End Class
 
 Dim expectedOperationTree = <![CDATA[
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'While i < 5 ... End While')
-  Condition: IBinaryOperatorExpression (BinaryOperatorKind.LessThan, IsChecked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 5')
+  Condition: IBinaryOperatorExpression (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 5')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
       Right: ILiteralExpression (Text: 5) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
   Body: IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'While i < 5 ... End While')
@@ -173,7 +173,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
                     InConversion: null
                     OutConversion: null
       IIfStatement (OperationKind.IfStatement) (Syntax: 'If value >  ... End If')
-        Condition: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, IsChecked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'value > 5')
+        Condition: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'value > 5')
             Left: ILocalReferenceExpression: value (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'value')
             Right: ILiteralExpression (Text: 5) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
         IfTrue: IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'If value >  ... End If')
@@ -234,7 +234,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
                     InConversion: null
                     OutConversion: null
       IIfStatement (OperationKind.IfStatement) (Syntax: 'If value >  ... End If')
-        Condition: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, IsChecked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'value > 100')
+        Condition: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'value > 100')
             Left: ILocalReferenceExpression: value (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'value')
             Right: ILiteralExpression (Text: 100) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 100) (Syntax: '100')
         IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If value >  ... End If')
@@ -282,7 +282,7 @@ End Class
 
 Dim expectedOperationTree = <![CDATA[
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'While (Inli ... End While')
-  Condition: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThanOrEqual, IsChecked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '(InlineAssi ... alue)) >= 0')
+  Condition: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '(InlineAssi ... alue)) >= 0')
       Left: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(InlineAssi ... (i, value))')
           Operand: IInvocationExpression (Function Program.InlineAssignHelper(Of System.Int32)(ByRef target As System.Int32, value As System.Int32) As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'InlineAssig ... r(i, value)')
               Instance Receiver: null
@@ -375,9 +375,9 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
   Condition: ILiteralExpression (Text: True) (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'True')
   Body: IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'While True' ... End While')
       IIfStatement (OperationKind.IfStatement) (Syntax: 'If (number  ... End If')
-        Condition: IBinaryOperatorExpression (BinaryOperatorKind.Equals, IsChecked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '(number Mod 2) = 0')
+        Condition: IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '(number Mod 2) = 0')
             Left: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(number Mod 2)')
-                Operand: IBinaryOperatorExpression (BinaryOperatorKind.Remainder, IsChecked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'number Mod 2')
+                Operand: IBinaryOperatorExpression (BinaryOperatorKind.Remainder, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'number Mod 2')
                     Left: IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')
                     Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
             Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -420,9 +420,9 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
   Condition: ILiteralExpression (Text: True) (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'True')
   Body: IBlockStatement (4 statements) (OperationKind.BlockStatement) (Syntax: 'While True' ... End While')
       IIfStatement (OperationKind.IfStatement) (Syntax: 'If (number  ... End If')
-        Condition: IBinaryOperatorExpression (BinaryOperatorKind.Equals, IsChecked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '(number Mod 2) = 0')
+        Condition: IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '(number Mod 2) = 0')
             Left: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(number Mod 2)')
-                Operand: IBinaryOperatorExpression (BinaryOperatorKind.Remainder, IsChecked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'number Mod 2')
+                Operand: IBinaryOperatorExpression (BinaryOperatorKind.Remainder, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'number Mod 2')
                     Left: IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')
                     Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
             Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -479,7 +479,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
                     InConversion: null
                     OutConversion: null
       IIfStatement (OperationKind.IfStatement) (Syntax: 'If value >  ... End If')
-        Condition: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, IsChecked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'value > 100')
+        Condition: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'value > 100')
             Left: ILocalReferenceExpression: value (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'value')
             Right: ILiteralExpression (Text: 100) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 100) (Syntax: '100')
         IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If value >  ... End If')
@@ -538,7 +538,7 @@ End Class
 
             Dim expectedOperationTree = <![CDATA[
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'While i <=  ... End While')
-  Condition: IBinaryOperatorExpression (BinaryOperatorKind.LessThanOrEqual, IsChecked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i <= 10')
+  Condition: IBinaryOperatorExpression (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i <= 10')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
       Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
   Body: IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'While i <=  ... End While')
@@ -547,7 +547,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
             Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
       IIfStatement (OperationKind.IfStatement) (Syntax: 'If i < 9 Th ... End If')
-        Condition: IBinaryOperatorExpression (BinaryOperatorKind.LessThan, IsChecked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 9')
+        Condition: IBinaryOperatorExpression (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 9')
             Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
             Right: ILiteralExpression (Text: 9) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 9) (Syntax: '9')
         IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If i < 9 Th ... End If')
@@ -637,7 +637,7 @@ End Class
 
             Dim expectedOperationTree = <![CDATA[
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'While i < 1 ... End While')
-  Condition: IBinaryOperatorExpression (BinaryOperatorKind.LessThan, IsChecked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 10')
+  Condition: IBinaryOperatorExpression (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 10')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
       Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
   Body: IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'While i < 1 ... End While')
@@ -651,7 +651,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
           Variables: Local_1: j As System.Int32
           Initializer: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
       IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'While j < 1 ... End While')
-        Condition: IBinaryOperatorExpression (BinaryOperatorKind.LessThan, IsChecked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'j < 10')
+        Condition: IBinaryOperatorExpression (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'j < 10')
             Left: ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
             Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
         Body: IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'While j < 1 ... End While')
@@ -702,7 +702,7 @@ End Class
 
 Dim expectedOperationTree = <![CDATA[
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'While i < 1 ... End While')
-  Condition: IBinaryOperatorExpression (BinaryOperatorKind.LessThan, IsChecked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 10')
+  Condition: IBinaryOperatorExpression (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 10')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
       Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
   Body: IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'While i < 1 ... End While')
@@ -716,7 +716,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
           Variables: Local_1: j As System.Int32
           Initializer: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
       IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'While j < 1 ... End While')
-        Condition: IBinaryOperatorExpression (BinaryOperatorKind.LessThan, IsChecked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'j < 10')
+        Condition: IBinaryOperatorExpression (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'j < 10')
             Left: ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
             Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
         Body: IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'While j < 1 ... End While')
@@ -727,7 +727,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i = i + j')
               Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = i + j')
                   Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
-                  Right: IBinaryOperatorExpression (BinaryOperatorKind.Add, IsChecked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + j')
+                  Right: IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + j')
                       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
                       Right: ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... riteLine(j)')
@@ -767,7 +767,7 @@ End Class
 
 Dim expectedOperationTree = <![CDATA[
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'While Syste ... End While')
-  Condition: IBinaryOperatorExpression (BinaryOperatorKind.LessThan, IsChecked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'System.Thre ... ment(i) < 5')
+  Condition: IBinaryOperatorExpression (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'System.Thre ... ment(i) < 5')
       Left: IInvocationExpression (Function System.Threading.Interlocked.Increment(ByRef location As System.Int32) As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'System.Thre ... ncrement(i)')
           Instance Receiver: null
           Arguments(1):
@@ -807,7 +807,7 @@ End Class
 
 Dim expectedOperationTree = <![CDATA[
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'While i > 0 ... End While')
-  Condition: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, IsChecked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i > 0')
+  Condition: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i > 0')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
       Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'While i > 0 ... End While')
@@ -837,7 +837,7 @@ End Class
 
 Dim expectedOperationTree = <![CDATA[
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'While b = b ... End While')
-  Condition: IBinaryOperatorExpression (BinaryOperatorKind.Equals, IsChecked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: True) (Syntax: 'b = b')
+  Condition: IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: True) (Syntax: 'b = b')
       Left: ILocalReferenceExpression: b (OperationKind.LocalReferenceExpression, Type: System.Boolean, Constant: True) (Syntax: 'b')
       Right: ILocalReferenceExpression: b (OperationKind.LocalReferenceExpression, Type: System.Boolean, Constant: True) (Syntax: 'b')
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'While b = b ... End While')
@@ -871,7 +871,7 @@ Dim expectedOperationTree = <![CDATA[
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'While Syste ... End While')
   Condition: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'System.Math ...  x + 1) > 0')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, IsChecked) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'System.Math ...  x + 1) > 0')
+      Operand: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'System.Math ...  x + 1) > 0')
           Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'System.Math ... (x), x + 1)')
               Children(3):
                   IOperation:  (OperationKind.None) (Syntax: 'System.Math.Max')
@@ -879,7 +879,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
                     Children(2):
                         IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'System.Thre ... d.Decrement')
                         ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.SByte) (Syntax: 'x')
-                  IBinaryOperatorExpression (BinaryOperatorKind.Add, IsChecked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + 1')
+                  IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + 1')
                     Left: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'x')
                         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         Operand: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.SByte) (Syntax: 'x')
@@ -893,7 +893,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
                   Left: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.SByte) (Syntax: 'y')
                   Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.SByte) (Syntax: 'CSByte(x / 2)')
                       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      Operand: IBinaryOperatorExpression (BinaryOperatorKind.Divide, IsChecked) (OperationKind.BinaryOperatorExpression, Type: System.Double) (Syntax: 'x / 2')
+                      Operand: IBinaryOperatorExpression (BinaryOperatorKind.Divide, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Double) (Syntax: 'x / 2')
                           Left: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double) (Syntax: 'x')
                               Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               Operand: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.SByte) (Syntax: 'x')
@@ -1008,7 +1008,7 @@ End Module
 
             Dim expectedOperationTree = <![CDATA[
 IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'While Not b ... End While')
-  Condition: IUnaryOperatorExpression (UnaryOperatorKind.BitwiseNegation, IsChecked) (OperationKind.UnaryOperatorExpression, Type: System.Boolean) (Syntax: 'Not breakLoop')
+  Condition: IUnaryOperatorExpression (UnaryOperatorKind.BitwiseNegation, Checked) (OperationKind.UnaryOperatorExpression, Type: System.Boolean) (Syntax: 'Not breakLoop')
       Operand: ILocalReferenceExpression: breakLoop (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'breakLoop')
   Body: IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'While Not b ... End While')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... te {0}", x)')

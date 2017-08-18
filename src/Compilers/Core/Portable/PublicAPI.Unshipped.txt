@@ -245,6 +245,7 @@ Microsoft.CodeAnalysis.Semantics.ICollectionElementInitializerExpression.AddMeth
 Microsoft.CodeAnalysis.Semantics.ICollectionElementInitializerExpression.Arguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.Semantics.ICollectionElementInitializerExpression.IsDynamic.get -> bool
 Microsoft.CodeAnalysis.Semantics.ICompoundAssignmentExpression
+Microsoft.CodeAnalysis.Semantics.ICompoundAssignmentExpression.IsChecked.get -> bool
 Microsoft.CodeAnalysis.Semantics.ICompoundAssignmentExpression.IsLifted.get -> bool
 Microsoft.CodeAnalysis.Semantics.ICompoundAssignmentExpression.OperatorKind.get -> Microsoft.CodeAnalysis.Semantics.BinaryOperatorKind
 Microsoft.CodeAnalysis.Semantics.IConditionalAccessExpression
@@ -317,6 +318,7 @@ Microsoft.CodeAnalysis.Semantics.IIfStatement.Condition.get -> Microsoft.CodeAna
 Microsoft.CodeAnalysis.Semantics.IIfStatement.IfFalseStatement.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IIfStatement.IfTrueStatement.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IIncrementExpression
+Microsoft.CodeAnalysis.Semantics.IIncrementExpression.IsChecked.get -> bool
 Microsoft.CodeAnalysis.Semantics.IIncrementExpression.IsDecrement.get -> bool
 Microsoft.CodeAnalysis.Semantics.IIncrementExpression.IsLifted.get -> bool
 Microsoft.CodeAnalysis.Semantics.IIncrementExpression.IsPostfix.get -> bool

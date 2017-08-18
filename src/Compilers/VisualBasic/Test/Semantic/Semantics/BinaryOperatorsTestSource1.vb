@@ -6,7 +6,7 @@ Imports System
 
 Module Module1
 
-    Sub Main() 'BIND:"Sub Main()"
+    Sub Main()
         Dim BoFalse As Boolean
         Dim BoTrue As Boolean
         Dim SB As SByte

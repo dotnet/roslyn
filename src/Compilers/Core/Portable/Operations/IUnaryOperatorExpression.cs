@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         bool IsLifted { get; }
 
         /// <summary>
-        /// <code>true</code> if this is a 'checked' binary operator.
+        /// <code>true</code> if this is overflow checking is performed for the arithmetic operation.
         /// </summary>
         bool IsChecked { get; }
     }

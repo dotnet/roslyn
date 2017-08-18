@@ -781,7 +781,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (operation.IsChecked)
             {
-                kindStr += ", IsChecked";
+                kindStr += ", Checked";
             }
 
             LogString($" ({kindStr})");
@@ -803,12 +803,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (operation.IsChecked)
             {
-                kindStr += ", IsChecked";
+                kindStr += ", Checked";
             }
 
             if (operation.IsCompareText)
             {
-                kindStr += "-IsCompareText";
+                kindStr += ", CompareText";
             }
 
             LogString($" ({kindStr})");

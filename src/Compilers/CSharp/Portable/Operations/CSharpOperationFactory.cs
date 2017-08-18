@@ -778,12 +778,14 @@ namespace Microsoft.CodeAnalysis.Semantics
             BinaryOperatorKind operatorKind = Helper.DeriveBinaryOperatorKind(boundCompoundAssignmentOperator.Operator.Kind);
             Lazy<IOperation> target = new Lazy<IOperation>(() => Create(boundCompoundAssignmentOperator.Left));
             Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundCompoundAssignmentOperator.Right));
+            bool isLifted = boundCompoundAssignmentOperator.Type.IsNullableType();
+            bool isChecked = boundCompoundAssignmentOperator.Operator.Kind.IsChecked();
             bool usesOperatorMethod = (boundCompoundAssignmentOperator.Operator.Kind & CSharp.BinaryOperatorKind.TypeMask) == CSharp.BinaryOperatorKind.UserDefined;
             IMethodSymbol operatorMethod = boundCompoundAssignmentOperator.Operator.Method;
             SyntaxNode syntax = boundCompoundAssignmentOperator.Syntax;
             ITypeSymbol type = boundCompoundAssignmentOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundCompoundAssignmentOperator.ConstantValue);
-            return new LazyCompoundAssignmentExpression(operatorKind, boundCompoundAssignmentOperator.Type.IsNullableType(), target, value, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue);
+            return new LazyCompoundAssignmentExpression(operatorKind, isLifted, isChecked, target, value, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue);
         }
 
         private IIncrementExpression CreateBoundIncrementOperatorOperation(BoundIncrementOperator boundIncrementOperator)
@@ -791,13 +793,14 @@ namespace Microsoft.CodeAnalysis.Semantics
             bool isDecrement = Helper.IsDecrement(boundIncrementOperator.OperatorKind);
             bool isPostfix = Helper.IsPostfixIncrementOrDecrement(boundIncrementOperator.OperatorKind);
             bool isLifted = boundIncrementOperator.OperatorKind.IsLifted();
+            bool isChecked = boundIncrementOperator.OperatorKind.IsChecked();
             Lazy<IOperation> target = new Lazy<IOperation>(() => Create(boundIncrementOperator.Operand));
             bool usesOperatorMethod = (boundIncrementOperator.OperatorKind & CSharp.UnaryOperatorKind.TypeMask) == CSharp.UnaryOperatorKind.UserDefined;
             IMethodSymbol operatorMethod = boundIncrementOperator.MethodOpt;
             SyntaxNode syntax = boundIncrementOperator.Syntax;
             ITypeSymbol type = boundIncrementOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundIncrementOperator.ConstantValue);
-            return new LazyIncrementExpression(isDecrement, isPostfix, isLifted, target, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue);
+            return new LazyIncrementExpression(isDecrement, isPostfix, isLifted, isChecked, target, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue);
         }
 
         private IInvalidExpression CreateBoundBadExpressionOperation(BoundBadExpression boundBadExpression)

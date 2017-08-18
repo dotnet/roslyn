@@ -126,7 +126,7 @@ Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'If x = Noth ... End If')
   Condition: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x = Nothing')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IBinaryOperatorExpression (BinaryOperatorKind.Equals, IsChecked) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'x = Nothing')
+      Operand: IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'x = Nothing')
           Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')
           Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program, Constant: null, IsInvalid) (Syntax: 'Nothing')
               Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -499,7 +499,7 @@ End Module]]>.Value
 Dim expectedOperationTree = <![CDATA[
 IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'ElseIf args.Length = 0')
   Children(1):
-      IBinaryOperatorExpression (BinaryOperatorKind.Equals, IsChecked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, IsInvalid) (Syntax: 'args.Length = 0')
+      IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, IsInvalid) (Syntax: 'args.Length = 0')
         Left: IPropertyReferenceExpression: ReadOnly Property System.Array.Length As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'args.Length')
             Instance Receiver: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String(), IsInvalid) (Syntax: 'args')
         Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')

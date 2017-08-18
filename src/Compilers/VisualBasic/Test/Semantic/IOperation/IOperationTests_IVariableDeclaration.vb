@@ -506,7 +506,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: i1 As System.Int32()
     Initializer: IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'i1(2)')
         Dimension Sizes(1):
-            IBinaryOperatorExpression (BinaryOperatorKind.Add, IsChecked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 3) (Syntax: '2')
+            IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 3) (Syntax: '2')
               Left: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
               Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '2')
         Initializer: null

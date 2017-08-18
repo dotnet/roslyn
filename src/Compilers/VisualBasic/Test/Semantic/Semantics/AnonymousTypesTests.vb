@@ -35,7 +35,7 @@ IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.Conve
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '.c = .b + .a')
             Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.c As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'c')
                 Instance Receiver: null
-            Right: IBinaryOperatorExpression (BinaryOperatorKind.Add, IsChecked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '.b + .a')
+            Right: IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '.b + .a')
                 Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.b As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: '.b')
                     Instance Receiver: null
                 Right: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: '.a')
@@ -656,7 +656,7 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: $0 As System.Int32>, IsInvalid) (Syntax: 'New With {a * 2}')
   Initializers(1):
-      IBinaryOperatorExpression (BinaryOperatorKind.Multiply, IsChecked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: 'a * 2')
+      IBinaryOperatorExpression (BinaryOperatorKind.Multiply, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: 'a * 2')
         Left: ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'a')
         Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
 ]]>.Value

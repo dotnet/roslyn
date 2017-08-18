@@ -297,7 +297,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                             constantValue:=Nothing))
                     statements.Add(OperationFactory.CreateCompoundAssignmentExpressionStatement(
                         controlVariable, stepOperand,
-                        BinaryOperatorKind.Add, controlType.IsNullableType(),
+                        BinaryOperatorKind.Add, controlType.IsNullableType(), False,
                         Nothing, _semanticModel, stepValueExpression.Syntax))
                 End If
             End If
@@ -463,7 +463,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 End Select
             End Function
 
-            Friend Shared Function DeriveBinaryOperatorKind(operatorKind As VisualBasic.BinaryOperatorKind) As BinaryOperatorKind
+            Friend Shared Function DeriveBinaryOperatorKind(operatorKind As VisualBasic.BinaryOperatorKind, leftOpt As BoundExpression) As BinaryOperatorKind
                 Select Case operatorKind And VisualBasic.BinaryOperatorKind.OpMask
                     Case VisualBasic.BinaryOperatorKind.Add
                         Return BinaryOperatorKind.Add
@@ -471,8 +471,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
                         Return BinaryOperatorKind.Subtract
                     Case VisualBasic.BinaryOperatorKind.Multiply
                         Return BinaryOperatorKind.Multiply
-                    Case VisualBasic.BinaryOperatorKind.Divide, VisualBasic.BinaryOperatorKind.IntegerDivide
+                    Case VisualBasic.BinaryOperatorKind.Divide
                         Return BinaryOperatorKind.Divide
+                    Case VisualBasic.BinaryOperatorKind.IntegerDivide
+                        Return BinaryOperatorKind.IntegerDivide
                     Case VisualBasic.BinaryOperatorKind.Modulo
                         Return BinaryOperatorKind.Remainder
                     Case VisualBasic.BinaryOperatorKind.And
@@ -494,8 +496,12 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Case VisualBasic.BinaryOperatorKind.LessThanOrEqual
                         Return BinaryOperatorKind.LessThanOrEqual
                     Case VisualBasic.BinaryOperatorKind.Equals
-                        Return BinaryOperatorKind.Equals
+                        Return If(leftOpt?.Type.SpecialType = SpecialType.System_Object, BinaryOperatorKind.ObjectValueEquals, BinaryOperatorKind.Equals)
                     Case VisualBasic.BinaryOperatorKind.NotEquals
+                        Return If(leftOpt?.Type.SpecialType = SpecialType.System_Object, BinaryOperatorKind.ObjectValueNotEquals, BinaryOperatorKind.NotEquals)
+                    Case VisualBasic.BinaryOperatorKind.Is
+                        Return BinaryOperatorKind.Equals
+                    Case VisualBasic.BinaryOperatorKind.IsNot
                         Return BinaryOperatorKind.NotEquals
                     Case VisualBasic.BinaryOperatorKind.GreaterThanOrEqual
                         Return BinaryOperatorKind.GreaterThanOrEqual
@@ -503,6 +509,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
                         Return BinaryOperatorKind.GreaterThan
                     Case VisualBasic.BinaryOperatorKind.Power
                         Return BinaryOperatorKind.Power
+                    Case VisualBasic.BinaryOperatorKind.Like
+                        Return BinaryOperatorKind.Like
+                    Case VisualBasic.BinaryOperatorKind.Concatenate
+                        Return BinaryOperatorKind.Concatenate
                     Case Else
                         Return BinaryOperatorKind.Invalid
                 End Select

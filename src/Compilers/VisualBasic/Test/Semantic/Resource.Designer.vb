@@ -118,27 +118,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.My.Resources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to IBlockStatement (6069 statements, 19 locals) (OperationKind.BlockStatement) (Syntax: &apos;Sub Main() ... End Sub&apos;)
-        '''  Locals: Local_1: BoFalse As System.Boolean
-        '''    Local_2: BoTrue As System.Boolean
-        '''    Local_3: SB As System.SByte
-        '''    Local_4: By As System.Byte
-        '''    Local_5: Sh As System.Int16
-        '''    Local_6: US As System.UInt16
-        '''    Local_7: [In] As System.Int32
-        '''    Local_8: UI As System.UInt32
-        '''    Local_9: Lo As System.Int64
-        '''    Local_10: UL As System.UInt64
-        '''    Local_11: De As System.Decimal
-        '''    Local_ [rest of string was truncated]&quot;;.
-        '''</summary>
-        Friend Shared ReadOnly Property BinaryOperatorsTestBaseline1_OperationTree() As String
-            Get
-                Return ResourceManager.GetString("BinaryOperatorsTestBaseline1_OperationTree", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to BC30452: Operator &apos;+&apos; is not defined for types &apos;Date&apos; and &apos;Boolean&apos;.
         '''        result = Da + BoFalse
         '''                 ~~~~~~~~~~~~
@@ -293,7 +272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.My.Resources
         '''
         '''Module Module1
         '''
-        '''    Sub Main() &apos;BIND:&quot;Sub Main()&quot;
+        '''    Sub Main()
         '''        Dim BoFalse As Boolean
         '''        Dim BoTrue As Boolean
         '''        Dim SB As SByte
@@ -303,7 +282,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.My.Resources
         '''        Dim [In] As Integer
         '''        Dim UI As UInteger
         '''        Dim Lo As Long
-        '''        Dim U [rest of string was truncated]&quot;;.
+        '''        Dim UL As ULong
+        '''        [rest of string was truncated]&quot;;.
         '''</summary>
         Friend Shared ReadOnly Property BinaryOperatorsTestSource1() As String
             Get

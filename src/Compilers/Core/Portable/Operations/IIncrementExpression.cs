@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
-
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
@@ -37,6 +35,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// value types.
         /// </summary>
         bool IsLifted { get; }
+
+        /// <summary>
+        /// <code>true</code> if this is overflow checking is performed for the arithmetic operation.
+        /// </summary>
+        bool IsChecked { get; }
     }
 }
 

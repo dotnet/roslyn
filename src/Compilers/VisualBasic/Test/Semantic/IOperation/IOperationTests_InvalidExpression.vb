@@ -211,7 +211,7 @@ Class Program
 End Class]]>.Value
 
 Dim expectedOperationTree = <![CDATA[
-IUnaryOperatorExpression (UnaryOperatorKind.Plus, IsChecked) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '+x')
+IUnaryOperatorExpression (UnaryOperatorKind.Plus, Checked) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '+x')
   Operand: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')
 ]]>.Value
 
@@ -241,10 +241,10 @@ Class Program
 End Class]]>.Value
 
 Dim expectedOperationTree = <![CDATA[
-IBinaryOperatorExpression (BinaryOperatorKind.Add, IsChecked) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'x + (y * args.Length)')
+IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'x + (y * args.Length)')
   Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
   Right: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: ?, IsInvalid) (Syntax: '(y * args.Length)')
-      Operand: IBinaryOperatorExpression (BinaryOperatorKind.Multiply, IsChecked) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'y * args.Length')
+      Operand: IBinaryOperatorExpression (BinaryOperatorKind.Multiply, Checked) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'y * args.Length')
           Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'y')
               Children(0)
           Right: IPropertyReferenceExpression: ReadOnly Property System.Array.Length As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'args.Length')
@@ -377,10 +377,10 @@ End Class]]>.Value
 Dim expectedOperationTree = <![CDATA[
 IArrayCreationExpression (Element Type: X) (OperationKind.ArrayCreationExpression, Type: X(), IsInvalid) (Syntax: 'New X(Program - 1) {{1}}')
   Dimension Sizes(1):
-      IBinaryOperatorExpression (BinaryOperatorKind.Add, IsChecked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: 'Program - 1')
+      IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: 'Program - 1')
         Left: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Program - 1')
             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand: IBinaryOperatorExpression (BinaryOperatorKind.Subtract, IsChecked) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'Program - 1')
+            Operand: IBinaryOperatorExpression (BinaryOperatorKind.Subtract, Checked) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'Program - 1')
                 Left: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Program')
                 Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: 'Program - 1')

@@ -679,7 +679,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         public bool IsLifted { get; }
         /// <summary>
-        /// <code>true</code> if this is a 'checked' binary operator.
+        /// <code>true</code> if this is overflow checking is performed for the arithmetic operation.
         /// </summary>
         public bool IsChecked { get; }
         /// <summary>
@@ -957,11 +957,12 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseCompoundAssignmentExpression : AssignmentExpression, IHasOperatorMethodExpression, ICompoundAssignmentExpression
     {
-        protected BaseCompoundAssignmentExpression(BinaryOperatorKind operatorKind, bool isLifted, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected BaseCompoundAssignmentExpression(BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(OperationKind.CompoundAssignmentExpression, semanticModel, syntax, type, constantValue)
         {
             OperatorKind = operatorKind;
             IsLifted = isLifted;
+            IsChecked = isChecked;
             UsesOperatorMethod = usesOperatorMethod;
             OperatorMethod = operatorMethod;
         }
@@ -973,6 +974,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <code>true</code> if this assignment contains a 'lifted' binary operation.
         /// </summary>
         public bool IsLifted { get; }
+        /// <summary>
+        /// <code>true</code> if this is overflow checking is performed for the arithmetic operation.
+        /// </summary>
+        public bool IsChecked { get; }
         /// <summary>
         /// True if and only if the operation is performed by an operator method.
         /// </summary>
@@ -1005,8 +1010,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class CompoundAssignmentExpression : BaseCompoundAssignmentExpression, IHasOperatorMethodExpression, ICompoundAssignmentExpression
     {
-        public CompoundAssignmentExpression(BinaryOperatorKind operatorKind, bool isLifted, IOperation target, IOperation value, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(operatorKind, isLifted, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue)
+        public CompoundAssignmentExpression(BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IOperation target, IOperation value, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(operatorKind, isLifted, isChecked, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue)
         {
             TargetImpl = target;
             ValueImpl = value;
@@ -1023,8 +1028,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         private readonly Lazy<IOperation> _lazyTarget;
         private readonly Lazy<IOperation> _lazyValue;
 
-        public LazyCompoundAssignmentExpression(BinaryOperatorKind operatorKind, bool isLifted, Lazy<IOperation> target, Lazy<IOperation> value, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(operatorKind, isLifted, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue)
+        public LazyCompoundAssignmentExpression(BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, Lazy<IOperation> target, Lazy<IOperation> value, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(operatorKind, isLifted, isChecked, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue)
         {
             _lazyTarget = target ?? throw new System.ArgumentNullException(nameof(target));
             _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
@@ -2015,12 +2020,13 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseIncrementExpression : Operation, IIncrementExpression
     {
-        public BaseIncrementExpression(bool isDecrement, bool isPostfix, bool isLifted, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public BaseIncrementExpression(bool isDecrement, bool isPostfix, bool isLifted, bool isChecked, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(OperationKind.IncrementExpression, semanticModel, syntax, type, constantValue)
         {
             IsDecrement = isDecrement;
             IsPostfix = isPostfix;
             IsLifted = isLifted;
+            IsChecked = isChecked;
             UsesOperatorMethod = usesOperatorMethod;
             OperatorMethod = operatorMethod;
         }
@@ -2041,6 +2047,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// value types.
         /// </summary>
         public bool IsLifted { get; }
+        /// <summary>
+        /// <code>true</code> if this is overflow checking is performed for the arithmetic operation.
+        /// </summary>
+        public bool IsChecked { get; }
         protected abstract IOperation TargetImpl { get; }
         /// <summary>
         /// True if and only if the operation is performed by an operator method.
@@ -2077,8 +2087,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class IncrementExpression : BaseIncrementExpression, IIncrementExpression
     {
-        public IncrementExpression(bool isDecrement, bool isPostfix, bool isLifted, IOperation target, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(isDecrement, isPostfix, isLifted, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue)
+        public IncrementExpression(bool isDecrement, bool isPostfix, bool isLifted, bool isChecked, IOperation target, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isDecrement, isPostfix, isLifted, isChecked, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue)
         {
             TargetImpl = target;
         }
@@ -2093,8 +2103,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<IOperation> _lazyTarget;
 
-        public LazyIncrementExpression(bool isDecrement, bool isPostfix, bool isLifted, Lazy<IOperation> target, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(isDecrement, isPostfix, isLifted, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue)
+        public LazyIncrementExpression(bool isDecrement, bool isPostfix, bool isLifted, bool isChecked, Lazy<IOperation> target, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isDecrement, isPostfix, isLifted, isChecked, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue)
         {
             _lazyTarget = target ?? throw new System.ArgumentNullException(nameof(target));
         }
@@ -4733,7 +4743,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         public bool IsLifted { get; }
         /// <summary>
-        /// <code>true</code> if this is a 'checked' binary operator.
+        /// <code>true</code> if this is overflow checking is performed for the arithmetic operation.
         /// </summary>
         public bool IsChecked { get; }
         public override IEnumerable<IOperation> Children

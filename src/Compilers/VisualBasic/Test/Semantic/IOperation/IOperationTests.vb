@@ -76,7 +76,7 @@ End Module
 IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x = x + 10')
   Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2, IsInvalid) (Syntax: 'x = x + 10')
       Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
-      Right: IBinaryOperatorExpression (BinaryOperatorKind.Add, IsChecked) (OperationKind.BinaryOperatorExpression, Type: B2, IsInvalid) (Syntax: 'x + 10')
+      Right: IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: B2, IsInvalid) (Syntax: 'x + 10')
           Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
           Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
 ")
@@ -106,7 +106,7 @@ IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x 
 IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x = x + y')
   Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2) (Syntax: 'x = x + y')
       Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
-      Right: IBinaryOperatorExpression (BinaryOperatorKind.Add, IsChecked) (OperatorMethod: Function B2.op_Addition(x As B2, y As B2) As B2) (OperationKind.BinaryOperatorExpression, Type: B2) (Syntax: 'x + y')
+      Right: IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function B2.op_Addition(x As B2, y As B2) As B2) (OperationKind.BinaryOperatorExpression, Type: B2) (Syntax: 'x + y')
           Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
           Right: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'y')
 ")
@@ -235,7 +235,7 @@ End Class
 
 Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement) (Syntax: 'If x <> 0 T ... End If')
-  Condition: IBinaryOperatorExpression (BinaryOperatorKind.NotEquals, IsChecked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x <> 0')
+  Condition: IBinaryOperatorExpression (BinaryOperatorKind.NotEquals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x <> 0')
       Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
       Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If x <> 0 T ... End If')
