@@ -6794,7 +6794,8 @@ interface IComInterface
 class Class : [|IComInterface|]
 {
 }",
-@"using System.Runtime.InteropServices;
+@"
+using System.Runtime.InteropServices;
 
 [ComImport]
 interface IComInterface
