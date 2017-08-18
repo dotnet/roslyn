@@ -2989,7 +2989,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "(out int a)", "lambda"));
         }
 
         // Add corresponding test to VB
@@ -3840,7 +3841,7 @@ class C
                 Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"));
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact]
         public void Lambdas_Update_Capturing_IndexerGetterParameter2()
         {
             var src1 = @"
@@ -3861,10 +3862,11 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"));
         }
 
-        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        [Fact]
         public void Lambdas_Update_Capturing_IndexerSetterParameter1()
         {
             var src1 = @"
@@ -3885,7 +3887,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"));
         }
 
         [Fact]
