@@ -31,6 +31,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
         [Fact]
+        [WorkItem(294554, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=294554")]
+        public void ThisOnlyClosureBetweenStructCaptures()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    int _x = 0;
+    void M()
+    {
+        void L1()
+        {
+            int x = 0;
+            _x++;
+            void L2()
+            {
+                Action a2 = L2;
+                int y = 0;
+                L3();
+                void L3()
+                {
+                    _x++;
+                    y++;
+                }
+            }
+            L2();
+
+            void L5() => x++;
+            L5();
+        }
+        L1();
+    }
+}");
+        }
+
+        [Fact]
         public void CaptureThisInDifferentScopes()
         {
             CompileAndVerify(@"
