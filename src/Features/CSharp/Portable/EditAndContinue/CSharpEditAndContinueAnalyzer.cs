@@ -1004,7 +1004,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal override IMethodSymbol GetLambdaExpressionSymbol(SemanticModel model, SyntaxNode lambdaExpression, CancellationToken cancellationToken)
         {
-            var bodyExpression = LambdaUtilities.TryGetCorrespondingLambdaBody(lambdaExpression);
+            var bodyExpression = LambdaUtilities.GetNestedFunctionBody(lambdaExpression);
             return (IMethodSymbol)model.GetEnclosingSymbol(bodyExpression.SpanStart, cancellationToken);
         }
 
@@ -1079,7 +1079,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
-        private bool IsLocalFunctionBody(SyntaxNode lambdaBody)
+        private static bool IsLocalFunctionBody(SyntaxNode lambdaBody)
         {
             var lambda = LambdaUtilities.GetLambda(lambdaBody);
             return lambda.Kind() == SyntaxKind.LocalFunctionStatement;
