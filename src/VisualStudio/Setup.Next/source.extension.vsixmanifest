@@ -18,7 +18,6 @@
   </Dependencies>
   <Assets>
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="EditorFeatures.Next" Path="|EditorFeatures.Next|" />
-    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="ServicesVisualStudio.Next" Path="|ServicesVisualStudio.Next|" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="XamlVisualStudio" Path="|XamlVisualStudio|" />
     <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="XamlVisualStudio" Path="|XamlVisualStudio|" />
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="remoteHostService.servicehub.service.json" />

@@ -962,4 +962,13 @@ Additional information: {1}</value>
   <data name="Prefer_local_function_over_anonymous_function" xml:space="preserve">
     <value>Prefere local function over anonymous function</value>
   </data>
+  <data name="External_reference_found" xml:space="preserve">
+    <value>External reference found</value>
+  </data>
+  <data name="No_references_found_to_0" xml:space="preserve">
+    <value>No references found to '{0}'</value>
+  </data>
+  <data name="Search_found_no_results" xml:space="preserve">
+    <value>Search found no results</value>
+  </data>
 </root>

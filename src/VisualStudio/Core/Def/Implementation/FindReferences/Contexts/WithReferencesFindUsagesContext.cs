@@ -192,11 +192,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 if (definition.IsExternal)
                 {
-                    return ServicesVisualStudioNextResources.External_reference_found;
+                    return ServicesVSResources.External_reference_found;
                 }
 
                 return string.Format(
-                    ServicesVisualStudioNextResources.No_references_found_to_0,
+                    ServicesVSResources.No_references_found_to_0,
                     definition.NameDisplayParts.JoinText());
             }
 
@@ -251,7 +251,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // Create a fake definition/reference called "search found no results"
                     await OnEntryFoundAsync(NoResultsDefinitionItem,
                         bucket => SimpleMessageEntry.CreateAsync(
-                            bucket, ServicesVisualStudioNextResources.Search_found_no_results),
+                            bucket, ServicesVSResources.Search_found_no_results),
                         addToEntriesWhenGroupingByDefinition: true,
                         addToEntriesWhenNotGroupingByDefinition: true).ConfigureAwait(false);
                 }
@@ -262,7 +262,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     GlyphTags.GetTags(Glyph.StatusInformation),
                     ImmutableArray.Create(new TaggedText(
                         TextTags.Text,
-                        ServicesVisualStudioNextResources.Search_found_no_results)));
+                        ServicesVSResources.Search_found_no_results)));
         }
     }
 }

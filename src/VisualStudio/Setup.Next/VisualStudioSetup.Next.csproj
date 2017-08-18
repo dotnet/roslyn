@@ -50,14 +50,6 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
-    <ProjectReference Include="..\Core\Next\ServicesVisualStudio.Next.csproj">
-      <Name>ServicesVisualStudio.Next</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <Ngen>true</Ngen>
-      <NgenArchitecture>All</NgenArchitecture>
-      <NgenPriority>3</NgenPriority>
-    </ProjectReference>
     <ProjectReference Include="..\Razor\RazorVisualStudio.csproj">
       <Name>RazorVisualStudio</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>

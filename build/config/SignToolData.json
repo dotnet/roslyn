@@ -37,7 +37,6 @@
         "Dlls\\RemoteWorkspaces\\Microsoft.CodeAnalysis.Remote.Workspaces.dll",
         "Dlls\\Scripting\\Microsoft.CodeAnalysis.Scripting.dll",
         "Dlls\\ServiceHub\\Microsoft.CodeAnalysis.Remote.ServiceHub.dll",
-        "Dlls\\ServicesVisualStudio.Next\\Microsoft.VisualStudio.LanguageServices.Next.dll",
         "Dlls\\ServicesVisualStudioImpl\\Microsoft.VisualStudio.LanguageServices.Implementation.dll",
         "Dlls\\ServicesVisualStudio\\Microsoft.VisualStudio.LanguageServices.dll",
         "Dlls\\SolutionExplorerShim\\Microsoft.VisualStudio.LanguageServices.SolutionExplorer.dll",
