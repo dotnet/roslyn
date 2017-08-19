@@ -2082,16 +2082,16 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class InstanceReferenceExpression : Operation, IInstanceReferenceExpression
     {
-        public InstanceReferenceExpression(InstanceReferenceKind instanceReferenceKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public InstanceReferenceExpression(bool isBaseReference, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.InstanceReferenceExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            InstanceReferenceKind = instanceReferenceKind;
+            IsBaseReference = isBaseReference;
         }
         ///
         /// <summary>
         /// Kind of instance reference.
         /// </summary>
-        public InstanceReferenceKind InstanceReferenceKind { get; }
+        public bool IsBaseReference { get; }
         public override IEnumerable<IOperation> Children
         {
             get

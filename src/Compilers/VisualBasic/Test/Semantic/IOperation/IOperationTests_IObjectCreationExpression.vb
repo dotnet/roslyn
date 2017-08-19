@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -176,7 +176,7 @@ IObjectCreationExpression (Constructor: Sub System.Collections.Generic.List(Of S
           ICollectionElementInitializerExpression (AddMethod: Sub System.Collections.Generic.List(Of System.Int32).Add(item As System.Int32)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void) (Syntax: 'field')
             Arguments(1):
                 IFieldReferenceExpression: C.field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'field')
-                  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'field')
+                  Instance Receiver: IInstanceReferenceExpression (IsBaseReference: False) (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'field')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -227,7 +227,7 @@ IObjectCreationExpression (Constructor: Sub System.Collections.Generic.List(Of S
                           ICollectionElementInitializerExpression (AddMethod: Sub System.Collections.Generic.List(Of System.Int32).Add(item As System.Int32)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void) (Syntax: 'field')
                             Arguments(1):
                                 IFieldReferenceExpression: C.field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'field')
-                                  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'field')
+                                  Instance Receiver: IInstanceReferenceExpression (IsBaseReference: False) (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'field')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -302,7 +302,7 @@ IObjectCreationExpression (Constructor: Sub [Class]..ctor()) (OperationKind.Obje
                           Left: IPropertyReferenceExpression: Property [Class].X As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'X')
                               Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New [Class] ... .X = field}')
                           Right: IFieldReferenceExpression: [Class].field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'field')
-                              Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: [Class]) (Syntax: 'field')
+                              Instance Receiver: IInstanceReferenceExpression (IsBaseReference: False) (OperationKind.InstanceReferenceExpression, Type: [Class]) (Syntax: 'field')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

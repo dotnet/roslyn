@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Linq.Enumerable
 Imports System.Xml.Linq
@@ -1176,7 +1176,7 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
             Left: IFieldReferenceExpression: C1.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field')
                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C1() Wi ... ivateField}')
             Right: IFieldReferenceExpression: C2.PrivateField As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'PrivateField')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C2) (Syntax: 'PrivateField')
+                Instance Receiver: IInstanceReferenceExpression (IsBaseReference: False) (OperationKind.InstanceReferenceExpression, Type: C2) (Syntax: 'PrivateField')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

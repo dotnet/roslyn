@@ -459,7 +459,7 @@ Microsoft.CodeAnalysis.Semantics.IIncrementExpression
 Microsoft.CodeAnalysis.Semantics.IIncrementExpression.IncrementOperationKind.get -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
 Microsoft.CodeAnalysis.Semantics.IIncrementExpression.Target.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IInstanceReferenceExpression
-Microsoft.CodeAnalysis.Semantics.IInstanceReferenceExpression.InstanceReferenceKind.get -> Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind
+Microsoft.CodeAnalysis.Semantics.IInstanceReferenceExpression.IsBaseReference.get -> bool
 Microsoft.CodeAnalysis.Semantics.IInterpolatedStringContent
 Microsoft.CodeAnalysis.Semantics.IInterpolatedStringExpression
 Microsoft.CodeAnalysis.Semantics.IInterpolatedStringExpression.Parts.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IInterpolatedStringContent>
@@ -594,12 +594,6 @@ Microsoft.CodeAnalysis.Semantics.IWhileUntilLoopStatement.IsWhile.get -> bool
 Microsoft.CodeAnalysis.Semantics.IWithStatement
 Microsoft.CodeAnalysis.Semantics.IWithStatement.Body.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IWithStatement.Value.get -> Microsoft.CodeAnalysis.IOperation
-Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind
-Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind.BaseClass = 3 -> Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind
-Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind.Explicit = 2 -> Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind
-Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind.Implicit = 1 -> Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind
-Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind.None = 0 -> Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind
-Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind.ThisClass = 4 -> Microsoft.CodeAnalysis.Semantics.InstanceReferenceKind
 Microsoft.CodeAnalysis.Semantics.LoopKind
 Microsoft.CodeAnalysis.Semantics.LoopKind.For = 2 -> Microsoft.CodeAnalysis.Semantics.LoopKind
 Microsoft.CodeAnalysis.Semantics.LoopKind.ForEach = 3 -> Microsoft.CodeAnalysis.Semantics.LoopKind

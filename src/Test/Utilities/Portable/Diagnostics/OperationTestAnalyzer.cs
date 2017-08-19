@@ -971,7 +971,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  (operationContext) =>
                  {
                      IInstanceReferenceExpression instanceReference = (IInstanceReferenceExpression)operationContext.Operation;
-                     operationContext.ReportDiagnostic(Diagnostic.Create(instanceReference.InstanceReferenceKind == InstanceReferenceKind.Implicit ? ImplicitInstanceDescriptor : ExplicitInstanceDescriptor, instanceReference.Syntax.GetLocation()));
+                     operationContext.ReportDiagnostic(Diagnostic.Create(instanceReference.Syntax.IsKind(CSharp.SyntaxKind.ThisExpression) ||
+                                                                            instanceReference.Syntax.IsKind(VisualBasic.SyntaxKind.MeExpression) ||
+                                                                            instanceReference.Syntax.IsKind(VisualBasic.SyntaxKind.MyClassExpression) ||
+                                                                            instanceReference.Syntax.IsKind(CSharp.SyntaxKind.BaseExpression) ||
+                                                                            instanceReference.Syntax.IsKind(VisualBasic.SyntaxKind.MyBaseExpression)
+                                                                            ? ExplicitInstanceDescriptor : ImplicitInstanceDescriptor,
+                                                                         instanceReference.Syntax.GetLocation()));
                  },
                  OperationKind.InstanceReferenceExpression);
         }

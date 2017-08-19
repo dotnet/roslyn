@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IOperation VisitInstanceReferenceExpression(IInstanceReferenceExpression operation, object argument)
         {
-            return new InstanceReferenceExpression(operation.InstanceReferenceKind, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new InstanceReferenceExpression(operation.IsBaseReference, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitFieldReferenceExpression(IFieldReferenceExpression operation, object argument)

@@ -13,11 +13,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </remarks>
     public interface IInstanceReferenceExpression : IOperation
     {
-        ///
         /// <summary>
-        /// Kind of instance reference.
+        /// True if this is a reference to base or MyBase
         /// </summary>
-        InstanceReferenceKind InstanceReferenceKind { get; }
+        bool IsBaseReference { get; }
     }
 }
 
