@@ -69,6 +69,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Sub
 
         <Fact>
+        Public Sub TestExternalDiagnostics_SupportedDiagnosticId_Concurrent()
+            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+                Dim waiter = New Waiter()
+                Dim service = New TestDiagnosticAnalyzerService()
+                Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, New MockDiagnosticUpdateSourceRegistrationService(), waiter)
+
+                Dim project = workspace.CurrentSolution.Projects.First()
+                source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(True))
+
+                Parallel.For(0, 100, Sub() source.SupportedDiagnosticId(project.Id, "CS1002"))
+            End Using
+        End Sub
+
+        <Fact>
         Public Async Function TestExternalDiagnostics_DuplicatedError() As Task
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim waiter = New Waiter()
