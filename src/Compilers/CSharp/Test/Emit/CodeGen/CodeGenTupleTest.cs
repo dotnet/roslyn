@@ -3938,6 +3938,29 @@ static class Extension
             verifier7_1.VerifyDiagnostics();
         }
 
+        [WorkItem(21518, "https://github.com/dotnet/roslyn/issues/21518")]
+        [Fact]
+        public void InferredName_Conversion()
+        {
+            var source =
+@"using System.Collections.Generic;
+class C
+{
+    static void F((int, IList<object>) items)
+    {
+    }
+    static void Test()
+    {
+        var items = new List<object>();
+        var group = (1, items);
+        F(group);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
+            comp.VerifyEmitDiagnostics();
+        }
+
         [Fact]
         public void LongTupleWithArgumentEvaluation()
         {
