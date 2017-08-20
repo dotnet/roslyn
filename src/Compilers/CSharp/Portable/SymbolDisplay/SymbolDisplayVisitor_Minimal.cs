@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!(symbol.IsAnonymousType || symbol.IsTupleType))
             {
-                if (!(NameBoundSuccessfullyToSameSymbol(symbol) || InObjectInitializatioContext(symbol)))
+                if (!NameBoundSuccessfullyToSameSymbol(symbol))
                 {
                     // Just the name alone didn't bind properly.  Add our minimally qualified parent (if
                     // we have one), a dot, and then our name.
@@ -157,20 +157,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             AddNameAndTypeArgumentsOrParameters(symbol);
-        }
-
-        protected bool InObjectInitializatioContext(INamedTypeSymbol symbol)
-        {
-            var token = semanticModelOpt.SyntaxTree.GetRoot().FindToken(positionOpt);
-            if (!token.IsKind(SyntaxKind.NewKeyword))
-            {
-                return false;
-            }
-
-            ImmutableArray<ISymbol> typeOnlySymbols = semanticModelOpt.LookupNamespacesAndTypes(positionOpt, name: symbol.Name);
-            ISymbol typeOnlySymbol = SingleSymbolWithArity(typeOnlySymbols, symbol.Arity);
-
-            return typeOnlySymbol == null ? false : typeOnlySymbol.Equals(symbol);
         }
 
         private IDictionary<INamespaceOrTypeSymbol, IAliasSymbol> CreateAliasMap()

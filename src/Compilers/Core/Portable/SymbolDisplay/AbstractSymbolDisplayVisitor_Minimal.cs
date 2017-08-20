@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SymbolDisplay
 {
@@ -40,22 +37,10 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             ImmutableArray<ISymbol> typeOnlySymbols = semanticModelOpt.LookupNamespacesAndTypes(positionOpt, name: symbol.Name);
             ISymbol typeOnlySymbol = SingleSymbolWithArity(typeOnlySymbols, symbol.Arity);
 
-            if (typeOnlySymbol == null)
-            {
-                return false;
-            }
-
-            var type1 = GetSymbolType(normalSymbol);
-            var type2 = GetSymbolType(typeOnlySymbol);
-
-            return
-                type1 != null &&
-                type2 != null &&
-                type1.Equals(type2) &&
-                typeOnlySymbol.Equals(symbol.OriginalDefinition);
+            return typeOnlySymbol == null ? false : typeOnlySymbol.Equals(symbol.OriginalDefinition);
         }
 
-        protected static ISymbol SingleSymbolWithArity(ImmutableArray<ISymbol> candidates, int desiredArity)
+        private static ISymbol SingleSymbolWithArity(ImmutableArray<ISymbol> candidates, int desiredArity)
         {
             ISymbol singleSymbol = null;
             foreach (ISymbol candidate in candidates)
