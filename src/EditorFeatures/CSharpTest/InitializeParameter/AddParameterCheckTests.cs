@@ -1004,5 +1004,41 @@ class C
 #endif
 }");
         }
+
+        [WorkItem(21501, "https://github.com/dotnet/roslyn/issues/21501")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestInArrowExpression3()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+using System.Linq;
+
+class C
+{
+    public void Foo(int[] array[||]) =>
+        array.Where(x => x > 3)
+            .OrderBy(x => x)
+            .Count();
+}",
+@"
+using System;
+using System.Linq;
+
+class C
+{
+    public void Foo(int[] array)
+    {
+        if (array == null)
+        {
+            throw new ArgumentNullException(nameof(array));
+        }
+
+        array.Where(x => x > 3)
+            .OrderBy(x => x)
+            .Count();
+    }
+}", ignoreTrivia: false);
+        }
     }
 }

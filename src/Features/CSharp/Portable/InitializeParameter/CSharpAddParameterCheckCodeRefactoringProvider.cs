@@ -1,13 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Composition;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.InitializeParameter;
-using Microsoft.CodeAnalysis.Semantics;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 {
@@ -37,7 +35,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         {
             if (blockStatement is ArrowExpressionClauseSyntax arrowExpressionClauseSyntax)
             {
-                return arrowExpressionClauseSyntax.TryConvertToStatement(SyntaxFactory.Token(SyntaxKind.SemicolonToken), false, out var _);              
+                return arrowExpressionClauseSyntax.TryConvertToStatement(
+                    semicolonToken: SyntaxFactory.Token(SyntaxKind.SemicolonToken), 
+                    createReturnStatementForExpression: false, 
+                    statement: out var _);              
             }
 
             return true;
