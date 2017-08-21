@@ -1510,6 +1510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var info = LookupSymbolsInfo.GetInstance();
+            info.FilterName = name;
 
             if ((object)container == null)
             {
