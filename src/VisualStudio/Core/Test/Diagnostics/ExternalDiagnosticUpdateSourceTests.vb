@@ -78,7 +78,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim project = workspace.CurrentSolution.Projects.First()
                 source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(True))
 
-                Parallel.For(0, 100, Sub() source.SupportedDiagnosticId(project.Id, "CS1002"))
+                Parallel.For(0, 100, Sub(i As Integer) source.SupportedDiagnosticId(project.Id, "CS1002"))
             End Using
         End Sub
 
