@@ -35,12 +35,6 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\EncodingExtensions.cs">
       <Link>InternalUtilities\EncodingExtensions.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Shared\CoreClrShim.cs">
-      <Link>InternalUtilities\CoreClrShim.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\FileKey.cs">
-      <Link>InternalUtilities\FileKey.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Compilers\Shared\DesktopAnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\DesktopAnalyzerAssemblyLoader.cs</Link>
     </Compile>
