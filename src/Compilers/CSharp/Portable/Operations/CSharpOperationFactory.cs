@@ -533,8 +533,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         private IMemberReferenceExpression CreateBoundObjectInitializerMemberOperation(BoundObjectInitializerMember boundObjectInitializerMember)
         {
             Lazy<IOperation> instance = new Lazy<IOperation>(() => new InstanceReferenceExpression(
-                false,
-                _semanticModel,
+                isBaseReference: false,
+                semanticModel: _semanticModel,
                 syntax: boundObjectInitializerMember.Syntax,
                 type: boundObjectInitializerMember.MemberSymbol.ContainingType,
                 constantValue: default(Optional<object>),
