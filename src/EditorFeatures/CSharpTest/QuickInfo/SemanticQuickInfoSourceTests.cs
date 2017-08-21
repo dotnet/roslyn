@@ -3268,6 +3268,31 @@ $@"
                 MainDescription("string[]"));
         }
 
+        [WorkItem(529139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529139")]		
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]		
+        public async Task ColorColorRangeVariable()
+        {
+            await TestAsync(
+@"using System.Collections.Generic;
+using System.Linq;
+
+namespace N1
+{
+    class yield
+    {
+        public static IEnumerable<yield> Bar()
+        {
+            foreach (yield yield in from yield in new yield[0]
+                                    select y$$ield)
+            {
+                yield return yield;
+            }
+        }
+    }
+ }",
+            MainDescription($"({FeaturesResources.range_variable}) yield yield"));
+        }
+
         [WorkItem(543550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543550")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task QuickInfoOnOperator()
