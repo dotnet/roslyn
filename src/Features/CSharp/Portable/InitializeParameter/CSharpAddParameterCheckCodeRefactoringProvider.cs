@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         protected override bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
             => InitializeParameterHelpers.IsImplicitConversion(compilation, source, destination);
 
-        protected override bool CanOffer(SyntaxNode blockStatement)
+        protected override bool CanOffer(SyntaxNode body)
         {
-            if (blockStatement is ArrowExpressionClauseSyntax arrowExpressionClauseSyntax)
+            if (body is ArrowExpressionClauseSyntax arrowExpressionClauseSyntax)
             {
                 return arrowExpressionClauseSyntax.TryConvertToStatement(
                     semicolonToken: SyntaxFactory.Token(SyntaxKind.SemicolonToken), 

@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return result.ToImmutableAndFree();
         }
 
-        protected abstract bool CanOffer(SyntaxNode blockStatement);
+        protected abstract bool CanOffer(SyntaxNode body);
 
         private bool ContainsNullCoalesceCheck(
             ISyntaxFactsService syntaxFacts, SemanticModel semanticModel,

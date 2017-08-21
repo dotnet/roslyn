@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             InitializeParameterHelpers.InsertStatement(editor, methodDeclaration, statementToAddAfterOpt, statement)
         End Sub
 
-        Protected Overrides Function CanOffer(blockStatement As SyntaxNode) As Boolean
+        Protected Overrides Function CanOffer(body As SyntaxNode) As Boolean
             Return True
         End Function
     End Class
