@@ -1087,7 +1087,7 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... { x = m.x }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ x = m.x }')
@@ -1096,7 +1096,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             Left: IFieldReferenceExpression: System.Int32 MemberInitializerTest.x (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'x')
                 Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'x')
             Right: IFieldReferenceExpression: System.Int32 MemberInitializerTest.x (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'm.x')
-                Instance Receiver: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'm')
+                Instance Receiver: ILocalReferenceExpression: m (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'm')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0165: Use of unassigned local variable 'm'
@@ -1708,7 +1708,7 @@ class MemberInitializerTest
     }/*</bind>*/
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ ... }')
   Locals: Local_1: MemberInitializerTest i
     Local_2: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>> collection
@@ -1726,7 +1726,7 @@ IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
                         Initializers(0)
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i = new Mem ... int> { } };')
     Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: MemberInitializerTest) (Syntax: 'i = new Mem ... <int> { } }')
-        Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: MemberInitializerTest) (Syntax: 'i')
+        Left: ILocalReferenceExpression: i (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: MemberInitializerTest) (Syntax: 'i')
         Right: IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest) (Syntax: 'new MemberI ... <int> { } }')
             Arguments(0)
             Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest) (Syntax: '{ y = new L ... <int> { } }')
@@ -1740,7 +1740,7 @@ IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
                               Initializers(0)
   IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'i = new Mem ...  { { } } };')
     Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'i = new Mem ... = { { } } }')
-        Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: MemberInitializerTest) (Syntax: 'i')
+        Left: ILocalReferenceExpression: i (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: MemberInitializerTest) (Syntax: 'i')
         Right: IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... = { { } } }')
             Arguments(0)
             Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ y = { { } } }')
@@ -2822,7 +2822,7 @@ partial class C : IEnumerable
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C { (i = 1) }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C) (Syntax: '{ (i = 1) }')
@@ -2830,7 +2830,7 @@ IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreation
           ICollectionElementInitializerExpression (AddMethod: void C.Add(System.Int32 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void) (Syntax: '(i = 1)')
             Arguments(1):
                 ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = 1')
-                  Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                  Left: ILocalReferenceExpression: i (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
                   Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {

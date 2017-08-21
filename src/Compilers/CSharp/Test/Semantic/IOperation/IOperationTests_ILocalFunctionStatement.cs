@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -145,7 +145,7 @@ ILocalFunctionStatement (Local Function: System.Int32 Local3(System.Int32 p1)) (
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '=> x + Local2(p1)')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x + Local2(p1)')
       ReturnedValue: IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + Local2(p1)')
-          Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+          Left: ILocalReferenceExpression: x (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
           Right: IInvocationExpression (System.Int32 Local2(System.Int32 p1)) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Local2(p1)')
               Instance Receiver: null
               Arguments(1):
@@ -255,7 +255,7 @@ class C
 ILocalFunctionStatement (Local Function: System.Int32 Local()) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local() => x;')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '=> x')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x')
-      ReturnedValue: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+      ReturnedValue: ILocalReferenceExpression: x (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -282,7 +282,7 @@ ILocalFunctionStatement (Local Function: void F()) (OperationKind.LocalFunctionS
   IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '=> x++')
     IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x++')
       Expression: IIncrementExpression (UnaryOperandKind.IntegerPostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
-          Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+          Left: ILocalReferenceExpression: x (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: '=> x++')
       ReturnedValue: null
 ";

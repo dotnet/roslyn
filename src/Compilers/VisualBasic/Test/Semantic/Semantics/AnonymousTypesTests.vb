@@ -657,7 +657,7 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: $0 As System.Int32>, IsInvalid) (Syntax: 'New With {a * 2}')
   Initializers(1):
       IBinaryOperatorExpression (BinaryOperationKind.IntegerMultiply) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: 'a * 2')
-        Left: ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'a')
+        Left: ILocalReferenceExpression: a (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'a')
         Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
 ]]>.Value
 
@@ -687,7 +687,7 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
         Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, a As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'a')
             Instance Receiver: null
         Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-      ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'a')
+      ILocalReferenceExpression: a (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'a')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -716,9 +716,9 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: FLD As System.Int32, FLD As System.Int32>, IsInvalid) (Syntax: 'New With {a ... D, a.FLD()}')
   Initializers(2):
       IPropertyReferenceExpression: Property ModuleA.S.FLD As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'a.FLD')
-        Instance Receiver: ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: ModuleA.S) (Syntax: 'a')
+        Instance Receiver: ILocalReferenceExpression: a (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: ModuleA.S) (Syntax: 'a')
       IPropertyReferenceExpression: Property ModuleA.S.FLD As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'a.FLD()')
-        Instance Receiver: ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: ModuleA.S, IsInvalid) (Syntax: 'a')
+        Instance Receiver: ILocalReferenceExpression: a (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: ModuleA.S, IsInvalid) (Syntax: 'a')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -749,7 +749,7 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
             Instance Receiver: null
         Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
       IPropertyReferenceExpression: Property System.Collections.Generic.Dictionary(Of System.String, System.Int32).Item(key As System.String) As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'a!x')
-        Instance Receiver: ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.Dictionary(Of System.String, System.Int32), IsInvalid) (Syntax: 'a')
+        Instance Receiver: ILocalReferenceExpression: a (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.Dictionary(Of System.String, System.Int32), IsInvalid) (Syntax: 'a')
         Arguments(1):
             IArgument (ArgumentKind.Explicit, Matching Parameter: key) (OperationKind.Argument, IsInvalid) (Syntax: 'x')
               ILiteralExpression (Text: x) (OperationKind.LiteralExpression, Type: System.String, Constant: "x", IsInvalid) (Syntax: 'x')
@@ -838,7 +838,7 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
                       ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Function')
                         LabeledStatement: null
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
-                        ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
+                        ReturnedValue: ILocalReferenceExpression:  (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
             Arguments(0)
 ]]>.Value
 
@@ -892,7 +892,7 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
                       ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Function')
                         LabeledStatement: null
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
-                        ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
+                        ReturnedValue: ILocalReferenceExpression:  (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
             Arguments(0)
 ]]>.Value
 
@@ -946,7 +946,7 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
                       ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Function')
                         LabeledStatement: null
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
-                        ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
+                        ReturnedValue: ILocalReferenceExpression:  (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
             Arguments(0)
 ]]>.Value
 
@@ -1009,12 +1009,12 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
                                       ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Function')
                                         LabeledStatement: null
                                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
-                                        ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
+                                        ReturnedValue: ILocalReferenceExpression:  (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
                             Arguments(0)
                       ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Function')
                         LabeledStatement: null
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
-                        ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
+                        ReturnedValue: ILocalReferenceExpression:  (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
             Arguments(0)
 ]]>.Value
 
@@ -1103,7 +1103,7 @@ IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.Conve
   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: x2 As T>) (Syntax: 'New With {x2}')
       Initializers(1):
-          ILocalReferenceExpression: x2 (OperationKind.LocalReferenceExpression, Type: T) (Syntax: 'x2')
+          ILocalReferenceExpression: x2 (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: T) (Syntax: 'x2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

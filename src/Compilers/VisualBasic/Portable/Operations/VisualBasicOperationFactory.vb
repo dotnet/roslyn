@@ -741,11 +741,12 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundLocalOperation(boundLocal As BoundLocal) As ILocalReferenceExpression
             Dim local As ILocalSymbol = boundLocal.LocalSymbol
+            Dim isDeclaration As Boolean = False
             Dim syntax As SyntaxNode = boundLocal.Syntax
             Dim type As ITypeSymbol = boundLocal.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundLocal.ConstantValueOpt)
             Dim isImplicit As Boolean = boundLocal.WasCompilerGenerated
-            Return New LocalReferenceExpression(local, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LocalReferenceExpression(local, isDeclaration, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundLateMemberAccessOperation(boundLateMemberAccess As BoundLateMemberAccess) As IDynamicMemberReferenceExpression

@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -388,7 +388,7 @@ IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.Conve
         ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'Function() x')
           LabeledStatement: null
         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Function() x')
-          ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'Function() x')
+          ReturnedValue: ILocalReferenceExpression:  (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'Function() x')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -691,7 +691,7 @@ IOperation:  (OperationKind.None) (Syntax: 'ReDim intArray(x, x, x)')
   Children(1):
       IOperation:  (OperationKind.None) (Syntax: 'intArray(x, x, x)')
         Children(4):
-            ILocalReferenceExpression: intArray (OperationKind.LocalReferenceExpression, Type: System.Int32(,,)) (Syntax: 'intArray')
+            ILocalReferenceExpression: intArray (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32(,,)) (Syntax: 'intArray')
             IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x')
               Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
               Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'x')

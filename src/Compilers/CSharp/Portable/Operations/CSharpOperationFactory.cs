@@ -323,11 +323,12 @@ namespace Microsoft.CodeAnalysis.Semantics
         private ILocalReferenceExpression CreateBoundLocalOperation(BoundLocal boundLocal)
         {
             ILocalSymbol local = boundLocal.LocalSymbol;
+            bool isDeclaration = boundLocal.IsDeclaration;
             SyntaxNode syntax = boundLocal.Syntax;
             ITypeSymbol type = boundLocal.Type;
             Optional<object> constantValue = ConvertToOptional(boundLocal.ConstantValue);
             bool isImplicit = boundLocal.WasCompilerGenerated;
-            return new LocalReferenceExpression(local, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LocalReferenceExpression(local, isDeclaration, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IFieldReferenceExpression CreateBoundFieldAccessOperation(BoundFieldAccess boundFieldAccess)

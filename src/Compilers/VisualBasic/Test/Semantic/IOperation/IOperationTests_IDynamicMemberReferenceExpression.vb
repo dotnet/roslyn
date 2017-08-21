@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -25,7 +25,7 @@ IOperation:  (OperationKind.None) (Syntax: 'd.F')
   Children(1):
       IDynamicMemberReferenceExpression (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.F')
         Type Arguments(0)
-        Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+        Instance Receiver: ILocalReferenceExpression: d (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -52,7 +52,7 @@ IOperation:  (OperationKind.None) (Syntax: 'd.F(Of String)')
       IDynamicMemberReferenceExpression (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.F(Of String)')
         Type Arguments(1):
           Symbol: System.String
-        Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+        Instance Receiver: ILocalReferenceExpression: d (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -79,7 +79,7 @@ IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'd.F(Of)')
       IDynamicMemberReferenceExpression (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'd.F(Of)')
         Type Arguments(1):
           Symbol: ?
-        Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+        Instance Receiver: ILocalReferenceExpression: d (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -109,7 +109,7 @@ IOperation:  (OperationKind.None) (Syntax: 'd.F()')
   Children(1):
       IDynamicMemberReferenceExpression (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.F')
         Type Arguments(0)
-        Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+        Instance Receiver: ILocalReferenceExpression: d (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -135,7 +135,7 @@ IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'd.F(')
   Children(2):
       IDynamicMemberReferenceExpression (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.F')
         Type Arguments(0)
-        Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+        Instance Receiver: ILocalReferenceExpression: d (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: '')
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
@@ -173,7 +173,7 @@ IOperation:  (OperationKind.None) (Syntax: 'd.GetValue(Of String)()')
       IDynamicMemberReferenceExpression (Member Name: "GetValue", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.GetValue(Of String)')
         Type Arguments(1):
           Symbol: System.String
-        Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+        Instance Receiver: ILocalReferenceExpression: d (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -201,7 +201,7 @@ IOperation:  (OperationKind.None) (Syntax: 'd.GetValue( ...  Integer)()')
         Type Arguments(2):
           Symbol: System.String
           Symbol: System.Int32
-        Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+        Instance Receiver: ILocalReferenceExpression: d (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -229,7 +229,7 @@ IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'd.GetValue(Of String,)()'
         Type Arguments(2):
           Symbol: System.String
           Symbol: ?
-        Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+        Instance Receiver: ILocalReferenceExpression: d (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -261,7 +261,7 @@ IOperation:  (OperationKind.None) (Syntax: 'd.Prop1.Prop2')
         Type Arguments(0)
         Instance Receiver: IDynamicMemberReferenceExpression (Member Name: "Prop1", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.Prop1')
             Type Arguments(0)
-            Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+            Instance Receiver: ILocalReferenceExpression: d (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -291,7 +291,7 @@ IOperation:  (OperationKind.None) (Syntax: 'd.Method1().Method2()')
             Children(1):
                 IDynamicMemberReferenceExpression (Member Name: "Method1", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.Method1')
                   Type Arguments(0)
-                  Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+                  Instance Receiver: ILocalReferenceExpression: d (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -319,7 +319,7 @@ IOperation:  (OperationKind.None) (Syntax: 'd.Prop1.Method2()')
         Type Arguments(0)
         Instance Receiver: IDynamicMemberReferenceExpression (Member Name: "Prop1", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.Prop1')
             Type Arguments(0)
-            Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+            Instance Receiver: ILocalReferenceExpression: d (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -352,7 +352,7 @@ IOperation:  (OperationKind.None) (Syntax: 'fun(x)')
       IDynamicMemberReferenceExpression (Member Name: "fun", Containing Type: Module1) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'fun')
         Type Arguments(0)
         Instance Receiver: null
-      ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'x')
+      ILocalReferenceExpression: x (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'x')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -385,8 +385,8 @@ IOperation:  (OperationKind.None) (Syntax: 'c1.fun(x)')
   Children(2):
       IDynamicMemberReferenceExpression (Member Name: "fun", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'c1.fun')
         Type Arguments(0)
-        Instance Receiver: ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: Module1.C1) (Syntax: 'c1')
-      ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'x')
+        Instance Receiver: ILocalReferenceExpression: c1 (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: Module1.C1) (Syntax: 'c1')
+      ILocalReferenceExpression: x (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'x')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

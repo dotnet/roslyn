@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IOperation VisitLocalReferenceExpression(ILocalReferenceExpression operation, object argument)
         {
-            return new LocalReferenceExpression(operation.Local, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new LocalReferenceExpression(operation.Local, operation.IsDeclaration, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitParameterReferenceExpression(IParameterReferenceExpression operation, object argument)

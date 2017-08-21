@@ -2810,15 +2810,17 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LocalReferenceExpression : Operation, ILocalReferenceExpression
     {
-        public LocalReferenceExpression(ILocalSymbol local, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public LocalReferenceExpression(ILocalSymbol local, bool isDeclaration, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.LocalReferenceExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Local = local;
+            IsDeclaration = isDeclaration;
         }
         /// <summary>
         /// Referenced local variable.
         /// </summary>
         public ILocalSymbol Local { get; }
+        public bool IsDeclaration { get; }
         public override IEnumerable<IOperation> Children
         {
             get

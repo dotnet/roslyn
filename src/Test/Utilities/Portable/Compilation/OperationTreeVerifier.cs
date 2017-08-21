@@ -663,6 +663,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(ILocalReferenceExpression));
             LogString($": {operation.Local.Name}");
+            LogString($" (IsDeclaration: {operation.IsDeclaration})");
             LogCommonPropertiesAndNewLine(operation);
         }
 
