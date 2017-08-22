@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Body of the local function.
         /// </summary>
         /// <remarks>
-        /// Expression-bodied local functions are normalized here to be a single expression inside
-        /// of a block statement.
+        /// Expression-bodied local functions are normalized here to be a single <see cref="IOperation"/>
+        /// inside of a block statement.
         /// </remarks>
         IBlockStatement Body { get; }
     }
