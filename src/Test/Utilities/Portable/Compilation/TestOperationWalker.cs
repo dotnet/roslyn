@@ -362,9 +362,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitConversionExpression(operation);
         }
 
-        public override void VisitConditionalChoiceExpression(IConditionalChoiceExpression operation)
+        public override void VisitConditionalExpression(IConditionalExpression operation)
         {
-            base.VisitConditionalChoiceExpression(operation);
+            base.VisitConditionalExpression(operation);
         }
 
         public override void VisitCoalesceExpression(ICoalesceExpression operation)
