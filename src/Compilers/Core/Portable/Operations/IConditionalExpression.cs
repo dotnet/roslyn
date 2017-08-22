@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IConditionalChoiceExpression : IOperation
+    public interface IConditionalExpression : IOperation
     {
         /// <summary>
         /// Condition to be tested.
@@ -20,11 +20,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Value evaluated if the Condition is true.
         /// </summary>
-        IOperation IfTrueValue { get; }
+        IOperation WhenTrue { get; }
         /// <summary>
         /// Value evaluated if the Condition is false.
         /// </summary>
-        IOperation IfFalseValue { get; }
+        IOperation WhenFalse { get; }
     }
 }
 
