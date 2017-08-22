@@ -29,20 +29,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return result;
             }
 
-            private static ImmutableArray<Words> Pluralize(ImmutableArray<Words> names)
+            private static ImmutableArray<Words> Pluralize(ImmutableArray<Words> baseNames)
             {
                 var result = ArrayBuilder<Words>.GetInstance();
-                foreach (var set in names)
+                foreach (var baseName in baseNames)
                 {
-                    var lastWord = set[set.Length - 1];
+                    var lastWord = baseName[baseName.Length - 1];
                     var pluralizedLastWord = lastWord.Pluralize(inputIsKnownToBeSingular: false);
                     if (lastWord != pluralizedLastWord)
                     {
-                        result.Add(set.RemoveAt(set.Length -1).Add(pluralizedLastWord));
+                        result.Add(baseName.RemoveAt(baseName.Length -1).Add(pluralizedLastWord));
                     }
                     else
                     {
-                        result.Add(set);
+                        result.Add(baseName);
                     }
                 }
 
