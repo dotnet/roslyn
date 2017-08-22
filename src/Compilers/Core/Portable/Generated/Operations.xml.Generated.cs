@@ -1040,13 +1040,13 @@ namespace Microsoft.CodeAnalysis.Semantics
             }
         }
         /// <summary>
-        /// Expression to be evaluated if the conditional instance is non null.
-        /// </summary>
-        public IOperation WhenNotNull => Operation.SetParentOperation(WhenNotNullImpl, this);
-        /// <summary>
         /// Expresson that is conditionally accessed.
         /// </summary>
         public IOperation Expression => Operation.SetParentOperation(ExpressionImpl, this);
+        /// <summary>
+        /// Expression to be evaluated if the conditional instance is non null.
+        /// </summary>
+        public IOperation WhenNotNull => Operation.SetParentOperation(WhenNotNullImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitConditionalAccessExpression(this);
@@ -1069,8 +1069,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             ExpressionImpl = expression;
         }
 
-        protected override IOperation WhenNotNullImpl { get; }
         protected override IOperation ExpressionImpl { get; }
+        protected override IOperation WhenNotNullImpl { get; }
     }
 
     /// <summary>
@@ -1087,9 +1087,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             _lazyExpression = expression ?? throw new System.ArgumentNullException(nameof(expression));
         }
 
-        protected override IOperation WhenNotNullImpl => _lazyWhenNotNull.Value;
-
         protected override IOperation ExpressionImpl => _lazyExpression.Value;
+        protected override IOperation WhenNotNullImpl => _lazyWhenNotNull.Value;
     }
 
     /// <summary>
