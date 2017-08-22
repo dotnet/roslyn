@@ -61,7 +61,7 @@ IBlockStatement (9 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '.Field = 2')
                     Left: IFieldReferenceExpression: F.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field')
                         Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New F() Wit ... .Field = 2}')
-                    Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+                    Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim x3 = Ne ... erty1 = ""}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x3')
       Variables: Local_1: x3 As F
@@ -87,7 +87,7 @@ IBlockStatement (9 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '.Field = 2')
                     Left: IFieldReferenceExpression: F.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field')
                         Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New F() Wit ... .Field = 2}')
-                    Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+                    Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim x5 = Ne ... ld = True}}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x5')
       Variables: Local_1: x5 As F
@@ -105,7 +105,7 @@ IBlockStatement (9 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
                                 ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Boolean) (Syntax: '.Field = True')
                                   Left: IFieldReferenceExpression: B.Field As System.Boolean (OperationKind.FieldReferenceExpression, Type: System.Boolean) (Syntax: 'Field')
                                       Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New B() Wit ... eld = True}')
-                                  Right: ILiteralExpression (Text: True) (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'True')
+                                  Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'True')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim e1 = Ne ... perty2 = 1}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'e1')
       Variables: Local_1: e1 As F
@@ -118,7 +118,7 @@ IBlockStatement (9 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
                         Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New F() Wit ... perty2 = 1}')
                     Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: B, IsInvalid) (Syntax: '1')
                         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        Operand: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                        Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim e2 = Ne ... ) From {""}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'e2')
       Variables: Local_1: e2 As F
@@ -132,8 +132,7 @@ IBlockStatement (9 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
   ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
     Statement: null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
-    ReturnedValue: null
-]]>.Value
+    ReturnedValue: null]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
 BC30311: Value of type 'Integer' cannot be converted to 'B'.
@@ -279,7 +278,7 @@ IObjectCreationExpression (Constructor: Sub [Class]..ctor()) (OperationKind.Obje
                     Element Values(3):
                         IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
                         ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
-                        ILiteralExpression (Text: 3) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void) (Syntax: '.Z = New Di ... om {{x, y}}')
             Left: IPropertyReferenceExpression: Property [Class].Z As System.Collections.Generic.Dictionary(Of System.Int32, System.Int32) (OperationKind.PropertyReferenceExpression, Type: System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)) (Syntax: 'Z')
                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New [Class] ... }')
@@ -302,8 +301,7 @@ IObjectCreationExpression (Constructor: Sub [Class]..ctor()) (OperationKind.Obje
                           Left: IPropertyReferenceExpression: Property [Class].X As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'X')
                               Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New [Class] ... .X = field}')
                           Right: IFieldReferenceExpression: [Class].field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'field')
-                              Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: [Class]) (Syntax: 'field')
-]]>.Value
+                              Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: [Class]) (Syntax: 'field')]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 

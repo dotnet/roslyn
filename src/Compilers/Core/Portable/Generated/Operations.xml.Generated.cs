@@ -1121,23 +1121,23 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# ?: or VB If expression.
     /// </summary>
-    internal abstract partial class BaseConditionalChoiceExpression : Operation, IConditionalChoiceExpression
+    internal abstract partial class BaseConditionalExpression : Operation, IConditionalExpression
     {
-        protected BaseConditionalChoiceExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-                    base(OperationKind.ConditionalChoiceExpression, semanticModel, syntax, type, constantValue, isImplicit)
+        protected BaseConditionalExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+                    base(OperationKind.ConditionalExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
         protected abstract IOperation ConditionImpl { get; }
-        protected abstract IOperation IfTrueValueImpl { get; }
-        protected abstract IOperation IfFalseValueImpl { get; }
+        protected abstract IOperation WhenTrueImpl { get; }
+        protected abstract IOperation WhenFalseImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
                 yield return Condition;
-                yield return IfTrueValue;
-                yield return IfFalseValue;
+                yield return WhenTrue;
+                yield return WhenFalse;
             }
         }
         /// <summary>
@@ -1147,60 +1147,60 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Value evaluated if the Condition is true.
         /// </summary>
-        public IOperation IfTrueValue => Operation.SetParentOperation(IfTrueValueImpl, this);
+        public IOperation WhenTrue => Operation.SetParentOperation(WhenTrueImpl, this);
         /// <summary>
         /// Value evaluated if the Condition is false.
         /// </summary>
-        public IOperation IfFalseValue => Operation.SetParentOperation(IfFalseValueImpl, this);
+        public IOperation WhenFalse => Operation.SetParentOperation(WhenFalseImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitConditionalChoiceExpression(this);
+            visitor.VisitConditionalExpression(this);
         }
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitConditionalChoiceExpression(this, argument);
+            return visitor.VisitConditionalExpression(this, argument);
         }
     }
 
     /// <summary>
     /// Represents a C# ?: or VB If expression.
     /// </summary>
-    internal sealed partial class ConditionalChoiceExpression : BaseConditionalChoiceExpression, IConditionalChoiceExpression
+    internal sealed partial class ConditionalExpression : BaseConditionalExpression, IConditionalExpression
     {
-        public ConditionalChoiceExpression(IOperation condition, IOperation ifTrueValue, IOperation ifFalseValue, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public ConditionalExpression(IOperation condition, IOperation whenTrue, IOperation whenFalse, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             ConditionImpl = condition;
-            IfTrueValueImpl = ifTrueValue;
-            IfFalseValueImpl = ifFalseValue;
+            WhenTrueImpl = whenTrue;
+            WhenFalseImpl = whenFalse;
         }
 
         protected override IOperation ConditionImpl { get; }
-        protected override IOperation IfTrueValueImpl { get; }
-        protected override IOperation IfFalseValueImpl { get; }
+        protected override IOperation WhenTrueImpl { get; }
+        protected override IOperation WhenFalseImpl { get; }
     }
 
     /// <summary>
     /// Represents a C# ?: or VB If expression.
     /// </summary>
-    internal sealed partial class LazyConditionalChoiceExpression : BaseConditionalChoiceExpression, IConditionalChoiceExpression
+    internal sealed partial class LazyConditionalExpression : BaseConditionalExpression, IConditionalExpression
     {
         private readonly Lazy<IOperation> _lazyCondition;
-        private readonly Lazy<IOperation> _lazyIfTrueValue;
-        private readonly Lazy<IOperation> _lazyIfFalseValue;
+        private readonly Lazy<IOperation> _lazyWhenTrue;
+        private readonly Lazy<IOperation> _lazyWhenFalse;
 
-        public LazyConditionalChoiceExpression(Lazy<IOperation> condition, Lazy<IOperation> ifTrueValue, Lazy<IOperation> ifFalseValue, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyConditionalExpression(Lazy<IOperation> condition, Lazy<IOperation> whenTrue, Lazy<IOperation> whenFalse, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyCondition = condition ?? throw new System.ArgumentNullException(nameof(condition));
-            _lazyIfTrueValue = ifTrueValue ?? throw new System.ArgumentNullException(nameof(ifTrueValue));
-            _lazyIfFalseValue = ifFalseValue ?? throw new System.ArgumentNullException(nameof(ifFalseValue));
+            _lazyWhenTrue = whenTrue ?? throw new System.ArgumentNullException(nameof(whenTrue));
+            _lazyWhenFalse = whenFalse ?? throw new System.ArgumentNullException(nameof(whenFalse));
         }
 
         protected override IOperation ConditionImpl => _lazyCondition.Value;
 
-        protected override IOperation IfTrueValueImpl => _lazyIfTrueValue.Value;
+        protected override IOperation WhenTrueImpl => _lazyWhenTrue.Value;
 
-        protected override IOperation IfFalseValueImpl => _lazyIfFalseValue.Value;
+        protected override IOperation WhenFalseImpl => _lazyWhenFalse.Value;
     }
 
     /// <summary>
@@ -2779,15 +2779,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LiteralExpression : Operation, ILiteralExpression
     {
-        public LiteralExpression(string text, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public LiteralExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.LiteralExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Text = text;
         }
-        /// <summary>
-        /// Textual representation of the literal.
-        /// </summary>
-        public string Text { get; }
         public override IEnumerable<IOperation> Children
         {
             get
@@ -4254,67 +4249,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             base(syntheticLocalKind, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
-    }
-
-    /// <summary>
-    /// Represents a C# throw or a VB Throw statement.
-    /// </summary>
-    internal abstract partial class BaseThrowStatement : Operation, IThrowStatement
-    {
-        protected BaseThrowStatement(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-                    base(OperationKind.ThrowStatement, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-        }
-
-        protected abstract IOperation ThrownObjectImpl { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                yield return ThrownObject;
-            }
-        }
-        /// <summary>
-        /// Value to be thrown.
-        /// </summary>
-        public IOperation ThrownObject => Operation.SetParentOperation(ThrownObjectImpl, this);
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitThrowStatement(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitThrowStatement(this, argument);
-        }
-    }
-
-    /// <summary>
-    /// Represents a C# throw or a VB Throw statement.
-    /// </summary>
-    internal sealed partial class ThrowStatement : BaseThrowStatement, IThrowStatement
-    {
-        public ThrowStatement(IOperation thrownObject, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            ThrownObjectImpl = thrownObject;
-        }
-
-        protected override IOperation ThrownObjectImpl { get; }
-    }
-
-    /// <summary>
-    /// Represents a C# throw or a VB Throw statement.
-    /// </summary>
-    internal sealed partial class LazyThrowStatement : BaseThrowStatement, IThrowStatement
-    {
-        private readonly Lazy<IOperation> _lazyThrownObject;
-
-        public LazyThrowStatement(Lazy<IOperation> thrownObject, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _lazyThrownObject = thrownObject ?? throw new System.ArgumentNullException(nameof(thrownObject));
-        }
-
-        protected override IOperation ThrownObjectImpl => _lazyThrownObject.Value;
     }
 
     /// <summary>

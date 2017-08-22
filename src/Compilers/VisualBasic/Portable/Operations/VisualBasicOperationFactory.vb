@@ -313,12 +313,11 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function CreateBoundLiteralOperation(boundLiteral As BoundLiteral) As ILiteralExpression
-            Dim text As String = boundLiteral.Syntax.ToString()
             Dim syntax As SyntaxNode = boundLiteral.Syntax
             Dim type As ITypeSymbol = boundLiteral.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundLiteral.ConstantValueOpt)
             Dim isImplicit As Boolean = boundLiteral.WasCompilerGenerated
-            Return New LiteralExpression(text, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LiteralExpression(_semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundAwaitOperatorOperation(boundAwaitOperator As BoundAwaitOperator) As IAwaitExpression
@@ -545,15 +544,15 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New LazyVisualBasicConversionExpression(operand, conversion, isExplicit, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
-        Private Function CreateBoundTernaryConditionalExpressionOperation(boundTernaryConditionalExpression As BoundTernaryConditionalExpression) As IConditionalChoiceExpression
+        Private Function CreateBoundTernaryConditionalExpressionOperation(boundTernaryConditionalExpression As BoundTernaryConditionalExpression) As IConditionalExpression
             Dim condition As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundTernaryConditionalExpression.Condition))
-            Dim ifTrueValue As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundTernaryConditionalExpression.WhenTrue))
-            Dim ifFalseValue As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundTernaryConditionalExpression.WhenFalse))
+            Dim whenTrue As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundTernaryConditionalExpression.WhenTrue))
+            Dim whenFalse As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundTernaryConditionalExpression.WhenFalse))
             Dim syntax As SyntaxNode = boundTernaryConditionalExpression.Syntax
             Dim type As ITypeSymbol = boundTernaryConditionalExpression.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundTernaryConditionalExpression.ConstantValueOpt)
             Dim isImplicit As Boolean = boundTernaryConditionalExpression.WasCompilerGenerated
-            Return New LazyConditionalChoiceExpression(condition, ifTrueValue, ifFalseValue, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyConditionalExpression(condition, whenTrue, whenFalse, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundTypeOfOperation(boundTypeOf As BoundTypeOf) As IIsTypeExpression
@@ -1021,13 +1020,15 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New LazyReturnStatement(OperationKind.ReturnStatement, returnedValue, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
-        Private Function CreateBoundThrowStatementOperation(boundThrowStatement As BoundThrowStatement) As IThrowStatement
+        Private Function CreateBoundThrowStatementOperation(boundThrowStatement As BoundThrowStatement) As IExpressionStatement
             Dim thrownObject As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundThrowStatement.ExpressionOpt))
             Dim syntax As SyntaxNode = boundThrowStatement.Syntax
-            Dim type As ITypeSymbol = Nothing
+            Dim expressionType As ITypeSymbol = boundThrowStatement.ExpressionOpt?.Type
+            Dim statementType As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundThrowStatement.WasCompilerGenerated
-            Return New LazyThrowStatement(thrownObject, _semanticModel, syntax, type, constantValue, isImplicit)
+            Dim throwExpression As IOperation = New LazyThrowExpression(thrownObject, _semanticModel, syntax, expressionType, constantValue, isImplicit)
+            Return New ExpressionStatement(throwExpression, _semanticModel, syntax, statementType, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundWhileStatementOperation(boundWhileStatement As BoundWhileStatement) As IWhileUntilLoopStatement

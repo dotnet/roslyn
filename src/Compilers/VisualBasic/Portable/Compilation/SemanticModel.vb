@@ -1895,6 +1895,8 @@ _Default:
             Else
                 ' They provided a name.  Find all the arities for that name, and then look all of those up.
                 Dim info = LookupSymbolsInfo.GetInstance()
+                info.FilterName = name
+
                 Me.AddLookupSymbolsInfo(position, info, container, options)
 
                 Dim results = ArrayBuilder(Of Symbol).GetInstance(info.Count)
