@@ -520,7 +520,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // add frame type and cache field
                     CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(this.ContainingType, frame);
-                    //CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, frame.SingletonCache);
 
                     // add its ctor (note Constructor can be null if TypeKind.Struct is passed in to LambdaFrame.ctor, but Class is passed in above)
                     AddSynthesizedMethod(

@@ -249,7 +249,7 @@ class C
         yield return L();
         x = 5;
         y = 7;
-        yield return L();;
+        yield return L();
     }
 }", expectedOutput: @"5
 12");

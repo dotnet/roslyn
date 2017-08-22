@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <see cref="CommonPEModuleBuilder" />, so we don't want to duplicate them here.
         /// </summary>
         internal override IEnumerable<FieldSymbol> GetFieldsToEmit()
-            => SingletonCache != null
+            => (object)SingletonCache != null
             ? SpecializedCollections.SingletonEnumerable(SingletonCache)
             : SpecializedCollections.EmptyEnumerable<FieldSymbol>();
 
