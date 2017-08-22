@@ -383,7 +383,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Dim negativeStepRelationalCode As BinaryOperatorKind = BinaryOperatorKind.GreaterThanOrEqual
                     Dim negativeStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(negativeStepRelationalCode, _semanticModel.CloneOperation(Create(controlVariable)), _semanticModel.CloneOperation(limitValueReference), booleanType, _semanticModel, limitValueReference.Syntax, isLifted, isChecked:=False, isCompareText:=False, isImplicit:=limitValueReference.IsImplicit)
 
-                    Return OperationFactory.CreateConditionalChoiceExpression(stepCondition, positiveStepCondition, negativeStepCondition, booleanType, _semanticModel, limitValueReference.Syntax, limitValueReference.IsImplicit)
+                    Return OperationFactory.CreateConditionalExpression(stepCondition, positiveStepCondition, negativeStepCondition, booleanType, _semanticModel, limitValueReference.Syntax, limitValueReference.IsImplicit)
                 End If
             End If
         End Function
