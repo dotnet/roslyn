@@ -456,7 +456,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Case VisualBasic.UnaryOperatorKind.Minus
                         Return UnaryOperatorKind.Minus
                     Case VisualBasic.UnaryOperatorKind.Not
-                        Return UnaryOperatorKind.BitwiseNegation
+                        Return UnaryOperatorKind.LogicalNot
                     Case VisualBasic.UnaryOperatorKind.IsTrue
                         Return UnaryOperatorKind.True
                     Case VisualBasic.UnaryOperatorKind.IsFalse

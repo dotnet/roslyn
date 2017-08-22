@@ -9,14 +9,39 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         None = 0x0,
 
+        /// <summary>
+        /// Represents the C# '~' operator.
+        /// </summary>
         BitwiseNegation = 0x1,
-        LogicalNot = 0x2,
-        Plus = 0x3,
-        Minus = 0x4,
-        True = 0x5,
-        False = 0x6,
-        BitwiseOrLogicalNot = 0x7,
 
+        /// <summary>
+        /// Represents the C# '!' operator and VB 'Not' operator.
+        /// </summary>
+        LogicalNot = 0x2,
+
+        /// <summary>
+        /// Represents the unary '+' operator.
+        /// </summary>
+        Plus = 0x3,
+
+        /// <summary>
+        /// Represents the unary '-' operator.
+        /// </summary>
+        Minus = 0x4,
+
+        /// <summary>
+        /// Represents the C# 'true' operator and VB 'IsTrue' operator.
+        /// </summary>
+        True = 0x5,
+
+        /// <summary>
+        /// Represents the C# 'false' operator and VB 'IsFalse' operator.
+        /// </summary>
+        False = 0x6,
+
+        /// <summary>
+        /// Represents an invalid unary operator for error cases.
+        /// </summary>
         Invalid = 0xff
     }
 }
