@@ -4,6 +4,7 @@
 //#define CHECK_LOCALS // define CHECK_LOCALS to help debug some rewriting problems that would otherwise cause code-gen failures
 
 #endif
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,8 +14,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System.Linq;
-using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -395,8 +394,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var originalMethod = closure.OriginalMethodSymbol;
                 var syntax = originalMethod.DeclaringSyntaxReferences[0].GetSyntax();
-                var structClosures = closure.CapturedEnvironments
-                    .Where(env => env.IsStruct).Select(env => env.SynthesizedEnvironment).AsImmutable();
 
                 int closureOrdinal;
                 ClosureKind closureKind;
@@ -404,6 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SynthesizedClosureEnvironment containerAsFrame;
                 DebugId topLevelMethodId;
                 DebugId lambdaId;
+
                 if (closure.ContainingEnvironmentOpt != null)
                 {
                     containerAsFrame = closure.ContainingEnvironmentOpt?.SynthesizedEnvironment;
@@ -419,28 +417,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     closureKind = ClosureKind.ThisOnly;
                     closureOrdinal = LambdaDebugInfo.ThisOnlyClosureOrdinal;
                 }
-                else if (closure.CapturedEnvironments.Count == 0)
+                else if (closure.CapturedEnvironments.Count == 0 &&
+                         _analysis.MethodsConvertedToDelegates.Contains(originalMethod))
                 {
-                    if (_analysis.MethodsConvertedToDelegates.Contains(originalMethod))
-                    {
-                        translatedLambdaContainer = containerAsFrame = GetStaticFrame(Diagnostics, syntax);
-                        closureKind = ClosureKind.Singleton;
-                        closureOrdinal = LambdaDebugInfo.StaticClosureOrdinal;
-                    }
-                    else
-                    {
-                        containerAsFrame = null;
-                        translatedLambdaContainer = _topLevelMethod.ContainingType;
-                        closureKind = ClosureKind.Static;
-                        closureOrdinal = LambdaDebugInfo.StaticClosureOrdinal;
-                    }
+                    translatedLambdaContainer = containerAsFrame = GetStaticFrame(Diagnostics, syntax);
+                    closureKind = ClosureKind.Singleton;
+                    closureOrdinal = LambdaDebugInfo.StaticClosureOrdinal;
                 }
                 else
                 {
                     // Lower directly onto the containing type
-                    containerAsFrame = null;
-                    closureKind = ClosureKind.Static; // not exactly... but we've rewritten the receiver to be a by-ref parameter
                     translatedLambdaContainer = _topLevelMethod.ContainingType;
+                    containerAsFrame = null;
+                    closureKind = ClosureKind.Static;
                     closureOrdinal = LambdaDebugInfo.StaticClosureOrdinal;
                 }
 
@@ -450,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var synthesizedMethod = new SynthesizedClosureMethod(
                     translatedLambdaContainer,
-                    structClosures,
+                    GetStructClosures(closure),
                     closureKind,
                     _topLevelMethod,
                     topLevelMethodId,
@@ -459,6 +448,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lambdaId);
                 closure.SynthesizedLoweredMethod = synthesizedMethod;
             });
+
+            ImmutableArray<SynthesizedClosureEnvironment> GetStructClosures(Analysis.Closure closure)
+            {
+                var closuresBuilder = ArrayBuilder<SynthesizedClosureEnvironment>.GetInstance();
+
+                foreach (var env in closure.CapturedEnvironments)
+                {
+                    if (env.IsStruct)
+                    {
+                        closuresBuilder.Add(env.SynthesizedEnvironment);
+                    }
+                }
+
+                return closuresBuilder.ToImmutableAndFree();
+            }
         }
 
         /// <summary>
