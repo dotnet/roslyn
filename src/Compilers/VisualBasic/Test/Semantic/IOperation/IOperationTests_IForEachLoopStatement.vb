@@ -798,9 +798,8 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
                 Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
         IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If o IsNot  ... Return True')
             IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return True')
-              ReturnedValue: ILiteralExpression (Text: True) (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'True')
-        IfFalse: null
-]]>.Value
+              ReturnedValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'True')
+        IfFalse: null]]>.Value
 
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub

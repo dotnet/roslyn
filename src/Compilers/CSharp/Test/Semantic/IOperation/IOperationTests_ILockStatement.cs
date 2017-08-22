@@ -79,7 +79,7 @@ public class C1
 ";
             string expectedOperationTree = @"
 ILockStatement (OperationKind.LockStatement) (Syntax: 'lock (null) ... }')
-  Expression: ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+  Expression: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
