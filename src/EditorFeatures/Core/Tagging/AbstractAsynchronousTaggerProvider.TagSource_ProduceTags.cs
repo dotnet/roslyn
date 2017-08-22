@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     this.UpToDate = false;
 
                     var cancellationToken = GetCancellationToken(initialTags);
-                    var spansToTag = GetSpansAndDocumentsToTag(accurate: false, cancellationToken: cancellationToken);
+                    var spansToTag = GetSpansAndDocumentsToTag();
 
                     // Make a copy of all the data we need while we're on the foreground.  Then
                     // pass it along everywhere needed.  Finally, once new tags have been computed,
@@ -335,8 +335,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     ? _initialComputationCancellationTokenSource.Token
                     : _workQueue.CancellationToken;
 
-            private ImmutableArray<DocumentSnapshotSpan> GetSpansAndDocumentsToTag(
-                bool accurate, CancellationToken cancellationToken)
+            private ImmutableArray<DocumentSnapshotSpan> GetSpansAndDocumentsToTag()
             {
                 _workQueue.AssertIsForeground();
 
@@ -352,16 +351,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         CheckSnapshot(span.Snapshot);
 
                         document = span.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                        if (accurate)
-                        {
-                            // If we're doing accurate tagging, this is a scenario like ctrl-c.
-                            // We don't want to block this sort of operation producing things 
-                            // like skeleton assemblies.  So just get a frozen partial snapshot
-                            // so that we can still get reasonable results for the spans asked
-                            // for, without incurring too much overhead.
-                            document = document.WithFrozenPartialSemantics(cancellationToken);
-                        }
-
                         snapshotToDocumentMap[span.Snapshot] = document;
                     }
 
@@ -777,7 +766,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     // We can cancel any background computations currently happening
                     _workQueue.CancelCurrentWork();
 
-                    var spansToTag = GetSpansAndDocumentsToTag(accurate: true, cancellationToken: cancellationToken);
+                    var spansToTag = GetSpansAndDocumentsToTag();
 
                     // Safe to access _cachedTagTrees here.  We're on the UI thread.
                     var oldTagTrees = this.CachedTagTrees;
