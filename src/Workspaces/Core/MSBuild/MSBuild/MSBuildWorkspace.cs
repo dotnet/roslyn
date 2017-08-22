@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// These are the same properties that are passed to msbuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.</param>
         public static MSBuildWorkspace Create(IDictionary<string, string> properties)
         {
-            return Create(properties, DesktopMefHostServices.DefaultServices);
+            return Create(properties, MSBuildMefHostServices.DefaultServices);
         }
 
         /// <summary>

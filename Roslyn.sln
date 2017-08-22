@@ -119,6 +119,8 @@ Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "VisualBasicErrorFactsGenera
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Workspaces.Desktop", "src\Workspaces\Core\Desktop\Workspaces.Desktop.csproj", "{2E87FA96-50BB-4607-8676-46521599F998}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Workspaces.MSBuild", "src\Workspaces\Core\MSBuild\Workspaces.MSBuild.csproj", "{96EB2D3B-F694-48C6-A284-67382841E086}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharpWorkspace", "src\Workspaces\CSharp\Portable\CSharpWorkspace.csproj", "{21B239D0-D144-430F-A394-C066D58EE267}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BasicWorkspace", "src\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj", "{57CA988D-F010-4BF2-9A2E-07D6DCD2FF2C}"
@@ -950,6 +952,10 @@ Global
 		{49E7C367-181B-499C-AC2E-8E17C81418D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{49E7C367-181B-499C-AC2E-8E17C81418D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{49E7C367-181B-499C-AC2E-8E17C81418D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96EB2D3B-F694-48C6-A284-67382841E086}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96EB2D3B-F694-48C6-A284-67382841E086}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96EB2D3B-F694-48C6-A284-67382841E086}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96EB2D3B-F694-48C6-A284-67382841E086}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1119,6 +1125,7 @@ Global
 		{137922A2-5B1E-44C4-B0EC-0F49D2BD323A} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 		{FC2AE90B-2E4B-4045-9FDD-73D4F5ED6C89} = {C2D1346B-9665-4150-B644-075CF1636BAA}
 		{49E7C367-181B-499C-AC2E-8E17C81418D6} = {C2D1346B-9665-4150-B644-075CF1636BAA}
+		{96EB2D3B-F694-48C6-A284-67382841E086} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}

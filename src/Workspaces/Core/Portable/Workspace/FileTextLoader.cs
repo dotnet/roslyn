@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="path">An absolute file path.</param>
         /// <param name="defaultEncoding">
         /// Specifies an encoding to be used if the actual encoding can't be determined from the stream content (the stream doesn't start with Byte Order Mark).
-        /// If not specified auto-detect heuristics are used to determine the encoding. If these heuristics fail the decoding is assumed to be <see cref="Encoding.Default"/>.
+        /// If not specified auto-detect heuristics are used to determine the encoding.
         /// Note that if the stream starts with Byte Order Mark the value of <paramref name="defaultEncoding"/> is ignored.
         /// </param>
         /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
@@ -75,7 +75,6 @@ namespace Microsoft.CodeAnalysis
         /// Specifies an encoding to be used if the actual encoding of the file 
         /// can't be determined from the stream content (the stream doesn't start with Byte Order Mark).
         /// If <c>null</c> auto-detect heuristics are used to determine the encoding. 
-        /// If these heuristics fail the decoding is assumed to be <see cref="Encoding.Default"/>.
         /// Note that if the stream starts with Byte Order Mark the value of <see cref="DefaultEncoding"/> is ignored.
         /// </summary>
         public Encoding DefaultEncoding

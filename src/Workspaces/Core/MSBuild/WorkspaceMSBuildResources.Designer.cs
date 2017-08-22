@@ -22,14 +22,14 @@ namespace Microsoft.CodeAnalysis {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class WorkspaceDesktopResources {
+    internal class WorkspaceMSBuildResources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal WorkspaceDesktopResources() {
+        internal WorkspaceMSBuildResources() {
         }
         
         /// <summary>
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.WorkspaceDesktopResources", typeof(WorkspaceDesktopResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.WorkspaceMSBuildResources", typeof(WorkspaceMSBuildResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,20 +61,20 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid assembly name.
+        ///   Looks up a localized string similar to Msbuild failed when processing the file &apos;{0}&apos;.
         /// </summary>
-        internal static string Invalid_assembly_name {
+        internal static string Msbuild_failed_when_processing_the_file_0 {
             get {
-                return ResourceManager.GetString("Invalid_assembly_name", resourceCulture);
+                return ResourceManager.GetString("Msbuild_failed_when_processing_the_file_0", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid characters in assembly name.
+        ///   Looks up a localized string similar to Msbuild failed when processing the file &apos;{0}&apos; with message: {1}.
         /// </summary>
-        internal static string Invalid_characters_in_assembly_name {
+        internal static string Msbuild_failed_when_processing_the_file_0_with_message_1 {
             get {
-                return ResourceManager.GetString("Invalid_characters_in_assembly_name", resourceCulture);
+                return ResourceManager.GetString("Msbuild_failed_when_processing_the_file_0_with_message_1", resourceCulture);
             }
         }
     }
