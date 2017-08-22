@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -24,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal readonly MethodSymbol OriginalContainingMethodOpt;
         internal readonly FieldSymbol SingletonCache;
         internal readonly MethodSymbol StaticConstructor;
+        internal readonly SynthesizedFieldSymbol EncStructExpansionField;
 
         public override TypeKind TypeKind { get; }
         internal override MethodSymbol Constructor { get; }
@@ -49,6 +51,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 StaticConstructor = new SynthesizedStaticConstructor(this);
                 var cacheVariableName = GeneratedNames.MakeCachedFrameInstanceFieldName();
                 SingletonCache = new SynthesizedLambdaCacheFieldSymbol(this, this, cacheVariableName, topLevelMethod, isReadOnly: true, isStatic: true);
+            }
+
+            if (isStruct && ContainingSymbol.DeclaringCompilation.Options.EnableEditAndContinue)
+            {
+                // Add an extra object field for EnC.
+                TypeSymbol objectType = this.DeclaringCompilation.GetSpecialType(SpecialType.System_Object);
+                EncStructExpansionField = new SynthesizedFieldSymbol(this, objectType, GeneratedNames.MakeEncStructExpansionFieldName(), isPublic: false, isReadOnly: false, isStatic: false);
             }
 
             AssertIsClosureScopeSyntax(scopeSyntaxOpt);
@@ -89,13 +98,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override ImmutableArray<Symbol> GetMembers()
         {
-            var members = base.GetMembers();
+            var builder = ArrayBuilder<Symbol>.GetInstance();
+            builder.AddRange(base.GetMembers());
             if ((object)StaticConstructor != null)
             {
-                members = ImmutableArray.Create<Symbol>(StaticConstructor, SingletonCache).AddRange(members);
+                builder.Add(StaticConstructor);
+                builder.Add(SingletonCache);
             }
 
-            return members;
+            if ((object)EncStructExpansionField != null)
+            {
+                builder.Add(EncStructExpansionField);
+            }
+
+            return builder.ToImmutableAndFree();
         }
 
         // display classes for static lambdas do not have any data and can be serialized.

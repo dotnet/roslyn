@@ -435,6 +435,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>l__initialThreadId";
         }
 
+        internal static string MakeEncStructExpansionFieldName()
+        {
+            Debug.Assert((char)GeneratedNameKind.EncStructExpansionField == 'v');
+            return "<>v_encStructExpansion";
+        }
+
         internal static string ThisProxyFieldName()
         {
             Debug.Assert((char)GeneratedNameKind.ThisProxyField == '4');

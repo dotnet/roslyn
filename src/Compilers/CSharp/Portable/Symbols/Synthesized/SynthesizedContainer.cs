@@ -15,8 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract class SynthesizedContainer : NamedTypeSymbol
     {
-        internal const string StructFieldCaptureName = "<struct-field-capture-name>";
-
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
         private readonly ImmutableArray<TypeParameterSymbol> _constructedFromTypeParameters;
 
@@ -125,38 +123,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
  
         public override ImmutableArray<Symbol> GetMembers()
         {
-            var builder = ArrayBuilder<Symbol>.GetInstance();
-            if (this.TypeKind == TypeKind.Struct)
-            {
-                // Add an extra object field for EnC.
-                builder.Add(GetStructFieldCaptureObject());
-            }
-
             Symbol constructor = this.Constructor;
-            if ((object)constructor != null)
-            {
-                builder.Add(constructor);
-            }
-
-            return builder.ToImmutableAndFree();
+            return (object)constructor == null ? ImmutableArray<Symbol>.Empty : ImmutableArray.Create(constructor);
         }
 
         public override ImmutableArray<Symbol> GetMembers(string name)
         {
-            if (this.TypeKind == TypeKind.Struct && name == StructFieldCaptureName)
-            {
-                // Add an extra object field for EnC.
-                return ImmutableArray.Create(GetStructFieldCaptureObject());
-            }
-
-            var ctor = Constructor;
-            return ((object)ctor != null && name == ctor.Name) ? ImmutableArray.Create<Symbol>(ctor) : ImmutableArray<Symbol>.Empty;
-        }
-
-        private Symbol GetStructFieldCaptureObject()
-        {
-            TypeSymbol objectType = this.DeclaringCompilation.GetSpecialType(SpecialType.System_Object);
-            return new SynthesizedFieldSymbol(this, objectType, StructFieldCaptureName, isPublic: false, isReadOnly: false, isStatic: false);
+            return GetMembers().WhereAsArray(m => m.Name == name);
         }
 
         internal override IEnumerable<FieldSymbol> GetFieldsToEmit()

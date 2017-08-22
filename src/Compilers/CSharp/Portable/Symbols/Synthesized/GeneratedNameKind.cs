@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Used by EnC:
         AwaiterField = 'u',
         HoistedSynthesizedLocalField = 's',
+        EncStructExpansionField = 'v',
 
         // Currently not parsed:
         StateMachineStateField = '1',

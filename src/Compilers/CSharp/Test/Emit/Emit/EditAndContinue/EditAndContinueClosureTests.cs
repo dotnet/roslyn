@@ -1408,7 +1408,7 @@ public class C
 
             var reader0 = md0.MetadataReader;
             CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C", "<>c__DisplayClass0_0", "<>c");
-            CheckNames(reader0, reader0.GetMethodDefNames(), "F", ".ctor", ".ctor", "<F>b__1", "<F>b__2", ".cctor", ".ctor", "<F>b__0_0");
+            CheckNames(reader0, reader0.GetMethodDefNames(), "F", ".ctor", ".ctor", "<F>b__1", "<F>b__2", ".ctor", ".cctor", "<F>b__0_0");
             CheckNames(reader0, reader0.GetFieldDefNames(), "<>4__this", "a", "<>9", "<>9__0_0");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
@@ -1525,7 +1525,7 @@ public class C
 
             var reader0 = md0.MetadataReader;
             CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C", "<>c__DisplayClass0_0`1", "<>c__0`1");
-            CheckNames(reader0, reader0.GetMethodDefNames(), "F", ".ctor", ".ctor", "<F>b__1", "<F>b__2", ".cctor", ".ctor", "<F>b__0_0");
+            CheckNames(reader0, reader0.GetMethodDefNames(), "F", ".ctor", ".ctor", "<F>b__1", "<F>b__2", ".ctor", ".cctor", "<F>b__0_0");
             CheckNames(reader0, reader0.GetFieldDefNames(), "<>4__this", "a", "<>9", "<>9__0_0");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
@@ -1537,7 +1537,7 @@ public class C
             var reader1 = diff1.GetMetadata().Reader;
 
             CheckNames(new[] { reader0, reader1 }, reader1.GetTypeDefNames(), "<>c__DisplayClass0#1_0#1`1", "<>c__0#1`1");
-            CheckNames(new[] { reader0, reader1 }, reader1.GetMethodDefNames(), "F", ".ctor", "<F>b__1#1", "<F>b__2#1", ".cctor", ".ctor", "<F>b__0#1_0#1");
+            CheckNames(new[] { reader0, reader1 }, reader1.GetMethodDefNames(), "F", ".ctor", "<F>b__1#1", "<F>b__2#1", ".ctor", ".cctor", "<F>b__0#1_0#1");
             CheckNames(new[] { reader0, reader1 }, reader1.GetFieldDefNames(), "<>4__this", "a", "<>9", "<>9__0#1_0#1");
 
             diff1.VerifySynthesizedMembers(
@@ -1553,7 +1553,7 @@ public class C
             var reader2 = diff2.GetMetadata().Reader;
 
             CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetTypeDefNames(), "<>c__DisplayClass1#2_0#2`1", "<>c__1#2`1");
-            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetMethodDefNames(), "F", ".ctor", "<F>b__1#2", "<F>b__2#2", ".cctor", ".ctor", "<F>b__1#2_0#2");
+            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetMethodDefNames(), "F", ".ctor", "<F>b__1#2", "<F>b__2#2", ".ctor", ".cctor", "<F>b__1#2_0#2");
             CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetFieldDefNames(), "<>4__this", "a", "<>9", "<>9__1#2_0#2");
         }
 
