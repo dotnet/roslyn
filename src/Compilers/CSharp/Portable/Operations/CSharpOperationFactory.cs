@@ -438,12 +438,11 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private ILiteralExpression CreateBoundLiteralOperation(BoundLiteral boundLiteral)
         {
-            string text = boundLiteral.Syntax.ToString();
             SyntaxNode syntax = boundLiteral.Syntax;
             ITypeSymbol type = boundLiteral.Type;
             Optional<object> constantValue = ConvertToOptional(boundLiteral.ConstantValue);
             bool isImplicit = boundLiteral.WasCompilerGenerated;
-            return new LiteralExpression(text, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LiteralExpression(_semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IAnonymousObjectCreationExpression CreateBoundAnonymousObjectCreationExpressionOperation(BoundAnonymousObjectCreationExpression boundAnonymousObjectCreationExpression)
@@ -902,16 +901,16 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyBinaryOperatorExpression(binaryOperationKind, leftOperand, rightOperand, isLifted, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private IConditionalChoiceExpression CreateBoundConditionalOperatorOperation(BoundConditionalOperator boundConditionalOperator)
+        private IConditionalExpression CreateBoundConditionalOperatorOperation(BoundConditionalOperator boundConditionalOperator)
         {
             Lazy<IOperation> condition = new Lazy<IOperation>(() => Create(boundConditionalOperator.Condition));
-            Lazy<IOperation> ifTrueValue = new Lazy<IOperation>(() => Create(boundConditionalOperator.Consequence));
-            Lazy<IOperation> ifFalseValue = new Lazy<IOperation>(() => Create(boundConditionalOperator.Alternative));
+            Lazy<IOperation> whenTrue = new Lazy<IOperation>(() => Create(boundConditionalOperator.Consequence));
+            Lazy<IOperation> whenFalse = new Lazy<IOperation>(() => Create(boundConditionalOperator.Alternative));
             SyntaxNode syntax = boundConditionalOperator.Syntax;
             ITypeSymbol type = boundConditionalOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundConditionalOperator.ConstantValue);
             bool isImplicit = boundConditionalOperator.WasCompilerGenerated;
-            return new LazyConditionalChoiceExpression(condition, ifTrueValue, ifFalseValue, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyConditionalExpression(condition, whenTrue, whenFalse, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ICoalesceExpression CreateBoundNullCoalescingOperatorOperation(BoundNullCoalescingOperator boundNullCoalescingOperator)
@@ -1267,14 +1266,16 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyUsingStatement(body, declaration, value, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private IThrowStatement CreateBoundThrowStatementOperation(BoundThrowStatement boundThrowStatement)
+        private IExpressionStatement CreateBoundThrowStatementOperation(BoundThrowStatement boundThrowStatement)
         {
             Lazy<IOperation> thrownObject = new Lazy<IOperation>(() => Create(boundThrowStatement.ExpressionOpt));
             SyntaxNode syntax = boundThrowStatement.Syntax;
-            ITypeSymbol type = null;
+            ITypeSymbol throwExpressionType = boundThrowStatement.ExpressionOpt?.Type;
+            ITypeSymbol statementType = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundThrowStatement.WasCompilerGenerated;
-            return new LazyThrowStatement(thrownObject, _semanticModel, syntax, type, constantValue, isImplicit);
+            IOperation throwExpression = new LazyThrowExpression(thrownObject, _semanticModel, syntax, throwExpressionType, constantValue, isImplicit);
+            return new ExpressionStatement(throwExpression, _semanticModel, syntax, statementType, constantValue, isImplicit);
         }
 
         private IReturnStatement CreateBoundReturnStatementOperation(BoundReturnStatement boundReturnStatement)

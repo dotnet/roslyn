@@ -24,12 +24,12 @@ namespace Microsoft.CodeAnalysis.Semantics
                 isImplicit: false); // variable declaration is always explicit
         }
 
-        public static IConditionalChoiceExpression CreateConditionalChoiceExpression(IOperation condition, IOperation ifTrue, IOperation ifFalse, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
+        public static IConditionalExpression CreateConditionalExpression(IOperation condition, IOperation whenTrue, IOperation whenFalse, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
         {
-            return new ConditionalChoiceExpression(
+            return new ConditionalExpression(
                 condition,
-                ifTrue,
-                ifFalse,
+                whenTrue,
+                whenFalse,
                 semanticModel,
                 syntax,
                 resultType,
@@ -64,12 +64,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public static ILiteralExpression CreateLiteralExpression(long value, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
         {
-            return new LiteralExpression(value.ToString(), semanticModel, syntax, resultType, constantValue: new Optional<object>(value), isImplicit: isImplicit);
+            return new LiteralExpression(semanticModel, syntax, resultType, constantValue: new Optional<object>(value), isImplicit: isImplicit);
         }
 
         public static ILiteralExpression CreateLiteralExpression(ConstantValue value, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
         {
-            return new LiteralExpression(value.GetValueToDisplay(), semanticModel, syntax, resultType, new Optional<object>(value.Value), isImplicit);
+            return new LiteralExpression(semanticModel, syntax, resultType, new Optional<object>(value.Value), isImplicit);
         }
 
         public static IBinaryOperatorExpression CreateBinaryOperatorExpression(
