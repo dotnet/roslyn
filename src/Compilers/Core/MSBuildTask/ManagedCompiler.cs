@@ -403,12 +403,40 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         #endregion
 
+        private DotnetHost _dotnetHostInfo;
+        private DotnetHost DotnetHostInfo
+        {
+            get
+            {
+                if (_dotnetHostInfo is null)
+                {
+                    CommandLineBuilderExtension commandLineBuilder = new CommandLineBuilderExtension();
+                    AddCommandLineCommands(commandLineBuilder);
+
+                    if (string.IsNullOrEmpty(ToolPath) && string.IsNullOrEmpty(ToolExe))
+                    {
+                        _dotnetHostInfo = new DotnetHost(ToolNameWithoutExtension, commandLineBuilder.ToString());
+                    }
+                    else
+                    {
+                        // Explicitly provided ToolPath, don't try to figure anything out
+                        _dotnetHostInfo = new DotnetHost(null, ToolPath, commandLineBuilder.ToString());
+                    }
+                }
+                return _dotnetHostInfo;
+            }
+        }
+
+        protected abstract string ToolNameWithoutExtension { get; }
+
+        protected sealed override string ToolName => DotnetHostInfo.ToolName;
+
         /// <summary>
         /// Return the path to the tool to execute.
         /// </summary>
         protected override string GenerateFullPathToTool()
         {
-            var pathToTool = Utilities.GenerateFullPathToTool(ToolName);
+            var pathToTool = DotnetHostInfo.PathToTool;
 
             if (null == pathToTool)
             {
@@ -442,7 +470,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 using (_sharedCompileCts = new CancellationTokenSource())
                 {
-                
+
                     CompilerServerLogger.Log($"CommandLine = '{commandLineCommands}'");
                     CompilerServerLogger.Log($"BuildResponseFile = '{responseFileCommands}'");
 
@@ -654,9 +682,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected override string GenerateCommandLineCommands()
         {
-            CommandLineBuilderExtension commandLineBuilder = new CommandLineBuilderExtension();
-            AddCommandLineCommands(commandLineBuilder);
-            return commandLineBuilder.ToString();
+            return DotnetHostInfo.CommandLineArgs;
         }
 
         /// <summary>
