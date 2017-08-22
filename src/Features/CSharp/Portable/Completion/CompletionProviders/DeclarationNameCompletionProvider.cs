@@ -69,8 +69,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return default;
             }
 
-            var type = UnwrapType(nameInfo.Type, semanticModel.Compilation);
-            var baseNames = NameGenerator.GetBaseNames(type);
+            var (type, plural) = UnwrapType(nameInfo.Type, semanticModel.Compilation, wasPlural: false);
+
+            var baseNames = NameGenerator.GetBaseNames(type, plural);
             return baseNames;
         }
 
@@ -144,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return publicIcon;
         }
 
-        private ITypeSymbol UnwrapType(ITypeSymbol type, Compilation compilation)
+        private (ITypeSymbol, bool plural) UnwrapType(ITypeSymbol type, Compilation compilation, bool wasPlural)
         {
             if (type is INamedTypeSymbol namedType && namedType.OriginalDefinition != null)
             {
@@ -156,8 +157,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     case SpecialType.System_Collections_Generic_ICollection_T:
                     case SpecialType.System_Collections_Generic_IReadOnlyList_T:
                     case SpecialType.System_Collections_Generic_IReadOnlyCollection_T:
+                        return UnwrapType(namedType.TypeArguments[0], compilation, wasPlural: true);
                     case SpecialType.System_Nullable_T:
-                        return UnwrapType(namedType.TypeArguments[0], compilation);
+                        return UnwrapType(namedType.TypeArguments[0], compilation, wasPlural: wasPlural);
                 }
 
                 var taskOfTType = compilation.TaskOfTType();
@@ -166,11 +168,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 if (originalDefinition == taskOfTType ||
                     originalDefinition == valueTaskType)
                 {
-                    return UnwrapType(namedType.TypeArguments[0], compilation);
+                    return UnwrapType(namedType.TypeArguments[0], compilation, wasPlural: wasPlural);
                 }
             }
 
-            return type;
+            return (type, wasPlural);
         }
 
         private async Task<ImmutableArray<(string, SymbolKind)>> GetRecommendedNamesAsync(

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
+using Humanizer;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -13,13 +15,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     {
         internal class NameGenerator
         {
-            internal static ImmutableArray<Words> GetBaseNames(ITypeSymbol type)
+            internal static ImmutableArray<Words> GetBaseNames(ITypeSymbol type, bool pluralize)
             {
                 var baseName = TryRemoveInterfacePrefix(type);
                 var parts = StringBreaker.GetWordParts(baseName);
                 var result = GetInterleavedPatterns(parts, baseName);
+                if (pluralize)
+                {
+                    result = Pluralize(result);
+                }
+
                 parts.Free();
                 return result;
+            }
+
+            private static ImmutableArray<Words> Pluralize(ImmutableArray<Words> names)
+            {
+                var result = ArrayBuilder<Words>.GetInstance();
+                foreach (var set in names)
+                {
+                    var lastWord = set[set.Length - 1];
+                    var pluralizedLastWord = lastWord.Pluralize(inputIsKnownToBeSingular: false);
+                    if (lastWord != pluralizedLastWord)
+                    {
+                        result.Add(set.RemoveAt(set.Length -1).Add(pluralizedLastWord));
+                    }
+                    else
+                    {
+                        result.Add(set);
+                    }
+                }
+
+                return result.ToImmutableAndFree();
             }
 
             internal static ImmutableArray<Words> GetBaseNames(IAliasSymbol alias)
