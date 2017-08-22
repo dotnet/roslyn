@@ -560,11 +560,11 @@ IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }'
         Instance Receiver: null
         Arguments(1):
             IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'one ? 'g' : 'h'')
-              IConditionalChoiceExpression (OperationKind.ConditionalChoiceExpression, Type: System.Char) (Syntax: 'one ? 'g' : 'h'')
+              IConditionalExpression (OperationKind.ConditionalExpression, Type: System.Char) (Syntax: 'one ? 'g' : 'h'')
                 Condition: IUnaryOperatorExpression (UnaryOperatorKind.True) (OperatorMethod: System.Boolean S.op_True(S s)) (OperationKind.UnaryOperatorExpression, Type: System.Boolean) (Syntax: 'one')
                     Operand: IParameterReferenceExpression: one (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'one')
-                IfTrue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Char, Constant: g) (Syntax: ''g'')
-                IfFalse: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Char, Constant: h) (Syntax: ''h'')
+                WhenTrue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Char, Constant: g) (Syntax: ''g'')
+                WhenFalse: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Char, Constant: h) (Syntax: ''h'')
               InConversion: null
               OutConversion: null
 ";
