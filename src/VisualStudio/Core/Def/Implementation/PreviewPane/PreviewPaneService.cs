@@ -18,20 +18,18 @@ using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell;
-using IVsUIShell = Microsoft.VisualStudio.Shell.Interop.IVsUIShell;
-using SVsUIShell = Microsoft.VisualStudio.Shell.Interop.SVsUIShell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 {
     [ExportWorkspaceServiceFactory(typeof(IPreviewPaneService), ServiceLayer.Host), Shared]
     internal class PreviewPaneService : ForegroundThreadAffinitizedObject, IPreviewPaneService, IWorkspaceServiceFactory
     {
-        private readonly IVsUIShell _uiShell;
+        private readonly EnvDTE.DTE _dte;
 
         [ImportingConstructor]
         public PreviewPaneService(SVsServiceProvider serviceProvider)
         {
-            _uiShell = serviceProvider.GetService(typeof(SVsUIShell)) as IVsUIShell;
+            _dte = serviceProvider.GetService(typeof(EnvDTE.DTE)) as EnvDTE.DTE;
         }
 
         IWorkspaceService IWorkspaceServiceFactory.CreateService(HostWorkspaceServices workspaceServices)
@@ -109,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
                 return new PreviewPane(
                     severityIcon: null, id: null, title: null, description: null, helpLink: null, helpLinkToolTipText: null,
-                    previewContent: previewContent, logIdVerbatimInTelemetry: false, uiShell: _uiShell);
+                    previewContent: previewContent, logIdVerbatimInTelemetry: false, dte: _dte);
             }
 
             var helpLinkToolTipText = string.Empty;
@@ -130,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 helpLinkToolTipText: helpLinkToolTipText,
                 previewContent: previewContent,
                 logIdVerbatimInTelemetry: diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Telemetry),
-                uiShell: _uiShell,
+                dte: _dte,
                 optionPageGuid: optionPageGuid);
         }
 
