@@ -154,11 +154,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitEmptyStatement(operation);
         }
 
-        public override void VisitThrowStatement(IThrowStatement operation)
-        {
-            base.VisitThrowStatement(operation);
-        }
-
         public override void VisitReturnStatement(IReturnStatement operation)
         {
             base.VisitReturnStatement(operation);
@@ -367,9 +362,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitConversionExpression(operation);
         }
 
-        public override void VisitConditionalChoiceExpression(IConditionalChoiceExpression operation)
+        public override void VisitConditionalExpression(IConditionalExpression operation)
         {
-            base.VisitConditionalChoiceExpression(operation);
+            base.VisitConditionalExpression(operation);
         }
 
         public override void VisitCoalesceExpression(ICoalesceExpression operation)

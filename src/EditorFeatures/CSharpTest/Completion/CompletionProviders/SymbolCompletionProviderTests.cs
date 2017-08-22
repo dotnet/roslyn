@@ -2058,6 +2058,48 @@ class Program
             await VerifyItemExistsAsync(markup, "CompareTo");
         }
 
+        [WorkItem(21596, "https://github.com/dotnet/roslyn/issues/21596")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AmbiguityBetweenExpressionAndLocalFunctionReturnType()
+        {
+            var markup = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        AwaitTest test = new AwaitTest();
+        test.Test1().Wait();
+    }
+}
+
+class AwaitTest
+{
+    List<string> stringList = new List<string>();
+
+    public async Task<bool> Test1()
+    {
+        stringList.$$
+
+        await Test2();
+
+        return true;
+    }
+
+    public async Task<bool> Test2()
+    {
+        return true;
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "Add");
+        }
+
         [WorkItem(540750, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540750")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CompletionAfterNewInScript()

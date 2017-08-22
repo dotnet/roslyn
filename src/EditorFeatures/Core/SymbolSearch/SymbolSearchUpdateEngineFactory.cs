@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
 {
@@ -61,31 +63,31 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             public async Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
                 string source, string name, int arity, CancellationToken cancellationToken)
             {
-                var results = await _session.TryInvokeAsync<ImmutableArray<PackageWithTypeResult>>(
+                var results = await _session.TryInvokeAsync<IList<PackageWithTypeResult>>(
                     nameof(IRemoteSymbolSearchUpdateEngine.FindPackagesWithTypeAsync),
                     new object[] { source, name, arity }, cancellationToken).ConfigureAwait(false);
 
-                return results.NullToEmpty();
+                return results.ToImmutableArrayOrEmpty();
             }
 
             public async Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
                 string source, string assemblyName, CancellationToken cancellationToken)
             {
-                var results = await _session.TryInvokeAsync<ImmutableArray<PackageWithAssemblyResult>>(
+                var results = await _session.TryInvokeAsync<IList<PackageWithAssemblyResult>>(
                     nameof(IRemoteSymbolSearchUpdateEngine.FindPackagesWithAssemblyAsync),
                     new object[] { source, assemblyName }, cancellationToken).ConfigureAwait(false);
 
-                return results.NullToEmpty();
+                return results.ToImmutableArrayOrEmpty();
             }
 
             public async Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
                 string name, int arity, CancellationToken cancellationToken)
             {
-                var results = await _session.TryInvokeAsync<ImmutableArray<ReferenceAssemblyWithTypeResult>>(
+                var results = await _session.TryInvokeAsync<IList<ReferenceAssemblyWithTypeResult>>(
                     nameof(IRemoteSymbolSearchUpdateEngine.FindReferenceAssembliesWithTypeAsync),
                     new object[] { name, arity }, cancellationToken).ConfigureAwait(false);
 
-                return results.NullToEmpty();
+                return results.ToImmutableArrayOrEmpty();
             }
 
             public async Task UpdateContinuouslyAsync(

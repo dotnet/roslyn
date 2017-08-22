@@ -549,10 +549,10 @@ class C
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
-                "C: {<F>b__1_2, <F>b__1_4, <>c__DisplayClass1_0, <>c__DisplayClass1_1, <>c}",
-                "C.<>c: {<>9__1_0, <>9__1_1, <>9__1_6, <F>b__1_0, <F>b__1_1, <F>b__1_6}",
-                "C.<>c__DisplayClass1_0: {<>h__TransparentIdentifier0, <F>b__3}",
-                "C.<>c__DisplayClass1_1: {<>h__TransparentIdentifier0, <F>b__5}",
+                "C.<>c__DisplayClass1_1: {<>h__TransparentIdentifier0, <F>b__6}",
+                "C.<>c__DisplayClass1_0: {<>h__TransparentIdentifier0, <F>b__5}",
+                "C.<>c: {<>9__1_0, <>9__1_1, <>9__1_4, <F>b__1_0, <F>b__1_1, <F>b__1_4}",
+                "C: {<F>b__1_2, <F>b__1_3, <>c__DisplayClass1_0, <>c__DisplayClass1_1, <>c}",
                 "<>f__AnonymousType0<<a>j__TPar, <b>j__TPar>: {Equals, GetHashCode, ToString}");
 
             var md1 = diff1.GetMetadata();
@@ -632,10 +632,10 @@ class C
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
-                "C: {<F>b__1_0, <>c__DisplayClass1_0, <>c}",
-                "C.<>c: {<>9__1_2, <F>b__1_2}",
-                "C.<>c__DisplayClass1_0: {a, <F>b__1}",
-                "<>f__AnonymousType0<<a>j__TPar, <b>j__TPar>: {Equals, GetHashCode, ToString}");
+                "C.<>c: {<>9__1_1, <F>b__1_1}",
+                "<>f__AnonymousType0<<a>j__TPar, <b>j__TPar>: {Equals, GetHashCode, ToString}",
+                "C.<>c__DisplayClass1_0: {a, <F>b__2}",
+                "C: {<F>b__1_0, <>c__DisplayClass1_0, <>c}");
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -714,10 +714,10 @@ class C
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
-               "C.<>c__DisplayClass1_2: {a, b, <F>b__5}",
-               "C.<>c__DisplayClass1_1: {b, <F>b__3}",
-               "C: {<F>b__1_0, <F>b__1_2, <F>b__1_4, <>c__DisplayClass1_0, <>c__DisplayClass1_1, <>c__DisplayClass1_2}",
-               "C.<>c__DisplayClass1_0: {a, <F>b__1}");
+                "C.<>c__DisplayClass1_1: {b, <F>b__4}",
+                "C.<>c__DisplayClass1_2: {a, b, <F>b__5}",
+                "C.<>c__DisplayClass1_0: {a, <F>b__3}",
+                "C: {<F>b__1_0, <F>b__1_1, <F>b__1_2, <>c__DisplayClass1_0, <>c__DisplayClass1_1, <>c__DisplayClass1_2}");
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;

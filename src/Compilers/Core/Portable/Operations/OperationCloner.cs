@@ -119,11 +119,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new EmptyStatement(((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        public override IOperation VisitThrowStatement(IThrowStatement operation, object argument)
-        {
-            return new ThrowStatement(Visit(operation.ThrownObject), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
         public override IOperation VisitReturnStatement(IReturnStatement operation, object argument)
         {
             return new ReturnStatement(operation.Kind, Visit(operation.ReturnedValue), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
@@ -269,9 +264,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new BinaryOperatorExpression(operation.BinaryOperationKind, Visit(operation.LeftOperand), Visit(operation.RightOperand), operation.IsLifted, operation.UsesOperatorMethod, operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        public override IOperation VisitConditionalChoiceExpression(IConditionalChoiceExpression operation, object argument)
+        public override IOperation VisitConditionalExpression(IConditionalExpression operation, object argument)
         {
-            return new ConditionalChoiceExpression(Visit(operation.Condition), Visit(operation.IfTrueValue), Visit(operation.IfFalseValue), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new ConditionalExpression(Visit(operation.Condition), Visit(operation.WhenTrue), Visit(operation.WhenFalse), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitCoalesceExpression(ICoalesceExpression operation, object argument)
