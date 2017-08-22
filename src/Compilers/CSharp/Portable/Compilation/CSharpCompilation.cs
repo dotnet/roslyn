@@ -3139,8 +3139,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var symbolContainingAssembly = symbolContainingModule.ContainingAssembly;
 
-                if ((object)symbolContainingAssembly != null && !((SourceModuleSymbol)SourceModule).IsNullableOptOutForAssembly(symbolContainingAssembly) &&
-                       !definition.NullableOptOut)
+                if ((object)symbolContainingAssembly != null && !HaveNullableOptOutForAssembly(symbolContainingAssembly) &&
+                       !HaveNullableOptOutForDefinition(definition))
                 {
                     // All annotations should be accepted as is
                     return false;
@@ -3148,6 +3148,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return true;
+        }
+
+        private bool HaveNullableOptOutForAssembly(AssemblySymbol assembly)
+        {
+            return ((SourceModuleSymbol)SourceModule).IsNullableOptOutForAssembly(assembly) &&
+                (this.GetNullableReferenceFlags() & NullableReferenceFlags.AllowAssemblyOptOut) != 0;
+        }
+
+        private bool HaveNullableOptOutForDefinition(Symbol definition)
+        {
+            return definition.NullableOptOut &&
+                (this.GetNullableReferenceFlags() & NullableReferenceFlags.AllowMemberOptOut) != 0;
         }
 
         internal TypeSymbolWithAnnotations GetFieldTypeWithAdjustedNullableAnnotations(FieldSymbol field, ConsList<FieldSymbol> fieldsBeingBound)

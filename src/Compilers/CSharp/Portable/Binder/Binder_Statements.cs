@@ -883,6 +883,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                // Treat reference types as nullable if inferring nullability.
+                declTypeOpt = declTypeOpt.AsNullableReferenceTypeIfInferLocalNullability(declarator);
+
                 if (ReferenceEquals(equalsClauseSyntax, null))
                 {
                     initializerOpt = null;
