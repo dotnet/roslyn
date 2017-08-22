@@ -123,7 +123,7 @@ class C
 
         [WorkItem(16335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/16335")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task InExpressionBodyAcessor()
+        public async Task InExpressionBodyAccessor()
         {
             await VerifyKeywordAsync(@"
 class B
