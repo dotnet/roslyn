@@ -802,6 +802,7 @@ public class C
             {
                 AssertEx.Equal(new[]
                 {
+                    "<struct-field-capture-name>",
                     "<>1__state",
                     "<>t__builder",
                     "array",

@@ -235,6 +235,7 @@ class C
             {
                 AssertEx.Equal(new[]
                 {
+                    "<struct-field-capture-name>",
                     "<>1__state",
                     "<>t__builder",
                     "x",
@@ -287,6 +288,7 @@ class C
             {
                 AssertEx.Equal(new[]
                 {
+                    "<struct-field-capture-name>",
                     "<>1__state",
                     "<>t__builder",
                     "disposable",
@@ -1240,6 +1242,7 @@ public class C
             {
                 AssertEx.Equal(new[]
                 {
+                    "<struct-field-capture-name>",
                     "<>1__state",
                     "<>t__builder",
                     "<>u__1",

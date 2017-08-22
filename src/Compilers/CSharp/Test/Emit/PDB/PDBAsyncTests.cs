@@ -731,6 +731,7 @@ class C
             {
                 Assert.Equal(new[]
                 {
+                    "<struct-field-capture-name>",
                     "<>1__state",
                     "<>t__builder",
                     "<>u__1",  // awaiter
@@ -907,6 +908,7 @@ class C
             {
                 Assert.Equal(new[]
                 {
+                    "<struct-field-capture-name>",
                     "<>1__state",
                     "<>t__builder",
                     "<>8__1",  // display class
@@ -1164,6 +1166,7 @@ class C
             {
                 Assert.Equal(new[]
                 {
+                    "<struct-field-capture-name>",
                     "<>1__state",
                     "<>t__builder",
                     "<>u__1", // awaiter
