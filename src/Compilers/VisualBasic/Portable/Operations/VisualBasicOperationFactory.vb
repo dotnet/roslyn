@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Return Nothing
             End If
 
-            ' A BoundUserDefined conversion is always the operation of a BoundConversion, and is handled
+            ' A BoundUserDefined conversion is always the operand of a BoundConversion, and is handled
             ' by the BoundConversion creation. We should never receive one in this top level create call.
             Debug.Assert(boundNode.Kind <> BoundKind.UserDefinedConversion)
 
