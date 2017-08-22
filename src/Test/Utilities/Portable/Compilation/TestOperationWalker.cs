@@ -409,8 +409,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitLiteralExpression(ILiteralExpression operation)
         {
-            var text = operation.Text;
-
             base.VisitLiteralExpression(operation);
         }
 

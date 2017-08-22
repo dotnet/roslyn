@@ -61,12 +61,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                        }
                                        else if (operationContext.Operation is IIncrementExpression increment)
                                        {
-                                           string text = increment.Syntax.ToString();
                                            SyntaxNode syntax = increment.Syntax;
                                            ITypeSymbol type = increment.Type;
                                            Optional<object> constantValue = new Optional<object>(1);
                                            bool isImplicit = increment.IsImplicit;
-                                           var value = new LiteralExpression(text, operationContext.Compilation.GetSemanticModel(syntax.SyntaxTree), syntax, type, constantValue, isImplicit);
+                                           var value = new LiteralExpression(operationContext.Compilation.GetSemanticModel(syntax.SyntaxTree), syntax, type, constantValue, isImplicit);
 
                                            AssignTo(increment.Target, localsSourceTypes, fieldsSourceTypes, value);
                                        }
