@@ -240,10 +240,10 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         private static IEnumerable<ISymbol> GetExistingSymbols(
             SemanticModel semanticModel, SyntaxNode container, CancellationToken cancellationToken)
         {
-            // Ignore an annonymous type property.  It's ok if they have a name that 
+            // Ignore an annonymous type property and value tuple type field. It's ok if they have a name that 
             // matches the name of the local we're introducing.
             return semanticModel.GetAllDeclaredSymbols(container, cancellationToken)
-                                .Where(s => !s.IsAnonymousTypeProperty());
+                                .Where(s => !(s.IsAnonymousTypeProperty() || s.IsTupleField()));
         }
 
         protected ISet<TExpressionSyntax> FindMatches(
