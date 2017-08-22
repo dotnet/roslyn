@@ -22,6 +22,7 @@
     <ProjectReference Include="..\..\VisualStudio\VisualBasic\Impl\BasicVisualStudio.vbproj" />
     <ProjectReference Include="..\..\Workspaces\CoreTestUtilities\WorkspacesTestUtilities.csproj" />
     <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj" />
+    <ProjectReference Include="..\..\Workspaces\Core\MSBuild\Workspaces.MSBuild.csproj" />
     <ProjectReference Include="..\..\Features\VisualBasic\Portable\BasicFeatures.vbproj" />
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj" />
     <ProjectReference Include="..\..\Features\CSharp\Portable\CSharpFeatures.csproj" />
