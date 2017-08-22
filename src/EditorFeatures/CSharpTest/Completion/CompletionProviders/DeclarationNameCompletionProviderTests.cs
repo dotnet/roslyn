@@ -490,7 +490,7 @@ public class C
     System.Collections.Generic.IEnumerable<C> $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "GetC");
+            await VerifyItemExistsAsync(markup, "GetCs");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -625,6 +625,51 @@ class Test
 }
 ";
             await VerifyItemExistsAsync(markup, "test");
+        }
+
+        [WorkItem(19409, "https://github.com/dotnet/roslyn/issues/19409")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void Pluralize1()
+        {
+            var markup = @"
+using System.Collections.Generic;
+class Test
+{
+    IEnumerable<Test> $$
+}
+";
+            await VerifyItemExistsAsync(markup, "tests");
+        }
+
+        [WorkItem(19409, "https://github.com/dotnet/roslyn/issues/19409")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void Pluralize2()
+        {
+            var markup = @"
+using System.Collections.Generic;
+class Test
+{
+    IEnumerable<IEnumerable<Test>> $$
+}
+";
+            await VerifyItemExistsAsync(markup, "tests");
+        }
+
+        [WorkItem(19409, "https://github.com/dotnet/roslyn/issues/19409")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void Pluralize3()
+        {
+            var markup = @"
+using System.Collections.Generic;
+using System.Threading;
+class Test
+{
+    IEnumerable<CancellationToken> $$
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationTokens");
+            await VerifyItemExistsAsync(markup, "cancellations");
+            await VerifyItemExistsAsync(markup, "tokens");
         }
     }
 }

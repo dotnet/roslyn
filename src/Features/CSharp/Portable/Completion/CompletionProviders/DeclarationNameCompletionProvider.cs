@@ -150,23 +150,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (type is INamedTypeSymbol namedType && namedType.OriginalDefinition != null)
             {
                 var originalDefinition = namedType.OriginalDefinition;
-                switch (originalDefinition.SpecialType)
+                
+                var ienumerableOfT = namedType.GetAllInterfacesIncludingThis().FirstOrDefault(
+                    t => t.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T);
+
+                if (ienumerableOfT != null)
                 {
-                    case SpecialType.System_Collections_Generic_IEnumerable_T:
-                    case SpecialType.System_Collections_Generic_IList_T:
-                    case SpecialType.System_Collections_Generic_ICollection_T:
-                    case SpecialType.System_Collections_Generic_IReadOnlyList_T:
-                    case SpecialType.System_Collections_Generic_IReadOnlyCollection_T:
-                        return UnwrapType(namedType.TypeArguments[0], compilation, wasPlural: true);
-                    case SpecialType.System_Nullable_T:
-                        return UnwrapType(namedType.TypeArguments[0], compilation, wasPlural: wasPlural);
+                    return UnwrapType(ienumerableOfT.TypeArguments[0], compilation, wasPlural: true);
                 }
 
                 var taskOfTType = compilation.TaskOfTType();
                 var valueTaskType = compilation.ValueTaskOfTType();
 
-                if (originalDefinition == taskOfTType ||
-                    originalDefinition == valueTaskType)
+                if (originalDefinition == taskOfTType
+                    ||originalDefinition == valueTaskType
+                    || originalDefinition.SpecialType == SpecialType.System_Nullable_T)
                 {
                     return UnwrapType(namedType.TypeArguments[0], compilation, wasPlural: wasPlural);
                 }
