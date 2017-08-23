@@ -130,46 +130,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private void AddAlignmentBlockOperation(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet)
         {
-            if (node is SimpleLambdaExpressionSyntax simpleLambda)
+            switch (node)
             {
-                SetAlignmentBlockOperation(list, simpleLambda, simpleLambda.Body);
-                return;
-            }
-
-            if (node is ParenthesizedLambdaExpressionSyntax parenthesizedLambda)
-            {
-                SetAlignmentBlockOperation(list, parenthesizedLambda, parenthesizedLambda.Body);
-                return;
-            }
-
-            if (node is AnonymousMethodExpressionSyntax anonymousMethod)
-            {
-                SetAlignmentBlockOperation(list, anonymousMethod, anonymousMethod.Block);
-                return;
-            }
-
-            if (node is ObjectCreationExpressionSyntax objectCreation && objectCreation.Initializer != null)
-            {
-                SetAlignmentBlockOperation(list, objectCreation, objectCreation.Initializer);
-                return;
-            }
-
-            if (node is AnonymousObjectCreationExpressionSyntax anonymousObjectCreation)
-            {
-                SetAlignmentBlockOperation(list, anonymousObjectCreation.NewKeyword, anonymousObjectCreation.OpenBraceToken, anonymousObjectCreation.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
-                return;
-            }
-
-            if (node is ArrayCreationExpressionSyntax arrayCreation && arrayCreation.Initializer != null)
-            {
-                SetAlignmentBlockOperation(list, arrayCreation.NewKeyword, arrayCreation.Initializer.OpenBraceToken, arrayCreation.Initializer.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
-                return;
-            }
-
-            if (node is ImplicitArrayCreationExpressionSyntax implicitArrayCreation && implicitArrayCreation.Initializer != null)
-            {
-                SetAlignmentBlockOperation(list, implicitArrayCreation.NewKeyword, implicitArrayCreation.Initializer.OpenBraceToken, implicitArrayCreation.Initializer.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
-                return;
+                case SimpleLambdaExpressionSyntax simpleLambda:
+                    SetAlignmentBlockOperation(list, simpleLambda, simpleLambda.Body);
+                    return;
+                case ParenthesizedLambdaExpressionSyntax parenthesizedLambda:
+                    SetAlignmentBlockOperation(list, parenthesizedLambda, parenthesizedLambda.Body);
+                    return;
+                case AnonymousMethodExpressionSyntax anonymousMethod:
+                    SetAlignmentBlockOperation(list, anonymousMethod, anonymousMethod.Block);
+                    return;
+                case ObjectCreationExpressionSyntax objectCreation when objectCreation.Initializer != null:
+                    SetAlignmentBlockOperation(list, objectCreation, objectCreation.Initializer);
+                    return;
+                case AnonymousObjectCreationExpressionSyntax anonymousObjectCreation:
+                    SetAlignmentBlockOperation(list, anonymousObjectCreation.NewKeyword, anonymousObjectCreation.OpenBraceToken, anonymousObjectCreation.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+                    return;
+                case ArrayCreationExpressionSyntax arrayCreation when arrayCreation.Initializer != null:
+                    SetAlignmentBlockOperation(list, arrayCreation.NewKeyword, arrayCreation.Initializer.OpenBraceToken, arrayCreation.Initializer.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+                    return;
+                case ImplicitArrayCreationExpressionSyntax implicitArrayCreation when implicitArrayCreation.Initializer != null:
+                    SetAlignmentBlockOperation(list, implicitArrayCreation.NewKeyword, implicitArrayCreation.Initializer.OpenBraceToken, implicitArrayCreation.Initializer.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+                    return;
             }
         }
 
