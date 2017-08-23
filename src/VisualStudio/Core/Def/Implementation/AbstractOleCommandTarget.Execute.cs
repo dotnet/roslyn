@@ -82,10 +82,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             int result = VSConstants.S_OK;
             var guidCmdGroup = pguidCmdGroup;
-            Action executeNextCommandTarget = () =>
+            void executeNextCommandTarget()
             {
                 result = NextCommandTarget.Exec(ref guidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
-            };
+            }
 
             switch ((VSConstants.AppCommandCmdID)commandId)
             {
@@ -108,10 +108,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             int result = VSConstants.S_OK;
             var guidCmdGroup = pguidCmdGroup;
-            Action executeNextCommandTarget = () =>
+            void executeNextCommandTarget()
             {
                 result = NextCommandTarget.Exec(ref guidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
-            };
+            }
 
             switch ((VSConstants.VSStd14CmdID)commandId)
             {
@@ -130,10 +130,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             int result = VSConstants.S_OK;
             var guidCmdGroup = pguidCmdGroup;
-            Action executeNextCommandTarget = () =>
+            void executeNextCommandTarget()
             {
                 result = NextCommandTarget.Exec(ref guidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
-            };
+            }
 
             switch ((VSConstants.VSStd12CmdID)commandId)
             {
@@ -156,10 +156,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             int result = VSConstants.S_OK;
             var guidCmdGroup = pguidCmdGroup;
-            Action executeNextCommandTarget = () =>
+            void executeNextCommandTarget()
             {
                 result = NextCommandTarget.Exec(ref guidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
-            };
+            }
 
             switch ((VSConstants.VSStd97CmdID)commandId)
             {
@@ -252,10 +252,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             int result = VSConstants.S_OK;
             var guidCmdGroup = pguidCmdGroup;
-            Action executeNextCommandTarget = () =>
+            void executeNextCommandTarget()
             {
                 result = NextCommandTarget.Exec(ref guidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
-            };
+            }
 
             switch (commandId)
             {
@@ -275,10 +275,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             int result = VSConstants.S_OK;
             var guidCmdGroup = pguidCmdGroup;
-            Action executeNextCommandTarget = () =>
+            void executeNextCommandTarget()
             {
                 result = NextCommandTarget.Exec(ref guidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
-            };
+            }
 
             switch (commandId)
             {
@@ -297,10 +297,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             int result = VSConstants.S_OK;
             var guidCmdGroup = pguidCmdGroup;
-            Action executeNextCommandTarget = () =>
+            void executeNextCommandTarget()
             {
                 result = NextCommandTarget.Exec(ref guidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
-            };
+            }
 
             switch ((VSConstants.VSStd2KCmdID)commandId)
             {
@@ -560,10 +560,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             int result = VSConstants.S_OK;
             var guidCmdGroup = pguidCmdGroup;
-            Action executeNextCommandTarget = () =>
+            void executeNextCommandTarget()
             {
                 result = NextCommandTarget.Exec(ref guidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
-            };
+            }
 
             switch (commandId)
             {

@@ -1575,12 +1575,12 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// This not intended to be the public API, use Document.WithFrozenPartialSemantics() instead.
         /// </summary>
-        public async Task<SolutionState> WithFrozenPartialCompilationIncludingSpecificDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
+        public SolutionState WithFrozenPartialCompilationIncludingSpecificDocument(DocumentId documentId, CancellationToken cancellationToken)
         {
             try
             {
                 var doc = this.GetDocumentState(documentId);
-                var tree = await doc.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var tree = doc.GetSyntaxTree(cancellationToken);
 
                 using (this.StateLock.DisposableWait(cancellationToken))
                 {
