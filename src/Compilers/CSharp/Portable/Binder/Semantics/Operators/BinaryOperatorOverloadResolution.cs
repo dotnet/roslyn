@@ -68,30 +68,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             // - If we find an applicable candidate in an interface, that candidate shadows all applicable operators in
             // base interfaces: we stop looking.
 
-            bool hadUserDefinedCandidate = false;
+            bool hadApplicableCandidates = false;
 
             // In order to preserve backward compatibility, at first we ignore interface sources.
 
             if (!leftSourceIsInterface)
             {
-                hadUserDefinedCandidate = GetUserDefinedOperators(kind, leftOperatorSourceOpt, left, right, result.Results, ref useSiteDiagnostics);
+                hadApplicableCandidates = GetUserDefinedOperators(kind, leftOperatorSourceOpt, left, right, result.Results, ref useSiteDiagnostics);
+                if (!hadApplicableCandidates)
+                {
+                    result.Results.Clear();
+                }
             }
 
             if (!rightSourceIsInterface && rightOperatorSourceOpt != leftOperatorSourceOpt)
             {
                 var rightOperators = ArrayBuilder<BinaryOperatorAnalysisResult>.GetInstance();
-                hadUserDefinedCandidate |= GetUserDefinedOperators(kind, rightOperatorSourceOpt, left, right, rightOperators, ref useSiteDiagnostics);
-                AddDistinctOperators(result.Results, rightOperators);
+                if (GetUserDefinedOperators(kind, rightOperatorSourceOpt, left, right, rightOperators, ref useSiteDiagnostics))
+                {
+                    hadApplicableCandidates = true;
+                    AddDistinctOperators(result.Results, rightOperators);
+                }
+
                 rightOperators.Free();
             }
 
-            Debug.Assert(result.Results.Count == 0 || hadUserDefinedCandidate);
+            Debug.Assert((result.Results.Count == 0) != hadApplicableCandidates);
 
             // If there are no applicable candidates in classes / stuctures, try with interface sources.
             // From https://github.com/dotnet/csharplang/blob/master/meetings/2017/LDM-2017-06-27.md:
-            // Let's not allow == and != and see what feedback we get. We'll see from prototype use whether
-            // this is an intolerable limitation, but we believe it is a decent place to land.
-            if (!hadUserDefinedCandidate &&
+            // We do not allow == and != and. Otherwise, there'd be no way to override Equals and GetHashCode,
+            // so you couldn't do == and != in a recommended way.
+            if (!hadApplicableCandidates &&
                 kind != BinaryOperatorKind.Equal && kind != BinaryOperatorKind.NotEqual)
             {
                 result.Results.Clear();
@@ -99,16 +107,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 string name = OperatorFacts.BinaryOperatorNameFromOperatorKind(kind);
                 var lookedInInterfaces = PooledDictionary<TypeSymbol, bool>.GetInstance();
 
-                hadUserDefinedCandidate = GetUserDefinedBinaryOperatorsFromInterfaces(kind, name,
+                hadApplicableCandidates = GetUserDefinedBinaryOperatorsFromInterfaces(kind, name,
                         leftOperatorSourceOpt, leftSourceIsInterface, left, right, ref useSiteDiagnostics, lookedInInterfaces, result.Results);
+                if (!hadApplicableCandidates)
+                {
+                    result.Results.Clear();
+                }
 
                 if (leftOperatorSourceOpt != rightOperatorSourceOpt)
                 {
                     var rightOperators = ArrayBuilder<BinaryOperatorAnalysisResult>.GetInstance();
-                    hadUserDefinedCandidate |= GetUserDefinedBinaryOperatorsFromInterfaces(kind, name,
-                        rightOperatorSourceOpt, rightSourceIsInterface, left, right, ref useSiteDiagnostics, lookedInInterfaces, rightOperators);
+                    if (GetUserDefinedBinaryOperatorsFromInterfaces(kind, name,
+                            rightOperatorSourceOpt, rightSourceIsInterface, left, right, ref useSiteDiagnostics, lookedInInterfaces, rightOperators))
+                    {
+                        hadApplicableCandidates = true;
+                        AddDistinctOperators(result.Results, rightOperators);
+                    }
 
-                    AddDistinctOperators(result.Results, rightOperators);
                     rightOperators.Free();
                 }
 
@@ -134,9 +149,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // Roslyn matches the specification and takes the break from the native compiler.
 
-            if (!hadUserDefinedCandidate)
+            Debug.Assert((result.Results.Count == 0) != hadApplicableCandidates);
+
+            if (!hadApplicableCandidates)
             {
-                Debug.Assert(result.Results.Count == 0);
                 result.Results.Clear();
                 GetAllBuiltInOperators(kind, left, right, result.Results, ref useSiteDiagnostics);
             }
