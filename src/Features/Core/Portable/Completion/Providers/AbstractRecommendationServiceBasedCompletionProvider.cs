@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected override async Task<CompletionDescription> GetDescriptionWorkerAsync(
             Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            var position = await SymbolCompletionItem.GetContextPositionAsync(document, item, cancellationToken).ConfigureAwait(false);
+            var position = SymbolCompletionItem.GetContextPosition(item);
             var name = SymbolCompletionItem.GetSymbolName(item);
             var kind = SymbolCompletionItem.GetKind(item);
             var relatedDocumentIds = document.Project.Solution.GetRelatedDocumentIds(document.Id).Concat(document.Id);
