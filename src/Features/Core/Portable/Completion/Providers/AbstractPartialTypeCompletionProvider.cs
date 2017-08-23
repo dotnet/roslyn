@@ -54,8 +54,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var displayAndInsertionText = GetDisplayAndInsertionText(symbol, context);
 
             return SymbolCompletionItem.CreateWithSymbolId(
-                displayText: displayAndInsertionText.Item1,
-                insertionText: displayAndInsertionText.Item2,
+                displayText: displayAndInsertionText.displayText,
+                insertionText: displayAndInsertionText.insertionText,
                 symbols: ImmutableArray.Create(symbol),
                 contextPosition: context.Position,
                 properties: GetProperties(symbol, context),

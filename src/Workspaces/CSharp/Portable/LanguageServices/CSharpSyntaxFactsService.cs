@@ -1222,7 +1222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var tuple = token.Parent.GetBraces();
 
-                openBrace = tuple.Item1;
+                openBrace = tuple.openBrace;
                 return openBrace.Kind() == SyntaxKind.OpenBraceToken;
             }
 
@@ -1642,8 +1642,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // then still ask to format its close curly to make sure all the 
                 // curlies up the stack are properly formatted.
                 var braces = rewritten.GetBraces();
-                if (braces.Item1.Kind() == SyntaxKind.None && 
-                    braces.Item2.Kind() == SyntaxKind.None)
+                if (braces.openBrace.Kind() == SyntaxKind.None && 
+                    braces.closeBrace.Kind() == SyntaxKind.None)
                 {
                     // Not an item with braces.  Just pass it up.
                     return rewritten;
@@ -1651,13 +1651,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // See if the close brace is missing.  If it's the first missing one 
                 // we're seeing then definitely add it.
-                if (braces.Item2.IsMissing)
+                if (braces.closeBrace.IsMissing)
                 {
                     if (!_addedFirstCloseCurly)
                     {
                         var closeBrace = SyntaxFactory.Token(SyntaxKind.CloseBraceToken)
                             .WithAdditionalAnnotations(Formatter.Annotation);
-                        rewritten = rewritten.ReplaceToken(braces.Item2, closeBrace);
+                        rewritten = rewritten.ReplaceToken(braces.closeBrace, closeBrace);
                         _addedFirstCloseCurly = true;
                     }
                 }
@@ -1665,8 +1665,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Ask for the close brace to be formatted so that all the braces
                     // up the spine are in the right location.
-                    rewritten = rewritten.ReplaceToken(braces.Item2,
-                        braces.Item2.WithAdditionalAnnotations(Formatter.Annotation));
+                    rewritten = rewritten.ReplaceToken(braces.closeBrace,
+                        braces.closeBrace.WithAdditionalAnnotations(Formatter.Annotation));
                 }
 
                 return rewritten;
