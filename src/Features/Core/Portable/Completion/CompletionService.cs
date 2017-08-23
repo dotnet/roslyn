@@ -171,18 +171,6 @@ namespace Microsoft.CodeAnalysis.Completion
             return bestItems.ToImmutableAndFree();
         }
 
-        internal async Task<CompletionDescription> GetDescriptionUsingItemDocumentAsync(
-            CompletionItem item, CancellationToken cancellationToken = default)
-        {
-            var document = item?.Document;
-            if (document == null)
-            {
-                return CompletionDescription.Empty;
-            }
-
-            return await this.GetDescriptionAsync(item.Document, item, cancellationToken).ConfigureAwait(false);
-        }
-
         internal async Task<CompletionList> GetCompletionsAndSetItemDocumentAsync(
             Document documentOpt, int caretPosition, CompletionTrigger trigger = default,
             ImmutableHashSet<string> roles = null, OptionSet options = null, CancellationToken cancellationToken = default)

@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Dim document = workspace.CurrentSolution.Projects.First.Documents.First
                 Dim service = New TestCompletionService(workspace)
 
-                Dim list = Await service.GetCompletionsAndSetItemDocumentAsync(
+                Dim list = Await service.GetCompletionsAsync(
                     document, caretPosition:=0, trigger:=CompletionTrigger.Invoke)
 
                 Assert.NotNull(list)

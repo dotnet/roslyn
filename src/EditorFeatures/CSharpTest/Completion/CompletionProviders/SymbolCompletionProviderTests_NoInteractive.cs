@@ -354,7 +354,7 @@ class C
                 document = workspace.CurrentSolution.GetDocument(testDocument.Id);
 
                 Assert.NotEqual(document, item.Document);
-                var description = service.GetDescriptionUsingItemDocumentAsync(item);
+                var description = service.GetDescriptionAsync(item.Document, item);
             }
         }
     }
