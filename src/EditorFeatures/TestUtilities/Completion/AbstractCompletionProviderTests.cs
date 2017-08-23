@@ -73,7 +73,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         }
 
         internal Task<CompletionList> GetCompletionListAsync(
-            CompletionService service, Document document, int position, 
+            CompletionService service,
+            Document document, int position, 
             CompletionTrigger triggerInfo, OptionSet options = null)
         {
             return service.GetCompletionsAsync(document, position, triggerInfo, options: options);
@@ -94,8 +95,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 trigger = CompletionTrigger.CreateInsertionTrigger(insertedCharacter: code.ElementAt(position - 1));
             }
 
-            var service = GetCompletionService(document.Project.Solution.Workspace);
-            var completionList = await GetCompletionListAsync(service, document, position, trigger);
+            var completionService = GetCompletionService(document.Project.Solution.Workspace);
+            var completionList = await GetCompletionListAsync(completionService, document, position, trigger);
             var items = completionList == null ? ImmutableArray<CompletionItem>.Empty : completionList.Items;
 
             if (hasSuggestionModeItem != null)
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                     AssertEx.None(
                         items,
                         c => CompareItems(c.DisplayText, expectedItemOrNull) &&
-                            (expectedDescriptionOrNull != null ? service.GetDescriptionAsync(document, c).Result.Text == expectedDescriptionOrNull : true));
+                            (expectedDescriptionOrNull != null ? completionService.GetDescriptionAsync(document, c).Result.Text == expectedDescriptionOrNull : true));
                 }
             }
             else
@@ -131,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 else
                 {
                     AssertEx.Any(items, c => CompareItems(c.DisplayText, expectedItemOrNull)
-                        && (expectedDescriptionOrNull != null ? service.GetDescriptionAsync(document, c).Result.Text == expectedDescriptionOrNull : true)
+                        && (expectedDescriptionOrNull != null ? completionService.GetDescriptionAsync(document, c).Result.Text == expectedDescriptionOrNull : true)
                         && (glyph.HasValue ? c.Tags.SequenceEqual(GlyphTags.GetTags((Glyph)glyph.Value)) : true)
                         && (matchPriority.HasValue ? (int)c.Rules.MatchPriority == matchPriority.Value : true ));
                 }
@@ -315,20 +316,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             SetWorkspaceOptions(workspace);
             var textBuffer = workspace.Documents.Single().TextBuffer;
 
-            var service = GetCompletionService(workspace);
-            var items = (await GetCompletionListAsync(service, document, position, CompletionTrigger.Invoke)).Items;
+            var completionService = GetCompletionService(workspace);
+            var items = (await GetCompletionListAsync(completionService, document, position, CompletionTrigger.Invoke)).Items;
             var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
 
-            var customCommitCompletionProvider = service.ExclusiveProviders?[0] as ICustomCommitCompletionProvider;
+            var customCommitCompletionProvider = completionService.ExclusiveProviders?[0] as ICustomCommitCompletionProvider;
             if (customCommitCompletionProvider != null)
             {
                 var completionRules = GetCompletionHelper(document);
                 var textView = (WorkspaceFixture.GetWorkspace()).Documents.Single().GetTextView();
-                VerifyCustomCommitWorker(service, customCommitCompletionProvider, firstItem, completionRules, textView, textBuffer, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
+                VerifyCustomCommitWorker(completionService, customCommitCompletionProvider, firstItem, completionRules, textView, textBuffer, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
             }
             else
             {
-                await VerifyCustomCommitWorkerAsync(service, document, firstItem, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
+                await VerifyCustomCommitWorkerAsync(completionService, document, firstItem, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
             }
         }
 
@@ -426,8 +427,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var textBuffer = workspace.Documents.Single().TextBuffer;
             var textSnapshot = textBuffer.CurrentSnapshot.AsText();
 
-            var service = GetCompletionService(workspace);
-            var items = (await GetCompletionListAsync(service, document, position, CompletionTrigger.Invoke)).Items;
+            var completionService = GetCompletionService(workspace);
+            var items = (await GetCompletionListAsync(completionService, document, position, CompletionTrigger.Invoke)).Items;
             var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
 
             var completionRules = GetCompletionHelper(document);
@@ -436,9 +437,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var text = await document.GetTextAsync();
 
             if (commitChar == '\t' ||
-                Controller.IsCommitCharacter(service.GetRules(), firstItem, commitChar, textTypedSoFar + commitChar))
+                Controller.IsCommitCharacter(completionService.GetRules(), firstItem, commitChar, textTypedSoFar + commitChar))
             {
-                var textChange = (await service.GetChangeAsync(document, firstItem, commitChar, CancellationToken.None)).TextChange;
+                var textChange = (await completionService.GetChangeAsync(document, firstItem, commitChar, CancellationToken.None)).TextChange;
 
                 // Adjust TextChange to include commit character, so long as it isn't TAB.
                 if (commitChar != '\t')
@@ -564,15 +565,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
                 var triggerInfo = CompletionTrigger.Invoke;
 
-                var service = GetCompletionService(testWorkspace);
-                var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
+                var completionService = GetCompletionService(testWorkspace);
+                var completionList = await GetCompletionListAsync(completionService, document, position, triggerInfo);
 
                 if (expectedSymbols >= 1)
                 {
                     AssertEx.Any(completionList.Items, c => CompareItems(c.DisplayText, expectedItem));
 
                     var item = completionList.Items.First(c => CompareItems(c.DisplayText, expectedItem));
-                    var description = await service.GetDescriptionAsync(document, item);
+                    var description = await completionService.GetDescriptionAsync(document, item);
 
                     if (expectedSymbols == 1)
                     {
@@ -618,11 +619,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var document = solution.GetDocument(documentId);
 
                 var triggerInfo = CompletionTrigger.Invoke;
-                var service = GetCompletionService(testWorkspace);
-                var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
+                var completionService = GetCompletionService(testWorkspace);
+                var completionList = await GetCompletionListAsync(completionService, document, position, triggerInfo);
 
                 var item = completionList.Items.FirstOrDefault(i => i.DisplayText == expectedItem);
-                Assert.Equal(expectedDescription, (await service.GetDescriptionAsync(document, item)).Text);
+                Assert.Equal(expectedDescription, (await completionService.GetDescriptionAsync(document, item)).Text);
             }
         }
 
@@ -649,14 +650,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var document = solution.GetDocument(currentContextDocumentId);
 
                 var triggerInfo = CompletionTrigger.Invoke;
-                var service = GetCompletionService(testWorkspace);
-                var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
+                var completionService = GetCompletionService(testWorkspace);
+                var completionList = await GetCompletionListAsync(completionService, document, position, triggerInfo);
 
                 var item = completionList.Items.Single(c => c.DisplayText == expectedItem);
                 Assert.NotNull(item);
                 if (expectedDescription != null)
                 {
-                    var actualDescription = (await service.GetDescriptionAsync(document, item)).Text;
+                    var actualDescription = (await completionService.GetDescriptionAsync(document, item)).Text;
                     Assert.Equal(expectedDescription, actualDescription);
                 }
             }
@@ -764,8 +765,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                     CompletionOptions.TriggerOnTypingLetters, document.Project.Language, triggerOnLetter);
                 var trigger = CompletionTrigger.CreateInsertionTrigger(text[position]);
 
-                var service = GetCompletionService(workspace);
-                var isTextualTriggerCharacterResult = service.ShouldTriggerCompletion(text, position + 1, trigger, options: options);
+                var completionService = GetCompletionService(workspace);
+                var isTextualTriggerCharacterResult = completionService.ShouldTriggerCompletion(text, position + 1, trigger, options: options);
 
                 if (expectedTriggerCharacter)
                 {
@@ -804,20 +805,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var document = workspace.CurrentSolution.GetDocument(documentId);
                 var position = hostDocument.CursorPosition.Value;
 
-                var service = GetCompletionService(workspace);
-                var completionList = await GetCompletionListAsync(service, document, position, CompletionTrigger.Invoke);
+                var completionService = GetCompletionService(workspace);
+                var completionList = await GetCompletionListAsync(completionService, document, position, CompletionTrigger.Invoke);
                 var item = completionList.Items.First(i => i.DisplayText.StartsWith(textTypedSoFar));
 
                 foreach (var ch in validChars)
                 {
                     Assert.True(Controller.IsCommitCharacter(
-                        service.GetRules(), item, ch, textTypedSoFar + ch), $"Expected '{ch}' to be a commit character");
+                        completionService.GetRules(), item, ch, textTypedSoFar + ch), $"Expected '{ch}' to be a commit character");
                 }
 
                 foreach (var ch in invalidChars)
                 {
                     Assert.False(Controller.IsCommitCharacter(
-                        service.GetRules(), item, ch, textTypedSoFar + ch), $"Expected '{ch}' NOT to be a commit character");
+                        completionService.GetRules(), item, ch, textTypedSoFar + ch), $"Expected '{ch}' NOT to be a commit character");
                 }
             }
         }
