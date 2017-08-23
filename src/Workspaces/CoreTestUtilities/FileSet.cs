@@ -35,8 +35,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         public FileSet ReplaceFileElement(string fileName, string elementName, string elementValue)
         {
-            object content;
-            if (_nameToContentMap.TryGetValue(fileName, out content))
+            if (_nameToContentMap.TryGetValue(fileName, out var content))
             {
                 if (content is string textContent)
                 {

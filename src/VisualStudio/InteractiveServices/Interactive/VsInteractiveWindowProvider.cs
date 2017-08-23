@@ -166,12 +166,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
             // swap core commands with specialized command if both exist
             // Command can have multiple names. We need to compare every name to find match.
-            int value;
             foreach (var command in specializedInteractiveCommands)
             {
                 foreach (var name in command.Names)
                 {
-                    if (interactiveCommandMap.TryGetValue(name, out value))
+                    if (interactiveCommandMap.TryGetValue(name, out var value))
                     {
                         interactiveCommands[value] = command;
                         break;

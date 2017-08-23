@@ -133,8 +133,7 @@ namespace RunTests.Cache
                     continue;
                 }
 
-                string currentPath;
-                if (assemblyUtil.TryGetAssemblyPath(current, out currentPath))
+                if (assemblyUtil.TryGetAssemblyPath(current, out var currentPath))
                 {
                     enqueueReferences(currentPath);
                     var currentHash = GetFileChecksum(currentPath);

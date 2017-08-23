@@ -35,14 +35,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
 
         private void Test(string markup, bool isMissing, bool isLine, ParseOptions options = null)
         {
-            int? position;
-            TextSpan? expectedSpan;
-            string source;
-            MarkupTestFile.GetPositionAndSpan(markup, out source, out position, out expectedSpan);
+            MarkupTestFile.GetPositionAndSpan(
+                markup, out var source, out var position, out TextSpan? expectedSpan);
             var tree = SyntaxFactory.ParseSyntaxTree(source, options);
 
-            TextSpan breakpointSpan;
-            bool hasBreakpoint = BreakpointSpans.TryGetBreakpointSpan(tree, position.Value, CancellationToken.None, out breakpointSpan);
+            bool hasBreakpoint = BreakpointSpans.TryGetBreakpointSpan(
+                tree, position.Value, CancellationToken.None, out var breakpointSpan);
 
             if (isLine)
             {
@@ -81,8 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
             int lastSpanEnd = 0;
             while (position < endPosition)
             {
-                TextSpan span;
-                if (BreakpointSpans.TryGetClosestBreakpointSpan(root, position, out span) && span.End > lastSpanEnd)
+                if (BreakpointSpans.TryGetClosestBreakpointSpan(root, position, out var span) && span.End > lastSpanEnd)
                 {
                     position = lastSpanEnd = span.End;
                     yield return span;

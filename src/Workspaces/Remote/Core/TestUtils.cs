@@ -50,8 +50,7 @@ namespace Microsoft.CodeAnalysis.Remote.DebugUtil
 
         public static void AppendAssetMap(this Solution solution, Dictionary<Checksum, object> map)
         {
-            SolutionStateChecksums solutionChecksums;
-            Contract.ThrowIfFalse(solution.State.TryGetStateChecksums(out solutionChecksums));
+            Contract.ThrowIfFalse(solution.State.TryGetStateChecksums(out var solutionChecksums));
 
             solutionChecksums.Find(solution.State, Flatten(solutionChecksums), map, CancellationToken.None);
 
@@ -63,8 +62,7 @@ namespace Microsoft.CodeAnalysis.Remote.DebugUtil
 
         private static void AppendAssetMap(Project project, Dictionary<Checksum, object> map)
         {
-            ProjectStateChecksums projectChecksums;
-            if (!project.State.TryGetStateChecksums(out projectChecksums))
+            if (!project.State.TryGetStateChecksums(out var projectChecksums))
             {
                 Contract.Requires(!RemoteSupportedLanguages.IsSupported(project.Language));
                 return;
@@ -85,8 +83,7 @@ namespace Microsoft.CodeAnalysis.Remote.DebugUtil
 
         private static void AppendAssetMap(TextDocument document, Dictionary<Checksum, object> map)
         {
-            DocumentStateChecksums documentChecksums;
-            Contract.ThrowIfFalse(document.State.TryGetStateChecksums(out documentChecksums));
+            Contract.ThrowIfFalse(document.State.TryGetStateChecksums(out var documentChecksums));
 
             documentChecksums.Find(document.State, Flatten(documentChecksums), map, CancellationToken.None);
 

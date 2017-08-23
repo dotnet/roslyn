@@ -120,8 +120,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             await listener.CreateWaitTask();
 
             // checksum should already exist
-            SolutionStateChecksums checksums;
-            Assert.True(workspace.CurrentSolution.State.TryGetStateChecksums(out checksums));
+            Assert.True(workspace.CurrentSolution.State.TryGetStateChecksums(out var checksums));
 
             service.Disable();
         }
