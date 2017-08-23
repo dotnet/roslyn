@@ -986,30 +986,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool ContainsInMemberBody(SyntaxNode node, TextSpan span)
         {
-            if (node is ConstructorDeclarationSyntax constructor)
+            switch (node)
             {
-                return (constructor.Body != null && GetBlockBodySpan(constructor.Body).Contains(span)) ||
-                       (constructor.Initializer != null && constructor.Initializer.Span.Contains(span));
-            }
-
-            if (node is BaseMethodDeclarationSyntax method)
-            {
-                return method.Body != null && GetBlockBodySpan(method.Body).Contains(span);
-            }
-
-            if (node is BasePropertyDeclarationSyntax property)
-            {
-                return property.AccessorList != null && property.AccessorList.Span.Contains(span);
-            }
-
-            if (node is EnumMemberDeclarationSyntax @enum)
-            {
-                return @enum.EqualsValue != null && @enum.EqualsValue.Span.Contains(span);
-            }
-
-            if (node is BaseFieldDeclarationSyntax field)
-            {
-                return field.Declaration != null && field.Declaration.Span.Contains(span);
+                case ConstructorDeclarationSyntax constructor:
+                    return (constructor.Body != null && GetBlockBodySpan(constructor.Body).Contains(span)) ||
+                           (constructor.Initializer != null && constructor.Initializer.Span.Contains(span));
+                case BaseMethodDeclarationSyntax method:
+                    return method.Body != null && GetBlockBodySpan(method.Body).Contains(span);
+                case BasePropertyDeclarationSyntax property:
+                    return property.AccessorList != null && property.AccessorList.Span.Contains(span);
+                case EnumMemberDeclarationSyntax @enum:
+                    return @enum.EqualsValue != null && @enum.EqualsValue.Span.Contains(span);
+                case BaseFieldDeclarationSyntax field:
+                    return field.Declaration != null && field.Declaration.Span.Contains(span);
             }
 
             return false;
@@ -1172,26 +1161,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var member in members)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-
-                if (member is ConstructorDeclarationSyntax constructor)
+                switch (member)
                 {
-                    constructors.Add(constructor);
-                    continue;
-                }
-
-                if (member is NamespaceDeclarationSyntax @namespace)
-                {
-                    AppendConstructors(@namespace.Members, constructors, cancellationToken);
-                }
-
-                if (member is ClassDeclarationSyntax @class)
-                {
-                    AppendConstructors(@class.Members, constructors, cancellationToken);
-                }
-
-                if (member is StructDeclarationSyntax @struct)
-                {
-                    AppendConstructors(@struct.Members, constructors, cancellationToken);
+                    case ConstructorDeclarationSyntax constructor:
+                        constructors.Add(constructor);
+                        continue;
+                    case NamespaceDeclarationSyntax @namespace:
+                        AppendConstructors(@namespace.Members, constructors, cancellationToken);
+                        break;
+                    case ClassDeclarationSyntax @class:
+                        AppendConstructors(@class.Members, constructors, cancellationToken);
+                        break;
+                    case StructDeclarationSyntax @struct:
+                        AppendConstructors(@struct.Members, constructors, cancellationToken);
+                        break;
                 }
             }
         }
