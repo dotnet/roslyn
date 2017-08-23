@@ -23,6 +23,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
     internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
     {
+        private enum GlobalNotificationState
+        {
+            NotStarted,
+            Started,
+            Finished
+        }
+
         private static int s_instanceId = 0;
 
         private readonly HubClient _hubClient;
@@ -32,13 +39,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly JsonRpc _rpc;
         private readonly ReferenceCountedDisposable<RemotableDataJsonRpc> _remotableDataRpc;
 
-        // Serialize out the list of global notifications we get so we send them to the OOP side 
-        // one by one.  Because we might hear about the 'Stop' notification before the 'Start'
-        // notification, we pass along a bool to know if we've heard a 'Start' and thus should
-        // remote over the 'Stop'.
         private readonly object _globalNotificationsGate = new object();
         private readonly CancellationTokenSource _globalNotificationsTokenSource = new CancellationTokenSource();
-        private Task<bool> _globalNotificationsTask = SpecializedTasks.False;
+        private Task<GlobalNotificationState> _globalNotificationsTask = Task.FromResult(GlobalNotificationState.NotStarted);
         private KeepAliveSession _keepAliveSession;
 
         public static async Task<RemoteHostClient> CreateAsync(
@@ -177,6 +180,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private void UnregisterGlobalOperationNotifications()
         {
+            // Cancel any 
             _globalNotificationsTokenSource.Cancel();
             var globalOperationService = this.Workspace.Services.GetService<IGlobalOperationNotificationService>();
             if (globalOperationService != null)
@@ -191,7 +195,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     continuation, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
             }
 
-            bool continuation(Task<bool> previousTask)
+            GlobalNotificationState continuation(Task<GlobalNotificationState> previousTask)
             {
                 if (_keepAliveSession != null)
                 {
@@ -199,7 +203,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     _keepAliveSession = null;
                 }
 
-                return false;
+                // Unilaterally transition us to the finished state.  Once we're finished
+                // we cannot start or stop anymore.
+                return GlobalNotificationState.Finished;
             }
         }
 
@@ -211,8 +217,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     continuation, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default).Unwrap();
             }
 
-            async Task<bool> continuation(Task<bool> previousTask)
+            async Task<GlobalNotificationState> continuation(Task<GlobalNotificationState> previousTask)
             {
+                // Can only transition from NotStarted->Started.  If we hear about
+                // anything else, do nothing.
+                if (previousTask.Result != GlobalNotificationState.NotStarted)
+                {
+                    return previousTask.Result;
+                }
+
                 var session = await GetOrCreateKeepAliveSessionAsync().ConfigureAwait(false);
                 if (session != null)
                 {
@@ -222,9 +235,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         _globalNotificationsTokenSource.Token).ConfigureAwait(false);
                 }
 
-                // Now that we're started, return true to indicate that we can be
-                // stopped.
-                return true;
+                return GlobalNotificationState.Started;
             }
         }
 
@@ -237,24 +248,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     TaskContinuationOptions.None, TaskScheduler.Default).Unwrap();
             }
 
-            async Task<bool> continuation(Task<bool> previousTask)
+            async Task<GlobalNotificationState> continuation(Task<GlobalNotificationState> previousTask)
             {
-                // Only process a stop if we heard about a previous start.
-                if (previousTask.Status == TaskStatus.RanToCompletion &&
-                    previousTask.Result == true)
+                // Can only transition from Started->NotStarted.  If we hear about
+                // anything else, do nothing.
+                if (previousTask.Result != GlobalNotificationState.Started)
                 {
-                    var session = await GetOrCreateKeepAliveSessionAsync().ConfigureAwait(false);
-                    if (session != null)
-                    {
-                        await session.TryInvokeAsync(
-                            nameof(IRemoteHostService.OnGlobalOperationStopped),
-                            new object[] { e.Operations, e.Cancelled },
-                            _globalNotificationsTokenSource.Token).ConfigureAwait(false);
-                    }
+                    return previousTask.Result;
+                }
+
+                // Only process a stop if we heard about a previous start.
+                var session = await GetOrCreateKeepAliveSessionAsync().ConfigureAwait(false);
+                if (session != null)
+                {
+                    await session.TryInvokeAsync(
+                        nameof(IRemoteHostService.OnGlobalOperationStopped),
+                        new object[] { e.Operations, e.Cancelled },
+                        _globalNotificationsTokenSource.Token).ConfigureAwait(false);
                 }
 
                 // Mark that we're stopped now.
-                return false;
+                return GlobalNotificationState.NotStarted;
             }
         }
 
