@@ -171,29 +171,28 @@ namespace Microsoft.CodeAnalysis.Completion
             return bestItems.ToImmutableAndFree();
         }
 
-        internal static async Task<CompletionDescription> GetDescriptionAsync(
-            CompletionService service, CompletionItem item, CancellationToken cancellationToken = default)
+        internal async Task<CompletionDescription> GetDescriptionUsingItemDocumentAsync(
+            CompletionItem item, CancellationToken cancellationToken = default)
         {
             var document = item?.Document;
-            if (document == null || service == null)
+            if (document == null)
             {
                 return CompletionDescription.Empty;
             }
 
-            return await service.GetDescriptionAsync(item.Document, item, cancellationToken).ConfigureAwait(false);
+            return await this.GetDescriptionAsync(item.Document, item, cancellationToken).ConfigureAwait(false);
         }
 
-        internal static async Task<CompletionList> GetCompletionsAsync(
-            CompletionService service, Document documentOpt, int caretPosition,
-            CompletionTrigger trigger = default, ImmutableHashSet<string> roles = null,
-            OptionSet options = null, CancellationToken cancellationToken = default)
+        internal async Task<CompletionList> GetCompletionsAndSetItemDocumentAsync(
+            Document documentOpt, int caretPosition, CompletionTrigger trigger = default,
+            ImmutableHashSet<string> roles = null, OptionSet options = null, CancellationToken cancellationToken = default)
         {
-            if (documentOpt == null || service == null)
+            if (documentOpt == null)
             {
                 return null;
             }
 
-            var completions = await service.GetCompletionsAsync(
+            var completions = await this.GetCompletionsAsync(
                 documentOpt, caretPosition, trigger, roles, options, cancellationToken).ConfigureAwait(false);
             if (completions != null)
             {

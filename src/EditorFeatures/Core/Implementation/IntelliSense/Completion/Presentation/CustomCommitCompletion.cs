@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         public Task<CompletionDescription> GetDescriptionAsync(CancellationToken cancellationToken)
         {
             var service = CompletionService.GetService(this.CompletionItem.Document);
-            return CompletionService.GetDescriptionAsync(service, this.CompletionItem, cancellationToken);
+            return service.GetDescriptionUsingItemDocumentAsync(this.CompletionItem, cancellationToken);
         }
 
         public string GetDescription_TestingOnly()
@@ -67,13 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         public override ImageMoniker IconMoniker => _imageMoniker;
 
-        public override string IconAutomationText
-        {
-            get
-            {
-                return _imageMoniker.ToString();
-            }
-        }
+        public override string IconAutomationText => _imageMoniker.ToString();
 
         public override IEnumerable<CompletionIcon> AttributeIcons
         {

@@ -344,7 +344,7 @@ class C
 
                 var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
                 var service = CompletionService.GetService(document);
-                var completions = await CompletionService.GetCompletionsAsync(service, document, position);
+                var completions = await service.GetCompletionsAndSetItemDocumentAsync(document, position);
 
                 var item = completions.Items.First(i => i.DisplayText == "Beep");
                 var edit = testDocument.GetTextBuffer().CreateEdit();
@@ -354,7 +354,7 @@ class C
                 document = workspace.CurrentSolution.GetDocument(testDocument.Id);
 
                 Assert.NotEqual(document, item.Document);
-                var description = CompletionService.GetDescriptionAsync(service, item);
+                var description = service.GetDescriptionUsingItemDocumentAsync(item);
             }
         }
     }

@@ -100,8 +100,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                         // TODO(cyrusn): We're calling into extensions, we need to make ourselves resilient
                         // to the extension crashing.
-                        var completionList = await CompletionService.GetCompletionsAsync(
-                            _completionService, _documentOpt, _subjectBufferCaretPosition, _trigger, _roles, _options, cancellationToken).ConfigureAwait(false);
+                        var completionList = await _completionService.GetCompletionsAndSetItemDocumentAsync(
+                            _documentOpt, _subjectBufferCaretPosition, _trigger, _roles, _options, cancellationToken).ConfigureAwait(false);
                         if (completionList == null)
                         {
                             return null;
