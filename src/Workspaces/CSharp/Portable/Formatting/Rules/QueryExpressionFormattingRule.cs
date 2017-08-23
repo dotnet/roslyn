@@ -86,22 +86,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<AnchorIndentationOperation> nextOperation)
         {
             nextOperation.Invoke(list);
-
-            if (node is QueryClauseSyntax queryClause)
+            switch (node)
             {
-                var firstToken = queryClause.GetFirstToken(includeZeroWidth: true);
-                AddAnchorIndentationOperation(list, firstToken, queryClause.GetLastToken(includeZeroWidth: true));
-            }
+                case QueryClauseSyntax queryClause:
+                    {
+                        var firstToken = queryClause.GetFirstToken(includeZeroWidth: true);
+                        AddAnchorIndentationOperation(list, firstToken, queryClause.GetLastToken(includeZeroWidth: true));
+                        return;
+                    }
 
-            if (node is SelectOrGroupClauseSyntax selectOrGroupClause)
-            {
-                var firstToken = selectOrGroupClause.GetFirstToken(includeZeroWidth: true);
-                AddAnchorIndentationOperation(list, firstToken, selectOrGroupClause.GetLastToken(includeZeroWidth: true));
-            }
+                case SelectOrGroupClauseSyntax selectOrGroupClause:
+                    {
+                        var firstToken = selectOrGroupClause.GetFirstToken(includeZeroWidth: true);
+                        AddAnchorIndentationOperation(list, firstToken, selectOrGroupClause.GetLastToken(includeZeroWidth: true));
+                        return;
+                    }
 
-            if (node is QueryContinuationSyntax continuation)
-            {
-                AddAnchorIndentationOperation(list, continuation.IntoKeyword, continuation.GetLastToken(includeZeroWidth: true));
+                case QueryContinuationSyntax continuation:
+                    AddAnchorIndentationOperation(list, continuation.IntoKeyword, continuation.GetLastToken(includeZeroWidth: true));
+                    return;
             }
         }
 
