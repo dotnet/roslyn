@@ -199,6 +199,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _globalNotificationsTask = _globalNotificationsTask.ContinueWith(
                     _ => GlobalNotificationState.Finished, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
             }
+
+            // Have to wait for all the notifications to make it to the OOP side so we keep
+            // it in a consistent state.  Also, if we don't do this, our _rpc object will
+            // get disposed while we're remoting over the messages to the oop side.
+            _globalNotificationsTask.Wait();
         }
 
         private void OnGlobalOperationStarted(object sender, EventArgs e)
