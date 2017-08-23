@@ -39,23 +39,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
                     return SpecializedCollections.EmptyEnumerable<TextSpan>();
                 }
 
-                if (block is TypeDeclarationSyntax typeBlock)
+                switch (block)
                 {
-                    ProcessNodeList(typeBlock.Members, spans, cancellationToken);
-                    continue;
-                }
-
-                if (block is NamespaceDeclarationSyntax namespaceBlock)
-                {
-                    ProcessUsings(namespaceBlock.Usings, spans, cancellationToken);
-                    ProcessNodeList(namespaceBlock.Members, spans, cancellationToken);
-                    continue;
-                }
-
-                if (block is CompilationUnitSyntax progBlock)
-                {
-                    ProcessUsings(progBlock.Usings, spans, cancellationToken);
-                    ProcessNodeList(progBlock.Members, spans, cancellationToken);
+                    case TypeDeclarationSyntax typeBlock:
+                        ProcessNodeList(typeBlock.Members, spans, cancellationToken);
+                        continue;
+                    case NamespaceDeclarationSyntax namespaceBlock:
+                        ProcessUsings(namespaceBlock.Usings, spans, cancellationToken);
+                        ProcessNodeList(namespaceBlock.Members, spans, cancellationToken);
+                        continue;
+                    case CompilationUnitSyntax progBlock:
+                        ProcessUsings(progBlock.Usings, spans, cancellationToken);
+                        ProcessNodeList(progBlock.Members, spans, cancellationToken);
+                        break;
                 }
             }
 
