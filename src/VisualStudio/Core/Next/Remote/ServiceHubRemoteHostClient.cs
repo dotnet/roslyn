@@ -39,6 +39,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly JsonRpc _rpc;
         private readonly ReferenceCountedDisposable<RemotableDataJsonRpc> _remotableDataRpc;
 
+        /// <summary>
+        /// Lock for the <see cref="_globalNotificationsTask"/> task chain.  Each time we hear 
+        /// about a global operation starting or stopping (i.e. a build) we will '.ContinueWith'
+        /// this task chain with a new notification to the OOP side.  This way all the messages
+        /// are properly serialized and appera in the right order (i.e. we don't hear about a 
+        /// stop prior to hearing about the relevant start).
+        /// </summary>
         private readonly object _globalNotificationsGate = new object();
         private Task<GlobalNotificationState> _globalNotificationsTask = Task.FromResult(GlobalNotificationState.NotStarted);
 
