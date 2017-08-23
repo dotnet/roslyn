@@ -627,7 +627,7 @@ class Test
             await VerifyItemExistsAsync(markup, "test");
         }
 
-        [WorkItem(19409, "https://github.com/dotnet/roslyn/issues/19409")]
+        [WorkItem(17987, "https://github.com/dotnet/roslyn/issues/17987")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void Pluralize1()
         {
@@ -641,7 +641,7 @@ class Test
             await VerifyItemExistsAsync(markup, "tests");
         }
 
-        [WorkItem(19409, "https://github.com/dotnet/roslyn/issues/19409")]
+        [WorkItem(17987, "https://github.com/dotnet/roslyn/issues/17987")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void Pluralize2()
         {
@@ -655,7 +655,7 @@ class Test
             await VerifyItemExistsAsync(markup, "tests");
         }
 
-        [WorkItem(19409, "https://github.com/dotnet/roslyn/issues/19409")]
+        [WorkItem(17987, "https://github.com/dotnet/roslyn/issues/17987")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void Pluralize3()
         {
