@@ -273,49 +273,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return false;
             }
 
-            if (statement is IfStatementSyntax ifStatement)
+            switch (statement)
             {
-                return ifStatement.CloseParenToken.Equals(token);
-            }
-
-            if (statement is SwitchStatementSyntax switchStatement)
-            {
-                return switchStatement.CloseParenToken.Equals(token);
-            }
-
-            if (statement is WhileStatementSyntax whileStatement)
-            {
-                return whileStatement.CloseParenToken.Equals(token);
-            }
-
-            if (statement is DoStatementSyntax doStatement)
-            {
-                return doStatement.CloseParenToken.Equals(token);
-            }
-
-            if (statement is ForStatementSyntax forStatement)
-            {
-                return forStatement.CloseParenToken.Equals(token);
-            }
-
-            if (statement is CommonForEachStatementSyntax foreachStatement)
-            {
-                return foreachStatement.CloseParenToken.Equals(token);
-            }
-
-            if (statement is LockStatementSyntax lockStatement)
-            {
-                return lockStatement.CloseParenToken.Equals(token);
-            }
-
-            if (statement is UsingStatementSyntax usingStatement)
-            {
-                return usingStatement.CloseParenToken.Equals(token);
-            }
-
-            if (statement is FixedStatementSyntax fixedStatement)
-            {
-                return fixedStatement.CloseParenToken.Equals(token);
+                case IfStatementSyntax ifStatement:
+                    return ifStatement.CloseParenToken.Equals(token);
+                case SwitchStatementSyntax switchStatement:
+                    return switchStatement.CloseParenToken.Equals(token);
+                case WhileStatementSyntax whileStatement:
+                    return whileStatement.CloseParenToken.Equals(token);
+                case DoStatementSyntax doStatement:
+                    return doStatement.CloseParenToken.Equals(token);
+                case ForStatementSyntax forStatement:
+                    return forStatement.CloseParenToken.Equals(token);
+                case CommonForEachStatementSyntax foreachStatement:
+                    return foreachStatement.CloseParenToken.Equals(token);
+                case LockStatementSyntax lockStatement:
+                    return lockStatement.CloseParenToken.Equals(token);
+                case UsingStatementSyntax usingStatement:
+                    return usingStatement.CloseParenToken.Equals(token);
+                case FixedStatementSyntax fixedStatement:
+                    return fixedStatement.CloseParenToken.Equals(token);
             }
 
             return false;
