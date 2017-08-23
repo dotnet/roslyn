@@ -11,9 +11,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         protected const string HideAdvancedMembers = nameof(HideAdvancedMembers);
 
-        protected override async Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        protected override async Task<CompletionDescription> GetDescriptionWorkerAsync(
+            Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            var position = SymbolCompletionItem.GetContextPosition(item);
+            var position = await SymbolCompletionItem.GetContextPositionAsync(document, item, cancellationToken).ConfigureAwait(false);
 
             // What EditorBrowsable settings were we previously passed in (if it mattered)?
             bool hideAdvancedMembers = false;
