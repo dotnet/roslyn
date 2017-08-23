@@ -566,16 +566,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             while (true)
             {
-                if (type is IArrayTypeSymbol arrayType)
+                switch (type)
                 {
-                    type = arrayType.ElementType;
-                    continue;
-                }
-
-                if (type is IPointerTypeSymbol pointerType)
-                {
-                    type = pointerType.PointedAtType;
-                    continue;
+                    case IArrayTypeSymbol arrayType:
+                        type = arrayType.ElementType;
+                        continue;
+                    case IPointerTypeSymbol pointerType:
+                        type = pointerType.PointedAtType;
+                        continue;
                 }
 
                 break;
