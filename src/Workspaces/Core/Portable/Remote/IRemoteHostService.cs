@@ -15,7 +15,11 @@ namespace Microsoft.CodeAnalysis.Remote
         void RegisterPrimarySolutionId(SolutionId solutionId, string storageLocation, CancellationToken cancellationToken);
         void UnregisterPrimarySolutionId(SolutionId solutionId, bool synchronousShutdown, CancellationToken cancellationToken);
 
-        void OnGlobalOperationStarted(string operation);
+        /// <remarks>
+        /// JsonRPC seems to have a problem with empty parameter lists.  So passing a dummy parameter
+        /// just to make it work properly.
+        /// </remarks>
+        void OnGlobalOperationStarted(string unused);
         void OnGlobalOperationStopped(IReadOnlyList<string> operations, bool cancelled);
     }
 }
