@@ -189,8 +189,21 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     var commandLineBuilder = new CommandLineBuilderExtension();
                     AddCommandLineCommands(commandLineBuilder);
 
-                    var dotnetHost = new DotnetHost(ToolNameWithoutExtension, commandLineBuilder.ToString());
-                    _dotnetHostInfo = dotnetHost;
+                    if (string.IsNullOrEmpty(ToolPath))
+                    {
+                        _dotnetHostInfo = new DotnetHost(ToolNameWithoutExtension, commandLineBuilder.ToString());
+
+                        // See comment in ManagedCompiler.cs on why this if statement is here.
+                        if (ToolExe != _dotnetHostInfo.ToolName)
+                        {
+                            _dotnetHostInfo = new DotnetHost(null, ToolPath, commandLineBuilder.ToString());
+                        }
+                    }
+                    else
+                    {
+                        // Explicitly provided ToolPath, don't try to figure anything out
+                        _dotnetHostInfo = new DotnetHost(null, ToolPath, commandLineBuilder.ToString());
+                    }
                 }
                 return _dotnetHostInfo;
             }

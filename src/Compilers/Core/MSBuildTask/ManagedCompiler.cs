@@ -413,9 +413,28 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     CommandLineBuilderExtension commandLineBuilder = new CommandLineBuilderExtension();
                     AddCommandLineCommands(commandLineBuilder);
 
-                    if (string.IsNullOrEmpty(ToolPath) && string.IsNullOrEmpty(ToolExe))
+                    // ToolExe delegates back to ToolName if the override is not
+                    // set.
+                    // So, we can't check if it's unset, as that will recurse
+                    // and stackoverflow.
+                    // However, checking only ToolPath is inadequate, as some
+                    // callers only set ToolExe, and not ToolPath (e.g. CLI).
+                    // So, do the check after _dotnetHostInfo is assigned, and
+                    // if ToolExe routes back here and returns
+                    // _dotnetHostInfo.ToolName, we know that ToolExe is unset.
+                    // So, if it does *not* return such, we know ToolExe is
+                    // explicitly overriden - so swap out the DotnetHost with
+                    // the passthrough implementation, as otherwise the command
+                    // line would be incorrect (it would have csc.dll in the
+                    // arguments).
+                    if (string.IsNullOrEmpty(ToolPath))
                     {
                         _dotnetHostInfo = new DotnetHost(ToolNameWithoutExtension, commandLineBuilder.ToString());
+
+                        if (ToolExe != _dotnetHostInfo.ToolName)
+                        {
+                            _dotnetHostInfo = new DotnetHost(null, ToolPath, commandLineBuilder.ToString());
+                        }
                     }
                     else
                     {
