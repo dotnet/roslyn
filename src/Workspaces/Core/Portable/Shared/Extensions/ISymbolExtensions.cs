@@ -302,15 +302,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool IsWriteableFieldOrProperty(this ISymbol symbol)
         {
-            if (symbol is IFieldSymbol fieldSymbol)
+            switch (symbol)
             {
-                return !fieldSymbol.IsReadOnly
-                    && !fieldSymbol.IsConst;
-            }
-
-            if (symbol is IPropertySymbol propertySymbol)
-            {
-                return !propertySymbol.IsReadOnly;
+                case IFieldSymbol fieldSymbol:
+                    return !fieldSymbol.IsReadOnly && !fieldSymbol.IsConst;
+                case IPropertySymbol propertySymbol:
+                    return !propertySymbol.IsReadOnly;
             }
 
             return false;
