@@ -203,8 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                         return false;
                     };
 
-                    var diagnosticService = _diagnosticService as DiagnosticAnalyzerService;
-                    if (diagnosticService != null)
+                    if (_diagnosticService is DiagnosticAnalyzerService diagnosticService)
                     {
                         await CleanupAllLiveErrors(diagnosticService, inprogressState.GetProjectsWithoutErrors(inprogressState.Solution)).ConfigureAwait(false);
                         await SyncBuildErrorsAndReportAsync(diagnosticService, inprogressState.Solution, inprogressState.GetLiveDiagnosticsPerProject(liveDiagnosticChecker)).ConfigureAwait(false);
@@ -248,8 +247,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private void ReportBuildErrors<T>(T item, Solution solution, ImmutableArray<DiagnosticData> buildErrors)
         {
-            var projectId = item as ProjectId;
-            if (projectId != null)
+            if (item is ProjectId projectId)
             {
                 RaiseDiagnosticsCreated(projectId, solution, projectId, null, buildErrors);
                 return;

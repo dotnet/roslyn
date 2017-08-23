@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             SyntaxToken name,
             CancellationToken cancellationToken)
         {
-            var expression = name.Parent as ExpressionSyntax;
-            if (expression != null)
+            if (name.Parent is ExpressionSyntax expression)
             {
                 var results = semanticModel.LookupName(expression, namespacesAndTypesOnly: true, cancellationToken: cancellationToken);
                 if (results.Length > 0)
@@ -39,8 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             bool namespacesAndTypesOnly,
             CancellationToken cancellationToken)
         {
-            var expression = name.Parent as ExpressionSyntax;
-            if (expression != null)
+            if (name.Parent is ExpressionSyntax expression)
             {
                 return semanticModel.LookupName(expression, namespacesAndTypesOnly, cancellationToken);
             }
@@ -132,20 +130,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return default;
             }
 
-            var expression = token.Parent as ExpressionSyntax;
-            if (expression != null)
+            if (token.Parent is ExpressionSyntax expression)
             {
                 return semanticModel.GetSymbolInfo(expression);
             }
 
-            var attribute = token.Parent as AttributeSyntax;
-            if (attribute != null)
+            if (token.Parent is AttributeSyntax attribute)
             {
                 return semanticModel.GetSymbolInfo(attribute);
             }
 
-            var constructorInitializer = token.Parent as ConstructorInitializerSyntax;
-            if (constructorInitializer != null)
+            if (token.Parent is ConstructorInitializerSyntax constructorInitializer)
             {
                 return semanticModel.GetSymbolInfo(constructorInitializer);
             }
@@ -278,12 +273,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return argument.NameColon.Name.Identifier.ValueText;
                 }
 
-                var argumentList = argument.Parent as BaseArgumentListSyntax;
-                if (argumentList != null)
+                if (argument.Parent is BaseArgumentListSyntax argumentList)
                 {
                     var index = argumentList.Arguments.IndexOf(argument);
-                    var member = semanticModel.GetSymbolInfo(argumentList.Parent, cancellationToken).Symbol as IMethodSymbol;
-                    if (member != null && index < member.Parameters.Length)
+                    if (semanticModel.GetSymbolInfo(argumentList.Parent, cancellationToken).Symbol is IMethodSymbol member && index < member.Parameters.Length)
                     {
                         var parameter = member.Parameters[index];
                         if (parameter.Type.OriginalDefinition.TypeKind != TypeKind.TypeParameter)

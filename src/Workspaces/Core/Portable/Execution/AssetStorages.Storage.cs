@@ -144,20 +144,17 @@ namespace Microsoft.CodeAnalysis.Execution
 
             private static string GetLogInfo<T>(T key)
             {
-                var solutionState = key as SolutionState;
-                if (solutionState != null)
+                if (key is SolutionState solutionState)
                 {
                     return solutionState.FilePath;
                 }
 
-                var projectState = key as ProjectState;
-                if (projectState != null)
+                if (key is ProjectState projectState)
                 {
                     return projectState.FilePath;
                 }
 
-                var documentState = key as DocumentState;
-                if (documentState != null)
+                if (key is DocumentState documentState)
                 {
                     return documentState.FilePath;
                 }

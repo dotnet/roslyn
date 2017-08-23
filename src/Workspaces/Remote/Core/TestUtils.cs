@@ -15,14 +15,12 @@ namespace Microsoft.CodeAnalysis.Remote.DebugUtil
 
             foreach (var child in checksums.Children)
             {
-                var checksum = child as Checksum;
-                if (checksum != null)
+                if (child is Checksum checksum)
                 {
                     map.Remove(checksum);
                 }
 
-                var collection = child as ChecksumCollection;
-                if (collection != null)
+                if (child is ChecksumCollection collection)
                 {
                     foreach (var item in collection)
                     {
@@ -103,14 +101,12 @@ namespace Microsoft.CodeAnalysis.Remote.DebugUtil
 
             foreach (var child in checksums.Children)
             {
-                var checksum = child as Checksum;
-                if (checksum != null)
+                if (child is Checksum checksum)
                 {
                     set.Add(checksum);
                 }
 
-                var collection = child as ChecksumCollection;
-                if (collection != null)
+                if (child is ChecksumCollection collection)
                 {
                     foreach (var item in collection)
                     {

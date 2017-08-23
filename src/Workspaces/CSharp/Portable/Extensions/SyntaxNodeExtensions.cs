@@ -651,44 +651,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetBraces(this SyntaxNode node)
         {
-            var namespaceNode = node as NamespaceDeclarationSyntax;
-            if (namespaceNode != null)
+            if (node is NamespaceDeclarationSyntax namespaceNode)
             {
                 return (namespaceNode.OpenBraceToken, namespaceNode.CloseBraceToken);
             }
 
-            var baseTypeNode = node as BaseTypeDeclarationSyntax;
-            if (baseTypeNode != null)
+            if (node is BaseTypeDeclarationSyntax baseTypeNode)
             {
                 return (baseTypeNode.OpenBraceToken, baseTypeNode.CloseBraceToken);
             }
 
-            var accessorListNode = node as AccessorListSyntax;
-            if (accessorListNode != null)
+            if (node is AccessorListSyntax accessorListNode)
             {
                 return (accessorListNode.OpenBraceToken, accessorListNode.CloseBraceToken);
             }
 
-            var blockNode = node as BlockSyntax;
-            if (blockNode != null)
+            if (node is BlockSyntax blockNode)
             {
                 return (blockNode.OpenBraceToken, blockNode.CloseBraceToken);
             }
 
-            var switchStatementNode = node as SwitchStatementSyntax;
-            if (switchStatementNode != null)
+            if (node is SwitchStatementSyntax switchStatementNode)
             {
                 return (switchStatementNode.OpenBraceToken, switchStatementNode.CloseBraceToken);
             }
 
-            var anonymousObjectCreationExpression = node as AnonymousObjectCreationExpressionSyntax;
-            if (anonymousObjectCreationExpression != null)
+            if (node is AnonymousObjectCreationExpressionSyntax anonymousObjectCreationExpression)
             {
                 return (anonymousObjectCreationExpression.OpenBraceToken, anonymousObjectCreationExpression.CloseBraceToken);
             }
 
-            var initializeExpressionNode = node as InitializerExpressionSyntax;
-            if (initializeExpressionNode != null)
+            if (node is InitializerExpressionSyntax initializeExpressionNode)
             {
                 return (initializeExpressionNode.OpenBraceToken, initializeExpressionNode.CloseBraceToken);
             }
@@ -865,20 +858,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool CheckTopLevel(this SyntaxNode node, TextSpan span)
         {
-            var block = node as BlockSyntax;
-            if (block != null)
+            if (node is BlockSyntax block)
             {
                 return block.ContainsInBlockBody(span);
             }
 
-            var expressionBodiedMember = node as ArrowExpressionClauseSyntax;
-            if (expressionBodiedMember != null)
+            if (node is ArrowExpressionClauseSyntax expressionBodiedMember)
             {
                 return expressionBodiedMember.ContainsInExpressionBodiedMemberBody(span);
             }
 
-            var field = node as FieldDeclarationSyntax;
-            if (field != null)
+            if (node is FieldDeclarationSyntax field)
             {
                 foreach (var variable in field.Declaration.Variables)
                 {
@@ -889,14 +879,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
-            var global = node as GlobalStatementSyntax;
-            if (global != null)
+            if (node is GlobalStatementSyntax global)
             {
                 return true;
             }
 
-            var constructorInitializer = node as ConstructorInitializerSyntax;
-            if (constructorInitializer != null)
+            if (node is ConstructorInitializerSyntax constructorInitializer)
             {
                 return constructorInitializer.ContainsInArgument(span);
             }
@@ -938,26 +926,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static IEnumerable<MemberDeclarationSyntax> GetMembers(this SyntaxNode node)
         {
-            var compilation = node as CompilationUnitSyntax;
-            if (compilation != null)
+            if (node is CompilationUnitSyntax compilation)
             {
                 return compilation.Members;
             }
 
-            var @namespace = node as NamespaceDeclarationSyntax;
-            if (@namespace != null)
+            if (node is NamespaceDeclarationSyntax @namespace)
             {
                 return @namespace.Members;
             }
 
-            var type = node as TypeDeclarationSyntax;
-            if (type != null)
+            if (node is TypeDeclarationSyntax type)
             {
                 return type.Members;
             }
 
-            var @enum = node as EnumDeclarationSyntax;
-            if (@enum != null)
+            if (node is EnumDeclarationSyntax @enum)
             {
                 return @enum.Members;
             }

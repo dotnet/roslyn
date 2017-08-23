@@ -45,32 +45,27 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             }
             else
             {
-                var methodDeclaration = node as BaseMethodDeclarationSyntax;
-                if (methodDeclaration != null)
+                if (node is BaseMethodDeclarationSyntax methodDeclaration)
                 {
                     return GetFunctionPrototype(methodDeclaration, (IMethodSymbol)symbol, flags);
                 }
 
-                var propertyDeclaration = node as BasePropertyDeclarationSyntax;
-                if (propertyDeclaration != null)
+                if (node is BasePropertyDeclarationSyntax propertyDeclaration)
                 {
                     return GetPropertyPrototype(propertyDeclaration, (IPropertySymbol)symbol, flags);
                 }
 
-                var variableDeclarator = node as VariableDeclaratorSyntax;
-                if (variableDeclarator != null && symbol.Kind == SymbolKind.Field)
+                if (node is VariableDeclaratorSyntax variableDeclarator && symbol.Kind == SymbolKind.Field)
                 {
                     return GetVariablePrototype(variableDeclarator, (IFieldSymbol)symbol, flags);
                 }
 
-                var enumMember = node as EnumMemberDeclarationSyntax;
-                if (enumMember != null)
+                if (node is EnumMemberDeclarationSyntax enumMember)
                 {
                     return GetVariablePrototype(enumMember, (IFieldSymbol)symbol, flags);
                 }
 
-                var delegateDeclaration = node as DelegateDeclarationSyntax;
-                if (delegateDeclaration != null)
+                if (node is DelegateDeclarationSyntax delegateDeclaration)
                 {
                     return GetDelegatePrototype(delegateDeclaration, (INamedTypeSymbol)symbol, flags);
                 }

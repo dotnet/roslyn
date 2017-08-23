@@ -263,8 +263,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 {
                     var directive = node.Parent;
                     var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    var aliasSymbol = semanticModel.GetDeclaredSymbol(directive, cancellationToken) as IAliasSymbol;
-                    if (aliasSymbol != null)
+                    if (semanticModel.GetDeclaredSymbol(directive, cancellationToken) is IAliasSymbol aliasSymbol)
                     {
                         return aliasSymbol;
                     }

@@ -302,15 +302,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool IsWriteableFieldOrProperty(this ISymbol symbol)
         {
-            var fieldSymbol = symbol as IFieldSymbol;
-            if (fieldSymbol != null)
+            if (symbol is IFieldSymbol fieldSymbol)
             {
                 return !fieldSymbol.IsReadOnly
                     && !fieldSymbol.IsConst;
             }
 
-            var propertySymbol = symbol as IPropertySymbol;
-            if (propertySymbol != null)
+            if (symbol is IPropertySymbol propertySymbol)
             {
                 return !propertySymbol.IsReadOnly;
             }
@@ -358,8 +356,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             if (symbol.IsFunctionValue())
             {
-                var method = symbol.ContainingSymbol as IMethodSymbol;
-                if (method != null)
+                if (symbol.ContainingSymbol is IMethodSymbol method)
                 {
                     symbol = method;
 
@@ -375,8 +372,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return symbol;
             }
 
-            var parameter = symbol as IParameterSymbol;
-            if (parameter != null)
+            if (symbol is IParameterSymbol parameter)
             {
                 var method = parameter.ContainingSymbol as IMethodSymbol;
                 if (method?.IsReducedExtension() == true)
@@ -477,14 +473,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Compilation compilation,
             bool extensionUsedAsInstance = false)
         {
-            var type = symbol as ITypeSymbol;
-            if (type != null)
+            if (symbol is ITypeSymbol type)
             {
                 return type;
             }
 
-            var method = symbol as IMethodSymbol;
-            if (method != null && !method.Parameters.Any(p => p.RefKind != RefKind.None))
+            if (symbol is IMethodSymbol method && !method.Parameters.Any(p => p.RefKind != RefKind.None))
             {
                 // Convert the symbol to Func<...> or Action<...>
                 if (method.ReturnsVoid)
@@ -555,8 +549,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool IsOrContainsAccessibleAttribute(this ISymbol symbol, ISymbol withinType, IAssemblySymbol withinAssembly)
         {
-            var alias = symbol as IAliasSymbol;
-            if (alias != null)
+            if (symbol is IAliasSymbol alias)
             {
                 symbol = alias.Target;
             }
@@ -875,32 +868,27 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ITypeSymbol GetSymbolType(this ISymbol symbol)
         {
-            var localSymbol = symbol as ILocalSymbol;
-            if (localSymbol != null)
+            if (symbol is ILocalSymbol localSymbol)
             {
                 return localSymbol.Type;
             }
 
-            var fieldSymbol = symbol as IFieldSymbol;
-            if (fieldSymbol != null)
+            if (symbol is IFieldSymbol fieldSymbol)
             {
                 return fieldSymbol.Type;
             }
 
-            var propertySymbol = symbol as IPropertySymbol;
-            if (propertySymbol != null)
+            if (symbol is IPropertySymbol propertySymbol)
             {
                 return propertySymbol.Type;
             }
 
-            var parameterSymbol = symbol as IParameterSymbol;
-            if (parameterSymbol != null)
+            if (symbol is IParameterSymbol parameterSymbol)
             {
                 return parameterSymbol.Type;
             }
 
-            var aliasSymbol = symbol as IAliasSymbol;
-            if (aliasSymbol != null)
+            if (symbol is IAliasSymbol aliasSymbol)
             {
                 return aliasSymbol.Target as ITypeSymbol;
             }

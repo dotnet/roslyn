@@ -90,8 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void Reset()
         {
-            var analyzerFileReference = _analyzerReference as AnalyzerFileReference;
-            if (analyzerFileReference != null)
+            if (_analyzerReference is AnalyzerFileReference analyzerFileReference)
             {
                 analyzerFileReference.AnalyzerLoadFailed -= OnAnalyzerLoadError;
 

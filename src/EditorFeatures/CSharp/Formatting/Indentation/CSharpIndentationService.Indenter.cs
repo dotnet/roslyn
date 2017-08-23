@@ -257,38 +257,32 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             {
                 var node = token.Parent;
 
-                var argument = node as BaseArgumentListSyntax;
-                if (argument != null)
+                if (node is BaseArgumentListSyntax argument)
                 {
                     return GetIndentationFromCommaSeparatedList(argument.Arguments, token);
                 }
 
-                var parameter = node as BaseParameterListSyntax;
-                if (parameter != null)
+                if (node is BaseParameterListSyntax parameter)
                 {
                     return GetIndentationFromCommaSeparatedList(parameter.Parameters, token);
                 }
 
-                var typeArgument = node as TypeArgumentListSyntax;
-                if (typeArgument != null)
+                if (node is TypeArgumentListSyntax typeArgument)
                 {
                     return GetIndentationFromCommaSeparatedList(typeArgument.Arguments, token);
                 }
 
-                var typeParameter = node as TypeParameterListSyntax;
-                if (typeParameter != null)
+                if (node is TypeParameterListSyntax typeParameter)
                 {
                     return GetIndentationFromCommaSeparatedList(typeParameter.Parameters, token);
                 }
 
-                var enumDeclaration = node as EnumDeclarationSyntax;
-                if (enumDeclaration != null)
+                if (node is EnumDeclarationSyntax enumDeclaration)
                 {
                     return GetIndentationFromCommaSeparatedList(enumDeclaration.Members, token);
                 }
 
-                var initializerSyntax = node as InitializerExpressionSyntax;
-                if (initializerSyntax != null)
+                if (node is InitializerExpressionSyntax initializerSyntax)
                 {
                     return GetIndentationFromCommaSeparatedList(initializerSyntax.Expressions, token);
                 }

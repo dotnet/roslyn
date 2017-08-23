@@ -22,8 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
-            var name = syntax as NameSyntax;
-            if (name != null)
+            if (syntax is NameSyntax name)
             {
                 ClassifyTypeSyntax(name, semanticModel, result, cancellationToken);
             }
@@ -235,8 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         {
             // Okay - it wasn't a type. If the syntax matches "var q = from" or "q = from", and from
             // doesn't bind to anything then optimistically color from as a keyword.
-            var identifierName = name as IdentifierNameSyntax;
-            if (identifierName != null &&
+            if (name is IdentifierNameSyntax identifierName &&
                 identifierName.Identifier.HasMatchingText(SyntaxKind.FromKeyword) &&
                 symbolInfo.Symbol == null)
             {
@@ -269,8 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         private bool TryClassifyNameOfIdentifier(
             NameSyntax name, SymbolInfo symbolInfo, ArrayBuilder<ClassifiedSpan> result)
         {
-            var identifierName = name as IdentifierNameSyntax;
-            if (identifierName != null &&
+            if (name is IdentifierNameSyntax identifierName &&
                 identifierName.Identifier.IsKindOrHasMatchingText(SyntaxKind.NameOfKeyword) &&
                 symbolInfo.Symbol == null &&
                 !symbolInfo.CandidateSymbols.Any())
