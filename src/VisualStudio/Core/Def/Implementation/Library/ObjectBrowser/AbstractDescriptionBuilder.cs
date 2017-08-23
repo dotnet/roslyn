@@ -449,34 +449,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         internal bool TryBuild(_VSOBJDESCOPTIONS options)
         {
-            if (_listItem is ProjectListItem projectListItem)
+            switch (_listItem)
             {
-                BuildProject(projectListItem);
-                return true;
-            }
-
-            if (_listItem is ReferenceListItem referenceListItem)
-            {
-                BuildReference(referenceListItem);
-                return true;
-            }
-
-            if (_listItem is NamespaceListItem namespaceListItem)
-            {
-                BuildNamespace(namespaceListItem, options);
-                return true;
-            }
-
-            if (_listItem is TypeListItem typeListItem)
-            {
-                BuildType(typeListItem, options);
-                return true;
-            }
-
-            if (_listItem is MemberListItem memberListItem)
-            {
-                BuildMember(memberListItem, options);
-                return true;
+                case ProjectListItem projectListItem:
+                    BuildProject(projectListItem);
+                    return true;
+                case ReferenceListItem referenceListItem:
+                    BuildReference(referenceListItem);
+                    return true;
+                case NamespaceListItem namespaceListItem:
+                    BuildNamespace(namespaceListItem, options);
+                    return true;
+                case TypeListItem typeListItem:
+                    BuildType(typeListItem, options);
+                    return true;
+                case MemberListItem memberListItem:
+                    BuildMember(memberListItem, options);
+                    return true;
             }
 
             return false;
