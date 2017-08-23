@@ -74,8 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         internal Task<CompletionList> GetCompletionListAsync(
             CompletionService service,
-            Document document, int position, 
-            CompletionTrigger triggerInfo, OptionSet options = null)
+            Document document, int position, CompletionTrigger triggerInfo, OptionSet options = null)
         {
             return service.GetCompletionsAsync(document, position, triggerInfo, options: options);
         }
@@ -316,20 +315,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             SetWorkspaceOptions(workspace);
             var textBuffer = workspace.Documents.Single().TextBuffer;
 
-            var completionService = GetCompletionService(workspace);
-            var items = (await GetCompletionListAsync(completionService, document, position, CompletionTrigger.Invoke)).Items;
+            var service = GetCompletionService(workspace);
+            var items = (await GetCompletionListAsync(service, document, position, CompletionTrigger.Invoke)).Items;
             var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
 
-            var customCommitCompletionProvider = completionService.ExclusiveProviders?[0] as ICustomCommitCompletionProvider;
+            var customCommitCompletionProvider = service.ExclusiveProviders?[0] as ICustomCommitCompletionProvider;
             if (customCommitCompletionProvider != null)
             {
                 var completionRules = GetCompletionHelper(document);
                 var textView = (WorkspaceFixture.GetWorkspace()).Documents.Single().GetTextView();
-                VerifyCustomCommitWorker(completionService, customCommitCompletionProvider, firstItem, completionRules, textView, textBuffer, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
+                VerifyCustomCommitWorker(service, customCommitCompletionProvider, firstItem, completionRules, textView, textBuffer, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
             }
             else
             {
-                await VerifyCustomCommitWorkerAsync(completionService, document, firstItem, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
+                await VerifyCustomCommitWorkerAsync(service, document, firstItem, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
             }
         }
 
@@ -427,8 +426,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var textBuffer = workspace.Documents.Single().TextBuffer;
             var textSnapshot = textBuffer.CurrentSnapshot.AsText();
 
-            var completionService = GetCompletionService(workspace);
-            var items = (await GetCompletionListAsync(completionService, document, position, CompletionTrigger.Invoke)).Items;
+            var service = GetCompletionService(workspace);
+            var items = (await GetCompletionListAsync(service, document, position, CompletionTrigger.Invoke)).Items;
             var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
 
             var completionRules = GetCompletionHelper(document);
@@ -437,9 +436,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var text = await document.GetTextAsync();
 
             if (commitChar == '\t' ||
-                Controller.IsCommitCharacter(completionService.GetRules(), firstItem, commitChar, textTypedSoFar + commitChar))
+                Controller.IsCommitCharacter(service.GetRules(), firstItem, commitChar, textTypedSoFar + commitChar))
             {
-                var textChange = (await completionService.GetChangeAsync(document, firstItem, commitChar, CancellationToken.None)).TextChange;
+                var textChange = (await service.GetChangeAsync(document, firstItem, commitChar, CancellationToken.None)).TextChange;
 
                 // Adjust TextChange to include commit character, so long as it isn't TAB.
                 if (commitChar != '\t')
@@ -765,8 +764,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                     CompletionOptions.TriggerOnTypingLetters, document.Project.Language, triggerOnLetter);
                 var trigger = CompletionTrigger.CreateInsertionTrigger(text[position]);
 
-                var completionService = GetCompletionService(workspace);
-                var isTextualTriggerCharacterResult = completionService.ShouldTriggerCompletion(text, position + 1, trigger, options: options);
+                var service = GetCompletionService(workspace);
+                var isTextualTriggerCharacterResult = service.ShouldTriggerCompletion(text, position + 1, trigger, options: options);
 
                 if (expectedTriggerCharacter)
                 {
