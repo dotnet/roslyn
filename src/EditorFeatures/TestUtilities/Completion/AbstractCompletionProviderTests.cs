@@ -804,20 +804,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var document = workspace.CurrentSolution.GetDocument(documentId);
                 var position = hostDocument.CursorPosition.Value;
 
-                var completionService = GetCompletionService(workspace);
-                var completionList = await GetCompletionListAsync(completionService, document, position, CompletionTrigger.Invoke);
+                var service = GetCompletionService(workspace);
+                var completionList = await GetCompletionListAsync(service, document, position, CompletionTrigger.Invoke);
                 var item = completionList.Items.First(i => i.DisplayText.StartsWith(textTypedSoFar));
 
                 foreach (var ch in validChars)
                 {
                     Assert.True(Controller.IsCommitCharacter(
-                        completionService.GetRules(), item, ch, textTypedSoFar + ch), $"Expected '{ch}' to be a commit character");
+                        service.GetRules(), item, ch, textTypedSoFar + ch), $"Expected '{ch}' to be a commit character");
                 }
 
                 foreach (var ch in invalidChars)
                 {
                     Assert.False(Controller.IsCommitCharacter(
-                        completionService.GetRules(), item, ch, textTypedSoFar + ch), $"Expected '{ch}' NOT to be a commit character");
+                        service.GetRules(), item, ch, textTypedSoFar + ch), $"Expected '{ch}' NOT to be a commit character");
                 }
             }
         }
