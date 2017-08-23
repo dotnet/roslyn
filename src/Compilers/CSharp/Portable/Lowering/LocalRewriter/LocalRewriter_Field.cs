@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -91,6 +90,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // make a field access for the most local access
             return _factory.Field(rewrittenReceiver, underlyingField);
+        }
+
+        private BoundExpression MakeTupleFieldAccessAndReportUseSiteDiagnostics(BoundExpression tuple, SyntaxNode syntax, FieldSymbol field)
+        {
+            // Use default field rather than implicitly named fields since
+            // fields from inferred names are not usable in C# 7.0.
+            field = field.CorrespondingTupleField ?? field;
+
+            DiagnosticInfo useSiteInfo = field.GetUseSiteDiagnostic();
+            if ((object)useSiteInfo != null && useSiteInfo.Severity == DiagnosticSeverity.Error)
+            {
+                Symbol.ReportUseSiteDiagnostic(useSiteInfo, _diagnostics, syntax.Location);
+            }
+
+            return MakeTupleFieldAccess(syntax, field, tuple, null, LookupResultKind.Empty);
         }
     }
 }
