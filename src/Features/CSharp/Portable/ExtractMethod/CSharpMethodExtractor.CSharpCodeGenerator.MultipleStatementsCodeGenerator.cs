@@ -101,14 +101,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     Contract.ThrowIfNull(node);
                     Contract.ThrowIfFalse(node.IsStatementContainerNode());
 
-                    var blockNode = node as BlockSyntax;
-                    if (blockNode != null)
+                    if (node is BlockSyntax blockNode)
                     {
                         return blockNode.Statements;
                     }
 
-                    var switchSectionNode = node as SwitchSectionSyntax;
-                    if (switchSectionNode != null)
+                    if (node is SwitchSectionSyntax switchSectionNode)
                     {
                         return switchSectionNode.Statements;
                     }

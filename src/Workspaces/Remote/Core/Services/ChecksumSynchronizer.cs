@@ -112,15 +112,13 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             foreach (var checksumOrCollection in checksumOrCollections)
             {
-                var checksum = checksumOrCollection as Checksum;
-                if (checksum != null)
+                if (checksumOrCollection is Checksum checksum)
                 {
                     AddIfNeeded(checksums, checksum);
                     continue;
                 }
 
-                var checksumCollection = checksumOrCollection as ChecksumCollection;
-                if (checksumCollection != null)
+                if (checksumOrCollection is ChecksumCollection checksumCollection)
                 {
                     AddIfNeeded(checksums, checksumCollection);
                     continue;

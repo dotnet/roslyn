@@ -148,8 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             AddEndDeclaration();
             AddIndent();
 
-            var portableExecutableReference = referenceListItem.MetadataReference as PortableExecutableReference;
-            if (portableExecutableReference != null)
+            if (referenceListItem.MetadataReference is PortableExecutableReference portableExecutableReference)
             {
                 AddText(portableExecutableReference.FilePath);
             }
@@ -416,8 +415,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
                 foreach (var exceptionType in documentationComment.ExceptionTypes)
                 {
-                    var exceptionTypeSymbol = DocumentationCommentId.GetFirstSymbolForDeclarationId(exceptionType, compilation) as INamedTypeSymbol;
-                    if (exceptionTypeSymbol != null)
+                    if (DocumentationCommentId.GetFirstSymbolForDeclarationId(exceptionType, compilation) is INamedTypeSymbol exceptionTypeSymbol)
                     {
                         AddLineBreak();
 
@@ -451,36 +449,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         internal bool TryBuild(_VSOBJDESCOPTIONS options)
         {
-            var projectListItem = _listItem as ProjectListItem;
-            if (projectListItem != null)
+            if (_listItem is ProjectListItem projectListItem)
             {
                 BuildProject(projectListItem);
                 return true;
             }
 
-            var referenceListItem = _listItem as ReferenceListItem;
-            if (referenceListItem != null)
+            if (_listItem is ReferenceListItem referenceListItem)
             {
                 BuildReference(referenceListItem);
                 return true;
             }
 
-            var namespaceListItem = _listItem as NamespaceListItem;
-            if (namespaceListItem != null)
+            if (_listItem is NamespaceListItem namespaceListItem)
             {
                 BuildNamespace(namespaceListItem, options);
                 return true;
             }
 
-            var typeListItem = _listItem as TypeListItem;
-            if (typeListItem != null)
+            if (_listItem is TypeListItem typeListItem)
             {
                 BuildType(typeListItem, options);
                 return true;
             }
 
-            var memberListItem = _listItem as MemberListItem;
-            if (memberListItem != null)
+            if (_listItem is MemberListItem memberListItem)
             {
                 BuildMember(memberListItem, options);
                 return true;

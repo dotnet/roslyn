@@ -24,8 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
 
         public IVsNavInfo CreateForReference(MetadataReference reference)
         {
-            var portableExecutableReference = reference as PortableExecutableReference;
-            if (portableExecutableReference != null)
+            if (reference is PortableExecutableReference portableExecutableReference)
             {
                 return new NavInfo(this, libraryName: portableExecutableReference.FilePath);
             }
@@ -35,26 +34,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
 
         public IVsNavInfo CreateForSymbol(ISymbol symbol, Project project, Compilation compilation, bool useExpandedHierarchy = false)
         {
-            var assemblySymbol = symbol as IAssemblySymbol;
-            if (assemblySymbol != null)
+            if (symbol is IAssemblySymbol assemblySymbol)
             {
                 return CreateForAssembly(assemblySymbol);
             }
 
-            var aliasSymbol = symbol as IAliasSymbol;
-            if (aliasSymbol != null)
+            if (symbol is IAliasSymbol aliasSymbol)
             {
                 symbol = aliasSymbol.Target;
             }
 
-            var namespaceSymbol = symbol as INamespaceSymbol;
-            if (namespaceSymbol != null)
+            if (symbol is INamespaceSymbol namespaceSymbol)
             {
                 return CreateForNamespace(namespaceSymbol, project, compilation, useExpandedHierarchy);
             }
 
-            var typeSymbol = symbol as ITypeSymbol;
-            if (typeSymbol != null)
+            if (symbol is ITypeSymbol typeSymbol)
             {
                 return CreateForType(typeSymbol, project, compilation, useExpandedHierarchy);
             }

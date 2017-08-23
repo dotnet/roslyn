@@ -166,11 +166,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             if (s_isNonSealedClass(type.Symbol))
             {
-                Func<SymbolAndProjectIdSet, INamedTypeSymbol, bool> metadataTypeMatches =
-                    (set, metadataType) => TypeDerivesFrom(set, metadataType, transitive);
+                bool metadataTypeMatches(SymbolAndProjectIdSet set, INamedTypeSymbol metadataType)
+                    => TypeDerivesFrom(set, metadataType, transitive);
 
-                Func<SymbolAndProjectIdSet, INamedTypeSymbol, bool> sourceTypeImmediatelyMatches =
-                    (set, metadataType) => set.Contains(SymbolAndProjectId.Create(metadataType.BaseType?.OriginalDefinition, projectId: null));
+                bool sourceTypeImmediatelyMatches(SymbolAndProjectIdSet set, INamedTypeSymbol metadataType)
+                    => set.Contains(SymbolAndProjectId.Create(metadataType.BaseType?.OriginalDefinition, projectId: null));
 
                 return FindTypesAsync(type, solution, projects,
                     metadataTypeMatches: metadataTypeMatches,
@@ -241,9 +241,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // Only an interface can be implemented.
             if (type.Symbol?.TypeKind == TypeKind.Interface)
             {
-                Func<SymbolAndProjectIdSet, INamedTypeSymbol, bool> metadataTypeMatches =
-                    (s, t) => TypeDerivesFrom(s, t, transitive) ||
-                              TypeImplementsFrom(s, t, transitive);
+                bool metadataTypeMatches(SymbolAndProjectIdSet s, INamedTypeSymbol t) 
+                    => TypeDerivesFrom(s, t, transitive) || TypeImplementsFrom(s, t, transitive);
 
                 return FindTypesAsync(type, solution, projects,
                     metadataTypeMatches: metadataTypeMatches,

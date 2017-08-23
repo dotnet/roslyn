@@ -600,9 +600,8 @@ of the problem.");
 
                     foreach (var projectionSpan in projectionBufferSpans)
                     {
-                        var text = projectionSpan as string;
 
-                        if (text != null)
+                        if (projectionSpan is string text)
                         {
                             if (spanStartLocation == null && positionInMarkup <= markupSpanStart && markupSpanStart <= positionInMarkup + text.Length)
                             {

@@ -395,8 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 // root namespace
 
                 // a type decl can't come before usings/externs
-                var compilationUnit = syntaxTree.GetRoot(cancellationToken) as CompilationUnitSyntax;
-                if (compilationUnit != null &&
+                if (syntaxTree.GetRoot(cancellationToken) is CompilationUnitSyntax compilationUnit &&
                     (compilationUnit.Externs.Count > 0 ||
                     compilationUnit.Usings.Count > 0))
                 {
@@ -1731,8 +1730,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.IsKind(SyntaxKind.None))
             {
                 // global statements can't come before usings/externs
-                var compilationUnit = syntaxTree.GetRoot(cancellationToken) as CompilationUnitSyntax;
-                if (compilationUnit != null &&
+                if (syntaxTree.GetRoot(cancellationToken) is CompilationUnitSyntax compilationUnit &&
                     (compilationUnit.Externs.Count > 0 ||
                     compilationUnit.Usings.Count > 0))
                 {
@@ -2054,8 +2052,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     // this as a pointer type.
                     if (token.IsKind(SyntaxKind.AsteriskToken) && semanticModelOpt != null)
                     {
-                        var type = binary.Left as TypeSyntax;
-                        if (type != null && type.IsPotentialTypeName(semanticModelOpt, cancellationToken))
+                        if (binary.Left is TypeSyntax type && type.IsPotentialTypeName(semanticModelOpt, cancellationToken))
                         {
                             return false;
                         }

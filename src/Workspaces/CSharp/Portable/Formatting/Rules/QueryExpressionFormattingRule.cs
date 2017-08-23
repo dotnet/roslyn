@@ -19,8 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             nextOperation.Invoke(list);
 
-            var queryExpression = node as QueryExpressionSyntax;
-            if (queryExpression != null)
+            if (node is QueryExpressionSyntax queryExpression)
             {
                 AddSuppressWrappingIfOnSingleLineOperation(list, queryExpression.GetFirstToken(includeZeroWidth: true), queryExpression.GetLastToken(includeZeroWidth: true));
             }
@@ -60,16 +59,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             nextOperation.Invoke(list);
 
-            var queryExpression = node as QueryExpressionSyntax;
-            if (queryExpression != null)
+            if (node is QueryExpressionSyntax queryExpression)
             {
                 AddIndentBlockOperationsForFromClause(list, queryExpression.FromClause);
 
                 foreach (var queryClause in queryExpression.Body.Clauses)
                 {
                     // if it is nested query expression
-                    var fromClause = queryClause as FromClauseSyntax;
-                    if (fromClause != null)
+                    if (queryClause is FromClauseSyntax fromClause)
                     {
                         AddIndentBlockOperationsForFromClause(list, fromClause);
                     }
@@ -90,22 +87,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             nextOperation.Invoke(list);
 
-            var queryClause = node as QueryClauseSyntax;
-            if (queryClause != null)
+            if (node is QueryClauseSyntax queryClause)
             {
                 var firstToken = queryClause.GetFirstToken(includeZeroWidth: true);
                 AddAnchorIndentationOperation(list, firstToken, queryClause.GetLastToken(includeZeroWidth: true));
             }
 
-            var selectOrGroupClause = node as SelectOrGroupClauseSyntax;
-            if (selectOrGroupClause != null)
+            if (node is SelectOrGroupClauseSyntax selectOrGroupClause)
             {
                 var firstToken = selectOrGroupClause.GetFirstToken(includeZeroWidth: true);
                 AddAnchorIndentationOperation(list, firstToken, selectOrGroupClause.GetLastToken(includeZeroWidth: true));
             }
 
-            var continuation = node as QueryContinuationSyntax;
-            if (continuation != null)
+            if (node is QueryContinuationSyntax continuation)
             {
                 AddAnchorIndentationOperation(list, continuation.IntoKeyword, continuation.GetLastToken(includeZeroWidth: true));
             }

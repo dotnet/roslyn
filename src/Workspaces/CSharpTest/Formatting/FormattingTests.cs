@@ -7855,7 +7855,7 @@ switch (o)
 
         private Task AssertFormatBodyAsync(string expected, string input)
         {
-            Func<string, string> transform = s =>
+            string transform(string s)
             {
                 var lines = s.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
                 for (int i = 0; i < lines.Length; i++)
@@ -7866,7 +7866,7 @@ switch (o)
                     }
                 }
                 return string.Join(Environment.NewLine, lines);
-            };
+            }
 
             var pattern = @"
 class C

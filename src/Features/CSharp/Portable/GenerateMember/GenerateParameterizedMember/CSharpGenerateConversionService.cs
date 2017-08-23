@@ -115,8 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
             out IMethodSymbol methodSymbol,
             out INamedTypeSymbol typeToGenerateIn)
         {
-            var castExpression = expression as CastExpressionSyntax;
-            if (castExpression != null)
+            if (expression is CastExpressionSyntax castExpression)
             {
                 return TryGetExplicitConversionMethodAndTypeToGenerateIn(
                     document,

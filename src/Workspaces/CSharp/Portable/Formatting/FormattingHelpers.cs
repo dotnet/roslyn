@@ -273,56 +273,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return false;
             }
 
-            var ifStatement = statement as IfStatementSyntax;
-            if (ifStatement != null)
+            if (statement is IfStatementSyntax ifStatement)
             {
                 return ifStatement.CloseParenToken.Equals(token);
             }
 
-            var switchStatement = statement as SwitchStatementSyntax;
-            if (switchStatement != null)
+            if (statement is SwitchStatementSyntax switchStatement)
             {
                 return switchStatement.CloseParenToken.Equals(token);
             }
 
-            var whileStatement = statement as WhileStatementSyntax;
-            if (whileStatement != null)
+            if (statement is WhileStatementSyntax whileStatement)
             {
                 return whileStatement.CloseParenToken.Equals(token);
             }
 
-            var doStatement = statement as DoStatementSyntax;
-            if (doStatement != null)
+            if (statement is DoStatementSyntax doStatement)
             {
                 return doStatement.CloseParenToken.Equals(token);
             }
 
-            var forStatement = statement as ForStatementSyntax;
-            if (forStatement != null)
+            if (statement is ForStatementSyntax forStatement)
             {
                 return forStatement.CloseParenToken.Equals(token);
             }
 
-            var foreachStatement = statement as CommonForEachStatementSyntax;
-            if (foreachStatement != null)
+            if (statement is CommonForEachStatementSyntax foreachStatement)
             {
                 return foreachStatement.CloseParenToken.Equals(token);
             }
 
-            var lockStatement = statement as LockStatementSyntax;
-            if (lockStatement != null)
+            if (statement is LockStatementSyntax lockStatement)
             {
                 return lockStatement.CloseParenToken.Equals(token);
             }
 
-            var usingStatement = statement as UsingStatementSyntax;
-            if (usingStatement != null)
+            if (statement is UsingStatementSyntax usingStatement)
             {
                 return usingStatement.CloseParenToken.Equals(token);
             }
 
-            var fixedStatement = statement as FixedStatementSyntax;
-            if (fixedStatement != null)
+            if (statement is FixedStatementSyntax fixedStatement)
             {
                 return fixedStatement.CloseParenToken.Equals(token);
             }

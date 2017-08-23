@@ -38,8 +38,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             object content;
             if (_nameToContentMap.TryGetValue(fileName, out content))
             {
-                var textContent = content as string;
-                if (textContent != null)
+                if (content is string textContent)
                 {
                     var elementStartTag = "<" + elementName;
                     var elementEndTag = "</" + elementName;
