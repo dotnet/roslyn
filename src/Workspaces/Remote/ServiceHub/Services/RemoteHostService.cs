@@ -112,13 +112,13 @@ namespace Microsoft.CodeAnalysis.Remote
             persistentStorageService?.UnregisterPrimarySolution(solutionId, synchronousShutdown);
         }
 
-        public void OnGlobalOperationStarted(string operation, CancellationToken cancellationToken)
+        public void OnGlobalOperationStarted(string operation)
         {
             var globalOperationNotificationService = GetGlobalOperationNotificationService();
             globalOperationNotificationService?.OnStarted();
         }
 
-        public void OnGlobalOperationStopped(IReadOnlyList<string> operations, bool cancelled, CancellationToken cancellationToken)
+        public void OnGlobalOperationStopped(IReadOnlyList<string> operations, bool cancelled)
         {
             var globalOperationNotificationService = GetGlobalOperationNotificationService();
             globalOperationNotificationService?.OnStopped(operations, cancelled);

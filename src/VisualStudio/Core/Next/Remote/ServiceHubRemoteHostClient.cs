@@ -211,20 +211,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return previousTask.Result;
                 }
 
-                using (var connection = await this.TryCreateConnectionAsync(WellKnownRemoteHostServices.RemoteHostService, CancellationToken.None).ConfigureAwait(false))
-                {
-                    if (connection != null)
-                    {
-                        await connection.InvokeAsync(
-                            nameof(IRemoteHostService.OnGlobalOperationStarted),
-                            new object[] { "" },
-                            CancellationToken.None).ConfigureAwait(false);
+                await _rpc.InvokeAsync(
+                    nameof(IRemoteHostService.OnGlobalOperationStarted), "").ConfigureAwait(false);
 
-                        return GlobalNotificationState.Started;
-                    }
-                }
-
-                return GlobalNotificationState.NotStarted;
+                return GlobalNotificationState.Started;
             }
         }
 
@@ -246,16 +236,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return previousTask.Result;
                 }
 
-                using (var connection = await this.TryCreateConnectionAsync(WellKnownRemoteHostServices.RemoteHostService, CancellationToken.None).ConfigureAwait(false))
-                {
-                    if (connection != null)
-                    {
-                        await connection.InvokeAsync(
-                            nameof(IRemoteHostService.OnGlobalOperationStopped),
-                            new object[] { e.Operations, e.Cancelled },
-                            CancellationToken.None).ConfigureAwait(false);
-                    }
-                }
+                await _rpc.InvokeAsync(
+                    nameof(IRemoteHostService.OnGlobalOperationStopped),
+                    e.Operations, e.Cancelled);
 
                 // Mark that we're stopped now.
                 return GlobalNotificationState.NotStarted;
