@@ -93,13 +93,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return IsReducedSelectOrGroupByClause(selectClause, selectClause.Expression) ? null : selectClause.Expression;
 
                 case SyntaxKind.JoinClause:
-                    var oldJoin = (JoinClauseSyntax)(oldBody.Parent);
+                    var oldJoin = (JoinClauseSyntax)oldBody.Parent;
                     var newJoin = (JoinClauseSyntax)newLambda;
                     Debug.Assert(oldJoin.LeftExpression == oldBody || oldJoin.RightExpression == oldBody);
                     return (oldJoin.LeftExpression == oldBody) ? newJoin.LeftExpression : newJoin.RightExpression;
 
                 case SyntaxKind.GroupClause:
-                    var oldGroup = (GroupClauseSyntax)(oldBody.Parent);
+                    var oldGroup = (GroupClauseSyntax)oldBody.Parent;
                     var newGroup = (GroupClauseSyntax)newLambda;
                     Debug.Assert(oldGroup.GroupExpression == oldBody || oldGroup.ByExpression == oldBody);
                     return (oldGroup.GroupExpression == oldBody) ?
@@ -149,7 +149,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.LocalFunctionStatement:
                     var localFunction = (LocalFunctionStatementSyntax)parent;
-                    return localFunction.Body == node || localFunction.ExpressionBody == node;
+                    return localFunction.Body == node;
+
+                case SyntaxKind.ArrowExpressionClause:
+                    var arrowExpressionClause = (ArrowExpressionClauseSyntax)parent;
+                    return arrowExpressionClause.Expression == node;
 
                 case SyntaxKind.FromClause:
                     var fromClause = (FromClauseSyntax)parent;
