@@ -93,13 +93,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             var window = _vsInteractiveWindow.InteractiveWindow;
             window.TextView.Options.SetOptionValue(DefaultTextViewHostOptions.SuggestionMarginId, true);
 
-            EventHandler closeEventDelegate = null;
-            closeEventDelegate = (sender, e) =>
+            void closeEventDelegate(object sender, EventArgs e)
             {
                 window.TextView.Closed -= closeEventDelegate;
                 LogCloseSession(evaluator.SubmissionCount);
                 evaluator.Dispose();
-            };
+            }
 
             // the tool window now owns the engine:
             window.TextView.Closed += closeEventDelegate;
