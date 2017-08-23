@@ -4,44 +4,48 @@ using System;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
-    internal class DotnetHost
+    internal sealed class DotnetHost
     {
-        public string ToolName { get; }
+        public string ToolNameOpt { get; }
 
         public string PathToToolOpt { get; }
 
         public string CommandLineArgs { get; }
 
-        public DotnetHost(string toolName, string pathToTool, string commandLineArgs)
+        private DotnetHost(string toolNameOpt, string pathToToolOpt, string commandLineArgs)
         {
-            ToolName = toolName;
-            PathToToolOpt = pathToTool;
+            ToolNameOpt = toolNameOpt;
+            PathToToolOpt = pathToToolOpt;
             CommandLineArgs = commandLineArgs;
         }
 
-        public DotnetHost(string toolNameWithoutExtension, string commandLineArgs)
+        public static DotnetHost CreateUnmanagedToolInvocation(string pathToTool, string commandLineArgs)
         {
-            string pathToTool;
+            return new DotnetHost(null, pathToTool, commandLineArgs);
+        }
+
+        public static DotnetHost CreateManagedToolInvocation(string toolNameWithoutExtension, string commandLineArgs)
+        {
+            string pathToToolOpt;
             string toolName;
             if (IsCliHost(out string pathToDotnet))
             {
                 toolName = $"{toolNameWithoutExtension}.dll";
-                pathToTool = Utilities.GenerateFullPathToTool(toolName);
-                if (pathToTool != null)
+                pathToToolOpt = Utilities.GenerateFullPathToTool(toolName);
+                if (pathToToolOpt != null)
                 {
-                    commandLineArgs = $"\"{pathToTool}\" {commandLineArgs}";
-                    pathToTool = pathToDotnet;
+                    commandLineArgs = $"\"{pathToToolOpt}\" {commandLineArgs}";
+                    pathToToolOpt = pathToDotnet;
                 }
             }
             else
             {
                 // Desktop executes tool directly
                 toolName = $"{toolNameWithoutExtension}.exe";
-                pathToTool = Utilities.GenerateFullPathToTool(toolName);
+                pathToToolOpt = Utilities.GenerateFullPathToTool(toolName);
             }
 
-            PathToToolOpt = pathToTool;
-            CommandLineArgs = commandLineArgs;
+            return new DotnetHost(toolName, pathToToolOpt, commandLineArgs);
         }
 
         private static bool IsCliHost(out string pathToDotnet)

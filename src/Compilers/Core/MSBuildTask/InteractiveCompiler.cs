@@ -186,23 +186,24 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 if (_dotnetHostInfo is null)
                 {
-                    var commandLineBuilder = new CommandLineBuilderExtension();
+                    CommandLineBuilderExtension commandLineBuilder = new CommandLineBuilderExtension();
                     AddCommandLineCommands(commandLineBuilder);
+                    var commandLine = commandLineBuilder.ToString();
 
                     if (string.IsNullOrEmpty(ToolPath))
                     {
-                        _dotnetHostInfo = new DotnetHost(ToolNameWithoutExtension, commandLineBuilder.ToString());
+                        _dotnetHostInfo = DotnetHost.CreateManagedToolInvocation(ToolNameWithoutExtension, commandLine);
 
                         // See comment in ManagedCompiler.cs on why this if statement is here.
-                        if (ToolExe != _dotnetHostInfo.ToolName)
+                        if (ToolExe != _dotnetHostInfo.ToolNameOpt)
                         {
-                            _dotnetHostInfo = new DotnetHost(null, ToolPath, commandLineBuilder.ToString());
+                            _dotnetHostInfo = DotnetHost.CreateUnmanagedToolInvocation(ToolPath, commandLine);
                         }
                     }
                     else
                     {
                         // Explicitly provided ToolPath, don't try to figure anything out
-                        _dotnetHostInfo = new DotnetHost(null, ToolPath, commandLineBuilder.ToString());
+                        _dotnetHostInfo = DotnetHost.CreateUnmanagedToolInvocation(ToolPath, commandLine);
                     }
                 }
                 return _dotnetHostInfo;
@@ -213,7 +214,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected abstract string ToolNameWithoutExtension { get; }
 
-        protected sealed override string ToolName => DotnetHostInfo.ToolName;
+        protected sealed override string ToolName => DotnetHostInfo.ToolNameOpt;
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {

@@ -412,10 +412,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 {
                     CommandLineBuilderExtension commandLineBuilder = new CommandLineBuilderExtension();
                     AddCommandLineCommands(commandLineBuilder);
+                    var commandLine = commandLineBuilder.ToString();
 
                     // ToolExe delegates back to ToolName if the override is not
                     // set.
-                    // So, we can't check if it's unset, as that will recurse
+                    // So, we can't check if it's unset, as that will recur
                     // and stackoverflow.
                     // However, checking only ToolPath is inadequate, as some
                     // callers only set ToolExe, and not ToolPath (e.g. CLI).
@@ -429,17 +430,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     // arguments).
                     if (string.IsNullOrEmpty(ToolPath))
                     {
-                        _dotnetHostInfo = new DotnetHost(ToolNameWithoutExtension, commandLineBuilder.ToString());
+                        _dotnetHostInfo = DotnetHost.CreateManagedToolInvocation(ToolNameWithoutExtension, commandLine);
 
-                        if (ToolExe != _dotnetHostInfo.ToolName)
+                        if (ToolExe != _dotnetHostInfo.ToolNameOpt)
                         {
-                            _dotnetHostInfo = new DotnetHost(null, ToolPath, commandLineBuilder.ToString());
+                            _dotnetHostInfo = DotnetHost.CreateUnmanagedToolInvocation(ToolPath, commandLine);
                         }
                     }
                     else
                     {
                         // Explicitly provided ToolPath, don't try to figure anything out
-                        _dotnetHostInfo = new DotnetHost(null, ToolPath, commandLineBuilder.ToString());
+                        _dotnetHostInfo = DotnetHost.CreateUnmanagedToolInvocation(ToolPath, commandLine);
                     }
                 }
                 return _dotnetHostInfo;
@@ -448,7 +449,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected abstract string ToolNameWithoutExtension { get; }
 
-        protected sealed override string ToolName => DotnetHostInfo.ToolName;
+        protected sealed override string ToolName => DotnetHostInfo.ToolNameOpt;
 
         /// <summary>
         /// Return the path to the tool to execute.
