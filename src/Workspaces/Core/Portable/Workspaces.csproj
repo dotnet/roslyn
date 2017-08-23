@@ -40,6 +40,9 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\AnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\AnalyzerAssemblyLoader.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\EncodedStringText.cs">
+      <Link>InternalUtilities\EncodedStringText.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\RelativePathResolver.cs">
       <Link>InternalUtilities\RelativePathResolver.cs</Link>
     </Compile>
@@ -66,6 +69,9 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\DocumentationCommentXmlNames.cs">
       <Link>InternalUtilities\DocumentationCommentXmlNames.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\EncodingExtensions.cs">
+      <Link>InternalUtilities\EncodingExtensions.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\EnumerableExtensions.cs">
       <Link>InternalUtilities\EnumerableExtensions.cs</Link>
@@ -171,6 +177,9 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\StackGuard.cs">
       <Link>InternalUtilities\StackGuard.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\StreamExtensions.cs">
+      <Link>InternalUtilities\StreamExtensions.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\StringExtensions.cs">
       <Link>InternalUtilities\StringExtensions.cs</Link>
