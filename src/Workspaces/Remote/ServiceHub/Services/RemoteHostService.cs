@@ -12,6 +12,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Remote.Services;
 using Microsoft.CodeAnalysis.Remote.Storage;
 using Microsoft.CodeAnalysis.Remote.Telemetry;
 using Microsoft.CodeAnalysis.Storage;
@@ -110,6 +112,18 @@ namespace Microsoft.CodeAnalysis.Remote
             persistentStorageService?.UnregisterPrimarySolution(solutionId, synchronousShutdown);
         }
 
+        public void OnGlobalOperationStarted(string operation, CancellationToken cancellationToken)
+        {
+            var globalOperationNotificationService = GetGlobalOperationNotificationService();
+            globalOperationNotificationService?.OnStarted();
+        }
+
+        public void OnGlobalOperationStopped(IReadOnlyList<string> operations, bool cancelled, CancellationToken cancellationToken)
+        {
+            var globalOperationNotificationService = GetGlobalOperationNotificationService();
+            globalOperationNotificationService?.OnStopped(operations, cancelled);
+        }
+
         private static Func<FunctionId, bool> GetLoggingChecker()
         {
             try
@@ -193,6 +207,13 @@ namespace Microsoft.CodeAnalysis.Remote
             var workspace = new AdhocWorkspace(RoslynServices.HostServices);
             var persistentStorageService = workspace.Services.GetService<IPersistentStorageService>() as AbstractPersistentStorageService;
             return persistentStorageService;
+        }
+        
+        private RemoteGlobalOperationNotificationService GetGlobalOperationNotificationService()
+        {
+            var workspace = SolutionService.PrimaryWorkspace;
+            var notificationService = workspace.Services.GetService<IGlobalOperationNotificationService>() as RemoteGlobalOperationNotificationService;
+            return notificationService;
         }
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]

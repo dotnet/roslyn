@@ -82,7 +82,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 Assert.Equal(comments.Count, 1);
 
-                keepAliveSession.Shutdown(CancellationToken.None);
+                keepAliveSession.Shutdown();
             }
         }
 

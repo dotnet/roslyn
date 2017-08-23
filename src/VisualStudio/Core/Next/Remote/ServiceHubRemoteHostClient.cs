@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Client;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
@@ -30,6 +31,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private readonly JsonRpc _rpc;
         private readonly ReferenceCountedDisposable<RemotableDataJsonRpc> _remotableDataRpc;
+
+        // Serialize out the list of global notifications we get so we send them to the OOP side 
+        // one by one.  Because we might hear about the 'Stop' notification before the 'Start'
+        // notification, we pass along a bool to know if we've heard a 'Start' and thus should
+        // remote over the 'Stop'.
+        private readonly object _globalNotificationsGate = new object();
+        private readonly CancellationTokenSource _globalNotificationsTokenSource = new CancellationTokenSource();
+        private Task<bool> _globalNotificationsTask = SpecializedTasks.False;
+        private KeepAliveSession _keepAliveSession;
 
         public static async Task<RemoteHostClient> CreateAsync(
             Workspace workspace, CancellationToken cancellationToken)
@@ -99,8 +109,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             HubClient hubClient,
             HostGroup hostGroup,
             ReferenceCountedDisposable<RemotableDataJsonRpc> remotableDataRpc,
-            Stream stream) :
-            base(workspace)
+            Stream stream) 
+            : base(workspace)
         {
             Contract.ThrowIfNull(remotableDataRpc);
 
@@ -139,6 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         protected override void OnStarted()
         {
+            RegisterGlobalOperationNotifications();
         }
 
         protected override void OnStopped()
@@ -148,9 +159,114 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // the other is external thing disconnecting remote host from us (ex, user killing OOP process).
             // the Disconnected event we subscribe is to detect #2 case. and this method is for #1 case. so when we are willingly disconnecting
             // we don't need the event, otherwise, Disconnected event will be called twice.
+            UnregisterGlobalOperationNotifications();
             _rpc.Disconnected -= OnRpcDisconnected;
             _rpc.Dispose();
             _remotableDataRpc.Dispose();
+        }
+
+        private void RegisterGlobalOperationNotifications()
+        {
+            var globalOperationService = this.Workspace.Services.GetService<IGlobalOperationNotificationService>();
+            if (globalOperationService != null)
+            {
+                globalOperationService.Started += OnGlobalOperationStarted;
+                globalOperationService.Stopped += OnGlobalOperationStopped;
+            }
+        }
+
+        private void UnregisterGlobalOperationNotifications()
+        {
+            _globalNotificationsTokenSource.Cancel();
+            var globalOperationService = this.Workspace.Services.GetService<IGlobalOperationNotificationService>();
+            if (globalOperationService != null)
+            {
+                globalOperationService.Started -= OnGlobalOperationStarted;
+                globalOperationService.Stopped -= OnGlobalOperationStopped;
+            }
+
+            lock (_globalNotificationsGate)
+            {
+                _globalNotificationsTask = _globalNotificationsTask.ContinueWith(
+                    continuation, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
+            }
+
+            bool continuation(Task<bool> previousTask)
+            {
+                if (_keepAliveSession != null)
+                {
+                    _keepAliveSession.Shutdown();
+                    _keepAliveSession = null;
+                }
+
+                return false;
+            }
+        }
+
+        private void OnGlobalOperationStarted(object sender, EventArgs e)
+        {
+            lock (_globalNotificationsGate)
+            {
+                _globalNotificationsTask = _globalNotificationsTask.ContinueWith(
+                    continuation, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default).Unwrap();
+            }
+
+            async Task<bool> continuation(Task<bool> previousTask)
+            {
+                var session = await GetOrCreateKeepAliveSessionAsync().ConfigureAwait(false);
+                if (session != null)
+                {
+                    await session.TryInvokeAsync(
+                        nameof(IRemoteHostService.OnGlobalOperationStarted),
+                        new object[] { "" },
+                        _globalNotificationsTokenSource.Token).ConfigureAwait(false);
+                }
+
+                // Now that we're started, return true to indicate that we can be
+                // stopped.
+                return true;
+            }
+        }
+
+        private void OnGlobalOperationStopped(object sender, GlobalOperationEventArgs e)
+        {
+            lock (_globalNotificationsGate)
+            {
+                _globalNotificationsTask = _globalNotificationsTask.ContinueWith(
+                    continuation, CancellationToken.None,
+                    TaskContinuationOptions.None, TaskScheduler.Default).Unwrap();
+            }
+
+            async Task<bool> continuation(Task<bool> previousTask)
+            {
+                // Only process a stop if we heard about a previous start.
+                if (previousTask.Status == TaskStatus.RanToCompletion &&
+                    previousTask.Result == true)
+                {
+                    var session = await GetOrCreateKeepAliveSessionAsync().ConfigureAwait(false);
+                    if (session != null)
+                    {
+                        await session.TryInvokeAsync(
+                            nameof(IRemoteHostService.OnGlobalOperationStopped),
+                            new object[] { e.Operations, e.Cancelled },
+                            _globalNotificationsTokenSource.Token).ConfigureAwait(false);
+                    }
+                }
+
+                // Mark that we're stopped now.
+                return false;
+            }
+        }
+
+        private async Task<KeepAliveSession> GetOrCreateKeepAliveSessionAsync()
+        {
+            if (_keepAliveSession == null)
+            {
+                _keepAliveSession = await this.TryCreateKeepAliveSessionAsync(
+                    WellKnownRemoteHostServices.RemoteHostService, _globalNotificationsTokenSource.Token).ConfigureAwait(false);
+            }
+
+            return _keepAliveSession;
         }
 
         private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
