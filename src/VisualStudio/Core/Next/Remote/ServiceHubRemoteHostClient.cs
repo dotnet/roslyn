@@ -41,7 +41,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private readonly object _globalNotificationsGate = new object();
         private Task<GlobalNotificationState> _globalNotificationsTask = Task.FromResult(GlobalNotificationState.NotStarted);
-        private KeepAliveSession _keepAliveSession;
 
         public static async Task<RemoteHostClient> CreateAsync(
             Workspace workspace, CancellationToken cancellationToken)
@@ -188,21 +187,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             lock (_globalNotificationsGate)
             {
-                _globalNotificationsTask = _globalNotificationsTask.ContinueWith(
-                    continuation, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
-            }
-
-            GlobalNotificationState continuation(Task<GlobalNotificationState> previousTask)
-            {
-                if (_keepAliveSession != null)
-                {
-                    _keepAliveSession.Shutdown();
-                    _keepAliveSession = null;
-                }
-
                 // Unilaterally transition us to the finished state.  Once we're finished
                 // we cannot start or stop anymore.
-                return GlobalNotificationState.Finished;
+                _globalNotificationsTask = _globalNotificationsTask.ContinueWith(
+                    _ => GlobalNotificationState.Finished, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
             }
         }
 
@@ -223,16 +211,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return previousTask.Result;
                 }
 
-                var session = await GetOrCreateKeepAliveSessionAsync().ConfigureAwait(false);
-                if (session != null)
+                using (var connection = await this.TryCreateConnectionAsync(WellKnownRemoteHostServices.RemoteHostService, CancellationToken.None).ConfigureAwait(false))
                 {
-                    await session.TryInvokeAsync(
-                        nameof(IRemoteHostService.OnGlobalOperationStarted),
-                        new object[] { "" },
-                        CancellationToken.None).ConfigureAwait(false);
+                    if (connection != null)
+                    {
+                        await connection.InvokeAsync(
+                            nameof(IRemoteHostService.OnGlobalOperationStarted),
+                            new object[] { "" },
+                            CancellationToken.None).ConfigureAwait(false);
+
+                        return GlobalNotificationState.Started;
+                    }
                 }
 
-                return GlobalNotificationState.Started;
+                return GlobalNotificationState.NotStarted;
             }
         }
 
@@ -254,30 +246,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return previousTask.Result;
                 }
 
-                // Only process a stop if we heard about a previous start.
-                var session = await GetOrCreateKeepAliveSessionAsync().ConfigureAwait(false);
-                if (session != null)
+                using (var connection = await this.TryCreateConnectionAsync(WellKnownRemoteHostServices.RemoteHostService, CancellationToken.None).ConfigureAwait(false))
                 {
-                    await session.TryInvokeAsync(
-                        nameof(IRemoteHostService.OnGlobalOperationStopped),
-                        new object[] { e.Operations, e.Cancelled },
-                        CancellationToken.None).ConfigureAwait(false);
+                    if (connection != null)
+                    {
+                        await connection.InvokeAsync(
+                            nameof(IRemoteHostService.OnGlobalOperationStopped),
+                            new object[] { e.Operations, e.Cancelled },
+                            CancellationToken.None).ConfigureAwait(false);
+                    }
                 }
 
                 // Mark that we're stopped now.
                 return GlobalNotificationState.NotStarted;
             }
-        }
-
-        private async Task<KeepAliveSession> GetOrCreateKeepAliveSessionAsync()
-        {
-            if (_keepAliveSession == null)
-            {
-                _keepAliveSession = await this.TryCreateKeepAliveSessionAsync(
-                    WellKnownRemoteHostServices.RemoteHostService, CancellationToken.None).ConfigureAwait(false);
-            }
-
-            return _keepAliveSession;
         }
 
         private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
