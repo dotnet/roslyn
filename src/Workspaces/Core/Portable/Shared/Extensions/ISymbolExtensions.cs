@@ -865,29 +865,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ITypeSymbol GetSymbolType(this ISymbol symbol)
         {
-            if (symbol is ILocalSymbol localSymbol)
+            switch (symbol)
             {
-                return localSymbol.Type;
-            }
-
-            if (symbol is IFieldSymbol fieldSymbol)
-            {
-                return fieldSymbol.Type;
-            }
-
-            if (symbol is IPropertySymbol propertySymbol)
-            {
-                return propertySymbol.Type;
-            }
-
-            if (symbol is IParameterSymbol parameterSymbol)
-            {
-                return parameterSymbol.Type;
-            }
-
-            if (symbol is IAliasSymbol aliasSymbol)
-            {
-                return aliasSymbol.Target as ITypeSymbol;
+                case ILocalSymbol localSymbol:
+                    return localSymbol.Type;
+                case IFieldSymbol fieldSymbol:
+                    return fieldSymbol.Type;
+                case IPropertySymbol propertySymbol:
+                    return propertySymbol.Type;
+                case IParameterSymbol parameterSymbol:
+                    return parameterSymbol.Type;
+                case IAliasSymbol aliasSymbol:
+                    return aliasSymbol.Target as ITypeSymbol;
             }
 
             return symbol as ITypeSymbol;
