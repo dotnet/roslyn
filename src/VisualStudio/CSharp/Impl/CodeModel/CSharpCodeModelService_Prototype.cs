@@ -45,29 +45,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             }
             else
             {
-                if (node is BaseMethodDeclarationSyntax methodDeclaration)
+                switch (node)
                 {
-                    return GetFunctionPrototype(methodDeclaration, (IMethodSymbol)symbol, flags);
-                }
-
-                if (node is BasePropertyDeclarationSyntax propertyDeclaration)
-                {
-                    return GetPropertyPrototype(propertyDeclaration, (IPropertySymbol)symbol, flags);
-                }
-
-                if (node is VariableDeclaratorSyntax variableDeclarator && symbol.Kind == SymbolKind.Field)
-                {
-                    return GetVariablePrototype(variableDeclarator, (IFieldSymbol)symbol, flags);
-                }
-
-                if (node is EnumMemberDeclarationSyntax enumMember)
-                {
-                    return GetVariablePrototype(enumMember, (IFieldSymbol)symbol, flags);
-                }
-
-                if (node is DelegateDeclarationSyntax delegateDeclaration)
-                {
-                    return GetDelegatePrototype(delegateDeclaration, (INamedTypeSymbol)symbol, flags);
+                    case BaseMethodDeclarationSyntax methodDeclaration:
+                        return GetFunctionPrototype(methodDeclaration, (IMethodSymbol)symbol, flags);
+                    case BasePropertyDeclarationSyntax propertyDeclaration:
+                        return GetPropertyPrototype(propertyDeclaration, (IPropertySymbol)symbol, flags);
+                    case VariableDeclaratorSyntax variableDeclarator when symbol.Kind == SymbolKind.Field:
+                        return GetVariablePrototype(variableDeclarator, (IFieldSymbol)symbol, flags);
+                    case EnumMemberDeclarationSyntax enumMember:
+                        return GetVariablePrototype(enumMember, (IFieldSymbol)symbol, flags);
+                    case DelegateDeclarationSyntax delegateDeclaration:
+                        return GetDelegatePrototype(delegateDeclaration, (INamedTypeSymbol)symbol, flags);
                 }
 
                 // Crazily, events for source are not implemented by the legacy C#
