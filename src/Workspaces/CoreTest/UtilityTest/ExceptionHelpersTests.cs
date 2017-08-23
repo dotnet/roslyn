@@ -10,30 +10,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class ExceptionHelpersTests : TestBase
     {
-        private static void AssertThatActionFailsFast(Action a)
-        {
-            void wrappedAction()
-            {
-                try
-                {
-                    a();
-                    Assert.True(false, "Should not get here because we expect the action to throw an exception.");
-                }
-                catch (Exception)
-                {
-                    Assert.True(false, "Should not get here because FailFast should prevent entering the catch block.");
-                }
-                finally
-                {
-                    Assert.True(false, "Should not get here because FailFast should prevent running finalizers.");
-                }
-            }
-
-            // TODO: How can we test that FailFast works when it will bring down the process?
-            // One idea is to run the action in a sacrificial process and check the exit code.
-            // We would need to disable Watson for that process.
-        }
-
         /// <summary>
         /// Test that throwing OperationCanceledException does NOT trigger FailFast
         /// </summary>
