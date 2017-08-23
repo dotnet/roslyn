@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         {
             Contract.ThrowIfNull(node);
 
-            Func<SyntaxNode, bool> predicate = n =>
+            bool predicate(SyntaxNode n)
             {
                 if (n is BaseMethodDeclarationSyntax ||
                     n is AccessorDeclarationSyntax ||
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
 
                 return false;
-            };
+            }
 
             if (!node.GetAncestorsOrThis<SyntaxNode>().Any(predicate))
             {

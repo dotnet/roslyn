@@ -175,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 // pause live analyzer
                 using (var operation = _notificationService.Start("BuildDone"))
                 {
-                    Func<DiagnosticData, bool> liveDiagnosticChecker = d =>
+                    bool liveDiagnosticChecker(DiagnosticData d)
                     {
                         // REVIEW: we probably need a better design on de-duplicating live and build errors. or don't de-dup at all.
                         //         for now, we are special casing compiler error case.
@@ -201,7 +201,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                         }
 
                         return false;
-                    };
+                    }
 
                     var diagnosticService = _diagnosticService as DiagnosticAnalyzerService;
                     if (diagnosticService != null)

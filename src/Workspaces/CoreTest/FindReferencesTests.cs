@@ -322,7 +322,7 @@ namespace M
 
         private static void Verify(ReferencedSymbol reference, HashSet<int> expectedMatchedLines)
         {
-            System.Action<Location> verifier = (location) => Assert.True(expectedMatchedLines.Remove(location.GetLineSpan().StartLinePosition.Line));
+            void verifier(Location location) => Assert.True(expectedMatchedLines.Remove(location.GetLineSpan().StartLinePosition.Line));
 
             foreach (var location in reference.Locations)
             {

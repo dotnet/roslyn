@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     {
         private static void AssertThatActionFailsFast(Action a)
         {
-            Action wrappedAction = () =>
+            void wrappedAction()
             {
                 try
                 {
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     Assert.True(false, "Should not get here because FailFast should prevent running finalizers.");
                 }
-            };
+            }
 
             // TODO: How can we test that FailFast works when it will bring down the process?
             // One idea is to run the action in a sacrificial process and check the exit code.
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             bool finallyExecuted = false;
 
-            Action a = () =>
+            void a()
             {
                 try
                 {
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     finallyExecuted = true;
                 }
-            };
+            }
 
             try
             {
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             bool finallyExecuted = false;
 
-            Action a = () =>
+            void a()
             {
                 try
                 {
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     finallyExecuted = true;
                 }
-            };
+            }
 
             try
             {
