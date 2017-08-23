@@ -4333,5 +4333,34 @@ struct TextSpan
     }
 }");
         }
+
+        [WorkItem(21687, "https://github.com/dotnet/roslyn/issues/21687")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIfClassHasSameNameAsNamespace()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace C
+{
+    class C
+    {
+        void M()
+        {
+            var t = new { foo = [|1 + 1|] };
+        }
+    }
+}",
+@"namespace C
+{
+    class C
+    {
+        private const int {|Rename:V|} = 1 + 1;
+
+        void M()
+        {
+            var t = new { foo = V };
+        }
+    }
+}");
+        }
     }
 }
