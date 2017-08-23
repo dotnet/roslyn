@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         }
 
                         // get partial solution from background thread.
-                        _documentOpt = await _text.GetDocumentWithFrozenPartialSemanticsAsync(cancellationToken).ConfigureAwait(false);
+                        _documentOpt = _text.GetDocumentWithFrozenPartialSemantics(cancellationToken);
 
                         // TODO(cyrusn): We're calling into extensions, we need to make ourselves resilient
                         // to the extension crashing.
