@@ -1169,32 +1169,86 @@ public unsafe class C
         public void TestDynamicMemberAccessErrors()
         {
             string source = @"
-static class S {}
+static class S { }
 class C
 {
     static unsafe void M()
-    {
+    /*<bind>*/{
         dynamic d1 = 123;
-        object x = d1.N<int>; 
+        object x = d1.N<int>;
         d1.N<int*>();
         d1.N<System.TypedReference>();
         d1.N<S>(); // The dev11 compiler does not catch this one.
-    }
-    static void Main() {}
-}";
-
-            var comp = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll);
-            comp.VerifyDiagnostics(
-                // (8,23): error CS0307: The property 'N' cannot be used with type arguments
-                //         object x = d1.N<int>; 
+    }/*</bind>*/
+    static void Main() { }
+}
+";
+            string expectedOperationTree = @"
+IBlockStatement (5 statements, 2 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ ... }')
+  Locals: Local_1: dynamic d1
+    Local_2: System.Object x
+  IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'dynamic d1 = 123;')
+    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'dynamic d1 = 123;')
+      Variables: Local_1: dynamic d1
+      Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: dynamic) (Syntax: '123')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 123) (Syntax: '123')
+  IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'object x = d1.N<int>;')
+    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'object x = d1.N<int>;')
+      Variables: Local_1: System.Object x
+      Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'd1.N<int>')
+          Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: IDynamicMemberReferenceExpression (Member Name: ""N"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd1.N<int>')
+              Type Arguments(1):
+                Symbol: System.Int32
+              Instance Receiver: ILocalReferenceExpression: d1 (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd1')
+  IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'd1.N<int*>();')
+    Expression: IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic, IsInvalid) (Syntax: 'd1.N<int*>()')
+        Expression: IDynamicMemberReferenceExpression (Member Name: ""N"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd1.N<int*>')
+            Type Arguments(1):
+              Symbol: System.Int32*
+            Instance Receiver: ILocalReferenceExpression: d1 (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd1')
+        ApplicableSymbols(0)
+        Arguments(0)
+        ArgumentNames(0)
+        ArgumentRefKinds(0)
+  IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'd1.N<System ... ference>();')
+    Expression: IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic, IsInvalid) (Syntax: 'd1.N<System ... eference>()')
+        Expression: IDynamicMemberReferenceExpression (Member Name: ""N"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd1.N<System ... dReference>')
+            Type Arguments(1):
+              Symbol: System.TypedReference
+            Instance Receiver: ILocalReferenceExpression: d1 (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd1')
+        ApplicableSymbols(0)
+        Arguments(0)
+        ArgumentNames(0)
+        ArgumentRefKinds(0)
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'd1.N<S>();')
+    Expression: IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic) (Syntax: 'd1.N<S>()')
+        Expression: IDynamicMemberReferenceExpression (Member Name: ""N"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd1.N<S>')
+            Type Arguments(1):
+              Symbol: S
+            Instance Receiver: ILocalReferenceExpression: d1 (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd1')
+        ApplicableSymbols(0)
+        Arguments(0)
+        ArgumentNames(0)
+        ArgumentRefKinds(0)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0227: Unsafe code may only appear if compiling with /unsafe
+                //     static unsafe void M()
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(5, 24),
+                // CS0307: The property 'N' cannot be used with type arguments
+                //         object x = d1.N<int>;
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "N<int>").WithArguments("N", "property").WithLocation(8, 23),
-                // (9,14): error CS0306: The type 'int*' may not be used as a type argument
+                // CS0306: The type 'int*' may not be used as a type argument
                 //         d1.N<int*>();
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(9, 14),
-                // (10,14): error CS0306: The type 'TypedReference' may not be used as a type argument
+                // CS0306: The type 'TypedReference' may not be used as a type argument
                 //         d1.N<System.TypedReference>();
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(10, 14)
-                );
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
@@ -1223,28 +1277,90 @@ class C
 class C
 {
     static void M(dynamic d)
-    {
+    /*<bind>*/{
         int z;
         d.Goo(__arglist(123, 456));
         d.Goo(x: 123, y: 456, 789);
         d.Goo(ref z);
         d.Goo(System.Console.WriteLine());
-    }
-}";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
-            comp.VerifyDiagnostics(
-                // (7,15): error CS1978: Cannot use an expression of type '__arglist' as an argument to a dynamically dispatched operation.
+    }/*</bind>*/
+}
+";
+            string expectedOperationTree = @"
+IBlockStatement (5 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ ... }')
+  Locals: Local_1: System.Int32 z
+  IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int z;')
+    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'int z;')
+      Variables: Local_1: System.Int32 z
+      Initializer: null
+  IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'd.Goo(__arg ... 123, 456));')
+    Expression: IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic, IsInvalid) (Syntax: 'd.Goo(__arg ... (123, 456))')
+        Expression: IDynamicMemberReferenceExpression (Member Name: ""Goo"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Goo')
+            Type Arguments(0)
+            Instance Receiver: IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
+        ApplicableSymbols(0)
+        Arguments(1):
+            IOperation:  (OperationKind.None, IsInvalid) (Syntax: '__arglist(123, 456)')
+              Children(2):
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 123, IsInvalid) (Syntax: '123')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 456, IsInvalid) (Syntax: '456')
+        ArgumentNames(0)
+        ArgumentRefKinds(0)
+  IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'd.Goo(x: 12 ...  456, 789);')
+    Expression: IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic, IsInvalid) (Syntax: 'd.Goo(x: 12 ... : 456, 789)')
+        Expression: IDynamicMemberReferenceExpression (Member Name: ""Goo"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Goo')
+            Type Arguments(0)
+            Instance Receiver: IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
+        ApplicableSymbols(0)
+        Arguments(3):
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 123) (Syntax: '123')
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 456) (Syntax: '456')
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 789, IsInvalid) (Syntax: '789')
+        ArgumentNames(3):
+          ""x""
+          ""y""
+          ""null""
+        ArgumentRefKinds(0)
+  IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'd.Goo(ref z);')
+    Expression: IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic, IsInvalid) (Syntax: 'd.Goo(ref z)')
+        Expression: IDynamicMemberReferenceExpression (Member Name: ""Goo"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Goo')
+            Type Arguments(0)
+            Instance Receiver: IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
+        ApplicableSymbols(0)
+        Arguments(1):
+            ILocalReferenceExpression: z (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'z')
+        ArgumentNames(0)
+        ArgumentRefKinds(1):
+          Ref
+  IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'd.Goo(Syste ... iteLine());')
+    Expression: IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic, IsInvalid) (Syntax: 'd.Goo(Syste ... riteLine())')
+        Expression: IDynamicMemberReferenceExpression (Member Name: ""Goo"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Goo')
+            Type Arguments(0)
+            Instance Receiver: IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
+        ApplicableSymbols(0)
+        Arguments(1):
+            IInvocationExpression (void System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'System.Cons ... WriteLine()')
+              Instance Receiver: null
+              Arguments(0)
+        ArgumentNames(0)
+        ArgumentRefKinds(0)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1978: Cannot use an expression of type '__arglist' as an argument to a dynamically dispatched operation.
                 //         d.Goo(__arglist(123, 456));
-                Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "__arglist(123, 456)").WithArguments("__arglist"),
-                // (8,31): error CS1738: Named argument specifications must appear after all fixed arguments have been specified
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "__arglist(123, 456)").WithArguments("__arglist").WithLocation(7, 15),
+                // CS1738: Named argument specifications must appear after all fixed arguments have been specified
                 //         d.Goo(x: 123, y: 456, 789);
-                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "789"),
-                // (9,19): error CS0165: Use of unassigned local variable 'z'
-                //         d.Goo(ref z);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "z").WithArguments("z"),
-                // (10,15): error CS1978: Cannot use an expression of type 'void' as an argument to a dynamically dispatched operation.
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "789").WithLocation(8, 31),
+                // CS1978: Cannot use an expression of type 'void' as an argument to a dynamically dispatched operation.
                 //         d.Goo(System.Console.WriteLine());
-                Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "System.Console.WriteLine()").WithArguments("void"));
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "System.Console.WriteLine()").WithArguments("void").WithLocation(10, 15),
+                // CS0165: Use of unassigned local variable 'z'
+                //         d.Goo(ref z);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z").WithArguments("z").WithLocation(9, 19)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
@@ -1253,20 +1369,31 @@ class C
             string source = @"
 class C
 {
-    public void Goo() {}
-    public void Goo(int x, int y) {}
+    public void Goo() { }
+    public void Goo(int x, int y) { }
     public void M(dynamic d, C c)
     {
         // We know that this cannot possibly succeed when dynamically bound, so we give an error at compile time.
-        c.Goo(d);
+        /*<bind>*/c.Goo(d)/*</bind>*/;
     }
-}";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
-            comp.VerifyDiagnostics(
-    // (9,11): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.Goo(int, int)'
-    //         c.Goo(d);
-    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Goo").WithArguments("y", "C.Goo(int, int)").WithLocation(9, 11)
-                );
+}
+";
+            string expectedOperationTree = @"
+IInvocationExpression ( void C.Goo()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'c.Goo(d)')
+  Instance Receiver: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
+  Arguments(1):
+      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: 'd')
+        IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
+        InConversion: null
+        OutConversion: null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.Goo(int, int)'
+                //         /*<bind>*/c.Goo(d)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Goo").WithArguments("y", "C.Goo(int, int)").WithLocation(9, 21)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
@@ -1275,11 +1402,11 @@ class C
             string source = @"
 class C
 {
-    public void Goo() {}
-    public void Goo(int x) {}
-    public void Goo(string x) {}
-    public void Goo<T>(int x, int y) where T : class {}
-    public void Goo<T>(string x, string y) where T : class {}
+    public void Goo() { }
+    public void Goo(int x) { }
+    public void Goo(string x) { }
+    public void Goo<T>(int x, int y) where T : class { }
+    public void Goo<T>(string x, string y) where T : class { }
 
     static void M(dynamic d, C c)
     {
@@ -1287,16 +1414,30 @@ class C
         c.Goo(d);
 
         // Doesn't constraints of generic overloads.
-        c.Goo<short>(d, d);
+        /*<bind>*/c.Goo<short>(d, d)/*</bind>*/;
     }
-}";
-            // Dev11: doesn't report an error
+}
+";
+            string expectedOperationTree = @"
+IInvocationExpression ( ? C.()) (OperationKind.InvocationExpression, Type: ?, IsInvalid) (Syntax: 'c.Goo<short>(d, d)')
+  Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'c.Goo<short>')
+  Arguments(2):
+      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'd')
+        IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
+        InConversion: null
+        OutConversion: null
+      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'd')
+        IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
+        InConversion: null
+        OutConversion: null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0452: The type 'short' must be a reference type in order to use it as parameter 'T' in the generic type or method 'C.Goo<T>(int, int)'
+                //         /*<bind>*/c.Goo<short>(d, d)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "c.Goo<short>(d, d)").WithArguments("C.Goo<T>(int, int)", "T", "short").WithLocation(16, 19)
+            };
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
-            comp.VerifyDiagnostics(
-                // (16,9): error CS0452: The type 'short' must be a reference type in order to use it as parameter 'T' in the generic type or method 'C.Goo<T>(int, int)'
-                //         c.Goo<short>(d, d);
-                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "c.Goo<short>(d, d)").WithArguments("C.Goo<T>(int, int)", "T", "short"));
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
@@ -1305,30 +1446,78 @@ class C
             string source = @"
 using System;
 
-public class A
+class A
 {
     public Action<object> F;
     public Action<object> P { get; set; }
     public void M(int x) { }
-  
+
     public class B
     {
         public void Goo()
-        {
+        /*<bind>*/{
             dynamic d = null;
             F(d);
             P(d);
             M(d);
-        }
-    } 
-}";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
-                // (15,13): error CS0120: An object reference is required for the non-static field, method, or property 'A.F'
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "F").WithArguments("A.F"),
-                // (16,13): error CS0120: An object reference is required for the non-static field, method, or property 'A.P'
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "P").WithArguments("A.P"),
-                // (17,13): error CS0120: An object reference is required for the non-static field, method, or property 'M'
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "M(d)").WithArguments("A.M(int)"));
+        }/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ ... }')
+  Locals: Local_1: dynamic d
+  IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'dynamic d = null;')
+    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'dynamic d = null;')
+      Variables: Local_1: dynamic d
+      Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: dynamic, Constant: null) (Syntax: 'null')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+          Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+  IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'F(d);')
+    Expression: IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic, IsInvalid) (Syntax: 'F(d)')
+        Expression: IFieldReferenceExpression: System.Action<System.Object> A.F (Static) (OperationKind.FieldReferenceExpression, Type: System.Action<System.Object>, IsInvalid) (Syntax: 'F')
+            Instance Receiver: null
+        ApplicableSymbols(1):
+          Symbol: void System.Action<System.Object>.Invoke(System.Object obj)
+        Arguments(1):
+            ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
+        ArgumentNames(0)
+        ArgumentRefKinds(0)
+  IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'P(d);')
+    Expression: IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic, IsInvalid) (Syntax: 'P(d)')
+        Expression: IPropertyReferenceExpression: System.Action<System.Object> A.P { get; set; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.Action<System.Object>, IsInvalid) (Syntax: 'P')
+            Instance Receiver: null
+        ApplicableSymbols(1):
+          Symbol: void System.Action<System.Object>.Invoke(System.Object obj)
+        Arguments(1):
+            ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
+        ArgumentNames(0)
+        ArgumentRefKinds(0)
+  IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'M(d);')
+    Expression: IInvocationExpression ( ? A.B.()) (OperationKind.InvocationExpression, Type: ?, IsInvalid) (Syntax: 'M(d)')
+        Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M')
+        Arguments(1):
+            IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'd')
+              ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
+              InConversion: null
+              OutConversion: null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0120: An object reference is required for the non-static field, method, or property 'A.F'
+                //             F(d);
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "F").WithArguments("A.F").WithLocation(15, 13),
+                // CS0120: An object reference is required for the non-static field, method, or property 'A.P'
+                //             P(d);
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "P").WithArguments("A.P").WithLocation(16, 13),
+                // CS0120: An object reference is required for the non-static field, method, or property 'A.M(int)'
+                //             M(d);
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "M(d)").WithArguments("A.M(int)").WithLocation(17, 13),
+                // CS0649: Field 'A.F' is never assigned to, and will always have its default value null
+                //     public Action<object> F;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("A.F", "null").WithLocation(6, 27)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         #endregion

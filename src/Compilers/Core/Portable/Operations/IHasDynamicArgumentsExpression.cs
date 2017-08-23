@@ -11,12 +11,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     public interface IHasDynamicArgumentsExpression : IOperation
     {
         /// <summary>
-        /// Name of the dynamically invoked member.
-        /// </summary>
-        string Name { get; }
-
-        /// <summary>
-        /// List of applicable symbols that are dynamically bound to the <see cref="Name"/>.
+        /// List of applicable symbols that are dynamically bound.
         /// </summary>
         ImmutableArray<ISymbol> ApplicableSymbols { get; }
 

@@ -93,6 +93,10 @@ namespace Microsoft.CodeAnalysis.Semantics
                     return CreateBoundParameterOperation((BoundParameter)boundNode);
                 case BoundKind.Literal:
                     return CreateBoundLiteralOperation((BoundLiteral)boundNode);
+                case BoundKind.DynamicInvocation:
+                    return CreateBoundDynamicInvocationExpressionOperation((BoundDynamicInvocation)boundNode);
+                case BoundKind.DynamicIndexerAccess:
+                    return CreateBoundDynamicIndexerAccessExpressionOperation((BoundDynamicIndexerAccess)boundNode);
                 case BoundKind.ObjectCreationExpression:
                     return CreateBoundObjectCreationExpressionOperation((BoundObjectCreationExpression)boundNode);
                 case BoundKind.DynamicObjectCreationExpression:
@@ -507,6 +511,34 @@ namespace Microsoft.CodeAnalysis.Semantics
             Optional<object> constantValue = ConvertToOptional(boundDynamicObjectCreationExpression.ConstantValue);
             bool isImplicit = boundDynamicObjectCreationExpression.WasCompilerGenerated;
             return new LazyDynamicObjectCreationExpression(name, applicableSymbols, arguments, argumentNames, argumentRefKinds, initializer, _semanticModel, syntax, type, constantValue, isImplicit);
+        }
+
+        private IDynamicInvocationExpression CreateBoundDynamicInvocationExpressionOperation(BoundDynamicInvocation boundDynamicInvocation)
+        {
+            Lazy<IOperation> expression = new Lazy<IOperation>(() => Create(boundDynamicInvocation.Expression));
+            ImmutableArray<ISymbol> applicableSymbols = StaticCast<ISymbol>.From(boundDynamicInvocation.ApplicableMethods);
+            Lazy<ImmutableArray<IOperation>> arguments = new Lazy<ImmutableArray<IOperation>>(() => boundDynamicInvocation.Arguments.SelectAsArray(n => Create(n)));
+            ImmutableArray<string> argumentNames = boundDynamicInvocation.ArgumentNamesOpt.NullToEmpty();
+            ImmutableArray<RefKind> argumentRefKinds = boundDynamicInvocation.ArgumentRefKindsOpt.NullToEmpty();
+            SyntaxNode syntax = boundDynamicInvocation.Syntax;
+            ITypeSymbol type = boundDynamicInvocation.Type;
+            Optional<object> constantValue = ConvertToOptional(boundDynamicInvocation.ConstantValue);
+            bool isImplicit = boundDynamicInvocation.WasCompilerGenerated;
+            return new LazyDynamicInvocationExpression(expression, applicableSymbols, arguments, argumentNames, argumentRefKinds, _semanticModel, syntax, type, constantValue, isImplicit);
+        }
+
+        private IDynamicPropertyReferenceExpression CreateBoundDynamicIndexerAccessExpressionOperation(BoundDynamicIndexerAccess boundDynamicIndexerAccess)
+        {
+            Lazy<IOperation> expression = new Lazy<IOperation>(() => Create(boundDynamicIndexerAccess.ReceiverOpt));
+            ImmutableArray<ISymbol> applicableSymbols = StaticCast<ISymbol>.From(boundDynamicIndexerAccess.ApplicableIndexers);
+            Lazy<ImmutableArray<IOperation>> arguments = new Lazy<ImmutableArray<IOperation>>(() => boundDynamicIndexerAccess.Arguments.SelectAsArray(n => Create(n)));
+            ImmutableArray<string> argumentNames = boundDynamicIndexerAccess.ArgumentNamesOpt.NullToEmpty();
+            ImmutableArray<RefKind> argumentRefKinds = boundDynamicIndexerAccess.ArgumentRefKindsOpt.NullToEmpty();
+            SyntaxNode syntax = boundDynamicIndexerAccess.Syntax;
+            ITypeSymbol type = boundDynamicIndexerAccess.Type;
+            Optional<object> constantValue = ConvertToOptional(boundDynamicIndexerAccess.ConstantValue);
+            bool isImplicit = boundDynamicIndexerAccess.WasCompilerGenerated;
+            return new LazyDynamicPropertyReferenceExpression(expression, applicableSymbols, arguments, argumentNames, argumentRefKinds, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IObjectOrCollectionInitializerExpression CreateBoundObjectInitializerExpressionOperation(BoundObjectInitializerExpression boundObjectInitializerExpression)

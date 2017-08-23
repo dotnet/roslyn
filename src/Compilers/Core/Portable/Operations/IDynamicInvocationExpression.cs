@@ -3,22 +3,17 @@
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents a dynamically bound new/New expression.
+    /// Represents a dynamically bound invocation expression.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IDynamicObjectCreationExpression : IHasDynamicArgumentsExpression
+    public interface IDynamicInvocationExpression : IHasDynamicArgumentsExpression
     {
         /// <summary>
-        /// Name of the dynamically invoked member.
+        /// Dynamically invoked expression, which could be a dynamic member access, dynamic delegate or an invalid expression.
         /// </summary>
-        string MemberName { get; }
-
-        /// <summary>
-        /// Object or collection initializer, if any.
-        /// </summary>
-        IObjectOrCollectionInitializerExpression Initializer { get; }
+        IOperation Expression { get; }
     }
 }

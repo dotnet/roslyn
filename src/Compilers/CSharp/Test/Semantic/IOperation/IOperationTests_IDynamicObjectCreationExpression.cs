@@ -27,7 +27,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicObjectCreationExpression (Name: C) (OperationKind.TypeParameterObjectCreationExpression, Type: C) (Syntax: 'new C(d)')
+IDynamicObjectCreationExpression (Name: C) (OperationKind.DynamicObjectCreationExpression, Type: C) (Syntax: 'new C(d)')
   ApplicableSymbols(1):
     Symbol: C..ctor(System.Int32 i)
   Arguments(1):
@@ -63,7 +63,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicObjectCreationExpression (Name: C) (OperationKind.TypeParameterObjectCreationExpression, Type: C) (Syntax: 'new C(d)')
+IDynamicObjectCreationExpression (Name: C) (OperationKind.DynamicObjectCreationExpression, Type: C) (Syntax: 'new C(d)')
   ApplicableSymbols(2):
     Symbol: C..ctor(System.Int32 i)
     Symbol: C..ctor(System.Int64 i)
@@ -101,7 +101,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicObjectCreationExpression (Name: C) (OperationKind.TypeParameterObjectCreationExpression, Type: C) (Syntax: 'new C(d, c)')
+IDynamicObjectCreationExpression (Name: C) (OperationKind.DynamicObjectCreationExpression, Type: C) (Syntax: 'new C(d, c)')
   ApplicableSymbols(2):
     Symbol: C..ctor(System.Int32 i, System.Char c)
     Symbol: C..ctor(System.Int64 i, System.Char c)
@@ -139,7 +139,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicObjectCreationExpression (Name: C) (OperationKind.TypeParameterObjectCreationExpression, Type: C) (Syntax: 'new C(i: d, c: e)')
+IDynamicObjectCreationExpression (Name: C) (OperationKind.DynamicObjectCreationExpression, Type: C) (Syntax: 'new C(i: d, c: e)')
   ApplicableSymbols(2):
     Symbol: C..ctor(System.Int32 i, System.Char c)
     Symbol: C..ctor(System.Int64 i, System.Char c)
@@ -177,7 +177,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicObjectCreationExpression (Name: C) (OperationKind.TypeParameterObjectCreationExpression, Type: C) (Syntax: 'new C(ref d, out k, e)')
+IDynamicObjectCreationExpression (Name: C) (OperationKind.DynamicObjectCreationExpression, Type: C) (Syntax: 'new C(ref d, out k, e)')
   ApplicableSymbols(1):
     Symbol: C..ctor(ref System.Object i, out System.Int32 j, System.Char c)
   Arguments(3):
@@ -216,7 +216,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicObjectCreationExpression (Name: C) (OperationKind.TypeParameterObjectCreationExpression, Type: C) (Syntax: 'new C(d) { X = 0 }')
+IDynamicObjectCreationExpression (Name: C) (OperationKind.DynamicObjectCreationExpression, Type: C) (Syntax: 'new C(d) { X = 0 }')
   ApplicableSymbols(1):
     Symbol: C..ctor(System.Char c)
   Arguments(1):
@@ -260,7 +260,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicObjectCreationExpression (Name: C) (OperationKind.TypeParameterObjectCreationExpression, Type: C) (Syntax: 'new C(ref i ... ) { X = 0 }')
+IDynamicObjectCreationExpression (Name: C) (OperationKind.DynamicObjectCreationExpression, Type: C) (Syntax: 'new C(ref i ... ) { X = 0 }')
   ApplicableSymbols(2):
     Symbol: C..ctor(ref System.Int32 i, System.Char c)
     Symbol: C..ctor(ref System.Int32 i, System.Int64 c)
@@ -306,7 +306,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicObjectCreationExpression (Name: C) (OperationKind.TypeParameterObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C(delegate { }, y)')
+IDynamicObjectCreationExpression (Name: C) (OperationKind.DynamicObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C(delegate { }, y)')
   ApplicableSymbols(1):
     Symbol: C..ctor(System.Action a, System.Action y)
   Arguments(2):

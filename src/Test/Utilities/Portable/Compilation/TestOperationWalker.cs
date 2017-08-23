@@ -446,12 +446,30 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitDynamicObjectCreationExpression(IDynamicObjectCreationExpression operation)
         {
-            var name = operation.Name;
+            var name = operation.MemberName;
             var applicableSymbols = operation.ApplicableSymbols;
             var names = operation.ArgumentNames;
             var refKinds = operation.ArgumentRefKinds;
 
             base.VisitDynamicObjectCreationExpression(operation);
+        }
+
+        public override void VisitDynamicInvocationExpression(IDynamicInvocationExpression operation)
+        {
+            var applicableSymbols = operation.ApplicableSymbols;
+            var names = operation.ArgumentNames;
+            var refKinds = operation.ArgumentRefKinds;
+
+            base.VisitDynamicInvocationExpression(operation);
+        }
+
+        public override void VisitDynamicPropertyReferenceExpression(IDynamicPropertyReferenceExpression operation)
+        {
+            var applicableSymbols = operation.ApplicableSymbols;
+            var names = operation.ArgumentNames;
+            var refKinds = operation.ArgumentRefKinds;
+            
+            base.VisitDynamicPropertyReferenceExpression(operation);
         }
 
         public override void VisitObjectOrCollectionInitializerExpression(IObjectOrCollectionInitializerExpression operation)

@@ -21,11 +21,14 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None) (Syntax: 'd.F')
-  Children(1):
-      IDynamicMemberReferenceExpression (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.F')
-        Type Arguments(0)
-        Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'd.F')
+  Expression: IDynamicMemberReferenceExpression (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.F')
+      Type Arguments(0)
+      Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+  ApplicableSymbols(0)
+  Arguments(0)
+  ArgumentNames(0)
+  ArgumentRefKinds(0)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -47,12 +50,15 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None) (Syntax: 'd.F(Of String)')
-  Children(1):
-      IDynamicMemberReferenceExpression (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.F(Of String)')
-        Type Arguments(1):
-          Symbol: System.String
-        Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'd.F(Of String)')
+  Expression: IDynamicMemberReferenceExpression (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.F(Of String)')
+      Type Arguments(1):
+        Symbol: System.String
+      Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+  ApplicableSymbols(0)
+  Arguments(0)
+  ArgumentNames(0)
+  ArgumentRefKinds(0)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -74,12 +80,15 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'd.F(Of)')
-  Children(1):
-      IDynamicMemberReferenceExpression (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'd.F(Of)')
-        Type Arguments(1):
-          Symbol: ?
-        Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object, IsInvalid) (Syntax: 'd.F(Of)')
+  Expression: IDynamicMemberReferenceExpression (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'd.F(Of)')
+      Type Arguments(1):
+        Symbol: ?
+      Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+  ApplicableSymbols(0)
+  Arguments(0)
+  ArgumentNames(0)
+  ArgumentRefKinds(0)
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -105,11 +114,14 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None) (Syntax: 'd.F()')
-  Children(1):
-      IDynamicMemberReferenceExpression (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.F')
-        Type Arguments(0)
-        Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'd.F()')
+  Expression: IDynamicMemberReferenceExpression (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.F')
+      Type Arguments(0)
+      Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+  ApplicableSymbols(0)
+  Arguments(0)
+  ArgumentNames(0)
+  ArgumentRefKinds(0)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -131,15 +143,18 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'd.F(')
-  Children(2):
-      IDynamicMemberReferenceExpression (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.F')
-        Type Arguments(0)
-        Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object, IsInvalid) (Syntax: 'd.F(')
+  Expression: IDynamicMemberReferenceExpression (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.F')
+      Type Arguments(0)
+      Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+  ApplicableSymbols(0)
+  Arguments(1):
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: '')
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
             Children(0)
+  ArgumentNames(0)
+  ArgumentRefKinds(0)
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -168,12 +183,15 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None) (Syntax: 'd.GetValue(Of String)()')
-  Children(1):
-      IDynamicMemberReferenceExpression (Member Name: "GetValue", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.GetValue(Of String)')
-        Type Arguments(1):
-          Symbol: System.String
-        Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'd.GetValue(Of String)()')
+  Expression: IDynamicMemberReferenceExpression (Member Name: "GetValue", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.GetValue(Of String)')
+      Type Arguments(1):
+        Symbol: System.String
+      Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+  ApplicableSymbols(0)
+  Arguments(0)
+  ArgumentNames(0)
+  ArgumentRefKinds(0)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -195,13 +213,16 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None) (Syntax: 'd.GetValue( ...  Integer)()')
-  Children(1):
-      IDynamicMemberReferenceExpression (Member Name: "GetValue", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.GetValue( ... g, Integer)')
-        Type Arguments(2):
-          Symbol: System.String
-          Symbol: System.Int32
-        Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'd.GetValue( ...  Integer)()')
+  Expression: IDynamicMemberReferenceExpression (Member Name: "GetValue", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.GetValue( ... g, Integer)')
+      Type Arguments(2):
+        Symbol: System.String
+        Symbol: System.Int32
+      Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+  ApplicableSymbols(0)
+  Arguments(0)
+  ArgumentNames(0)
+  ArgumentRefKinds(0)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -223,13 +244,16 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'd.GetValue(Of String,)()')
-  Children(1):
-      IDynamicMemberReferenceExpression (Member Name: "GetValue", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'd.GetValue(Of String,)')
-        Type Arguments(2):
-          Symbol: System.String
-          Symbol: ?
-        Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object, IsInvalid) (Syntax: 'd.GetValue(Of String,)()')
+  Expression: IDynamicMemberReferenceExpression (Member Name: "GetValue", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'd.GetValue(Of String,)')
+      Type Arguments(2):
+        Symbol: System.String
+        Symbol: ?
+      Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+  ApplicableSymbols(0)
+  Arguments(0)
+  ArgumentNames(0)
+  ArgumentRefKinds(0)
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -255,13 +279,16 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None) (Syntax: 'd.Prop1.Prop2')
-  Children(1):
-      IDynamicMemberReferenceExpression (Member Name: "Prop2", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.Prop1.Prop2')
-        Type Arguments(0)
-        Instance Receiver: IDynamicMemberReferenceExpression (Member Name: "Prop1", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.Prop1')
-            Type Arguments(0)
-            Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'd.Prop1.Prop2')
+  Expression: IDynamicMemberReferenceExpression (Member Name: "Prop2", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.Prop1.Prop2')
+      Type Arguments(0)
+      Instance Receiver: IDynamicMemberReferenceExpression (Member Name: "Prop1", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.Prop1')
+          Type Arguments(0)
+          Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+  ApplicableSymbols(0)
+  Arguments(0)
+  ArgumentNames(0)
+  ArgumentRefKinds(0)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -283,15 +310,21 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None) (Syntax: 'd.Method1().Method2()')
-  Children(1):
-      IDynamicMemberReferenceExpression (Member Name: "Method2", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.Method1().Method2')
-        Type Arguments(0)
-        Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'd.Method1()')
-            Children(1):
-                IDynamicMemberReferenceExpression (Member Name: "Method1", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.Method1')
-                  Type Arguments(0)
-                  Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'd.Method1().Method2()')
+  Expression: IDynamicMemberReferenceExpression (Member Name: "Method2", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.Method1().Method2')
+      Type Arguments(0)
+      Instance Receiver: IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'd.Method1()')
+          Expression: IDynamicMemberReferenceExpression (Member Name: "Method1", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.Method1')
+              Type Arguments(0)
+              Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+          ApplicableSymbols(0)
+          Arguments(0)
+          ArgumentNames(0)
+          ArgumentRefKinds(0)
+  ApplicableSymbols(0)
+  Arguments(0)
+  ArgumentNames(0)
+  ArgumentRefKinds(0)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -313,13 +346,16 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None) (Syntax: 'd.Prop1.Method2()')
-  Children(1):
-      IDynamicMemberReferenceExpression (Member Name: "Method2", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.Prop1.Method2')
-        Type Arguments(0)
-        Instance Receiver: IDynamicMemberReferenceExpression (Member Name: "Prop1", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.Prop1')
-            Type Arguments(0)
-            Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'd.Prop1.Method2()')
+  Expression: IDynamicMemberReferenceExpression (Member Name: "Method2", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.Prop1.Method2')
+      Type Arguments(0)
+      Instance Receiver: IDynamicMemberReferenceExpression (Member Name: "Prop1", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.Prop1')
+          Type Arguments(0)
+          Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
+  ApplicableSymbols(0)
+  Arguments(0)
+  ArgumentNames(0)
+  ArgumentRefKinds(0)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -347,12 +383,16 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None) (Syntax: 'fun(x)')
-  Children(2):
-      IDynamicMemberReferenceExpression (Member Name: "fun", Containing Type: Module1) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'fun')
-        Type Arguments(0)
-        Instance Receiver: null
+IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'fun(x)')
+  Expression: IDynamicMemberReferenceExpression (Member Name: "fun", Containing Type: Module1) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'fun')
+      Type Arguments(0)
+      Instance Receiver: null
+  ApplicableSymbols(1):
+    Symbol: Sub Module1.fun(Of X)(a As System.Collections.Generic.List(Of X))
+  Arguments(1):
       ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'x')
+  ArgumentNames(0)
+  ArgumentRefKinds(0)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -381,19 +421,22 @@ Module Module1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None) (Syntax: 'c1.fun(x)')
-  Children(2):
-      IDynamicMemberReferenceExpression (Member Name: "fun", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'c1.fun')
-        Type Arguments(0)
-        Instance Receiver: ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: Module1.C1) (Syntax: 'c1')
+IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'c1.fun(x)')
+  Expression: IDynamicMemberReferenceExpression (Member Name: "fun", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'c1.fun')
+      Type Arguments(0)
+      Instance Receiver: ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: Module1.C1) (Syntax: 'c1')
+  ApplicableSymbols(1):
+    Symbol: Sub Module1.C1.fun(Of X)(a As System.Collections.Generic.List(Of X))
+  Arguments(1):
       ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'x')
+  ArgumentNames(0)
+  ArgumentRefKinds(0)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
     End Class
 End Namespace
 

@@ -969,12 +969,30 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IDynamicObjectCreationExpression));
 
-            var name = operation.Name;
-            LogString($" (Name: {operation.Name})");
+            var name = operation.MemberName;
+            LogString($" (Name: {operation.MemberName})");
             LogCommonPropertiesAndNewLine(operation);
 
             VisitDynamicArguments(operation);
             Visit(operation.Initializer, "Initializer");
+        }
+
+        public override void VisitDynamicInvocationExpression(IDynamicInvocationExpression operation)
+        {
+            LogString(nameof(IDynamicInvocationExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Expression, "Expression");
+            VisitDynamicArguments(operation);
+        }
+
+        public override void VisitDynamicPropertyReferenceExpression(IDynamicPropertyReferenceExpression operation)
+        {
+            LogString(nameof(IDynamicPropertyReferenceExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Expression, "Expression");
+            VisitDynamicArguments(operation);
         }
 
         public override void VisitObjectOrCollectionInitializerExpression(IObjectOrCollectionInitializerExpression operation)
