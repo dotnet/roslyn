@@ -40,7 +40,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly ReferenceCountedDisposable<RemotableDataJsonRpc> _remotableDataRpc;
 
         private readonly object _globalNotificationsGate = new object();
-        private readonly CancellationTokenSource _globalNotificationsTokenSource = new CancellationTokenSource();
         private Task<GlobalNotificationState> _globalNotificationsTask = Task.FromResult(GlobalNotificationState.NotStarted);
         private KeepAliveSession _keepAliveSession;
 
@@ -180,8 +179,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private void UnregisterGlobalOperationNotifications()
         {
-            // Cancel any 
-            _globalNotificationsTokenSource.Cancel();
             var globalOperationService = this.Workspace.Services.GetService<IGlobalOperationNotificationService>();
             if (globalOperationService != null)
             {
@@ -232,7 +229,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     await session.TryInvokeAsync(
                         nameof(IRemoteHostService.OnGlobalOperationStarted),
                         new object[] { "" },
-                        _globalNotificationsTokenSource.Token).ConfigureAwait(false);
+                        CancellationToken.None).ConfigureAwait(false);
                 }
 
                 return GlobalNotificationState.Started;
@@ -264,7 +261,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     await session.TryInvokeAsync(
                         nameof(IRemoteHostService.OnGlobalOperationStopped),
                         new object[] { e.Operations, e.Cancelled },
-                        _globalNotificationsTokenSource.Token).ConfigureAwait(false);
+                        CancellationToken.None).ConfigureAwait(false);
                 }
 
                 // Mark that we're stopped now.
@@ -277,7 +274,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             if (_keepAliveSession == null)
             {
                 _keepAliveSession = await this.TryCreateKeepAliveSessionAsync(
-                    WellKnownRemoteHostServices.RemoteHostService, _globalNotificationsTokenSource.Token).ConfigureAwait(false);
+                    WellKnownRemoteHostServices.RemoteHostService, CancellationToken.None).ConfigureAwait(false);
             }
 
             return _keepAliveSession;
