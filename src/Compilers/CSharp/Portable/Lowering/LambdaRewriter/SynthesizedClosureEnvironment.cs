@@ -99,7 +99,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override ImmutableArray<Symbol> GetMembers()
         {
             var builder = ArrayBuilder<Symbol>.GetInstance();
-            builder.AddRange(base.GetMembers());
             if ((object)StaticConstructor != null)
             {
                 builder.Add(StaticConstructor);
@@ -111,6 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(EncStructExpansionField);
             }
 
+            builder.AddRange(base.GetMembers());
             return builder.ToImmutableAndFree();
         }
 

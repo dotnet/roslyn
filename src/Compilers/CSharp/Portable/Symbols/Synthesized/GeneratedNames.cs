@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static string MakeEncStructExpansionFieldName()
         {
             Debug.Assert((char)GeneratedNameKind.EncStructExpansionField == 'v');
-            return "<>v_encStructExpansion";
+            return "<>v__encStructExpansion";
         }
 
         internal static string ThisProxyFieldName()
