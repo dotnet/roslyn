@@ -213,19 +213,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private EnvDTE.CodeElement GetParameterElementForCodeModelEvent(CodeModelEvent codeModelEvent, object parentElement)
         {
-            if (parentElement is EnvDTE.CodeDelegate parentDelegate)
+            switch (parentElement)
             {
-                return GetParameterElementForCodeModelEvent(codeModelEvent, parentDelegate.Parameters, parentElement);
-            }
-
-            if (parentElement is EnvDTE.CodeFunction parentFunction)
-            {
-                return GetParameterElementForCodeModelEvent(codeModelEvent, parentFunction.Parameters, parentElement);
-            }
-
-            if (parentElement is EnvDTE80.CodeProperty2 parentProperty)
-            {
-                return GetParameterElementForCodeModelEvent(codeModelEvent, parentProperty.Parameters, parentElement);
+                case EnvDTE.CodeDelegate parentDelegate:
+                    return GetParameterElementForCodeModelEvent(codeModelEvent, parentDelegate.Parameters, parentElement);
+                case EnvDTE.CodeFunction parentFunction:
+                    return GetParameterElementForCodeModelEvent(codeModelEvent, parentFunction.Parameters, parentElement);
+                case EnvDTE80.CodeProperty2 parentProperty:
+                    return GetParameterElementForCodeModelEvent(codeModelEvent, parentProperty.Parameters, parentElement);
             }
 
             return null;
@@ -261,39 +256,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var node = codeModelEvent.Node;
             var parentNode = codeModelEvent.ParentNode;
             var eventType = codeModelEvent.Type;
-
-            if (parentElement is EnvDTE.CodeType parentType)
+            switch (parentElement)
             {
-                return GetAttributeElementForCodeModelEvent(node, parentNode, eventType, parentType.Attributes, parentElement);
-            }
+                case EnvDTE.CodeType parentType:
+                    return GetAttributeElementForCodeModelEvent(node, parentNode, eventType, parentType.Attributes, parentElement);
+                case EnvDTE.CodeFunction parentFunction:
+                    return GetAttributeElementForCodeModelEvent(node, parentNode, eventType, parentFunction.Attributes, parentElement);
+                case EnvDTE.CodeProperty parentProperty:
+                    return GetAttributeElementForCodeModelEvent(node, parentNode, eventType, parentProperty.Attributes, parentElement);
+                case EnvDTE80.CodeEvent parentEvent:
+                    return GetAttributeElementForCodeModelEvent(node, parentNode, eventType, parentEvent.Attributes, parentElement);
+                case EnvDTE.CodeVariable parentVariable:
+                    return GetAttributeElementForCodeModelEvent(node, parentNode, eventType, parentVariable.Attributes, parentElement);
+                case EnvDTE.FileCodeModel parentFileCodeModel:
+                    {
+                        var fileCodeModel = ComAggregate.TryGetManagedObject<FileCodeModel>(parentElement);
+                        parentNode = fileCodeModel.GetSyntaxRoot();
 
-            if (parentElement is EnvDTE.CodeFunction parentFunction)
-            {
-                return GetAttributeElementForCodeModelEvent(node, parentNode, eventType, parentFunction.Attributes, parentElement);
-            }
-
-            if (parentElement is EnvDTE.CodeProperty parentProperty)
-            {
-                return GetAttributeElementForCodeModelEvent(node, parentNode, eventType, parentProperty.Attributes, parentElement);
-            }
-
-            if (parentElement is EnvDTE80.CodeEvent parentEvent)
-            {
-                return GetAttributeElementForCodeModelEvent(node, parentNode, eventType, parentEvent.Attributes, parentElement);
-            }
-
-            if (parentElement is EnvDTE.CodeVariable parentVariable)
-            {
-                return GetAttributeElementForCodeModelEvent(node, parentNode, eventType, parentVariable.Attributes, parentElement);
-            }
-
-            // In the following case, parentNode is null and the root should be used instead.
-            if (parentElement is EnvDTE.FileCodeModel parentFileCodeModel)
-            {
-                var fileCodeModel = ComAggregate.TryGetManagedObject<FileCodeModel>(parentElement);
-                parentNode = fileCodeModel.GetSyntaxRoot();
-
-                return GetAttributeElementForCodeModelEvent(node, parentNode, eventType, parentFileCodeModel.CodeElements, parentElement);
+                        return GetAttributeElementForCodeModelEvent(node, parentNode, eventType, parentFileCodeModel.CodeElements, parentElement);
+                    }
             }
 
             return null;

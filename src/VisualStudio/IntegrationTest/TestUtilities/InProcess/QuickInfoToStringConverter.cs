@@ -17,24 +17,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         private static string GetStringFromItem(object item)
         {
-            if (item is StackPanel displayPanel)
+            switch (item)
             {
-                return displayPanel.ToString();
-            }
-
-            if (item is string itemString)
-            {
-                return itemString;
-            }
-
-            if (item is TextBlock textBlock)
-            {
-                return GetStringFromTextBlock(textBlock);
-            }
-
-            if (item is ITextBuffer textBuffer)
-            {
-                return textBuffer.CurrentSnapshot.GetText();
+                case StackPanel displayPanel:
+                    return displayPanel.ToString();
+                case string itemString:
+                    return itemString;
+                case TextBlock textBlock:
+                    return GetStringFromTextBlock(textBlock);
+                case ITextBuffer textBuffer:
+                    return textBuffer.CurrentSnapshot.GetText();
             }
 
             return null;

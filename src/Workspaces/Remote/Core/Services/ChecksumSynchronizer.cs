@@ -112,16 +112,14 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             foreach (var checksumOrCollection in checksumOrCollections)
             {
-                if (checksumOrCollection is Checksum checksum)
+                switch (checksumOrCollection)
                 {
-                    AddIfNeeded(checksums, checksum);
-                    continue;
-                }
-
-                if (checksumOrCollection is ChecksumCollection checksumCollection)
-                {
-                    AddIfNeeded(checksums, checksumCollection);
-                    continue;
+                    case Checksum checksum:
+                        AddIfNeeded(checksums, checksum);
+                        continue;
+                    case ChecksumCollection checksumCollection:
+                        AddIfNeeded(checksums, checksumCollection);
+                        continue;
                 }
 
                 throw ExceptionUtilities.UnexpectedValue(checksumOrCollection);

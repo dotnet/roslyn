@@ -327,33 +327,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var attributeSyntaxList = AttributeGenerator.GenerateAttributeLists(attributes.ToImmutableArray(), options, target).ToArray();
 
-            // Handle all members including types.
-            if (destination is MemberDeclarationSyntax member)
+            switch (destination)
             {
-                return Cast<TDeclarationNode>(member.AddAttributeLists(attributeSyntaxList));
-            }
-
-            // Handle accessors
-            if (destination is AccessorDeclarationSyntax accessor)
-            {
-                return Cast<TDeclarationNode>(accessor.AddAttributeLists(attributeSyntaxList));
-            }
-
-            // Handle global attributes
-            if (destination is CompilationUnitSyntax compilationUnit)
-            {
-                return Cast<TDeclarationNode>(compilationUnit.AddAttributeLists(attributeSyntaxList));
-            }
-
-            // Handle parameters
-            if (destination is ParameterSyntax parameter)
-            {
-                return Cast<TDeclarationNode>(parameter.AddAttributeLists(attributeSyntaxList));
-            }
-
-            if (destination is TypeParameterSyntax typeParameter)
-            {
-                return Cast<TDeclarationNode>(typeParameter.AddAttributeLists(attributeSyntaxList));
+                case MemberDeclarationSyntax member:
+                    // Handle all members including types.
+                    return Cast<TDeclarationNode>(member.AddAttributeLists(attributeSyntaxList));
+                case AccessorDeclarationSyntax accessor:
+                    // Handle accessors
+                    return Cast<TDeclarationNode>(accessor.AddAttributeLists(attributeSyntaxList));
+                case CompilationUnitSyntax compilationUnit:
+                    // Handle global attributes
+                    return Cast<TDeclarationNode>(compilationUnit.AddAttributeLists(attributeSyntaxList));
+                case ParameterSyntax parameter:
+                    // Handle parameters
+                    return Cast<TDeclarationNode>(parameter.AddAttributeLists(attributeSyntaxList));
+                case TypeParameterSyntax typeParameter:
+                    return Cast<TDeclarationNode>(typeParameter.AddAttributeLists(attributeSyntaxList));
             }
 
             return destination;
@@ -415,43 +404,46 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             int positionOfRemovedNode;
             SyntaxTriviaList triviaOfRemovedNode;
 
-            // Handle all members including types.
-            if (destination is MemberDeclarationSyntax member)
+            switch (destination)
             {
-                var newAttributeLists = RemoveAttributeFromAttributeLists(member.GetAttributes(), attributeToRemove, options, out positionOfRemovedNode, out triviaOfRemovedNode);
-                var newMember = member.WithAttributeLists(newAttributeLists);
-                return Cast<TDeclarationNode>(AppendTriviaAtPosition(newMember, positionOfRemovedNode - destination.FullSpan.Start, triviaOfRemovedNode));
-            }
+                case MemberDeclarationSyntax member:
+                    {
+                        // Handle all members including types.
+                        var newAttributeLists = RemoveAttributeFromAttributeLists(member.GetAttributes(), attributeToRemove, options, out positionOfRemovedNode, out triviaOfRemovedNode);
+                        var newMember = member.WithAttributeLists(newAttributeLists);
+                        return Cast<TDeclarationNode>(AppendTriviaAtPosition(newMember, positionOfRemovedNode - destination.FullSpan.Start, triviaOfRemovedNode));
+                    }
 
-            // Handle accessors
-            if (destination is AccessorDeclarationSyntax accessor)
-            {
-                var newAttributeLists = RemoveAttributeFromAttributeLists(accessor.AttributeLists, attributeToRemove, options, out positionOfRemovedNode, out triviaOfRemovedNode);
-                var newAccessor = accessor.WithAttributeLists(newAttributeLists);
-                return Cast<TDeclarationNode>(AppendTriviaAtPosition(newAccessor, positionOfRemovedNode - destination.FullSpan.Start, triviaOfRemovedNode));
-            }
+                case AccessorDeclarationSyntax accessor:
+                    {
+                        // Handle accessors
+                        var newAttributeLists = RemoveAttributeFromAttributeLists(accessor.AttributeLists, attributeToRemove, options, out positionOfRemovedNode, out triviaOfRemovedNode);
+                        var newAccessor = accessor.WithAttributeLists(newAttributeLists);
+                        return Cast<TDeclarationNode>(AppendTriviaAtPosition(newAccessor, positionOfRemovedNode - destination.FullSpan.Start, triviaOfRemovedNode));
+                    }
 
-            // Handle global attributes
-            if (destination is CompilationUnitSyntax compilationUnit)
-            {
-                var newAttributeLists = RemoveAttributeFromAttributeLists(compilationUnit.AttributeLists, attributeToRemove, options, out positionOfRemovedNode, out triviaOfRemovedNode);
-                var newCompilationUnit = compilationUnit.WithAttributeLists(newAttributeLists);
-                return Cast<TDeclarationNode>(AppendTriviaAtPosition(newCompilationUnit, positionOfRemovedNode - destination.FullSpan.Start, triviaOfRemovedNode));
-            }
+                case CompilationUnitSyntax compilationUnit:
+                    {
+                        // Handle global attributes
+                        var newAttributeLists = RemoveAttributeFromAttributeLists(compilationUnit.AttributeLists, attributeToRemove, options, out positionOfRemovedNode, out triviaOfRemovedNode);
+                        var newCompilationUnit = compilationUnit.WithAttributeLists(newAttributeLists);
+                        return Cast<TDeclarationNode>(AppendTriviaAtPosition(newCompilationUnit, positionOfRemovedNode - destination.FullSpan.Start, triviaOfRemovedNode));
+                    }
 
-            // Handle parameters
-            if (destination is ParameterSyntax parameter)
-            {
-                var newAttributeLists = RemoveAttributeFromAttributeLists(parameter.AttributeLists, attributeToRemove, options, out positionOfRemovedNode, out triviaOfRemovedNode);
-                var newParameter = parameter.WithAttributeLists(newAttributeLists);
-                return Cast<TDeclarationNode>(AppendTriviaAtPosition(newParameter, positionOfRemovedNode - destination.FullSpan.Start, triviaOfRemovedNode));
-            }
+                case ParameterSyntax parameter:
+                    {
+                        // Handle parameters
+                        var newAttributeLists = RemoveAttributeFromAttributeLists(parameter.AttributeLists, attributeToRemove, options, out positionOfRemovedNode, out triviaOfRemovedNode);
+                        var newParameter = parameter.WithAttributeLists(newAttributeLists);
+                        return Cast<TDeclarationNode>(AppendTriviaAtPosition(newParameter, positionOfRemovedNode - destination.FullSpan.Start, triviaOfRemovedNode));
+                    }
 
-            if (destination is TypeParameterSyntax typeParameter)
-            {
-                var newAttributeLists = RemoveAttributeFromAttributeLists(typeParameter.AttributeLists, attributeToRemove, options, out positionOfRemovedNode, out triviaOfRemovedNode);
-                var newTypeParameter = typeParameter.WithAttributeLists(newAttributeLists);
-                return Cast<TDeclarationNode>(AppendTriviaAtPosition(newTypeParameter, positionOfRemovedNode - destination.FullSpan.Start, triviaOfRemovedNode));
+                case TypeParameterSyntax typeParameter:
+                    {
+                        var newAttributeLists = RemoveAttributeFromAttributeLists(typeParameter.AttributeLists, attributeToRemove, options, out positionOfRemovedNode, out triviaOfRemovedNode);
+                        var newTypeParameter = typeParameter.WithAttributeLists(newAttributeLists);
+                        return Cast<TDeclarationNode>(AppendTriviaAtPosition(newTypeParameter, positionOfRemovedNode - destination.FullSpan.Start, triviaOfRemovedNode));
+                    }
             }
 
             return destination;
@@ -646,28 +638,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static TDeclarationNode UpdateDeclarationModifiers<TDeclarationNode>(TDeclarationNode declaration, Func<SyntaxTokenList, SyntaxTokenList> computeNewModifiersList, CodeGenerationOptions options, CancellationToken cancellationToken)
         {
-            // Handle type declarations.
-            if (declaration is BaseTypeDeclarationSyntax typeDeclaration)
+            switch (declaration)
             {
-                return Cast<TDeclarationNode>(typeDeclaration.WithModifiers(computeNewModifiersList(typeDeclaration.Modifiers)));
-            }
-
-            // Handle field declarations.
-            if (declaration is BaseFieldDeclarationSyntax fieldDeclaration)
-            {
-                return Cast<TDeclarationNode>(fieldDeclaration.WithModifiers(computeNewModifiersList(fieldDeclaration.Modifiers)));
-            }
-
-            // Handle method declarations.
-            if (declaration is BaseMethodDeclarationSyntax methodDeclaration)
-            {
-                return Cast<TDeclarationNode>(methodDeclaration.WithModifiers(computeNewModifiersList(methodDeclaration.Modifiers)));
-            }
-
-            // Handle properties.
-            if (declaration is BasePropertyDeclarationSyntax propertyDeclaration)
-            {
-                return Cast<TDeclarationNode>(propertyDeclaration.WithModifiers(computeNewModifiersList(propertyDeclaration.Modifiers)));
+                case BaseTypeDeclarationSyntax typeDeclaration:
+                    // Handle type declarations.
+                    return Cast<TDeclarationNode>(typeDeclaration.WithModifiers(computeNewModifiersList(typeDeclaration.Modifiers)));
+                case BaseFieldDeclarationSyntax fieldDeclaration:
+                    // Handle field declarations.
+                    return Cast<TDeclarationNode>(fieldDeclaration.WithModifiers(computeNewModifiersList(fieldDeclaration.Modifiers)));
+                case BaseMethodDeclarationSyntax methodDeclaration:
+                    // Handle method declarations.
+                    return Cast<TDeclarationNode>(methodDeclaration.WithModifiers(computeNewModifiersList(methodDeclaration.Modifiers)));
+                case BasePropertyDeclarationSyntax propertyDeclaration:
+                    // Handle properties.
+                    return Cast<TDeclarationNode>(propertyDeclaration.WithModifiers(computeNewModifiersList(propertyDeclaration.Modifiers)));
             }
 
             return declaration;

@@ -474,22 +474,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                if (argumentList.Parent is InvocationExpressionSyntax invocation)
+                switch (argumentList.Parent)
                 {
-                    var index = this.GetArgumentListIndex(argumentList, previousToken);
-                    return InferTypeInInvocationExpression(invocation, index);
-                }
+                    case InvocationExpressionSyntax invocation:
+                        {
+                            var index = this.GetArgumentListIndex(argumentList, previousToken);
+                            return InferTypeInInvocationExpression(invocation, index);
+                        }
 
-                if (argumentList.Parent is ObjectCreationExpressionSyntax objectCreation)
-                {
-                    var index = this.GetArgumentListIndex(argumentList, previousToken);
-                    return InferTypeInObjectCreationExpression(objectCreation, index);
-                }
+                    case ObjectCreationExpressionSyntax objectCreation:
+                        {
+                            var index = this.GetArgumentListIndex(argumentList, previousToken);
+                            return InferTypeInObjectCreationExpression(objectCreation, index);
+                        }
 
-                if (argumentList.Parent is ConstructorInitializerSyntax constructorInitializer)
-                {
-                    var index = this.GetArgumentListIndex(argumentList, previousToken);
-                    return InferTypeInConstructorInitializer(constructorInitializer, index);
+                    case ConstructorInitializerSyntax constructorInitializer:
+                        {
+                            var index = this.GetArgumentListIndex(argumentList, previousToken);
+                            return InferTypeInConstructorInitializer(constructorInitializer, index);
+                        }
                 }
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();

@@ -651,39 +651,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetBraces(this SyntaxNode node)
         {
-            if (node is NamespaceDeclarationSyntax namespaceNode)
+            switch (node)
             {
-                return (namespaceNode.OpenBraceToken, namespaceNode.CloseBraceToken);
-            }
-
-            if (node is BaseTypeDeclarationSyntax baseTypeNode)
-            {
-                return (baseTypeNode.OpenBraceToken, baseTypeNode.CloseBraceToken);
-            }
-
-            if (node is AccessorListSyntax accessorListNode)
-            {
-                return (accessorListNode.OpenBraceToken, accessorListNode.CloseBraceToken);
-            }
-
-            if (node is BlockSyntax blockNode)
-            {
-                return (blockNode.OpenBraceToken, blockNode.CloseBraceToken);
-            }
-
-            if (node is SwitchStatementSyntax switchStatementNode)
-            {
-                return (switchStatementNode.OpenBraceToken, switchStatementNode.CloseBraceToken);
-            }
-
-            if (node is AnonymousObjectCreationExpressionSyntax anonymousObjectCreationExpression)
-            {
-                return (anonymousObjectCreationExpression.OpenBraceToken, anonymousObjectCreationExpression.CloseBraceToken);
-            }
-
-            if (node is InitializerExpressionSyntax initializeExpressionNode)
-            {
-                return (initializeExpressionNode.OpenBraceToken, initializeExpressionNode.CloseBraceToken);
+                case NamespaceDeclarationSyntax namespaceNode:
+                    return (namespaceNode.OpenBraceToken, namespaceNode.CloseBraceToken);
+                case BaseTypeDeclarationSyntax baseTypeNode:
+                    return (baseTypeNode.OpenBraceToken, baseTypeNode.CloseBraceToken);
+                case AccessorListSyntax accessorListNode:
+                    return (accessorListNode.OpenBraceToken, accessorListNode.CloseBraceToken);
+                case BlockSyntax blockNode:
+                    return (blockNode.OpenBraceToken, blockNode.CloseBraceToken);
+                case SwitchStatementSyntax switchStatementNode:
+                    return (switchStatementNode.OpenBraceToken, switchStatementNode.CloseBraceToken);
+                case AnonymousObjectCreationExpressionSyntax anonymousObjectCreationExpression:
+                    return (anonymousObjectCreationExpression.OpenBraceToken, anonymousObjectCreationExpression.CloseBraceToken);
+                case InitializerExpressionSyntax initializeExpressionNode:
+                    return (initializeExpressionNode.OpenBraceToken, initializeExpressionNode.CloseBraceToken);
             }
 
             return default;
@@ -858,35 +841,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool CheckTopLevel(this SyntaxNode node, TextSpan span)
         {
-            if (node is BlockSyntax block)
+            switch (node)
             {
-                return block.ContainsInBlockBody(span);
-            }
-
-            if (node is ArrowExpressionClauseSyntax expressionBodiedMember)
-            {
-                return expressionBodiedMember.ContainsInExpressionBodiedMemberBody(span);
-            }
-
-            if (node is FieldDeclarationSyntax field)
-            {
-                foreach (var variable in field.Declaration.Variables)
-                {
-                    if (variable.Initializer != null && variable.Initializer.Span.Contains(span))
+                case BlockSyntax block:
+                    return block.ContainsInBlockBody(span);
+                case ArrowExpressionClauseSyntax expressionBodiedMember:
+                    return expressionBodiedMember.ContainsInExpressionBodiedMemberBody(span);
+                case FieldDeclarationSyntax field:
                     {
-                        return true;
+                        foreach (var variable in field.Declaration.Variables)
+                        {
+                            if (variable.Initializer != null && variable.Initializer.Span.Contains(span))
+                            {
+                                return true;
+                            }
+                        }
+
+                        break;
                     }
-                }
-            }
 
-            if (node is GlobalStatementSyntax global)
-            {
-                return true;
-            }
-
-            if (node is ConstructorInitializerSyntax constructorInitializer)
-            {
-                return constructorInitializer.ContainsInArgument(span);
+                case GlobalStatementSyntax global:
+                    return true;
+                case ConstructorInitializerSyntax constructorInitializer:
+                    return constructorInitializer.ContainsInArgument(span);
             }
 
             return false;
@@ -926,24 +903,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static IEnumerable<MemberDeclarationSyntax> GetMembers(this SyntaxNode node)
         {
-            if (node is CompilationUnitSyntax compilation)
+            switch (node)
             {
-                return compilation.Members;
-            }
-
-            if (node is NamespaceDeclarationSyntax @namespace)
-            {
-                return @namespace.Members;
-            }
-
-            if (node is TypeDeclarationSyntax type)
-            {
-                return type.Members;
-            }
-
-            if (node is EnumDeclarationSyntax @enum)
-            {
-                return @enum.Members;
+                case CompilationUnitSyntax compilation:
+                    return compilation.Members;
+                case NamespaceDeclarationSyntax @namespace:
+                    return @namespace.Members;
+                case TypeDeclarationSyntax type:
+                    return type.Members;
+                case EnumDeclarationSyntax @enum:
+                    return @enum.Members;
             }
 
             return SpecializedCollections.EmptyEnumerable<MemberDeclarationSyntax>();

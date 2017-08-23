@@ -130,19 +130,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return default;
             }
 
-            if (token.Parent is ExpressionSyntax expression)
+            switch (token.Parent)
             {
-                return semanticModel.GetSymbolInfo(expression);
-            }
-
-            if (token.Parent is AttributeSyntax attribute)
-            {
-                return semanticModel.GetSymbolInfo(attribute);
-            }
-
-            if (token.Parent is ConstructorInitializerSyntax constructorInitializer)
-            {
-                return semanticModel.GetSymbolInfo(constructorInitializer);
+                case ExpressionSyntax expression:
+                    return semanticModel.GetSymbolInfo(expression);
+                case AttributeSyntax attribute:
+                    return semanticModel.GetSymbolInfo(attribute);
+                case ConstructorInitializerSyntax constructorInitializer:
+                    return semanticModel.GetSymbolInfo(constructorInitializer);
             }
 
             return default;

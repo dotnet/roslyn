@@ -34,24 +34,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
 
         public IVsNavInfo CreateForSymbol(ISymbol symbol, Project project, Compilation compilation, bool useExpandedHierarchy = false)
         {
-            if (symbol is IAssemblySymbol assemblySymbol)
+            switch (symbol)
             {
-                return CreateForAssembly(assemblySymbol);
-            }
-
-            if (symbol is IAliasSymbol aliasSymbol)
-            {
-                symbol = aliasSymbol.Target;
-            }
-
-            if (symbol is INamespaceSymbol namespaceSymbol)
-            {
-                return CreateForNamespace(namespaceSymbol, project, compilation, useExpandedHierarchy);
-            }
-
-            if (symbol is ITypeSymbol typeSymbol)
-            {
-                return CreateForType(typeSymbol, project, compilation, useExpandedHierarchy);
+                case IAssemblySymbol assemblySymbol:
+                    return CreateForAssembly(assemblySymbol);
+                case IAliasSymbol aliasSymbol:
+                    symbol = aliasSymbol.Target;
+                    break;
+                case INamespaceSymbol namespaceSymbol:
+                    return CreateForNamespace(namespaceSymbol, project, compilation, useExpandedHierarchy);
+                case ITypeSymbol typeSymbol:
+                    return CreateForType(typeSymbol, project, compilation, useExpandedHierarchy);
             }
 
             if (symbol.Kind == SymbolKind.Event ||

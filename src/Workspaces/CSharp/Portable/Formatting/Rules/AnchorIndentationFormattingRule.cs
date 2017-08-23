@@ -48,40 +48,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            if (node is StatementSyntax statement)
+            switch (node)
             {
-                AddAnchorIndentationOperation(list, statement);
-                return;
-            }
-
-            if (node is UsingDirectiveSyntax usingNode)
-            {
-                AddAnchorIndentationOperation(list, usingNode);
-                return;
-            }
-
-            if (node is NamespaceDeclarationSyntax namespaceNode)
-            {
-                AddAnchorIndentationOperation(list, namespaceNode);
-                return;
-            }
-
-            if (node is TypeDeclarationSyntax typeNode)
-            {
-                AddAnchorIndentationOperation(list, typeNode);
-                return;
-            }
-
-            if (node is MemberDeclarationSyntax memberDeclNode)
-            {
-                AddAnchorIndentationOperation(list, memberDeclNode);
-                return;
-            }
-
-            if (node is AccessorDeclarationSyntax accessorDeclNode)
-            {
-                AddAnchorIndentationOperation(list, accessorDeclNode);
-                return;
+                case StatementSyntax statement:
+                    AddAnchorIndentationOperation(list, statement);
+                    return;
+                case UsingDirectiveSyntax usingNode:
+                    AddAnchorIndentationOperation(list, usingNode);
+                    return;
+                case NamespaceDeclarationSyntax namespaceNode:
+                    AddAnchorIndentationOperation(list, namespaceNode);
+                    return;
+                case TypeDeclarationSyntax typeNode:
+                    AddAnchorIndentationOperation(list, typeNode);
+                    return;
+                case MemberDeclarationSyntax memberDeclNode:
+                    AddAnchorIndentationOperation(list, memberDeclNode);
+                    return;
+                case AccessorDeclarationSyntax accessorDeclNode:
+                    AddAnchorIndentationOperation(list, accessorDeclNode);
+                    return;
             }
         }
 
