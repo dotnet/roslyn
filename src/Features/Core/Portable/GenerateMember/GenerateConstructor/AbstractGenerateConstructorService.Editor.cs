@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 var isThis = namedType.Equals(_state.TypeToGenerateIn);
                 var delegatingArguments = syntaxFactory.CreateArguments(delegatedConstructor.Parameters);
                 var baseConstructorArguments = isThis ? default : delegatingArguments;
-                var thisConstructorArguments = isThis ? delegatingArguments : default;
+                var thisConstructorArguments = isThis && !_state.IsConstructorInitializerGeneration ? delegatingArguments : default;
 
                 var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
                     attributes: default,

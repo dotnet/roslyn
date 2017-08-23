@@ -3277,5 +3277,31 @@ class P {
     }
 } ");
         }
+
+        [WorkItem(21692, "https://github.com/dotnet/roslyn/issues/21692")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestDelegateConstructor()
+        {
+            await TestInRegularAndScriptAsync(
+@"class A
+{
+    public A(int a) : [|this(a, 1)|]
+    {
+    }
+}",
+@"class A
+{
+    private int v;
+
+    public A(int a) : this(a, 1)
+    {
+    }
+
+    public A(int a, int v)
+    {
+        this.v = v;
+    }
+}");
+        }
     }
 }
