@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.DiaSymReader;
+using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.PdbUtilities;
@@ -1128,6 +1129,70 @@ class B : A
   IL_0001:  ldfld      ""object C.F""
   IL_0006:  ret
 }");
+        }
+
+        [WorkItem(4141, "https://github.com/dotnet/roslyn/issues/4141")]
+        [Fact]
+        public void IsFatalException()
+        {
+            Assert.True(ExpressionEvaluatorFatalError.IsFatalException(new Exception()));
+            Assert.True(ExpressionEvaluatorFatalError.IsFatalException(new StackOverflowException()));
+            Assert.False(ExpressionEvaluatorFatalError.IsFatalException(new NotImplementedException()));
+            Assert.True(ExpressionEvaluatorFatalError.IsFatalException(new UnsupportedSignatureContent()));
+
+            Assert.True(ExpressionCompiler.IsFatalException(new Exception()));
+            Assert.True(ExpressionCompiler.IsFatalException(new StackOverflowException()));
+            Assert.False(ExpressionCompiler.IsFatalException(new NotImplementedException()));
+            Assert.False(ExpressionCompiler.IsFatalException(new UnsupportedSignatureContent()));
+
+            Assert.True(ExpressionEvaluatorFatalError.IsFatalExceptionCode(DkmExceptionCode.E_FAIL));
+            Assert.True(ExpressionEvaluatorFatalError.IsFatalExceptionCode(DkmExceptionCode.E_EVALUATE_TIMEOUT));
+            Assert.False(ExpressionEvaluatorFatalError.IsFatalExceptionCode(DkmExceptionCode.E_PROCESS_DESTROYED));
+            Assert.False(ExpressionEvaluatorFatalError.IsFatalExceptionCode(DkmExceptionCode.E_XAPI_REMOTE_CLOSED));
+            Assert.False(ExpressionEvaluatorFatalError.IsFatalExceptionCode(DkmExceptionCode.E_XAPI_REMOTE_DISCONNECTED));
+            Assert.False(ExpressionEvaluatorFatalError.IsFatalExceptionCode(DkmExceptionCode.E_XAPI_COMPONENT_DLL_NOT_FOUND));
+        }
+
+        /// <summary>
+        /// Local with (unsupported) required modifier.
+        /// CreateMethodContext should throw an unhandled UnsupportedSignatureContent
+        /// exception. (Unhandled because without recognizing the existing local signature,
+        /// the ExpressionCompiler cannot generate an evaluation method that uses locals,
+        /// or creates temporaries since those would overwrite existing locals.)
+        /// </summary>
+        [WorkItem(4141, "https://github.com/dotnet/roslyn/issues/4141")]
+        [Fact]
+        public void LocalType_UnsupportedSignatureContent()
+        {
+            var source =
+@".class C
+{
+  .method public specialname rtspecialname instance void .ctor()
+  {
+    ret
+  }
+  .method private static object F()
+  {
+    ldnull
+    ret
+  }
+  .method private static void M1()
+  {
+    .locals init ([0] object other, [1] object modreq(int32) o)
+    call object C::F()
+    stloc.1
+    ldloc.1
+    call void C::M2(object)
+    ret
+  }
+  .method private static void M2(object o)
+  {
+    ret
+  }
+}";
+            var module = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(source);
+            var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
+            Assert.Throws<UnsupportedSignatureContent>(() => CreateMethodContext(runtime, methodName: "C.M1"));
         }
 
         [WorkItem(1012956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012956")]

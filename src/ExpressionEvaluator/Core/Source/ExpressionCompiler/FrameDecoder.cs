@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 inspectionContext.GetFrameName(workList, frame, argumentFlags, completionRoutine);
             }
-            catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
+            catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e)) // ExpressionCompiler.CrashIfFailFastEnabled(e)?
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 inspectionContext.GetFrameReturnType(workList, frame, completionRoutine);
             }
-            catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
+            catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e)) // ExpressionCompiler.CrashIfFailFastEnabled(e)?
             {
                 throw ExceptionUtilities.Unreachable;
             }
