@@ -552,19 +552,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             private ITypeSymbol GetSymbolType(SemanticModel model, ISymbol symbol)
             {
-                if (symbol is ILocalSymbol local)
+                switch (symbol)
                 {
-                    return local.Type;
-                }
-
-                if (symbol is IParameterSymbol parameter)
-                {
-                    return parameter.Type;
-                }
-
-                if (symbol is IRangeVariableSymbol rangeVariable)
-                {
-                    return GetRangeVariableType(model, rangeVariable);
+                    case ILocalSymbol local:
+                        return local.Type;
+                    case IParameterSymbol parameter:
+                        return parameter.Type;
+                    case IRangeVariableSymbol rangeVariable:
+                        return GetRangeVariableType(model, rangeVariable);
                 }
 
                 return Contract.FailWithReturn<ITypeSymbol>("Shouldn't reach here");
@@ -681,23 +676,20 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 foreach (var symbol in variableInfoMap.Keys)
                 {
-                    if (symbol is IParameterSymbol parameter)
+                    switch (symbol)
                     {
-                        AddTypeParametersToMap(TypeParameterCollector.Collect(parameter.Type), sortedMap);
-                        continue;
-                    }
-
-                    if (symbol is ILocalSymbol local)
-                    {
-                        AddTypeParametersToMap(TypeParameterCollector.Collect(local.Type), sortedMap);
-                        continue;
-                    }
-
-                    if (symbol is IRangeVariableSymbol rangeVariable)
-                    {
-                        var type = GetRangeVariableType(model, rangeVariable);
-                        AddTypeParametersToMap(TypeParameterCollector.Collect(type), sortedMap);
-                        continue;
+                        case IParameterSymbol parameter:
+                            AddTypeParametersToMap(TypeParameterCollector.Collect(parameter.Type), sortedMap);
+                            continue;
+                        case ILocalSymbol local:
+                            AddTypeParametersToMap(TypeParameterCollector.Collect(local.Type), sortedMap);
+                            continue;
+                        case IRangeVariableSymbol rangeVariable:
+                            {
+                                var type = GetRangeVariableType(model, rangeVariable);
+                                AddTypeParametersToMap(TypeParameterCollector.Collect(type), sortedMap);
+                                continue;
+                            }
                     }
 
                     Contract.Fail(FeaturesResources.Unknown_symbol_kind);
@@ -908,21 +900,16 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 VariableStyle style,
                 HashSet<int> nonNoisySyntaxKindSet) where T : SyntaxNode
             {
-                if (symbol is ILocalSymbol local)
+                switch (symbol)
                 {
-                    return new VariableInfo(
-                        new LocalVariableSymbol<T>(compilation, local, type, nonNoisySyntaxKindSet),
-                        style);
-                }
-
-                if (symbol is IParameterSymbol parameter)
-                {
-                    return new VariableInfo(new ParameterVariableSymbol(compilation, parameter, type), style);
-                }
-
-                if (symbol is IRangeVariableSymbol rangeVariable)
-                {
-                    return new VariableInfo(new QueryVariableSymbol(compilation, rangeVariable, type), style);
+                    case ILocalSymbol local:
+                        return new VariableInfo(
+                            new LocalVariableSymbol<T>(compilation, local, type, nonNoisySyntaxKindSet),
+                            style);
+                    case IParameterSymbol parameter:
+                        return new VariableInfo(new ParameterVariableSymbol(compilation, parameter, type), style);
+                    case IRangeVariableSymbol rangeVariable:
+                        return new VariableInfo(new QueryVariableSymbol(compilation, rangeVariable, type), style);
                 }
 
                 return Contract.FailWithReturn<VariableInfo>(FeaturesResources.Unknown);
