@@ -311,6 +311,28 @@ class Test
         }
 
         [Fact]
+        public void StackAllocAssignment_NonStatement()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class Test
+{
+    void M()
+    {
+        Span<int> y;
+
+        N(y = stackalloc int[10]);  // Illegal
+
+        y = stackalloc int[10];     // Legal
+    }
+    void N(Span<int> x) { }
+}", TestOptions.ReleaseDll).VerifyDiagnostics(
+                // (9,15): error CS1525: Invalid expression term 'stackalloc'
+                //         N(y = stackalloc int[10]);  // Illegal
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc int[10]").WithArguments("stackalloc").WithLocation(9, 15));
+        }
+
+        [Fact]
         public void NewStackAllocSpanSyntaxProducesErrorsOnEarlierVersions()
         {
             var parseOptions = new CSharpParseOptions().WithLanguageVersion(LanguageVersion.CSharp7);

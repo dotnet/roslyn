@@ -150,15 +150,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             switch (parentNode.Kind())
             {
+                // In case of a declaration of a Span<T> variable
                 case SyntaxKind.EqualsValueClause:
                     {
-                        // In case of a declaration of a Span<T> variable
-                        return parentNode.Parent.IsKind(SyntaxKind.VariableDeclarator);
+                        SyntaxNode variableDeclarator = parentNode.Parent;
+
+                        return variableDeclarator.IsKind(SyntaxKind.VariableDeclarator) &&
+                            variableDeclarator.Parent.IsKind(SyntaxKind.VariableDeclaration);
                     }
+                // In case of reassignment to a Span<T> variable
                 case SyntaxKind.SimpleAssignmentExpression:
                     {
-                        // In case of reassignment to a Span<T> variable
-                        return true;
+                        return parentNode.Parent.IsKind(SyntaxKind.ExpressionStatement);
                     }
             }
 
