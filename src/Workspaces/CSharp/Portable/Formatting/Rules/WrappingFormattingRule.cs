@@ -56,14 +56,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            if (node is SwitchSectionSyntax switchSection)
+            switch (node)
             {
-                return ValueTuple.Create(switchSection.GetFirstToken(includeZeroWidth: true), switchSection.GetLastToken(includeZeroWidth: true));
-            }
-
-            if (node is AnonymousMethodExpressionSyntax anonymousMethod)
-            {
-                return ValueTuple.Create(anonymousMethod.DelegateKeyword, anonymousMethod.GetLastToken(includeZeroWidth: true));
+                case SwitchSectionSyntax switchSection:
+                    return ValueTuple.Create(switchSection.GetFirstToken(includeZeroWidth: true), switchSection.GetLastToken(includeZeroWidth: true));
+                case AnonymousMethodExpressionSyntax anonymousMethod:
+                    return ValueTuple.Create(anonymousMethod.DelegateKeyword, anonymousMethod.GetLastToken(includeZeroWidth: true));
             }
 
             return default;
