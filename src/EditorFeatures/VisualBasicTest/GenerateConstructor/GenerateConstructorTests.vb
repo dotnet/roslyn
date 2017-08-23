@@ -1649,5 +1649,27 @@ Module P
     End Sub
 End Module")
         End Function
+
+        <WorkItem(21692, "https://github.com/dotnet/roslyn/issues/21692")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestDelegateConstructor() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Class B
+    Public Sub New(a As Integer)
+        [|Me.New(1, 1)|]
+    End Sub
+End Class",
+"Public Class B
+    Private v As Integer
+
+    Public Sub New(a As Integer)
+        Me.New(1, 1)
+    End Sub
+
+    Public Sub New(a As Integer, v As Integer)
+        Me.v = v
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace
