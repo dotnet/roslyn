@@ -66,19 +66,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private InitializerExpressionSyntax GetInitializerNode(SyntaxNode node)
         {
-            if (node is ObjectCreationExpressionSyntax objectCreationNode)
+            switch (node)
             {
-                return objectCreationNode.Initializer;
-            }
-
-            if (node is ArrayCreationExpressionSyntax arrayCreationNode)
-            {
-                return arrayCreationNode.Initializer;
-            }
-
-            if (node is ImplicitArrayCreationExpressionSyntax implicitArrayNode)
-            {
-                return implicitArrayNode.Initializer;
+                case ObjectCreationExpressionSyntax objectCreationNode:
+                    return objectCreationNode.Initializer;
+                case ArrayCreationExpressionSyntax arrayCreationNode:
+                    return arrayCreationNode.Initializer;
+                case ImplicitArrayCreationExpressionSyntax implicitArrayNode:
+                    return implicitArrayNode.Initializer;
             }
 
             return null;
