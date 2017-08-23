@@ -176,8 +176,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public async Task<IEnumerable<DiagnosticData>> ComputeDiagnosticsAsync(
                 CompilationWithAnalyzers analyzerDriverOpt, Document document, DiagnosticAnalyzer analyzer, AnalysisKind kind, TextSpan? spanOpt, CancellationToken cancellationToken)
             {
-                var documentAnalyzer = analyzer as DocumentDiagnosticAnalyzer;
-                if (documentAnalyzer != null)
+                if (analyzer is DocumentDiagnosticAnalyzer documentAnalyzer)
                 {
                     var diagnostics = await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(document, documentAnalyzer, kind, analyzerDriverOpt?.Compilation, cancellationToken).ConfigureAwait(false);
                     return ConvertToLocalDiagnostics(document, diagnostics);
@@ -331,8 +330,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     foreach (var analyzer in ideAnalyzers)
                     {
-                        var documentAnalyzer = analyzer as DocumentDiagnosticAnalyzer;
-                        if (documentAnalyzer != null)
+                        if (analyzer is DocumentDiagnosticAnalyzer documentAnalyzer)
                         {
                             foreach (var document in project.Documents)
                             {
@@ -350,8 +348,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             }
                         }
 
-                        var projectAnalyzer = analyzer as ProjectDiagnosticAnalyzer;
-                        if (projectAnalyzer != null)
+                        if (analyzer is ProjectDiagnosticAnalyzer projectAnalyzer)
                         {
                             builder.AddCompilationDiagnostics(await ComputeProjectDiagnosticAnalyzerDiagnosticsAsync(project, projectAnalyzer, compilationOpt, cancellationToken).ConfigureAwait(false));
                         }

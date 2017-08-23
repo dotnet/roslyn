@@ -45,9 +45,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     compilationContext.RegisterOperationBlockStartAction(
                         (operationBlockContext) =>
                         {
-                            IMethodSymbol containingMethod = operationBlockContext.OwningSymbol as IMethodSymbol;
 
-                            if (containingMethod != null)
+                            if (operationBlockContext.OwningSymbol is IMethodSymbol containingMethod)
                             {
                                 Dictionary<ILocalSymbol, HashSet<INamedTypeSymbol>> localsSourceTypes = new Dictionary<ILocalSymbol, HashSet<INamedTypeSymbol>>();
 

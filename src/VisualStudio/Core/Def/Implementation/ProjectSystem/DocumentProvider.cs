@@ -192,9 +192,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
-            var shimTextBuffer = docData as IVsTextBuffer;
 
-            if (shimTextBuffer != null)
+            if (docData is IVsTextBuffer shimTextBuffer)
             {
                 return _editorAdaptersFactoryService.GetDocumentBuffer(shimTextBuffer);
             }
@@ -331,9 +330,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             string moniker = _runningDocumentTable.GetDocumentMoniker(docCookie);
             _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out var hierarchy, out var itemid);
 
-            var shimTextBuffer = _runningDocumentTable.GetDocumentData(docCookie) as IVsTextBuffer;
 
-            if (shimTextBuffer != null)
+            if (_runningDocumentTable.GetDocumentData(docCookie) is IVsTextBuffer shimTextBuffer)
             {
                 var hasAssociatedRoslynDocument = false;
                 foreach (var project in _projectContainer.GetProjects())
@@ -618,8 +616,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             foreach (var document in documents)
             {
-                var workspace = document.Project.Workspace as VisualStudioWorkspace;
-                if (workspace != null)
+                if (document.Project.Workspace is VisualStudioWorkspace workspace)
                 {
                     workspace.RenameFileCodeModelInstance(document.Id, newMoniker);
                 }

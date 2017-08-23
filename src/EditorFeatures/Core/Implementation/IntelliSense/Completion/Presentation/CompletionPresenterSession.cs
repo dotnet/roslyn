@@ -99,8 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                     triggerSpan.GetStartTrackingPoint(PointTrackingMode.Negative),
                     trackCaret: false);
 
-                var debugTextView = _textView as IDebuggerTextView;
-                if (debugTextView != null && !debugTextView.IsImmediateWindow)
+                if (_textView is IDebuggerTextView debugTextView && !debugTextView.IsImmediateWindow)
                 {
                     debugTextView.HACK_StartCompletionSession(_editorSessionOpt);
                 }

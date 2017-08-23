@@ -82,8 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return true;
                 }
 
-                var constructorInitializer = n as ConstructorInitializerSyntax;
-                if (constructorInitializer != null)
+                if (n is ConstructorInitializerSyntax constructorInitializer)
                 {
                     return constructorInitializer.ContainsInArgument(node.Span);
                 }

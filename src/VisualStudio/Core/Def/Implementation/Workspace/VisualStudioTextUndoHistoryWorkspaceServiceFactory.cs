@@ -64,14 +64,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             private IVisualStudioHostDocument GetDocument(Workspace workspace, DocumentId id)
             {
-                var visualStudioWorkspace = workspace as VisualStudioWorkspaceImpl;
-                if (visualStudioWorkspace != null)
+                if (workspace is VisualStudioWorkspaceImpl visualStudioWorkspace)
                 {
                     return visualStudioWorkspace.GetHostDocument(id);
                 }
 
-                var miscWorkspace = workspace as MiscellaneousFilesWorkspace;
-                if (miscWorkspace != null)
+                if (workspace is MiscellaneousFilesWorkspace miscWorkspace)
                 {
                     return miscWorkspace.GetDocument(id);
                 }

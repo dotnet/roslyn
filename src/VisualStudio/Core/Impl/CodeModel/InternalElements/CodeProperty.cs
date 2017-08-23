@@ -117,8 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         {
             get
             {
-                EnvDTE.CodeClass parentClass = this.Parent as EnvDTE.CodeClass;
-                if (parentClass != null)
+                if (this.Parent is EnvDTE.CodeClass parentClass)
                 {
                     return parentClass;
                 }

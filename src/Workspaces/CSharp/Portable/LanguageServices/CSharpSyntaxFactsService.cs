@@ -148,8 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool TryGetExternalSourceInfo(SyntaxNode node, out ExternalSourceInfo info)
         {
-            var lineDirective = node as LineDirectiveTriviaSyntax;
-            if (lineDirective != null)
+            if (node is LineDirectiveTriviaSyntax lineDirective)
             {
                 if (lineDirective.Line.Kind() == SyntaxKind.DefaultKeyword)
                 {
@@ -518,9 +517,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsTypeNamedDynamic(SyntaxToken token, SyntaxNode parent)
         {
-            var typedParent = parent as ExpressionSyntax;
 
-            if (typedParent != null)
+            if (parent is ExpressionSyntax typedParent)
             {
                 if (SyntaxFacts.IsInTypeOnlyContext(typedParent) &&
                     typedParent.IsKind(SyntaxKind.IdentifierName) &&
@@ -564,8 +562,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             name = null;
             arity = 0;
 
-            var simpleName = node as SimpleNameSyntax;
-            if (simpleName != null)
+            if (node is SimpleNameSyntax simpleName)
             {
                 name = simpleName.Identifier.ValueText;
                 arity = simpleName.Arity;
@@ -700,8 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode node, out SyntaxNode initializedInstance)
         {
             initializedInstance = null;
-            var identifier = node as IdentifierNameSyntax;
-            if (identifier != null &&
+            if (node is IdentifierNameSyntax identifier &&
                 identifier.IsLeftSideOfAssignExpression() &&
                 identifier.Parent.IsParentKind(SyntaxKind.ObjectInitializerExpression))
             {
@@ -875,8 +871,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             string name = null;
-            var memberDeclaration = node as MemberDeclarationSyntax;
-            if (memberDeclaration != null)
+            if (node is MemberDeclarationSyntax memberDeclaration)
             {
                 if (memberDeclaration.Kind() == SyntaxKind.ConversionOperatorDeclaration)
                 {
@@ -910,8 +905,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var fieldDeclarator = node as VariableDeclaratorSyntax;
-                if (fieldDeclarator != null)
+                if (node is VariableDeclaratorSyntax fieldDeclarator)
                 {
                     var nameToken = fieldDeclarator.Identifier;
                     if (nameToken != default)
@@ -977,8 +971,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // TODO: currently we only support method for now
-            var method = member as BaseMethodDeclarationSyntax;
-            if (method != null)
+            if (member is BaseMethodDeclarationSyntax method)
             {
                 if (method.Body == null)
                 {
@@ -993,33 +986,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool ContainsInMemberBody(SyntaxNode node, TextSpan span)
         {
-            var constructor = node as ConstructorDeclarationSyntax;
-            if (constructor != null)
+            if (node is ConstructorDeclarationSyntax constructor)
             {
                 return (constructor.Body != null && GetBlockBodySpan(constructor.Body).Contains(span)) ||
                        (constructor.Initializer != null && constructor.Initializer.Span.Contains(span));
             }
 
-            var method = node as BaseMethodDeclarationSyntax;
-            if (method != null)
+            if (node is BaseMethodDeclarationSyntax method)
             {
                 return method.Body != null && GetBlockBodySpan(method.Body).Contains(span);
             }
 
-            var property = node as BasePropertyDeclarationSyntax;
-            if (property != null)
+            if (node is BasePropertyDeclarationSyntax property)
             {
                 return property.AccessorList != null && property.AccessorList.Span.Contains(span);
             }
 
-            var @enum = node as EnumMemberDeclarationSyntax;
-            if (@enum != null)
+            if (node is EnumMemberDeclarationSyntax @enum)
             {
                 return @enum.EqualsValue != null && @enum.EqualsValue.Span.Contains(span);
             }
 
-            var field = node as BaseFieldDeclarationSyntax;
-            if (field != null)
+            if (node is BaseFieldDeclarationSyntax field)
             {
                 return field.Declaration != null && field.Declaration.Span.Contains(span);
             }
@@ -1106,8 +1094,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // If this node is on the left side of a member access expression, don't ascend 
                 // further or we'll end up binding to something else.
-                var memberAccess = parent as MemberAccessExpressionSyntax;
-                if (memberAccess != null)
+                if (parent is MemberAccessExpressionSyntax memberAccess)
                 {
                     if (memberAccess.Expression == node)
                     {
@@ -1117,8 +1104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // If this node is on the left side of a qualified name, don't ascend 
                 // further or we'll end up binding to something else.
-                var qualifiedName = parent as QualifiedNameSyntax;
-                if (qualifiedName != null)
+                if (parent is QualifiedNameSyntax qualifiedName)
                 {
                     if (qualifiedName.Left == node)
                     {
@@ -1128,8 +1114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // If this node is on the left side of a alias-qualified name, don't ascend 
                 // further or we'll end up binding to something else.
-                var aliasQualifiedName = parent as AliasQualifiedNameSyntax;
-                if (aliasQualifiedName != null)
+                if (parent is AliasQualifiedNameSyntax aliasQualifiedName)
                 {
                     if (aliasQualifiedName.Alias == node)
                     {
@@ -1139,8 +1124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // If this node is the type of an object creation expression, return the
                 // object creation expression.
-                var objectCreation = parent as ObjectCreationExpressionSyntax;
-                if (objectCreation != null)
+                if (parent is ObjectCreationExpressionSyntax objectCreation)
                 {
                     if (objectCreation.Type == node)
                     {
@@ -1189,27 +1173,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var constructor = member as ConstructorDeclarationSyntax;
-                if (constructor != null)
+                if (member is ConstructorDeclarationSyntax constructor)
                 {
                     constructors.Add(constructor);
                     continue;
                 }
 
-                var @namespace = member as NamespaceDeclarationSyntax;
-                if (@namespace != null)
+                if (member is NamespaceDeclarationSyntax @namespace)
                 {
                     AppendConstructors(@namespace.Members, constructors, cancellationToken);
                 }
 
-                var @class = member as ClassDeclarationSyntax;
-                if (@class != null)
+                if (member is ClassDeclarationSyntax @class)
                 {
                     AppendConstructors(@class.Members, constructors, cancellationToken);
                 }
 
-                var @struct = member as StructDeclarationSyntax;
-                if (@struct != null)
+                if (member is StructDeclarationSyntax @struct)
                 {
                     AppendConstructors(@struct.Members, constructors, cancellationToken);
                 }

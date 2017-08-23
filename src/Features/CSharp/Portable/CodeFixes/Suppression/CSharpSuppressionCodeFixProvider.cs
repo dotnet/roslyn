@@ -152,8 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
 
         protected override bool IsSingleAttributeInAttributeList(SyntaxNode attribute)
         {
-            var attributeSyntax = attribute as AttributeSyntax;
-            if (attributeSyntax != null)
+            if (attribute is AttributeSyntax attributeSyntax)
             {
                 var attributeList = attributeSyntax.Parent as AttributeListSyntax;
                 return attributeList != null && attributeList.Attributes.Count == 1;

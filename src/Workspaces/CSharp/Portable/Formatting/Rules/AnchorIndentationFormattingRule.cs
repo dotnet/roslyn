@@ -30,8 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
-            var block = node as BlockSyntax;
-            if (block != null)
+            if (node is BlockSyntax block)
             {
                 // if it is not nested block, then its anchor will be first token that this block is
                 // associated with. otherwise, "{" of block is the anchor token its children would follow
@@ -49,43 +48,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            var statement = node as StatementSyntax;
-            if (statement != null)
+            if (node is StatementSyntax statement)
             {
                 AddAnchorIndentationOperation(list, statement);
                 return;
             }
 
-            var usingNode = node as UsingDirectiveSyntax;
-            if (usingNode != null)
+            if (node is UsingDirectiveSyntax usingNode)
             {
                 AddAnchorIndentationOperation(list, usingNode);
                 return;
             }
 
-            var namespaceNode = node as NamespaceDeclarationSyntax;
-            if (namespaceNode != null)
+            if (node is NamespaceDeclarationSyntax namespaceNode)
             {
                 AddAnchorIndentationOperation(list, namespaceNode);
                 return;
             }
 
-            var typeNode = node as TypeDeclarationSyntax;
-            if (typeNode != null)
+            if (node is TypeDeclarationSyntax typeNode)
             {
                 AddAnchorIndentationOperation(list, typeNode);
                 return;
             }
 
-            var memberDeclNode = node as MemberDeclarationSyntax;
-            if (memberDeclNode != null)
+            if (node is MemberDeclarationSyntax memberDeclNode)
             {
                 AddAnchorIndentationOperation(list, memberDeclNode);
                 return;
             }
 
-            var accessorDeclNode = node as AccessorDeclarationSyntax;
-            if (accessorDeclNode != null)
+            if (node is AccessorDeclarationSyntax accessorDeclNode)
             {
                 AddAnchorIndentationOperation(list, accessorDeclNode);
                 return;

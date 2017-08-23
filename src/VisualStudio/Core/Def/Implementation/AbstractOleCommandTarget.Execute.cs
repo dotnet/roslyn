@@ -949,8 +949,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private void ExecuteBrowserNavigationCommand(bool navigateBackward, Action executeNextCommandTarget)
         {
             // We just want to delegate to the shell's NavigateBackward/Forward commands
-            var target = _serviceProvider.GetService(typeof(SUIHostCommandDispatcher)) as IOleCommandTarget;
-            if (target != null)
+            if (_serviceProvider.GetService(typeof(SUIHostCommandDispatcher)) is IOleCommandTarget target)
             {
                 var cmd = (uint)(navigateBackward ?
                      VSConstants.VSStd97CmdID.ShellNavBackward :

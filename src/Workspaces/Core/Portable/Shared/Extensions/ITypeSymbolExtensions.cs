@@ -25,8 +25,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IList<INamedTypeSymbol> GetAllInterfacesIncludingThis(this ITypeSymbol type)
         {
             var allInterfaces = type.AllInterfaces;
-            var namedType = type as INamedTypeSymbol;
-            if (namedType != null && namedType.TypeKind == TypeKind.Interface && !allInterfaces.Contains(namedType))
+            if (type is INamedTypeSymbol namedType && namedType.TypeKind == TypeKind.Interface && !allInterfaces.Contains(namedType))
             {
                 var result = new List<INamedTypeSymbol>(allInterfaces.Length + 1);
                 result.Add(namedType);
@@ -567,15 +566,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             while (true)
             {
-                var arrayType = type as IArrayTypeSymbol;
-                if (arrayType != null)
+                if (type is IArrayTypeSymbol arrayType)
                 {
                     type = arrayType.ElementType;
                     continue;
                 }
 
-                var pointerType = type as IPointerTypeSymbol;
-                if (pointerType != null)
+                if (type is IPointerTypeSymbol pointerType)
                 {
                     type = pointerType.PointedAtType;
                     continue;

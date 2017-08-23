@@ -213,20 +213,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private EnvDTE.CodeElement GetParameterElementForCodeModelEvent(CodeModelEvent codeModelEvent, object parentElement)
         {
-            var parentDelegate = parentElement as EnvDTE.CodeDelegate;
-            if (parentDelegate != null)
+            if (parentElement is EnvDTE.CodeDelegate parentDelegate)
             {
                 return GetParameterElementForCodeModelEvent(codeModelEvent, parentDelegate.Parameters, parentElement);
             }
 
-            var parentFunction = parentElement as EnvDTE.CodeFunction;
-            if (parentFunction != null)
+            if (parentElement is EnvDTE.CodeFunction parentFunction)
             {
                 return GetParameterElementForCodeModelEvent(codeModelEvent, parentFunction.Parameters, parentElement);
             }
 
-            var parentProperty = parentElement as EnvDTE80.CodeProperty2;
-            if (parentProperty != null)
+            if (parentElement is EnvDTE80.CodeProperty2 parentProperty)
             {
                 return GetParameterElementForCodeModelEvent(codeModelEvent, parentProperty.Parameters, parentElement);
             }
@@ -265,39 +262,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var parentNode = codeModelEvent.ParentNode;
             var eventType = codeModelEvent.Type;
 
-            var parentType = parentElement as EnvDTE.CodeType;
-            if (parentType != null)
+            if (parentElement is EnvDTE.CodeType parentType)
             {
                 return GetAttributeElementForCodeModelEvent(node, parentNode, eventType, parentType.Attributes, parentElement);
             }
 
-            var parentFunction = parentElement as EnvDTE.CodeFunction;
-            if (parentFunction != null)
+            if (parentElement is EnvDTE.CodeFunction parentFunction)
             {
                 return GetAttributeElementForCodeModelEvent(node, parentNode, eventType, parentFunction.Attributes, parentElement);
             }
 
-            var parentProperty = parentElement as EnvDTE.CodeProperty;
-            if (parentProperty != null)
+            if (parentElement is EnvDTE.CodeProperty parentProperty)
             {
                 return GetAttributeElementForCodeModelEvent(node, parentNode, eventType, parentProperty.Attributes, parentElement);
             }
 
-            var parentEvent = parentElement as EnvDTE80.CodeEvent;
-            if (parentEvent != null)
+            if (parentElement is EnvDTE80.CodeEvent parentEvent)
             {
                 return GetAttributeElementForCodeModelEvent(node, parentNode, eventType, parentEvent.Attributes, parentElement);
             }
 
-            var parentVariable = parentElement as EnvDTE.CodeVariable;
-            if (parentVariable != null)
+            if (parentElement is EnvDTE.CodeVariable parentVariable)
             {
                 return GetAttributeElementForCodeModelEvent(node, parentNode, eventType, parentVariable.Attributes, parentElement);
             }
 
             // In the following case, parentNode is null and the root should be used instead.
-            var parentFileCodeModel = parentElement as EnvDTE.FileCodeModel;
-            if (parentFileCodeModel != null)
+            if (parentElement is EnvDTE.FileCodeModel parentFileCodeModel)
             {
                 var fileCodeModel = ComAggregate.TryGetManagedObject<FileCodeModel>(parentElement);
                 parentNode = fileCodeModel.GetSyntaxRoot();
@@ -363,8 +354,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private EnvDTE.CodeElement GetAttributeArgumentElementForCodeModelEvent(CodeModelEvent codeModelEvent, object parentElement)
         {
-            var parentAttribute = parentElement as EnvDTE80.CodeAttribute2;
-            if (parentAttribute != null)
+            if (parentElement is EnvDTE80.CodeAttribute2 parentAttribute)
             {
                 return GetAttributeArgumentForCodeModelEvent(codeModelEvent, parentAttribute.Arguments, parentElement);
             }

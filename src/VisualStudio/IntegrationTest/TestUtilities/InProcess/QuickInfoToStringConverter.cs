@@ -17,26 +17,22 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         private static string GetStringFromItem(object item)
         {
-            var displayPanel = item as StackPanel;
-            if (displayPanel != null)
+            if (item is StackPanel displayPanel)
             {
                 return displayPanel.ToString();
             }
 
-            string itemString = item as string;
-            if (itemString != null)
+            if (item is string itemString)
             {
                 return itemString;
             }
 
-            TextBlock textBlock = item as TextBlock;
-            if (textBlock != null)
+            if (item is TextBlock textBlock)
             {
                 return GetStringFromTextBlock(textBlock);
             }
 
-            var textBuffer = item as ITextBuffer;
-            if (textBuffer != null)
+            if (item is ITextBuffer textBuffer)
             {
                 return textBuffer.CurrentSnapshot.GetText();
             }
@@ -73,8 +69,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         private static string GetStringFromInline(Inline currentInline)
         {
-            var lineBreak = currentInline as LineBreak;
-            if (lineBreak != null)
+            if (currentInline is LineBreak lineBreak)
             {
                 return Environment.NewLine;
             }

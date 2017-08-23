@@ -26,14 +26,12 @@ namespace Microsoft.CodeAnalysis.CSharp.DesignerAttributes
 
         private IEnumerable<SyntaxNode> GetAllTopLevelTypeDefined(MemberDeclarationSyntax member)
         {
-            var namespaceMember = member as NamespaceDeclarationSyntax;
-            if (namespaceMember != null)
+            if (member is NamespaceDeclarationSyntax namespaceMember)
             {
                 return namespaceMember.Members.SelectMany(GetAllTopLevelTypeDefined);
             }
 
-            var type = member as ClassDeclarationSyntax;
-            if (type != null)
+            if (member is ClassDeclarationSyntax type)
             {
                 return SpecializedCollections.SingletonEnumerable<SyntaxNode>(type);
             }
@@ -48,8 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DesignerAttributes
 
         protected override bool HasAttributesOrBaseTypeOrIsPartial(SyntaxNode typeNode)
         {
-            var classNode = typeNode as ClassDeclarationSyntax;
-            if (classNode != null)
+            if (typeNode is ClassDeclarationSyntax classNode)
             {
                 return classNode.AttributeLists.Count > 0 ||
                     classNode.BaseList != null ||

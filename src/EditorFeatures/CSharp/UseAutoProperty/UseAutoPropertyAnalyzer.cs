@@ -55,8 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
 
         private static void AddIneligibleField(ISymbol symbol, ConcurrentBag<IFieldSymbol> ineligibleFields)
         {
-            var field = symbol as IFieldSymbol;
-            if (field != null)
+            if (symbol is IFieldSymbol field)
             {
                 ineligibleFields.Add(field);
             }

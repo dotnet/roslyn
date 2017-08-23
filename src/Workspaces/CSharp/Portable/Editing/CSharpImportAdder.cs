@@ -12,14 +12,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
     {
         protected override INamespaceSymbol GetExplicitNamespaceSymbol(SyntaxNode node, SemanticModel model)
         {
-            var name = node as QualifiedNameSyntax;
-            if (name != null)
+            if (node is QualifiedNameSyntax name)
             {
                 return GetExplicitNamespaceSymbol(name, name.Left, model);
             }
 
-            var memberAccess = node as MemberAccessExpressionSyntax;
-            if (memberAccess != null)
+            if (node is MemberAccessExpressionSyntax memberAccess)
             {
                 return GetExplicitNamespaceSymbol(memberAccess, memberAccess.Expression, model);
             }
