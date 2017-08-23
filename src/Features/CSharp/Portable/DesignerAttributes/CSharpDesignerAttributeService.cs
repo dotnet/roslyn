@@ -26,14 +26,12 @@ namespace Microsoft.CodeAnalysis.CSharp.DesignerAttributes
 
         private IEnumerable<SyntaxNode> GetAllTopLevelTypeDefined(MemberDeclarationSyntax member)
         {
-            if (member is NamespaceDeclarationSyntax namespaceMember)
+            switch (member)
             {
-                return namespaceMember.Members.SelectMany(GetAllTopLevelTypeDefined);
-            }
-
-            if (member is ClassDeclarationSyntax type)
-            {
-                return SpecializedCollections.SingletonEnumerable<SyntaxNode>(type);
+                case NamespaceDeclarationSyntax namespaceMember:
+                    return namespaceMember.Members.SelectMany(GetAllTopLevelTypeDefined);
+                case ClassDeclarationSyntax type:
+                    return SpecializedCollections.SingletonEnumerable<SyntaxNode>(type);
             }
 
             return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
