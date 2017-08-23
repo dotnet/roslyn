@@ -1,19 +1,21 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
-    class DotnetHost
+    internal class DotnetHost
     {
         public string ToolName { get; }
 
-        public string PathToTool { get; }
+        public string PathToToolOpt { get; }
 
         public string CommandLineArgs { get; }
 
         public DotnetHost(string toolName, string pathToTool, string commandLineArgs)
         {
             ToolName = toolName;
-            PathToTool = pathToTool;
+            PathToToolOpt = pathToTool;
             CommandLineArgs = commandLineArgs;
         }
 
@@ -27,7 +29,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 pathToTool = Utilities.GenerateFullPathToTool(toolName);
                 if (pathToTool != null)
                 {
-                    RewriteToCliInvocation(ref pathToTool, ref commandLineArgs, pathToDotnet);
+                    commandLineArgs = $"\"{pathToTool}\" {commandLineArgs}";
+                    pathToTool = pathToDotnet;
                 }
             }
             else
@@ -36,20 +39,23 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 toolName = $"{toolNameWithoutExtension}.exe";
                 pathToTool = Utilities.GenerateFullPathToTool(toolName);
             }
-            PathToTool = pathToTool;
-            CommandLineArgs = commandLineArgs;
-        }
 
-        private static void RewriteToCliInvocation(ref string pathToTool, ref string commandLineArgs, string pathToDotnet)
-        {
-            commandLineArgs = $"\"{pathToTool}\" {commandLineArgs}";
-            pathToTool = pathToDotnet;
+            PathToToolOpt = pathToTool;
+            CommandLineArgs = commandLineArgs;
         }
 
         private static bool IsCliHost(out string pathToDotnet)
         {
-            pathToDotnet = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH");
-            return !string.IsNullOrEmpty(pathToDotnet);
+            if (CoreClrShim.IsRunningOnCoreClr)
+            {
+                pathToDotnet = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH");
+                return !string.IsNullOrEmpty(pathToDotnet);
+            }
+            else
+            {
+                pathToDotnet = null;
+                return false;
+            }
         }
     }
 }
