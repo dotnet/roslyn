@@ -148,8 +148,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return result;
                 }
 
-                DiagnosticAnalysisResult analysisResult;
-                if (!result.TryGetValue(compilerAnalyzer, out analysisResult))
+                if (!result.TryGetValue(compilerAnalyzer, out var analysisResult))
                 {
                     // no result from compiler analyzer
                     return result;

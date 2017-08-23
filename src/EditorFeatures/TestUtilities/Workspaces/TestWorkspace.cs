@@ -488,11 +488,9 @@ of the problem.");
             projectionBufferSpans = new List<object>();
             var projectionBufferSpanStartingPositions = new List<int>();
             mappedCaretLocation = null;
-            string inertText;
-            int? markupCaretLocation;
 
-            MarkupTestFile.GetPositionAndSpans(markup, 
-                out inertText, out markupCaretLocation, out var markupSpans);
+            MarkupTestFile.GetPositionAndSpans(markup,
+                out var inertText, out int? markupCaretLocation, out var markupSpans);
 
             var namedSpans = markupSpans.Where(kvp => kvp.Key != string.Empty);
             var sortedAndNamedSpans = namedSpans.OrderBy(kvp => kvp.Value.Single().Start)
