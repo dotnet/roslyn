@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.ArrowExpressionClause:
                     var arrowExpressionClause = (ArrowExpressionClauseSyntax)parent;
-                    return arrowExpressionClause.Expression == node;
+                    return arrowExpressionClause.Expression == node && arrowExpressionClause.Parent is LocalFunctionStatementSyntax;
 
                 case SyntaxKind.FromClause:
                     var fromClause = (FromClauseSyntax)parent;
