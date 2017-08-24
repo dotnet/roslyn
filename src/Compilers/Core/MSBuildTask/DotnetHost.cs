@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 pathToToolOpt = Utilities.GenerateFullPathToTool(toolName);
                 if (pathToToolOpt != null)
                 {
-                    commandLineArgs = $"\"{pathToToolOpt}\" {commandLineArgs}";
+                    commandLineArgs = PrependFileToArgs(pathToToolOpt, commandLineArgs);
                     pathToToolOpt = pathToDotnet;
                 }
             }
@@ -60,6 +60,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 pathToDotnet = null;
                 return false;
             }
+        }
+
+        private static string PrependFileToArgs(string pathToTool, string commandLineArgs)
+        {
+            var builder = new CommandLineBuilderExtension();
+            builder.AppendFileNameIfNotNull(pathToTool);
+            builder.AppendTextUnquoted(commandLineArgs);
+            return builder.ToString();
         }
     }
 }
