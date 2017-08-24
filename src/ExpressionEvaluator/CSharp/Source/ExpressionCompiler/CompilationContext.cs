@@ -37,7 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private readonly MethodSymbol _currentFrame;
         private readonly ImmutableArray<LocalSymbol> _locals;
         private readonly ImmutableDictionary<string, DisplayClassVariable> _displayClassVariables;
-        private readonly ImmutableHashSet<string> _hoistedParameterNames;
         private readonly ImmutableArray<string> _argumentNames;
         private readonly ImmutableArray<LocalSymbol> _localsForBinding;
         private readonly bool _methodNotType;
@@ -84,7 +83,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     inScopeHoistedLocalSlots,
                     out displayClassVariableNamesInOrder,
                     out _displayClassVariables,
-                    out _hoistedParameterNames,
                     out _argumentNames);
                 Debug.Assert(displayClassVariableNamesInOrder.Length == _displayClassVariables.Count);
                 _localsForBinding = GetLocalsForBinding(_locals, displayClassVariableNamesInOrder, _displayClassVariables);
@@ -361,31 +359,51 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             localBuilder.Add(new CSharpLocalAndMethod("this", "this", method, DkmClrCompilationResultFlags.None)); // Note: writable in dev11.
                             methodBuilder.Add(method);
                         }
+                    }
 
+                    foreach (var argumentName in _argumentNames)
+                    {
+                        bool found = false;
                         int localIndex = 0;
-                        // Hoisted method parameters (represented as locals in the EE).
-                        if (!_hoistedParameterNames.IsEmpty)
+                        foreach (var local in _localsForBinding)
                         {
-                            foreach (var local in _localsForBinding)
+                            if (local.Name == argumentName)
                             {
-                                // Since we are showing hoisted method parameters first, the parameters may appear out of order
-                                // in the Locals window if only some of the parameters are hoisted.  This is consistent with the
-                                // behavior of the old EE.
-                                if (_hoistedParameterNames.Contains(local.Name))
-                                {
-                                    AppendLocalAndMethod(localBuilder, methodBuilder, local, container, localIndex, GetLocalResultFlags(local));
-                                }
-
-                                localIndex++;
+                                AppendLocalAndMethod(localBuilder, methodBuilder, local, container, localIndex, GetLocalResultFlags(local));
+                                found = true;
+                                break;
                             }
+                            localIndex++;
                         }
 
+                        if (!found)
+                        {
+                            // Method parameters (except those that have been hoisted).
+                            int parameterIndex = m.IsStatic ? 0 : 1;
+                            foreach (var parameter in m.Parameters)
+                            {
+                                var parameterName = parameter.Name;
+                                if (parameterName == argumentName &&
+                                    GeneratedNames.GetKind(parameterName) == GeneratedNameKind.None &&
+                                    !IsDisplayClassParameter(parameter))
+                                {
+                                    AppendParameterAndMethod(localBuilder, methodBuilder, parameter, container, parameterIndex);
+                                    break;
+                                }
+
+                                parameterIndex++;
+                            }
+                        }
+                    }
+
+                    if (!argumentsOnly)
+                    {
                         // Method parameters (except those that have been hoisted).
                         int parameterIndex = m.IsStatic ? 0 : 1;
                         foreach (var parameter in m.Parameters)
                         {
                             var parameterName = parameter.Name;
-                            if (!_hoistedParameterNames.Contains(parameterName) &&
+                            if (!_argumentNames.Contains(parameterName) &&
                                 GeneratedNames.GetKind(parameterName) == GeneratedNameKind.None &&
                                 !IsDisplayClassParameter(parameter))
                             {
@@ -396,16 +414,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         }
 
                         // Locals.
-                        localIndex = 0;
+                        int localIndex = 0;
                         foreach (var local in _localsForBinding)
                         {
-                            if (!_hoistedParameterNames.Contains(local.Name))
+                            if (!_argumentNames.Contains(local.Name))
                             {
                                 AppendLocalAndMethod(localBuilder, methodBuilder, local, container, localIndex, GetLocalResultFlags(local));
                             }
 
                             localIndex++;
                         }
+                    }
 
                         // "Type variables".
                         if ((object)typeVariablesType != null)
@@ -420,45 +439,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                                 DkmClrCompilationResultFlags.ReadOnlyResult));
                             methodBuilder.Add(method);
                         }
-                    }
-                    else
-                    // argumentsOnly == true
-                    {
-                        foreach(var argumentName in _argumentNames)
-                        {
-                            bool found = false;
-                            int localIndex = 0;
-                            foreach (var local in _localsForBinding)
-                            {
-                                if (local.Name == argumentName)
-                                {
-                                    AppendLocalAndMethod(localBuilder, methodBuilder, local, container, localIndex, GetLocalResultFlags(local));
-                                    found = true;
-                                    break;
-                                }
-                                localIndex++;
-                            }
+   
 
-                            if (!found)
-                            {
-                                // Method parameters (except those that have been hoisted).
-                                int parameterIndex = m.IsStatic ? 0 : 1;
-                                foreach (var parameter in m.Parameters)
-                                {
-                                    var parameterName = parameter.Name;
-                                    if (parameterName == argumentName &&
-                                        GeneratedNames.GetKind(parameterName) == GeneratedNameKind.None &&
-                                        !IsDisplayClassParameter(parameter))
-                                    {
-                                        AppendParameterAndMethod(localBuilder, methodBuilder, parameter, container, parameterIndex);
-                                        break;
-                                    }
-
-                                    parameterIndex++;
-                                }
-                            }
-                        }
-                    }
 
                     return methodBuilder.ToImmutableAndFree();
                 });
@@ -1246,7 +1228,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             ImmutableSortedSet<int> inScopeHoistedLocalSlots,
             out ImmutableArray<string> displayClassVariableNamesInOrder,
             out ImmutableDictionary<string, DisplayClassVariable> displayClassVariables,
-            out ImmutableHashSet<string> hoistedParameterNames,
             out ImmutableArray<string> orderedArgumentNames)
         {
             // Calculated the shortest paths from locals to instances of display
@@ -1328,7 +1309,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     }
                 }
 
-                var pooledHoistedParameterNames = PooledHashSet<string>.GetInstance();
                 foreach (var instance in displayClassInstances)
                 {
                     GetDisplayClassVariables(
@@ -1336,12 +1316,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         displayClassVariablesBuilder,
                         parameterNames,
                         inScopeHoistedLocalSlots,
-                        instance,
-                        pooledHoistedParameterNames);
+                        instance);
                 }
 
-                hoistedParameterNames = pooledHoistedParameterNames.ToImmutableHashSet<string>();
-                pooledHoistedParameterNames.Free();
                 parameterNames.Free();
 
                 displayClassVariableNamesInOrder = displayClassVariableNamesInOrderBuilder.ToImmutableAndFree();
@@ -1350,7 +1327,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
             else
             {
-                hoistedParameterNames = ImmutableHashSet<string>.Empty;
                 displayClassVariableNamesInOrder = ImmutableArray<string>.Empty;
                 displayClassVariables = ImmutableDictionary<string, DisplayClassVariable>.Empty;
                 orderedArgumentNames = ImmutableArray<string>.Empty;
@@ -1472,8 +1448,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             Dictionary<string, DisplayClassVariable> displayClassVariablesBuilder,
             HashSet<string> parameterNames,
             ImmutableSortedSet<int> inScopeHoistedLocalSlots,
-            DisplayClassInstanceAndFields instance,
-            HashSet<string> hoistedParameterNames)
+            DisplayClassInstanceAndFields instance)
         {
             // Display class instance. The display class fields are variables.
             foreach (var member in instance.Type.GetMembers())
@@ -1532,7 +1507,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         if (parameterNames.Contains(variableName))
                         {
                             variableKind = DisplayClassVariableKind.Parameter;
-                            hoistedParameterNames.Add(variableName);
                         }
                         else
                         {

@@ -1554,7 +1554,8 @@ class C
                 string typeName;
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
 
-                VerifyLocal(testData, typeName, locals[0], "<>m0", "x2", expectedILOpt:
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "x1");
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x2", expectedILOpt:
     @"
 {
   // Code size        7 (0x7)
@@ -1566,9 +1567,9 @@ class C
   IL_0001:  ldfld      ""object C.<>c__DisplayClass0_0.x2""
   IL_0006:  ret
 }");
-                VerifyLocal(testData, typeName, locals[1], "<>m1", "x3");
-                VerifyLocal(testData, typeName, locals[2], "<>m2", "x4");
-                VerifyLocal(testData, typeName, locals[3], "<>m3", "x1");
+                VerifyLocal(testData, typeName, locals[2], "<>m2", "x3");
+                VerifyLocal(testData, typeName, locals[3], "<>m3", "x4");
+                
                 Assert.Equal(locals.Count, 4);
 
                 locals.Free();
@@ -1581,7 +1582,8 @@ class C
                 locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
 
-                VerifyLocal(testData, typeName, locals[0], "<>m0", "y2", expectedILOpt:
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "y1");
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "y2", expectedILOpt:
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -1592,8 +1594,7 @@ class C
   IL_0001:  ldfld      ""object C.<>c__DisplayClass0_1.y2""
   IL_0006:  ret
 }");
-                VerifyLocal(testData, typeName, locals[1], "<>m1", "y3");
-                VerifyLocal(testData, typeName, locals[2], "<>m2", "y1");
+                VerifyLocal(testData, typeName, locals[2], "<>m2", "y3");
                 VerifyLocal(testData, typeName, locals[3], "<>m3", "x2");
                 VerifyLocal(testData, typeName, locals[4], "<>m4", "x3", expectedILOpt:
 @"{
@@ -1618,7 +1619,8 @@ class C
                 locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
 
-                VerifyLocal(testData, typeName, locals[0], "<>m0", "z2", expectedILOpt:
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "z1");
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "z2", expectedILOpt:
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -1629,7 +1631,6 @@ class C
   IL_0001:  ldfld      ""object C.<>c__DisplayClass0_2.z2""
   IL_0006:  ret
 }");
-                VerifyLocal(testData, typeName, locals[1], "<>m1", "z1");
                 VerifyLocal(testData, typeName, locals[2], "<>m2", "y2");
                 VerifyLocal(testData, typeName, locals[3], "<>m3", "y3");
                 VerifyLocal(testData, typeName, locals[4], "<>m4", "x2");
