@@ -3,6 +3,7 @@
 using System;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Roslyn.Utilities;
 using IVsEnumBSTR = Microsoft.VisualStudio.TextManager.Interop.IVsEnumBSTR;
 using IVsTextBuffer = Microsoft.VisualStudio.TextManager.Interop.IVsTextBuffer;
 using TextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
@@ -17,10 +18,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 return LanguageDebugInfo.GetLanguageID(pBuffer, iLine, iCol, out pguidLanguageID);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e) && false)
             {
-                pguidLanguageID = default;
-                return e.HResult;
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
@@ -30,11 +30,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 return LanguageDebugInfo.GetLocationOfName(pszName, out pbstrMkDoc, out pspanLocation);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e) && false)
             {
-                pbstrMkDoc = null;
-                pspanLocation = default;
-                return e.HResult;
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
@@ -44,11 +42,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 return LanguageDebugInfo.GetNameOfLocation(pBuffer, iLine, iCol, out pbstrName, out piLineOffset);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e) && false)
             {
-                pbstrName = null;
-                piLineOffset = 0;
-                return e.HResult;
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
@@ -58,10 +54,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 return LanguageDebugInfo.GetProximityExpressions(pBuffer, iLine, iCol, cLines, out ppEnum);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e) && false)
             {
-                ppEnum = default;
-                return e.HResult;
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
@@ -71,9 +66,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 return LanguageDebugInfo.IsMappedLocation(pBuffer, iLine, iCol);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e) && false)
             {
-                return e.HResult;
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
@@ -83,10 +78,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 return LanguageDebugInfo.ResolveName(pszName, dwFlags, out ppNames);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e) && false)
             {
-                ppNames = default;
-                return e.HResult;
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
@@ -96,9 +90,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 return LanguageDebugInfo.ValidateBreakpointLocation(pBuffer, iLine, iCol, pCodeSpan);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e) && false)
             {
-                return e.HResult;
+                throw ExceptionUtilities.Unreachable;
             }
         }
     }

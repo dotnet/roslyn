@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Roslyn.Utilities;
 using TextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
@@ -39,10 +40,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 return GetDataTipTextImpl(pSpan, out pbstrText);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e) && false)
             {
-                pbstrText = null;
-                return VSConstants.E_FAIL;
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
@@ -85,9 +85,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 return result;
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e) && false)
             {
-                return VSConstants.E_FAIL;
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
