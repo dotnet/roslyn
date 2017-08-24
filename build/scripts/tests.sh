@@ -5,6 +5,20 @@
 set -e
 set -u
 
+# This function will give you the current version number for a given nuget package
+# based on the contents of Packages.props. 
+# 
+# Provide the package name in the format shown in the nuget gallery
+#   get_package_version dotnet-xunit
+#   get_package_version System.Console
+get_package_version() 
+{
+    local name=${1/./}
+    local name=${name/-/}
+    local version=$(awk -F'[<>]' "/<${name}Version>/{print \$3}" ${SRC_PATH}/build/Targets/Packages.props)
+    echo $version
+}
+
 BUILD_CONFIGURATION=${1:-Debug}
 
 THIS_DIR=$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)
@@ -15,7 +29,10 @@ LOG_DIR=${BINARIES_PATH}/${BUILD_CONFIGURATION}/xUnitResults
 NUGET_DIR=${HOME}/.nuget/packages
 RUNTIME_ID=$(dotnet --info | awk '/RID:/{print $2;}')
 TARGET_FRAMEWORK=netcoreapp2.0
-XUNIT_CONSOLE=${NUGET_DIR}/dotnet-xunit/2.3.0-beta4-build3742/tools/${TARGET_FRAMEWORK}/xunit.console.dll
+XUNIT_CONSOLE_VERSION=$(get_package_version dotnet-xunit)
+XUNIT_CONSOLE=${NUGET_DIR}/dotnet-xunit/${XUNIT_CONSOLE_VERSION}/tools/${TARGET_FRAMEWORK}/xunit.console.dll
+
+echo Using $XUNIT_CONSOLE
 
 # Need to publish projects that have runtime assets before running tests
 NEED_PUBLISH=(
