@@ -288,25 +288,53 @@ function Test-PerfRun() {
 
 function Test-XUnitCoreClr() { 
 
-    $unitDir = Join-Path $binariesDir "CoreClrTest"
+    $unitDir = Join-Path $configDir "UnitTests"
+    $runtimeIdentifier = "win7-x64"
+    $tf = "netcoreapp2.0"
     $logDir = Join-Path $unitDir "xUnitResults"
     $logFile = Join-Path $logDir "TestResults.xml"
     Create-Directory $logDir 
 
-    Write-Host "Publishing CoreClr tests"
-    Run-MSBuild "src\Test\DeployCoreClrTestRuntime\DeployCoreClrTestRuntime.csproj /m /v:m /t:Publish /p:RuntimeIdentifier=win7-x64 /p:PublishDir=$unitDir"
+    # A number of our tests need to be published before they can be executed in order to get some 
+    # runtime assets.
+    $needPublish = @(
+        "src\Compilers\CSharp\Test\Symbol\CSharpCompilerSymbolTest.csproj"
+    )
 
-    $corerun = Join-Path $unitDir "CoreRun.exe"
-    $args = Join-Path $unitDir "xunit.console.netcore.exe"
-    foreach ($dll in Get-ChildItem -re -in "*.UnitTests.dll" $unitDir) {
-        $args += " $dll";
+    foreach ($file in $needPublish) {
+        $name = Split-Path -leaf $file
+        Write-Host "Publishing $name"
+        $filePath = Join-Path $repoDir $file
+        Run-MSBuild "$filePath /m /v:m /t:Publish /p:TargetFramework=$tf /p:RuntimeIdentifier=$runtimeIdentifier"
     }
 
-    $args += " -parallel all"
-    $args += " -xml $logFile"
+    $dlls = @()
+    $allGood = $true
+    foreach ($dir in Get-ChildItem $unitDir) {
+        $testDir = Join-Path $unitDir (Join-Path $dir $tf)
+        if (Test-Path $testDir) { 
+            $publishDir = Join-Path $testDir "$runtimeIdentifier\publish"
+            if (Test-path $publishDir) {
+                $testDir = $publishDir
+            }   
+            
+            $dllName = Get-ChildItem -name "*.UnitTests.dll" -path $testDir
+            $dllPath = Join-Path $testDir $dllName
 
-    Write-Host "Running CoreClr tests"
-    Exec-Console $corerun $args
+            try {
+                Write-Host "Running $dllName"
+                Exec-Console $dotnet "vstest $dllPath"
+            }
+            catch {
+                Write-Host "Failed"
+                $allGood = $false
+            }
+        }
+    }
+
+    if (-not $allGood) { 
+        throw "Unit tests failed"
+    }
 }
 
 # Core function for running our unit / integration tests tests
@@ -510,6 +538,7 @@ try {
     Process-Arguments
 
     $msbuild, $msbuildDir = Ensure-MSBuildAndDir -msbuildDir $msbuildDir
+    $dotnet, $sdkDir = Ensure-SdkInPathAndData
     $buildConfiguration = if ($release) { "Release" } else { "Debug" }
     $configDir = Join-Path $binariesDIr $buildConfiguration
     $bootstrapDir = ""

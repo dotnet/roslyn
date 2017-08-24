@@ -48,13 +48,13 @@
     <MicrosoftNETTestSdkVersion>15.3.0</MicrosoftNETTestSdkVersion>
     <MicrosoftNetCompilersVersion>2.3.1</MicrosoftNetCompilersVersion>
     <MicrosoftNetRoslynDiagnosticsVersion>2.3.0-beta1</MicrosoftNetRoslynDiagnosticsVersion>
-    <MicrosoftNetCoreILAsmVersion>1.1.0</MicrosoftNetCoreILAsmVersion>
+    <MicrosoftNetCoreILAsmVersion>2.0.0</MicrosoftNetCoreILAsmVersion>
     <MicrosoftNETCoreCompilersVersion>2.3.1-beta1-61919-13</MicrosoftNETCoreCompilersVersion>
     <MicrosoftNETCoreVersion>5.0.0</MicrosoftNETCoreVersion>
     <MicrosoftNETCoreAppVersion>2.0.0</MicrosoftNETCoreAppVersion>
-    <MicrosoftNETCorePlatformsVersion>1.1.0</MicrosoftNETCorePlatformsVersion>
+    <MicrosoftNETCorePlatformsVersion>2.0.0</MicrosoftNETCorePlatformsVersion>
     <MicrosoftNETCorePortableCompatibilityVersion>1.0.1</MicrosoftNETCorePortableCompatibilityVersion>
-    <MicrosoftNETCoreRuntimeCoreCLRVersion>1.1.0</MicrosoftNETCoreRuntimeCoreCLRVersion>
+    <MicrosoftNETCoreRuntimeCoreCLRVersion>2.0.0</MicrosoftNETCoreRuntimeCoreCLRVersion>
     <MicrosoftNETCoreTestHostVersion>1.1.0</MicrosoftNETCoreTestHostVersion>
     <MicrosoftNetFX20Version>1.0.3</MicrosoftNetFX20Version>
     <MicrosoftNetSdkVersion>2.0.0-alpha-20170405-2</MicrosoftNetSdkVersion>
@@ -229,6 +229,7 @@
     <xunitanalyzersVersion>0.5.0</xunitanalyzersVersion>
     <xunitassertVersion>2.2.0</xunitassertVersion>
     <xunitrunnerconsoleVersion>2.2.0</xunitrunnerconsoleVersion>
+    <xunitrunnervisualstudioVersion>2.2.0</xunitrunnervisualstudioVersion>
     <xunitrunnerwpfVersion>1.0.41</xunitrunnerwpfVersion>
   </PropertyGroup>
 
