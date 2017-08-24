@@ -77,10 +77,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
                 return NextCommandTarget.Exec(ref guidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
             }
 
-            Action executeNextCommandTarget = () =>
+            void executeNextCommandTarget()
             {
                 result = NextCommandTarget.Exec(ref guidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
-            };
+            }
 
             switch ((VSConstants.VSStd2KCmdID)commandId)
             {

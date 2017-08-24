@@ -13,9 +13,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         public static DisposableFile CreateTempAssembly(string declarations, bool prependDefaultHeader = true)
         {
-            string assemblyPath;
-            string pdbPath;
-            IlasmTempAssembly(declarations, prependDefaultHeader, includePdb: false, assemblyPath: out assemblyPath, pdbPath: out pdbPath);
+            IlasmTempAssembly(declarations, prependDefaultHeader, includePdb: false, assemblyPath: out var assemblyPath, pdbPath: out var pdbPath);
             Assert.NotNull(assemblyPath);
             Assert.Null(pdbPath);
             return new DisposableFile(assemblyPath);

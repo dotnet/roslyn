@@ -31,6 +31,342 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
         [Fact]
+        [WorkItem(472056, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=472056")]
+        public void Repro472056()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace ConsoleApp2
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var task = WhyYouBreaky(new List<string>());
+
+            Console.WriteLine(task.Result);
+        }
+
+        static async Task<string> WhyYouBreaky(List<string> words)
+        {
+            await Task.Delay(1);
+            var word = """"; // moving me before the 'await' will make it work
+
+            words.Add(""Oh No!""); // I will crash here :(
+
+            return ""Great success!""; // Not so much.
+
+            void IDontEvenGetCalled()
+            {
+                // commenting out either of these lines will make it work
+                var a = word;
+                var b = words[0];
+            }
+        }
+    }
+}", options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "Great success!");
+        }
+
+        [Fact]
+        public void AsyncStructClosure()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static void Main() => M().Wait();
+
+    static async Task M()
+    {
+        int x = 2;
+        int y = 3;
+        int L() => x + y;
+        Console.WriteLine(L());
+        await Task.FromResult(false);
+    }
+}", options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "5");
+            // No field captures
+            verifier.VerifySynthesizedFields("C.<M>d__1",
+                "int <>1__state",
+                "System.Runtime.CompilerServices.AsyncTaskMethodBuilder <>t__builder",
+                "System.Runtime.CompilerServices.TaskAwaiter<bool> <>u__1");
+
+            comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static void Main() => M().Wait();
+
+    static async Task M()
+    {
+        int x = 2;
+        int y = 3;
+        int L() => x + y;
+        Console.WriteLine(L());
+        await Task.FromResult(false);
+        x++;
+        Console.WriteLine(x);
+    }
+}", options: TestOptions.ReleaseExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"5
+3");
+            verifier.VerifySynthesizedFields("C.<M>d__1",
+                "int <>1__state",
+                "System.Runtime.CompilerServices.AsyncTaskMethodBuilder <>t__builder",
+                // Display class capture
+                "C.<>c__DisplayClass1_0 <>8__1",
+                "System.Runtime.CompilerServices.TaskAwaiter<bool> <>u__1");
+
+            verifier.VerifySynthesizedFields("C.<>c__DisplayClass1_0",
+                "int x",
+                "int y");
+
+            comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static void Main() => M().Wait();
+
+    static async Task M()
+    {
+        int x = 2;
+        int y = 3;
+        int L() => x + y;
+        Console.WriteLine(L());
+        await Task.FromResult(false);
+        x = 5;
+        y = 7;
+        Console.WriteLine(L());
+    }
+}", options: TestOptions.ReleaseExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"5
+12");
+            // Nothing captured across await
+            verifier.VerifySynthesizedFields("C.<M>d__1",
+                "int <>1__state",
+                "System.Runtime.CompilerServices.AsyncTaskMethodBuilder <>t__builder",
+                "System.Runtime.CompilerServices.TaskAwaiter<bool> <>u__1");
+        }
+
+        [Fact]
+        public void IteratorStructClosure()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main()
+    {
+        foreach (var m in M())
+        {
+            Console.WriteLine(m);
+        }
+    }
+
+    static IEnumerable<int> M()
+    {
+        int x = 2;
+        int y = 3;
+        int L() => x + y;
+        yield return L();
+    }
+}", expectedOutput: "5");
+            // No field captures
+            verifier.VerifySynthesizedFields("C.<M>d__1",
+                "int <>1__state",
+                "int <>2__current",
+                "int <>l__initialThreadId");
+
+            verifier = CompileAndVerify(@"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main()
+    {
+        foreach (var m in M())
+        {
+            Console.WriteLine(m);
+        }
+    }
+
+    static IEnumerable<int> M()
+    {
+        int x = 2;
+        int y = 3;
+        int L() => x + y;
+        yield return L();
+        x++;
+        yield return x;
+    }
+}", expectedOutput: @"5
+3");
+            verifier.VerifySynthesizedFields("C.<M>d__1",
+                "int <>1__state",
+                "int <>2__current",
+                "int <>l__initialThreadId",
+                // Display class capture
+                "C.<>c__DisplayClass1_0 <>8__1");
+
+            verifier.VerifySynthesizedFields("C.<>c__DisplayClass1_0",
+                "int x",
+                "int y");
+
+            verifier = CompileAndVerify(@"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main()
+    {
+        foreach (var m in M())
+        {
+            Console.WriteLine(m);
+        }
+    }
+
+    static IEnumerable<int> M()
+    {
+        int x = 2;
+        int y = 3;
+        int L() => x + y;
+        yield return L();
+        x = 5;
+        y = 7;
+        yield return L();
+    }
+}", expectedOutput: @"5
+12");
+            // No captures
+            verifier.VerifySynthesizedFields("C.<M>d__1",
+                "int <>1__state",
+                "int <>2__current",
+                "int <>l__initialThreadId");
+        }
+
+        [Fact]
+        [WorkItem(21409, "https://github.com/dotnet/roslyn/issues/21409")]
+        public void Repro21409()
+        {
+            CompileAndVerify(
+@"
+using System;
+using System.Collections.Generic;
+
+namespace Buggles
+{
+    class Program
+    {
+        private static IEnumerable<int> Problem(IEnumerable<int> chunks)
+        {
+            var startOfChunk = 0;
+            var pendingChunks = new List<int>();
+
+            int GenerateChunk()
+            {
+                if (pendingChunks == null)
+                {
+                    Console.WriteLine(""impossible in local function"");
+                    return -1;
+                }
+                while (pendingChunks.Count > 0)
+                {
+                    pendingChunks.RemoveAt(0);
+                }
+                return startOfChunk;
+            }
+
+            foreach (var chunk in chunks)
+            {
+                if (chunk - startOfChunk <= 0)
+                {
+                    pendingChunks.Insert(0, chunk);
+                }
+                else
+                {
+                    yield return GenerateChunk();
+                }
+                startOfChunk = chunk;
+                if (pendingChunks == null)
+                {
+                    Console.WriteLine(""impossible in outer function"");
+                }
+                else
+                {
+                    pendingChunks.Insert(0, chunk);
+                }
+            }
+        }
+
+        private static void Main()
+        {
+            var xs = Problem(new[] { 0, 1, 2, 3 });
+            foreach (var x in xs)
+            {
+                Console.WriteLine(x);
+            }
+        }
+    }
+}
+", expectedOutput: @"
+0
+1
+2");
+        }
+
+        [Fact]
+        [WorkItem(294554, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=294554")]
+        public void ThisOnlyClosureBetweenStructCaptures()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    int _x = 0;
+    void M()
+    {
+        void L1()
+        {
+            int x = 0;
+            _x++;
+            void L2()
+            {
+                Action a2 = L2;
+                int y = 0;
+                L3();
+                void L3()
+                {
+                    _x++;
+                    y++;
+                }
+            }
+            L2();
+
+            void L5() => x++;
+            L5();
+        }
+        L1();
+    }
+}");
+        }
+
+        [Fact]
         public void CaptureThisInDifferentScopes()
         {
             CompileAndVerify(@"

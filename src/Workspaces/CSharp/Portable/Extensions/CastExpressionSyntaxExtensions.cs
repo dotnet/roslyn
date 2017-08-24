@@ -161,13 +161,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             //
             // Goo((object)null);
 
-            var argument = cast.WalkUpParentheses().Parent as ArgumentSyntax;
-            if (argument != null)
+            if (cast.WalkUpParentheses().Parent is ArgumentSyntax argument)
             {
                 // If there are any arguments to the right, we can assume that this is not a
                 // *single* argument passed to a params parameter.
-                var argumentList = argument.Parent as BaseArgumentListSyntax;
-                if (argumentList != null)
+                if (argument.Parent is BaseArgumentListSyntax argumentList)
                 {
                     var argumentIndex = argumentList.Arguments.IndexOf(argument);
                     if (argumentIndex < argumentList.Arguments.Count - 1)

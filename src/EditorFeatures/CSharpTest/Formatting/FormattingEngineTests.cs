@@ -1342,7 +1342,7 @@ class C
 
             var optionSet = new Dictionary<OptionKey, object>
             {
-                { new OptionKey(BraceCompletionOptions.EnableBraceCompletion, LanguageNames.CSharp), false }
+                { new OptionKey(BraceCompletionOptions.Enable, LanguageNames.CSharp), false }
             };
 
             AssertFormatAfterTypeChar(code, expected);
@@ -1372,7 +1372,7 @@ class C
 
             var optionSet = new Dictionary<OptionKey, object>
             {
-                { new OptionKey(BraceCompletionOptions.EnableBraceCompletion, LanguageNames.CSharp), false }
+                { new OptionKey(BraceCompletionOptions.Enable, LanguageNames.CSharp), false }
             };
 
             AssertFormatAfterTypeChar(code, expected);
