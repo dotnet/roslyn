@@ -44,13 +44,12 @@ namespace Roslyn.VisualStudio.Services.Interactive
 
             var vsInteractiveWindow = _interactiveWindowProvider.Open(instanceId: 0, focus: true);
 
-            EventHandler focusWindow = null;
-            focusWindow = (s, e) =>
+            void focusWindow(object s, EventArgs e)
             {
                 // We have to set focus to the Interactive Window *after* the wait indicator is dismissed.
                 vsInteractiveWindow.Show(focus: true);
                 resetInteractive.ExecutionCompleted -= focusWindow;
-            };
+            }
 
             resetInteractive.Execute(vsInteractiveWindow.InteractiveWindow, LanguageName + " Interactive");
             resetInteractive.ExecutionCompleted += focusWindow;

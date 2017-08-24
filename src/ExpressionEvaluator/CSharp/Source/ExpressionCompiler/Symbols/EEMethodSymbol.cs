@@ -635,8 +635,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
                 foreach (var local in block.Locals)
                 {
-                    var oldLocal = local as EELocalSymbol;
-                    if (oldLocal != null)
+                    if (local is EELocalSymbol oldLocal)
                     {
                         Debug.Assert(localBuilder[oldLocal.Ordinal] == oldLocal);
                         continue;

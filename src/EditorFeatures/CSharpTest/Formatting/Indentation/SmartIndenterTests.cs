@@ -2699,9 +2699,7 @@ class C
                     var projectedDocument =
                         workspace.CreateProjectionBufferDocument(HtmlMarkup, workspace.Documents, LanguageNames.CSharp);
 
-                    var provider = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>()
-                                        as TestFormattingRuleFactoryServiceFactory.Factory;
-                    if (provider != null)
+                    if (workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>() is TestFormattingRuleFactoryServiceFactory.Factory provider)
                     {
                         provider.BaseIndentation = BaseIndentationOfNugget;
                         provider.TextSpan = subjectDocument.SelectedSpans.Single();

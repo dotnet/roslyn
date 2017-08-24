@@ -50,8 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
                 }
                 catch (AggregateException e)
                 {
-                    var operationCanceledException = e.InnerExceptions[0] as OperationCanceledException;
-                    if (operationCanceledException != null)
+                    if (e.InnerExceptions[0] is OperationCanceledException operationCanceledException)
                     {
                         return WaitIndicatorResult.Canceled;
                     }

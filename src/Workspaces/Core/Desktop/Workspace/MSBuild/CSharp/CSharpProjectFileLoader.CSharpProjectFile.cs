@@ -5,14 +5,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Build.Execution;
-using Microsoft.Build.Framework;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MSBuild;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
@@ -59,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreateProjectFileInfo(compilerInputs, buildInfo);
             }
 
-            protected override ProjectFileReference CreateProjectFileReference(ProjectItemInstance reference)
+            protected override ProjectFileReference CreateProjectFileReference(MSB.Execution.ProjectItemInstance reference)
             {
                 var filePath = reference.EvaluatedInclude;
                 var aliases = GetAliases(reference);
@@ -111,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     buildInfo.ErrorMessage);
             }
 
-            private DocumentFileInfo MakeDocumentFileInfo(string projectDirectory, ITaskItem item)
+            private DocumentFileInfo MakeDocumentFileInfo(string projectDirectory, MSB.Framework.ITaskItem item)
             {
                 var filePath = GetDocumentFilePath(item);
                 var logicalPath = GetDocumentLogicalPath(item, projectDirectory);
@@ -120,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated);
             }
 
-            private ImmutableArray<string> GetAliases(ITaskItem item)
+            private ImmutableArray<string> GetAliases(MSB.Framework.ITaskItem item)
             {
                 var aliasesText = item.GetMetadata("Aliases");
 
@@ -209,8 +203,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 internal string OutputDirectory { get; }
                 internal string OutputFileName { get; private set; }
                 internal List<string> CommandLineArgs { get; }
-                internal IEnumerable<ITaskItem> Sources { get; private set; }
-                internal IEnumerable<ITaskItem> AdditionalSources { get; private set; }
+                internal IEnumerable<MSB.Framework.ITaskItem> Sources { get; private set; }
+                internal IEnumerable<MSB.Framework.ITaskItem> AdditionalSources { get; private set; }
 
                 private bool _emitDebugInfo;
                 private string _debugType;
@@ -222,8 +216,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     _projectFile = projectFile;
                     this.CommandLineArgs = new List<string>();
-                    this.Sources = SpecializedCollections.EmptyEnumerable<ITaskItem>();
-                    this.AdditionalSources = SpecializedCollections.EmptyEnumerable<ITaskItem>();
+                    this.Sources = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
+                    this.AdditionalSources = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
                     this.ProjectDirectory = Path.GetDirectoryName(projectFile.FilePath);
                     this.OutputDirectory = projectFile.GetOutputDirectory();
                 }
@@ -514,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                public bool SetLinkResources(ITaskItem[] linkResources)
+                public bool SetLinkResources(MSB.Framework.ITaskItem[] linkResources)
                 {
                     if (linkResources != null && linkResources.Length > 0)
                     {
@@ -607,7 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                public bool SetReferences(ITaskItem[] references)
+                public bool SetReferences(MSB.Framework.ITaskItem[] references)
                 {
                     if (references != null)
                     {
@@ -636,7 +630,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                public bool SetAnalyzers(ITaskItem[] analyzerReferences)
+                public bool SetAnalyzers(MSB.Framework.ITaskItem[] analyzerReferences)
                 {
                     if (analyzerReferences != null)
                     {
@@ -650,7 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                public bool SetAdditionalFiles(ITaskItem[] additionalFiles)
+                public bool SetAdditionalFiles(MSB.Framework.ITaskItem[] additionalFiles)
                 {
                     if (additionalFiles != null && additionalFiles.Length > 0)
                     {
@@ -660,7 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                public bool SetResources(ITaskItem[] resources)
+                public bool SetResources(MSB.Framework.ITaskItem[] resources)
                 {
                     if (resources != null && resources.Length > 0)
                     {
@@ -673,7 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                public bool SetResponseFiles(ITaskItem[] responseFiles)
+                public bool SetResponseFiles(MSB.Framework.ITaskItem[] responseFiles)
                 {
                     if (responseFiles != null && responseFiles.Length > 0)
                     {
@@ -686,7 +680,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                public bool SetSources(ITaskItem[] sources)
+                public bool SetSources(MSB.Framework.ITaskItem[] sources)
                 {
                     if (sources != null && sources.Length > 0)
                     {

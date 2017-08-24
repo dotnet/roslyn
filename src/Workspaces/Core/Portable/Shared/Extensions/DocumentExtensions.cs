@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-                var frozenDocument = await document.WithFrozenPartialSemanticsAsync(cancellationToken).ConfigureAwait(false);
+                var frozenDocument = document.WithFrozenPartialSemantics(cancellationToken);
                 return await frozenDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             }
         }
