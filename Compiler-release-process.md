@@ -6,6 +6,7 @@ For each release, some steps to check:
 - notify partners of preview and RTM packages being published to NuGet
 - announce the new features on the team blog and in the Visual Studio Preview release notes
 - record the [language history](https://github.com/dotnet/csharplang/blob/master/Language-Version-History.md)
+- update the package description(s)
 - remove any unused Language Version
 
 For each language feature:
