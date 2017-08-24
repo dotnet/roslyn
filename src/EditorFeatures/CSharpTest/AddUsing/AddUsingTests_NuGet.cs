@@ -257,7 +257,7 @@ class C
             installerServiceMock.Verify();
         }
 
-        private Task<ImmutableArray<PackageWithTypeResult>> CreateSearchResult(
+        private Task<IList<PackageWithTypeResult>> CreateSearchResult(
             string packageName, string typeName, ImmutableArray<string> containingNamespaceNames)
         {
             return CreateSearchResult(new PackageWithTypeResult(
@@ -265,8 +265,8 @@ class C
                 rank: 0, containingNamespaceNames: containingNamespaceNames));
         }
 
-        private Task<ImmutableArray<PackageWithTypeResult>> CreateSearchResult(params PackageWithTypeResult[] results)
-            => Task.FromResult(ImmutableArray.Create(results));
+        private Task<IList<PackageWithTypeResult>> CreateSearchResult(params PackageWithTypeResult[] results)
+            => Task.FromResult<IList<PackageWithTypeResult>>(ImmutableArray.Create(results));
 
         private ImmutableArray<string> CreateNameParts(params string[] parts) => parts.ToImmutableArray();
     }

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Remote
     // root level service for all Roslyn services
     internal partial class CodeAnalysisService : IRemoteDocumentHighlights
     {
-        public async Task<ImmutableArray<SerializableDocumentHighlights>> GetDocumentHighlightsAsync(
+        public async Task<IList<SerializableDocumentHighlights>> GetDocumentHighlightsAsync(
             DocumentId documentId, int position, DocumentId[] documentIdsToSearch, CancellationToken cancellationToken)
         {
             // NOTE: In projection scenarios, we might get a set of documents to search

@@ -90,11 +90,14 @@ index:=1, ignoreTrivia:=False)
     [|Dim x As New V|]
 End Class",
 "Imports System.Collections.Generic
+
 Partial Class c1(Of V As {New}, U)
     Dim x As New V
+
     Public Overrides Function Equals(obj As Object) As Boolean
         Dim c = TryCast(obj, c1(Of V, U))
-        Return c IsNot Nothing AndAlso EqualityComparer(Of V).Default.Equals(x, c.x)
+        Return c IsNot Nothing AndAlso
+               EqualityComparer(Of V).Default.Equals(x, c.x)
     End Function
 End Class")
         End Function

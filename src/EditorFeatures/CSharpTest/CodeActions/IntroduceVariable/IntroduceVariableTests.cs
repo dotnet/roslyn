@@ -2208,7 +2208,8 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<int, int> f = x => {
+        Func<int, int> f = x =>
+        {
             var {|Rename:v|} = x + 1;
             return v;
         };
@@ -2237,7 +2238,8 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<int, Func<int, int>> f = x => {
+        Func<int, Func<int, int>> f = x =>
+        {
             var {|Rename:v|} = x + 1;
             return y => v;
         };
@@ -2266,7 +2268,8 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<int, Func<int, int>> f = x => y => {
+        Func<int, Func<int, int>> f = x => y =>
+        {
             var {|Rename:v|} = y + 1;
             return v;
         };
@@ -2321,7 +2324,8 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<int, Func<int, int>> f = x => {
+        Func<int, Func<int, int>> f = x =>
+        {
             Func<int, int> {|Rename:p|} = y => x + 1;
             return p;
         };
@@ -2349,7 +2353,8 @@ class Program
 {
     void M()
     {
-        Action<int> goo = x => {
+        Action<int> goo = x =>
+        {
             object {|Rename:goo1|} = x.Goo;
         };
     }
@@ -4034,8 +4039,7 @@ class C
         }
     }
 }",
-@"
-class Program
+@"class Program
 {
     class MySpan { public int Start { get; } public int End { get; } }
     void Method(MySpan span)

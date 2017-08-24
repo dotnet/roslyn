@@ -967,7 +967,9 @@ namespace Sample.Extensions
 </Workspace>";
 
             var expectedText =
-@"using Sample.Extensions;
+@"
+using Sample.Extensions;
+
 namespace Sample
 {
     class Program
@@ -978,7 +980,8 @@ namespace Sample
             var other = myString?.StringExtension().Substring(0);
         }
     }
-}";
+}
+       ";
             await TestInRegularAndScriptAsync(initialText, expectedText);
         }
 
@@ -1014,14 +1017,17 @@ namespace Sample.Extensions
 </Workspace>";
 
             var expectedText =
-@"using Sample.Extensions;
+@"
+using Sample.Extensions;
+
 public class C
 {
     public T F<T>(T x)
     {
         return F(new C())?.F(new C())?.Extn();
     }
-}";
+}
+       ";
             await TestInRegularAndScriptAsync(initialText, expectedText);
         }
 
@@ -1057,14 +1063,17 @@ namespace Sample.Extensions
 </Workspace>";
 
             var expectedText =
-@"using Sample.Extensions;
+@"
+using Sample.Extensions;
+
 public class C
 {
     public T F<T>(T x)
     {
         return F(new C())?.F(new C()).Extn()?.F(newC());
     }
-}";
+}
+       ";
             await TestInRegularAndScriptAsync(initialText, expectedText);
         }
 

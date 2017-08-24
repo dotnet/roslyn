@@ -529,7 +529,8 @@ class C
 {
     void M()
     {
-        var list1 = new List<int>(() => {
+        var list1 = new List<int>(() =>
+        {
             var list2 = new List<int>
             {
                 2
@@ -567,7 +568,8 @@ class C
     {
         var list1 = new List<int>
         {
-            () => {
+            () =>
+            {
                 var list2 = new List<int>
                 {
                     2
@@ -632,14 +634,8 @@ class C
     {
         var c = new Dictionary<int, string>
         {
-            {
-                1,
-                ""x""
-            },
-            {
-                2,
-                ""y""
-            }
+            { 1, ""x"" },
+            { 2, ""y"" }
         };
     }
 }");

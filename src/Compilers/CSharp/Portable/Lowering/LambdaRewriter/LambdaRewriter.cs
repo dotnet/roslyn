@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// have captured variables.  The result of this analysis is left in <see cref="_analysis"/>.
     /// 
     /// Then we make a frame, or compiler-generated class, represented by an instance of
-    /// <see cref="ClosureEnvironment"/> for each scope with captured variables.  The generated frames are kept
+    /// <see cref="SynthesizedClosureEnvironment"/> for each scope with captured variables.  The generated frames are kept
     /// in <see cref="_frames"/>.  Each frame is given a single field for each captured
     /// variable in the corresponding scope.  These are maintained in <see cref="MethodToClassRewriter.proxies"/>.
     /// 
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // lambda frame for static lambdas. 
         // initialized lazily and could be null if there are no static lambdas
-        private ClosureEnvironment _lazyStaticLambdaFrame;
+        private SynthesizedClosureEnvironment _lazyStaticLambdaFrame;
 
         // A mapping from every lambda parameter to its corresponding method's parameter.
         private readonly Dictionary<ParameterSymbol, ParameterSymbol> _parameterMap = new Dictionary<ParameterSymbol, ParameterSymbol>();
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Dictionary<LocalFunctionSymbol, MappedLocalFunction> _localFunctionMap = new Dictionary<LocalFunctionSymbol, MappedLocalFunction>();
 
         // for each block with lifted (captured) variables, the corresponding frame type
-        private readonly Dictionary<BoundNode, ClosureEnvironment> _frames = new Dictionary<BoundNode, ClosureEnvironment>();
+        private readonly Dictionary<BoundNode, Analysis.ClosureEnvironment> _frames = new Dictionary<BoundNode, Analysis.ClosureEnvironment>();
 
         // the current set of frame pointers in scope.  Each is either a local variable (where introduced),
         // or the "this" parameter when at the top level.  Keys in this map are never constructed types.
@@ -187,8 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _assignLocals = assignLocals;
             _currentTypeParameters = method.TypeParameters;
             _currentLambdaBodyTypeMap = TypeMap.Empty;
-            _innermostFramePointer = null;
-            _currentFrameThis = thisParameterOpt;
+            _innermostFramePointer = _currentFrameThis = thisParameterOpt;
             _framePointers[thisType] = thisParameterOpt;
             _seenBaseCall = method.MethodKind != MethodKind.Constructor; // only used for ctors
             _synthesizedFieldNameIdDispenser = 1;
@@ -268,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics,
                 assignLocals);
 
-            rewriter.SynthesizeClosureEnvironments();
+            rewriter.SynthesizeClosureEnvironments(closureDebugInfoBuilder);
 
             // First, lower everything but references (calls, delegate conversions)
             // to local functions
@@ -341,10 +340,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         static partial void CheckLocalsDefined(BoundNode node);
 
         /// <summary>
-        /// Adds <see cref="ClosureEnvironment"/> synthesized types to the compilation state
+        /// Adds <see cref="SynthesizedClosureEnvironment"/> synthesized types to the compilation state
         /// and creates hoisted fields for all locals captured by the environments.
         /// </summary>
-        private void SynthesizeClosureEnvironments()
+        private void SynthesizeClosureEnvironments(ArrayBuilder<ClosureDebugInfo> closureDebugInfo)
         {
             Analysis.VisitScopeTree(_analysis.ScopeTree, scope =>
             {
@@ -356,32 +355,59 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(scope.DeclaredEnvironments.Count == 1);
 
                     var env = scope.DeclaredEnvironments[0];
+                    var frame = MakeFrame(scope, env.IsStruct);
+                    env.SynthesizedEnvironment = frame;
 
-                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(ContainingType, env);
-                    if (env.Constructor != null)
+                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(ContainingType, frame);
+                    if (frame.Constructor != null)
                     {
                         AddSynthesizedMethod(
-                            env.Constructor,
+                            frame.Constructor,
                             FlowAnalysisPass.AppendImplicitReturn(
-                                MethodCompiler.BindMethodBody(env.Constructor, CompilationState, null),
-                                env.Constructor));
+                                MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null),
+                                frame.Constructor));
                     }
 
                     foreach (var captured in env.CapturedVariables)
                     {
                         Debug.Assert(!proxies.ContainsKey(captured));
 
-                        var hoistedField = LambdaCapturedVariable.Create(env, captured, ref _synthesizedFieldNameIdDispenser);
+                        var hoistedField = LambdaCapturedVariable.Create(frame, captured, ref _synthesizedFieldNameIdDispenser);
                         proxies.Add(captured, new CapturedToFrameSymbolReplacement(hoistedField, isReusable: false));
-                        CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(env, hoistedField);
+                        CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, hoistedField);
                     }
 
                     _frames.Add(scope.BoundNode, env);
                 }
             });
-        }
 
-        private ClosureEnvironment GetStaticFrame(DiagnosticBag diagnostics, IBoundLambdaOrFunction lambda)
+            SynthesizedClosureEnvironment MakeFrame(Analysis.Scope scope, bool isStruct)
+            {
+                var scopeBoundNode = scope.BoundNode;
+
+                var syntax = scopeBoundNode.Syntax;
+                Debug.Assert(syntax != null);
+
+                DebugId methodId = _analysis.GetTopLevelMethodId();
+                DebugId closureId = _analysis.GetClosureId(syntax, closureDebugInfo);
+
+                var containingMethod = scope.ContainingClosureOpt?.OriginalMethodSymbol ?? _topLevelMethod;
+                if ((object)_substitutedSourceMethod != null && containingMethod == _topLevelMethod)
+                {
+                    containingMethod = _substitutedSourceMethod;
+                }
+
+                return new SynthesizedClosureEnvironment(
+                    _topLevelMethod,
+                    containingMethod,
+                    isStruct,
+                    syntax,
+                    methodId,
+                    closureId);
+        }
+    }
+
+        private SynthesizedClosureEnvironment GetStaticFrame(DiagnosticBag diagnostics, IBoundLambdaOrFunction lambda)
         {
             if (_lazyStaticLambdaFrame == null)
             {
@@ -406,8 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     DebugId closureId = default(DebugId);
                     // using _topLevelMethod as containing member because the static frame does not have generic parameters, except for the top level method's
                     var containingMethod = isNonGeneric ? null : (_substitutedSourceMethod ?? _topLevelMethod);
-                    _lazyStaticLambdaFrame = new ClosureEnvironment(
-                        SpecializedCollections.EmptyEnumerable<Symbol>(),
+                    _lazyStaticLambdaFrame = new SynthesizedClosureEnvironment(
                         _topLevelMethod,
                         containingMethod,
                         isStruct: false,
@@ -530,11 +555,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Introduce a frame around the translation of the given node.
         /// </summary>
         /// <param name="node">The node whose translation should be translated to contain a frame</param>
-        /// <param name="frame">The frame for the translated node</param>
+        /// <param name="env">The environment for the translated node</param>
         /// <param name="F">A function that computes the translation of the node.  It receives lists of added statements and added symbols</param>
         /// <returns>The translated statement, as returned from F</returns>
-        private BoundNode IntroduceFrame(BoundNode node, ClosureEnvironment frame, Func<ArrayBuilder<BoundExpression>, ArrayBuilder<LocalSymbol>, BoundNode> F)
+        private BoundNode IntroduceFrame(BoundNode node, Analysis.ClosureEnvironment env, Func<ArrayBuilder<BoundExpression>, ArrayBuilder<LocalSymbol>, BoundNode> F)
         {
+            var frame = env.SynthesizedEnvironment;
             var frameTypeParameters = ImmutableArray.Create(StaticCast<TypeSymbol>.From(_currentTypeParameters).SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers), 0, frame.Arity);
             NamedTypeSymbol frameType = frame.ConstructIfGeneric(frameTypeParameters);
 
@@ -562,14 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)_innermostFramePointer != null)
             {
                 proxies.TryGetValue(_innermostFramePointer, out oldInnermostFrameProxy);
-                if (_analysis.NeedsParentFrame.Contains(node) &&
-                    // If the frame pointer is a struct type that means the frame is a struct
-                    // passed by-ref to a local function. Capturing parent frames for local
-                    // functions is performed in RemapLambdaOrLocalFunction, rather than here
-                    // (since struct frame pointers should never be captured, but instead be
-                    // passed in a list to the needed local functions).
-                    !(_innermostFramePointer.Kind == SymbolKind.Local &&
-                      ((LocalSymbol)_innermostFramePointer).Type.IsValueType))
+                if (env.CapturesParent)
                 {
                     var capturedFrame = LambdaCapturedVariable.Create(frame, _innermostFramePointer, ref _synthesizedFieldNameIdDispenser);
                     FieldSymbol frameParent = capturedFrame.AsMember(frameType);
@@ -590,7 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Capture any parameters of this block.  This would typically occur
             // at the top level of a method or lambda with captured parameters.
-            foreach (var variable in frame.CapturedVariables)
+            foreach (var variable in env.CapturedVariables)
             {
                 InitVariableProxy(syntax, variable, framePointer, prologue);
             }
@@ -728,7 +747,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out NamedTypeSymbol constructedFrame)
         {
             var translatedLambdaContainer = synthesizedMethod.ContainingType;
-            var containerAsFrame = translatedLambdaContainer as ClosureEnvironment;
+            var containerAsFrame = translatedLambdaContainer as SynthesizedClosureEnvironment;
 
             // All of _currentTypeParameters might not be preserved here due to recursively calling upwards in the chain of local functions/lambdas
             Debug.Assert((typeArgumentsOpt.IsDefault && !originalMethod.IsGenericMethod) || (typeArgumentsOpt.Length == originalMethod.Arity));
@@ -866,9 +885,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitBlock(BoundBlock node)
         {
-            ClosureEnvironment frame;
             // Test if this frame has captured variables and requires the introduction of a closure class.
-            if (_frames.TryGetValue(node, out frame))
+            if (_frames.TryGetValue(node, out var frame))
             {
                 return IntroduceFrame(node, frame, (ArrayBuilder<BoundExpression> prologue, ArrayBuilder<LocalSymbol> newLocals) =>
                     RewriteBlock(node, prologue, newLocals));
@@ -924,8 +942,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitCatchBlock(BoundCatchBlock node)
         {
             // Test if this frame has captured variables and requires the introduction of a closure class.
-            ClosureEnvironment frame;
-            if (_frames.TryGetValue(node, out frame))
+            if (_frames.TryGetValue(node, out var frame))
             {
                 return IntroduceFrame(node, frame, (ArrayBuilder<BoundExpression> prologue, ArrayBuilder<LocalSymbol> newLocals) =>
                 {
@@ -991,9 +1008,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitSequence(BoundSequence node)
         {
-            ClosureEnvironment frame;
             // Test if this frame has captured variables and requires the introduction of a closure class.
-            if (_frames.TryGetValue(node, out frame))
+            if (_frames.TryGetValue(node, out var frame))
             {
                 return IntroduceFrame(node, frame, (ArrayBuilder<BoundExpression> prologue, ArrayBuilder<LocalSymbol> newLocals) =>
                 {
@@ -1008,10 +1024,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitStatementList(BoundStatementList node)
         {
-            ClosureEnvironment frame;
             // Test if this frame has captured variables and requires the introduction of a closure class.
             // That can occur for a BoundStatementList if it is the body of a method with captured parameters.
-            if (_frames.TryGetValue(node, out frame))
+            if (_frames.TryGetValue(node, out var frame))
             {
                 return IntroduceFrame(node, frame, (ArrayBuilder<BoundExpression> prologue, ArrayBuilder<LocalSymbol> newLocals) =>
                 {
@@ -1034,9 +1049,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
-            ClosureEnvironment frame;
             // Test if this frame has captured variables and requires the introduction of a closure class.
-            if (_frames.TryGetValue(node, out frame))
+            if (_frames.TryGetValue(node, out var frame))
             {
                 return IntroduceFrame(node, frame, (ArrayBuilder<BoundExpression> prologue, ArrayBuilder<LocalSymbol> newLocals) =>
                 {
@@ -1105,7 +1119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ClosureKind closureKind;
             NamedTypeSymbol translatedLambdaContainer;
-            ClosureEnvironment containerAsFrame;
+            SynthesizedClosureEnvironment containerAsFrame;
             BoundNode lambdaScope;
             DebugId topLevelMethodId;
             DebugId lambdaId;
@@ -1178,7 +1192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             IBoundLambdaOrFunction node,
             out ClosureKind closureKind,
             out NamedTypeSymbol translatedLambdaContainer,
-            out ClosureEnvironment containerAsFrame,
+            out SynthesizedClosureEnvironment containerAsFrame,
             out BoundNode lambdaScope,
             out DebugId topLevelMethodId,
             out DebugId lambdaId)
@@ -1186,40 +1200,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             Analysis.Closure closure = Analysis.GetClosureInTree(_analysis.ScopeTree, node.Symbol);
 
             var structClosures = closure.CapturedEnvironments
-                .Where(env => env.IsStructType()).AsImmutable();
+                .Where(env => env.IsStruct).Select(env => env.SynthesizedEnvironment).AsImmutable();
+
             int closureOrdinal;
             if (closure.ContainingEnvironmentOpt != null)
             {
-                containerAsFrame = closure.ContainingEnvironmentOpt;
+                containerAsFrame = closure.ContainingEnvironmentOpt?.SynthesizedEnvironment;
 
-                if (containerAsFrame?.IsValueType == true)
+                closureKind = ClosureKind.General;
+                translatedLambdaContainer = containerAsFrame;
+                closureOrdinal = containerAsFrame.ClosureOrdinal;
+                // Find the scope of the containing environment
+                BoundNode tmpScope = null;
+                Analysis.VisitScopeTree(_analysis.ScopeTree, scope =>
                 {
-                    // Lower directly onto the containing type
-                    containerAsFrame = null;
-                    lambdaScope = null;
-                    closureKind = ClosureKind.Static; // not exactly... but we've rewritten the receiver to be a by-ref parameter
-                    translatedLambdaContainer = _topLevelMethod.ContainingType;
-                    closureOrdinal = LambdaDebugInfo.StaticClosureOrdinal;
-                }
-                else
-                {
-                    closureKind = ClosureKind.General;
-                    translatedLambdaContainer = containerAsFrame;
-                    closureOrdinal = containerAsFrame.ClosureOrdinal;
-                    // Find the scope of the containing environment
-                    BoundNode tmpScope = null;
-                    Analysis.VisitScopeTree(_analysis.ScopeTree, scope =>
+                    if (scope.DeclaredEnvironments.Contains(closure.ContainingEnvironmentOpt))
                     {
-                        if (scope.DeclaredEnvironments.Contains(closure.ContainingEnvironmentOpt))
-                        {
-                            tmpScope = scope.BoundNode;
-                        }
-                    });
-                    Debug.Assert(tmpScope != null);
-                    lambdaScope = tmpScope;
-                }
+                        tmpScope = scope.BoundNode;
+                    }
+                });
+                Debug.Assert(tmpScope != null);
+                lambdaScope = tmpScope;
             }
-            else if (closure.CapturedVariables.Count == 0)
+            else if (closure.CapturesThis)
+            {
+                lambdaScope = null;
+                containerAsFrame = null;
+                translatedLambdaContainer = _topLevelMethod.ContainingType;
+                closureKind = ClosureKind.ThisOnly;
+                closureOrdinal = LambdaDebugInfo.ThisOnlyClosureOrdinal;
+            }
+            else if (closure.CapturedEnvironments.Count == 0)
             {
                 if (_analysis.MethodsConvertedToDelegates.Contains(node.Symbol))
                 {
@@ -1238,11 +1249,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                lambdaScope = null;
+                // Lower directly onto the containing type
                 containerAsFrame = null;
+                lambdaScope = null;
+                closureKind = ClosureKind.Static; // not exactly... but we've rewritten the receiver to be a by-ref parameter
                 translatedLambdaContainer = _topLevelMethod.ContainingType;
-                closureKind = ClosureKind.ThisOnly;
-                closureOrdinal = LambdaDebugInfo.ThisOnlyClosureOrdinal;
+                closureOrdinal = LambdaDebugInfo.StaticClosureOrdinal;
             }
 
             // Move the body of the lambda to a freshly generated synthetic method on its frame.
@@ -1338,7 +1350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ClosureKind closureKind;
             NamedTypeSymbol translatedLambdaContainer;
-            ClosureEnvironment containerAsFrame;
+            SynthesizedClosureEnvironment containerAsFrame;
             BoundNode lambdaScope;
             DebugId topLevelMethodId;
             DebugId lambdaId;

@@ -1028,7 +1028,7 @@ class Program
 
             await TestInRegularAndScriptAsync(
 input,
-@"[assembly: System.Runtime.InteropServices.Guid(""9ed54f84-a89d-4fcd-a854-44251e925f09"")]");
+@"[ assembly : System.Runtime.InteropServices.Guid( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ");
         }
 
         [WorkItem(546027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546027")]

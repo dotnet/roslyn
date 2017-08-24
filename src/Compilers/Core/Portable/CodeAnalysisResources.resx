@@ -591,8 +591,8 @@
   <data name="StreamIsTooLong" xml:space="preserve">
     <value>Stream is too long.</value>
   </data>
-  <data name="EmbeddedTextsRequirePortablePdb" xml:space="preserve">
-    <value>Embedded texts are only supported when emitting Portable PDB.</value>
+  <data name="EmbeddedTextsRequirePdb" xml:space="preserve">
+    <value>Embedded texts are only supported when emitting a PDB.</value>
   </data>
   <data name="TheStreamCannotBeWrittenTo" xml:space="preserve">
     <value>The stream cannot be written to.</value>

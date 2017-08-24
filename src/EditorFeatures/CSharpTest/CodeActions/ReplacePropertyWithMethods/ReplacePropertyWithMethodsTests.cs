@@ -324,7 +324,6 @@ class D
     {
         return 0;
     }
-
     private void SetProp(int value)
     {
         var v = value;
@@ -357,7 +356,6 @@ class D
     {
         return 0;
     }
-
     private void SetProp(int value)
     {
         var v = value;
@@ -395,7 +393,6 @@ class D
     {
         return 0;
     }
-
     private void SetProp(int value)
     {
         var v = value;
@@ -438,7 +435,6 @@ class D
     {
         return 0;
     }
-
     private void SetProp(int value)
     {
         var v = value;
@@ -527,7 +523,6 @@ class D
     {
         return 0;
     }
-
     private void SetProp(int value)
     {
         var v = value;
@@ -570,7 +565,6 @@ class D
     {
         return 0;
     }
-
     private void SetProp(int value)
     {
         var v = value;
