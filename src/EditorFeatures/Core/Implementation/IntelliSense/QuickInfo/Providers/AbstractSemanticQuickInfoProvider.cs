@@ -165,10 +165,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
             var sections = await descriptionService.ToDescriptionGroupsAsync(workspace, semanticModel, token.SpanStart, symbols.AsImmutable(), cancellationToken).ConfigureAwait(false);
 
-            ImmutableArray<TaggedText> parts;
 
             var mainDescriptionBuilder = new List<TaggedText>();
-            if (sections.TryGetValue(SymbolDescriptionGroups.MainDescription, out parts))
+            if (sections.TryGetValue(SymbolDescriptionGroups.MainDescription, out var parts))
             {
                 mainDescriptionBuilder.AddRange(parts);
             }

@@ -537,8 +537,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public void AddMetadataReference(MetadataReference reference, AssemblyIdentity identity)
         {
-            var peRef = reference as PortableExecutableReference;
-            if (peRef != null && peRef.FilePath != null)
+            if (reference is PortableExecutableReference peRef && peRef.FilePath != null)
             {
                 var metadata = new Dictionary<string, string>();
                 if (!peRef.Properties.Aliases.IsEmpty)
@@ -595,8 +594,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public void RemoveMetadataReference(MetadataReference reference, AssemblyIdentity identity)
         {
-            var peRef = reference as PortableExecutableReference;
-            if (peRef != null && peRef.FilePath != null)
+            if (reference is PortableExecutableReference peRef && peRef.FilePath != null)
             {
                 var item = FindReferenceItem(identity, peRef.FilePath);
                 if (item != null)
@@ -704,8 +702,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public void AddAnalyzerReference(AnalyzerReference reference)
         {
-            var fileRef = reference as AnalyzerFileReference;
-            if (fileRef != null)
+            if (reference is AnalyzerFileReference fileRef)
             {
                 string relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, fileRef.FullPath);
                 _loadedProject.AddItem("Analyzer", relativePath);
@@ -714,8 +711,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public void RemoveAnalyzerReference(AnalyzerReference reference)
         {
-            var fileRef = reference as AnalyzerFileReference;
-            if (fileRef != null)
+            if (reference is AnalyzerFileReference fileRef)
             {
                 string relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, fileRef.FullPath);
 

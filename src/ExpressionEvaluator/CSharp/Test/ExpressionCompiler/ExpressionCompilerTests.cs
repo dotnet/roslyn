@@ -5401,7 +5401,7 @@ public class C
                 string actualError;
                 ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
 
-                Action<string> verify = expr =>
+                void verify(string expr)
                 {
                     context.CompileExpression(
                         expr,
@@ -5415,7 +5415,7 @@ public class C
                         testData: null);
                     Assert.Equal(expectedError, actualError);
                     Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
-                };
+                }
 
                 verify("M(null)");
                 verify("field");

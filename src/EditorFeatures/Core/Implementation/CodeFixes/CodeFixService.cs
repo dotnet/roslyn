@@ -438,9 +438,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 hasAnySharedFixer = workspaceFixers.Any();
             }
 
-            Lazy<ISuppressionFixProvider> lazySuppressionProvider = null;
             var hasSuppressionFixer =
-                _suppressionProvidersMap.TryGetValue(document.Project.Language, out lazySuppressionProvider) &&
+                _suppressionProvidersMap.TryGetValue(document.Project.Language, out var lazySuppressionProvider) &&
                 lazySuppressionProvider.Value != null;
 
             if (!hasAnySharedFixer && !hasAnyProjectFixer && !hasSuppressionFixer)
