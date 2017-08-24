@@ -144,6 +144,53 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestSessionClosed()
+        {
+            // enable local remote host service
+            var service = CreateRemoteHostClientService();
+            service.Enable();
+
+            var client = (InProcRemoteHostClient)(await service.GetRemoteHostClientAsync(CancellationToken.None));
+
+            // register local service
+            TestService testService = null;
+            client.RegisterService("Test", (s, p) =>
+            {
+                testService = new TestService(s, p);
+                return testService;
+            });
+
+            // create session that stay alive until client alive (ex, SymbolSearchUpdateEngine)
+            var session = await client.TryCreateServiceSessionAsync("Test", CancellationToken.None);
+            client.ConnectionChanged += (s, connected) =>
+            {
+                if (connected)
+                {
+                    return;
+                }
+
+                // let session go, when client goes away (ex, VS shutdown)
+                session.Dispose();
+            };
+
+            // mimic unfortunate call that happens to be in the middle of communication.
+            var task = Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+            {
+                await session.InvokeAsync("TestMethodAsync");
+            });
+
+            // make client to go away
+            service.Disable();
+
+            // set event so that remote Rpc thread is released. this shouldn't affect
+            // host side's cancellation due to client closed
+            testService.Event.Set();
+
+            // verify session cancelled itself with cancellation token
+            await task;
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestRequestNewRemoteHost()
         {
             var service = CreateRemoteHostClientService();
@@ -194,6 +241,26 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var mock = new Mock<IDiagnosticAnalyzerService>(MockBehavior.Strict);
             mock.Setup(a => a.GetHostAnalyzerReferences()).Returns(references);
             return mock.Object;
+        }
+
+        private class TestService : ServiceHubServiceBase
+        {
+            public TestService(Stream stream, IServiceProvider serviceProvider) :
+                base(serviceProvider, stream)
+            {
+                Event = new ManualResetEvent(false);
+
+                Rpc.StartListening();
+            }
+
+            public readonly ManualResetEvent Event;
+
+            public Task TestMethodAsync()
+            {
+                Event.WaitOne();
+
+                return SpecializedTasks.EmptyTask;
+            }
         }
 
         private class Listener : AsynchronousOperationListener { }
