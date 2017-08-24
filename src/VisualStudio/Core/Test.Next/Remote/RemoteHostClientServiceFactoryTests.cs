@@ -140,7 +140,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             Assert.True(result);
 
-            session.Shutdown(CancellationToken.None);
+            session.Shutdown();
 
             service.Disable();
         }
