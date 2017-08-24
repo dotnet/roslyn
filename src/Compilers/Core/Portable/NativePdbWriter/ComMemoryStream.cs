@@ -32,7 +32,8 @@ namespace Roslyn.Utilities
             }
 
             int chunkIndex = 0;
-            for (int remainingBytes = _length; remainingBytes > 0;)
+            int remainingBytes = _length;
+            while (remainingBytes > 0)
             {
                 int bytesToCopy = Math.Min(ChunkSize, remainingBytes);
                 if (chunkIndex < _chunks.Count)
@@ -47,6 +48,40 @@ namespace Roslyn.Utilities
                         stream.WriteByte(0);
                     }
                 }
+
+                remainingBytes -= bytesToCopy;
+            }
+        }
+
+        public IEnumerable<ArraySegment<byte>> GetChunks()
+        {
+            byte[] lazyZeroChunk = null;
+
+            int chunkIndex = 0;
+            int remainingBytes = _length;
+            while (remainingBytes > 0)
+            {
+                int bytesToCopy = Math.Min(ChunkSize, remainingBytes);
+
+                byte[] chunk;
+                if (chunkIndex < _chunks.Count)
+                {
+                    chunk = _chunks[chunkIndex++];
+                }
+                else if (bytesToCopy == ChunkSize)
+                {
+                    chunk = lazyZeroChunk ?? (lazyZeroChunk = new byte[ChunkSize]);
+                }
+                else if (lazyZeroChunk != null)
+                {
+                    chunk = lazyZeroChunk;
+                }
+                else
+                {
+                    chunk = new byte[bytesToCopy];
+                }
+
+                yield return new ArraySegment<byte>(chunk, 0, bytesToCopy);
 
                 remainingBytes -= bytesToCopy;
             }
