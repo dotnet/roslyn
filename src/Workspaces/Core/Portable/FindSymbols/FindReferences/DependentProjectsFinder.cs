@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             var internalsVisibleToMap = CreateInternalsVisibleToMap(sourceAssembly);
 
-            SymbolKey? sourceAssemblySymbolKey = null;
+            var sourceAssemblySymbolKey = sourceAssembly.GetSymbolKey();
 
             // TODO(cyrusn): What about error tolerance situations.  Do we maybe want to search
             // transitive dependencies as well?  Even if the code wouldn't compile, they may be
@@ -312,30 +312,40 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 if (HasReferenceTo(sourceAssembly, sourceProject, project, cancellationToken))
                 {
-                    bool hasInternalsAccess = false;
-                    if (internalsVisibleToMap.Value.Contains(project.AssemblyName))
-                    {
-                        var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-                        var targetAssembly = compilation.Assembly;
-                        if (sourceAssembly.Language != targetAssembly.Language)
-                        {
-                            sourceAssemblySymbolKey = sourceAssemblySymbolKey ?? sourceAssembly.GetSymbolKey();
-
-                            if (sourceAssemblySymbolKey.Value.Resolve(compilation, cancellationToken: cancellationToken).Symbol is IAssemblySymbol sourceAssemblyInTargetCompilation)
-                            {
-                                hasInternalsAccess = targetAssembly.IsSameAssemblyOrHasFriendAccessTo(sourceAssemblyInTargetCompilation);
-                            }
-                        }
-                        else
-                        {
-                            hasInternalsAccess = targetAssembly.IsSameAssemblyOrHasFriendAccessTo(sourceAssembly);
-                        }
-                    }
+                    var hasInternalsAccess = await HasInternalsAccessAsync(
+                        sourceAssembly, internalsVisibleToMap, 
+                        sourceAssemblySymbolKey, project, cancellationToken).ConfigureAwait(false);
 
                     dependentProjects.Add(new DependentProject(project.Id, hasInternalsAccess));
                 }
             }
+        }
+
+        private static async Task<bool> HasInternalsAccessAsync(
+            IAssemblySymbol sourceAssembly, Lazy<HashSet<string>> internalsVisibleToMap, 
+            SymbolKey sourceAssemblySymbolKey, Project project, CancellationToken cancellationToken)
+        {
+            if (internalsVisibleToMap.Value.Contains(project.AssemblyName) &&
+                project.SupportsCompilation)
+            {
+                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+                var targetAssembly = compilation.Assembly;
+                if (sourceAssembly.Language != targetAssembly.Language)
+                {
+                    var resolvedSymbol = sourceAssemblySymbolKey.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
+                    if (resolvedSymbol is IAssemblySymbol sourceAssemblyInTargetCompilation)
+                    {
+                        return targetAssembly.IsSameAssemblyOrHasFriendAccessTo(sourceAssemblyInTargetCompilation);
+                    }
+                }
+                else
+                {
+                    return targetAssembly.IsSameAssemblyOrHasFriendAccessTo(sourceAssembly);
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
