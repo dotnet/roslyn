@@ -110,18 +110,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return true;
             }
 
-            if (ex is OperationCanceledException && ((IDisposableObservable)_rpc).IsDisposed)
-            {
-                // JsonRpc will throw its own cancellation token if connection it is attached to
-                // is going away. we can get into this sitatuion when VS is shutting down since we dispose
-                // all connections that are open.
-
-                // return false so that we let cancellation from JsonRpc to propagate. we do this
-                // since it is one of safest way to gracefully shutdown the call. since Host is going
-                // away we are fine as long as there is no crash/NFW/Infobar
-                return false;
-            }
-
             s_debuggingLastDisconnectReason = _debuggingLastDisconnectReason;
             s_debuggingLastDisconnectCallstack = _debuggingLastDisconnectCallstack;
 

@@ -152,7 +152,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var service = CreateRemoteHostClientService();
             service.Enable();
 
-            var client = (InProcRemoteHostClient)(await service.GetRemoteHostClientAsync(CancellationToken.None));
+            var client = (InProcRemoteHostClient)(await service.TryGetRemoteHostClientAsync(CancellationToken.None));
 
             // register local service
             TestService testService = null;
@@ -163,32 +163,18 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             });
 
             // create session that stay alive until client alive (ex, SymbolSearchUpdateEngine)
-            var session = await client.TryCreateServiceSessionAsync("Test", CancellationToken.None);
-            client.ConnectionChanged += (s, connected) =>
-            {
-                if (connected)
-                {
-                    return;
-                }
-
-                // let session go, when client goes away (ex, VS shutdown)
-                session.Dispose();
-            };
+            var session = await client.TryCreateKeepAliveSessionAsync("Test", CancellationToken.None);
 
             // mimic unfortunate call that happens to be in the middle of communication.
-            var task = Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
-            {
-                await session.InvokeAsync("TestMethodAsync");
-            });
+            var task = session.TryInvokeAsync("TestMethodAsync", SpecializedCollections.EmptyReadOnlyList<object>(), CancellationToken.None);
 
             // make client to go away
             service.Disable();
 
-            // set event so that remote Rpc thread is released. this shouldn't affect
-            // host side's cancellation due to client closed
+            // let the service to return
             testService.Event.Set();
 
-            // verify session cancelled itself with cancellation token
+            // make sure task finished gracefully
             await task;
         }
 
