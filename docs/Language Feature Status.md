@@ -12,7 +12,7 @@ efforts behind them.
 | ------- | ------ | ----- | ---------- | -------- | --------- |
 | [Async Main](https://github.com/dotnet/csharplang/blob/master/proposals/async-main.md) | master | Merged | [tyoverby](https://github.com/tyoverby) | [vsadov](https://github.com/vsadov) | [stephentoub](https://github.com/stephentoub) |
 | [Default Expressions](https://github.com/dotnet/csharplang/blob/master/proposals/target-typed-default.md) | master  | Merged | [jcouv](https://github.com/jcouv) | [cston](https://github.com/cston) | [jcouv](https://github.com/jcouv) |
-| [Ref Assemblies](https://github.com/dotnet/roslyn/blob/master/docs/features/refout.md) | master | Merged (MSBuild integration ongoing) | [jcouv](https://github.com/jcouv) | [gafter](https://github.com/gafter) | N/A |
+| [Ref Assemblies](https://github.com/dotnet/roslyn/blob/master/docs/features/refout.md) | master | Merged (IDE and project-system integrations ongoing) | [jcouv](https://github.com/jcouv) | [gafter](https://github.com/gafter) | N/A |
 | [Infer tuple names](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.1/infer-tuple-names.md) | master | Merged | [jcouv](https://github.com/jcouv) | [gafter](https://github.com/gafter) | [jcouv](https://github.com/jcouv) |
 | [Pattern-matching with generics](https://github.com/dotnet/csharplang/blob/master/proposals/generics-pattern-match.md) | master  | Merged | [gafter](https://github.com/gafter) | [agocke](https://github.com/agocke) | [gafter](https://github.com/gafter) |
 
@@ -20,9 +20,11 @@ efforts behind them.
 
 | Feature | Branch | State | Developers | Reviewer | LDM Champ |
 | ------- | ------ | ----- | ---------- | -------- | --------- |
-| [ref readonly](https://github.com/dotnet/csharplang/blob/master/proposals/readonly-ref.md) | [readonly-ref](https://github.com/dotnet/roslyn/tree/features/readonly-ref)  | Prototype | [vsadov](https://github.com/vsadov), [omar](https://github.com/OmarTawfikw) | [jcouv](https://github.com/jcouv) | [jaredpar](https://github.com/jaredpar) |
+| [ref readonly](https://github.com/dotnet/csharplang/blob/master/proposals/readonly-ref.md) | [readonly-ref](https://github.com/dotnet/roslyn/tree/features/readonly-ref)  | Prototype | [vsadov](https://github.com/vsadov), [omar](https://github.com/OmarTawfikw) | [cston](https://github.com/cston) | [jaredpar](https://github.com/jaredpar) |
 | [blittable](https://github.com/dotnet/csharplang/pull/206) | None | Proposal | None | | [jaredpar](https://github.com/jaredpar) |
+| strongname | [strongname](https://github.com/dotnet/roslyn/tree/features/strongname) | In Progress | [Ty Overby](https://github.com/tyoverby) | | [jaredpar](https://github.com/jaredpar) |
 | [interior pointer](https://github.com/dotnet/csharplang/pull/264) | None | Proposal | [vsadov](https://github.com/vsadov) | [jaredpar](https://github.com/jaredpar) | [jaredpar](https://github.com/jaredpar) |
+| [non-trailing named arguments](https://github.com/dotnet/csharplang/blob/master/proposals/non-trailing-named-arguments.md) | [non-trailing](https://github.com/dotnet/roslyn/tree/features/non-trailing) | Prototype | [jcouv](https://github.com/jcouv) | TBD | [jcouv](https://github.com/jcouv) |
 
 # C# 8.0
 
@@ -34,4 +36,4 @@ efforts behind them.
 # FAQ
 
 - **Is target version a guarantee?**: No.  It's explicitly not a guarantee.  This is just the planned and ongoing work to the best of our knowledge at this time.
-- **Where are these State values defined?**: Take a look at the [Developing a Language Feature](contributing/Developing a Language Feature.md) document.
+- **Where are these State values defined?**: Take a look at the [Developing a Language Feature](contributing/Developing%20a%20Language%20Feature.md) document.

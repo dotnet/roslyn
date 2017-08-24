@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -73,8 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
             }
 
             string textOpt = null;
-            var typeSyntax = expression as TypeSyntax;
-            if (typeSyntax != null && typeSyntax.IsVar)
+            if (expression is TypeSyntax typeSyntax && typeSyntax.IsVar)
             {
                 // If the user is hovering over 'var', then pass back the full type name that 'var'
                 // binds to.

@@ -1,6 +1,7 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.VisualBasic.DocumentationComments;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -19,8 +20,7 @@ Module M
     Public Class D
     End Class
 End Module";
-                await GenerateAndVerifySourceAsync(metadataSource, "M+D", LanguageNames.VisualBasic, $@"
-#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+                await GenerateAndVerifySourceAsync(metadataSource, "M+D", LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
@@ -79,7 +79,7 @@ End Namespace";
  I am the very model of a modern major general.
  </summary>";
 
-                var extractedXMLFragment = DocumentationCommentUtilities.ExtractXMLFragment(docCommentText);
+                var extractedXMLFragment = DocumentationCommentUtilities.ExtractXMLFragment(docCommentText, "'''");
 
                 Assert.Equal(expectedXMLFragment, extractedXMLFragment);
             }

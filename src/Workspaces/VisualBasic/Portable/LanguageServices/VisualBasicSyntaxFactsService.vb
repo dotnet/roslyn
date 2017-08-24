@@ -5,12 +5,12 @@ Imports System.Composition
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
@@ -46,6 +46,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public ReadOnly Property ElasticMarker As SyntaxTrivia Implements ISyntaxFactsService.ElasticMarker
+            Get
+                Return SyntaxFactory.ElasticMarker
+            End Get
+        End Property
+
+        Public ReadOnly Property ElasticCarriageReturnLineFeed As SyntaxTrivia Implements ISyntaxFactsService.ElasticCarriageReturnLineFeed
+            Get
+                Return SyntaxFactory.ElasticCarriageReturnLineFeed
+            End Get
+        End Property
+
         Protected Overrides ReadOnly Property DocumentationCommentService As IDocumentationCommentService
             Get
                 Return VisualBasicDocumentationCommentService.Instance
@@ -58,6 +70,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function SupportsThrowExpression(options As ParseOptions) As Boolean Implements ISyntaxFactsService.SupportsThrowExpression
             Return False
+        End Function
+
+        Public Function ParseToken(text As String) As SyntaxToken Implements ISyntaxFactsService.ParseToken
+            Return SyntaxFactory.ParseToken(text, startStatement:=True)
         End Function
 
         Public Function IsAwaitKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsAwaitKeyword
@@ -195,6 +211,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function GetDefaultOfParameter(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetDefaultOfParameter
             Return TryCast(node, ParameterSyntax)?.Default
+        End Function
+
+        Public Function GetParameterList(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetParameterList
+            Return VisualBasicSyntaxGenerator.GetParameterList(node)
         End Function
 
         Public Function IsSkippedTokensTrivia(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsSkippedTokensTrivia
@@ -876,6 +896,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 names.Push(GetName(parent, options, containsGlobalKeyword:=False))
                 parent = parent.Parent
             End While
+
             If (options And DisplayNameOptions.IncludeNamespaces) <> 0 Then
                 ' containing namespace(s) in source (if any)
                 Dim containsGlobalKeyword As Boolean = False
@@ -889,6 +910,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     builder.Append(s_dotToken)
                 End If
             End If
+
             While Not names.IsEmpty()
                 Dim name = names.Pop()
                 If name IsNot Nothing Then
@@ -1345,9 +1367,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return statement.IsKind(SyntaxKind.SimpleAssignmentStatement)
         End Function
 
-        Public Sub GetPartsOfAssignmentStatement(statement As SyntaxNode, ByRef left As SyntaxNode, ByRef right As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfAssignmentStatement
+        Public Sub GetPartsOfAssignmentStatement(statement As SyntaxNode, ByRef left As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef right As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfAssignmentStatement
             Dim assignment = DirectCast(statement, AssignmentStatementSyntax)
             left = assignment.Left
+            operatorToken = assignment.OperatorToken
             right = assignment.Right
         End Sub
 
@@ -1423,6 +1446,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsNullLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsNullLiteralExpression
             Return node.Kind() = SyntaxKind.NothingLiteralExpression
+        End Function
+
+        Public Function IsDefaultLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsDefaultLiteralExpression
+            Return IsNullLiteralExpression(node)
         End Function
 
         Public Function IsBinaryExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsBinaryExpression
@@ -1502,6 +1529,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return trivia.Kind = SyntaxKind.DocumentationCommentTrivia
         End Function
 
+        Public Function IsElastic(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFactsService.IsElastic
+            Return trivia.IsElastic()
+        End Function
+
         Public Function IsOnTypeHeader(root As SyntaxNode, position As Integer) As Boolean Implements ISyntaxFactsService.IsOnTypeHeader
             Dim statement = root.FindToken(position).GetAncestor(Of TypeStatementSyntax)
             If statement Is Nothing Then
@@ -1565,6 +1596,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return GetFileBanner(root)
         End Function
 
+        Private Function ISyntaxFactsService_GetFileBanner(firstToken As SyntaxToken) As ImmutableArray(Of SyntaxTrivia) Implements ISyntaxFactsService.GetFileBanner
+            Return GetFileBanner(firstToken)
+        End Function
+
         Protected Overrides Function ContainsInterleavedDirective(span As TextSpan, token As SyntaxToken, cancellationToken As CancellationToken) As Boolean
             Return token.ContainsInterleavedDirective(span, cancellationToken)
         End Function
@@ -1581,8 +1616,52 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return trivia.Kind() = SyntaxKind.DocumentationCommentExteriorTrivia
         End Function
 
-        Private Function ISyntaxFactsService_GetBannerText(documentationCommentTriviaSyntax As SyntaxNode, cancellationToken As CancellationToken) As String Implements ISyntaxFactsService.GetBannerText
-            Return GetBannerText(documentationCommentTriviaSyntax, cancellationToken)
+        Private Function ISyntaxFactsService_GetBannerText(documentationCommentTriviaSyntax As SyntaxNode, maxBannerLength As Integer, cancellationToken As CancellationToken) As String Implements ISyntaxFactsService.GetBannerText
+            Return GetBannerText(documentationCommentTriviaSyntax, maxBannerLength, cancellationToken)
+        End Function
+
+        Public Function GetModifiers(node As SyntaxNode) As SyntaxTokenList Implements ISyntaxFactsService.GetModifiers
+            Return node.GetModifiers()
+        End Function
+
+        Public Function WithModifiers(node As SyntaxNode, modifiers As SyntaxTokenList) As SyntaxNode Implements ISyntaxFactsService.WithModifiers
+            Return node.WithModifiers(modifiers)
+        End Function
+
+        Public Function IsLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLiteralExpression
+            Return TypeOf node Is LiteralExpressionSyntax
+        End Function
+
+        Public Function GetVariablesOfLocalDeclarationStatement(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetVariablesOfLocalDeclarationStatement
+            Return DirectCast(node, LocalDeclarationStatementSyntax).Declarators
+        End Function
+
+        Public Function GetInitializerOfVariableDeclarator(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetInitializerOfVariableDeclarator
+            Return DirectCast(node, VariableDeclaratorSyntax).Initializer
+        End Function
+
+        Public Function GetValueOfEqualsValueClause(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetValueOfEqualsValueClause
+            Return DirectCast(node, EqualsValueSyntax).Value
+        End Function
+
+        Public Function IsExecutableBlock(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExecutableBlock
+            Return node.IsExecutableBlock()
+        End Function
+
+        Public Function GetExecutableBlockStatements(node As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetExecutableBlockStatements
+            Return node.GetExecutableBlockStatements()
+        End Function
+
+        Public Function FindInnermostCommonExecutableBlock(nodes As IEnumerable(Of SyntaxNode)) As SyntaxNode Implements ISyntaxFactsService.FindInnermostCommonExecutableBlock
+            Return nodes.FindInnermostCommonExecutableBlock()
+        End Function
+
+        Private Function ISyntaxFactsService_GetLeadingBlankLines(node As SyntaxNode) As ImmutableArray(Of SyntaxTrivia) Implements ISyntaxFactsService.GetLeadingBlankLines
+            Return MyBase.GetLeadingBlankLines(node)
+        End Function
+
+        Private Function ISyntaxFactsService_GetNodeWithoutLeadingBlankLines(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As TSyntaxNode Implements ISyntaxFactsService.GetNodeWithoutLeadingBlankLines
+            Return MyBase.GetNodeWithoutLeadingBlankLines(node)
         End Function
     End Class
 End Namespace

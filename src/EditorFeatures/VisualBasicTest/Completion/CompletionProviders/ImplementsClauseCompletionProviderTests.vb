@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSuggestInterfaces() As Task
             Dim text = <text>Interface I
-    Sub Foo()
+    Sub Goo()
 End Interface
 
 Interface J
@@ -41,7 +41,7 @@ End Class</text>.Value
             Dim text = <text>Imports IAliasToI = I
 Imports IAliasToJ = J
 Interface I
-    Sub Foo()
+    Sub Goo()
 End Interface
 
 Interface J
@@ -65,7 +65,7 @@ End Class</text>.Value
             Dim text = <text>Imports AliasedNS = NS
 Namespace NS
     Interface I
-        Sub Foo()
+        Sub Goo()
     End Interface
 
     Interface J
@@ -87,7 +87,7 @@ End Namespace</text>.Value
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSubSuggestSub() As Task
             Dim text = <text>Interface I
-    Sub Foo()
+    Sub Goo()
     Function Bar()
 End Interface
 
@@ -96,14 +96,14 @@ Class C
     Public Sub test Implements I.$$
 End Class</text>.Value
 
-            Await VerifyItemExistsAsync(text, "Foo")
+            Await VerifyItemExistsAsync(text, "Goo")
             Await VerifyItemIsAbsentAsync(text, "Bar")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestFunctionSuggestFunction() As Task
             Dim text = <text>Interface I
-    Sub Foo()
+    Sub Goo()
     Function Bar()
 End Interface
 
@@ -113,14 +113,14 @@ Class C
 End Class</text>.Value
 
             Await VerifyItemExistsAsync(text, "Bar")
-            Await VerifyItemIsAbsentAsync(text, "Foo")
+            Await VerifyItemIsAbsentAsync(text, "Goo")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSuggestClassContainingInterface() As Task
             Dim text = <text>Public Class B
     Public Interface I
-        Sub Foo()
+        Sub Goo()
         Function Bar()
     End Interface
 End Class
@@ -136,14 +136,14 @@ End Class</text>.Value
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestDoNotSuggestAlreadyImplementedMember() As Task
             Dim text = <text>Interface I
-    Sub Foo()
+    Sub Goo()
     Function Bar()
 End Interface
 
 
 Class C
     Implements I
-    Public Sub test Implements I.Foo
+    Public Sub test Implements I.Goo
     End Sub
             
     Public Sub blah Implements I.$$
@@ -155,7 +155,7 @@ End Class</text>.Value
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNoInterfaceImplementations() As Task
             Dim text = <text>Interface I
-    Sub Foo()
+    Sub Goo()
     Function Bar()
 End Interface
 
@@ -170,7 +170,7 @@ End Class</text>.Value
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestPropertyImplementation() As Task
             Dim text = <text>Interface I
-    Sub Foo()
+    Sub Goo()
     Property Green() as Integer
 End Interface
 
@@ -181,13 +181,13 @@ Class C
 End Class</text>.Value
 
             Await VerifyItemExistsAsync(text, "Green")
-            Await VerifyItemIsAbsentAsync(text, "Foo")
+            Await VerifyItemIsAbsentAsync(text, "Goo")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEventImplementation() As Task
             Dim text = <text>Interface I
-    Sub Foo()
+    Sub Goo()
     Event Green()
 End Interface
 
@@ -198,13 +198,13 @@ Class C
 End Class</text>.Value
 
             Await VerifyItemExistsAsync(text, "Green")
-            Await VerifyItemIsAbsentAsync(text, "Foo")
+            Await VerifyItemIsAbsentAsync(text, "Goo")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestAfterGlobal() As Task
             Dim text = <text>Interface I
-    Sub Foo()
+    Sub Goo()
     Event Green()
 End Interface
 
@@ -246,7 +246,7 @@ End Class
         Public Async Function TestSuggestionInImplementsList() As Task
             Dim text = <text>Imports System
 Interface I
-    Sub Foo()
+    Sub Goo()
 End Interface
 Interface J
     Sub Baz()
@@ -254,7 +254,7 @@ End Interface
 Class C
     Implements I, J
 
-    Public Sub foo() Implements I.Foo, $$
+    Public Sub goo() Implements I.Goo, $$
 
 End Class
 </text>.Value
@@ -268,7 +268,7 @@ End Class
             Dim text = <text>Namespace Outer
     Namespace Inner
         Public Interface I
-            Sub Foo()
+            Sub Goo()
             Public Interface J
                 Sub Bar()
             End Interface
@@ -291,12 +291,12 @@ End Class</text>.Value
         Public Async Function TestNoNestedInterface() As Task
             Dim text = <text>Public Class B
     Public Interface I
-        Sub Foo()
+        Sub Goo()
     End Interface
 End Class
 Class C
     Implements B.I
-    Public Sub Foo() Implements $$
+    Public Sub Goo() Implements $$
     End Sub
 End Class
 
@@ -384,14 +384,14 @@ End Class</text>.Value
         <WorkItem(530353, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530353")>
         Public Async Function TestNothingToImplement() As Task
             Dim text = <text>Interface I
-    Sub Foo()
+    Sub Goo()
     Sub Bar()
 End Interface
 
 Class C
     Implements I
 
-    Sub f1() Implements I.Foo
+    Sub f1() Implements I.Goo
     End Sub
 
     Sub f2() Implements I.Bar
@@ -424,7 +424,7 @@ End Class
         <WorkItem(546431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546431")>
         Public Async Function TestNextToImplicitLineContinuation2() As Task
             Dim text = <text>Public Interface I2
-    Function Foo() As Boolean
+    Function Goo() As Boolean
 End Interface
 Public Class Cls1
     Implements I2
@@ -473,7 +473,7 @@ End Class</text>.Value
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestKeywordIdentifierShowUnescaped() As Task
             Dim text = <text>Interface [Interface]
-    Sub Foo()
+    Sub Goo()
     Function Bar()
 End Interface
 
@@ -488,7 +488,7 @@ End Class</text>.Value
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestKeywordIdentifierCommitEscaped() As Task
             Dim text = <text>Interface [Interface]
-    Sub Foo()
+    Sub Goo()
     Function Bar()
 End Interface
 
@@ -498,7 +498,7 @@ Class C
 End Class</text>.Value
 
             Dim expected = <text>Interface [Interface]
-    Sub Foo()
+    Sub Goo()
     Function Bar()
 End Interface
 
@@ -531,14 +531,14 @@ Class C1(Of t)
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInterfaceImplementsSub() As Task
             Dim test = <Text>
-Interface IFoo
+Interface IGoo
     Sub S1()
     Function F1() As Integer
     Property P1 As Integer
 End Interface
 
-Class C : Implements IFoo
-    Sub S() Implements IFoo.$$
+Class C : Implements IGoo
+    Sub S() Implements IGoo.$$
 End Class
 </Text>.Value
 
@@ -550,14 +550,14 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInterfaceImplementsFunction() As Task
             Dim test = <Text>
-Interface IFoo
+Interface IGoo
     Sub S1()
     Function F1() As Integer
     Property P1 As Integer
 End Interface
 
-Class C : Implements IFoo
-    Function F() As Integer Implements IFoo.$$
+Class C : Implements IGoo
+    Function F() As Integer Implements IGoo.$$
 End Class
 </Text>.Value
 
@@ -569,14 +569,14 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInterfaceImplementsProperty() As Task
             Dim test = <Text>
-Interface IFoo
+Interface IGoo
     Sub S1()
     Function F1() As Integer
     Property P1 As Integer
 End Interface
 
-Class C : Implements IFoo
-    Property P As Integer Implements IFoo.$$
+Class C : Implements IGoo
+    Property P As Integer Implements IGoo.$$
 End Class
 </Text>.Value
 
@@ -588,7 +588,7 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestVerifyDescription() As Task
             Dim test = <Text><![CDATA[
-Interface IFoo
+Interface IGoo
     ''' <summary>
     ''' Some Summary
     ''' </summary>
@@ -596,13 +596,13 @@ Interface IFoo
 End Interface
 
 Class SomeClass
-    Implements IFoo
-    Public Sub something() Implements IFoo.$$
+    Implements IGoo
+    Public Sub something() Implements IGoo.$$
     End Sub
 End Class
                        ]]></Text>
 
-            Await VerifyItemExistsAsync(test.Value, "Bar", "Sub IFoo.Bar()" & vbCrLf & "Some Summary")
+            Await VerifyItemExistsAsync(test.Value, "Bar", "Sub IGoo.Bar()" & vbCrLf & "Some Summary")
         End Function
 
         <WorkItem(530507, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530507")>
@@ -651,7 +651,7 @@ End Interface
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNotInTrivia() As Task
             Dim text = <text>Interface I
-    Sub Foo()
+    Sub Goo()
 End Interface
 
 Interface J
@@ -669,13 +669,13 @@ End Class</text>.Value
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestReimplementInterfaceImplementedByBase() As Task
             Dim text = <text>Interface I
-    Sub Foo()
+    Sub Goo()
 End Interface
 
 Class B
     Implements I
 
-    Public Sub Foo() Implements I.Foo
+    Public Sub Goo() Implements I.Goo
         Throw New NotImplementedException()
     End Sub
 End Class
@@ -693,14 +693,14 @@ End Class</text>.Value
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestReimplementInterfaceImplementedByBase2() As Task
             Dim text = <text>Interface I
-    Sub Foo()
+    Sub Goo()
     Sub Quux()
 End Interface
 
 Class B
     Implements I
 
-    Public Sub Foo() Implements I.Foo
+    Public Sub Goo() Implements I.Goo
         Throw New NotImplementedException()
     End Sub
 
@@ -713,7 +713,7 @@ Class D
     Inherits B
     Implements I
 
-    Sub Foo2() Implements I.Foo
+    Sub Goo2() Implements I.Goo
     End Sub
 
     Sub Bar() Implements I.$$
@@ -726,14 +726,14 @@ End Class</text>.Value
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function DoNotCrashWithOnlyDotTyped() As Task
             Dim text = <text>Interface I
-    Sub Foo()
+    Sub Goo()
     Sub Quux()
 End Interface
 
 Class B
     Implements I
 
-    Public Sub Foo Implements .$$
+    Public Sub Goo Implements .$$
 
    </text>.Value
 
@@ -744,13 +744,13 @@ Class B
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function ShowGenericTypes() As Task
             Dim text = <text>Interface I(Of T)
-    Sub Foo()
+    Sub Goo()
 End Interface
 
 Class B
     Implements I(Of Integer)
 
-    Public Sub Foo() Implements $$
+    Public Sub Goo() Implements $$
 
    </text>.Value
 
@@ -761,13 +761,13 @@ Class B
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function ShowGenericTypes2() As Task
             Dim text = <text>Interface I(Of T)
-    Sub Foo()
+    Sub Goo()
 End Interface
 
 Class B(Of T)
     Implements I(Of T)
 
-    Public Sub Foo() Implements $$
+    Public Sub Goo() Implements $$
     End Sub
 End Class
 
@@ -780,13 +780,13 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function ShowGenericTypes3() As Task
             Dim text = <text>Interface I(Of T)
-    Sub Foo()
+    Sub Goo()
 End Interface
 
 Class B(Of T)
     Implements I(Of Integer)
 
-    Public Sub Foo() Implements $$
+    Public Sub Goo() Implements $$
     End Sub
 End Class
 

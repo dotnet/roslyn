@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -151,8 +151,8 @@ options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCode
 
     private static bool NewMethod(bool b)
     {
-        return b != 
-            true;
+        return b !=
+                    true;
     }
 }",
 options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
@@ -304,7 +304,8 @@ class C
 {
     static void Main(string[] args)
     {
-        del q = x => {
+        del q = x =>
+        {
             goto label2;
             return {|Rename:NewMethod|}(x);
         };
@@ -446,11 +447,11 @@ class Program
     static void Main()
     {
         byte z = 0;
-        Foo([|x => 0|], y => 0, z, z);
+        Goo([|x => 0|], y => 0, z, z);
     }
 
-    static void Foo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
-    static void Foo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
+    static void Goo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
+    static void Goo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
 }",
 
 @"using System;
@@ -460,7 +461,7 @@ class Program
     static void Main()
     {
         byte z = 0;
-        Foo<byte, byte>({|Rename:NewMethod|}(), y => 0, z, z);
+        Goo<byte, byte>({|Rename:NewMethod|}(), y => 0, z, z);
     }
 
     private static Func<byte, byte> NewMethod()
@@ -468,8 +469,8 @@ class Program
         return x => 0;
     }
 
-    static void Foo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
-    static void Foo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
+    static void Goo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
+    static void Goo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
 }",
 
 ignoreTrivia: false);
@@ -487,11 +488,11 @@ class Program
     static void Main()
     {
         byte z = 0;
-        Foo([|x => 0|], y => { return 0; }, z, z);
+        Goo([|x => 0|], y => { return 0; }, z, z);
     }
 
-    static void Foo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
-    static void Foo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
+    static void Goo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
+    static void Goo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
 }",
 
 @"using System;
@@ -501,7 +502,7 @@ class Program
     static void Main()
     {
         byte z = 0;
-        Foo<byte, byte>({|Rename:NewMethod|}(), y => { return 0; }, z, z);
+        Goo<byte, byte>({|Rename:NewMethod|}(), y => { return 0; }, z, z);
     }
 
     private static Func<byte, byte> NewMethod()
@@ -509,8 +510,8 @@ class Program
         return x => 0;
     }
 
-    static void Foo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
-    static void Foo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
+    static void Goo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
+    static void Goo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
 }",
 
 ignoreTrivia: false);
@@ -1291,6 +1292,7 @@ ignoreTrivia: false);
         int r;
         int y;
         {|Rename:NewMethod|}(out r, out y);
+
         System.Console.WriteLine(r + y);
     }
 
@@ -1331,6 +1333,7 @@ ignoreTrivia: false);
         int r;
         int y;
         {|Rename:NewMethod|}(out r, out y);
+
         System.Console.WriteLine(r + y);
     }
 
@@ -1397,7 +1400,7 @@ class C
 
 class C
 {
-    void Foo(int i)
+    void Goo(int i)
     {
         [|var v = (string)null;
 
@@ -1414,7 +1417,7 @@ class C
 
 class C
 {
-    void Foo(int i)
+    void Goo(int i)
     {
         var v = {|Rename:NewMethod|}(i);
 
@@ -1445,7 +1448,7 @@ class C
 
 class C
 {
-    void Foo(int i)
+    void Goo(int i)
     {
         [|var v = (string)null;
 
@@ -1462,7 +1465,7 @@ class C
 
 class C
 {
-    void Foo(int i)
+    void Goo(int i)
     {
         string v = {|Rename:NewMethod|}(i);
 

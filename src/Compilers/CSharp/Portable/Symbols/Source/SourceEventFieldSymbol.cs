@@ -19,7 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SourceEventSymbol _associatedEvent;
 
         internal SourceEventFieldSymbol(SourceEventSymbol associatedEvent, VariableDeclaratorSyntax declaratorSyntax, DiagnosticBag discardedDiagnostics)
-            : base(associatedEvent.containingType, declaratorSyntax, (associatedEvent.Modifiers & (~DeclarationModifiers.AccessibilityMask)) | DeclarationModifiers.Private, modifierErrors: true, diagnostics: discardedDiagnostics)
+            : base(associatedEvent.containingType,
+                   declaratorSyntax,
+                   (associatedEvent.Modifiers & (~DeclarationModifiers.AccessibilityMask)) | DeclarationModifiers.Private,
+                   modifierErrors: true, 
+                   diagnostics: discardedDiagnostics)
         {
             _associatedEvent = associatedEvent;
         }

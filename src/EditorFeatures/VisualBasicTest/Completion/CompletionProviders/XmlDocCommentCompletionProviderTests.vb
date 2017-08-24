@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
@@ -45,7 +45,7 @@ Namespace Tests
             Dim text = "
 Class C
     ''' <$$
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 "
@@ -60,7 +60,7 @@ Class C
     ''' <summary>
     ''' <$$
     ''' </summary>
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 "
@@ -76,7 +76,7 @@ Class C
     ''' <see></see>;
     ''' <$$
     ''' </summary>;
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 "
@@ -89,7 +89,7 @@ End Class
             Dim text = "
 Class C
     ''' <$$
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 "
@@ -104,7 +104,7 @@ Class C
     ''' <summary>
     ''' <$$
     ''' </summary>
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 "
@@ -119,7 +119,7 @@ Class C
     ''' <summary>
     ''' <$$
     ''' </summary>
-    Sub Foo(Of T)(i as Integer)
+    Sub Goo(Of T)(i as Integer)
     End Sub
 End Class
 "
@@ -147,7 +147,7 @@ Class C
     ''' <summary>
     ''' <$$
     ''' </summary>
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 "
@@ -160,7 +160,7 @@ End Class
             Dim text = "
 Class C
     ''' <$$
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 "
@@ -175,7 +175,7 @@ Class C
     ''' <summary>
     ''' <$$
     ''' </summary>
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 "
@@ -188,7 +188,7 @@ End Class
             Dim text = "
 Class C
     ''' <$$
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 "
@@ -202,7 +202,7 @@ End Class
 Class C
     ''' <summary>
     ''' <$$
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 "
@@ -215,7 +215,7 @@ End Class
             Dim text = "
 Class C
     ''' <list><$$</list>
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 "
@@ -228,7 +228,7 @@ End Class
             Dim text = "
 Class C
     ''' <list>  <listheader> <$$  </listheader>  </list>
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 "
@@ -241,7 +241,7 @@ End Class
             Dim text = "
 Class C(Of T)
     ''' <$$
-    Sub Foo(Of T)(bar as T)
+    Sub Goo(Of T)(bar as T)
     End Sub
 End Class
 "
@@ -271,7 +271,7 @@ End Property
             Dim text = "
     ''' <$$
 Class C(Of T)
-    Sub Foo(Of T)(bar as T)
+    Sub Goo(Of T)(bar as T)
     End Sub
 End Class
 "
@@ -285,7 +285,7 @@ End Class
 Class C(Of T)
     ''' <param name=""bar""></param>
     ''' <$$
-    Sub Foo(Of T)(bar as T)
+    Sub Goo(Of T)(bar as T)
     End Sub
 End Class
 "
@@ -300,7 +300,7 @@ End Class
 Class C(Of T)
     ''' <typeparam name=""T""></param>
     ''' <$$
-    Sub Foo(Of T)(bar as T)
+    Sub Goo(Of T)(bar as T)
     End Sub
 End Class
 "
@@ -316,7 +316,7 @@ Class C(Of T)
     ''' <summary>
     ''' <$$
     ''' </summary>
-    Sub Foo(Of T)(bar as T)
+    Sub Goo(Of T)(bar as T)
     End Sub
 End Class
 "
@@ -332,7 +332,7 @@ Class C(Of T)
     ''' <summary>
     ''' <$$
     ''' </summary>
-    Sub Foo(Of T)(bar as T)
+    Sub Goo(Of T)(bar as T)
     End Sub
 End Class
 "
@@ -345,7 +345,7 @@ End Class
             Dim text = "
 Class C(Of T)
     ''' <exception $$
-    Sub Foo(Of T)(bar as T)
+    Sub Goo(Of T)(bar as T)
     End Sub
 End Class
 "
@@ -358,7 +358,7 @@ End Class
             Dim text = "
 Class C(Of T)
     ''' <exception c$$
-    Sub Foo(Of T)(bar as T)
+    Sub Goo(Of T)(bar as T)
     End Sub
 End Class
 "
@@ -371,7 +371,7 @@ End Class
             Dim text = "
 Class C(Of T)
     ''' <exception name="""" $$
-    Sub Foo(Of T)(bar as T)
+    Sub Goo(Of T)(bar as T)
     End Sub
 End Class
 "
@@ -384,7 +384,7 @@ End Class
             Dim text = "
 Class C(Of T)
     ''' <param name = ""$$""
-    Sub Foo(Of T)(bar as T)
+    Sub Goo(Of T)(bar as T)
     End Sub
 End Class
 "
@@ -399,7 +399,7 @@ End Class
             Dim text = "
 Class C(Of T)
     ''' <param$$
-    Sub Foo(Of T)(bar As T)
+    Sub Goo(Of T)(bar As T)
     End Sub
 End Class
 "
@@ -407,7 +407,7 @@ End Class
             Dim expected = "
 Class C(Of T)
     ''' <param name=""bar""$$
-    Sub Foo(Of T)(bar As T)
+    Sub Goo(Of T)(bar As T)
     End Sub
 End Class
 "
@@ -420,14 +420,14 @@ End Class
         Public Async Function TestCloseTag() As Task
             Dim text = "
 Class C
-    ''' <foo></$$
-    Sub Foo()
+    ''' <goo></$$
+    Sub Goo()
     End Sub
 End Class
 "
 
             Await VerifyItemExistsAsync(
-                text, "foo",
+                text, "goo",
                 usePreviousCharAsTrigger:=True)
         End Function
 
@@ -449,7 +449,7 @@ End Module
         Public Async Function TestNestedTagsOnSameLineAsCompletedTag() As Task
             Dim text = "
 ''' <summary>
-''' <foo></foo>$$
+''' <goo></goo>$$
 ''' 
 ''' </summary>
 Module Program
@@ -478,7 +478,7 @@ End Module
             Dim text = "
 Class C(Of T)
     ''' <param$$
-    Sub Foo(Of T)(bar as T)
+    Sub Goo(Of T)(bar as T)
     End Sub
 End Class
 "
@@ -486,7 +486,7 @@ End Class
             Dim expected = "$$
 Class C(Of T)
     ''' <param
-    Sub Foo(Of T)(bar as T)
+    Sub Goo(Of T)(bar as T)
     End Sub
 End Class
 "
@@ -500,7 +500,7 @@ End Class
             Dim text = "
 Class C(Of T)
     ''' <param$$
-    Sub Foo(Of T)(bar as T)
+    Sub Goo(Of T)(bar as T)
     End Sub
 End Class
 "
@@ -508,7 +508,7 @@ End Class
             Dim expected = "$$
 Class C(Of T)
     ''' <param
-    Sub Foo(Of T)(bar as T)
+    Sub Goo(Of T)(bar as T)
     End Sub
 End Class
 "
@@ -521,7 +521,7 @@ End Class
             Dim text = "
 Class C
     ''' <$$
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 "

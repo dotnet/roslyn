@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -94,12 +95,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<(bool, ImmutableArray<SymbolAndProjectId>)> TryFindAllDeclarationsWithNormalQueryInRemoteProcessAsync(
             Project project, SearchQuery query, SymbolFilter criteria, CancellationToken cancellationToken)
         {
-            var result = await project.Solution.TryRunCodeAnalysisRemoteAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
+            if (!RemoteSupportedLanguages.IsSupported(project.Language))
+            {
+                return (false, ImmutableArray<SymbolAndProjectId>.Empty);
+            }
+
+            var result = await project.Solution.TryRunCodeAnalysisRemoteAsync<IList<SerializableSymbolAndProjectId>>(
                 RemoteFeatureOptions.SymbolFinderEnabled,
                 nameof(IRemoteSymbolFinder.FindAllDeclarationsWithNormalQueryAsync),
                 new object[] { project.Id, query.Name, query.Kind, criteria }, cancellationToken).ConfigureAwait(false);
 
-            if (result.IsDefault)
+            if (result == null)
             {
                 return (false, ImmutableArray<SymbolAndProjectId>.Empty);
             }
@@ -111,9 +117,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task<ImmutableArray<SymbolAndProjectId>> RehydrateAsync(
-            Solution solution, ImmutableArray<SerializableSymbolAndProjectId> array, CancellationToken cancellationToken)
+            Solution solution, IList<SerializableSymbolAndProjectId> array, CancellationToken cancellationToken)
         {
-            var result = ArrayBuilder<SymbolAndProjectId>.GetInstance(array.Length);
+            var result = ArrayBuilder<SymbolAndProjectId>.GetInstance(array.Count);
 
             foreach (var dehydrated in array)
             {

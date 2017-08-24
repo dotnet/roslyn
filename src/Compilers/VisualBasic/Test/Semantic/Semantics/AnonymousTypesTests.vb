@@ -664,7 +664,7 @@ VB$AnonymousDelegate_0`1[VB$AnonymousType_0`1[System.String]]
 Imports System
 
 Module S1
-    Public Function Foo(Of T)() As System.Func(Of Object)
+    Public Function Goo(Of T)() As System.Func(Of Object)
         Dim x2 As T = Nothing
         return Function()
                      Return new With {x2}
@@ -672,7 +672,7 @@ Module S1
     End Function
 
     Sub Main()
-        Console.WriteLine(Foo(Of Integer)()())
+        Console.WriteLine(Goo(Of Integer)()())
     End Sub
 End Module
     </file>
@@ -692,7 +692,7 @@ End Module
 Imports System
 
 Module S1
-    Public Function Foo(Of T)() As System.Func(Of Object)
+    Public Function Goo(Of T)() As System.Func(Of Object)
         Dim x2 As T = Nothing
         Dim x3 = Function()
                      Dim result = new With {x2}
@@ -703,7 +703,7 @@ Module S1
     End Function
 
     Sub Main()
-        Console.WriteLine(Foo(Of Integer)()())
+        Console.WriteLine(Goo(Of Integer)()())
     End Sub
 End Module
     </file>
@@ -722,7 +722,7 @@ End Module
 Imports System
 
 Module S1
-    Public Function Foo(Of T)() As System.Func(Of Object)
+    Public Function Goo(Of T)() As System.Func(Of Object)
         Dim x2 As T = Nothing
         Dim x3 = Function()
                      Dim result = new With {x2}
@@ -734,7 +734,7 @@ Module S1
     End Function
 
     Sub Main()
-        Console.WriteLine(Foo(Of Integer)()())
+        Console.WriteLine(Goo(Of Integer)()())
     End Sub
 End Module
     </file>
@@ -754,7 +754,7 @@ End Module
 Imports System
 
 Module S1
-    Public Sub Foo()
+    Public Sub Goo()
         Dim sss = Sub(x) Console.WriteLine() 'BIND2:"x" 
         sss(x:=1)'BIND1:"sss(x:=1)" 
     End Sub
@@ -799,7 +799,7 @@ End Module
 Imports System
 
 Module S1
-    Public Sub Foo()
+    Public Sub Goo()
         Dim sss As Action(Of Object) = Sub(x) Console.WriteLine() 'BIND2:"x" 
         sss(obj:=1)'BIND1:"sss(obj:=1)" 
     End Sub
@@ -844,7 +844,7 @@ End Module
 Imports System
 
 Module S1
-    Public Sub Foo()
+    Public Sub Goo()
         Dim sss As Action = Sub(x) Console.WriteLine() 'BIND2:"x" 
         sss()'BIND1:"sss()" 
     End Sub

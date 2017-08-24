@@ -1,48 +1,33 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\..\build\Targets\Settings.props" />
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <NonShipping>true</NonShipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{ABDBAC1E-350E-4DC3-BB45-3504404545EE}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Roslyn.ExpressionEvaluator.ResultProvider.Test.Utilities</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
+    <NoWarn>$(NoWarn);CA1825</NoWarn>
+    <!-- Disable CA1825 (Avoid unnecessary zero-length array allocations. Use Array.Empty<X>() instead) as Array.Empty not available in one of the targets for this shared project -->
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
-      <Project>{76c6f005-c89d-4348-bb4a-391898dbeb52}</Project>
-      <Name>TestUtilities.Desktop</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj">
-      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
-      <Name>TestUtilities</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj" />
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <PackageReference Include="System.Collections.Immutable">
-      <Version>$(SystemCollectionsImmutableVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata">
-      <Version>$(MicrosoftVisualStudioDebuggerMetadataVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="xunit">
-      <Version>$(xunitVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="xunit.runner.console">
-      <Version>$(xunitrunnerconsoleVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="xunit.runner.visualstudio">
-      <Version>$(xunitrunnervisualstudioVersion)</Version>
-    </PackageReference>
+    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata" Version="$(MicrosoftVisualStudioDebuggerMetadataVersion)" />
+    <PackageReference Include="xunit" Version="$(xunitVersion)" />
+    <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
+    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
   </ItemGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\..\Dependencies\PooledObjects\PooledStringBuilder.cs">
@@ -96,69 +81,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Debugger\Engine\DkmClrCastExpressionOptions.cs" />
-    <Compile Include="Debugger\Engine\DkmClrCustomTypeInfo.cs" />
-    <Compile Include="Debugger\Engine\DkmCompilerId.cs" />
-    <Compile Include="Debugger\Engine\DkmContinueCorruptingException.cs" />
-    <Compile Include="Debugger\Engine\DkmEngineSettings.cs" />
-    <Compile Include="Debugger\Engine\DkmEvaluateDebuggerDisplayStringAsyncResult.cs" />
-    <Compile Include="Debugger\Engine\DkmEvaluationAsyncResult.cs" />
-    <Compile Include="Debugger\Engine\DkmExceptionCode.cs" />
-    <Compile Include="Debugger\Engine\DkmException.cs" />
-    <Compile Include="Debugger\Engine\DkmClrAppDomain.cs" />
-    <Compile Include="Debugger\Engine\DkmClrDebuggerBrowsableAttribute.cs" />
-    <Compile Include="Debugger\Engine\DkmClrDebuggerDisplayAttribute.cs" />
-    <Compile Include="Debugger\Engine\DkmClrDebuggerTypeProxyAttribute.cs" />
-    <Compile Include="Debugger\Engine\DkmClrDebuggerVisualizerAttribute.cs" />
-    <Compile Include="Debugger\Engine\DkmClrEvalAttribute.cs" />
-    <Compile Include="Debugger\Engine\DkmClrValueFlags.cs" />
-    <Compile Include="Debugger\Engine\DkmCustomUIVisualizerInfo.cs" />
-    <Compile Include="Debugger\Engine\DkmEvaluationResultCategory.cs" />
-    <Compile Include="Debugger\Engine\DkmEvaluationResultEnumContext.cs" />
-    <Compile Include="Debugger\Engine\DkmGetChildrenAsyncResult.cs" />
-    <Compile Include="Debugger\Engine\DkmEvaluationEnumAsyncResult.cs" />
-    <Compile Include="Debugger\Engine\DkmClrModuleInstance.cs" />
-    <Compile Include="Debugger\Engine\DkmClrRuntimeInstance.cs" />
-    <Compile Include="Debugger\Engine\DkmClrType.cs" />
-    <Compile Include="Debugger\Engine\DkmClrValue.cs" />
-    <Compile Include="Debugger\Engine\DkmDataContainer.cs" />
-    <Compile Include="Debugger\Engine\DkmEvaluationFlags.cs" />
-    <Compile Include="Debugger\Engine\DkmEvaluationResult.cs" />
-    <Compile Include="Debugger\Engine\DkmEvaluationResultFlags.cs" />
-    <Compile Include="Debugger\Engine\DkmFailedEvaluationResult.cs" />
-    <Compile Include="Debugger\Engine\DkmInspectionContext.cs" />
-    <Compile Include="Debugger\Engine\DkmDataItem.cs" />
-    <Compile Include="Debugger\Engine\DkmInspectionSession.cs" />
-    <Compile Include="Debugger\Engine\DkmIntermediateEvaluationResult.cs" />
-    <Compile Include="Debugger\Engine\DkmLanguage.cs" />
-    <Compile Include="Debugger\Engine\DkmLanguageId.cs" />
-    <Compile Include="Debugger\Engine\DkmMisc.cs" />
-    <Compile Include="Debugger\Engine\DkmModule.cs" />
-    <Compile Include="Debugger\Engine\DkmModuleInstance.cs" />
-    <Compile Include="Debugger\Engine\DkmProcess.cs" />
-    <Compile Include="Debugger\Engine\DkmReportNonFatalWatsonExceptionAttribute.cs" />
-    <Compile Include="Debugger\Engine\DkmRuntimeInstance.cs" />
-    <Compile Include="Debugger\Engine\DkmSuccessEvaluationResult.cs" />
-    <Compile Include="Debugger\Engine\DkmVendorId.cs" />
-    <Compile Include="Debugger\Engine\DkmWorkList.cs" />
-    <Compile Include="Debugger\Engine\IDkmClrFormatter.cs" />
-    <Compile Include="Debugger\Engine\IDkmClrFormatter2.cs" />
-    <Compile Include="Debugger\Engine\IDkmClrFullNameProvider.cs" />
-    <Compile Include="Debugger\Engine\IDkmClrResultProvider.cs" />
-    <Compile Include="Debugger\MemberInfo\AssemblyImpl.cs" />
-    <Compile Include="Debugger\MemberInfo\ConstructorInfoImpl.cs" />
-    <Compile Include="Debugger\MemberInfo\CustomAttributeDataImpl.cs" />
-    <Compile Include="Debugger\MemberInfo\EventInfoImpl.cs" />
-    <Compile Include="Debugger\MemberInfo\FieldInfoImpl.cs" />
-    <Compile Include="Debugger\MemberInfo\MethodInfoImpl.cs" />
-    <Compile Include="Debugger\MemberInfo\ModuleImpl.cs" />
-    <Compile Include="Debugger\MemberInfo\ParameterInfoImpl.cs" />
-    <Compile Include="Debugger\MemberInfo\PropertyInfoImpl.cs" />
-    <Compile Include="Debugger\MemberInfo\TypeImpl.cs" />
-    <Compile Include="ReflectionUtilities.cs" />
-    <Compile Include="ResultProviderTestBase.cs" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />

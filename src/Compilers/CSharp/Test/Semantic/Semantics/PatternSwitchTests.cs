@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             case var n:
                 break;
-            case ""foo"": ; // error: subsumed by previous case
+            case ""goo"": ; // error: subsumed by previous case
             case null: ; // error: subsumed by previous case
         }
     }
@@ -130,8 +130,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
                 // (10,13): error CS8120: The switch case has already been handled by a previous case.
-                //             case "foo": ; // error: subsumed by previous case
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, @"case ""foo"":").WithLocation(10, 13),
+                //             case "goo": ; // error: subsumed by previous case
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, @"case ""goo"":").WithLocation(10, 13),
                 // (11,13): error CS8120: The switch case has already been handled by a previous case.
                 //             case null: ; // error: subsumed by previous case
                 Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case null:").WithLocation(11, 13)
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             case bool n:
                 break;
-            case ""foo"": // wrong type
+            case ""goo"": // wrong type
                 break; // unreachable
         }
     }
@@ -160,8 +160,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
                 // (10,18): error CS0029: Cannot implicitly convert type 'string' to 'bool'
-                //             case "foo": // wrong type
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""foo""").WithArguments("string", "bool").WithLocation(10, 18),
+                //             case "goo": // wrong type
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""goo""").WithArguments("string", "bool").WithLocation(10, 18),
                 // (11,17): warning CS0162: Unreachable code detected
                 //                 break; // unreachable
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
@@ -707,7 +707,7 @@ null";
 {
     public static void Main(string[] args)
     {
-        switch (""foo"")
+        switch (""goo"")
         {
             case null when true:
                 break;
@@ -767,28 +767,28 @@ null";
             case true:
             case false:
                 break;
-            case ""foo"": // wrong type
+            case ""goo"": // wrong type
                 break;
         }
     }
 }";
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (10,18): error CS0029: Cannot implicitly convert type 'string' to 'bool'
-                //             case "foo": // wrong type
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""foo""").WithArguments("string", "bool").WithLocation(11, 18)
+                //             case "goo": // wrong type
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""goo""").WithArguments("string", "bool").WithLocation(11, 18)
                 );
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (11,18): error CS0029: Cannot implicitly convert type 'string' to 'bool'
-                //             case "foo": // wrong type
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""foo""").WithArguments("string", "bool").WithLocation(11, 18),
+                //             case "goo": // wrong type
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""goo""").WithArguments("string", "bool").WithLocation(11, 18),
                 // (12,17): warning CS0162: Unreachable code detected
                 //                 break;
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
                 );
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (10,18): error CS0029: Cannot implicitly convert type 'string' to 'bool'
-                //             case "foo": // wrong type
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""foo""").WithArguments("string", "bool").WithLocation(11, 18)
+                //             case "goo": // wrong type
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""goo""").WithArguments("string", "bool").WithLocation(11, 18)
                 );
         }
 

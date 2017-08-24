@@ -216,14 +216,14 @@ Imports System
 Public Module Module1
     Public Sub Main()
         Dim x As New UDTest(Of Integer)
-        x.Foo()
-        x.Foo()
-        x.Foo()
+        x.Goo()
+        x.Goo()
+        x.Goo()
     End Sub
 End Module
 
 Public Class UDTest(Of t)
-    Public Sub Foo()
+    Public Sub Goo()
         Static SLItem As Integer = 1
         Console.WriteLine(SLItem.ToString)
         SLItem += 1
@@ -578,12 +578,12 @@ End Module
 
                     Public Module Module1
                         Public Sub Main()
-                            Foo()
-                            Foo()
-                            Foo()
+                            Goo()
+                            Goo()
+                            Goo()
                         End Sub
 
-                        Sub Foo()
+                        Sub Goo()
                             <Test> Static a1 As Integer = 1
                             a1 += 1
                             Console.WriteLine(a1.ToString)
@@ -1042,20 +1042,20 @@ Imports System
 Public Module Module1
     Public Sub Main()
         Dim Obj As New Base
-        Obj.Foo()
-        Obj.Foo()
-        Obj.Foo()
+        Obj.Goo()
+        Obj.Goo()
+        Obj.Goo()
 
         Dim ObjD As New Derived
-        ObjD.foo()
-        ObjD.foo()
-        ObjD.foo()
+        ObjD.goo()
+        ObjD.goo()
+        ObjD.goo()
     End Sub
 
 End Module
 
 Class Base
-    Overridable Sub Foo()
+    Overridable Sub Goo()
         Static sl As Integer = 1
         Console.WriteLine(sl.ToString)
         sl += 1
@@ -1063,7 +1063,7 @@ Class Base
 End Class
 
 Class Derived
-    Sub foo()
+    Sub goo()
         Static sl As Integer = 10
         Console.WriteLine(sl.ToString)
         sl += 1
@@ -1312,18 +1312,18 @@ Public Module Module1
      Public Sub Main()
         'Each time I set property sl should increment
 
-        Dim obj1 As New Foo
+        Dim obj1 As New Goo
         obj1.sl = 1
         obj1.sl = 2
         obj1.sl = 3
 
         'Different Object
-        Dim Obj2 As New Foo With {.sl = 1}
+        Dim Obj2 As New Goo With {.sl = 1}
         Obj2.sl = 2
 
     End Sub
 
-    Class Foo
+    Class Goo
         Public _field As Integer = 0
         Public Property sl As Integer
             Set(value As Integer)
@@ -1361,13 +1361,13 @@ Imports System
 
 Public Module Module1
     Public Sub Main()
-        Dim obj1 As New Foo
-        Dim obj2 As New Foo
-        Dim obj3 As New Foo
+        Dim obj1 As New Goo
+        Dim obj2 As New Goo
+        Dim obj3 As New Goo
 
     End Sub
 
-    Class Foo
+    Class Goo
         Sub New()
             Static sl As Integer = 1
             Console.WriteLine(sl.ToString)
@@ -1394,12 +1394,12 @@ Imports System
 
 Public Module Module1
     Public Sub Main()
-        Dim obj1 As New Foo
-        Dim obj2 As New Foo
-        Dim obj3 As New Foo
+        Dim obj1 As New Goo
+        Dim obj2 As New Goo
+        Dim obj3 As New Goo
     End Sub
 
-    Class Foo
+    Class Goo
         Shared Sub New()
             Static sl As Integer = 1
             Console.WriteLine(sl.ToString)
@@ -1504,15 +1504,15 @@ End Module
 
 Partial Class P1
     Public Sub Caller()
-        Foo()
+        Goo()
     End Sub
 
-    Partial Private Sub Foo()
+    Partial Private Sub Goo()
     End Sub
 End Class
 
 Partial Class P1
-    Private Sub Foo()
+    Private Sub Goo()
         Static i As Integer = 1
         Console.WriteLine(i.ToString)
         i += 1
@@ -1536,11 +1536,11 @@ End Class
     Imports System
 Public Module Module1
     Public Sub Main()
-        Foo()
-        Foo()
+        Goo()
+        Goo()
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Static x As Long = 2         
         Console.WriteLine(x.ToString)
         x += 1 'BIND:"x"        
@@ -1572,11 +1572,11 @@ End Module
     Imports System
 Public Module Module1
     Public Sub Main()
-        Foo()
-        Foo()
+        Goo()
+        Goo()
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Static Dim x As Long = 2 
         Console.WriteLine(x.ToString)
         x += 1 'BIND:"x"        
@@ -1604,11 +1604,11 @@ End Module
     Imports System
 Public Module Module1
     Public Sub Main()
-        Foo()
-        Foo()
+        Goo()
+        Goo()
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Dim Static x As Long = 2 
         Console.WriteLine(x.ToString)
         x += 1 'BIND:"x"        
@@ -1640,11 +1640,11 @@ End Module
     Imports System
 Public Module Module1
     Public Sub Main()
-        Foo()
-        Foo()
+        Goo()
+        Goo()
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Dim x As Long = 2 
         Console.WriteLine(x.ToString)
         x += 1 'BIND:"x"        

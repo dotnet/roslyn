@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
                         <CompilationOptions><GlobalImport>CSAlias = CSNamespace.CSClass</GlobalImport></CompilationOptions>
                         <Document>
                             Module M1
-                                CSAlias.Foo()
+                                CSAlias.Goo()
                             End Module
                         </Document>
                     </Project>
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
                             {
                                 public class CSClass
                                 {
-                                    public static void Foo() { }
+                                    public static void Goo() { }
                                 }
                             }
                         </Document>
@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
             Dim expected =
                         <Code>
                             Module M1
-                                CSAlias.Foo()
+                                CSAlias.Goo()
                             End Module
                         </Code>
 
@@ -91,17 +91,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
         <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestConstructorIdentifier() As Task
             Dim input = <Code>
-Class Foo
+Class Goo
     Sub Method()
-        Dim i = New foo()
+        Dim i = New goo()
     End Sub
 End Class
 </Code>
 
             Dim expected = <Code>
-Class Foo
+Class Goo
     Sub Method()
-        Dim i = New Foo()
+        Dim i = New Goo()
     End Sub
 End Class
 </Code>
@@ -257,20 +257,20 @@ End Class
         <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestClassIdentifier() As Task
             Dim input = <Code>
-Class Foo
+Class Goo
 End Class
 
 Class Consumer
-    Dim i As foo
+    Dim i As goo
 End Class
 </Code>
 
             Dim expected = <Code>
-Class Foo
+Class Goo
 End Class
 
 Class Consumer
-    Dim i As Foo
+    Dim i As Goo
 End Class
 </Code>
 
@@ -280,20 +280,20 @@ End Class
         <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestStructureIdentifier() As Task
             Dim input = <Code>
-Structure Foo
+Structure Goo
 End Structure
 
 Class Consumer
-    Dim i As foo
+    Dim i As goo
 End Class
 </Code>
 
             Dim expected = <Code>
-Structure Foo
+Structure Goo
 End Structure
 
 Class Consumer
-    Dim i As Foo
+    Dim i As Goo
 End Class
 </Code>
 
@@ -303,26 +303,26 @@ End Class
         <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestEnumIdentifier() As Task
             Dim input = <Code>
-Enum Foo
+Enum Goo
     A
     B
     C
 End Enum
 
 Class Consumer
-    Dim i As foo
+    Dim i As goo
 End Class
 </Code>
 
             Dim expected = <Code>
-Enum Foo
+Enum Goo
     A
     B
     C
 End Enum
 
 Class Consumer
-    Dim i As Foo
+    Dim i As Goo
 End Class
 </Code>
 
@@ -333,16 +333,16 @@ End Class
         Public Async Function TestMethodIdentifier() As Task
             Dim input = <Code>
 Class C
-    Sub Foo()
-        foo()
+    Sub Goo()
+        goo()
     End Sub
 End Class
 </Code>
 
             Dim expected = <Code>
 Class C
-    Sub Foo()
-        Foo()
+    Sub Goo()
+        Goo()
     End Sub
 End Class
 </Code>
@@ -354,7 +354,7 @@ End Class
         Public Async Function TestMethodParameterLocalIdentifier() As Task
             Dim input = <Code>
 Class C
-    Sub Foo(Parameter As Integer)
+    Sub Goo(Parameter As Integer)
         Console.WriteLine(parameter)
     End Sub
 End Class
@@ -362,7 +362,7 @@ End Class
 
             Dim expected = <Code>
 Class C
-    Sub Foo(Parameter As Integer)
+    Sub Goo(Parameter As Integer)
         Console.WriteLine(Parameter)
     End Sub
 End Class
@@ -376,16 +376,16 @@ End Class
         Public Async Function TestNamedParameterIdentifier() As Task
             Dim input = <Code>
 Class C
-    Sub Foo(Parameter As Integer)
-        Foo(parameter:=23)
+    Sub Goo(Parameter As Integer)
+        Goo(parameter:=23)
     End Sub
 End Class
 </Code>
 
             Dim expected = <Code>
 Class C
-    Sub Foo(Parameter As Integer)
-        Foo(Parameter:=23)
+    Sub Goo(Parameter As Integer)
+        Goo(Parameter:=23)
     End Sub
 End Class
 </Code>
@@ -398,8 +398,8 @@ End Class
             Dim input = <Code>
 Class C
     Sub Method()
-        Dim Foo As Integer
-        foo = 23
+        Dim Goo As Integer
+        goo = 23
     End Sub
 End Class
 </Code>
@@ -407,8 +407,8 @@ End Class
             Dim expected = <Code>
 Class C
     Sub Method()
-        Dim Foo As Integer
-        Foo = 23
+        Dim Goo As Integer
+        Goo = 23
     End Sub
 End Class
 </Code>
@@ -420,20 +420,20 @@ End Class
         Public Async Function TestPropertyIdentifier() As Task
             Dim input = <Code>
 Class C
-    Property Foo As Integer
+    Property Goo As Integer
 
     Sub Method()
-        Dim value = foo
+        Dim value = goo
     End Sub
 End Class
 </Code>
 
             Dim expected = <Code>
 Class C
-    Property Foo As Integer
+    Property Goo As Integer
 
     Sub Method()
-        Dim value = Foo
+        Dim value = Goo
     End Sub
 End Class
 </Code>
@@ -445,20 +445,20 @@ End Class
         Public Async Function TestFieldIdentifier() As Task
             Dim input = <Code>
 Class C
-    Dim Foo As Integer
+    Dim Goo As Integer
 
     Sub Method()
-        Dim value = foo
+        Dim value = goo
     End Sub
 End Class
 </Code>
 
             Dim expected = <Code>
 Class C
-    Dim Foo As Integer
+    Dim Goo As Integer
 
     Sub Method()
-        Dim value = Foo
+        Dim value = Goo
     End Sub
 End Class
 </Code>
@@ -503,7 +503,7 @@ End Class
 Class C
     Delegate Sub D1()
 
-    Sub Foo()
+    Sub Goo()
         Dim d As D1
         D()
     End Sub
@@ -514,7 +514,7 @@ End Class
 Class C
     Delegate Sub D1()
 
-    Sub Foo()
+    Sub Goo()
         Dim d As D1
         d()
     End Sub
@@ -528,7 +528,7 @@ End Class
         Public Async Function TestDefaultProperty1() As Task
             Dim input = <Code>
 Class X
-    Public ReadOnly Property Foo As Y
+    Public ReadOnly Property Goo As Y
         Get
             Return Nothing
         End Get
@@ -549,14 +549,14 @@ Module M1
         Dim a As String
         Dim b As X
         b = New X()
-        a = b.Foo(4)
+        a = b.Goo(4)
     End Sub
 End Module
 </Code>
 
             Dim expected = <Code>
 Class X
-    Public ReadOnly Property Foo As Y
+    Public ReadOnly Property Goo As Y
         Get
             Return Nothing
         End Get
@@ -577,7 +577,7 @@ Module M1
         Dim a As String
         Dim b As X
         b = New X()
-        a = b.Foo(4)
+        a = b.Goo(4)
     End Sub
 End Module
 </Code>
@@ -589,7 +589,7 @@ End Module
         Public Async Function TestDefaultProperty2() As Task
             Dim input = <Code>
 Class X
-    Public ReadOnly Property Foo As Y
+    Public ReadOnly Property Goo As Y
         Get
             Return Nothing
         End Get
@@ -610,14 +610,14 @@ Module M1
         Dim a As String
         Dim b As X
         b = New X()
-        a = b.Foo.Item(4)
+        a = b.Goo.Item(4)
     End Sub
 End Module
 </Code>
 
             Dim expected = <Code>
 Class X
-    Public ReadOnly Property Foo As Y
+    Public ReadOnly Property Goo As Y
         Get
             Return Nothing
         End Get
@@ -638,7 +638,7 @@ Module M1
         Dim a As String
         Dim b As X
         b = New X()
-        a = b.Foo.Item(4)
+        a = b.Goo.Item(4)
     End Sub
 End Module
 </Code>
@@ -650,24 +650,24 @@ End Module
         <WorkItem(599333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599333")>
         Public Async Function TestPartialMethodName1() As Task
             Dim input = <Code>
-Partial Class foo
+Partial Class goo
     Private Sub ABC()
     End Sub
 End Class
 
-Partial Class FOO
+Partial Class GOO
     Partial Private Sub abc()
     End Sub
 End Class
 </Code>
 
             Dim expected = <Code>
-Partial Class foo
+Partial Class goo
     Private Sub abc()
     End Sub
 End Class
 
-Partial Class FOO
+Partial Class GOO
     Partial Private Sub abc()
     End Sub
 End Class
@@ -681,12 +681,12 @@ End Class
         Public Async Function TestPartialMethodName2() As Task
             ' Partial methods must be SUBs
             Dim input = <Code>
-Partial Class foo
+Partial Class goo
     Partial Private Function ABC() as Boolean
     End Function
 End Class
 
-Partial Class FOO
+Partial Class GOO
     Private Function abc() as Boolean
         Return False
     End Function
@@ -694,12 +694,12 @@ End Class
 </Code>
 
             Dim expected = <Code>
-Partial Class foo
+Partial Class goo
     Partial Private Function ABC() As Boolean
     End Function
 End Class
 
-Partial Class FOO
+Partial Class GOO
     Private Function abc() As Boolean
         Return False
     End Function
@@ -714,24 +714,24 @@ End Class
         Public Async Function TestPartialMethodParameterName1() As Task
             ' Partial method with parameters
             Dim input = <Code>
-Partial Class foo
+Partial Class goo
     Partial Private Sub ABC(XYZ as Integer)
     End Sub
 End Class
 
-Partial Class FOO
+Partial Class GOO
     Private Sub abc(xyz as Integer)
     End Sub
 End Class
 </Code>
 
             Dim expected = <Code>
-Partial Class foo
+Partial Class goo
     Partial Private Sub ABC(XYZ As Integer)
     End Sub
 End Class
 
-Partial Class FOO
+Partial Class GOO
     Private Sub ABC(XYZ As Integer)
     End Sub
 End Class
@@ -745,7 +745,7 @@ End Class
         Public Async Function TestPartialMethodParameterName2() As Task
             ' Multiple overloaded partial methods
             Dim input = <Code>
-Partial Class foo
+Partial Class goo
     Partial Private Sub ABC()
     End Sub
 
@@ -753,7 +753,7 @@ Partial Class foo
     End Sub
 End Class
 
-Partial Class FOO
+Partial Class GOO
     Private Sub abc()
     End Sub
 
@@ -763,7 +763,7 @@ End Class
 </Code>
 
             Dim expected = <Code>
-Partial Class foo
+Partial Class goo
     Partial Private Sub ABC()
     End Sub
 
@@ -771,7 +771,7 @@ Partial Class foo
     End Sub
 End Class
 
-Partial Class FOO
+Partial Class GOO
     Private Sub ABC()
     End Sub
 
@@ -791,24 +791,24 @@ End Class
             ' We should not rename the parameter if names are not equal ignoring case.
             ' Compiler will anyways generate an error for this case.
             Dim input = <Code>
-Partial Class foo
+Partial Class goo
     Private Sub ABC(XYZ As Integer)
     End Sub
 End Class
 
-Partial Class FOO
+Partial Class GOO
     Partial Private Sub abc(x As Integer)
     End Sub
 End Class
 </Code>
 
             Dim expected = <Code>
-Partial Class foo
+Partial Class goo
     Private Sub abc(XYZ As Integer)
     End Sub
 End Class
 
-Partial Class FOO
+Partial Class GOO
     Partial Private Sub abc(x As Integer)
     End Sub
 End Class
@@ -867,7 +867,7 @@ End Class
         Public Async Function TestIfElseThenKeywords() As Task
             Dim input = <Code>
 Class C
-    Sub Foo()
+    Sub Goo()
         if True then : else : end if
     End Sub
 End Class
@@ -875,7 +875,7 @@ End Class
 
             Dim expected = <Code>
 Class C
-    Sub Foo()
+    Sub Goo()
         If True Then : Else : End If
     End Sub
 End Class
@@ -908,7 +908,7 @@ End Class
         Public Async Function TestTrueFalseKeywords() As Task
             Dim input = <Code>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim q As Boolean = false
         Dim f As Boolean = true
     End Sub
@@ -917,7 +917,7 @@ End Class
 
             Dim expected = <Code>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim q As Boolean = False
         Dim f As Boolean = True
     End Sub
@@ -933,7 +933,7 @@ End Class
         Public Async Function TestCharacterTypeSuffix() As Task
             Dim input = <Code>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim ch = "x"C
     End Sub
 End Class
@@ -941,7 +941,7 @@ End Class
 
             Dim expected = <Code>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim ch = "x"c
     End Sub
 End Class
@@ -956,7 +956,7 @@ End Class
         Public Async Function TestULTypeSuffix() As Task
             Dim input = <Code>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x = 2ul
         Dim y = &amp;h2ul
     End Sub
@@ -965,7 +965,7 @@ End Class
 
             Dim expected = <Code>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x = 2UL
         Dim y = &amp;H2UL
     End Sub
@@ -981,7 +981,7 @@ End Class
         Public Async Function TestFTypeSuffix() As Task
             Dim input = <Code>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x = 2.1f
     End Sub
 End Class
@@ -989,7 +989,7 @@ End Class
 
             Dim expected = <Code>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x = 2.1F
     End Sub
 End Class
@@ -1004,7 +1004,7 @@ End Class
         Public Async Function TestRTypeSuffix() As Task
             Dim input = <Code>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x = 2.1r
     End Sub
 End Class
@@ -1012,7 +1012,7 @@ End Class
 
             Dim expected = <Code>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x = 2.1R
     End Sub
 End Class
@@ -1027,7 +1027,7 @@ End Class
         Public Async Function TestDTypeSuffix() As Task
             Dim input = <Code>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x = 2.1d
     End Sub
 End Class
@@ -1035,7 +1035,7 @@ End Class
 
             Dim expected = <Code>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x = 2.1D
     End Sub
 End Class
@@ -1050,7 +1050,7 @@ End Class
         Public Async Function TestDateLiteral() As Task
             Dim input = <Code>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim t1 = # 1:00 am #
         Dim t2 = # 1:00 pm #
     End Sub
@@ -1059,7 +1059,7 @@ End Class
 
             Dim expected = <Code>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim t1 = # 1:00 AM #
         Dim t2 = # 1:00 PM #
     End Sub
@@ -1242,11 +1242,11 @@ End Class
         <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestPreprocessorLiterals() As Task
             Dim input = <Code>
-#const foo = 2.0d
+#const goo = 2.0d
 </Code>
 
             Dim expected = <Code>
-#Const foo = 2.0D
+#Const goo = 2.0D
 </Code>
 
             Await TestAsync(input, expected)
@@ -1258,7 +1258,7 @@ End Class
             Dim input = <Code>
 Module Program
     Sub Main(args As String())
-#const foo = 2.0d
+#const goo = 2.0d
  
     End Sub
 End Module
@@ -1267,7 +1267,7 @@ End Module
             Dim expected = <Code>
 Module Program
     Sub Main(args As String())
-#Const foo = 2.0D
+#Const goo = 2.0D
  
     End Sub
 End Module
@@ -1300,11 +1300,11 @@ End Class
         <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Async Function TestRemCommentAfterPreprocessor() As Task
             Dim input = <Code>
-#const foo = 42 rem foo
+#const goo = 42 rem goo
 </Code>
 
             Dim expected = <Code>
-#Const foo = 42 REM foo
+#Const goo = 42 REM goo
 </Code>
 
             Await TestAsync(input, expected)
@@ -1534,7 +1534,7 @@ End Module
 imports system
 class C
     public sub Test(args As string)
-        Test("foo")
+        Test("goo")
         test(4)
         console.WRITELINE(arGS)
     end sub
@@ -1548,7 +1548,7 @@ end class</Text>
 Imports System
 Class C
     Public Sub Test(args As String)
-        Test("foo")
+        Test("goo")
         TEST(4)
         Console.WriteLine(args)
     End Sub

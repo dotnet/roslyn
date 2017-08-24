@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -225,7 +225,7 @@ End Class")
 End Class",
 "Class C
     Sub M(arg1 As Integer, optional arg2 As Integer=1, optional arg3 as Integer=1)
-        M(1,,arg3:=3)
+        M(1,, arg3:=3)
     End Sub
 End Class")
         End Function

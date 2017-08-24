@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
@@ -444,7 +444,7 @@ End Class
             Dim code =
 <Code><![CDATA[
 Class C
-    Sub Foo($$s As String)
+    Sub Goo($$s As String)
     End Sub
 End Class
 ]]></Code>
@@ -452,7 +452,7 @@ End Class
             Dim expected =
 <Code><![CDATA[
 Class C
-    Sub Foo(<Out()> s As String)
+    Sub Goo(<Out()> s As String)
     End Sub
 End Class
 ]]></Code>
@@ -464,7 +464,7 @@ End Class
             Dim code =
 <Code><![CDATA[
 Class C
-    Sub Foo(<Out()> $$s As String)
+    Sub Goo(<Out()> $$s As String)
     End Sub
 End Class
 ]]></Code>
@@ -472,11 +472,11 @@ End Class
             Dim expected =
 <Code><![CDATA[
 Class C
-    Sub Foo(<Foo()> <Out()> s As String)
+    Sub Goo(<Goo()> <Out()> s As String)
     End Sub
 End Class
 ]]></Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Foo"})
+            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Goo"})
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -484,7 +484,7 @@ End Class
             Dim code =
 <Code><![CDATA[
 Class C
-    Sub Foo(s As String, ' Comment after implicit line continuation
+    Sub Goo(s As String, ' Comment after implicit line continuation
             $$i As Integer)
     End Sub
 End Class
@@ -493,7 +493,7 @@ End Class
             Dim expected =
 <Code><![CDATA[
 Class C
-    Sub Foo(s As String, ' Comment after implicit line continuation
+    Sub Goo(s As String, ' Comment after implicit line continuation
             <Out()> i As Integer)
     End Sub
 End Class
@@ -510,7 +510,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Sub Foo($$s As String)
+    Sub Goo($$s As String)
     End Sub
 End Class
 </Code>
@@ -523,7 +523,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Sub Foo($$s() As String)
+    Sub Goo($$s() As String)
     End Sub
 End Class
 </Code>
@@ -536,7 +536,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Sub Foo($$s% As String)
+    Sub Goo($$s% As String)
     End Sub
 End Class
 </Code>
@@ -647,7 +647,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Sub Foo($$s As String)
+    Sub Goo($$s As String)
     End Sub
 End Class
 </Code>
@@ -704,7 +704,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Sub M(Optional $$s As String = "Foo")
+    Sub M(Optional $$s As String = "Goo")
     End Sub
 End Class
 </Code>
@@ -717,7 +717,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Sub M(Optional ByRef $$s As String = "Foo")
+    Sub M(Optional ByRef $$s As String = "Goo")
     End Sub
 End Class
 </Code>
@@ -751,7 +751,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Public Sub Foo(Optional i$$ As Integer = 0) { }
+    Public Sub Goo(Optional i$$ As Integer = 0) { }
 End Class
 </Code>
 
@@ -769,7 +769,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Public Sub Foo(Optional $$s$ = 0) { }
+    Public Sub Goo(Optional $$s$ = 0) { }
 End Class
 </Code>
 
@@ -791,12 +791,12 @@ End Class
             Dim code =
 <Code>
 Class C
-    Sub M(Optional $$s As String = "Foo")
+    Sub M(Optional $$s As String = "Goo")
     End Sub
 End Class
 </Code>
 
-            TestDefaultValue(code, """Foo""")
+            TestDefaultValue(code, """Goo""")
         End Sub
 
 #End Region
@@ -980,11 +980,11 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Sub M(Optional s As String = "Foo")
+    Sub M(Optional s As String = "Goo")
     End Sub
 End Class
 </Code>
-            Await TestSetDefaultValue(code, expected, """Foo""")
+            Await TestSetDefaultValue(code, expected, """Goo""")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1000,11 +1000,11 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Sub M(Optional s As String = "Foo")
+    Sub M(Optional s As String = "Goo")
     End Sub
 End Class
 </Code>
-            Await TestSetDefaultValue(code, expected, """Foo""")
+            Await TestSetDefaultValue(code, expected, """Goo""")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1044,7 +1044,7 @@ Class C
     End Sub
 End Class
 </Code>
-            Await TestSetDefaultValue(code, expected, """Foo""", ThrowsArgumentException(Of String)())
+            Await TestSetDefaultValue(code, expected, """Goo""", ThrowsArgumentException(Of String)())
         End Function
 
 #End Region
@@ -1056,7 +1056,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Public Sub Foo(Optional i$$ As Integer = 0)
+    Public Sub Goo(Optional i$$ As Integer = 0)
     End Sub
 End Class
 </Code>
@@ -1064,7 +1064,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Public Sub Foo(Optional i As System.Nullable(Of Byte)(,) = 0)
+    Public Sub Goo(Optional i As System.Nullable(Of Byte)(,) = 0)
     End Sub
 End Class
 </Code>
@@ -1077,7 +1077,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Public Sub Foo(Optional $$s$ = "Foo")
+    Public Sub Goo(Optional $$s$ = "Goo")
     End Sub
 End Class
 </Code>
@@ -1085,7 +1085,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Public Sub Foo(Optional s$ As Integer = "Foo")
+    Public Sub Goo(Optional s$ As Integer = "Goo")
     End Sub
 End Class
 </Code>
@@ -1098,7 +1098,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Public Sub Foo(i$$ As Integer,
+    Public Sub Goo(i$$ As Integer,
                    j As Integer)
     End Sub
 End Class
@@ -1107,7 +1107,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Public Sub Foo(i As String,
+    Public Sub Goo(i As String,
                    j As Integer)
     End Sub
 End Class
@@ -1121,7 +1121,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Public Sub Foo(i$$ As Integer,
+    Public Sub Goo(i$$ As Integer,
                    j As Integer)
     End Sub
 End Class
@@ -1130,7 +1130,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Public Sub Foo(i As Integer,
+    Public Sub Goo(i As Integer,
                    j As Integer)
     End Sub
 End Class
@@ -1148,7 +1148,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Sub Foo($$s As String)
+    Sub Goo($$s As String)
     End Sub
 End Class
 </Code>
@@ -1161,7 +1161,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Sub Foo(ByRef $$s As String)
+    Sub Goo(ByRef $$s As String)
     End Sub
 End Class
 </Code>
@@ -1174,7 +1174,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Sub Foo(ParamArray $$s As String())
+    Sub Goo(ParamArray $$s As String())
     End Sub
 End Class
 </Code>
@@ -1187,7 +1187,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Sub Foo(Optional $$s As String = "Foo")
+    Sub Goo(Optional $$s As String = "Goo")
     End Sub
 End Class
 </Code>
@@ -1200,7 +1200,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Sub Foo(Optional ByRef $$s As String = "Foo")
+    Sub Goo(Optional ByRef $$s As String = "Goo")
     End Sub
 End Class
 </Code>

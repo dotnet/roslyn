@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using Roslyn.Utilities;
@@ -19,8 +19,11 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public string FeatureName { get; }
 
         public FeatureMetadata(IDictionary<string, object> data)
+            : this((string)data.GetValueOrDefault("FeatureName"))
         {
-            this.FeatureName = (string)data.GetValueOrDefault("FeatureName");
         }
+
+        public FeatureMetadata(string featureName)
+            => FeatureName = featureName;
     }
 }

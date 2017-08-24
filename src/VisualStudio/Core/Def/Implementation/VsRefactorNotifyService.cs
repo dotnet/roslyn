@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -23,9 +23,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 foreach (var hierarchy in hierarchyToItemIDsMap.Keys)
                 {
                     var itemIDs = hierarchyToItemIDsMap[hierarchy];
-                    var refactorNotify = hierarchy as IVsHierarchyRefactorNotify;
 
-                    if (refactorNotify != null)
+                    if (hierarchy is IVsHierarchyRefactorNotify refactorNotify)
                     {
                         var hresult = refactorNotify.OnBeforeGlobalSymbolRenamed(
                             (uint)itemIDs.Count,
@@ -61,9 +60,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 foreach (var hierarchy in hierarchyToItemIDsMap.Keys)
                 {
                     var itemIDs = hierarchyToItemIDsMap[hierarchy];
-                    var refactorNotify = hierarchy as IVsHierarchyRefactorNotify;
 
-                    if (refactorNotify != null)
+                    if (hierarchy is IVsHierarchyRefactorNotify refactorNotify)
                     {
                         var hresult = refactorNotify.OnGlobalSymbolRenamed(
                             (uint)itemIDs.Count,

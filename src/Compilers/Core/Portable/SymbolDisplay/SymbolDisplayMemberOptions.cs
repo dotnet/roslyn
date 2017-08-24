@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Includes the name of corresponding interface on members that explicitly implement
         /// interface members.
-        /// For example, "IFoo.Bar { get; }".
+        /// For example, "IGoo.Bar { get; }".
         /// </summary>
         /// <remarks>
         /// This option has no effect in Visual Basic.

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 
@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document>
         class C
         {
-            void Foo(int {|Definition:$$i|})
+            void Goo(int {|Definition:$$i|})
             {
                 Console.WriteLine([|i|]);
             }
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document>
         class C
         {
-            void Foo(int {|Definition:$$i|})
+            void Goo(int {|Definition:$$i|})
             {
                 Console.WriteLine([|i|]);
             }
@@ -55,14 +55,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document>
         class C
         {
-            void Foo(int {|Definition:$$i|})
+            void Goo(int {|Definition:$$i|})
             {
                 Console.WriteLine([|i|]);
             }
 
             void Bar()
             {
-                Foo([|i|]: 0);
+                Goo([|i|]: 0);
             }
         }
         </Document>
@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document>
         class C
         {
-            void Foo(int {|Definition:$$i|})
+            void Goo(int {|Definition:$$i|})
             {
                 Console.WriteLine([|i|]);
                 Console.WriteLine(I);
@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
         class C
-            sub Foo(byval {|Definition:$$i|} as Integer)
+            sub Goo(byval {|Definition:$$i|} as Integer)
                 Console.WriteLine([|i|])
                 Console.WriteLine([|I|])
             end sub
@@ -118,11 +118,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document>
 partial class program
 {
-    static partial void foo(string {|Definition:$$name|}, int age, bool sex, int index1 = 1) { }
+    static partial void goo(string {|Definition:$$name|}, int age, bool sex, int index1 = 1) { }
 }
 partial class program
 {
-    static partial void foo(string {|Definition:name|}, int age, bool sex, int index1 = 1);
+    static partial void goo(string {|Definition:name|}, int age, bool sex, int index1 = 1);
 }
         </Document>
     </Project>
@@ -139,11 +139,11 @@ partial class program
         <Document>
 partial class program
 {
-    static partial void foo(string {|Definition:name|}, int age, bool sex, int index1 = 1) { }
+    static partial void goo(string {|Definition:name|}, int age, bool sex, int index1 = 1) { }
 }
 partial class program
 {
-    static partial void foo(string {|Definition:$$name|}, int age, bool sex, int index1 = 1);
+    static partial void goo(string {|Definition:$$name|}, int age, bool sex, int index1 = 1);
 }
         </Document>
     </Project>
@@ -207,10 +207,10 @@ Imports System
  
 Module Program
     Sub Main
-        Foo(Sub({|Definition:$$x|} As Integer) Return, Sub({|Definition:x|} As Integer) Return)
+        Goo(Sub({|Definition:$$x|} As Integer) Return, Sub({|Definition:x|} As Integer) Return)
     End Sub
  
-    Sub Foo(Of T)(x As T, y As T)
+    Sub Goo(Of T)(x As T, y As T)
     End Sub
 End Module
         </Document>
@@ -269,10 +269,10 @@ Imports System
  
 Module Program
     Sub Main
-        Foo(Sub({|Definition:x|} As Integer) Return, Sub({|Definition:$$x|} As Integer) Return)
+        Goo(Sub({|Definition:x|} As Integer) Return, Sub({|Definition:$$x|} As Integer) Return)
     End Sub
  
-    Sub Foo(Of T)(x As T, y As T)
+    Sub Goo(Of T)(x As T, y As T)
     End Sub
 End Module
         </Document>
@@ -317,11 +317,11 @@ Imports System.Runtime.CompilerServices
 Module M
     Sub Main()
         Dim x As New Stack(Of String)
-        Dim y = x.Foo(0, $$[|defaultValue|]:="")
+        Dim y = x.Goo(0, $$[|defaultValue|]:="")
     End Sub
 
     <Extension>
-    Function Foo(x As Stack(Of String), index As Integer, {|Definition:defaultValue|} As String) As String
+    Function Goo(x As Stack(Of String), index As Integer, {|Definition:defaultValue|} As String) As String
     End Function
 End Module
         ]]></Document>
@@ -346,11 +346,11 @@ Imports System.Runtime.CompilerServices
 Module M
     Sub Main()
         Dim x As New Stack(Of String)
-        Dim y = x.Foo(0, [|defaultValue|]:="")
+        Dim y = x.Goo(0, [|defaultValue|]:="")
     End Sub
 
     <Extension>
-    Function Foo(x As Stack(Of String), index As Integer, {|Definition:$$defaultValue|} As String) As String
+    Function Goo(x As Stack(Of String), index As Integer, {|Definition:$$defaultValue|} As String) As String
     End Function
 End Module
         ]]></Document>

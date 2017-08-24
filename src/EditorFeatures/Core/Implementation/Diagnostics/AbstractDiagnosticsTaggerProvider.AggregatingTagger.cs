@@ -167,8 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 this.AssertIsForeground();
 
                 tagger.TagsChanged -= OnUnderlyingTaggerTagsChanged;
-                var disposable = tagger as IDisposable;
-                if (disposable != null)
+                if (tagger is IDisposable disposable)
                 {
                     disposable.Dispose();
                 }

@@ -67,8 +67,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         public async Task RefVar()
         {
             await TestInMethodAsync(
-                className: "Class",
-                methodName: "M",
                 code: @"int i = 0; ref var x = ref i;",
                 expected: Keyword("var"));
         }
@@ -266,7 +264,7 @@ class C
 
 class C
 {
-    dynamic::Foo a;
+    dynamic::Goo a;
 }");
         }
 
@@ -682,7 +680,7 @@ class Derived : Base
 
         /// <summary>
         /// Instance field should be preferred to type
-        /// 7.5.4.1
+        /// §7.5.4.1
         /// </summary>
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task ColorColor4()
@@ -702,7 +700,7 @@ class Derived : Base
 
         /// <summary>
         /// Type should be preferred to a static field
-        /// 7.5.4.1
+        /// §7.5.4.1
         /// </summary>
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task ColorColor5()
@@ -987,7 +985,7 @@ class Derived : Base
         }
 
         /// <summary>
-        /// 7.5.4.2
+        /// §7.5.4.2
         /// </summary>
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task GrammarAmbiguity_7_5_4_2()
@@ -1345,7 +1343,7 @@ namespace N
         public async Task NAQUserDefinedNAQNamespace()
         {
             await TestAsync(
-@"using foo = N;
+@"using goo = N;
 
 namespace N
 {
@@ -1353,7 +1351,7 @@ namespace N
     {
         static void M()
         {
-            foo.C.M();
+            goo.C.M();
         }
     }
 }",
@@ -1364,7 +1362,7 @@ namespace N
         public async Task NAQUserDefinedNAQNamespaceDoubleColon()
         {
             await TestAsync(
-@"using foo = N;
+@"using goo = N;
 
 namespace N
 {
@@ -1372,7 +1370,7 @@ namespace N
     {
         static void M()
         {
-            foo::C.M();
+            goo::C.M();
         }
     }
 }",
@@ -1909,7 +1907,7 @@ public class X : B<X>
 
 class C<T>
 {
-    public void Foo<U, U>(U arg)
+    public void Goo<U, U>(U arg)
         where S : T
         where U : IEnumerable<S>
     {
@@ -2080,7 +2078,7 @@ struct Type<T>
             await TestAsync(
 @"class C
 {
-    void foo()
+    void goo()
     {
         var x = nameof
     }
@@ -2095,7 +2093,7 @@ struct Type<T>
             await TestAsync(
 @"class C
 {
-    void foo()
+    void goo()
     {
         var x = nameof(C);
     }
@@ -2115,7 +2113,7 @@ struct Type<T>
     {
     }
 
-    void foo()
+    void goo()
     {
         int y = 3;
         var x = nameof();

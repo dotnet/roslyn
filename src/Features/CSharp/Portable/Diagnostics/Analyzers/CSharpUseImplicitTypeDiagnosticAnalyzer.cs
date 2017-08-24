@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
 using System.Linq;
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             var conflict = semanticModel.GetSpeculativeSymbolInfo(typeName.SpanStart, candidateReplacementNode, SpeculativeBindingOption.BindAsTypeOrNamespace).Symbol;
             if (conflict?.IsKind(SymbolKind.NamedType) == true)
             {
-                issueSpan = default(TextSpan);
+                issueSpan = default;
                 return false;
             }
 
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 // implicitly typed variables cannot be constants.
                 if ((variableDeclaration.Parent as LocalDeclarationStatementSyntax)?.IsConst == true)
                 {
-                    issueSpan = default(TextSpan);
+                    issueSpan = default;
                     return false;
                 }
 
@@ -124,8 +124,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                     return true;
                 }
             }
+            else if (typeName.Parent is DeclarationExpressionSyntax declarationExpressionSyntax)
+            {
+                issueSpan = candidateIssueSpan;
+                return true;
+            }
 
-            issueSpan = default(TextSpan);
+            issueSpan = default;
             return false;
         }
 
@@ -181,6 +186,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             // final check to compare type information on both sides of assignment.
             var initializerType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
             return declaredType.Equals(initializerType);
+        }
+
+        protected override bool ShouldAnalyzeDeclarationExpression(DeclarationExpressionSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            if (declaration.Type.IsVar)
+            {
+                // If the type is already 'var', this analyze has no work to do
+                return false;
+            }
+
+            // The base analyzer may impose further limitations
+            return base.ShouldAnalyzeDeclarationExpression(declaration, semanticModel, cancellationToken);
         }
     }
 }

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Windows.Controls;
@@ -36,9 +36,9 @@ class C {
         private const string SwitchCasePreview = @"
 class MyClass
 {
-    int Method(int foo){
+    int Method(int goo){
 //[
-        switch (foo){
+        switch (goo){
         case 2:
             break;
         }
@@ -49,9 +49,9 @@ class MyClass
         private const string SwitchCaseWhenBlockPreview = @"
 class MyClass
 {
-    int Method(int foo){
+    int Method(int goo){
 //[
-        switch (foo){
+        switch (goo){
         case 2:
             {
                 break;
@@ -64,7 +64,7 @@ class MyClass
         private const string GotoLabelPreview = @"
 class MyClass
 {
-    int Method(int foo){
+    int Method(int goo){
 //[
     MyLabel:
         goto MyLabel;

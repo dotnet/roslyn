@@ -2,28 +2,16 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>Roslyn.Build.Util</id>
-    <version>0.9.4-portable</version>
+    <version>0.9.8-beta</version>
     <title>Roslyn.Build.Util</title>
     <authors>RoslynTeam</authors>
     <owners>RoslynTeam</owners>
     <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
     <projectUrl>https://github.com/dotnet/roslyn</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Provides WriteCodeFragmentEx.  This is an implementation of the standard WriteCodeFragment Task that is deterministic.</description>
-    <dependencies>
-      <group targetFramework="dotnet">
-        <dependency id="Microsoft.Build.Framework" version="0.1.0-preview-00005" />
-        <dependency id="Microsoft.Build.Utilities.Core" version="0.1.0-preview-00005" />
-        <dependency id="System.Collections" version="4.0.10" />
-        <dependency id="System.Diagnostics.Debug" version="4.0.10" />
-        <dependency id="System.IO.FileSystem" version="4.0.1" />
-        <dependency id="System.Linq" version="4.0.0" />
-        <dependency id="System.Runtime" version="4.0.20" />
-      </group>
-    </dependencies>
+    <description>Provides a number of small tasks used in the Roslyn build process.</description>
   </metadata>
   <files>
-    <file src="Roslyn.MSBuild.Util.dll" target="lib/dotnet" />
-    <file src="System.IO.FileSystem.dll" target="lib/dotnet" />
+    <file src="Roslyn.MSBuild.Util.dll" target="lib\net46" />
   </files>
 </package>

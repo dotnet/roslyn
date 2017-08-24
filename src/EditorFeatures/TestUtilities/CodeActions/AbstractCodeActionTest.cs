@@ -37,6 +37,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 : refactoring.Actions;
         }
 
+        protected override Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(TestWorkspace workspace, TestParameters parameters)
+        {
+            return SpecializedTasks.EmptyImmutableArray<Diagnostic>();
+        }
+
         internal async Task<CodeRefactoring> GetCodeRefactoringAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
@@ -74,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             int index,
             ImmutableArray<CodeAction> actions,
             string expectedPreviewContents = null,
-            bool ignoreTrivia = true)
+            bool ignoreTrivia = false)
         {
             var operations = await VerifyInputsAndGetOperationsAsync(index, actions);
 
@@ -170,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string[] chosenSymbols,
             Action<ImmutableArray<PickMembersOption>> optionsCallback = null,
             int index = 0,
-            bool ignoreTrivia = true,
+            bool ignoreTrivia = false,
             CodeActionPriority? priority = null,
             TestParameters parameters = default(TestParameters))
         {

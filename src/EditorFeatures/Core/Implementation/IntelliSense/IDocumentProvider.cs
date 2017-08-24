@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
         public Task<Document> GetDocumentAsync(ITextSnapshot snapshot, CancellationToken cancellationToken)
         {
             AssertIsBackground();
-            return snapshot.AsText().GetDocumentWithFrozenPartialSemanticsAsync(cancellationToken);
+            return Task.FromResult(snapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken));
         }
 
         public Document GetOpenDocumentInCurrentContextWithChanges(ITextSnapshot snapshot)

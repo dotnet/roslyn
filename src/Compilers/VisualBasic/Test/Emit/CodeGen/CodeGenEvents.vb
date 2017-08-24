@@ -979,13 +979,13 @@ Class cls
 End Class
 
 Module Program
-    Sub foo(ByVal x As String)
+    Sub goo(ByVal x As String)
         Console.WriteLine("{0}", x)
     End Sub
 
     Sub Main(args As String())
-        AddHandler ev1, AddressOf foo 
-        AddHandler ev1, AddressOf foo
+        AddHandler ev1, AddressOf goo 
+        AddHandler ev1, AddressOf goo
         RaiseEv1()
     End Sub
 End Module
@@ -1020,22 +1020,22 @@ option strict off
 Imports System
 Public Class VBClass : Inherits CSClass
     Public WithEvents w As CSClass = New CSClass
-    Function Foo(x As String) Handles w.ev, MyBase.ev, MyClass.ev
+    Function Goo(x As String) Handles w.ev, MyBase.ev, MyClass.ev
         Console.WriteLine(x)
         Console.WriteLine("PASS")
         Return 0
     End Function
-    Function Foo(x As String, ParamArray y() As Integer) Handles w.ev, MyBase.ev, MyClass.ev
+    Function Goo(x As String, ParamArray y() As Integer) Handles w.ev, MyBase.ev, MyClass.ev
         Console.WriteLine(x)
         Console.WriteLine("PASS")
         Return 0
     End Function
-    Function Foo2(Optional x As String = "") Handles w.ev, MyBase.ev, MyClass.ev
+    Function Goo2(Optional x As String = "") Handles w.ev, MyBase.ev, MyClass.ev
         Console.WriteLine(x)
         Console.WriteLine("PASS")
         Return 0
     End Function
-    Function Foo2(x As String, y() As Integer) Handles w.ev, MyBase.ev, MyClass.ev
+    Function Goo2(x As String, y() As Integer) Handles w.ev, MyBase.ev, MyClass.ev
         Console.WriteLine(x)
         Console.WriteLine("PASS")
         Return 0
@@ -1053,23 +1053,23 @@ End Module]]>,
             ' WARNING: Roslyn compiler produced errors while Native compiler didn't. This is an intentional breaking change, see associated bug. 
             vbCompilation.AssertTheseDiagnostics(
 <expected>
-BC31029: Method 'Foo' cannot handle event 'ev' because they do not have a compatible signature.
-    Function Foo(x As String) Handles w.ev, MyBase.ev, MyClass.ev
+BC31029: Method 'Goo' cannot handle event 'ev' because they do not have a compatible signature.
+    Function Goo(x As String) Handles w.ev, MyBase.ev, MyClass.ev
                                         ~~
-BC31029: Method 'Foo' cannot handle event 'ev' because they do not have a compatible signature.
-    Function Foo(x As String) Handles w.ev, MyBase.ev, MyClass.ev
+BC31029: Method 'Goo' cannot handle event 'ev' because they do not have a compatible signature.
+    Function Goo(x As String) Handles w.ev, MyBase.ev, MyClass.ev
                                                    ~~
-BC31029: Method 'Foo' cannot handle event 'ev' because they do not have a compatible signature.
-    Function Foo(x As String) Handles w.ev, MyBase.ev, MyClass.ev
+BC31029: Method 'Goo' cannot handle event 'ev' because they do not have a compatible signature.
+    Function Goo(x As String) Handles w.ev, MyBase.ev, MyClass.ev
                                                                ~~
-BC31029: Method 'Foo2' cannot handle event 'ev' because they do not have a compatible signature.
-    Function Foo2(Optional x As String = "") Handles w.ev, MyBase.ev, MyClass.ev
+BC31029: Method 'Goo2' cannot handle event 'ev' because they do not have a compatible signature.
+    Function Goo2(Optional x As String = "") Handles w.ev, MyBase.ev, MyClass.ev
                                                        ~~
-BC31029: Method 'Foo2' cannot handle event 'ev' because they do not have a compatible signature.
-    Function Foo2(Optional x As String = "") Handles w.ev, MyBase.ev, MyClass.ev
+BC31029: Method 'Goo2' cannot handle event 'ev' because they do not have a compatible signature.
+    Function Goo2(Optional x As String = "") Handles w.ev, MyBase.ev, MyClass.ev
                                                                   ~~
-BC31029: Method 'Foo2' cannot handle event 'ev' because they do not have a compatible signature.
-    Function Foo2(Optional x As String = "") Handles w.ev, MyBase.ev, MyClass.ev
+BC31029: Method 'Goo2' cannot handle event 'ev' because they do not have a compatible signature.
+    Function Goo2(Optional x As String = "") Handles w.ev, MyBase.ev, MyClass.ev
                                                                               ~~
 </expected>)
         End Sub
@@ -1092,32 +1092,32 @@ BC31029: Method 'Foo2' cannot handle event 'ev' because they do not have a compa
             <![CDATA[Imports System
 Public Class VBClass : Inherits CSClass
     Public WithEvents w As CSClass = New CSClass
-    Function Foo(x As String) Handles w.ev, MyBase.ev, MyClass.ev
+    Function Goo(x As String) Handles w.ev, MyBase.ev, MyClass.ev
         Console.WriteLine(x)
         Console.WriteLine("PASS")
         Return 0
     End Function
-    Function Foo(x As String, ParamArray y() As Integer) Handles w.ev, MyBase.ev, MyClass.ev
+    Function Goo(x As String, ParamArray y() As Integer) Handles w.ev, MyBase.ev, MyClass.ev
         Console.WriteLine(x)
         Console.WriteLine("PASS")
         Return 0
     End Function
-    Function Foo2(Optional x As String = "") Handles w.ev, MyBase.ev, MyClass.ev
+    Function Goo2(Optional x As String = "") Handles w.ev, MyBase.ev, MyClass.ev
         Console.WriteLine(x)
         Console.WriteLine("PASS")
         Return 0
     End Function
-    Function Foo2(ParamArray x() As String) Handles w.ev, MyBase.ev, MyClass.ev
+    Function Goo2(ParamArray x() As String) Handles w.ev, MyBase.ev, MyClass.ev
         Console.WriteLine(x)
         Console.WriteLine("PASS")
         Return 0
     End Function
-    Function Foo2(x As String, Optional y As Integer = 0) Handles w.ev, MyBase.ev, MyClass.ev
+    Function Goo2(x As String, Optional y As Integer = 0) Handles w.ev, MyBase.ev, MyClass.ev
         Console.WriteLine(x)
         Console.WriteLine("PASS")
         Return 0
     End Function
-    Function Foo3(Optional x As String = "", Optional y As Integer = 0) Handles w.ev, MyBase.ev, MyClass.ev
+    Function Goo3(Optional x As String = "", Optional y As Integer = 0) Handles w.ev, MyBase.ev, MyClass.ev
         Console.WriteLine(x)
         Console.WriteLine("PASS")
         Return 0
@@ -1194,12 +1194,12 @@ PASS
             <![CDATA[Imports System
 Public Class VBClass : Inherits CSClass
     Public WithEvents w As CSClass = New CSClass
-    Function Foo(x As Integer()) Handles w.ev, MyBase.ev, Me.ev
+    Function Goo(x As Integer()) Handles w.ev, MyBase.ev, Me.ev
         Console.WriteLine(x)
         Console.WriteLine("PASS")
         Return 0
     End Function
-    Function Foo2(ParamArray x As Integer()) Handles w.ev, MyBase.ev, Me.ev
+    Function Goo2(ParamArray x As Integer()) Handles w.ev, MyBase.ev, Me.ev
         Console.WriteLine(x)
         Console.WriteLine("PASS")
         Return 0
@@ -1249,12 +1249,12 @@ PASS
             <![CDATA[Imports System
 Public Class VBClass : Inherits CSClass
     Public WithEvents w As CSClass = New CSClass
-    Function Foo2(x As Integer) Handles w.ev, MyBase.ev, Me.ev
+    Function Goo2(x As Integer) Handles w.ev, MyBase.ev, Me.ev
         Console.WriteLine(x)
         Console.WriteLine("PASS")
         Return 0
     End Function
-    Function Foo2(x As Integer, Optional y As Integer = 1) Handles w.ev, MyBase.ev, Me.ev
+    Function Goo2(x As Integer, Optional y As Integer = 1) Handles w.ev, MyBase.ev, Me.ev
         Console.WriteLine(x)
         Console.WriteLine("PASS")
         Return 0
@@ -1270,12 +1270,12 @@ End Module]]>,
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={csCompilation})
             vbCompilation.VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Foo2", "ev"),
-                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Foo2", "ev"),
-                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Foo2", "ev"),
-                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Foo2", "ev"),
-                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Foo2", "ev"),
-                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Foo2", "ev"))
+                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Goo2", "ev"),
+                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Goo2", "ev"),
+                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Goo2", "ev"),
+                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Goo2", "ev"),
+                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Goo2", "ev"),
+                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Goo2", "ev"))
         End Sub
 
 
@@ -1331,7 +1331,7 @@ Namespace Project1
     Class Sink
 
         Public WithEvents x As OuterClass
-        Sub foo() Handles x.SomeProperty.MyEvent
+        Sub goo() Handles x.SomeProperty.MyEvent
 
             Console.Write("Handled Event On SubObject!")
         End Sub
@@ -1357,7 +1357,7 @@ End Namespace
   .locals init (Project1.EventSource.MyEventEventHandler V_0,
   Project1.OuterClass V_1)
   IL_0000:  ldarg.0
-  IL_0001:  ldftn      "Sub Project1.Sink.foo()"
+  IL_0001:  ldftn      "Sub Project1.Sink.goo()"
   IL_0007:  newobj     "Sub Project1.EventSource.MyEventEventHandler..ctor(Object, System.IntPtr)"
   IL_000c:  stloc.0
   IL_000d:  ldarg.0
@@ -1438,7 +1438,7 @@ Namespace Project1
     Class Sink
 
         Public WithEvents x As OuterClass
-        Sub foo() Handles x.SomeProperty.MyEvent
+        Sub goo() Handles x.SomeProperty.MyEvent
 
             Console.Write("Handled Event On SubObject!")
         End Sub
@@ -1463,7 +1463,7 @@ End Namespace
   .maxstack  2
   .locals init (Project1.EventSource.MyEventEventHandler V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldftn      "Sub Project1.Sink.foo()"
+  IL_0001:  ldftn      "Sub Project1.Sink.goo()"
   IL_0007:  newobj     "Sub Project1.EventSource.MyEventEventHandler..ctor(Object, System.IntPtr)"
   IL_000c:  stloc.0
   IL_000d:  ldarg.0
@@ -1536,7 +1536,7 @@ Namespace Project1
     Class Sink
 
         Public WithEvents x As OuterClass
-        Sub foo() Handles x.SomeProperty.MyEvent
+        Sub goo() Handles x.SomeProperty.MyEvent
 
             Console.Write("Handled Event On SubObject!")
         End Sub
@@ -1561,7 +1561,7 @@ End Namespace
   .maxstack  2
   .locals init (Project1.EventSource.MyEventEventHandler V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldftn      "Sub Project1.Sink.foo()"
+  IL_0001:  ldftn      "Sub Project1.Sink.goo()"
   IL_0007:  newobj     "Sub Project1.EventSource.MyEventEventHandler..ctor(Object, System.IntPtr)"
   IL_000c:  stloc.0
   IL_000d:  ldarg.0
@@ -1636,7 +1636,7 @@ Namespace Project1
     Class Sink
 
         Public WithEvents x As OuterClass
-        Sub foo() Handles x.SomeProperty.MyEvent
+        Sub goo() Handles x.SomeProperty.MyEvent
 
             Console.Write("Handled Event On SubObject!")
         End Sub
@@ -1661,7 +1661,7 @@ End Namespace
   .maxstack  2
   .locals init (Project1.EventSource.MyEventEventHandler V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldftn      "Sub Project1.Sink.foo()"
+  IL_0001:  ldftn      "Sub Project1.Sink.goo()"
   IL_0007:  newobj     "Sub Project1.EventSource.MyEventEventHandler..ctor(Object, System.IntPtr)"
   IL_000c:  stloc.0
   IL_000d:  ldarg.0

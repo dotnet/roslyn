@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis
         /// to their dependencies. Projects that depend on other projects will always show up later in this sequence
         /// than the projects they depend on.
         /// </summary>
-        public IEnumerable<ProjectId> GetTopologicallySortedProjects(CancellationToken cancellationToken = default(CancellationToken))
+        public IEnumerable<ProjectId> GetTopologicallySortedProjects(CancellationToken cancellationToken = default)
         {
             if (_lazyTopologicallySortedProjects == null)
             {
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns a sequence of sets, where each set contains items with shared interdependency,
         /// and there is no dependency between sets.
         /// </summary>
-        public IEnumerable<IEnumerable<ProjectId>> GetDependencySets(CancellationToken cancellationToken = default(CancellationToken))
+        public IEnumerable<IEnumerable<ProjectId>> GetDependencySets(CancellationToken cancellationToken = default)
         {
             if (_lazyDependencySets == null)
             {

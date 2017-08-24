@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             where TSymbol : ISymbol
         {
             var symbolToParameterTypeNames = new ConcurrentDictionary<TSymbol, string[]>();
-            Func<TSymbol, string[]> getParameterTypeNames = s => GetParameterTypeNames(s, symbolDisplayService, semanticModel, position);
+            string[] getParameterTypeNames(TSymbol s) => GetParameterTypeNames(s, symbolDisplayService, semanticModel, position);
 
             return symbols.OrderBy((s1, s2) => Compare(s1, s2, symbolToParameterTypeNames, getParameterTypeNames))
                           .ToImmutableArray();

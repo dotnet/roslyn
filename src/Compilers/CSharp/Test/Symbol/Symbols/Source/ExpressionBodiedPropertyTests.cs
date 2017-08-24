@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -331,10 +331,10 @@ class C : B
             var comp = CreateCompilationWithMscorlib45(@"
 class C
 {
-    public void P => System.Console.WriteLine(""foo"");
+    public void P => System.Console.WriteLine(""goo"");
 }").VerifyDiagnostics(
     // (4,17): error CS0547: 'C.P': property or indexer cannot have void type
-    //     public void P => System.Console.WriteLine("foo");
+    //     public void P => System.Console.WriteLine("goo");
     Diagnostic(ErrorCode.ERR_PropertyCantHaveVoidType, "P").WithArguments("C.P").WithLocation(4, 17));
         }
 
@@ -344,11 +344,11 @@ class C
             var comp = CreateCompilationWithMscorlib45(@"
 class C
 {
-    public int P => System.Console.WriteLine(""foo"");
+    public int P => System.Console.WriteLine(""goo"");
 }").VerifyDiagnostics(
     // (4,21): error CS0029: Cannot implicitly convert type 'void' to 'int'
-    //     public int P => System.Console.WriteLine("foo");
-    Diagnostic(ErrorCode.ERR_NoImplicitConv, @"System.Console.WriteLine(""foo"")").WithArguments("void", "int").WithLocation(4, 21));
+    //     public int P => System.Console.WriteLine("goo");
+    Diagnostic(ErrorCode.ERR_NoImplicitConv, @"System.Console.WriteLine(""goo"")").WithArguments("void", "int").WithLocation(4, 21));
         }
 
         [Fact]
@@ -371,7 +371,7 @@ internal interface K
 class C : I, J, K
 {
     public int P => 10;
-    string I.Q { get { return ""foo""; } }
+    string I.Q { get { return ""goo""; } }
     string J.Q { get { return ""bar""; } }
     public decimal D { get { return P; } }
 }");
@@ -411,7 +411,7 @@ abstract class A
 }
 abstract class B : A
 {
-    protected sealed override string Z => ""foo"";
+    protected sealed override string Z => ""goo"";
     protected abstract string Y { get; }
 }    
 class C : B
@@ -442,8 +442,8 @@ class C : B
 4
 2
 8
-foo
-foo8
+goo
+goo8
 18");
         }
 

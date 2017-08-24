@@ -27,41 +27,36 @@ function Exec-Block([scriptblock]$cmd) {
     } 
 }
 
-# Handy function for executing a windows command which needs to go through 
-# windows command line parsing.  
-#
-# Use this when the command arguments are stored in a variable.  Particularly 
-# when the variable needs reparsing by the windows command line. Example:
-#
-#   $args = "/p:ManualBuild=true Test.proj"
-#   Exec-Command $msbuild $args
-# 
-function Exec-Command([string]$command, [string]$commandArgs) {
+function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useConsole = $true) {
     $startInfo = New-Object System.Diagnostics.ProcessStartInfo
     $startInfo.FileName = $command
     $startInfo.Arguments = $commandArgs
 
-    $startInfo.RedirectStandardOutput = $true
     $startInfo.UseShellExecute = $false
-    $startInfo.CreateNoWindow = $true
     $startInfo.WorkingDirectory = Get-Location
+
+    if (-not $useConsole) {
+       $startInfo.RedirectStandardOutput = $true
+       $startInfo.CreateNoWindow = $true
+    }
 
     $process = New-Object System.Diagnostics.Process
     $process.StartInfo = $startInfo
-    $process.StartInfo.RedirectStandardOutput = $true;
     $process.Start() | Out-Null
 
     $finished = $false
     try {
-        # The OutputDataReceived event doesn't fire as events are sent by the 
-        # process in powershell.  Possibly due to subtlties of how Powershell
-        # manages the thread pool that I'm not aware of.  Using blocking
-        # reading here as an alternative which is fine since this blocks 
-        # on completion already.
-        $out = $process.StandardOutput
-        while (-not $out.EndOfStream) {
-            $line = $out.ReadLine()
-            Write-Output $line
+        if (-not $useConsole) { 
+            # The OutputDataReceived event doesn't fire as events are sent by the 
+            # process in powershell.  Possibly due to subtlties of how Powershell
+            # manages the thread pool that I'm not aware of.  Using blocking
+            # reading here as an alternative which is fine since this blocks 
+            # on completion already.
+            $out = $process.StandardOutput
+            while (-not $out.EndOfStream) {
+                $line = $out.ReadLine()
+                Write-Output $line
+            }
         }
 
         while (-not $process.WaitForExit(100)) { 
@@ -80,6 +75,29 @@ function Exec-Command([string]$command, [string]$commandArgs) {
             $process.Kill()
         }
     }
+}
+
+# Handy function for executing a windows command which needs to go through 
+# windows command line parsing.  
+#
+# Use this when the command arguments are stored in a variable.  Particularly 
+# when the variable needs reparsing by the windows command line. Example:
+#
+#   $args = "/p:ManualBuild=true Test.proj"
+#   Exec-Command $msbuild $args
+# 
+function Exec-Command([string]$command, [string]$commandArgs) {
+    Exec-CommandCore -command $command -commandArgs $commandargs -useConsole:$false
+}
+
+# Functions exactly like Exec-Command but lets the process re-use the current 
+# console. This means items like colored output will function correctly.
+#
+# In general this command should be used in place of
+#   Exec-Command $msbuild $args | Out-Host
+#
+function Exec-Console([string]$command, [string]$commandArgs) {
+    Exec-CommandCore -command $command -commandArgs $commandargs -useConsole:$true
 }
 
 # Handy function for executing a powershell script in a clean environment with 
@@ -129,6 +147,21 @@ function Ensure-MSBuild([switch]$xcopy = $false) {
 
     $p = Join-Path $msbuildDir "msbuild.exe"
     return $p
+}
+
+# Returns the msbuild exe path and directory as a single return. This makes it easy 
+# to do one line MSBuild configuration in scripts
+#   $msbuild, $msbuildDir = Ensure-MSBuildAndDir
+function Ensure-MSBuildAndDir([string]$msbuildDir) {
+    if ($msbuildDir -eq "") {
+        $msbuild = Ensure-MSBuild
+        $msbuildDir = Split-Path -parent $msbuild
+    }
+    else {
+        $msbuild = Join-Path $msbuildDir "msbuild.exe"
+    }
+
+    return $msbuild, $msbuildDir
 }
 
 function Create-Directory([string]$dir) {
@@ -182,10 +215,10 @@ function Get-PackageDir([string]$name, [string]$version = "") {
 
 # The intent of this script is to locate and return the path to the MSBuild directory that
 # we should use for bulid operations.  The preference order for MSBuild to use is as 
-# follows
+# follows:
 #
 #   1. MSBuild from an active VS command prompt
-#   2. MSBuild from a machine wide VS install
+#   2. MSBuild from a compatible VS installation
 #   3. MSBuild from the xcopy toolset 
 #
 # This function will return two values: the kind of MSBuild chosen and the MSBuild directory.
@@ -199,9 +232,6 @@ function Get-MSBuildKindAndDir([switch]$xcopy = $false) {
 
     # MSBuild from an active VS command prompt.  
     if (${env:VSINSTALLDIR} -ne $null) {
-
-        # This line deliberately avoids using -ErrorAction.  Inside a VS command prompt
-        # an MSBuild command should always be available.
         $command = (Get-Command msbuild -ErrorAction SilentlyContinue)
         if ($command -ne $null) {
             $p = Split-Path -parent $command.Path
@@ -241,18 +271,40 @@ function Get-MSBuildDir([switch]$xcopy = $false) {
     return $both[1]
 }
 
+# Get the directory and instance ID of the first Visual Studio version which 
+# meets our minimal requirements for the Roslyn repo.
+function Get-VisualStudioDirAndId() {
+    $vswhere = Join-Path (Ensure-BasicTool "vswhere") "tools\vswhere.exe"
+    $output = Exec-Command $vswhere "-requires Microsoft.Component.MSBuild -format json" | Out-String
+    $j = ConvertFrom-Json $output
+    foreach ($obj in $j) { 
+
+        # Need to be using at least Visual Studio 15.2 in order to have the appropriate
+        # set of SDK fixes. Parsing the installationName is the only place where this is 
+        # recorded in that form.
+        $name = $obj.installationName
+        if ($name -match "VisualStudio(Preview)?/([\d.]+)(\+|-).*") { 
+            $minVersion = New-Object System.Version "15.1.0"
+            $version = New-Object System.Version $matches[2]
+            if ($version -ge $minVersion) {
+                Write-Output $obj.installationPath
+                Write-Output $obj.instanceId
+                return
+            }
+        }
+        else {
+            Write-Host "Unrecognized installationName format $name"
+        }
+    }
+
+    throw "Could not find a suitable Visual Studio Version"
+}
+
 # Get the directory of the first Visual Studio which meets our minimal 
 # requirements for the Roslyn repo
 function Get-VisualStudioDir() {
-    $vswhere = Join-Path (Ensure-BasicTool "vswhere") "tools\vswhere.exe"
-    $output = & $vswhere -requires Microsoft.Component.MSBuild -format json | Out-String
-    if (-not $?) {
-        throw "Could not locate a valid Visual Studio"
-    }
-
-    $j = ConvertFrom-Json $output
-    $p = $j[0].installationPath
-    return $p
+    $both = Get-VisualStudioDirAndId
+    return $both[0]
 }
 
 # Clear out the NuGet package cache
@@ -289,7 +341,6 @@ function Restore-Packages([string]$msbuildDir = "", [string]$project = "") {
     else {
         $all = @(
             "Base Toolset:build\ToolsetPackages\BaseToolset.csproj",
-            "Closed Toolset:build\ToolsetPackages\ClosedToolset.csproj",
             "Roslyn:Roslyn.sln",
             "Samples:src\Samples\Samples.sln",
             "Templates:src\Setup\Templates\Templates.sln",

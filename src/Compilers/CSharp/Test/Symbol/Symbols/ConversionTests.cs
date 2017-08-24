@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -563,16 +563,16 @@ class Program
             var source = @"
 class C
 {
-    static void foo(int x = 0) //overload resolution picks this method, but the parameter count doesn't match
+    static void goo(int x = 0) //overload resolution picks this method, but the parameter count doesn't match
     {
-        System.Action a = foo;
+        System.Action a = goo;
     }
 }
 ";
             CreateStandardCompilation(source).VerifyDiagnostics(
-                // (6,27): error CS0123: No overload for 'foo' matches delegate 'System.Action'
-                //         System.Action a = foo;
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "foo").WithArguments("foo", "System.Action"));
+                // (6,27): error CS0123: No overload for 'goo' matches delegate 'System.Action'
+                //         System.Action a = goo;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "goo").WithArguments("goo", "System.Action"));
         }
 
         [WorkItem(543119, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543119")]
@@ -584,7 +584,7 @@ class C
 {
     public class Program
     {
-        short? Foo()
+        short? Goo()
         {
             short? s = 2;
             return s;
@@ -857,7 +857,7 @@ public class A
 
 class C
 {
-    void Foo(int x = default(A))
+    void Goo(int x = default(A))
     {
 
     }
@@ -881,7 +881,7 @@ public class A
 
 class C
 {
-    void Foo(A x = default(int))
+    void Goo(A x = default(int))
     {
 
     }
@@ -908,7 +908,7 @@ class A
 
 class C
 {
-    void Foo(Base b = default(A))
+    void Goo(Base b = default(A))
     {
 
     }

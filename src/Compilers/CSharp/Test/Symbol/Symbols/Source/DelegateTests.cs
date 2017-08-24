@@ -361,7 +361,7 @@ delegate int D(int x, ref int y, out int z);
             var text = @"
 delegate void F<Invoke>(Invoke i);
  
-class Foo 
+class Goo 
 { 
   void M(int i)
   {

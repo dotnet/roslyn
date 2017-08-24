@@ -64,13 +64,13 @@ public class Base
     public int y { get; set; }
     public static void Main()
     {
-        MemberInitializerTest<Base>.Foo();
+        MemberInitializerTest<Base>.Goo();
     }
 }
 
 public class MemberInitializerTest<T> where T: Base, new()
 {   
-    public static void Foo()
+    public static void Goo()
     {
         var i = new T() { x = 0, y = 0 };
     }
@@ -803,10 +803,10 @@ public class MemberInitializerTest
             var source = @"
 static class Ext
 {
-    static int Width(this Foo f) { return 0; }
+    static int Width(this Goo f) { return 0; }
 }
 
-class Foo
+class Goo
 {
     void M()
     {
@@ -903,20 +903,20 @@ public class MemberInitializerTest
 public class MemberInitializerTest
 {   
     public int x;
-    public MemberInitializerTest Foo() {  return new MemberInitializerTest(); }
+    public MemberInitializerTest Goo() {  return new MemberInitializerTest(); }
     public static void Main()
     {
-        var i = new MemberInitializerTest() { x = 0, Foo() = new MemberInitializerTest() };
+        var i = new MemberInitializerTest() { x = 0, Goo() = new MemberInitializerTest() };
     }    
 }
 ";
             CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,54): error CS0747: Invalid initializer member declarator
-                //         var i = new MemberInitializerTest() { x = 0, Foo() = new MemberInitializerTest() };
-                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Foo() = new MemberInitializerTest()").WithLocation(8, 54),
-                // (8,54): error CS0120: An object reference is required for the non-static field, method, or property 'MemberInitializerTest.Foo()'
-                //         var i = new MemberInitializerTest() { x = 0, Foo() = new MemberInitializerTest() };
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "Foo").WithArguments("MemberInitializerTest.Foo()").WithLocation(8, 54));
+                //         var i = new MemberInitializerTest() { x = 0, Goo() = new MemberInitializerTest() };
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Goo() = new MemberInitializerTest()").WithLocation(8, 54),
+                // (8,54): error CS0120: An object reference is required for the non-static field, method, or property 'MemberInitializerTest.Goo()'
+                //         var i = new MemberInitializerTest() { x = 0, Goo() = new MemberInitializerTest() };
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Goo").WithArguments("MemberInitializerTest.Goo()").WithLocation(8, 54));
         }
 
         [Fact]
@@ -927,18 +927,18 @@ using System.Collections.Generic;
 public class MemberInitializerTest
 {
     public int x;
-    static MemberInitializerTest Foo() { return new MemberInitializerTest(); }
+    static MemberInitializerTest Goo() { return new MemberInitializerTest(); }
 
     public static void Main()
     {
-        var i = new List<int> { 1, Foo().x = 1};
+        var i = new List<int> { 1, Goo().x = 1};
     }
 }
 ";
             CreateStandardCompilation(source).VerifyDiagnostics(
                 // (10,36): error CS0747: Invalid initializer member declarator
-                //         var i = new List<int> { 1, Foo().x = 1};
-                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Foo().x = 1").WithLocation(10, 36));
+                //         var i = new List<int> { 1, Goo().x = 1};
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Goo().x = 1").WithLocation(10, 36));
         }
 
         [Fact]
@@ -966,17 +966,17 @@ public class MemberInitializerTest
             var source = @"
 public class MemberInitializerTest
 {   
-    public MemberInitializerTest Foo() {  return new MemberInitializerTest(); }
+    public MemberInitializerTest Goo() {  return new MemberInitializerTest(); }
     public static void Main()
     {
-        var i = new MemberInitializerTest() { Foo = new MemberInitializerTest() };
+        var i = new MemberInitializerTest() { Goo = new MemberInitializerTest() };
     }    
 }
 ";
             CreateStandardCompilation(source).VerifyDiagnostics(
-                // (7,47): error CS1913: Member 'Foo' cannot be initialized. It is not a field or property.
-                //         var i = new MemberInitializerTest() { Foo = new MemberInitializerTest() };
-                Diagnostic(ErrorCode.ERR_MemberCannotBeInitialized, "Foo").WithArguments("Foo").WithLocation(7, 47));
+                // (7,47): error CS1913: Member 'Goo' cannot be initialized. It is not a field or property.
+                //         var i = new MemberInitializerTest() { Goo = new MemberInitializerTest() };
+                Diagnostic(ErrorCode.ERR_MemberCannotBeInitialized, "Goo").WithArguments("Goo").WithLocation(7, 47));
         }
 
         [Fact]
@@ -1227,23 +1227,23 @@ public class MemberInitializerTest
             var source = @"
 public class MemberInitializerTest
 {   
-    public MemberInitializerTest Foo() {  return new MemberInitializerTest(); }
+    public MemberInitializerTest Goo() {  return new MemberInitializerTest(); }
     public static void Main()
     {
-        var i = new MemberInitializerTest() { Foo() = new MemberInitializerTest() };
+        var i = new MemberInitializerTest() { Goo() = new MemberInitializerTest() };
     }    
 }
 ";
             CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,45): error CS1922: Cannot initialize type 'MemberInitializerTest' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
-                //         var i = new MemberInitializerTest() { Foo() = new MemberInitializerTest() };
-                Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ Foo() = new MemberInitializerTest() }").WithArguments("MemberInitializerTest").WithLocation(7, 45),
+                //         var i = new MemberInitializerTest() { Goo() = new MemberInitializerTest() };
+                Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ Goo() = new MemberInitializerTest() }").WithArguments("MemberInitializerTest").WithLocation(7, 45),
                 // (7,47): error CS0747: Invalid initializer member declarator
-                //         var i = new MemberInitializerTest() { Foo() = new MemberInitializerTest() };
-                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Foo() = new MemberInitializerTest()").WithLocation(7, 47),
-                // (7,47): error CS0120: An object reference is required for the non-static field, method, or property 'MemberInitializerTest.Foo()'
-                //         var i = new MemberInitializerTest() { Foo() = new MemberInitializerTest() };
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "Foo").WithArguments("MemberInitializerTest.Foo()").WithLocation(7, 47));
+                //         var i = new MemberInitializerTest() { Goo() = new MemberInitializerTest() };
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Goo() = new MemberInitializerTest()").WithLocation(7, 47),
+                // (7,47): error CS0120: An object reference is required for the non-static field, method, or property 'MemberInitializerTest.Goo()'
+                //         var i = new MemberInitializerTest() { Goo() = new MemberInitializerTest() };
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Goo").WithArguments("MemberInitializerTest.Goo()").WithLocation(7, 47));
         }
 
         [Fact]

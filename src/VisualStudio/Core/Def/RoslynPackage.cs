@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.ComponentModel.Design;
@@ -104,7 +104,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             this.ComponentModel.GetService<VisualStudioTodoListTable>();
             this.ComponentModel.GetService<VisualStudioDiagnosticListTableCommandHandler>().Initialize(this);
 
-            this.ComponentModel.GetService<HACK_ThemeColorFixer>();
             this.ComponentModel.GetExtensions<IDefinitionsAndReferencesPresenter>();
             this.ComponentModel.GetExtensions<INavigableItemsPresenter>();
             this.ComponentModel.GetService<VisualStudioMetadataAsSourceFileSupportService>();
@@ -183,8 +182,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         private void RegisterFindResultsLibraryManager()
         {
-            var objectManager = this.GetService(typeof(SVsObjectManager)) as IVsObjectManager2;
-            if (objectManager != null)
+            if (this.GetService(typeof(SVsObjectManager)) is IVsObjectManager2 objectManager)
             {
                 _libraryManager = new LibraryManager(_workspace, this);
 
@@ -201,8 +199,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         {
             if (_libraryManagerCookie != 0)
             {
-                var objectManager = this.GetService(typeof(SVsObjectManager)) as IVsObjectManager2;
-                if (objectManager != null)
+                if (this.GetService(typeof(SVsObjectManager)) is IVsObjectManager2 objectManager)
                 {
                     objectManager.UnregisterLibrary(_libraryManagerCookie);
                     _libraryManagerCookie = 0;

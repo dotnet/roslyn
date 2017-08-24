@@ -89,7 +89,7 @@ End Class
         Public Sub TestDiagnosticWithSeverity()
             Dim source = <project><file>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x
     End Sub
 End Class

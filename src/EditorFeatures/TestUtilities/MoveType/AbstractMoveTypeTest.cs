@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             string originalCode,
             string expectedCode = null,
             bool expectedCodeAction = true,
-            bool ignoreTrivia = true,
+            bool ignoreTrivia = false,
             string fixAllActionEquivalenceKey = null,
             object fixProviderData = null)
         {
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             string originalCode,
             string expectedDocumentName = null,
             bool expectedCodeAction = true,
-            bool ignoreTrivia = true,
+            bool ignoreTrivia = false,
             IList<string> destinationDocumentContainers = null,
             string fixAllActionEquivalenceKey = null,
             object fixProviderData = null)
@@ -137,6 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
                 conflictSpans: ImmutableArray<TextSpan>.Empty,
                 renameSpans: ImmutableArray<TextSpan>.Empty,
                 warningSpans: ImmutableArray<TextSpan>.Empty,
+                navigationSpans: ImmutableArray<TextSpan>.Empty,
                 ignoreTrivia: ignoreTrivia,
                 expectedChangedDocumentId: null);
         }
@@ -149,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
             ImmutableArray<string> destinationDocumentContainers = default(ImmutableArray<string>),
             bool expectedCodeAction = true,
             int index = 0,
-            bool ignoreTrivia = true,
+            bool ignoreTrivia = false,
             Action<Workspace> onAfterWorkspaceCreated = null)
         {
             var testOptions = new TestParameters();

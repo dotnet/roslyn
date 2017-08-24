@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -54,8 +54,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 int processExitHandling = 0;
 
-                EventHandler localHandler = null;
-                localHandler = async (_, __) =>
+                async void localHandler(object _, EventArgs __)
                 {
                     try
                     {
@@ -73,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
-                };
+                }
 
                 // hook the event only once per process:
                 if (Interlocked.Exchange(ref processExitHandling, ProcessExitHooked) == 0)

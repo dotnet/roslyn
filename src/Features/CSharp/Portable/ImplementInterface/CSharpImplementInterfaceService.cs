@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Composition;
@@ -25,8 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         {
             if (!cancellationToken.IsCancellationRequested)
             {
-                var interfaceNode = node as TypeSyntax;
-                if (interfaceNode != null && interfaceNode.Parent is BaseTypeSyntax &&
+                if (node is TypeSyntax interfaceNode && interfaceNode.Parent is BaseTypeSyntax &&
                     interfaceNode.Parent.IsParentKind(SyntaxKind.BaseList) &&
                     ((BaseTypeSyntax)interfaceNode.Parent).Type == interfaceNode)
                 {

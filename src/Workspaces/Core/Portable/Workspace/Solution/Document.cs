@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool TryGetSyntaxVersion(out VersionStamp version)
         {
-            version = default(VersionStamp);
+            version = default;
             if (!this.TryGetTextVersion(out var textVersion))
             {
                 return false;
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the version of the syntax tree. This is generally the newer of the text version and the project's version.
         /// </summary>
-        public async Task<VersionStamp> GetSyntaxVersionAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<VersionStamp> GetSyntaxVersionAsync(CancellationToken cancellationToken = default)
         {
             var textVersion = await this.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
             var projectVersion = this.Project.Version;
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the <see cref="SyntaxTree" /> for this document asynchronously.
         /// </summary>
-        public Task<SyntaxTree> GetSyntaxTreeAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public Task<SyntaxTree> GetSyntaxTreeAsync(CancellationToken cancellationToken = default)
         {
             // If the language doesn't support getting syntax trees for a document, then bail out immediately.
             if (!this.SupportsSyntaxTree)
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the root node of the syntax tree asynchronously.
         /// </summary>
-        public async Task<SyntaxNode> GetSyntaxRootAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<SyntaxNode> GetSyntaxRootAsync(CancellationToken cancellationToken = default)
         {
             if (!this.SupportsSyntaxTree)
             {
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the semantic model for this document asynchronously.
         /// </summary>
-        public async Task<SemanticModel> GetSemanticModelAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<SemanticModel> GetSemanticModelAsync(CancellationToken cancellationToken = default)
         {
             try
             {
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis
         /// Get the text changes between this document and a prior version of the same document.
         /// The changes, when applied to the text of the old document, will produce the text of the current document.
         /// </summary>
-        public async Task<IEnumerable<TextChange>> GetTextChangesAsync(Document oldDocument, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IEnumerable<TextChange>> GetTextChangesAsync(Document oldDocument, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// Use this method to gain access to potentially incomplete semantics quickly.
         /// </summary>
-        internal async Task<Document> WithFrozenPartialSemanticsAsync(CancellationToken cancellationToken)
+        internal Document WithFrozenPartialSemantics(CancellationToken cancellationToken)
         {
             var solution = this.Project.Solution;
             var workspace = solution.Workspace;
@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis
                 workspace.PartialSemanticsEnabled &&
                 this.Project.SupportsCompilation)
             {
-                var newSolution = await this.Project.Solution.WithFrozenPartialCompilationIncludingSpecificDocumentAsync(this.Id, cancellationToken).ConfigureAwait(false);
+               var newSolution = this.Project.Solution.WithFrozenPartialCompilationIncludingSpecificDocument(this.Id, cancellationToken);
                 return newSolution.GetDocument(this.Id);
             }
             else
@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// This method is async because this may require reading other files. In files that are already open, this is expected to be cheap and complete synchronously.
         /// </remarks>
-        public Task<DocumentOptionSet> GetOptionsAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public Task<DocumentOptionSet> GetOptionsAsync(CancellationToken cancellationToken = default)
         {
             return GetOptionsAsync(Project.Solution.Options, cancellationToken);
         }

@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string filterText = null,
             SupportedPlatformData supportedPlatforms = null,
             ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default(ImmutableArray<string>))
+            ImmutableArray<string> tags = default)
         {
             var props = properties ?? ImmutableDictionary<string, string>.Empty;
 
@@ -144,7 +145,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return SymbolKey.Resolve(id, compilation).GetAnySymbol();
         }
 
-        public static async Task<CompletionDescription> GetDescriptionAsync(CompletionItem item, Document document, CancellationToken cancellationToken)
+        public static async Task<CompletionDescription> GetDescriptionAsync(
+            CompletionItem item, Document document, CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
 
@@ -216,7 +218,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public static int GetContextPosition(CompletionItem item)
         {
-            if (item.Properties.TryGetValue("ContextPosition", out var text) && int.TryParse(text, out var number))
+            if (item.Properties.TryGetValue("ContextPosition", out var text) &&
+                int.TryParse(text, out var number))
             {
                 return number;
             }
@@ -227,9 +230,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         public static int GetDescriptionPosition(CompletionItem item)
-        {
-            return GetContextPosition(item);
-        }
+            => GetContextPosition(item);
 
         public static string GetInsertionText(CompletionItem item)
         {
@@ -247,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string filterText = null,
             SupportedPlatformData supportedPlatforms = null,
             ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default(ImmutableArray<string>))
+            ImmutableArray<string> tags = default)
         {
             return CreateWorker(
                 displayText, symbols, rules, contextPosition, 
@@ -265,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string filterText = null,
             SupportedPlatformData supportedPlatforms = null,
             ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default(ImmutableArray<string>))
+            ImmutableArray<string> tags = default)
         {
             return CreateWorker(
                 displayText, symbols, rules, contextPosition, 
@@ -293,12 +294,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return null;
         }
 
-        public static async Task<CompletionDescription> GetDescriptionAsync(CompletionItem item, ImmutableArray<ISymbol> symbols, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)
+        public static async Task<CompletionDescription> GetDescriptionAsync(
+            CompletionItem item, ImmutableArray<ISymbol> symbols, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
 
-            var position = SymbolCompletionItem.GetDescriptionPosition(item);
-            var supportedPlatforms = SymbolCompletionItem.GetSupportedPlatforms(item, workspace);
+            var position = GetDescriptionPosition(item);
+            var supportedPlatforms = GetSupportedPlatforms(item, workspace);
 
             var contextDocument = FindAppropriateDocumentForDescriptionContext(document, supportedPlatforms);
 

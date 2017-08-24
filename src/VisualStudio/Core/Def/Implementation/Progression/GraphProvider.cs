@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -342,9 +342,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         public T GetExtension<T>(GraphObject graphObject, T previous) where T : class
         {
-            var graphNode = graphObject as GraphNode;
 
-            if (graphNode != null)
+            if (graphObject is GraphNode graphNode)
             {
                 // If this is not a Roslyn node, bail out.
                 // TODO: The check here is to see if the SymbolId property exists on the node

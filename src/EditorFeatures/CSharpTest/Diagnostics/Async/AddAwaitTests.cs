@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Threading.Tasks;
@@ -897,7 +897,7 @@ class Program
 {
     async Task<int> A()
     {
-        return await (null ?? Task.FromResult(1)) }
+        return await (null ?? Task.FromResult(1))}
 }");
         }
 
@@ -921,7 +921,7 @@ class Program
 {
     async Task<int> A()
     {
-        return await (null as Task<int>) }
+        return await (null as Task<int>)}
 }");
         }
 

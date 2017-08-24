@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static partial class ErrorFacts
     {
-        private static readonly string s_titleSuffix = "_Title";
-        private static readonly string s_descriptionSuffix = "_Description";
+        private const string s_titleSuffix = "_Title";
+        private const string s_descriptionSuffix = "_Description";
         private static readonly Lazy<ImmutableDictionary<ErrorCode, string>> s_helpLinksMap = new Lazy<ImmutableDictionary<ErrorCode, string>>(CreateHelpLinks);
         private static readonly Lazy<ImmutableDictionary<ErrorCode, string>> s_categoriesMap = new Lazy<ImmutableDictionary<ErrorCode, string>>(CreateCategoriesMap);
 

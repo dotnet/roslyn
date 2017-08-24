@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -894,7 +894,7 @@ class C
     }
     public virtual event Action<int> f;
 
-    void Foo()
+    void Goo()
     {
         e = null; //CS0079
         f = null; //fine
@@ -910,7 +910,7 @@ class D : C
         remove { }
     }
 
-    void Foo()
+    void Goo()
     {
         e = null; //fine
         f = null; //CS0070 (since the least-overridden event is field-like)
@@ -926,7 +926,7 @@ class E : D
     }
     public sealed override event Action<int> f;
 
-    void Foo()
+    void Goo()
     {
         e = null; //CS0079
         f = null; //fine
@@ -976,7 +976,7 @@ class C
 
 class D
 {
-    void Foo(C c)
+    void Goo(C c)
     {
         c.e1 = null; //CS0122
         c.e2 = null; //CS0122
@@ -1397,7 +1397,7 @@ class C
 {
     event System.Action E { remove { } } //CS0065
 
-    void Foo()
+    void Goo()
     {
         E += null; //no separate error
     }
@@ -1908,7 +1908,7 @@ class Outer
     {
     }
 
-    class Foo
+    class Goo
     {
         public static event System.Action Q { add { } remove { } }
 
@@ -1923,9 +1923,9 @@ class Outer
 }
 ";
             CreateStandardCompilation(cSharpSource).VerifyDiagnostics(
-                // (16,17): error CS0079: The event 'Outer.Foo.Q' can only appear on the left hand side of += or -=
+                // (16,17): error CS0079: The event 'Outer.Goo.Q' can only appear on the left hand side of += or -=
                 //                 Q();
-                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "Q").WithArguments("Outer.Foo.Q"));
+                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "Q").WithArguments("Outer.Goo.Q"));
         }
 
         [WorkItem(542461, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542461")]
@@ -2388,9 +2388,9 @@ namespace ConsoleApplication3
             remove { base.MyEvent -= value; } // error
         }
 
-        public void Foo()
+        public void Goo()
         {
-            base.MyEvent += Foo; // error
+            base.MyEvent += Goo; // error
         }
     }
 
@@ -2411,7 +2411,7 @@ namespace ConsoleApplication3
                 //             remove { base.MyEvent -= value; } // error
                 Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.MyEvent").WithArguments("ConsoleApplication3.BaseWithAbstractEvent.MyEvent").WithLocation(15, 22),
                 // (20,13): error CS0205: Cannot call an abstract base member: 'BaseWithAbstractEvent.MyEvent'
-                //             base.MyEvent += Foo; // error
+                //             base.MyEvent += Goo; // error
                 Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.MyEvent").WithArguments("ConsoleApplication3.BaseWithAbstractEvent.MyEvent").WithLocation(20, 13)
                 );
         }

@@ -23,14 +23,13 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly TimeSpan _cleanupIntervalTimeSpan;
         private readonly TimeSpan _purgeAfterTimeSpan;
 
-        private readonly ConcurrentDictionary<int, AssetSource> _assetSources =
-            new ConcurrentDictionary<int, AssetSource>(concurrencyLevel: 4, capacity: 10);
-
         private readonly ConcurrentDictionary<Checksum, Entry> _globalAssets =
             new ConcurrentDictionary<Checksum, Entry>(concurrencyLevel: 4, capacity: 10);
 
         private readonly ConcurrentDictionary<Checksum, Entry> _assets =
             new ConcurrentDictionary<Checksum, Entry>(concurrencyLevel: 4, capacity: 10);
+
+        private volatile AssetSource _assetSource;
 
         public AssetStorage()
         {
@@ -45,26 +44,14 @@ namespace Microsoft.CodeAnalysis.Remote
             Task.Run(CleanAssetsAsync, CancellationToken.None);
         }
 
-        public AssetSource TryGetAssetSource(int scopeId)
+        public AssetSource AssetSource
         {
-            AssetSource source;
-            if (_assetSources.TryGetValue(scopeId, out source))
-            {
-                return source;
-            }
-
-            return null;
+            get { return _assetSource; }
         }
 
-        public void RegisterAssetSource(int scopeId, AssetSource assetSource)
+        public void SetAssetSource(AssetSource assetSource)
         {
-            Contract.ThrowIfFalse(_assetSources.TryAdd(scopeId, assetSource));
-        }
-
-        public void UnregisterAssetSource(int scopeId)
-        {
-            AssetSource dummy;
-            _assetSources.TryRemove(scopeId, out dummy);
+            _assetSource = assetSource;
         }
 
         public bool TryAddGlobalAsset(Checksum checksum, object value)
@@ -96,8 +83,7 @@ namespace Microsoft.CodeAnalysis.Remote
             value = default(T);
             using (Logger.LogBlock(FunctionId.AssetStorage_TryGetAsset, Checksum.GetChecksumLogInfo, checksum, CancellationToken.None))
             {
-                Entry entry;
-                if (!_globalAssets.TryGetValue(checksum, out entry) &&
+                if (!_globalAssets.TryGetValue(checksum, out var entry) &&
                     !_assets.TryGetValue(checksum, out entry))
                 {
                     return false;
@@ -142,8 +128,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
 
                     // If it fails, we'll just leave it in the asset pool.
-                    Entry entry;
-                    _assets.TryRemove(kvp.Key, out entry);
+                    _assets.TryRemove(kvp.Key, out var entry);
                 }
             }
         }

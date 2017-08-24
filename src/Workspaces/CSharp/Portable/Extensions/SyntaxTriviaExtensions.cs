@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (trivia.Any())
             {
                 var sb = new StringBuilder();
-                trivia.Select(t => t.ToFullString()).Do((s) => sb.Append(s));
+                trivia.Select(t => t.ToFullString()).Do(s => sb.Append(s));
                 return sb.ToString();
             }
             else
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var span = trivia.FullSpan;
             if (span.Start == 0)
             {
-                return default(SyntaxTrivia);
+                return default;
             }
 
             return syntaxTree.GetRoot(cancellationToken).FindTrivia(span.Start - 1, findInsideTrivia);

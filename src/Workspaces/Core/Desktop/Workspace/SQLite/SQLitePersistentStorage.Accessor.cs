@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -126,8 +127,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             private Task AddWriteTaskAsync(TKey key, Action<SqlConnection> action, CancellationToken cancellationToken)
                 => Storage.AddWriteTaskAsync(_writeQueueKeyToWrites, GetWriteQueueKey(key), action, cancellationToken);
 
-            private Stream ReadBlob(
-                 SqlConnection connection, TDatabaseId dataId)
+            private Stream ReadBlob(SqlConnection connection, TDatabaseId dataId)
             {
                 if (TryGetRowId(connection, dataId, out var rowId))
                 {
@@ -143,7 +143,36 @@ namespace Microsoft.CodeAnalysis.SQLite
                 return null;
             }
 
-            private bool TryGetRowId(SqlConnection connection, TDatabaseId dataId, out long rowId)
+            protected bool GetAndVerifyRowId(SqlConnection connection, long dataId, out long rowId)
+            {
+                // For the Document and Project tables, our dataId is our rowId:
+                // 
+                // https://sqlite.org/lang_createtable.html
+                // if a rowid table has a primary key that consists of a single column and the 
+                // declared type of that column is "INTEGER" in any mixture of upper and lower 
+                // case, then the column becomes an alias for the rowid. Such a column is usually
+                // referred to as an "integer primary key". A PRIMARY KEY column only becomes an
+                // integer primary key if the declared type name is exactly "INTEGER"
+#if DEBUG
+                // make sure that if we actually request the rowId from the database that it
+                // is equal to our data id.  Only do this in debug as this can be expensive
+                // and we definitely do not want to do this in release.
+                if (TryGetRowIdWorker(connection, (TDatabaseId)(object)dataId, out rowId))
+                {
+                    Debug.Assert(dataId == rowId);
+                }
+#endif
+
+                // Can just return out dataId as the rowId without actually having to hit the 
+                // database at all.
+                rowId = dataId;
+                return true;
+            }
+
+            protected virtual bool TryGetRowId(SqlConnection connection, TDatabaseId dataId, out long rowId)
+                => TryGetRowIdWorker(connection, dataId, out rowId);
+
+            private bool TryGetRowIdWorker(SqlConnection connection, TDatabaseId dataId, out long rowId)
             {
                 // See https://sqlite.org/autoinc.html
                 // > In SQLite, table rows normally have a 64-bit signed integer ROWID which is 

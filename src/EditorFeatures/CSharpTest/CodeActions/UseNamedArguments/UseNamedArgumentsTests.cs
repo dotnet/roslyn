@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -212,7 +212,7 @@ class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }"
 }",
 @"class C
 {
-    void M(int arg1, int arg2)
+    void M(int arg1, int arg2) 
         => M(arg1: 1 + 2, arg2: 2);
 }");
         }
@@ -229,7 +229,7 @@ class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }"
 }",
 @"class C
 {
-    void M(int arg1, int arg2)
+    void M(int arg1, int arg2) 
         => M(arg1: 1 + 2, arg2: 2);
 }");
         }
@@ -293,7 +293,7 @@ using System;
 class C
 {
     void M(Action arg1, int arg2) 
-        => M(arg1: () => { }, arg2: 2);
+        => M(arg1: () => {  }, arg2: 2);
 }");
         }
 

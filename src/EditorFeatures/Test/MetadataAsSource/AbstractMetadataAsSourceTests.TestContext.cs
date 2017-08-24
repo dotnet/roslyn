@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 return string.Join(" ", tokens);
             }
 
-            public void VerifyResult(MetadataAsSourceFile file, string expected, bool ignoreTrivia = true)
+            public void VerifyResult(MetadataAsSourceFile file, string expected, bool ignoreTrivia = false)
             {
                 var actual = File.ReadAllText(file.FilePath).Trim();
                 var actualSpan = file.IdentifierLocation.SourceSpan;
@@ -104,20 +104,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                     // Compare tokens and verify location relative to the generated tokens
                     expected = GetSpaceSeparatedTokens(expected);
                     actual = GetSpaceSeparatedTokens(actual.Insert(actualSpan.Start, "[|").Insert(actualSpan.End + 2, "|]"));
+                    Assert.Equal(expected, actual);
                 }
                 else
                 {
                     // Compare exact texts and verify that the location returned is exactly that
                     // indicated by expected
-                    MarkupTestFile.GetSpan(expected.TrimStart().TrimEnd(), out expected, out var expectedSpan);
+                    MarkupTestFile.GetSpan(expected, out expected, out var expectedSpan);
+                    Assert.Equal(expected, actual);
                     Assert.Equal(expectedSpan.Start, actualSpan.Start);
                     Assert.Equal(expectedSpan.End, actualSpan.End);
                 }
-
-                Assert.Equal(expected, actual);
             }
 
-            public async Task GenerateAndVerifySourceAsync(string symbolMetadataName, string expected, bool ignoreTrivia = true, Project project = null)
+            public async Task GenerateAndVerifySourceAsync(string symbolMetadataName, string expected, bool ignoreTrivia = false, Project project = null)
             {
                 var result = await GenerateSourceAsync(symbolMetadataName, project);
                 VerifyResult(result, expected, ignoreTrivia);

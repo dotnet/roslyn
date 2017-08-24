@@ -58,27 +58,30 @@ namespace Microsoft.CodeAnalysis.AddImport
             ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
         {
-            var callbackTarget = new RemoteSymbolSearchService(symbolSearchService, cancellationToken);
-            var result = await document.Project.Solution.TryRunCodeAnalysisRemoteAsync<ImmutableArray<AddImportFixData>>(
-                RemoteFeatureOptions.AddImportEnabled,
-                callbackTarget,
-                nameof(IRemoteAddImportFeatureService.GetFixesAsync),
-                new object[]
-                {
+            if (RemoteSupportedLanguages.IsSupported(document.Project.Language))
+            {
+                var callbackTarget = new RemoteSymbolSearchService(symbolSearchService, cancellationToken);
+                var result = await document.Project.Solution.TryRunCodeAnalysisRemoteAsync<IList<AddImportFixData>>(
+                    RemoteFeatureOptions.AddImportEnabled,
+                    callbackTarget,
+                    nameof(IRemoteAddImportFeatureService.GetFixesAsync),
+                    new object[]
+                    {
                     document.Id,
                     span,
                     diagnosticId,
                     placeSystemNamespaceFirst,
                     searchReferenceAssemblies,
                     packageSources
-                },
-                cancellationToken).ConfigureAwait(false);
+                    },
+                    cancellationToken).ConfigureAwait(false);
 
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            if (!result.IsDefault)
-            {
-                return result;
+                if (result != null)
+                {
+                    return result.ToImmutableArray();
+                }
             }
 
             return await GetFixesInCurrentProcessAsync(
@@ -282,8 +285,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                     // Ignore netmodules.  First, they're incredibly esoteric and barely used.
                     // Second, the SymbolFinder API doesn't even support searching them. 
-                    var assembly = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
-                    if (assembly != null)
+                    if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
                     {
                         findTasks.Add(finder.FindInMetadataSymbolsAsync(
                             assembly, referenceProjectId, reference, exact, linkedTokenSource.Token));

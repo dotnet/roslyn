@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         /// <summary>
-        /// Get the first attribute from <see cref="DkmClrType.GetEvalAttributes"/> (including inherited attributes)
+        /// Get the first attribute from <see cref="DkmClrType.GetEvalAttributes()"/> (including inherited attributes)
         /// that is of type T, as well as the type that it targeted.
         /// </summary>
         internal static bool TryGetEvalAttribute<T>(this DkmClrType type, out DkmClrType attributeTarget, out T evalAttribute)

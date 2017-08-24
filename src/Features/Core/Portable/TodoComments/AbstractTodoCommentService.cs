@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -36,9 +36,9 @@ namespace Microsoft.CodeAnalysis.TodoComments
 
         protected abstract string GetNormalizedText(string message);
         protected abstract int GetCommentStartingIndex(string message);
-        protected abstract void AppendTodoComments(ImmutableArray<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, List<TodoComment> todoList);
+        protected abstract void AppendTodoComments(IList<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, List<TodoComment> todoList);
 
-        public async Task<IList<TodoComment>> GetTodoCommentsAsync(Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
+        public async Task<IList<TodoComment>> GetTodoCommentsAsync(Document document, IList<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
         {
             // make sure given input is right one
             Contract.ThrowIfFalse(_workspace == document.Project.Solution.Workspace);
@@ -59,27 +59,25 @@ namespace Microsoft.CodeAnalysis.TodoComments
         }
 
         private async Task<IList<TodoComment>> GetTodoCommentsInRemoteHostAsync(
-            RemoteHostClient client, Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
+            RemoteHostClient client, Document document, IList<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
         {
             var keepAliveSession = await TryGetKeepAliveSessionAsync(client, cancellationToken).ConfigureAwait(false);
 
             var result = await keepAliveSession.TryInvokeAsync<IList<TodoComment>>(
                 nameof(IRemoteTodoCommentService.GetTodoCommentsAsync),
                 document.Project.Solution,
-                new object[] { document.Id, commentDescriptors }).ConfigureAwait(false);
+                new object[] { document.Id, commentDescriptors }, cancellationToken).ConfigureAwait(false);
 
             return result ?? SpecializedCollections.EmptyList<TodoComment>();
         }
 
-        private async Task<KeepAliveSession> TryGetKeepAliveSessionAsync(RemoteHostClient client, CancellationToken cancellation)
+        private async Task<KeepAliveSession> TryGetKeepAliveSessionAsync(RemoteHostClient client, CancellationToken cancellationToken)
         {
-            using (await _gate.DisposableWaitAsync(cancellation).ConfigureAwait(false))
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 if (_sessionDoNotAccessDirectly == null)
                 {
-                    // we give cancellation none here since the cancellation will cause KeepAlive session to be shutdown
-                    // when raised
-                    _sessionDoNotAccessDirectly = await client.TryCreateCodeAnalysisKeepAliveSessionAsync(CancellationToken.None).ConfigureAwait(false);
+                    _sessionDoNotAccessDirectly = await client.TryCreateCodeAnalysisKeepAliveSessionAsync(cancellationToken).ConfigureAwait(false);
                 }
 
                 return _sessionDoNotAccessDirectly;
@@ -87,7 +85,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         }
 
         private async Task<IList<TodoComment>> GetTodoCommentsInCurrentProcessAsync(
-            Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
+            Document document, IList<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -117,7 +115,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             return PreprocessorHasComment(trivia) || IsSingleLineComment(trivia) || IsMultilineComment(trivia);
         }
 
-        protected void AppendTodoCommentInfoFromSingleLine(ImmutableArray<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, string message, int start, List<TodoComment> todoList)
+        protected void AppendTodoCommentInfoFromSingleLine(IList<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, string message, int start, List<TodoComment> todoList)
         {
             var index = GetCommentStartingIndex(message);
             if (index >= message.Length)
@@ -149,7 +147,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             }
         }
 
-        protected void ProcessMultilineComment(ImmutableArray<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, int postfixLength, List<TodoComment> todoList)
+        protected void ProcessMultilineComment(IList<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, int postfixLength, List<TodoComment> todoList)
         {
             // this is okay since we know it is already alive
             var text = document.Text;

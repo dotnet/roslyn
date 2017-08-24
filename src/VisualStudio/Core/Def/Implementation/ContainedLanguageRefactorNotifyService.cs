@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -25,13 +25,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
         {
-            var visualStudioWorkspace = workspace as VisualStudioWorkspaceImpl;
-            if (visualStudioWorkspace != null)
+            if (workspace is VisualStudioWorkspaceImpl visualStudioWorkspace)
             {
                 foreach (var documentId in changedDocumentIDs)
                 {
-                    var containedDocument = visualStudioWorkspace.GetHostDocument(documentId) as ContainedDocument;
-                    if (containedDocument != null)
+                    if (visualStudioWorkspace.GetHostDocument(documentId) is ContainedDocument containedDocument)
                     {
                         var containedLanguageHost = containedDocument.ContainedLanguage.ContainedLanguageHost;
                         if (containedLanguageHost != null)
