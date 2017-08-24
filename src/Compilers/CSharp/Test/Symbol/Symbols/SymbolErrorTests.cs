@@ -11401,18 +11401,15 @@ public class A4 : Attribute
             var comp = CreateStandardCompilation(text);
 
             comp.VerifyDiagnostics(
-                // (7,14): error CS0663: 'IFoo<T>' cannot define an overloaded method that differ only on parameter modifiers 'out' and 'ref'
+                // (7,14): error CS0663: 'IGoo<T>' cannot define an overloaded method that differs only on parameter modifiers 'out' and 'ref'
                 //         void M(out T t);
-                Diagnostic(ErrorCode.ERR_OverloadRefKind, "M").WithArguments("NS.IFoo<T>", "method", "out", "ref").WithLocation(7, 14),
-                // (24,20): error CS0663: 'CFoo' cannot define an overloaded method that differ only on parameter modifiers 'ref' and 'out'
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "M").WithArguments("NS.IGoo<T>", "method", "out", "ref").WithLocation(7, 14),
+                // (24,20): error CS0663: 'CGoo' cannot define an overloaded method that differs only on parameter modifiers 'ref' and 'out'
                 //         public int RetInt(byte b, ref int j)
-                Diagnostic(ErrorCode.ERR_OverloadRefKind, "RetInt").WithArguments("NS.CFoo", "method", "ref", "out").WithLocation(24, 20),
-                // (16,18): error CS0663: 'CFoo.SFoo' cannot define an overloaded method that differ only on parameter modifiers 'out' and 'ref'
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "RetInt").WithArguments("NS.CGoo", "method", "ref", "out").WithLocation(24, 20),
+                // (16,18): error CS0663: 'CGoo.SGoo' cannot define an overloaded method that differs only on parameter modifiers 'out' and 'ref'
                 //             void M<T>(out T t) { }
-                Diagnostic(ErrorCode.ERR_OverloadRefKind, "M").WithArguments("NS.CFoo.SFoo", "method", "out", "ref").WithLocation(16, 18),
-
-                // Dev10 stops after reporting the overload problems.  However, it produces the errors below once those problems are fixed.
-
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "M").WithArguments("NS.CGoo.SGoo", "method", "out", "ref").WithLocation(16, 18),
                 // (21,20): error CS0269: Use of unassigned out parameter 'i'
                 //             return i;
                 Diagnostic(ErrorCode.ERR_UseDefViolationOut, "i").WithArguments("i").WithLocation(21, 20),
@@ -11421,7 +11418,8 @@ public class A4 : Attribute
                 Diagnostic(ErrorCode.ERR_ParamUnassigned, "return i;").WithArguments("i").WithLocation(21, 13),
                 // (16,18): error CS0177: The out parameter 't' must be assigned to before control leaves the current method
                 //             void M<T>(out T t) { }
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "M").WithArguments("t").WithLocation(16, 18));
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "M").WithArguments("t").WithLocation(16, 18)
+            );
         }
 
         [Fact]

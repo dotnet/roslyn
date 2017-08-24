@@ -629,9 +629,9 @@ public class Test
                 // (46,32): error CS8168: Cannot return local 'M2' by reference because it is not a ref local
                 //             return ref Goo(ref M2).x;
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "M2").WithArguments("M2").WithLocation(46, 32),
-                // (46,24): error CS8165: Cannot return by reference a member of result of 'Test.Foo<Test.S1>(ref Test.S1)' because the argument passed to parameter 'arg' cannot be returned by reference
-                //             return ref Foo(ref M2).x;
-                Diagnostic(ErrorCode.ERR_RefReturnCall2, "Foo(ref M2)").WithArguments("Test.Foo<Test.S1>(ref Test.S1)", "arg").WithLocation(46, 24),
+                // (46,24): error CS8165: Cannot return by reference a member of result of 'Test.Goo<Test.S1>(ref Test.S1)' because the argument passed to parameter 'arg' cannot be returned by reference
+                //             return ref Goo(ref M2).x;
+                Diagnostic(ErrorCode.ERR_RefReturnCall2, "Goo(ref M2)").WithArguments("Test.Goo<Test.S1>(ref Test.S1)", "arg").WithLocation(46, 24),
                 // (58,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //             return ref this;
                 Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithArguments("this").WithLocation(58, 24)
@@ -1885,9 +1885,10 @@ class Program
 ";
 
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (8,20): error CS8160: A readonly field cannot be returned by reference
+                // (8,20): error CS0192: A readonly field cannot be used as a ref or out value (except in a constructor)
                 //         return ref i;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonly, "i").WithLocation(8, 20));
+                Diagnostic(ErrorCode.ERR_RefReadonly, "i").WithLocation(8, 20)
+            );
         }
 
         [Fact]
@@ -2043,9 +2044,10 @@ class Program
 ";
 
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (6,20): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
+                // (6,20): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //         return ref this;
-                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this").WithArguments("this").WithLocation(6, 20));
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithArguments("this").WithLocation(6, 20)
+            );
         }
 
         [Fact]
@@ -2121,7 +2123,11 @@ class Program
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
                 // (6,9): error CS8150: By-value returns may only be used in methods that return by value
                 //         return;
-                Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(6, 9));
+                Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(6, 9),
+                // (6,9): error CS0126: An object of a type convertible to 'int' is required
+                //         return;
+                Diagnostic(ErrorCode.ERR_RetObjectRequired, "return").WithArguments("int").WithLocation(6, 9)
+            );
         }
 
         [Fact]

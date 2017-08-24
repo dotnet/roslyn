@@ -1544,51 +1544,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return defines.AsEnumerable();
         }
 
-        public static bool TryParseLanguageVersion(string value, out LanguageVersion version)
-        {
-            if (value == null)
-            {
-                version = LanguageVersion.Default;
-                return true;
-            }
-
-            switch (value.ToLowerInvariant())
-            {
-                case "iso-1":
-                    version = LanguageVersion.CSharp1;
-                    return true;
-
-                case "iso-2":
-                    version = LanguageVersion.CSharp2;
-                    return true;
-
-                case "default":
-                    version = LanguageVersion.Default;
-                    return true;
-
-                case "latest":
-                    version = LanguageVersion.Latest;
-                    return true;
-
-                case "7.1":
-                    version = LanguageVersion.CSharp7_1;
-                    return true;
-
-                default:
-                    if (int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out int versionNumber))
-                    {
-                        version = (LanguageVersion)versionNumber;
-                        if (version.IsValid())
-                        {
-                            return true;
-                        }
-                    }
-
-                    version = LanguageVersion.Default;
-                    return false;
-            }
-        }
-
         private static Platform ParsePlatform(string value, IList<Diagnostic> diagnostics)
         {
             switch (value.ToLowerInvariant())
