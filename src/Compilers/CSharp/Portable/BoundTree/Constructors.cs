@@ -25,8 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConstantValue constantValueOpt,
             LookupResultKind resultKind,
             TypeSymbol type,
-            bool hasErrors = false)
-            : this(syntax, receiver, fieldSymbol, constantValueOpt, resultKind, NeedsByValueFieldAccess(receiver, fieldSymbol), type, hasErrors)
+            bool hasErrors = false,
+            bool isDeclaration = false)
+            : this(syntax, receiver, fieldSymbol, constantValueOpt, resultKind, NeedsByValueFieldAccess(receiver, fieldSymbol), isDeclaration, type, hasErrors)
         {
         }
 
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResultKind resultKind,
             TypeSymbol typeSymbol)
         {
-            return this.Update(receiver, fieldSymbol, constantValueOpt, resultKind, this.IsByValue, typeSymbol);
+            return this.Update(receiver, fieldSymbol, constantValueOpt, resultKind, this.IsByValue, this.IsDeclaration, typeSymbol);
         }
 
         private static bool NeedsByValueFieldAccess(BoundExpression receiver, FieldSymbol fieldSymbol)

@@ -80,7 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new BoundFieldAccess(this.Syntax,
                                                 this.ReceiverOpt,
                                                 fieldSymbol, null, LookupResultKind.Viable, type,
-                                                this.HasErrors || inferenceFailed);
+                                                this.HasErrors || inferenceFailed,
+                                                isDeclaration: true);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(this.VariableSymbol.Kind);

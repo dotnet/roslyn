@@ -2390,7 +2390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol fieldType = expressionVariableField.GetFieldType(this.FieldsBeingBound);
             return new BoundFieldAccess(declarationExpression,
                                         receiver,
-                                        expressionVariableField, null, LookupResultKind.Viable, fieldType);
+                                        expressionVariableField, null, LookupResultKind.Viable, fieldType, isDeclaration: true);
         }
 
         /// <summary>
