@@ -2839,7 +2839,8 @@ class C
         yield return local;
     }
 }";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            // Iterator requires .Net4.5 compilation to use AttributeDescription.IteratorStateMachineAttribute.
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation, runtime =>
             {
                 string displayClassName;
@@ -3803,6 +3804,39 @@ class Program
                 GetLocals(runtime, "Program.Main", debugInfo, locals, count: 0);
 
                 locals.Free();
+            });
+        }
+
+        [WorkItem(298297, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=298297")]
+        [Fact]
+        public void OrderOfArguments_ArgumentsOnly()
+        {
+            var source =
+@"using System.Collections.Generic;
+class C
+{
+    static IEnumerable<object> F(object y, object x)
+    {
+        yield return x;
+#line 500
+        DummySequencePoint();
+        yield return y;
+    }
+    static void DummySequencePoint()
+    {
+    }
+}";
+            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(comp, runtime =>
+            {
+                EvaluationContext context;
+                context = CreateMethodContext(runtime, "C.<F>d__0.MoveNext", atLineNumber: 500);
+                string unused;
+                var locals = new ArrayBuilder<LocalAndMethod>();
+                context.CompileGetLocals(locals, argumentsOnly: true, typeName: out unused, testData: null);
+                var names = locals.Select(l => l.LocalName).ToArray();
+                // The order must confirm the order of the arguments in the method signature.
+                Assert.Equal(names, new[] { "y", "x" });
             });
         }
 

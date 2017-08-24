@@ -1328,15 +1328,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     }
                 }
 
-                var argumentNames = ArrayBuilder<string>.GetInstance();
-                if (sourceMethod != null)
-                {
-                    foreach (var p in sourceMethod.Parameters)
-                    {
-                        argumentNames.Add(p.Name);
-                    }
-                }
-
                 var pooledHoistedParameterNames = PooledHashSet<string>.GetInstance();
                 foreach (var instance in displayClassInstances)
                 {
@@ -1356,9 +1347,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 displayClassVariableNamesInOrder = displayClassVariableNamesInOrderBuilder.ToImmutableAndFree();
                 displayClassVariables = displayClassVariablesBuilder.ToImmutableDictionary();
                 displayClassVariablesBuilder.Free();
-
-                orderedArgumentNames = argumentNames.ToImmutableArray();
-                argumentNames.Free();
             }
             else
             {
@@ -1367,6 +1355,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 displayClassVariables = ImmutableDictionary<string, DisplayClassVariable>.Empty;
                 orderedArgumentNames = ImmutableArray<string>.Empty;
             }
+
+            var argumentNames = ArrayBuilder<string>.GetInstance();
+            if (sourceMethod != null)
+            {
+                foreach (var p in sourceMethod.Parameters)
+                {
+                    argumentNames.Add(p.Name);
+                }
+            }
+
+            orderedArgumentNames = argumentNames.ToImmutableArray();
+            argumentNames.Free();
 
             displayClassTypes.Free();
             displayClassInstances.Free();

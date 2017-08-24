@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var localSignatureHandle = (localSignatureToken != 0) ? (StandaloneSignatureHandle)MetadataTokens.Handle(localSignatureToken) : default(StandaloneSignatureHandle);
 
             var currentFrame = compilation.GetMethod(moduleVersionId, methodHandle);
-            var currentSourceMethod = compilation.GetSourceMethod(moduleVersionId, methodToken);
+            var currentSourceMethod = compilation.GetSourceMethod(moduleVersionId, methodHandle);
             Debug.Assert((object)currentFrame != null);
             var symbolProvider = new CSharpEESymbolProvider(compilation.SourceAssembly, (PEModuleSymbol)currentFrame.ContainingModule, currentFrame);
 
