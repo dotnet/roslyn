@@ -249,5 +249,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
             Dim newArguments = oldArgumentList.Arguments.Take(argumentCount)
             Return SyntaxFactory.ArgumentList(New SeparatedSyntaxList(Of ArgumentSyntax)().AddRange(newArguments))
         End Function
+
+        Protected Overrides Function CanDelegeteThisConstructor(state As State, document As SemanticDocument, delegatedConstructor As IMethodSymbol, Optional cancellationToken As CancellationToken = Nothing) As Boolean
+            Dim currentConstructor = document.SemanticModel.GetDeclaredSymbol(state.Token.GetAncestor(Of ConstructorBlockSyntax)().SubNewStatement, cancellationToken)
+            If (currentConstructor.Equals(delegatedConstructor)) Then
+                Return False
+            Else
+                While (delegatedConstructor IsNot Nothing)
+                    Dim constructorStatements = delegatedConstructor.DeclaringSyntaxReferences(0).GetSyntax(cancellationToken).Parent.GetStatements()
+                    If (constructorStatements.IsEmpty()) Then
+                        Return True
+                    End If
+                    Dim constructorInitializerSyntax = constructorStatements(0)
+                    Dim expression = CType(constructorInitializerSyntax, ExpressionStatementSyntax).Expression
+                    If (expression.IsKind(SyntaxKind.InvocationExpression)) Then
+                        delegatedConstructor = CType(document.SemanticModel.GetSymbolInfo(expression, cancellationToken).Symbol, IMethodSymbol)
+                        If (delegatedConstructor.Equals(currentConstructor)) Then
+                            Return False
+                        End If
+                    End If
+                End While
+            End If
+
+            Return True
+        End Function
     End Class
 End Namespace

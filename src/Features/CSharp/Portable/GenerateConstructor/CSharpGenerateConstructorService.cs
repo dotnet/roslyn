@@ -269,5 +269,38 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
             var newArguments = oldArgumentList.Arguments.Take(argumentCount);
             return SyntaxFactory.ArgumentList(new SeparatedSyntaxList<ArgumentSyntax>().AddRange(newArguments));
         }
+
+        protected override bool CanDelegeteThisConstructor(State state, SemanticDocument document, IMethodSymbol delegatedConstructor, CancellationToken cancellationToken = default)
+        {
+            var currentConstructor = document.SemanticModel.GetDeclaredSymbol(state.Token.GetAncestor<ConstructorDeclarationSyntax>(), cancellationToken);
+            if (currentConstructor == delegatedConstructor)
+            {
+                return false;
+            }
+            else
+            {
+                while (delegatedConstructor != null)
+                {
+                    var constructorInitializerSyntax = delegatedConstructor
+                        .DeclaringSyntaxReferences[0]
+                        .GetSyntax(cancellationToken)
+                        .ChildNodes()
+                        .FirstOrDefault(n => n.IsKind(SyntaxKind.ThisConstructorInitializer)) as ConstructorInitializerSyntax;
+
+                    if (constructorInitializerSyntax == null)
+                    {
+                        return true;
+                    }
+
+                    delegatedConstructor = document.SemanticModel.GetSymbolInfo(constructorInitializerSyntax, cancellationToken).Symbol as IMethodSymbol;
+                    if (delegatedConstructor == currentConstructor)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
     }
 }

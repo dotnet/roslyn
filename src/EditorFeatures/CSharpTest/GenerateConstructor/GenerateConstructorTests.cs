@@ -3280,7 +3280,7 @@ class P {
 
         [WorkItem(21692, "https://github.com/dotnet/roslyn/issues/21692")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public async Task TestDelegateConstructor()
+        public async Task TestDelegateConstructor1()
         {
             await TestInRegularAndScriptAsync(
 @"class A
@@ -3298,6 +3298,84 @@ class P {
     }
 
     public A(int a, int v)
+    {
+        this.v = v;
+    }
+}");
+        }
+
+        [WorkItem(21692, "https://github.com/dotnet/roslyn/issues/21692")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestDelegateConstructor2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public C(int x) { }
+
+    public C(int x, int y, int z) : [|this(x, y)|] { }
+}",
+@"class C
+{
+    private int y;
+
+    public C(int x) { }
+
+    public C(int x, int y) : this(x)
+    {
+        this.y = y;
+    }
+
+    public C(int x, int y, int z) : this(x, y) { }
+}");
+        }
+
+        [WorkItem(21692, "https://github.com/dotnet/roslyn/issues/21692")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestDelegateConstructor3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public C(int x) : this(x, 0, 0) { }
+
+    public C(int x, int y, int z) : [|this(x, y)|] { }
+}",
+@"class C
+{
+    private int y;
+
+    public C(int x) : this(x, 0, 0) { }
+
+    public C(int x, int y)
+    {
+        this.y = y;
+    }
+
+    public C(int x, int y, int z) : this(x, y) { }
+}");
+        }
+
+        [WorkItem(21692, "https://github.com/dotnet/roslyn/issues/21692")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestDelegateConstructor4()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public C(int x) : this(x, 0) { }
+
+    public C(int x, int y) : [|this(x, y, 0)|] { }
+}",
+@"class C
+{
+    private int v;
+
+    public C(int x) : this(x, 0) { }
+
+    public C(int x, int y) : this(x, y, 0) { }
+
+    public C(int x, int y, int v)
     {
         this.v = v;
     }

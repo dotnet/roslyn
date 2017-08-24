@@ -1652,7 +1652,7 @@ End Module")
 
         <WorkItem(21692, "https://github.com/dotnet/roslyn/issues/21692")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
-        Public Async Function TestDelegateConstructor() As Task
+        Public Async Function TestDelegateConstructor1() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class B
     Public Sub New(a As Integer)
@@ -1667,6 +1667,95 @@ End Class",
     End Sub
 
     Public Sub New(a As Integer, v As Integer)
+        Me.v = v
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(21692, "https://github.com/dotnet/roslyn/issues/21692")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestDelegateConstructor2() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Class B
+    Public Sub New(x As Integer)
+        Me.New(x, 0, 0)
+    End Sub
+
+    Public Sub New(x As Integer, y As Integer, z As Integer)
+        [|Me.New(x, y)|]
+    End Sub
+End Class",
+"Public Class B
+    Private y As Integer
+
+    Public Sub New(x As Integer)
+        Me.New(x, 0, 0)
+    End Sub
+
+    Public Sub New(x As Integer, y As Integer)
+        Me.y = y
+    End Sub
+
+    Public Sub New(x As Integer, y As Integer, z As Integer)
+        Me.New(x, y)
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(21692, "https://github.com/dotnet/roslyn/issues/21692")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestDelegateConstructor3() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Class B
+    Public Sub New(x As Integer)
+    End Sub
+
+    Public Sub New(x As Integer, y As Integer, z As Integer)
+        [|Me.New(x, y)|]
+    End Sub
+End Class",
+"Public Class B
+    Private y As Integer
+
+    Public Sub New(x As Integer)
+    End Sub
+
+    Public Sub New(x As Integer, y As Integer)
+        Me.New(x)
+        Me.y = y
+    End Sub
+
+    Public Sub New(x As Integer, y As Integer, z As Integer)
+        Me.New(x, y)
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(21692, "https://github.com/dotnet/roslyn/issues/21692")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestDelegateConstructor4() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Class B
+    Public Sub New(x As Integer)
+        Me.New(x, 0)
+    End Sub
+
+    Public Sub New(x As Integer, y As Object)
+        [|Me.New(x, y, 0)|]
+    End Sub
+End Class",
+"Public Class B
+    Private v As Integer
+
+    Public Sub New(x As Integer)
+        Me.New(x, 0)
+    End Sub
+
+    Public Sub New(x As Integer, y As Object)
+        Me.New(x, y, 0)
+    End Sub
+
+    Public Sub New(x As Integer, y As Object, v As Integer)
         Me.v = v
     End Sub
 End Class")
