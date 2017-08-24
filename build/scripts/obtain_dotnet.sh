@@ -21,8 +21,10 @@ fi
 # This is a function to keep variable assignments out of the parent script (that is sourcing this file)
 install_dotnet () {
     # Download and install `dotnet` locally
-    local DOTNET_VERSION=2.0.0-preview3-006923
     local THIS_DIR=$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+    source ${THIS_DIR}/build-utils.sh
+
+    local DOTNET_VERSION=$(get_tool_version dotnetSdk)
     local DOTNET_PATH=${THIS_DIR}/../../Binaries/dotnet-cli
 
     if [[ ! -x "${DOTNET_PATH}/dotnet" ]]

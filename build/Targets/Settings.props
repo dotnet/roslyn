@@ -174,7 +174,11 @@
     <Import Project="$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(VisualStudioBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.props" />
   </ImportGroup>
 
-  <!-- PROTOTYPE undo the OS check -->
+  <!-- 
+    Temporarirly disable Toolset builds on Unix 
+
+    https://github.com/dotnet/roslyn/issues/21725
+   -->
   <Import Project="$(ToolsetCompilerPropsFilePath)" Condition="Exists('$(ToolsetCompilerPropsFilePath)') AND '$(BootstrapBuildPath)' == '' AND '$(OS)' == 'Windows_NT'" />
 
   <!-- 

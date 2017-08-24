@@ -5,23 +5,11 @@
 set -e
 set -u
 
-# This function will give you the current version number for a given nuget package
-# based on the contents of Packages.props. 
-# 
-# Provide the package name in the format shown in the nuget gallery
-#   get_package_version dotnet-xunit
-#   get_package_version System.Console
-get_package_version() 
-{
-    local name=${1/./}
-    local name=${name/-/}
-    local version=$(awk -F'[<>]' "/<${name}Version>/{print \$3}" ${SRC_PATH}/build/Targets/Packages.props)
-    echo $version
-}
-
 BUILD_CONFIGURATION=${1:-Debug}
 
 THIS_DIR=$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+source ${THIS_DIR}/build-utils.sh
+
 BINARIES_PATH=${THIS_DIR}/../../Binaries
 SRC_PATH=${THIS_DIR}/../..
 UNITTEST_DIR=${BINARIES_PATH}/${BUILD_CONFIGURATION}/UnitTests
@@ -38,7 +26,6 @@ echo Using $XUNIT_CONSOLE
 NEED_PUBLISH=(
     'src\Compilers\CSharp\Test\Symbol\CSharpCompilerSymbolTest.csproj'
 )
-BUILD_ARGS="--no-restore -c ${BUILD_CONFIGURATION} -consoleloggerparameters:Verbosity=minimal;summary -p:RuntimeIdentifier=${RUNTIME_ID} -p:TargetFramework=${TARGET_FRAMEWORK}"
 for p in $NEED_PUBLISH
 do
     echo Publishing ${p}
