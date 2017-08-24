@@ -292,8 +292,8 @@ function Test-XUnitCoreClr() {
     $runtimeIdentifier = "win7-x64"
     $tf = "netcoreapp2.0"
     $logDir = Join-Path $unitDir "xUnitResults"
-    $logFile = Join-Path $logDir "TestResults.xml"
     Create-Directory $logDir 
+    $xunitConsole = Join-Path (Get-PackageDir "dotnet-xunit") "tools\$tf\xunit.console.dll"
 
     # A number of our tests need to be published before they can be executed in order to get some 
     # runtime assets.
@@ -321,9 +321,16 @@ function Test-XUnitCoreClr() {
             $dllName = Get-ChildItem -name "*.UnitTests.dll" -path $testDir
             $dllPath = Join-Path $testDir $dllName
 
+            $args = "exec"
+            $args += " --depsfile " + [IO.Path]::ChangeExtension($dllPath, ".deps.json")
+            $args += " --runtimeconfig " + [IO.Path]::ChangeExtension($dllPath, ".runtimeconfig.json")
+            $args += " $xunitConsole"
+            $args += " $dllPath"
+            $args += " -xml " + (Join-Path $logDir ([IO.Path]::ChangeExtension($dllName, ".xml")))
+
             try {
                 Write-Host "Running $dllName"
-                Exec-Console $dotnet "vstest $dllPath"
+                Exec-Console $dotnet $args
             }
             catch {
                 Write-Host "Failed"

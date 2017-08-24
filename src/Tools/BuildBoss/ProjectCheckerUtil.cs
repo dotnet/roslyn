@@ -217,7 +217,7 @@ namespace BuildBoss
             var allGood = true;
             foreach (var packageRef in _projectUtil.GetPackageReferences())
             {
-                var name = packageRef.Name.Replace(".", "");
+                var name = packageRef.Name.Replace(".", "").Replace("-", "");
                 var floatingName = $"$({name}Version)";
                 var fixedName = $"$({name}FixedVersion)";
                 if (packageRef.Version != floatingName && packageRef.Version != fixedName)
