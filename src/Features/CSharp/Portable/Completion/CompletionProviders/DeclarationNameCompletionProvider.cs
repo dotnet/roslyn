@@ -147,6 +147,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private (ITypeSymbol, bool plural) UnwrapType(ITypeSymbol type, Compilation compilation, bool wasPlural)
         {
+            if (type is IArrayTypeSymbol arrayType)
+            {
+                return UnwrapType(arrayType.ElementType, compilation, wasPlural: true);
+            }
+
             if (type is INamedTypeSymbol namedType && namedType.OriginalDefinition != null)
             {
                 var originalDefinition = namedType.OriginalDefinition;
@@ -162,9 +167,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var taskOfTType = compilation.TaskOfTType();
                 var valueTaskType = compilation.ValueTaskOfTType();
 
-                if (originalDefinition == taskOfTType
-                    ||originalDefinition == valueTaskType
-                    || originalDefinition.SpecialType == SpecialType.System_Nullable_T)
+                if (originalDefinition == taskOfTType ||
+                    originalDefinition == valueTaskType ||
+                    originalDefinition.SpecialType == SpecialType.System_Nullable_T)
                 {
                     return UnwrapType(namedType.TypeArguments[0], compilation, wasPlural: wasPlural);
                 }

@@ -19,34 +19,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 var baseName = TryRemoveInterfacePrefix(type);
                 var parts = StringBreaker.GetWordParts(baseName);
-                var result = GetInterleavedPatterns(parts, baseName);
-                if (pluralize)
-                {
-                    result = Pluralize(result);
-                }
+                var result = GetInterleavedPatterns(parts, baseName, pluralize);
 
                 parts.Free();
                 return result;
-            }
-
-            private static ImmutableArray<Words> Pluralize(ImmutableArray<Words> baseNames)
-            {
-                var result = ArrayBuilder<Words>.GetInstance();
-                foreach (var baseName in baseNames)
-                {
-                    var lastWord = baseName[baseName.Length - 1];
-                    var pluralizedLastWord = lastWord.Pluralize(inputIsKnownToBeSingular: false);
-                    if (lastWord != pluralizedLastWord)
-                    {
-                        result.Add(baseName.RemoveAt(baseName.Length -1).Add(pluralizedLastWord));
-                    }
-                    else
-                    {
-                        result.Add(baseName);
-                    }
-                }
-
-                return result.ToImmutableAndFree();
             }
 
             internal static ImmutableArray<Words> GetBaseNames(IAliasSymbol alias)
@@ -59,48 +35,58 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
 
                 var breaks = StringBreaker.GetWordParts(name);
-                var result = GetInterleavedPatterns(breaks, name);
+                var result = GetInterleavedPatterns(breaks, name, pluralize: false);
                 breaks.Free();
                 return result;
             }
 
-            private static ImmutableArray<Words> GetInterleavedPatterns(ArrayBuilder<TextSpan> breaks, string baseName)
+            private static ImmutableArray<Words> GetInterleavedPatterns(ArrayBuilder<TextSpan> breaks, string baseName, bool pluralize)
             {
                 var result = ArrayBuilder<Words>.GetInstance();
                 var breakCount = breaks.Count;
-                result.Add(GetWords(0, breakCount, breaks, baseName));
+                result.Add(GetWords(0, breakCount, breaks, baseName, pluralize));
 
                 for (var length = breakCount - 1; length > 0; length--)
                 {
                     // going forward
-                    result.Add(GetLongestForwardSubsequence(length, breaks, baseName));
+                    result.Add(GetLongestForwardSubsequence(length, breaks, baseName, pluralize));
 
                     // going backward
-                    result.Add(GetLongestBackwardSubsequence(length, breaks, baseName));
+                    result.Add(GetLongestBackwardSubsequence(length, breaks, baseName, pluralize));
                 }
 
                 return result.ToImmutable();
             }
 
-            private static Words GetLongestBackwardSubsequence(int length, ArrayBuilder<TextSpan> breaks, string baseName)
+            private static Words GetLongestBackwardSubsequence(int length, ArrayBuilder<TextSpan> breaks, string baseName, bool pluralize)
             {
                 var breakCount = breaks.Count;
                 var start = breakCount - length;
-                return GetWords(start, breakCount, breaks, baseName);
+                return GetWords(start, breakCount, breaks, baseName, pluralize);
             }
 
-            private static Words GetLongestForwardSubsequence(int length, ArrayBuilder<TextSpan> breaks, string baseName)
+            private static Words GetLongestForwardSubsequence(int length, ArrayBuilder<TextSpan> breaks, string baseName, bool pluralize)
             {
-                return GetWords(0, length, breaks, baseName);
+                return GetWords(0, length, breaks, baseName, pluralize);
             }
 
-            private static Words GetWords(int start, int end, ArrayBuilder<TextSpan> breaks, string baseName)
+            private static Words GetWords(int start, int end, ArrayBuilder<TextSpan> breaks, string baseName, bool pluralize)
             {
                 var result = ArrayBuilder<string>.GetInstance();
+                // Add all the words but the last one
                 for (; start < end; start++)
                 {
                     var @break = breaks[start];
-                    result.Add(baseName.Substring(@break.Start, @break.Length));
+                    var text = baseName.Substring(@break.Start, @break.Length);
+                    if (pluralize && start == end - 1)
+                    {
+                        // Pluralize the last word if neccessary
+                        result.Add(text.Pluralize());
+                    }
+                    else
+                    {
+                        result.Add(text);
+                    }
                 }
 
                 return result.ToImmutableAndFree();

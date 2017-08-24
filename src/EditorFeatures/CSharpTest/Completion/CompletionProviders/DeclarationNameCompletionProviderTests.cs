@@ -453,7 +453,7 @@ public class MyClass
     MyClass[] $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "MyClass");
+            await VerifyItemExistsAsync(markup, "MyClasses");
             await VerifyItemIsAbsentAsync(markup, "Array");
         }
 
@@ -633,12 +633,12 @@ class Test
         {
             var markup = @"
 using System.Collections.Generic;
-class Test
+class Index
 {
-    IEnumerable<Test> $$
+    IEnumerable<Index> $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "tests");
+            await VerifyItemExistsAsync(markup, "Indices");
         }
 
         [WorkItem(17987, "https://github.com/dotnet/roslyn/issues/17987")]
@@ -665,6 +665,40 @@ using System.Threading;
 class Test
 {
     IEnumerable<CancellationToken> $$
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationTokens");
+            await VerifyItemExistsAsync(markup, "cancellations");
+            await VerifyItemExistsAsync(markup, "tokens");
+        }
+
+        [WorkItem(17987, "https://github.com/dotnet/roslyn/issues/17987")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void PluralizeList()
+        {
+            var markup = @"
+using System.Collections.Generic;
+using System.Threading;
+class Test
+{
+    List<CancellationToken> $$
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationTokens");
+            await VerifyItemExistsAsync(markup, "cancellations");
+            await VerifyItemExistsAsync(markup, "tokens");
+        }
+
+        [WorkItem(17987, "https://github.com/dotnet/roslyn/issues/17987")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void PluralizeArray()
+        {
+            var markup = @"
+using System.Collections.Generic;
+using System.Threading;
+class Test
+{
+    CancellationToken[] $$
 }
 ";
             await VerifyItemExistsAsync(markup, "cancellationTokens");
