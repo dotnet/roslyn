@@ -9407,6 +9407,39 @@ class C
                 result.Output.Trim());
         }
 
+        [WorkItem(406649, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=484417")]
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void MicrosoftDiaSymReaderNativeAltLoadPath()
+        {
+            var dir = Temp.CreateDirectory();
+            var cscDir = Path.GetDirectoryName(s_CSharpCompilerExecutable);
+            
+            // copy csc and dependencies except for DSRN:
+            foreach (var filePath in Directory.EnumerateFiles(cscDir))
+            {
+                var fileName = Path.GetFileName(filePath);
+
+                if (fileName.StartsWith("csc") ||
+                    fileName.StartsWith("System.") ||
+                    fileName.StartsWith("Microsoft.") && !fileName.StartsWith("Microsoft.DiaSymReader.Native"))
+                {
+                    dir.CopyFile(filePath);
+                }
+            }
+
+            dir.CreateFile("Source.cs").WriteAllText("class C { void F() { } }");
+
+            var cscCopy = Path.Combine(dir.Path, "csc.exe");
+
+            var result = ProcessUtilities.Run(
+                cscCopy, 
+                arguments: "/nologo /t:library /debug:full /deterministic Source.cs",
+                workingDirectory: dir.Path, 
+                additionalEnvironmentVars: new[] { KeyValuePair.Create("MICROSOFT_DIASYMREADER_NATIVE_ALT_LOAD_PATH", cscDir) });
+
+            Assert.Equal("", result.Output.Trim());
+        }
+
         public class QuotedArgumentTests
         {
             private void VerifyQuotedValid<T>(string name, string value, T expected, Func<CSharpCommandLineArguments, T> getValue)
