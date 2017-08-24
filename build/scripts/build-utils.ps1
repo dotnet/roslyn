@@ -133,29 +133,37 @@ function Ensure-NuGet() {
     return $destFile
 }
 
-# Checks to see if a particular version of the SDK is available on %PATH%. This is 
-# how MSBuild locates the SDK. 
-function Test-SdkInPath([string]$version) {
-    foreach ($part in ${env:PATH}.Split(';', [System.StringSplitOptions]::RemoveEmptyEntries)) {
-        $dotnetExe = Join-Path $part "dotnet.exe"
-        if (Test-Path $dotnetExe) {
-            $sdkPath = Join-Path $part "sdk"
-            $sdkPath = Join-Path $sdkPath $version
-            return Test-Path $sdkPath
+# Ensure the proper SDK in installed in our %PATH%. This is how MSBuild locates the 
+# SDK.
+function Ensure-SdkInPathAndData() { 
+    $sdkVersion = "2.0.0-preview3-006923"
+
+    # Get the path to dotnet.exe. This is the first path on %PATH% that contains the 
+    # dotnet.exe instance. Many SDK tools use this to locate items like the SDK.
+    function Get-DotnetDir() { 
+        foreach ($part in ${env:PATH}.Split(';', [System.StringSplitOptions]::RemoveEmptyEntries)) {
+            $dotnetExe = Join-Path $part "dotnet.exe"
+            if (Test-Path $dotnetExe) {
+                return $part
+            }
+        }
+
+        return $null
+    }
+
+    # First check that dotnet is already on the path with the correct SDK version
+    $dotnetDir = Get-DotnetDir
+    if ($dotnetDir -ne $null) { 
+        $sdkPath = Join-Path $dotnetDir "sdk\$sdkVersion"
+        if (Test-Path $sdkPath) {
+            Write-Output (Join-Path $dotnetDir "dotnet.exe")
+            Write-Output $sdkPath
+            return        
         }
     }
 
-    return $false
-}
-
-# Ensure the proper SDK in installed in our %PATH%. This is how MSBuild locates the 
-# SDK.
-function Ensure-SdkInPath() { 
-    $sdkVersion = "2.0.0-preview3-006923"
-    if (Test-SdkInPath $sdkVersion) {
-        return        
-    }
-
+    # Ensure the downloaded dotnet of the appropriate version is located in the 
+    # Binaries\Tools directory
     $toolsDir = Join-Path $binariesDir "Tools"
     $cliDir = Join-Path $toolsDir "dotnet"
     $dotnetExe = Join-Path $cliDir "dotnet.exe"
@@ -170,6 +178,17 @@ function Ensure-SdkInPath() {
     }
 
     ${env:PATH} = "$cliDir;${env:PATH}"
+    $sdkPath = Join-Path $cliDir "sdk\$sdkVersion"
+    Write-Host $dotnetExe
+    Write-Host $sdkPath
+    return
+}
+
+# Ensure the proper SDK in installed in our %PATH%. This is how MSBuild locates the 
+# SDK.
+function Ensure-SdkInPath() { 
+    $dotnet, $sdkDir = Ensure-SdkInPathAndData
+    return
 }
 
 # Ensure a basic tool used for building our Repo is installed and 

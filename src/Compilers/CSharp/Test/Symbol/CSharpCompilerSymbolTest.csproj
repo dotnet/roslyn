@@ -12,7 +12,9 @@
     <NoStdLib>true</NoStdLib>
     <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
     <RoslynProjectType>UnitTestPortable</RoslynProjectType>
+    <RuntimeIdentifier>$(RoslynRuntimeIdentifier)</RuntimeIdentifier>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <SelfContained>true</SelfContained>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj" />
@@ -32,9 +34,11 @@
     <PackageReference Include="System.Linq.Parallel" Version="$(SystemLinqParallelVersion)" />
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
     <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
-    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(xunitrunnervisualstudioVersion)" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNETTestSdkVersion)" />
     <PackageReference Include="Microsoft.NETCore.App" Version="$(MicrosoftNETCoreAppVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.0'" />
+    <PackageReference Include="Microsoft.NETCore.ILAsm" Version="$(MicrosoftNETCoreILAsmVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.0'" />
+    <PackageReference Include="Microsoft.NETCore.Runtime.CoreCLR" Version="$(MicrosoftNETCoreRuntimeCoreCLRVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.0'" />
   </ItemGroup>
   <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>
