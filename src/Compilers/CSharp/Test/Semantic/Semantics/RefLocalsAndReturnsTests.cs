@@ -2293,6 +2293,7 @@ class C
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await Do(i - 1)").WithArguments("C.Assign(ref int, int)").WithLocation(33, 49));
         }
 
+        [Fact]
         public void CannotUseAwaitExpressionToAssignRefReturing()
         {
             var code = @"
