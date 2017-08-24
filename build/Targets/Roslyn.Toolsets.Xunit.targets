@@ -53,7 +53,6 @@
       <_AlreadyHasAppConfig Condition="'%(None.Filename)%(None.Extension)' == 'app.config'">true</_AlreadyHasAppConfig>
       <_DefaultAppConfigFile Condition="'$(TargetFramework)' == 'net46'">$(MSBuildThisFileDirectory)..\Defaults\Net460\app.config</_DefaultAppConfigFile>
       <_DefaultAppConfigFile Condition="'$(TargetFramework)' == 'net461'">$(MSBuildThisFileDirectory)..\Defaults\Net461\app.config</_DefaultAppConfigFile>
-      <_DefaultAppConfigFile Condition="'$(TargetFramework)' == 'net462'">$(MSBuildThisFileDirectory)..\Defaults\Net462\app.config</_DefaultAppConfigFile>
       <_DefaultAppConfigFile Condition="'$(TargetFramework)' == 'netcoreapp2.0'">$(MSBuildThisFileDirectory)..\Defaults\Portable\app.config</_DefaultAppConfigFile>
     </PropertyGroup>
 

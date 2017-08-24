@@ -362,6 +362,7 @@ function Test-XUnit() {
     $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools"
     $args = "$xunitDir"
     $args += " -log:$logFilePath"
+    $args += " -nocache"
 
     if ($testDesktop) {
         if ($test32) {
