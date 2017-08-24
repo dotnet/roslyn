@@ -88,7 +88,5 @@ ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 i1, System.
 
             VerifyOperationTreeAndDiagnosticsForTest<DeclarationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
-
-
     }
 }
