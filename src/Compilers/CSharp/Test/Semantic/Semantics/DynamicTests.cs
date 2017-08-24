@@ -1373,7 +1373,6 @@ class C
     public void Goo(int x, int y) { }
     public void M(dynamic d, C c)
     {
-        // We know that this cannot possibly succeed when dynamically bound, so we give an error at compile time.
         /*<bind>*/c.Goo(d)/*</bind>*/;
     }
 }
@@ -1390,7 +1389,7 @@ IInvocationExpression ( void C.Goo()) (OperationKind.InvocationExpression, Type:
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.Goo(int, int)'
                 //         /*<bind>*/c.Goo(d)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Goo").WithArguments("y", "C.Goo(int, int)").WithLocation(9, 21)
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Goo").WithArguments("y", "C.Goo(int, int)").WithLocation(8, 21)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -1413,8 +1412,7 @@ class C
         // This could be either of the one-parameter overloads so we allow it.
         c.Goo(d);
 
-        // Doesn't constraints of generic overloads.
-        /*<bind>*/c.Goo<short>(d, d)/*</bind>*/;
+        /*<bind>*/c.Goo<short>(d, d)/*</bind>*/; // Doesn't constraints of generic overloads.
     }
 }
 ";
@@ -1434,7 +1432,7 @@ IInvocationExpression ( ? C.()) (OperationKind.InvocationExpression, Type: ?, Is
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0452: The type 'short' must be a reference type in order to use it as parameter 'T' in the generic type or method 'C.Goo<T>(int, int)'
                 //         /*<bind>*/c.Goo<short>(d, d)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "c.Goo<short>(d, d)").WithArguments("C.Goo<T>(int, int)", "T", "short").WithLocation(16, 19)
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "c.Goo<short>(d, d)").WithArguments("C.Goo<T>(int, int)", "T", "short").WithLocation(15, 19)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
