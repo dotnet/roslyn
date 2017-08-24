@@ -458,6 +458,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Returns true if the conversion is a stackalloc conversion.
+        /// </summary>
+        public bool IsStackAlloc
+        {
+            get
+            {
+                return Kind == ConversionKind.StackAllocToPointerType || Kind == ConversionKind.StackAllocToSpanType;
+            }
+        }
+
+        /// <summary>
         /// Returns true if the conversion is an implicit numeric conversion or explicit numeric conversion. 
         /// </summary>
         /// <remarks>

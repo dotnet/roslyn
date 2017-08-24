@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 NeedsProxy(leftLocal.LocalSymbol))
             {
                 Debug.Assert(!proxies.ContainsKey(leftLocal.LocalSymbol));
-                Debug.Assert(!IsStackAlloc(originalRight));
+                Debug.Assert(originalRight.Kind != BoundKind.ConvertedStackAllocExpression);
                 //spilling ref local variables
                 throw ExceptionUtilities.Unreachable;
             }
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // If the receiver of the field is on the stack when the stackalloc happens,
             // popping it will free the memory (?) or otherwise cause verification issues.
             // DevDiv Bugs 59454
-            if (rewrittenLeft.Kind != BoundKind.Local && IsStackAlloc(originalRight))
+            if (rewrittenLeft.Kind != BoundKind.Local && originalRight.Kind == BoundKind.ConvertedStackAllocExpression)
             {
                 // From ILGENREC::genAssign:
                 // DevDiv Bugs 59454: Handle hoisted local initialized with a stackalloc
@@ -434,13 +434,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return node.Update(rewrittenLeft, rewrittenRight, node.RefKind, rewrittenType);
-        }
-
-        private static bool IsStackAlloc(BoundExpression expr)
-        {
-            return
-                expr.Kind == BoundKind.StackAllocArrayCreation ||
-                expr.Kind == BoundKind.Conversion && ((BoundConversion)expr).Operand.Kind == BoundKind.StackAllocArrayCreation;
         }
 
         public override BoundNode VisitFieldInfo(BoundFieldInfo node)

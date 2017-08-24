@@ -10955,7 +10955,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to stackalloc expression of type &apos;{0}&apos;.
+        ///   Looks up a localized string similar to stackalloc {0}[{1}].
         /// </summary>
         internal static string IDS_StackAllocExpression {
             get {

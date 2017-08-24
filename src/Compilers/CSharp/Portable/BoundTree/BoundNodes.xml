@@ -1431,9 +1431,17 @@
   </Node>
 
   <Node Name="BoundStackAllocArrayCreation" Base="BoundExpression">
-    <Field Name="ConversionKind" Type="ConversionKind" Null="allow"/>
     <Field Name="ElementType" Type="TypeSymbol" Null="disallow"/>
     <Field Name="Count" Type="BoundExpression"/>
+  </Node>
+
+  <Node Name="BoundConvertedStackAllocExpression" Base="BoundExpression">
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+
+    <Field Name="ElementType" Type="TypeSymbol" Null="disallow"/>
+    <Field Name="Count" Type="BoundExpression"/>
+    <Field Name="ConversionKind" Type="ConversionKind" Null="allow"/>
   </Node>
 
   <Node Name="BoundFieldAccess" Base="BoundExpression">

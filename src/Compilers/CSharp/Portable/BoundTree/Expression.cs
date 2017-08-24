@@ -1964,6 +1964,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal partial class BoundConvertedStackAllocExpression
+    {
+        protected override OperationKind ExpressionKind => OperationKind.None;
+
+        protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.Count);
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
+        }
+    }
+
     internal partial class BoundDynamicObjectCreationExpression
     {
         protected override OperationKind ExpressionKind => OperationKind.None;

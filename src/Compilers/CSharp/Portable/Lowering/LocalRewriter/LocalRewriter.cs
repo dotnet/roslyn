@@ -181,11 +181,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // statement means that this constraint is not violated).
             // Dynamic type will be erased in emit phase. It is considered equivalent to Object in lowered bound trees.
             // Unused deconstructions are lowered to produce a return value that isn't a tuple type.
-            // stackalloc bound nodes have no type, and they are updated to the appropriate type after lowering
             Debug.Assert(visited == null || visited.HasErrors || ReferenceEquals(visited.Type, node.Type) ||
                     visited.Type.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames) ||
-                    IsUnusedDeconstruction(node) ||
-                    node.Kind == BoundKind.StackAllocArrayCreation);
+                    IsUnusedDeconstruction(node));
 
             return visited;
         }

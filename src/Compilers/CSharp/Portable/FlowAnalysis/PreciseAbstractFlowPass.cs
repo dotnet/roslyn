@@ -2572,6 +2572,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node)
+        {
+            VisitRvalue(node.Count);
+            return null;
+        }
+
         public override BoundNode VisitAnonymousObjectCreationExpression(BoundAnonymousObjectCreationExpression node)
         {
             //  visit arguments as r-values

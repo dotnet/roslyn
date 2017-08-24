@@ -1571,11 +1571,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return node.Update(node.Locals, exceptionSourceOpt, exceptionTypeOpt, boundFilter, boundBlock, node.IsSynthesizedAsyncCatchAll);
         }
 
-        public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
+        public override BoundNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node)
         {
             // CLI spec section 3.47 requires that the stack be empty when localloc occurs.
             EnsureOnlyEvalStack();
-            return base.VisitStackAllocArrayCreation(node);
+            return base.VisitConvertedStackAllocExpression(node);
         }
 
         public override BoundNode VisitArrayInitialization(BoundArrayInitialization node)
