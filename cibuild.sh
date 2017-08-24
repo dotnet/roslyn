@@ -102,6 +102,8 @@ echo "Using Runtime Identifier: ${RUNTIME_ID}"
 RESTORE_ARGS="-r ${RUNTIME_ID} -v Minimal --disable-parallel"
 echo "Restoring BaseToolset.csproj"
 dotnet restore ${RESTORE_ARGS} ${THIS_DIR}/build/ToolsetPackages/BaseToolset.csproj
+echo "Restoring CoreToolset.csproj"
+dotnet restore ${RESTORE_ARGS} ${THIS_DIR}/build/ToolsetPackages/CoreToolset.csproj
 echo "Restoring CrossPlatform.sln"
 dotnet restore ${RESTORE_ARGS} ${THIS_DIR}/CrossPlatform.sln
 

@@ -10,9 +10,12 @@ BUILD_CONFIGURATION=${1:-Debug}
 THIS_DIR=$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 BINARIES_PATH=${THIS_DIR}/../../Binaries
 SRC_PATH=${THIS_DIR}/../..
-TEST_DIR=${BINARIES_PATH}/${BUILD_CONFIGURATION}/UnitTests
+UNITTEST_DIR=${BINARIES_PATH}/${BUILD_CONFIGURATION}/UnitTests
+LOG_DIR=${BINARIES_PATH}/${BUILD_CONFIGURATION}/xUnitResults
+NUGET_DIR=${HOME}/.nuget/packages
 RUNTIME_ID=$(dotnet --info | awk '/RID:/{print $2;}')
 TARGET_FRAMEWORK=netcoreapp2.0
+XUNIT_CONSOLE=${NUGET_DIR}/dotnet-xunit/2.3.0-beta4-build3742/tools/${TARGET_FRAMEWORK}/xunit.console.dll
 
 # Need to publish projects that have runtime assets before running tests
 NEED_PUBLISH=(
@@ -26,11 +29,12 @@ do
 done
 
 # Discover and run the tests
-pushd ${TEST_DIR}
+mkdir -p ${LOG_DIR}
+pushd ${UNITTEST_DIR}
 
 for d in *
 do
-    TEST_PATH=${TEST_DIR}/${d}/${TARGET_FRAMEWORK}
+    TEST_PATH=${UNITTEST_DIR}/${d}/${TARGET_FRAMEWORK}
     PUBLISH_TEST_PATH=${TEST_PATH}/${RUNTIME_ID}/publish
     if [ -d ${PUBLISH_TEST_PATH} ]
     then
@@ -39,8 +43,9 @@ do
 
     pushd $TEST_PATH
     FILE_NAME=$(ls *.UnitTests.dll)
+    LOG_NAME="${FILE_NAME%.*}.xml"
     echo Running ${TEST_PATH}/${FILE_NAME}
-    dotnet vstest $FILE_NAME
+    dotnet exec --depsfile "${FILE_NAME%.*}.deps.json" --runtimeconfig "${FILE_NAME%.*}.runtimeconfig.json" ${XUNIT_CONSOLE} $FILE_NAME -xml ${LOG_DIR}/${LOG_NAME}
     if [ $? -ne 0 ]; then
         echo Unit test failed
         exit 1
@@ -51,16 +56,3 @@ done
 popd
 
 
-#BUILD_ARGS="-c ${BUILD_CONFIGURATION} -r ${RUNTIME_ID} /consoleloggerparameters:Verbosity=minimal;summary /p:RoslynRuntimeIdentifier=${RUNTIME_ID}"
-#dotnet publish ${SRC_PATH}/Test/DeployCoreClrTestRuntime -o ${TEST_DIR} ${BUILD_ARGS}
-
-#cd ${TEST_DIR}
-
-#mkdir -p xUnitResults
-
-#dotnet exec ./xunit.console.netcore.exe *.UnitTests.dll -parallel all -xml xUnitResults/TestResults.xml
-
-#if [ $? -ne 0 ]; then
-#    echo Unit test failed
-#    exit 1
-#fi
