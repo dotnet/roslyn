@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var token = semanticModelOpt.SyntaxTree.GetRoot().FindToken(positionOpt);
             var startNode = token.Parent;
 
-            return SyntaxFacts.IsInNamespaceOrTypeContext(startNode as ExpressionSyntax);
+            return SyntaxFacts.IsInNamespaceOrTypeContext(startNode as ExpressionSyntax) || token.IsKind(SyntaxKind.NewKeyword);
         }
 
         private void MinimallyQualify(INamespaceSymbol symbol)

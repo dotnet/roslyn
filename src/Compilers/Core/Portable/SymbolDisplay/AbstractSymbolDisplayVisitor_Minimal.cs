@@ -37,7 +37,54 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             ImmutableArray<ISymbol> typeOnlySymbols = semanticModelOpt.LookupNamespacesAndTypes(positionOpt, name: symbol.Name);
             ISymbol typeOnlySymbol = SingleSymbolWithArity(typeOnlySymbols, symbol.Arity);
 
-            return typeOnlySymbol == null ? false : typeOnlySymbol.Equals(symbol.OriginalDefinition);
+            if (typeOnlySymbol == null)
+            {
+                return false;
+            }
+           
+           var type1 = GetSymbolType(normalSymbol);
+           var type2 = GetSymbolType(typeOnlySymbol);
+
+            return
+                type1 != null &&
+                type2 != null &&
+                type1.Equals(type2) &&
+                typeOnlySymbol.Equals(symbol.OriginalDefinition);
+        }
+
+        protected static ITypeSymbol GetSymbolType(ISymbol symbol)
+        {
+            var localSymbol = symbol as ILocalSymbol;
+            if (localSymbol != null)
+            {
+                return localSymbol.Type;
+            }
+
+            var fieldSymbol = symbol as IFieldSymbol;
+            if (fieldSymbol != null)
+            {
+                return fieldSymbol.Type;
+            }
+
+            var propertySymbol = symbol as IPropertySymbol;
+            if (propertySymbol != null)
+            {
+                return propertySymbol.Type;
+            }
+
+            var parameterSymbol = symbol as IParameterSymbol;
+            if (parameterSymbol != null)
+            {
+                return parameterSymbol.Type;
+            }
+
+            var aliasSymbol = symbol as IAliasSymbol;
+            if (aliasSymbol != null)
+            {
+                return aliasSymbol.Target as ITypeSymbol;
+            }
+
+            return symbol as ITypeSymbol;
         }
 
         private static ISymbol SingleSymbolWithArity(ImmutableArray<ISymbol> candidates, int desiredArity)

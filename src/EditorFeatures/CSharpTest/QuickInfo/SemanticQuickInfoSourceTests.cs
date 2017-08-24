@@ -3290,7 +3290,7 @@ namespace N1
         }
     }
  }",
-            MainDescription($"({FeaturesResources.range_variable}) yield yield"));
+            MainDescription($"({FeaturesResources.range_variable}) N1.yield yield"));
         }
 
         [WorkItem(543550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543550")]
@@ -4991,6 +4991,32 @@ class Program
     }
 }",
                 MainDescription($"({FeaturesResources.local_variable}) ref int i"));
+        }
+
+        [WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task PropertyWithSameNameAsOtherType()
+        {
+            await TestAsync(
+@"namespace ConsoleApplication1
+{
+    class Program
+    {
+        static A B { get; set; }
+        static B A { get; set; }
+
+        static void Main(string[] args)
+        {
+            B = ConsoleApplication1.B$$.F();
+        }
+    }
+    class A { }
+    class B
+    {
+        public static A F() => null;
+    }
+}",
+            MainDescription($"ConsoleApplication1.A ConsoleApplication1.B.F()"));
         }
     }
 }
