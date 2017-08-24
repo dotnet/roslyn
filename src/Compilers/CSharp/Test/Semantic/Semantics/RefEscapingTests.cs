@@ -1147,5 +1147,56 @@ class Program
                 Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "true ? ref ir : ref or").WithLocation(24, 36)
             );
         }
+
+        [Fact()]
+        public void StackallocEscape()
+        {
+            var text = @"
+    using System;
+    class Program
+    {
+        static void Main()
+        {
+
+        }
+
+        Span<int> Test0()
+        {
+            // valid, baseline
+            return default(Span<int>);
+        }
+
+        Span<int> Test3()
+        {
+            Span<int> local = stackalloc int[10];
+            return true? local : default(Span<int>);
+        }
+      
+        Span<int> Test4(Span<int> arg)
+        {
+            arg = stackalloc int[10];
+            return arg;
+        }
+
+        Span<int> Test6()
+        {
+            Span<int> local = default;
+            local = stackalloc int[10];
+            return local;
+        }
+    }
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (19,26): error CS8526: Cannot use local 'local' in this context because it may expose referenced variables outside of their declaration scope 
+                //             return true? local : default(Span<int>);
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(19, 26),
+                // (24,19): error CS8527: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //             arg = stackalloc int[10];
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[10]").WithArguments("System.Span<int>").WithLocation(24, 19),
+                // (31,21): error CS8527: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //             local = stackalloc int[10];
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[10]").WithArguments("System.Span<int>").WithLocation(31, 21)
+                );
+        }
     }
 }

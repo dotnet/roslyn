@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpResources {
@@ -3991,6 +3991,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_EscapeOther {
             get {
                 return ResourceManager.GetString("ERR_EscapeOther", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A result of a stackalloc expression of type &apos;{0}&apos; cannot be used in this context because it may be exposed outside of the containing method.
+        /// </summary>
+        internal static string ERR_EscapeStackAlloc {
+            get {
+                return ResourceManager.GetString("ERR_EscapeStackAlloc", resourceCulture);
             }
         }
         

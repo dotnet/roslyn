@@ -4871,6 +4871,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_MismatchedRefEscapeInTernary" xml:space="preserve">
     <value>Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes.</value>
   </data>
+  <data name="ERR_MismatchedRefEscapeInTernary" xml:space="preserve">
+    <value>Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes.</value>
+  </data>
+  <data name="ERR_EscapeStackAlloc" xml:space="preserve">
+    <value>A result of a stackalloc expression of type '{0}' cannot be used in this context because it may be exposed outside of the containing method</value>
+  </data>
   <data name="ERR_InitializeByValueVariableWithReference" xml:space="preserve">
     <value>Cannot initialize a by-value variable with a reference</value>
   </data>
