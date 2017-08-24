@@ -248,6 +248,7 @@ function Create-Directory([string]$dir) {
 # Return the version of the NuGet package as used in this repo
 function Get-PackageVersion([string]$name) {
     $name = $name.Replace(".", "")
+    $name = $name.Replace("-", "")
     $deps = Join-Path $repoDir "build\Targets\Packages.props"
     $nodeName = "$($name)Version"
     $x = [xml](Get-Content -raw $deps)
@@ -418,6 +419,7 @@ function Restore-Packages([string]$msbuildDir = "", [string]$project = "") {
     else {
         $all = @(
             "Base Toolset:build\ToolsetPackages\BaseToolset.csproj",
+            "CoreClr Toolset:build\ToolsetPackages\CoreToolset.csproj",
             "Roslyn:Roslyn.sln",
             "Samples:src\Samples\Samples.sln",
             "Templates:src\Setup\Templates\Templates.sln",
