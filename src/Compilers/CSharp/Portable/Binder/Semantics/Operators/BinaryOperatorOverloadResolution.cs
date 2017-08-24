@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol rightOperatorSourceOpt = right.Type?.StrippedType();
             bool leftSourceIsInterface = leftOperatorSourceOpt?.IsInterfaceType() == true;
             bool rightSourceIsInterface = rightOperatorSourceOpt?.IsInterfaceType() == true;
-            BinaryOperatorOverloadResolutionResult resultFromNonInterfaces = null;
 
             // The following is a slight rewording of the specification to emphasize that not all
             // operands of a binary operation need to have a type.
@@ -60,22 +59,75 @@ namespace Microsoft.CodeAnalysis.CSharp
             //   provided by the type of x (if any) and the candidate operators provided by the type of y (if any), 
             //   each determined using the rules of 7.3.5. Candidate operators only occur in the combined set once.
 
-            bool leftHadUserDefinedCandidate = false;
-            bool rightHadUserDefinedCandidate = false;
+            // From https://github.com/dotnet/csharplang/blob/master/meetings/2017/LDM-2017-06-27.md:
+            // - We only even look for operator implementations in interfaces if one of the operands has a type that is
+            // an interface or a type parameter with a non-empty effective base interface list.
+            // - We should look at operators from classes first, in order to avoid breaking changes.
+            // Only if there are no applicable user-defined operators from classes will we look in interfaces.
+            // If there aren't any there either, we go to built-ins.
+            // - If we find an applicable candidate in an interface, that candidate shadows all applicable operators in
+            // base interfaces: we stop looking.
+
+            bool hadApplicableCandidates = false;
 
             // In order to preserve backward compatibility, at first we ignore interface sources.
 
             if (!leftSourceIsInterface)
             {
-                leftHadUserDefinedCandidate = GetUserDefinedOperators(kind, leftOperatorSourceOpt, left, right, result.Results, ref useSiteDiagnostics);
+                hadApplicableCandidates = GetUserDefinedOperators(kind, leftOperatorSourceOpt, left, right, result.Results, ref useSiteDiagnostics);
+                if (!hadApplicableCandidates)
+                {
+                    result.Results.Clear();
+                }
             }
 
             if (!rightSourceIsInterface && rightOperatorSourceOpt != leftOperatorSourceOpt)
             {
                 var rightOperators = ArrayBuilder<BinaryOperatorAnalysisResult>.GetInstance();
-                rightHadUserDefinedCandidate = GetUserDefinedOperators(kind, rightOperatorSourceOpt, left, right, rightOperators, ref useSiteDiagnostics);
-                AddDistinctOperators(result.Results, rightOperators);
+                if (GetUserDefinedOperators(kind, rightOperatorSourceOpt, left, right, rightOperators, ref useSiteDiagnostics))
+                {
+                    hadApplicableCandidates = true;
+                    AddDistinctOperators(result.Results, rightOperators);
+                }
+
                 rightOperators.Free();
+            }
+
+            Debug.Assert((result.Results.Count == 0) != hadApplicableCandidates);
+
+            // If there are no applicable candidates in classes / stuctures, try with interface sources.
+            // From https://github.com/dotnet/csharplang/blob/master/meetings/2017/LDM-2017-06-27.md:
+            // We do not allow == and != and. Otherwise, there'd be no way to override Equals and GetHashCode,
+            // so you couldn't do == and != in a recommended way.
+            if (!hadApplicableCandidates &&
+                kind != BinaryOperatorKind.Equal && kind != BinaryOperatorKind.NotEqual)
+            {
+                result.Results.Clear();
+
+                string name = OperatorFacts.BinaryOperatorNameFromOperatorKind(kind);
+                var lookedInInterfaces = PooledDictionary<TypeSymbol, bool>.GetInstance();
+
+                hadApplicableCandidates = GetUserDefinedBinaryOperatorsFromInterfaces(kind, name,
+                        leftOperatorSourceOpt, leftSourceIsInterface, left, right, ref useSiteDiagnostics, lookedInInterfaces, result.Results);
+                if (!hadApplicableCandidates)
+                {
+                    result.Results.Clear();
+                }
+
+                if (leftOperatorSourceOpt != rightOperatorSourceOpt)
+                {
+                    var rightOperators = ArrayBuilder<BinaryOperatorAnalysisResult>.GetInstance();
+                    if (GetUserDefinedBinaryOperatorsFromInterfaces(kind, name,
+                            rightOperatorSourceOpt, rightSourceIsInterface, left, right, ref useSiteDiagnostics, lookedInInterfaces, rightOperators))
+                    {
+                        hadApplicableCandidates = true;
+                        AddDistinctOperators(result.Results, rightOperators);
+                    }
+
+                    rightOperators.Free();
+                }
+
+                lookedInInterfaces.Free();
             }
 
             // SPEC: If the set of candidate user-defined operators is not empty, then this becomes the set of candidate 
@@ -97,22 +149,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // Roslyn matches the specification and takes the break from the native compiler.
 
-            if (!leftHadUserDefinedCandidate && !rightHadUserDefinedCandidate)
+            Debug.Assert((result.Results.Count == 0) != hadApplicableCandidates);
+
+            if (!hadApplicableCandidates)
             {
-                Debug.Assert(result.Results.Count == 0);
                 result.Results.Clear();
                 GetAllBuiltInOperators(kind, left, right, result.Results, ref useSiteDiagnostics);
-            }
-            else if (kind != BinaryOperatorKind.Equal && kind != BinaryOperatorKind.NotEqual &&
-                     ((!leftHadUserDefinedCandidate && 
-                       ShouldGetUserDefinedBinaryOperatorsFromInterfaces(leftOperatorSourceOpt, leftSourceIsInterface, ref useSiteDiagnostics)) || 
-                      (!rightHadUserDefinedCandidate && leftOperatorSourceOpt != rightOperatorSourceOpt && 
-                       ShouldGetUserDefinedBinaryOperatorsFromInterfaces(rightOperatorSourceOpt, rightSourceIsInterface, ref useSiteDiagnostics))))
-            {
-                Debug.Assert(result.Results.Any(r => r.IsValid));
-                // Copy candidates to avoid repeating lookup in case we need to add operators from interfaces
-                resultFromNonInterfaces = BinaryOperatorOverloadResolutionResult.GetInstance();
-                resultFromNonInterfaces.Results.AddRange(result.Results);
             }
             
             // SPEC: The overload resolution rules of 7.5.3 are applied to the set of candidate operators to select the best 
@@ -121,69 +163,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: error occurs.
 
             BinaryOperatorOverloadResolution(left, right, result, ref useSiteDiagnostics);
-
-            // If resolution failed, try with interface sources
-            if (!result.Best.HasValue && 
-                (!leftHadUserDefinedCandidate || !rightHadUserDefinedCandidate) &&
-                kind != BinaryOperatorKind.Equal && kind != BinaryOperatorKind.NotEqual)
-            {
-                var resultFromInterfaces = BinaryOperatorOverloadResolutionResult.GetInstance();
-                bool leftHadUserDefinedCandidateFromInterfaces = false;
-                bool rightHadUserDefinedCandidateFromInterfaces = false;
-                string name = OperatorFacts.BinaryOperatorNameFromOperatorKind(kind);
-                var lookedInInterfaces = PooledDictionary<TypeSymbol, bool>.GetInstance();
-
-                if (!leftHadUserDefinedCandidate)
-                {
-                    leftHadUserDefinedCandidateFromInterfaces = GetUserDefinedBinaryOperatorsFromInterfaces(kind, name,
-                        leftOperatorSourceOpt, leftSourceIsInterface, left, right, ref useSiteDiagnostics, lookedInInterfaces, resultFromInterfaces.Results);
-                }
-
-                if (!rightHadUserDefinedCandidate && leftOperatorSourceOpt != rightOperatorSourceOpt)
-                {
-                    var rightOperators = ArrayBuilder<BinaryOperatorAnalysisResult>.GetInstance();
-                    rightHadUserDefinedCandidateFromInterfaces = GetUserDefinedBinaryOperatorsFromInterfaces(kind, name, 
-                        rightOperatorSourceOpt, rightSourceIsInterface, left, right, ref useSiteDiagnostics, lookedInInterfaces, rightOperators);
-
-                    AddDistinctOperators(resultFromInterfaces.Results, rightOperators);
-                    rightOperators.Free();
-                }
-
-                Debug.Assert(resultFromNonInterfaces != null || 
-                             lookedInInterfaces.Count == 0 ||
-                             (!leftHadUserDefinedCandidate && !rightHadUserDefinedCandidate));
-
-                if (leftHadUserDefinedCandidateFromInterfaces || rightHadUserDefinedCandidateFromInterfaces)
-                {
-                    result.Clear();
-
-                    if (resultFromNonInterfaces != null)
-                    {
-                        result.Results.AddRange(resultFromNonInterfaces.Results);
-                    }
-
-                    result.Results.AddRange(resultFromInterfaces.Results);
-                    BinaryOperatorOverloadResolution(left, right, result, ref useSiteDiagnostics);
-                }
-
-                resultFromInterfaces.Free();
-                lookedInInterfaces.Free();
-            }
-
-            if (resultFromNonInterfaces != null)
-            {
-                resultFromNonInterfaces.Free();
-            }
-        }
-
-        private static bool ShouldGetUserDefinedBinaryOperatorsFromInterfaces(
-            TypeSymbol operatorSourceOpt, bool sourceIsInterface,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            return (object)operatorSourceOpt != null &&
-                   (sourceIsInterface ||
-                    (operatorSourceOpt.IsTypeParameter() &&
-                     !((TypeParameterSymbol)operatorSourceOpt).AllEffectiveInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics).IsEmpty));
         }
 
         private bool GetUserDefinedBinaryOperatorsFromInterfaces(BinaryOperatorKind kind, string name, 

@@ -32034,12 +32034,12 @@ public interface I3 :  I1, I2
             var compilation7 = CreateStandardCompilation(source3, new[] { compilationReference6 }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation7.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation7, expectedOutput: "I3.+");
+            compilation7.VerifyDiagnostics(expected);
 
             var compilation8 = CreateStandardCompilation(source3, new[] { metadataReference6 }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation8.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation8, expectedOutput: "I3.+");
+            compilation8.VerifyDiagnostics(expected);
         }
 
         [Fact]
@@ -32167,12 +32167,12 @@ public interface I3 :  I1, I2
             var compilation7 = CreateStandardCompilation(source3, new[] { compilationReference6 }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation7.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation7, expectedOutput: "I3.+");
+            compilation7.VerifyDiagnostics(expected);
 
             var compilation8 = CreateStandardCompilation(source3, new[] { metadataReference6 }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation8.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation8, expectedOutput: "I3.+");
+            compilation8.VerifyDiagnostics(expected);
         }
 
         [Fact]
