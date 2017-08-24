@@ -68,12 +68,11 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             if (containingTypeDeclaration != null)
             {
                 var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-                var containingTypeSymbol = semanticModel.GetDeclaredSymbol(containingTypeDeclaration, cancellationToken) as ITypeSymbol;
 
                 // Allow third parties to navigate to all symbols except types/constructors
                 // if we are navigating from the corresponding type.
 
-                if (containingTypeSymbol != null &&
+                if (semanticModel.GetDeclaredSymbol(containingTypeDeclaration, cancellationToken) is ITypeSymbol containingTypeSymbol &&
                     (symbolToNavigateTo is ITypeSymbol || symbolToNavigateTo.IsConstructor()))
                 {
                     var candidateTypeSymbol = symbolToNavigateTo is ITypeSymbol

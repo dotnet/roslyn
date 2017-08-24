@@ -121,8 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 if (_encoding)
                 {
-                    var userData = textBuffer as IVsUserData;
-                    if (userData != null)
+                    if (textBuffer is IVsUserData userData)
                     {
                         // The editor shims require that the boxed value when setting the PromptOnLoad flag is a uint
                         int hresult = userData.SetData(

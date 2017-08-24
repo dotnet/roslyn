@@ -41,10 +41,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
                 Height = 1,
                 Width = view.ViewportWidth
             };
-            EventHandler viewportWidthChangedHandler = (s, e) =>
+            void viewportWidthChangedHandler(object s, EventArgs e)
             {
                 border.Width = view.ViewportWidth;
-            };
+            }
 
             view.ViewportWidthChanged += viewportWidthChangedHandler;
 

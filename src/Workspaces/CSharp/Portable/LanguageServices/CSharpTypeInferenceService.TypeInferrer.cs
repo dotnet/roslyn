@@ -45,8 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private static bool DecomposeBinaryOrAssignmentExpression(ExpressionSyntax expression, out SyntaxToken operatorToken, out ExpressionSyntax left, out ExpressionSyntax right)
             {
-                var binaryExpression = expression as BinaryExpressionSyntax;
-                if (binaryExpression != null)
+                if (expression is BinaryExpressionSyntax binaryExpression)
                 {
                     operatorToken = binaryExpression.OperatorToken;
                     left = binaryExpression.Left;
@@ -54,8 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                var assignmentExpression = expression as AssignmentExpressionSyntax;
-                if (assignmentExpression != null)
+                if (expression is AssignmentExpressionSyntax assignmentExpression)
                 {
                     operatorToken = assignmentExpression.OperatorToken;
                     left = assignmentExpression.Left;
@@ -272,8 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (argument.Parent != null)
                 {
-                    var initializer = argument.Parent.Parent as ConstructorInitializerSyntax;
-                    if (initializer != null)
+                    if (argument.Parent.Parent is ConstructorInitializerSyntax initializer)
                     {
                         var index = initializer.ArgumentList.Arguments.IndexOf(argument);
                         return InferTypeInConstructorInitializer(initializer, index, argument);
@@ -363,8 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (argument.Parent != null)
                 {
-                    var attribute = argument.Parent.Parent as AttributeSyntax;
-                    if (attribute != null)
+                    if (argument.Parent.Parent is AttributeSyntax attribute)
                     {
                         var index = attribute.ArgumentList.Arguments.IndexOf(argument);
                         return InferTypeInAttribute(attribute, index, argument);
@@ -478,25 +474,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                var invocation = argumentList.Parent as InvocationExpressionSyntax;
-                if (invocation != null)
+                switch (argumentList.Parent)
                 {
-                    var index = this.GetArgumentListIndex(argumentList, previousToken);
-                    return InferTypeInInvocationExpression(invocation, index);
-                }
+                    case InvocationExpressionSyntax invocation:
+                        {
+                            var index = this.GetArgumentListIndex(argumentList, previousToken);
+                            return InferTypeInInvocationExpression(invocation, index);
+                        }
 
-                var objectCreation = argumentList.Parent as ObjectCreationExpressionSyntax;
-                if (objectCreation != null)
-                {
-                    var index = this.GetArgumentListIndex(argumentList, previousToken);
-                    return InferTypeInObjectCreationExpression(objectCreation, index);
-                }
+                    case ObjectCreationExpressionSyntax objectCreation:
+                        {
+                            var index = this.GetArgumentListIndex(argumentList, previousToken);
+                            return InferTypeInObjectCreationExpression(objectCreation, index);
+                        }
 
-                var constructorInitializer = argumentList.Parent as ConstructorInitializerSyntax;
-                if (constructorInitializer != null)
-                {
-                    var index = this.GetArgumentListIndex(argumentList, previousToken);
-                    return InferTypeInConstructorInitializer(constructorInitializer, index);
+                    case ConstructorInitializerSyntax constructorInitializer:
+                        {
+                            var index = this.GetArgumentListIndex(argumentList, previousToken);
+                            return InferTypeInConstructorInitializer(constructorInitializer, index);
+                        }
                 }
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
@@ -510,8 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                var attribute = attributeArgumentList.Parent as AttributeSyntax;
-                if (attribute != null)
+                if (attributeArgumentList.Parent is AttributeSyntax attribute)
                 {
                     var index = this.GetArgumentListIndex(attributeArgumentList, previousToken);
                     return InferTypeInAttribute(attribute, index);
@@ -531,8 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ElementAccessExpressionSyntax elementAccess, int index, ArgumentSyntax argumentOpt = null)
             {
                 var info = SemanticModel.GetTypeInfo(elementAccess.Expression, CancellationToken);
-                var type = info.Type as INamedTypeSymbol;
-                if (type != null)
+                if (info.Type is INamedTypeSymbol type)
                 {
                     var indexers = type.GetMembers().OfType<IPropertySymbol>()
                                                    .Where(p => p.IsIndexer && p.Parameters.Length > index);
@@ -562,8 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (argumentOpt != null)
                 {
-                    var invocation = argumentOpt?.Parent?.Parent as InvocationExpressionSyntax;
-                    if (invocation != null)
+                    if (argumentOpt?.Parent?.Parent is InvocationExpressionSyntax invocation)
                     {
                         // We're trying to figure out the signature of a method we're an argument to. 
                         // That method may be generic, and we might end up using one of its generic
@@ -855,8 +848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                var elementAccess = bracketedArgumentList.Parent as ElementAccessExpressionSyntax;
-                if (elementAccess != null)
+                if (bracketedArgumentList.Parent is ElementAccessExpressionSyntax elementAccess)
                 {
                     var index = GetArgumentListIndex(bracketedArgumentList, previousToken);
                     return InferTypeInElementAccessExpression(
@@ -1175,8 +1167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (equalsValue.IsParentKind(SyntaxKind.Parameter))
                 {
-                    var parameter = SemanticModel.GetDeclaredSymbol(equalsValue.Parent, CancellationToken) as IParameterSymbol;
-                    if (parameter != null)
+                    if (SemanticModel.GetDeclaredSymbol(equalsValue.Parent, CancellationToken) is IParameterSymbol parameter)
                     {
                         return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(parameter.Type));
                     }
@@ -1528,8 +1519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                var argumentSyntax = nameColon.Parent as ArgumentSyntax;
-                if (argumentSyntax != null)
+                if (nameColon.Parent is ArgumentSyntax argumentSyntax)
                 {
                     return InferTypeInArgument(argumentSyntax);
                 }
@@ -1719,8 +1709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetTypes(nameEquals.Name);
                 }
 
-                var attributeArgumentSyntax = nameEquals.Parent as AttributeArgumentSyntax;
-                if (attributeArgumentSyntax != null)
+                if (nameEquals.Parent is AttributeArgumentSyntax attributeArgumentSyntax)
                 {
                     var argumentExpression = attributeArgumentSyntax.Expression;
                     return this.GetTypes(argumentExpression);
@@ -1973,11 +1962,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Use the first case label to determine the return type.
-                var firstCase =
-                    switchStatement.Sections.SelectMany(ss => ss.Labels)
-                                                  .FirstOrDefault(label => label.Kind() == SyntaxKind.CaseSwitchLabel)
-                                                  as CaseSwitchLabelSyntax;
-                if (firstCase != null)
+                if (switchStatement.Sections.SelectMany(ss => ss.Labels)
+                                                  .FirstOrDefault(label => label.Kind() == SyntaxKind.CaseSwitchLabel) is CaseSwitchLabelSyntax firstCase)
                 {
                     var result = GetTypes(firstCase.Value);
                     if (result.Any())
@@ -2034,8 +2020,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (variableType.IsVar)
                 {
-                    var variableDeclaration = variableDeclarator.Parent as VariableDeclarationSyntax;
-                    if (variableDeclaration != null)
+                    if (variableDeclarator.Parent is VariableDeclarationSyntax variableDeclaration)
                     {
                         if (variableDeclaration.IsParentKind(SyntaxKind.UsingStatement))
                         {

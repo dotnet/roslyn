@@ -1081,11 +1081,11 @@ class $$Test<T, U>
 
                 var handler = new ExtractInterfaceCommandHandler();
                 var delegatedToNext = false;
-                Func<CommandState> nextHandler = () =>
+                CommandState nextHandler()
                 {
                     delegatedToNext = true;
                     return CommandState.Unavailable;
-                };
+                }
 
                 var state = handler.GetCommandState(new Commands.ExtractInterfaceCommandArgs(textView, textView.TextBuffer), nextHandler);
                 Assert.True(delegatedToNext);

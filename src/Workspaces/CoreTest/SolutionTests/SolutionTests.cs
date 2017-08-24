@@ -217,8 +217,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     {
                         var referencedMetadata = await solution.State.GetMetadataReferenceAsync(referenced, solution.GetProjectState(project.Id), CancellationToken.None);
                         Assert.NotNull(referencedMetadata);
-                        var compilationReference = referencedMetadata as CompilationReference;
-                        if (compilationReference != null)
+                        if (referencedMetadata is CompilationReference compilationReference)
                         {
                             compilation.References.Single(r =>
                             {

@@ -26,8 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.CompletionProviders
             SourceText sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             if (Workspace.TryGetWorkspace(sourceText.Container, out ws))
             {
-                var workspace = ws as InteractiveWorkspace;
-                if (workspace != null)
+                if (ws is InteractiveWorkspace workspace)
                 {
                     var window = workspace.Window;
                     var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);

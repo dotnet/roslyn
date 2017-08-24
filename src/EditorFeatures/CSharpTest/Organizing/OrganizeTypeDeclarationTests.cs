@@ -1097,11 +1097,11 @@ interface I
 
                 var handler = new OrganizeDocumentCommandHandler(workspace.GetService<Host.IWaitIndicator>());
                 var delegatedToNext = false;
-                Func<CommandState> nextHandler = () =>
+                CommandState nextHandler()
                 {
                     delegatedToNext = true;
                     return CommandState.Unavailable;
-                };
+                }
 
                 var state = handler.GetCommandState(new Commands.SortAndRemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer), nextHandler);
                 Assert.True(delegatedToNext);

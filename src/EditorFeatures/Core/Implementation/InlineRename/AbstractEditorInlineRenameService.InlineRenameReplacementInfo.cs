@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             private IEnumerable<InlineRenameReplacement> GetComplexifiedReplacements(DocumentId documentId)
             {
                 return _conflicts.RenamedSpansTracker.GetComplexifiedSpans(documentId)
-                    .Select(s => new InlineRenameReplacement(InlineRenameReplacementKind.Complexified, s.Item1, s.Item2));
+                    .Select(s => new InlineRenameReplacement(InlineRenameReplacementKind.Complexified, s.oldSpan, s.newSpan));
             }
         }
     }

@@ -321,9 +321,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         if (sourceAssembly.Language != targetAssembly.Language)
                         {
                             sourceAssemblySymbolKey = sourceAssemblySymbolKey ?? sourceAssembly.GetSymbolKey();
-                            var sourceAssemblyInTargetCompilation = sourceAssemblySymbolKey.Value.Resolve(compilation, cancellationToken: cancellationToken).Symbol as IAssemblySymbol;
 
-                            if (sourceAssemblyInTargetCompilation != null)
+                            if (sourceAssemblySymbolKey.Value.Resolve(compilation, cancellationToken: cancellationToken).Symbol is IAssemblySymbol sourceAssemblyInTargetCompilation)
                             {
                                 hasInternalsAccess = targetAssembly.IsSameAssemblyOrHasFriendAccessTo(sourceAssemblyInTargetCompilation);
                             }
@@ -440,8 +439,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             foreach (var reference in project.MetadataReferences)
             {
-                var symbol = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
-                if (symbol != null)
+                if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol symbol)
                 {
                     var result = predicate(symbol);
                     if (result != null)

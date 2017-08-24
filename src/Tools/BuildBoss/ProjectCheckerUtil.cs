@@ -87,8 +87,7 @@ namespace BuildBoss
         /// </summary>
         private bool CheckRoslynProjectType(TextWriter textWriter)
         {
-            RoslynProjectData data;
-            if (!ParseRoslynProjectData(textWriter, out data))
+            if (!ParseRoslynProjectData(textWriter, out var data))
             {
                 return false;
             }
@@ -290,8 +289,7 @@ namespace BuildBoss
             var allGood = true;
             foreach (var key in declaredReferences)
             {
-                ProjectData projectData;
-                if (!_solutionMap.TryGetValue(key, out projectData))
+                if (!_solutionMap.TryGetValue(key, out var projectData))
                 {
                     continue;
                 }
@@ -349,8 +347,7 @@ namespace BuildBoss
                     continue;
                 }
 
-                ProjectData data;
-                if (!_solutionMap.TryGetValue(current, out data))
+                if (!_solutionMap.TryGetValue(current, out var data))
                 {
                     continue;
                 }

@@ -82,7 +82,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 Assert.Equal(comments.Count, 1);
 
-                keepAliveSession.Shutdown(CancellationToken.None);
+                keepAliveSession.Shutdown();
             }
         }
 
@@ -282,10 +282,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var map = solution.GetAssetMap();
             var storage = client.AssetStorage;
 
-            object data;
             foreach (var kv in map)
             {
-                Assert.True(storage.TryGetAsset(kv.Key, out data));
+                Assert.True(storage.TryGetAsset(kv.Key, out object data));
             }
         }
 
