@@ -43,10 +43,24 @@ class C
             Assert.Equal("void C.M(System.Int32 a, System.Int32 b)",
                 model.GetSymbolInfo(firstInvocation).Symbol.ToTestDisplayString());
 
+            var firstNamedArgA = nodes.OfType<NameColonSyntax>().ElementAt(0);
+            Assert.Equal("a: 1", firstNamedArgA.Parent.ToString());
+            var firstASymbol = model.GetSymbolInfo(firstNamedArgA.Name);
+            Assert.Equal(SymbolKind.Parameter, firstASymbol.Symbol.Kind);
+            Assert.Equal("a", firstASymbol.Symbol.Name);
+            Assert.Equal("void C.M(System.Int32 a, System.Int32 b)", firstASymbol.Symbol.ContainingSymbol.ToTestDisplayString());
+
             var secondInvocation = nodes.OfType<InvocationExpressionSyntax>().ElementAt(3);
             Assert.Equal("M(3, a: 4)", secondInvocation.ToString());
             Assert.Equal("void C.M(System.Int64 b, System.Int64 a)",
                 model.GetSymbolInfo(secondInvocation).Symbol.ToTestDisplayString());
+
+            var secondNamedArgA = nodes.OfType<NameColonSyntax>().ElementAt(1);
+            Assert.Equal("a: 4", secondNamedArgA.Parent.ToString());
+            var secondASymbol = model.GetSymbolInfo(secondNamedArgA.Name);
+            Assert.Equal(SymbolKind.Parameter, secondASymbol.Symbol.Kind);
+            Assert.Equal("a", secondASymbol.Symbol.Name);
+            Assert.Equal("void C.M(System.Int64 b, System.Int64 a)", secondASymbol.Symbol.ContainingSymbol.ToTestDisplayString());
         }
 
         [Fact]

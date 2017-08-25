@@ -65,10 +65,24 @@ End Class
             Assert.Equal("Sub C.M(a As System.Int32, b As System.Int32)",
                 model.GetSymbolInfo(firstInvocation).Symbol.ToTestDisplayString())
 
+            Dim firstNamedArgA = nodes.OfType(Of NameColonEqualsSyntax)().ElementAt(0)
+            Assert.Equal("a:=1", firstNamedArgA.Parent.ToString())
+            Dim firstASymbol = model.GetSymbolInfo(firstNamedArgA.Name)
+            Assert.Equal(SymbolKind.Parameter, firstASymbol.Symbol.Kind)
+            Assert.Equal("a", firstASymbol.Symbol.Name)
+            Assert.Equal("Sub C.M(a As System.Int32, b As System.Int32)", firstASymbol.Symbol.ContainingSymbol.ToTestDisplayString())
+
             Dim secondInvocation = nodes.OfType(Of InvocationExpressionSyntax)().ElementAt(3)
             Assert.Equal("M(3, a:=4)", secondInvocation.ToString())
             Assert.Equal("Sub C.M(b As System.Int64, a As System.Int64)",
                 model.GetSymbolInfo(secondInvocation).Symbol.ToTestDisplayString())
+
+            Dim secondNamedArgA = nodes.OfType(Of NameColonEqualsSyntax)().ElementAt(1)
+            Assert.Equal("a:=4", secondNamedArgA.Parent.ToString())
+            Dim secondASymbol = model.GetSymbolInfo(secondNamedArgA.Name)
+            Assert.Equal(SymbolKind.Parameter, secondASymbol.Symbol.Kind)
+            Assert.Equal("a", secondASymbol.Symbol.Name)
+            Assert.Equal("Sub C.M(b As System.Int64, a As System.Int64)", secondASymbol.Symbol.ContainingSymbol.ToTestDisplayString())
         End Sub
 
         <Fact>
