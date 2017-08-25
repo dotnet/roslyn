@@ -37,7 +37,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var remoteHostService = CreateService();
 
             var input = "Test";
-            var output = remoteHostService.Connect(input, serializedSession: null);
+            var output = remoteHostService.Connect(input, serializedSession: null, cancellationToken: CancellationToken.None);
 
             Assert.Equal(input, output);
         }
