@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -9,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -24,9 +27,15 @@ namespace Microsoft.CodeAnalysis
         /// User can override default value by setting DWORD value on FileLengthThreshold in 
         /// "[VS HIVE]\Roslyn\Internal\Performance\Text"
         /// </summary>
-        [ExportOption]
         internal static readonly Option<long> FileLengthThreshold = new Option<long>(nameof(FileTextLoaderOptions), nameof(FileLengthThreshold), defaultValue: 100 * 1024 * 1024,
             storageLocations: new LocalUserProfileStorageLocation(@"Roslyn\Internal\Performance\Text\FileLengthThreshold"));
+    }
+
+    [ExportOptionProvider, Shared]
+    internal class FileTextLoaderOptionsProvider : IOptionProvider
+    {
+        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
+            FileTextLoaderOptions.FileLengthThreshold);
     }
 
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]

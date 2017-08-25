@@ -482,9 +482,7 @@ namespace ConsoleApp1
 
         private (Document, int) ApplyChangesToFixture(string markup)
         {
-            string text;
-            int position;
-            MarkupTestFile.GetPosition(markup, out text, out position);
+            MarkupTestFile.GetPosition(markup, out var text, out int position);
             return (fixture.UpdateDocument(text, SourceCodeKind.Regular), position);
         }
     }

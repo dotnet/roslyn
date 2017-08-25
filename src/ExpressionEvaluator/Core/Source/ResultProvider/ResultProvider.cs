@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Debug.Assert(index >= numRows);
             Debug.Assert(initialRequestSize >= numRows);
             var initialChildren = new DkmEvaluationResult[numRows];
-            CompletionRoutine<Exception> onException = e => completionRoutine(DkmGetChildrenAsyncResult.CreateErrorResult(e));
+            void onException(Exception e) => completionRoutine(DkmGetChildrenAsyncResult.CreateErrorResult(e));
             var wl = new WorkList(workList, onException);
             wl.ContinueWith(() =>
                 GetEvaluationResultsAndContinue(evaluationResult, rows, initialChildren, 0, numRows, wl, inspectionContext,
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var numRows = rows.Count;
             Debug.Assert(count >= numRows);
             var results = new DkmEvaluationResult[numRows];
-            CompletionRoutine<Exception> onException = e => completionRoutine(DkmEvaluationEnumAsyncResult.CreateErrorResult(e));
+            void onException(Exception e) => completionRoutine(DkmEvaluationEnumAsyncResult.CreateErrorResult(e));
             var wl = new WorkList(workList, onException);
             wl.ContinueWith(() =>
                 GetEvaluationResultsAndContinue(evaluationResult, rows, results, 0, numRows, wl, inspectionContext,
@@ -760,8 +760,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 var targetType = displayInfo.TargetType;
                 var attribute = displayInfo.Attribute;
-                CompletionRoutine<Exception> onException =
-                    e => completionRoutine(CreateEvaluationResultFromException(e, result, inspectionContext));
+                void onException(Exception e) => completionRoutine(CreateEvaluationResultFromException(e, result, inspectionContext));
 
                 var innerWorkList = workList.InnerWorkList;
                 EvaluateDebuggerDisplayStringAndContinue(value, innerWorkList, inspectionContext, targetType, attribute.Name,
@@ -789,18 +788,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             CompletionRoutine<DkmEvaluateDebuggerDisplayStringAsyncResult> onCompleted,
             CompletionRoutine<Exception> onException)
         {
-            DkmCompletionRoutine<DkmEvaluateDebuggerDisplayStringAsyncResult> completionRoutine =
-                result =>
+            void completionRoutine(DkmEvaluateDebuggerDisplayStringAsyncResult result)
+            {
+                try
                 {
-                    try
-                    {
-                        onCompleted(result);
-                    }
-                    catch (Exception e)
-                    {
-                        onException(e);
-                    }
-                };
+                    onCompleted(result);
+                }
+                catch (Exception e)
+                {
+                    onException(e);
+                }
+            }
             if (str == null)
             {
                 completionRoutine(default(DkmEvaluateDebuggerDisplayStringAsyncResult));
@@ -871,19 +869,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             CompletionRoutine onCompleted,
             CompletionRoutine<Exception> onException)
         {
-            DkmCompletionRoutine<DkmEvaluationAsyncResult> completionRoutine =
-                result =>
+            void completionRoutine(DkmEvaluationAsyncResult result)
+            {
+                try
                 {
-                    try
-                    {
-                        results[index] = result.Result;
-                        GetEvaluationResultsAndContinue(parent, rows, results, index + 1, numRows, workList, inspectionContext, onCompleted, onException);
-                    }
-                    catch (Exception e)
-                    {
-                        onException(e);
-                    }
-                };
+                    results[index] = result.Result;
+                    GetEvaluationResultsAndContinue(parent, rows, results, index + 1, numRows, workList, inspectionContext, onCompleted, onException);
+                }
+                catch (Exception e)
+                {
+                    onException(e);
+                }
+            }
             if (index < numRows)
             {
                 GetChild(

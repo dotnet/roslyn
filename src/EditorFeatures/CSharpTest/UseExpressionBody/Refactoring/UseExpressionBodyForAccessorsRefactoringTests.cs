@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
                 this.SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task TestUpdatePropertyIfPropertyWantsBlockAndAccesorWantsExpression()
+        public async Task TestUpdatePropertyIfPropertyWantsBlockAndAccessorWantsExpression()
         {
             await TestInRegularAndScript1Async(
 @"class C

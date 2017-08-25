@@ -74,11 +74,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
                     var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService) as ICommandHandler<OpenLineAboveCommandArgs>;
 
                     var commandArgs = new OpenLineAboveCommandArgs(view, view.TextBuffer);
-                    Action nextHandler = () =>
+                    void nextHandler()
                     {
                         var editorOperations = editorOperationsFactoryService.GetEditorOperations(view);
                         editorOperations.OpenLineAbove();
-                    };
+                    }
 
                     commandHandler.ExecuteCommand(commandArgs, nextHandler);
                 });
@@ -92,11 +92,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
                     var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService) as ICommandHandler<OpenLineBelowCommandArgs>;
 
                     var commandArgs = new OpenLineBelowCommandArgs(view, view.TextBuffer);
-                    Action nextHandler = () =>
+                    void nextHandler()
                     {
                         var editorOperations = editorOperationsFactoryService.GetEditorOperations(view);
                         editorOperations.OpenLineBelow();
-                    };
+                    }
 
                     commandHandler.ExecuteCommand(commandArgs, nextHandler);
                 });
