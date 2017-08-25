@@ -239,8 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If argumentNames(i) IsNot Nothing Then
                     seenName = True
                 ElseIf seenName Then
-                    Dim diagInfo = ErrorFactory.ErrorInfo(ERRID.ERR_NamedArgumentSpecificationBeforeFixedArgumentInLateboundInvocation)
-                    ReportDiagnostic(diagnostics, arguments(i).Syntax, diagInfo)
+                    ReportDiagnostic(diagnostics, arguments(i).Syntax, ERRID.ERR_NamedArgumentSpecificationBeforeFixedArgumentInLateboundInvocation)
                     Return
                 End If
             Next

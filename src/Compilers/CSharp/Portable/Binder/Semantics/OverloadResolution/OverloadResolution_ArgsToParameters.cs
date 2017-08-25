@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // __arglist cannot be used with named arguments (as it doesn't have a name)
-            if (arguments.Names.Any() && arguments.Names.Last() != null && symbol.GetIsVararg())
+            if (arguments.Names.Any() && arguments.Names.Last() != null && isVararg)
             {
                 return ArgumentAnalysisResult.RequiredParameterMissing(parameters.Length);
             }

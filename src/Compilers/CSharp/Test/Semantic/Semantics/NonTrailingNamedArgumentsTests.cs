@@ -161,7 +161,7 @@ class C
 
     static void M(int a, int b)
     {
-        System.Console.Write($""{a} {b}."");
+        System.Console.Write($""{a} {b}. "");
     }
 
     static void Main()
@@ -169,16 +169,20 @@ class C
         var c = new C();
         c.e += M;
         c.e.Invoke(a: 1, 2);
+        c.e(a: 1, 2);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2);
+            var verifier = CompileAndVerify(source, expectedOutput: "1 2. 1 2.", parseOptions: TestOptions.Regular7_2);
             verifier.VerifyDiagnostics();
 
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (16,26): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 //         c.e.Invoke(a: 1, 2);
-                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "2").WithArguments("7.2").WithLocation(16, 26)
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "2").WithArguments("7.2").WithLocation(16, 26),
+                // (17,19): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
+                //         c.e(a: 1, 2);
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "2").WithArguments("7.2").WithLocation(17, 19)
                 );
         }
 
@@ -220,24 +224,32 @@ class C
     {
         get
         {
-            System.Console.Write($""{a} {b}."");
+            System.Console.Write($""Get {a} {b}. "");
             return 0;
+        }
+        set
+        {
+            System.Console.Write($""Set {a} {b} {value}."");
         }
     }
     static void Main()
     {
         var c = new C();
         _ = c[a: 1, 2];
+        c[a: 3, 4] = 5;
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2);
+            var verifier = CompileAndVerify(source, expectedOutput: "Get 1 2. Set 3 4 5.", parseOptions: TestOptions.Regular7_2);
             verifier.VerifyDiagnostics();
 
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
-                // (15,21): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
+                // (19,21): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 //         _ = c[a: 1, 2];
-                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "2").WithArguments("7.2").WithLocation(15, 21)
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "2").WithArguments("7.2").WithLocation(19, 21),
+                // (20,17): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
+                //         c[a: 3, 4] = 5;
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "4").WithArguments("7.2").WithLocation(20, 17)
                 );
         }
 
