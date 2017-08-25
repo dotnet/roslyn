@@ -1188,7 +1188,7 @@ $$    [|private int i = 3;|]
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingBreakpoints)]
+        [Fact]
         public void VariableDeclarator3b()
         {
             TestSpan(
@@ -1201,7 +1201,7 @@ $$    [|private int i = 3;|]
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingBreakpoints)]
+        [Fact]
         public void VariableDeclarator3c()
         {
             TestSpan(
@@ -1700,7 +1700,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
     try
     {
     }
-    catch(Exception e) [|if$$ (e.Message != null)|]
+    catch(Exception e) [|when$$ (e.Message != null)|]
     {
     }
   }
@@ -1718,7 +1718,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
     try
     {
     }
-    catch(Exception e) [|if (e.Message != null)|]      $$
+    catch(Exception e) [|when (e.Message != null)|]      $$
     {
     }
   }
@@ -4654,6 +4654,19 @@ $$        int Local(object[] a) => [|a.Length|];
     {
         int Local(object[] a) => [|a.Length|];$$
     }
+}");
+        }
+
+        [Fact, WorkItem(98990, "https://developercommunity.visualstudio.com/content/problem/98990")]
+        public void IncompleteExpressionStatement()
+        {
+            TestSpan(
+@"class C
+{
+  void Goo()
+  {
+    [|$$aaa|]
+  }
 }");
         }
     }
