@@ -987,7 +987,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return LambdaUtilities.IsLambda(node);
         }
 
-        internal override bool IsLambdaExpression(SyntaxNode node)
+        internal override bool IsNestedFunction(SyntaxNode node)
         {
             return node is LambdaExpressionSyntax || node is LocalFunctionStatementSyntax;
         }
