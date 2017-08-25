@@ -2840,8 +2840,8 @@ class C
         yield return local;
     }
 }";
-            // Iterator requires .Net4.5 compilation to use AttributeDescription.IteratorStateMachineAttribute.
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation, runtime =>
             {
                 string displayClassName;
