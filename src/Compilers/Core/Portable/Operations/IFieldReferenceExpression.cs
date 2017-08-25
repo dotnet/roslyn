@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         /// <remarks>
         /// This is only ever true in CSharp scripts, where a top-level statement creates a new variable
-        /// in a reference, such as an out variable declaration or a tuple deconstruction declaration.
+        /// in a reference, such as an out variable declaration or a deconstruction declaration.
         /// </remarks>
         bool IsDeclaration { get; }
     }
