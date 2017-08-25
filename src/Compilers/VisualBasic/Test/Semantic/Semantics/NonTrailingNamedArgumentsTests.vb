@@ -804,6 +804,7 @@ Class C
     Shared Sub Main()
         Dim d = New Object()
         d.M(a:=1, 2)
+        d.M(1, 2)
     End Sub
 End Class
     </file>

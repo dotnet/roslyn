@@ -225,7 +225,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                             arguments As ImmutableArray(Of BoundExpression),
                                                             diagnostics As DiagnosticBag)
 
-            If argumentNames.Count = 0 Then
+            Debug.Assert(Not arguments.IsDefault)
+
+            If argumentNames.IsDefault OrElse argumentNames.Count = 0 Then
                 Return
             End If
 

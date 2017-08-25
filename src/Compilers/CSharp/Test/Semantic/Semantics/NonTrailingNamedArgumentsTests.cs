@@ -790,6 +790,7 @@ class C
     {
         dynamic d = new object();
         d.M(a: 1, 2);
+        d.M(1, 2);
     }
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2);
