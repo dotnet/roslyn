@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -29,7 +29,7 @@ public class C2 : C1
 }
 ";
             string expectedOperationTree = @"
-IInstanceReferenceExpression (IsBaseReference: True) (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'base')
+IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'base')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -52,7 +52,7 @@ public class C1
 }
 ";
             string expectedOperationTree = @"
-IInstanceReferenceExpression (IsBaseReference: True) (OperationKind.InstanceReferenceExpression, Type: System.Object) (Syntax: 'base')
+IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: System.Object) (Syntax: 'base')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0117: 'object' does not contain a definition for 'M1'

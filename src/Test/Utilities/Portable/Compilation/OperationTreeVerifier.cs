@@ -686,7 +686,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitInstanceReferenceExpression(IInstanceReferenceExpression operation)
         {
             LogString(nameof(IInstanceReferenceExpression));
-            LogString($" (IsBaseReference: {operation.IsBaseReference})");
             LogCommonPropertiesAndNewLine(operation);
         }
 

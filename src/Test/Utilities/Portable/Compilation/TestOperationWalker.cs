@@ -261,8 +261,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitInstanceReferenceExpression(IInstanceReferenceExpression operation)
         {
-            var isBaseReference = operation.IsBaseReference;
-
             base.VisitInstanceReferenceExpression(operation);
         }
 

@@ -31,10 +31,10 @@ End Class]]>.Value
 IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'AddHandler  ... AddressOf M')
   Expression: IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: null) (Syntax: 'AddHandler  ... AddressOf M')
       Event Reference: IEventReferenceExpression: Event TestClass.TestEvent As System.Action (OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'TestEvent')
-          Instance Receiver: IInstanceReferenceExpression (IsBaseReference: False) (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'TestEvent')
+          Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'TestEvent')
       Handler: IOperation:  (OperationKind.None) (Syntax: 'AddressOf M')
           Children(1):
-              IInstanceReferenceExpression (IsBaseReference: False) (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
+              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -64,10 +64,10 @@ End Class]]>.Value
 IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'RemoveHandl ... AddressOf M')
   Expression: IEventAssignmentExpression (EventRemove)) (OperationKind.EventAssignmentExpression, Type: null) (Syntax: 'RemoveHandl ... AddressOf M')
       Event Reference: IEventReferenceExpression: Event TestClass.TestEvent As System.Action (OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'TestEvent')
-          Instance Receiver: IInstanceReferenceExpression (IsBaseReference: False) (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'TestEvent')
+          Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'TestEvent')
       Handler: IOperation:  (OperationKind.None) (Syntax: 'AddressOf M')
           Children(1):
-              IInstanceReferenceExpression (IsBaseReference: False) (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
+              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -100,7 +100,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'AddHandler  .
           Instance Receiver: null
       Handler: IOperation:  (OperationKind.None) (Syntax: 'AddressOf M')
           Children(1):
-              IInstanceReferenceExpression (IsBaseReference: False) (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
+              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -133,7 +133,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'RemoveHandl .
           Instance Receiver: null
       Handler: IOperation:  (OperationKind.None) (Syntax: 'AddressOf M')
           Children(1):
-              IInstanceReferenceExpression (IsBaseReference: False) (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
+              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -201,7 +201,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'AddHandler  .
           Instance Receiver: null
       Handler: IOperation:  (OperationKind.None) (Syntax: 'AddressOf M')
           Children(1):
-              IInstanceReferenceExpression (IsBaseReference: False) (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
+              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -237,7 +237,7 @@ IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Ad
           Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'TestClass')
       Handler: IOperation:  (OperationKind.None) (Syntax: 'AddressOf M')
           Children(1):
-              IInstanceReferenceExpression (IsBaseReference: False) (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
+              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

@@ -413,7 +413,7 @@ IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.Conve
   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: IOperation:  (OperationKind.None) (Syntax: 'AddressOf Me.M')
       Children(1):
-          IInstanceReferenceExpression (IsBaseReference: False) (OperationKind.InstanceReferenceExpression, Type: Class1) (Syntax: 'Me')
+          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class1) (Syntax: 'Me')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

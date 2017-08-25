@@ -168,14 +168,14 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
         Text: ILiteralExpression (Text: String ) (OperationKind.LiteralExpression, Type: System.String, Constant: "String ") (Syntax: 'String ')
       IInterpolation (OperationKind.Interpolation) (Syntax: '{x,20}')
         Expression: IFieldReferenceExpression: [Class].x As System.String (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'x')
-            Instance Receiver: IInstanceReferenceExpression (IsBaseReference: False) (OperationKind.InstanceReferenceExpression, Type: [Class]) (Syntax: 'x')
+            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: [Class]) (Syntax: 'x')
         Alignment: ILiteralExpression (Text: 20) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
         FormatString: null
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and ')
         Text: ILiteralExpression (Text:  and ) (OperationKind.LiteralExpression, Type: System.String, Constant: " and ") (Syntax: ' and ')
       IInterpolation (OperationKind.Interpolation) (Syntax: '{y:D3}')
         Expression: IFieldReferenceExpression: [Class].y As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'y')
-            Instance Receiver: IInstanceReferenceExpression (IsBaseReference: False) (OperationKind.InstanceReferenceExpression, Type: [Class]) (Syntax: 'y')
+            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: [Class]) (Syntax: 'y')
         Alignment: null
         FormatString: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "D3") (Syntax: ':D3')
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and constant ')
@@ -212,7 +212,7 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
         Text: ILiteralExpression (Text: String ) (OperationKind.LiteralExpression, Type: System.String, Constant: "String ") (Syntax: 'String ')
       IInterpolation (OperationKind.Interpolation) (Syntax: '{x,20:D3}')
         Expression: IFieldReferenceExpression: [Class].x As System.String (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'x')
-            Instance Receiver: IInstanceReferenceExpression (IsBaseReference: False) (OperationKind.InstanceReferenceExpression, Type: [Class]) (Syntax: 'x')
+            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: [Class]) (Syntax: 'x')
         Alignment: ILiteralExpression (Text: 20) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
         FormatString: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "D3") (Syntax: ':D3')
 ]]>.Value
@@ -253,7 +253,7 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
         Text: ILiteralExpression (Text:  and ) (OperationKind.LiteralExpression, Type: System.String, Constant: " and ") (Syntax: ' and ')
       IInterpolation (OperationKind.Interpolation) (Syntax: '{M2(y)}')
         Expression: IInvocationExpression ( Function [Class].M2(z As System.Int32) As System.String) (OperationKind.InvocationExpression, Type: System.String) (Syntax: 'M2(y)')
-            Instance Receiver: IInstanceReferenceExpression (IsBaseReference: False) (OperationKind.InstanceReferenceExpression, Type: [Class]) (Syntax: 'M2')
+            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: [Class]) (Syntax: 'M2')
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument) (Syntax: 'y')
                   ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
@@ -299,7 +299,7 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
         Text: ILiteralExpression (Text: String ) (OperationKind.LiteralExpression, Type: System.String, Constant: "String ") (Syntax: 'String ')
       IInterpolation (OperationKind.Interpolation) (Syntax: '{M2($"{y}")}')
         Expression: IInvocationExpression ( Function [Class].M2(z As System.String) As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'M2($"{y}")')
-            Instance Receiver: IInstanceReferenceExpression (IsBaseReference: False) (OperationKind.InstanceReferenceExpression, Type: [Class]) (Syntax: 'M2')
+            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: [Class]) (Syntax: 'M2')
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument) (Syntax: '$"{y}"')
                   IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"{y}"')

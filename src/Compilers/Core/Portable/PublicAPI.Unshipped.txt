@@ -459,7 +459,6 @@ Microsoft.CodeAnalysis.Semantics.IIncrementExpression
 Microsoft.CodeAnalysis.Semantics.IIncrementExpression.IncrementOperationKind.get -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
 Microsoft.CodeAnalysis.Semantics.IIncrementExpression.Target.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IInstanceReferenceExpression
-Microsoft.CodeAnalysis.Semantics.IInstanceReferenceExpression.IsBaseReference.get -> bool
 Microsoft.CodeAnalysis.Semantics.IInterpolatedStringContent
 Microsoft.CodeAnalysis.Semantics.IInterpolatedStringExpression
 Microsoft.CodeAnalysis.Semantics.IInterpolatedStringExpression.Parts.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IInterpolatedStringContent>

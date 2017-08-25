@@ -28,7 +28,7 @@ public class C1
             string expectedOperationTree = @"
 ILockStatement (OperationKind.LockStatement) (Syntax: 'lock (o) ... }')
   Expression: IFieldReferenceExpression: System.Object C1.o (OperationKind.FieldReferenceExpression, Type: System.Object) (Syntax: 'o')
-      Instance Receiver: IInstanceReferenceExpression (IsBaseReference: False) (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'o')
+      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'o')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -264,7 +264,7 @@ public class C1
             string expectedOperationTree = @"
 ILockStatement (OperationKind.LockStatement) (Syntax: 'lock (M2()) ... }')
   Expression: IInvocationExpression ( System.Object C1.M2()) (OperationKind.InvocationExpression, Type: System.Object) (Syntax: 'M2()')
-      Instance Receiver: IInstanceReferenceExpression (IsBaseReference: False) (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'M2')
+      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'M2')
       Arguments(0)
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
 ";
@@ -293,7 +293,7 @@ public class C1
             string expectedOperationTree = @"
 ILockStatement (OperationKind.LockStatement, IsInvalid) (Syntax: 'lock (M2()) ... }')
   Expression: IInvocationExpression ( void C1.M2()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'M2()')
-      Instance Receiver: IInstanceReferenceExpression (IsBaseReference: False) (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid) (Syntax: 'M2')
+      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid) (Syntax: 'M2')
       Arguments(0)
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
 ";
