@@ -273,7 +273,9 @@ namespace N1
                         var added = declaredSymbolNames.Add(symbol.Name);
                         if (!added)
                         {
-                            Assert.True(((Symbols.SourceMemberMethodSymbol)symbol).IsPartial, "Unexpected multiple symbol declared events for symbol " + symbol);
+                            var isPartialMethod = ((Symbols.SourceMemberMethodSymbol)symbol).PartialDefinitionPart != null ||
+                                                  ((Symbols.SourceMemberMethodSymbol)symbol).PartialImplementationPart != null;
+                            Assert.True(isPartialMethod, "Unexpected multiple symbol declared events for symbol " + symbol);
                         }
                     }
                     else
