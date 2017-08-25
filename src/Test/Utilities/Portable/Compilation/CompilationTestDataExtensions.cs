@@ -36,10 +36,9 @@ namespace Roslyn.Test.Utilities
 
         internal static CompilationTestData.MethodData GetMethodData(this CompilationTestData data, string qualifiedMethodName)
         {
-            var methodData = default(CompilationTestData.MethodData);
             var map = data.GetMethodsByName();
 
-            if (!map.TryGetValue(qualifiedMethodName, out methodData))
+            if (!map.TryGetValue(qualifiedMethodName, out var methodData))
             {
                 // caller may not have specified parameter list, so try to match parameterless method
                 if (!map.TryGetValue(qualifiedMethodName + "()", out methodData))

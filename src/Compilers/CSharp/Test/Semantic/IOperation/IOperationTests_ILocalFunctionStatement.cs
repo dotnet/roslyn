@@ -221,7 +221,7 @@ ILocalFunctionStatement (Local Function: System.Threading.Tasks.Task<System.Int3
               Instance Receiver: null
               Arguments(1):
                   IArgument (ArgumentKind.Explicit, Matching Parameter: millisecondsDelay) (OperationKind.Argument) (Syntax: '0')
-                    ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
                     InConversion: null
                     OutConversion: null
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return x + p1;')

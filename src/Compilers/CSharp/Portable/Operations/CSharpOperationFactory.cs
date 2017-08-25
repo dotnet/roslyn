@@ -438,12 +438,11 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private ILiteralExpression CreateBoundLiteralOperation(BoundLiteral boundLiteral)
         {
-            string text = boundLiteral.Syntax.ToString();
             SyntaxNode syntax = boundLiteral.Syntax;
             ITypeSymbol type = boundLiteral.Type;
             Optional<object> constantValue = ConvertToOptional(boundLiteral.ConstantValue);
             bool isImplicit = boundLiteral.WasCompilerGenerated;
-            return new LiteralExpression(text, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LiteralExpression(_semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IAnonymousObjectCreationExpression CreateBoundAnonymousObjectCreationExpressionOperation(BoundAnonymousObjectCreationExpression boundAnonymousObjectCreationExpression)
