@@ -634,7 +634,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If method.IsPartial() Then
                             Dim impl = method.PartialImplementationPart
                             If impl IsNot method Then
-                                If CType(method, SourceMethodSymbol).SetDiagnostics(ImmutableArray(Of Diagnostic).Empty) AndAlso impl Is Nothing Then
+                                If CType(method, SourceMethodSymbol).SetDiagnostics(ImmutableArray(Of Diagnostic).Empty) Then
                                     method.DeclaringCompilation.SymbolDeclaredEvent(method)
                                 End If
 
