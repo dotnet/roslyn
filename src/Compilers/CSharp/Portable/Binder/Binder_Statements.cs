@@ -902,11 +902,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    // If this is for a fixed statement, we'll do our own conversion since there are some special cases.
-                    // Else if this is for stackalloc, run conversions to determine and lower the correct type (T* vs Span<T>).
+                    // Basically inlined BindVariableInitializer, but with conversion optional.
                     initializerOpt = BindPossibleArrayInitializer(value, declTypeOpt, valueKind, diagnostics);
-                    if (kind != LocalDeclarationKind.FixedVariable || initializerOpt.Kind == BoundKind.StackAllocArrayCreation)
+                    if (kind != LocalDeclarationKind.FixedVariable)
                     {
+                        // If this is for a fixed statement, we'll do our own conversion since there are some special cases.		
                         initializerOpt = GenerateConversionForAssignment(declTypeOpt, initializerOpt, localDiagnostics, refKind: localSymbol.RefKind);
                     }
                 }
@@ -1059,9 +1059,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 initializerOpt = GenerateConversionForAssignment(declType, initializerOpt, diagnostics);
                 if (!initializerOpt.HasAnyErrors)
                 {
-                    Debug.Assert(initializerOpt is BoundConversion conversion && (
-                        conversion.Operand.IsLiteralNull() ||
-                        conversion.Operand.Kind == BoundKind.DefaultExpression),
+                    Debug.Assert(
+                        initializerOpt is BoundConvertedStackAllocExpression ||
+                        initializerOpt is BoundConversion conversion && (conversion.Operand.IsLiteralNull() || conversion.Operand.Kind == BoundKind.DefaultExpression),
                         "All other typeless expressions should have conversion errors");
 
                     // CONSIDER: this is a very confusing error message, but it's what Dev10 reports.

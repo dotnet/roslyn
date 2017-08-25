@@ -2197,10 +2197,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             return true;
                         }
-                    case BoundKind.Conversion:
-                        {
-                            return expr.GetConversion().IsStackAlloc;
-                        }
                     case BoundKind.PropertyAccess: // Never a variable.
                     case BoundKind.IndexerAccess: // Never a variable.
                     default:

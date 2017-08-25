@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var boundStackAlloc = (BoundStackAllocArrayCreation)source;
             var elementType = boundStackAlloc.ElementType;
-            TypeSymbol stackAllocType = null;
+            TypeSymbol stackAllocType;
 
             switch (conversion.Kind)
             {

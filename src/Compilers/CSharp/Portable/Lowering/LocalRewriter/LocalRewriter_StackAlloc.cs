@@ -27,12 +27,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Debug.Assert(stackAllocNode.Type.IsSpanType());
 
-                        var resultType = (NamedTypeSymbol)stackAllocNode.Type;
+                        var spanType = (NamedTypeSymbol)stackAllocNode.Type;
                         var countTemp = _factory.StoreToTemp(rewrittenCount, out BoundAssignmentOperator countTempAssignment);
                         var stackSize = RewriteStackAllocCountToSize(countTemp, elementType);
-                        stackAllocNode = stackAllocNode.Update(elementType, stackSize, conversionKind, resultType);
+                        stackAllocNode = stackAllocNode.Update(elementType, stackSize, conversionKind, spanType);
 
-                        var spanCtor = (MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Span_T__ctor).SymbolAsMember(resultType);
+                        var spanCtor = (MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Span_T__ctor).SymbolAsMember(spanType);
                         var ctorCall = _factory.New(spanCtor, stackAllocNode, countTemp);
 
                         return new BoundSequence(
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             locals: ImmutableArray.Create(countTemp.LocalSymbol),
                             sideEffects: ImmutableArray.Create<BoundExpression>(countTempAssignment),
                             value: ctorCall,
-                            type: resultType);
+                            type: spanType);
                     }
                 default:
                     {
