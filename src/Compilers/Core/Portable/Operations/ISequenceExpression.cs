@@ -27,4 +27,3 @@ namespace Microsoft.CodeAnalysis.Semantics
         ImmutableArray<ILocalSymbol> Locals { get; }
     }
 }
-

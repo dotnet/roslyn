@@ -1389,7 +1389,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyConditionalGotoStatement(condition, target, jumpIfTrue, syntax, type, constantValue);
         }
 
-        private IOperation CreateBoundSequenceOperation(BoundSequence boundSequence)
+        private ISequenceExpression CreateBoundSequenceOperation(BoundSequence boundSequence)
         {
             Lazy<ImmutableArray<IOperation>> expressions =
                 new Lazy<ImmutableArray<IOperation>>(() => boundSequence.SideEffects.Select(s => Create(s)).Where(s => s != null && s.Kind != OperationKind.None).ToImmutableArray());

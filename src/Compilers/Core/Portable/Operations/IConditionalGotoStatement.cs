@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         ILabelSymbol Target { get; }
         /// <summary>
-        /// Jump if the condition is true.
+        /// Indicates if the jump will be executed when the condition is true.
+        /// Otherwise, it will be executed when the condition is false.
         /// </summary>
         bool JumpIfTrue { get; }
     }
 }
-

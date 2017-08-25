@@ -166,15 +166,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // in case this is right side of a qualified name or member access (or part of a cref)
             node = SyntaxFactory.GetStandaloneNode(node);
 
-            var model = this.GetMemberModel(node);
-            if (model != null)
-            {
-                return model.GetOperationWorker(method, node, cancellationToken);
-            }
-            else
-            {
-                return null;
-            }
+            var model = GetMemberModel(node);
+            return model?.GetOperationWorker(method, node, cancellationToken);
         }
 
         internal override IOperation GetOperationWorker(CSharpSyntaxNode node, GetOperationOptions options, CancellationToken cancellationToken)
@@ -182,15 +175,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // in case this is right side of a qualified name or member access (or part of a cref)
             node = SyntaxFactory.GetStandaloneNode(node);
 
-            var model = this.GetMemberModel(node);
-            if (model != null)
-            {
-                return model.GetOperationWorker(node, options, cancellationToken);
-            }
-            else
-            {
-                return null;
-            }
+            var model = GetMemberModel(node);
+            return model?.GetOperationWorker(node, options, cancellationToken);
         }
 
         internal override SymbolInfo GetSymbolInfoWorker(CSharpSyntaxNode node, SymbolInfoOptions options, CancellationToken cancellationToken = default(CancellationToken))

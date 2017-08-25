@@ -363,14 +363,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' This will cause it to try to get the interior MemberSemanticModel.
                 model = GetMemberSemanticModel(methodBlock.BlockStatement.EndPosition)
             Else
-                model = Me.GetMemberSemanticModel(node)
+                model = GetMemberSemanticModel(node)
             End If
 
-            If model IsNot Nothing Then
-                Return model.GetOperationWorker(method, node, cancellationToken)
-            Else
-                Return Nothing
-            End If
+            Return model?.GetOperationWorker(method, node, cancellationToken)
         End Function
 
         Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
@@ -385,14 +381,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' This will cause it to try to get the interior MemberSemanticModel.
                 model = GetMemberSemanticModel(methodBlock.BlockStatement.EndPosition)
             Else
-                model = Me.GetMemberSemanticModel(node)
+                model = GetMemberSemanticModel(node)
             End If
 
-            If model IsNot Nothing Then
-                Return model.GetOperationWorker(node, options, cancellationToken)
-            Else
-                Return Nothing
-            End If
+            Return model?.GetOperationWorker(node, options, cancellationToken)
         End Function
 
         Friend Overrides Function GetAttributeSymbolInfo(attribute As AttributeSyntax, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo

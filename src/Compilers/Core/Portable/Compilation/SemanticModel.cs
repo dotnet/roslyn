@@ -64,13 +64,13 @@ namespace Microsoft.CodeAnalysis
         protected abstract SyntaxTree SyntaxTreeCore { get; }
 
         /// <summary>
-        /// Gets the operation corresponding to the method body.
+        /// Gets the low-level operation corresponding to the method's body.
         /// </summary>
         /// <param name="method">The method symbol.</param>
         /// <param name="body">The method body syntax node</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
         /// <returns></returns>
-        public IOperation GetOperation(IMethodSymbol method, SyntaxNode body, CancellationToken cancellationToken = default(CancellationToken))
+        public IOperation GetOperation(IMethodSymbol method, SyntaxNode body, CancellationToken cancellationToken = default)
         {
             if (!this.Compilation.IsIOperationFeatureEnabled())
             {
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis
             return GetOperationInternal(method, body, cancellationToken);
         }
 
-        internal IOperation GetOperationInternal(IMethodSymbol method, SyntaxNode body, CancellationToken cancellationToken = default(CancellationToken))
+        internal IOperation GetOperationInternal(IMethodSymbol method, SyntaxNode body, CancellationToken cancellationToken = default)
         {
             try
             {

@@ -830,25 +830,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function LowerMethodBody(method As MethodSymbol, body As BoundBlock) As BoundBlock
+            Dim sawLambdas As Boolean
             Dim diagnostics = DiagnosticBag.GetInstance()
             Dim compilationState = New TypeCompilationState(Compilation, Nothing, Nothing)
-
-            Dim sawLambdas As Boolean
-            Dim symbolsCapturedWithoutCopyCtor As ISet(Of Symbol) = Nothing
-            Dim rewrittenNodes As HashSet(Of BoundNode) = Nothing
-            Dim flags = LocalRewriter.RewritingFlags.Default
 
             Dim loweredBody = LocalRewriter.Rewrite(
                     body,
                     method,
                     compilationState,
-                    Nothing,
-                    diagnostics,
-                    rewrittenNodes,
-                    sawLambdas,
-                    symbolsCapturedWithoutCopyCtor,
-                    flags,
-                    DebugInfoInjector.Singleton,
+                    previousSubmissionFields:=Nothing,
+                    diagnostics:=diagnostics,
+                    rewrittenNodes:=Nothing,
+                    hasLambdas:=sawLambdas,
+                    symbolsCapturedWithoutCopyCtor:=Nothing,
+                    flags:=LocalRewriter.RewritingFlags.Default,
+                    instrumenterOpt:=DebugInfoInjector.Singleton,
                     currentMethod:=Nothing)
 
             Return loweredBody

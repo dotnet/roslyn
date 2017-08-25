@@ -1019,16 +1019,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement LowerMethodBody(MethodSymbol method, BoundStatement body)
         {
+            const int methodOrdinal = -1;
             var diagnostics = DiagnosticBag.GetInstance();
             var compilationState = new TypeCompilationState(method.ContainingType, _compilation, null);
-
             var dynamicAnalysisSpans = ImmutableArray<CodeAnalysis.CodeGen.SourceSpan>.Empty;
-            //var synthesizedSubmissionFields = method.ContainingType.IsSubmissionClass ? new SynthesizedSubmissionFields(_compilation, method.ContainingType) : null;
 
             var loweredBody = LocalRewriter.Rewrite(
                     _compilation,
                     method,
-                    -1,
+                    methodOrdinal,
                     method.ContainingType,
                     body,
                     compilationState,

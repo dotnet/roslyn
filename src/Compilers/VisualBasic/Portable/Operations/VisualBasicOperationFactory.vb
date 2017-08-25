@@ -1122,7 +1122,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return Create(boundSequencePointExpression.Expression)
         End Function
 
-        Private Function CreateBoundStatementListOperation(boundStatementList As BoundStatementList) As IOperation
+        Private Function CreateBoundStatementListOperation(boundStatementList As BoundStatementList) As IBlockStatement
             Dim statements As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
                 Function()
                     Return boundStatementList.Statements.Select(Function(n) Create(n)).Where(Function(s) s IsNot Nothing AndAlso s.Kind <> OperationKind.None).ToImmutableArray()
@@ -1135,17 +1135,17 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New LazyBlockStatement(statements, locals, syntax, type, constantValue)
         End Function
 
-        Private Function CreateBoundConditionalGotoOperation(boundConditionalGoto As BoundConditionalGoto) As IOperation
+        Private Function CreateBoundConditionalGotoOperation(boundConditionalGoto As BoundConditionalGoto) As IConditionalGotoStatement
             Dim condition As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundConditionalGoto.Condition))
             Dim target As ILabelSymbol = boundConditionalGoto.Label
             Dim jumpIfTrue As Boolean = boundConditionalGoto.JumpIfTrue
             Dim Syntax As SyntaxNode = boundConditionalGoto.Syntax
             Dim Type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = Nothing
-            Return New LazyConditionalGotoStatement(condition, target, jumpIfTrue, Syntax, Type, ConstantValue)
+            Return New LazyConditionalGotoStatement(condition, target, jumpIfTrue, Syntax, Type, constantValue)
         End Function
 
-        Private Function CreateBoundSequenceOperation(boundSequence As BoundSequence) As IOperation
+        Private Function CreateBoundSequenceOperation(boundSequence As BoundSequence) As ISequenceExpression
             Dim expressions As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
                 Function()
                     Return boundSequence.SideEffects.Select(Function(n) Create(n)).Where(Function(s) s IsNot Nothing AndAlso s.Kind <> OperationKind.None).ToImmutableArray()
@@ -1156,7 +1156,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim Syntax As SyntaxNode = boundSequence.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = Nothing
-            return new LazySequenceExpression(expressions, value, locals, syntax, type, constantValue)
+            Return New LazySequenceExpression(expressions, value, locals, Syntax, type, constantValue)
         End Function
     End Class
 End Namespace
