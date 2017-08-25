@@ -1257,11 +1257,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 isIteratorOrAsyncMethod = GeneratedNames.GetKind(containingType.Name) == GeneratedNameKind.StateMachineType;
             }
 
-            var argumentNamesSet = PooledHashSet<string>.GetInstance();
+            var parameterNames = PooledHashSet<string>.GetInstance();
             if (isIteratorOrAsyncMethod)
             {
                 Debug.Assert(IsDisplayClassType(containingType));
-                var argumentNamesArrayBuilder = ArrayBuilder<string>.GetInstance();
+                var parameterNamesInOrder = ArrayBuilder<string>.GetInstance();
                 foreach (var field in containingType.GetMembers().OfType<FieldSymbol>())
                 {
                     // All iterator and async state machine fields (including hoisted locals) have mangled names, except
@@ -1269,18 +1269,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     var fieldName = field.Name;
                     if (GeneratedNames.GetKind(fieldName) == GeneratedNameKind.None)
                     {
-                        argumentNamesArrayBuilder.Add(fieldName);
-                        argumentNamesSet.Add(fieldName);
+                        parameterNamesInOrder.Add(fieldName);
+                        parameterNames.Add(fieldName);
                     }
                 }
-                sourceMethodParametersInOrder = argumentNamesArrayBuilder.ToImmutableArray();
-                argumentNamesArrayBuilder.Free();
+                sourceMethodParametersInOrder = parameterNamesInOrder.ToImmutableArray();
+                parameterNamesInOrder.Free();
             }
             else
             {
                 foreach (var p in method.Parameters)
                 {
-                    argumentNamesSet.Add(p.Name);
+                    parameterNames.Add(p.Name);
                 }
                 sourceMethodParametersInOrder = ImmutableArray<string>.Empty;
             }
@@ -1301,7 +1301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     GetDisplayClassVariables(
                         displayClassVariableNamesInOrderBuilder,
                         displayClassVariablesBuilder,
-                        argumentNamesSet,
+                        parameterNames,
                         inScopeHoistedLocalSlots,
                         instance);
                 }
@@ -1316,7 +1316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 displayClassVariables = ImmutableDictionary<string, DisplayClassVariable>.Empty;
             }
 
-            argumentNamesSet.Free();
+            parameterNames.Free();
             displayClassTypes.Free();
             displayClassInstances.Free();
         }

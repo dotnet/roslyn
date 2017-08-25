@@ -3244,6 +3244,40 @@ End Module"
                 End Sub)
         End Sub
 
+        <WorkItem(298297, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=298297")>
+        <Fact>
+        Public Sub OrderOfArguments_ArgumentsOnly()
+            Const source = "
+Imports System.Collections.Generic
+Class C
+    Iterator Shared Function F(y As Object, x As Object) As IEnumerable(Of Object)
+        Yield x
+    #ExternalSource(""test"", 999)
+        DummySequencePoint()
+    #End ExternalSource
+        Yield y
+    End Function
+
+    Shared Sub DummySequencePoint()
+    End Sub
+End Class"
+            Dim comp = CreateCompilationWithMscorlib({source}, {MsvbRef}, options:=TestOptions.DebugDll)
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context As EvaluationContext
+                    context = CreateMethodContext(runtime, "C.VB$StateMachine_1_F.MoveNext", atLineNumber:=999)
+                    Dim unused As String = Nothing
+                    Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
+                    context.CompileGetLocals(locals, argumentsOnly:=True, typeName:=unused, testData:=Nothing)
+                    Assert.Equal(2, locals.Count)
+                    ' The order must confirm the order of the arguments in the method signature.
+                    Dim typeName As String = Nothing
+                    Dim testData As CompilationTestData = Nothing
+                    Assert.Equal("y", locals(0).LocalName)
+                    Assert.Equal("x", locals(1).LocalName)
+                End Sub)
+        End Sub
+
         Private Shared Sub GetLocals(runtime As RuntimeInstance, methodName As String, argumentsOnly As Boolean, locals As ArrayBuilder(Of LocalAndMethod), count As Integer, ByRef typeName As String, ByRef testData As CompilationTestData)
             Dim context = CreateMethodContext(runtime, methodName)
 
