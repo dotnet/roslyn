@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     {
         GetExeAndArguments(useCmdShell, executable, arguments, out string finalExecutable, out string finalArguments);
     }
-}", ignoreTrivia: false);
+}");
         }
     }
 }

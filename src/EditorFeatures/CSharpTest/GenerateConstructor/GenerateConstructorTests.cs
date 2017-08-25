@@ -1307,8 +1307,7 @@ class Derived : Base
     {
         new C(1);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(5864, "DevDiv_Projects/Roslyn")]
@@ -2429,7 +2428,7 @@ class Program
         this.wde = wde;
     }
 }
-", ignoreTrivia: false);
+");
         }
 
         [WorkItem(528257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528257")]
