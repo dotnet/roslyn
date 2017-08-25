@@ -3641,8 +3641,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var currentScope = this.LocalScopeDepth;
 
                 // ref-escape must agree on both branches.
-                var whenTrueEscape = GetRefEscape(trueExpr, currentScope);
-                var whenFalseEscape = GetRefEscape(falseExpr, currentScope);
+                uint whenTrueEscape = GetRefEscape(trueExpr, currentScope);
+                uint whenFalseEscape = GetRefEscape(falseExpr, currentScope);
 
                 if (whenTrueEscape != whenFalseEscape)
                 {
@@ -3660,7 +3660,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasErrors = true;
                 }
             }
-
 
             ConstantValue constantValue = null;
 

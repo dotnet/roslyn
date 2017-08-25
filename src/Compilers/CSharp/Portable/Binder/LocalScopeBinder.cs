@@ -368,13 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.LookupLocalFunction(nameToken);
         }
 
-        internal override uint LocalScopeDepth
-        {
-            get
-            {
-                return _localScopeDepth;
-            }
-        }
+        internal override uint LocalScopeDepth => _localScopeDepth;
 
         internal override void LookupSymbolsInSingleBinder(
             LookupResult result, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

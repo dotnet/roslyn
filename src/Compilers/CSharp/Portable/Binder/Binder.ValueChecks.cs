@@ -1650,7 +1650,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.PropertyAccess:
                     var propertyAccess = (BoundPropertyAccess)expr;
-                    var propertySymbol = propertyAccess.PropertySymbol;
 
                     // not passing any arguments/parameters
                     return GetInvocationEscapeScope(
@@ -1904,11 +1903,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Call:
                     var call = (BoundCall)expr;
-                    var methodSymbol = call.Method;
 
                     return GetInvocationEscapeScope(
                         call.ReceiverOpt,
-                        methodSymbol.Parameters,
+                        call.Method.Parameters,
                         call.Arguments,
                         call.ArgumentRefKindsOpt,
                         call.ArgsToParamsOpt,
@@ -1928,7 +1926,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.PropertyAccess:
                     var propertyAccess = (BoundPropertyAccess)expr;
-                    var propertySymbol = propertyAccess.PropertySymbol;
 
                     // not passing any arguments/parameters
                     return GetInvocationEscapeScope(
@@ -1969,7 +1966,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return Binder.TopLevelScope;
                     }
 
-                    return GetValEscape(((BoundConversion)expr).Operand, scopeOfTheContainingExpression);
+                    return GetValEscape(conversion.Operand, scopeOfTheContainingExpression);
 
                 case BoundKind.AssignmentOperator:
                     return GetValEscape(((BoundAssignmentOperator)expr).Right, scopeOfTheContainingExpression);
@@ -2109,12 +2106,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.PropertyAccess:
                     var propertyAccess = (BoundPropertyAccess)expr;
-                    var propertySymbol = propertyAccess.PropertySymbol;
 
                     // not passing any arguments/parameters
                     return CheckInvocationEscape(
                         propertyAccess.Syntax,
-                        propertySymbol,
+                        propertyAccess.PropertySymbol,
                         propertyAccess.ReceiverOpt,
                         default,
                         default,

@@ -6778,15 +6778,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var arguments = analyzedArguments.Arguments.ToImmutable();
                 gotError |= !CheckInvocationArgMixing(
-                            syntax,
-                            property,
-                            receiver,
-                            property.Parameters,
-                            arguments,
-                            argumentRefKinds,
-                            argsToParams,
-                            this.LocalScopeDepth,
-                            diagnostics);
+                    syntax,
+                    property,
+                    receiver,
+                    property.Parameters,
+                    arguments,
+                    argumentRefKinds,
+                    argsToParams,
+                    this.LocalScopeDepth,
+                    diagnostics);
 
                 propertyAccess = new BoundIndexerAccess(
                     syntax,
