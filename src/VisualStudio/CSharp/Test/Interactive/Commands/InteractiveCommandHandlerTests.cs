@@ -171,7 +171,7 @@ $@"#define DEF
         private static void AssertExecuteInInteractive(string code, string[] expectedSubmissions, string submissionBuffer = null)
         {
             List<string> submissions = new List<string>();
-            EventHandler<string> appendSubmission = (_, item) => { submissions.Add(item.TrimEnd()); };
+            void appendSubmission(object _, string item) { submissions.Add(item.TrimEnd()); }
 
             using (var workspace = InteractiveWindowCommandHandlerTestState.CreateTestState(code))
             {

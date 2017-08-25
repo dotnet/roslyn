@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var result = document;
                 var compilation = await result.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-                var isComImport = unimplementedMembers.Any(t => t.Item1.IsComImport);
+                var isComImport = unimplementedMembers.Any(t => t.type.IsComImport);
                 var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var propertyGenerationBehavior = options.GetOption(ImplementTypeOptions.PropertyGenerationBehavior);
 

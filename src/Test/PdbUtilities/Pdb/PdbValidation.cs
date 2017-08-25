@@ -412,8 +412,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var peReader = new PEReader(peStream);
             var debugDirectory = peReader.PEHeaders.PEHeader.DebugTableDirectory;
 
-            int position;
-            Assert.True(peReader.PEHeaders.TryGetDirectoryOffset(debugDirectory, out position));
+            Assert.True(peReader.PEHeaders.TryGetDirectoryOffset(debugDirectory, out var position));
             int entries = debugDirectory.Size / 0x1c;
             Assert.Equal(0, debugDirectory.Size % 0x1c);
             Assert.True(entries == 1 || entries == 2);

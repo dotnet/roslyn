@@ -469,8 +469,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        var nsOrType = containerSymbol as INamespaceOrTypeSymbol;
-                        if (nsOrType != null)
+                        if (containerSymbol is INamespaceOrTypeSymbol nsOrType)
                         {
                             results.AddRange(nsOrType.GetMembers(GetName(node)));
                         }
@@ -582,8 +581,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     Bind(derivedTypeIndex, compilation.GlobalNamespace, tempBuilder, cancellationToken);
                     foreach (var symbol in tempBuilder)
                     {
-                        var namedType = symbol as INamedTypeSymbol;
-                        if (namedType != null)
+                        if (symbol is INamedTypeSymbol namedType)
                         {
                             builder.Add(namedType);
                         }
