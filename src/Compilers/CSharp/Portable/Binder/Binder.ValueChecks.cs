@@ -515,11 +515,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool CheckParameterValueKind(SyntaxNode node, BoundParameter parameter, BindValueKind valueKind, bool checkingReceiver, DiagnosticBag diagnostics)
         {
             ParameterSymbol parameterSymbol = parameter.ParameterSymbol;
-            var paramKind = parameterSymbol.RefKind;
 
             // all parameters can be passed by ref/out or assigned to
             // except "in" parameters, which are readonly
-            if (paramKind == RefKind.RefReadOnly && RequiresAssignableVariable(valueKind))
+            if (parameterSymbol.RefKind == RefKind.RefReadOnly && RequiresAssignableVariable(valueKind))
             {
                 ReportReadOnlyError(parameterSymbol, node, valueKind, checkingReceiver, diagnostics);
                 return false;
@@ -540,7 +539,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool CheckParameterRefEscape(SyntaxNode node, BoundParameter parameter, uint escapeTo, bool checkingReceiver, DiagnosticBag diagnostics)
         {
             ParameterSymbol parameterSymbol = parameter.ParameterSymbol;
-            var paramKind = parameterSymbol.RefKind;
 
             // byval parameters can escape to method's top level.
             // others can be escape further, unless they are ref-like.
