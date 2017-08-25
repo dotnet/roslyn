@@ -15,7 +15,16 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class Binder
     {
         /// <summary>
-        /// constants used to designate escaping scopes.
+        /// For the purpose of escape verification we operate with the depth of local scopes.
+        /// The depth is a uint, with smaller number representing shallower/wider scopes.
+        /// The 0 and 1 are special scopes - 
+        /// 0 is the "external" or "return" scope that is outside of the containing method/lambda. 
+        ///   If something can escape to scope 0, it can escape to any scope in a given method or can be returned.
+        /// 1 is the "parameter" or "top" scope that is just inside the containing method/lambda. 
+        ///   If something can escape to scope 1, it can escape to any scope in a given method, but cannot be returned.
+        /// n + 1 corresponds to scopes immediately inside a scope of depth n. 
+        ///   Since sibling scopes do not intersect and a value cannot escape from one to another without 
+        ///   escaping to a wider scope, we can use simple depth numbering without ambiguity.
         /// </summary>
         internal const uint ExternalScope = 0;
         internal const uint TopLevelScope = 1;
@@ -349,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ArrayAccess:
                 case BoundKind.PointerIndirectionOperator:
                 case BoundKind.PointerElementAccess:
-                    // array elements and pointer dereferencing are readwrite varaibles
+                    // array elements and pointer dereferencing are readwrite variables
                     return true;
 
                 case BoundKind.RefValueOperator:
@@ -466,6 +475,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             LocalSymbol localSymbol = local.LocalSymbol;
 
+            // if local symbol can escape to the same or wider/shallower scope then escapeTo
+            // then it is all ok, otherwise it is an error.
             if (localSymbol.RefEscapeScope <= escapeTo)
             {
                 return true;
@@ -973,8 +984,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // since it is the same or narrower than val escape and callee may wrap the ref into a val
                     var argument = args[argIndex];
                     var argEscape = effectiveRefKind != RefKind.None && argument.Type.IsByRefLikeType == false ?
-                                        GetRefEscape(args[argIndex], scopeOfTheContainingExpression) :
-                                        GetValEscape(args[argIndex], scopeOfTheContainingExpression);
+                                        GetRefEscape(argument, scopeOfTheContainingExpression) :
+                                        GetValEscape(argument, scopeOfTheContainingExpression);
 
                     escapeScope = Math.Max(escapeScope, argEscape);
 
@@ -999,7 +1010,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return scopeOfTheContainingExpression;
             }
 
-
             // check receiver if ref-like
             if (receiverOpt?.Type?.IsByRefLikeType == true)
             {
@@ -1012,7 +1022,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Validates whether given invocation can allow its results to escape from `escapeFrom` level to `escapeTo` level.
         /// The result indicates whether the escape is possible. 
-        /// Additionally, the method emits diagnostics (possibly more than one, recusrively) that would help identify the cause for the failure.
+        /// Additionally, the method emits diagnostics (possibly more than one, recursively) that would help identify the cause for the failure.
         /// 
         /// NOTE: the escape scope for ref and val escapes is the same for invocations except for trivial cases (ordinary type returned by val) 
         ///       where escape is known otherwise. Therefore we do not vave two ref/val variants of this.
@@ -1103,7 +1113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             uint scopeOfTheContainingExpression,
             DiagnosticBag diagnostics)
         {
-            // widest possible escape via writeble ref-like receiver or ref/out argument.
+            // widest possible escape via writeable ref-like receiver or ref/out argument.
             uint escapeTo = scopeOfTheContainingExpression;
 
             // collect all writeable ref-like arguments, including receiver
@@ -1120,7 +1130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var refKind = argRefKinds.IsDefault ? RefKind.None : argRefKinds[argIndex];
                     if (refKind != RefKind.None && argument.Type?.IsByRefLikeType == true)
                     {
-                        Debug.Assert(refKind == RefKind.Ref || refKind == RefKind.None);
+                        Debug.Assert(refKind == RefKind.Ref || refKind == RefKind.Out);
                         escapeTo = Math.Min(escapeTo, GetValEscape(argument, scopeOfTheContainingExpression));
                     }
                 }
@@ -1228,7 +1238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             inParametersMatchedWithArgs?[i] != true &&
                             parameter.Type.IsByRefLikeType == false)
                         {
-                            return parameters[i];
+                            return parameter;
                         }
                     }
                 }
@@ -1525,7 +1535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ArrayAccess:
                 case BoundKind.PointerIndirectionOperator:
                 case BoundKind.PointerElementAccess:
-                    // array elements and pointer dereferencing are readwrite varaibles
+                    // array elements and pointer dereferencing are readwrite variables
                     return Binder.ExternalScope;
 
                 case BoundKind.RefValueOperator:
@@ -1546,6 +1556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // byval parameters can escape to method's top level.
                     // others can be escape further, unless they are ref-like.
+                    // NOTE: "method" here means nearst containing method, lambda or nested method
                     return parameter.RefKind == RefKind.None || parameter.Type?.IsByRefLikeType == true ?
                         Binder.TopLevelScope :
                         Binder.ExternalScope;
@@ -1660,7 +1671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A counterpart to the GetRefEscape, which validates if given escape demand can be met by the expression.
         /// The result indicates whether the escape is possible. 
-        /// Additionally, the method emits diagnostics (possibly more than one, recusrively) that would help identify the cause for the failure.
+        /// Additionally, the method emits diagnostics (possibly more than one, recursively) that would help identify the cause for the failure.
         /// </summary>
         internal static bool CheckRefEscape(SyntaxNode node, BoundExpression expr, uint escapeFrom, uint escapeTo, bool checkingReceiver, DiagnosticBag diagnostics)
         {
@@ -1678,7 +1689,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            // void references cannot escape (error should be reported somwhere)
+            // void references cannot escape (error should be reported somewhere)
             if (expr.Type?.GetSpecialTypeSafe() == SpecialType.System_Void)
             {
                 return true;
@@ -1696,7 +1707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ArrayAccess:
                 case BoundKind.PointerIndirectionOperator:
                 case BoundKind.PointerElementAccess:
-                    // array elements and pointer dereferencing are readwrite varaibles
+                    // array elements and pointer dereferencing are readwrite variables
                     return true;
 
                 case BoundKind.RefValueOperator:
@@ -1994,7 +2005,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A counterpart to the GetValEscape, which validates if given escape demand can be met by the expression.
         /// The result indicates whether the escape is possible. 
-        /// Additionally, the method emits diagnostics (possibly more than one, recusrively) that would help identify the cause for the failure.
+        /// Additionally, the method emits diagnostics (possibly more than one, recursively) that would help identify the cause for the failure.
         /// </summary>
         internal static bool CheckValEscape(SyntaxNode node, BoundExpression expr, uint escapeFrom, uint escapeTo, bool checkingReceiver, DiagnosticBag diagnostics)
         {

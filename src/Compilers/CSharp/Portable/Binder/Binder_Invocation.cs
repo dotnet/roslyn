@@ -1013,19 +1013,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(args.IsDefaultOrEmpty || (object)receiver != (object)args[0]);
 
+            gotError |= !CheckInvocationArgMixing(
+                            node,
+                            method,
+                            receiver,
+                            method.Parameters,
+                            args,
+                            argRefKinds,
+                            argsToParams,
+                            this.LocalScopeDepth,
+                            diagnostics);
+
             if ((object)delegateTypeOpt != null)
             {
-                gotError |= !CheckInvocationArgMixing(
-                                            node,
-                                            method,
-                                            receiver,
-                                            method.Parameters,
-                                            args,
-                                            argRefKinds,
-                                            argsToParams,
-                                            this.LocalScopeDepth,
-                                            diagnostics);
-
                 return new BoundCall(node, receiver, method, args, argNames, argRefKinds, isDelegateCall: true,
                             expanded: expanded, invokedAsExtensionMethod: invokedAsExtensionMethod,
                             argsToParamsOpt: argsToParams, resultKind: LookupResultKind.Viable, binderOpt: this, type: returnType, hasErrors: gotError);
@@ -1046,17 +1046,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                              receiver,
                                              diagnostics);
                 }
-
-                gotError |= !CheckInvocationArgMixing(
-                            node,
-                            method,
-                            receiver,
-                            method.Parameters,
-                            args,
-                            argRefKinds,
-                            argsToParams,
-                            this.LocalScopeDepth,
-                            diagnostics);
 
                 return new BoundCall(node, receiver, method, args, argNames, argRefKinds, isDelegateCall: false,
                             expanded: expanded, invokedAsExtensionMethod: invokedAsExtensionMethod,

@@ -2369,7 +2369,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Method '{0}' has a parameter modifier 'this' which is not on the first parameter</value>
   </data>
   <data name="ERR_BadParameterModifiers" xml:space="preserve">
-    <value> The parameter modifier '{0}' cannot be used with '{1}' </value>
+    <value> The parameter modifier '{0}' cannot be used with '{1}'</value>
   </data>
   <data name="ERR_BadTypeforThis" xml:space="preserve">
     <value>The first parameter of an extension method cannot be of type '{0}'</value>
@@ -2825,10 +2825,10 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Cannot assign to a member of {0} '{1}' because it is a readonly variable</value>
   </data>
   <data name="ERR_RefReturnReadonlyNotField" xml:space="preserve">
-    <value>Cannot return {0} '{1}' by writeable reference because it is a readonly variable</value>
+    <value>Cannot return {0} '{1}' by writable reference because it is a readonly variable</value>
   </data>
   <data name="ERR_RefReturnReadonlyNotField2" xml:space="preserve">
-    <value>Members of {0} '{1}' cannot be returned by writeable reference because it is a readonly variable</value>
+    <value>Members of {0} '{1}' cannot be returned by writable reference because it is a readonly variable</value>
   </data>
   <data name="ERR_AssgReadonlyStatic2" xml:space="preserve">
     <value>Fields of static readonly field '{0}' cannot be assigned to (except in a static constructor or a variable initializer)</value>
@@ -4827,16 +4827,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Cannot return fields of '{0}' by reference because it is a '{1}'</value>
   </data>
   <data name="ERR_RefReturnReadonly" xml:space="preserve">
-    <value>A readonly field cannot be returned by writeable reference</value>
+    <value>A readonly field cannot be returned by writable reference</value>
   </data>
   <data name="ERR_RefReturnReadonlyStatic" xml:space="preserve">
-    <value>A static readonly field cannot be returned by writeable reference</value>
+    <value>A static readonly field cannot be returned by writable reference</value>
   </data>
   <data name="ERR_RefReturnReadonly2" xml:space="preserve">
-    <value>Members of readonly field '{0}' cannot be returned by writeable reference</value>
+    <value>Members of readonly field '{0}' cannot be returned by writable reference</value>
   </data>
   <data name="ERR_RefReturnReadonlyStatic2" xml:space="preserve">
-    <value>Fields of static readonly field '{0}' cannot be returned by writeable reference</value>
+    <value>Fields of static readonly field '{0}' cannot be returned by writable reference</value>
   </data>
   <data name="ERR_RefReturnParameter" xml:space="preserve">
     <value>Cannot return a parameter by reference '{0}' because it is not a ref or out parameter</value>
@@ -4854,10 +4854,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Struct members cannot return 'this' or other instance members by reference</value>
   </data>
   <data name="ERR_EscapeOther" xml:space="preserve">
-    <value>Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope </value>
+    <value>Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope</value>
   </data>
   <data name="ERR_EscapeLocal" xml:space="preserve">
-    <value>Cannot use local '{0}' in this context because it may expose referenced variables outside of their declaration scope </value>
+    <value>Cannot use local '{0}' in this context because it may expose referenced variables outside of their declaration scope</value>
   </data>
   <data name="ERR_EscapeCall" xml:space="preserve">
     <value>Cannot use a result of '{0}' in this context because it may expose variables referenced by parameter '{1}' outside of their declaration scope</value>
@@ -4869,10 +4869,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>This combination of arguments to '{0}' is disallowed because it may expose variables referenced by parameter '{1}' outside of their declaration scope</value>
   </data>
   <data name="ERR_MismatchedRefEscapeInTernary" xml:space="preserve">
-    <value>Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes.</value>
+    <value>Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes</value>
   </data>
   <data name="ERR_MismatchedRefEscapeInTernary" xml:space="preserve">
-    <value>Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes.</value>
+    <value>Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes</value>
   </data>
   <data name="ERR_EscapeStackAlloc" xml:space="preserve">
     <value>A result of a stackalloc expression of type '{0}' cannot be used in this context because it may be exposed outside of the containing method</value>
