@@ -157,6 +157,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim objectType = GetSpecialType(SpecialType.System_Object, node, diagnostics)
 
             If Not arguments.IsEmpty Then
+                CheckNamedArgumentsForLateboundInvocation(argumentNames, arguments, diagnostics)
+
                 Dim builder As ArrayBuilder(Of BoundExpression) = Nothing
 
                 For i As Integer = 0 To arguments.Length - 1
@@ -219,7 +221,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundLateInvocation(node, receiver, arguments, argumentNames, LateBoundAccessKind.Unknown, groupOpt, objType)
         End Function
 
+        Private Sub CheckNamedArgumentsForLateboundInvocation(argumentNames As ImmutableArray(Of String),
+                                                            arguments As ImmutableArray(Of BoundExpression),
+                                                            diagnostics As DiagnosticBag)
 
+            If argumentNames.Count = 0 Then
+                Return
+            End If
+
+            If Not Compilation.LanguageVersion.AllowNonTrailingNamedArguments() Then
+                Return
+            End If
+
+            Dim seenName As Boolean = False
+            For i As Integer = 0 To argumentNames.Count - 1
+
+                If argumentNames(i) IsNot Nothing Then
+                    seenName = True
+                ElseIf seenName Then
+                    Dim diagInfo = ErrorFactory.ErrorInfo(ERRID.ERR_NamedArgumentSpecificationBeforeFixedArgumentInLateboundInvocation)
+                    ReportDiagnostic(diagnostics, arguments(i).Syntax, diagInfo)
+                    Return
+                End If
+            Next
+
+        End Sub
     End Class
 End Namespace
 

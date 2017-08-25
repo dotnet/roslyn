@@ -717,6 +717,9 @@
   <data name="ERR_ExpectedNamedArgumentInAttributeList" xml:space="preserve">
     <value>Named argument expected.</value>
   </data>
+  <data name="ERR_NamedArgumentSpecificationBeforeFixedArgumentInLateboundInvocation" xml:space="preserve">
+    <value>Named argument specifications must appear after all fixed arguments have been specified in a late bound invocation.</value>
+  </data>
   <data name="ERR_ExpectedNamedArgument" xml:space="preserve">
     <value>Named argument expected. Please use language version {0} or greater to use non-trailing named arguments.</value>
   </data>

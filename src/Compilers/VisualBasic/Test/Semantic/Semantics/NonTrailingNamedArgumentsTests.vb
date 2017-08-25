@@ -72,6 +72,260 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub TestSimpleConstructor()
+            Dim source =
+<compilation>
+    <file name="Program.vb">
+Class C
+    Sub New(a As Integer, b As Integer)
+        System.Console.Write($"First {a} {b}. ")
+    End Sub
+    Shared Sub Main()
+        Dim c = New C(a:=1, 2)
+    End Sub
+End Class
+    </file>
+</compilation>
+            Dim verifier = CompileAndVerify(source, expectedOutput:="First 1 2.",
+                                            parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
+            verifier.VerifyDiagnostics()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source,
+                                            parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+            comp.AssertTheseDiagnostics(<errors>
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
+        Dim c = New C(a:=1, 2)
+                            ~
+                                            </errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub TestSimpleThis()
+            Dim source =
+<compilation>
+    <file name="Program.vb">
+Class C
+    Sub New(a As Integer, b As Integer)
+        System.Console.Write($"First {a} {b}. ")
+    End Sub
+    Sub New()
+        Me.New(a:=1, 2)
+    End Sub
+    Shared Sub Main()
+        Dim c = New C()
+    End Sub
+End Class
+    </file>
+</compilation>
+            Dim verifier = CompileAndVerify(source, expectedOutput:="First 1 2.",
+                                            parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
+            verifier.VerifyDiagnostics()
+
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(source,
+                                            parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+            comp.AssertTheseDiagnostics(<errors>
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
+        Me.New(a:=1, 2)
+                     ~
+                                        </errors>)
+        End Sub
+
+        <Fact>
+        Public Sub TestSimpleBase()
+            Dim source =
+<compilation>
+    <file name="Program.vb">
+Class C
+    Sub New(a As Integer, b As Integer)
+        System.Console.Write($"First {a} {b}. ")
+    End Sub
+End Class
+Class Derived
+    Inherits C
+
+    Sub New()
+        MyBase.New(a:=1, 2)
+    End Sub
+    Shared Sub Main()
+        Dim derived = New Derived()
+    End Sub
+End Class
+    </file>
+</compilation>
+            Dim verifier = CompileAndVerify(source, expectedOutput:="First 1 2.",
+                                            parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub TestSimpleExtension()
+            Dim source =
+<compilation>
+    <file name="Program.vb"><![CDATA[
+Module Extensions
+    <System.Runtime.CompilerServices.Extension>
+    Sub M(ByVal c As C, a As Integer, b As Integer)
+        System.Console.Write($"First {a} {b}. ")
+    End Sub
+End Module
+Class C
+    Shared Sub Main()
+        Dim c = New C()
+        c.M(a:=1, 2)
+    End Sub
+End Class
+    ]]></file>
+</compilation>
+            Dim verifier = CompileAndVerify(source, expectedOutput:="First 1 2.",
+                                            parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
+            verifier.VerifyDiagnostics()
+
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(source,
+                                            parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+            comp.AssertTheseDiagnostics(<errors>
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
+        c.M(a:=1, 2)
+                  ~
+                                        </errors>)
+        End Sub
+
+        <Fact>
+        Public Sub TestSimpleDelegate()
+            Dim source =
+<compilation>
+    <file name="Program.vb"><![CDATA[
+Class C
+    Delegate Sub MyDelegate(a As Integer, b As Integer)
+
+    Shared Sub M(a As Integer, b As Integer)
+        System.Console.Write($"First {a} {b}. ")
+    End Sub
+
+    Shared Sub Main()
+        Dim f As MyDelegate = AddressOf M
+        f(a:=1, 2)
+    End Sub
+End Class
+    ]]></file>
+</compilation>
+            Dim verifier = CompileAndVerify(source, expectedOutput:="First 1 2.",
+                                            parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
+            verifier.VerifyDiagnostics()
+
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(source,
+                                            parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+            comp.AssertTheseDiagnostics(<errors>
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
+        f(a:=1, 2)
+                ~
+                                        </errors>)
+        End Sub
+
+        <Fact>
+        Public Sub TestSimpleIndexer()
+            Dim source =
+<compilation>
+    <file name="Program.vb"><![CDATA[
+Class C
+    Default ReadOnly Property Item(a As Integer, b As Integer) As Integer
+        Get
+            System.Console.Write($"First {a} {b}. ")
+            Return 0
+        End Get
+    End Property
+
+    Shared Sub Main()
+        Dim c = New C()
+        Dim x = c(a:=1, 2)
+    End Sub
+End Class
+    ]]></file>
+</compilation>
+            Dim verifier = CompileAndVerify(source, expectedOutput:="First 1 2.",
+                                            parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
+            verifier.VerifyDiagnostics()
+
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(source,
+                                            parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+            comp.AssertTheseDiagnostics(<errors>
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
+        Dim x = c(a:=1, 2)
+                        ~
+                                        </errors>)
+        End Sub
+
+        <Fact>
+        Public Sub TestSimpleError()
+            Dim source =
+<compilation>
+    <file name="Program.vb"><![CDATA[
+Class C
+    Sub New(a As Integer, b As Integer)
+    End Sub
+
+    Default ReadOnly Property Item(a As Integer, b As Integer) As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+
+    Shared Sub Main()
+        Dim c = New C(b:=1, 2)
+        Dim x = c(b:=1, 2)
+    End Sub
+End Class
+    ]]></file>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(source,
+                                            parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
+            comp.AssertTheseDiagnostics(<errors>
+BC37302: Named argument 'b' is used out-of-position but is followed by an unnamed argument
+        Dim c = New C(b:=1, 2)
+                      ~
+BC37302: Named argument 'b' is used out-of-position but is followed by an unnamed argument
+        Dim x = c(b:=1, 2)
+                  ~
+                                        </errors>)
+        End Sub
+
+        <Fact>
+        Public Sub TestMetadataAndPESymbols()
+            Dim lib_vb =
+<compilation>
+    <file name="Lib.vb"><![CDATA[
+Public Class C
+    Public Shared Sub M(a As Integer, b As Integer)
+        System.Console.Write($"{a} {b}. ")
+    End Sub
+End Class
+    ]]></file>
+</compilation>
+
+            Dim source =
+<compilation>
+    <file name="Program.vb"><![CDATA[
+Class D
+    Shared Sub Main()
+        C.M(a:=1, 2)
+    End Sub
+End Class
+    ]]></file>
+</compilation>
+
+            Dim libComp = CreateCompilationWithMscorlibAndVBRuntime(lib_vb, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
+
+            Dim verifier1 = CompileAndVerify(source, expectedOutput:="1 2.", additionalRefs:={libComp.ToMetadataReference()},
+                                            parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
+            verifier1.VerifyDiagnostics()
+
+            Dim verifier2 = CompileAndVerify(source, expectedOutput:="1 2.", additionalRefs:={libComp.EmitToImageReference()},
+                                            parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
+            verifier2.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
         Public Sub TestPositionalUnaffected()
             Dim source =
 <compilation>
@@ -538,6 +792,35 @@ End Class
             Assert.Equal("M(c:=valueC, valueB)", invocation.ToString())
             Assert.Equal("Sub C.M([c As System.Int32 = 1], [b As System.Int32 = 2])",
                 model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        Public Sub TestDynamicInvocation()
+            Dim source =
+<compilation>
+    <file name="Program.vb">
+Option Strict Off
+Class C
+    Shared Sub Main()
+        Dim d = New Object()
+        d.M(a:=1, 2)
+    End Sub
+End Class
+    </file>
+</compilation>
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=latestParseOptions)
+            comp.AssertTheseDiagnostics(<errors>
+BC37304: Named argument specifications must appear after all fixed arguments have been specified in a late bound invocation.
+        d.M(a:=1, 2)
+                  ~
+                                        </errors>)
+
+            Dim comp2 = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
+            comp2.AssertTheseDiagnostics(<errors>
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
+        d.M(a:=1, 2)
+                  ~
+                                         </errors>)
         End Sub
 
         <Fact>

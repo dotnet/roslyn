@@ -66,10 +66,17 @@ class C
 }";
             var verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2);
             verifier.VerifyDiagnostics();
+
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics(
+                // (10,21): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
+                //         new C(a: 1, 2);
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "2").WithArguments("7.2").WithLocation(10, 21)
+                );
         }
 
         [Fact]
-        public void TestSimpleConstructorWithOldLangVersion()
+        public void TestSimpleThis()
         {
             var source = @"
 class C
@@ -78,17 +85,39 @@ class C
     {
         System.Console.Write($""{a} {b}."");
     }
+    C() : this(a: 1, 2) { }
+
     static void Main()
     {
-        new C(a: 1, 2);
+        new C();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
-            comp.VerifyDiagnostics(
-                // (10,21): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
-                //         new C(a: 1, 2);
-                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "2").WithArguments("7.2").WithLocation(10, 21)
-                );
+            var verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestSimpleBase()
+        {
+            var source = @"
+public class C
+{
+    public C(int a, int b)
+    {
+        System.Console.Write($""{a} {b}."");
+    }
+}
+class Derived : C
+{
+    Derived() : base(a: 1, 2) { }
+
+    static void Main()
+    {
+        new Derived();
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -112,27 +141,7 @@ public class C
 }";
             var verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, additionalRefs: new[] { SystemCoreRef });
             verifier.VerifyDiagnostics();
-        }
 
-        [Fact]
-        public void TestSimpleExtensionWithOldLangVersion()
-        {
-            var source = @"
-public static class Extension
-{
-    public static void M(this C c, int a, int b)
-    {
-        System.Console.Write($""{a} {b}."");
-    }
-}
-public class C
-{
-    static void Main()
-    {
-        var c = new C();
-        c.M(a: 1, 2);
-    }
-}";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, references: new[] { SystemCoreRef });
             comp.VerifyDiagnostics(
                 // (14,19): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
@@ -164,29 +173,7 @@ class C
 }";
             var verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2);
             verifier.VerifyDiagnostics();
-        }
 
-        [Fact]
-        public void TestSimpleDelegateWithOldLangVersion()
-        {
-            var source = @"
-class C
-{
-    delegate void MyDelegate(int a, int b);
-    event MyDelegate e;
-
-    static void M(int a, int b)
-    {
-        System.Console.Write($""{a} {b}."");
-    }
-
-    static void Main()
-    {
-        var c = new C();
-        c.e += M;
-        c.e.Invoke(a: 1, 2);
-    }
-}";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (16,26): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
@@ -214,27 +201,13 @@ class C
 }";
             var verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2);
             verifier.VerifyDiagnostics();
-        }
 
-        [Fact]
-        public void TestSimpleLocalFunctionWithOldLangVersion()
-        {
-            var source = @"
-class C
-{
-    static void Main()
-    {
-        var c = new C();
-        local(a: 1, 2);
-
-        void local(int a, int b)
-        {
-            System.Console.Write($""{a} {b}."");
-        }
-    }
-}";
-            var verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2);
-            verifier.VerifyDiagnostics();
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics(
+                // (7,21): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
+                //         local(a: 1, 2);
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "2").WithArguments("7.2").WithLocation(7, 21)
+                );
         }
 
         [Fact]
@@ -259,28 +232,7 @@ class C
 }";
             var verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2);
             verifier.VerifyDiagnostics();
-        }
 
-        [Fact]
-        public void TestSimpleIndexerWithOldLangVersion()
-        {
-            var source = @"
-class C
-{
-    int this[int a, int b]
-    {
-        get
-        {
-            System.Console.Write($""{a} {b}."");
-            return 0;
-        }
-    }
-    static void Main()
-    {
-        var c = new C();
-        _ = c[a: 1, 2];
-    }
-}";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (15,21): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
@@ -440,8 +392,10 @@ class C
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
             var invocation = nodes.OfType<InvocationExpressionSyntax>().ElementAt(1);
             Assert.Equal("M(c: 1, 2)", invocation.ToString());
+            SymbolInfo symbol = model.GetSymbolInfo(invocation);
             AssertEx.Equal(new[] { "void C.M(System.Int32 a, System.Int32 b, [System.Int32 c = 1])" },
-                model.GetSymbolInfo(invocation).CandidateSymbols.Select(c => c.ToTestDisplayString()));
+                symbol.CandidateSymbols.Select(c => c.ToTestDisplayString()));
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbol.CandidateReason);
         }
 
         [Fact]
@@ -832,6 +786,13 @@ class C
                 //         d.M(a: 1, 2);
                 Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgumentInDynamicInvocation, "2").WithLocation(7, 19)
                 );
+
+            var comp2 = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7);
+            comp2.VerifyDiagnostics(
+                // (7,19): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
+                //         d.M(a: 1, 2);
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "2").WithArguments("7.2").WithLocation(7, 19)
+                );
         }
 
         [Fact]
@@ -855,26 +816,6 @@ class C
                 // (7,21): error CS8323: Named argument specifications must appear after all fixed arguments have been specified in a dynamic invocation.
                 //         local(x: 1, d); 
                 Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgumentInDynamicInvocation, "d").WithLocation(7, 21)
-                );
-        }
-
-        [Fact]
-        public void TestDynamicInvocationWithOldLangVersion()
-        {
-            var source = @"
-class C
-{
-    void M()
-    {
-        dynamic d = new object();
-        d.M(a: 1, 2);
-    }
-}";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7);
-            comp.VerifyDiagnostics(
-                // (7,19): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
-                //         d.M(a: 1, 2);
-                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "2").WithArguments("7.2").WithLocation(7, 19)
                 );
         }
 
