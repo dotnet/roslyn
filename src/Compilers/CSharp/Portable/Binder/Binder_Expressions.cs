@@ -2361,7 +2361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declType, diagnostics, typeSyntax);
 
-                return new BoundLocal(declarationExpression, localSymbol, isDeclaration:true, constantValueOpt: null, type: declType);
+                return new BoundLocal(declarationExpression, localSymbol, isDeclaration: true, constantValueOpt: null, type: declType);
             }
 
             // Is this a field?
@@ -2390,7 +2390,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol fieldType = expressionVariableField.GetFieldType(this.FieldsBeingBound);
             return new BoundFieldAccess(declarationExpression,
                                         receiver,
-                                        expressionVariableField, null, LookupResultKind.Viable, fieldType, isDeclaration: true);
+                                        expressionVariableField,
+                                        null,
+                                        LookupResultKind.Viable,
+                                        isDeclaration: true,
+                                        type: fieldType);
         }
 
         /// <summary>

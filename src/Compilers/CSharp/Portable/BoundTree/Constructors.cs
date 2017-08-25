@@ -25,9 +25,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConstantValue constantValueOpt,
             LookupResultKind resultKind,
             TypeSymbol type,
-            bool hasErrors = false,
-            bool isDeclaration = false)
-            : this(syntax, receiver, fieldSymbol, constantValueOpt, resultKind, NeedsByValueFieldAccess(receiver, fieldSymbol), isDeclaration, type, hasErrors)
+            bool hasErrors = false)
+            : this(syntax, receiver, fieldSymbol, constantValueOpt, resultKind, NeedsByValueFieldAccess(receiver, fieldSymbol), isDeclaration: false, type: type, hasErrors: hasErrors)
+        {
+        }
+
+        public BoundFieldAccess(
+            SyntaxNode syntax,
+            BoundExpression receiver,
+            FieldSymbol fieldSymbol,
+            ConstantValue constantValueOpt,
+            LookupResultKind resultKind,
+            bool isDeclaration,
+            TypeSymbol type,
+            bool hasErrors = false)
+            : this(syntax, receiver, fieldSymbol, constantValueOpt, resultKind, NeedsByValueFieldAccess(receiver, fieldSymbol), isDeclaration: isDeclaration, type: type, hasErrors: hasErrors)
         {
         }
 
