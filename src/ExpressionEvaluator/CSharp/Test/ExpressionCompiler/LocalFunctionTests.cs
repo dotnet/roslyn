@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
 @"{
   // Code size        7 (0x7)
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
-                Assert.Equal(locals.Count, 1);
+                Assert.Equal(1, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "value", expectedILOpt:
 @"{
   // Code size        7 (0x7)

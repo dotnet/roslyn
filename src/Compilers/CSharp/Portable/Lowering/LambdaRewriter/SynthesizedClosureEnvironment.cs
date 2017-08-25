@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal readonly MethodSymbol OriginalContainingMethodOpt;
         internal readonly FieldSymbol SingletonCache;
         internal readonly MethodSymbol StaticConstructor;
+        internal readonly SynthesizedFieldSymbol EncStructExpansionField;
 
         private ArrayBuilder<Symbol> _membersBuilder = ArrayBuilder<Symbol>.GetInstance();
         private ImmutableArray<Symbol> _members;
@@ -54,6 +55,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 StaticConstructor = new SynthesizedStaticConstructor(this);
                 var cacheVariableName = GeneratedNames.MakeCachedFrameInstanceFieldName();
                 SingletonCache = new SynthesizedLambdaCacheFieldSymbol(this, this, cacheVariableName, topLevelMethod, isReadOnly: true, isStatic: true);
+            }
+
+            if (isStruct && ContainingSymbol.DeclaringCompilation.Options.EnableEditAndContinue)
+            {
+                // Add an extra object field for EnC.
+                TypeSymbol objectType = this.DeclaringCompilation.GetSpecialType(SpecialType.System_Object);
+                EncStructExpansionField = new SynthesizedFieldSymbol(this, objectType, GeneratedNames.MakeEncStructExpansionFieldName(), isPublic: false, isReadOnly: false, isStatic: false);
             }
 
             AssertIsClosureScopeSyntax(scopeSyntaxOpt);
@@ -103,6 +111,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     builder.Add(StaticConstructor);
                     builder.Add(SingletonCache);
+                }
+                if ((object)EncStructExpansionField != null)
+                {
+                    builder.Add(EncStructExpansionField);            
                 }
                 builder.AddRange(base.GetMembers());
                 _members = builder.ToImmutableAndFree();

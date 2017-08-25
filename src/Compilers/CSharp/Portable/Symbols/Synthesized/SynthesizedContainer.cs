@@ -129,8 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<Symbol> GetMembers(string name)
         {
-            var ctor = Constructor;
-            return ((object)ctor != null && name == ctor.Name) ? ImmutableArray.Create<Symbol>(ctor) : ImmutableArray<Symbol>.Empty;
+            return GetMembers().WhereAsArray(m => m.Name == name);
         }
 
         internal override IEnumerable<FieldSymbol> GetFieldsToEmit()
