@@ -707,6 +707,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IFieldReferenceExpression));
             LogString($": {operation.Field.ToTestDisplayString()}");
+            LogString($" (IsDeclaration: {operation.IsDeclaration})");
 
             VisitMemberReferenceExpressionCommon(operation);
         }

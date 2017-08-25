@@ -591,13 +591,13 @@ End Enum
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For x As e1 ... Next')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.EnumLessThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'e1.c')
       Left: ILocalReferenceExpression: x (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: e1) (Syntax: 'x As e1')
-      Right: IFieldReferenceExpression: e1.c (Static) (OperationKind.FieldReferenceExpression, Type: e1, Constant: 2) (Syntax: 'e1.c')
+      Right: IFieldReferenceExpression: e1.c (IsDeclaration: False) (Static) (OperationKind.FieldReferenceExpression, Type: e1, Constant: 2) (Syntax: 'e1.c')
           Instance Receiver: null
   Before:
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'e1.a')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: e1) (Syntax: 'e1.a')
             Left: ILocalReferenceExpression: x (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: e1) (Syntax: 'x As e1')
-            Right: IFieldReferenceExpression: e1.a (Static) (OperationKind.FieldReferenceExpression, Type: e1, Constant: 0) (Syntax: 'e1.a')
+            Right: IFieldReferenceExpression: e1.a (IsDeclaration: False) (Static) (OperationKind.FieldReferenceExpression, Type: e1, Constant: 0) (Syntax: 'e1.a')
                 Instance Receiver: null
   AtLoopBottom:
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For x As e1 ... Next')
@@ -698,7 +698,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For glo
             Left: ILocalReferenceExpression: global_x (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'global_x As Integer')
             Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 20) (Syntax: 'global_y')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Operand: IFieldReferenceExpression: MyClass1.global_y As System.Int64 (Static) (OperationKind.FieldReferenceExpression, Type: System.Int64, Constant: 20) (Syntax: 'global_y')
+                Operand: IFieldReferenceExpression: MyClass1.global_y As System.Int64 (IsDeclaration: False) (Static) (OperationKind.FieldReferenceExpression, Type: System.Int64, Constant: 20) (Syntax: 'global_y')
                     Instance Receiver: null
   AtLoopBottom:
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For global_ ... Next')
@@ -910,19 +910,19 @@ End Module
             Dim expectedOperationTree = <![CDATA[
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For X = 10  ... Next')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '0')
-      Left: IFieldReferenceExpression: M.X As System.Int32 (Static) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'X')
+      Left: IFieldReferenceExpression: M.X As System.Int32 (IsDeclaration: False) (Static) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'X')
           Instance Receiver: null
       Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   Before:
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '10')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '10')
-            Left: IFieldReferenceExpression: M.X As System.Int32 (Static) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'X')
+            Left: IFieldReferenceExpression: M.X As System.Int32 (IsDeclaration: False) (Static) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'X')
                 Instance Receiver: null
             Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
   AtLoopBottom:
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For X = 10  ... Next')
         Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'For X = 10  ... Next')
-            Left: IFieldReferenceExpression: M.X As System.Int32 (Static) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'X')
+            Left: IFieldReferenceExpression: M.X As System.Int32 (IsDeclaration: False) (Static) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'X')
                 Instance Receiver: null
             Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For X = 10  ... Next')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -957,19 +957,19 @@ End Module
             Dim expectedOperationTree = <![CDATA[
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'For X = 10  ... Next')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.Invalid) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '0')
-      Left: IFieldReferenceExpression: M.X As System.String (Static) (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'X')
+      Left: IFieldReferenceExpression: M.X As System.String (IsDeclaration: False) (Static) (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'X')
           Instance Receiver: null
       Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   Before:
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '10')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String) (Syntax: '10')
-            Left: IFieldReferenceExpression: M.X As System.String (Static) (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'X')
+            Left: IFieldReferenceExpression: M.X As System.String (IsDeclaration: False) (Static) (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'X')
                 Instance Receiver: null
             Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
   AtLoopBottom:
       IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'For X = 10  ... Next')
         Expression: ICompoundAssignmentExpression (BinaryOperationKind.Invalid) (OperationKind.CompoundAssignmentExpression, Type: System.String, IsInvalid) (Syntax: 'For X = 10  ... Next')
-            Left: IFieldReferenceExpression: M.X As System.String (Static) (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'X')
+            Left: IFieldReferenceExpression: M.X As System.String (IsDeclaration: False) (Static) (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'X')
                 Instance Receiver: null
             Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: 'For X = 10  ... Next')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'For X = 10  ... Next')

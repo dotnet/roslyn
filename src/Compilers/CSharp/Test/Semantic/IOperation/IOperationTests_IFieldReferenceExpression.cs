@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -29,7 +29,7 @@ class C
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'Conditional(field)')
   Children(1):
-      IFieldReferenceExpression: System.String C.field (Static) (OperationKind.FieldReferenceExpression, Type: System.String, Constant: ""field"") (Syntax: 'field')
+      IFieldReferenceExpression: System.String C.field (IsDeclaration: False) (Static) (OperationKind.FieldReferenceExpression, Type: System.String, Constant: ""field"") (Syntax: 'field')
         Instance Receiver: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
