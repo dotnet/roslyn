@@ -1555,7 +1555,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                         operationContext.ReportDiagnostic(Diagnostic.Create(OperatorMinusMethodDescriptor, unary.Syntax.GetLocation()));
                     }
 
-                    if (unary.OperatorKind == UnaryOperatorKind.LogicalNot)
+                    if (unary.OperatorKind == UnaryOperatorKind.Not)
                     {
                         operationContext.ReportDiagnostic(Diagnostic.Create(BooleanNotDescriptor, unary.Syntax.GetLocation()));
                     }

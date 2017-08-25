@@ -456,7 +456,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Case VisualBasic.UnaryOperatorKind.Minus
                         Return UnaryOperatorKind.Minus
                     Case VisualBasic.UnaryOperatorKind.Not
-                        Return UnaryOperatorKind.LogicalNot
+                        Return UnaryOperatorKind.Not
                     Case VisualBasic.UnaryOperatorKind.IsTrue
                         Return UnaryOperatorKind.True
                     Case VisualBasic.UnaryOperatorKind.IsFalse
@@ -499,9 +499,9 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Case VisualBasic.BinaryOperatorKind.LessThanOrEqual
                         Return BinaryOperatorKind.LessThanOrEqual
                     Case VisualBasic.BinaryOperatorKind.Equals
-                        Return If(leftOpt?.Type.SpecialType = SpecialType.System_Object, BinaryOperatorKind.ObjectValueEquals, BinaryOperatorKind.Equals)
+                        Return If(leftOpt?.Type?.SpecialType = SpecialType.System_Object, BinaryOperatorKind.ObjectValueEquals, BinaryOperatorKind.Equals)
                     Case VisualBasic.BinaryOperatorKind.NotEquals
-                        Return If(leftOpt?.Type.SpecialType = SpecialType.System_Object, BinaryOperatorKind.ObjectValueNotEquals, BinaryOperatorKind.NotEquals)
+                        Return If(leftOpt?.Type?.SpecialType = SpecialType.System_Object, BinaryOperatorKind.ObjectValueNotEquals, BinaryOperatorKind.NotEquals)
                     Case VisualBasic.BinaryOperatorKind.Is
                         Return BinaryOperatorKind.Equals
                     Case VisualBasic.BinaryOperatorKind.IsNot

@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                         return UnaryOperatorKind.Minus;
 
                     case CSharp.UnaryOperatorKind.LogicalNegation:
-                        return UnaryOperatorKind.LogicalNot;
+                        return UnaryOperatorKind.Not;
 
                     case CSharp.UnaryOperatorKind.BitwiseComplement:
                         return UnaryOperatorKind.BitwiseNegation;

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Represents the C# '!' operator and VB 'Not' operator.
         /// </summary>
-        LogicalNot = 0x2,
+        Not = 0x2,
 
         /// <summary>
         /// Represents the unary '+' operator.

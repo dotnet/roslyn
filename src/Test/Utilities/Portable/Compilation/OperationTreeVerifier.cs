@@ -1113,12 +1113,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var kindStr = $"{nameof(BinaryOperatorKind)}.{operation.OperatorKind}";
             if (operation.IsLifted)
             {
-                LogString($" ({kindStr}, IsLifted)");
+                kindStr += ", IsLifted";
             }
-            else
+
+            if (operation.IsChecked)
             {
-                LogString($" ({kindStr})");
+                kindStr += ", Checked";
             }
+
+            LogString($" ({kindStr})");
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);
 
@@ -1136,6 +1139,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 kindStr += ", IsLifted";
             }
+
+            if (operation.IsChecked)
+            {
+                kindStr += ", Checked";
+            }
+
             LogString($" ({kindStr})");
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);

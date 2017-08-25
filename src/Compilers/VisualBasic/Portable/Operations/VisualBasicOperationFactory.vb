@@ -275,7 +275,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Dim type As ITypeSymbol = boundAssignmentOperator.Type
                 Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAssignmentOperator.ConstantValueOpt)
                 Dim isLifted As Boolean = boundAssignmentOperator.Type.IsNullableType()
-                Dim isChecked As Boolean = False
+                Dim isChecked As Boolean = temporaryRight.IsChecked
                 Return New LazyCompoundAssignmentExpression(operatorKind, isLifted, isChecked, target, value, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit)
             Else
                 Dim target As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundAssignmentOperator.Left))
