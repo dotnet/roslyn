@@ -761,5 +761,33 @@ abstract class B : A
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.F()").WithLocation(1, 7)
                 );
         }
+
+        [Fact]
+        public void VerifyPPExtension()
+        {
+            string source = @"
+static class Extensions
+{
+    static private protected void SomeExtension(this string s) { } // error: no pp in static class
+}
+
+class Client
+{
+    public static void M(string s)
+    {
+        s.SomeExtension(); // error: no accessible SomeExtension
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular7_2)
+            .VerifyDiagnostics(
+                // (4,35): error CS1057: 'Extensions.SomeExtension(string)': static classes cannot contain protected members
+                //     static private protected void SomeExtension(this string s) { } // error: no pp in static class
+                Diagnostic(ErrorCode.ERR_ProtectedInStatic, "SomeExtension").WithArguments("Extensions.SomeExtension(string)").WithLocation(4, 35),
+                // (11,11): error CS0122: 'Extensions.SomeExtension(string)' is inaccessible due to its protection level
+                //         s.SomeExtension(); // error: no accessible SomeExtension
+                Diagnostic(ErrorCode.ERR_BadAccess, "SomeExtension").WithArguments("Extensions.SomeExtension(string)").WithLocation(11, 11)
+                );
+        }
     }
 }

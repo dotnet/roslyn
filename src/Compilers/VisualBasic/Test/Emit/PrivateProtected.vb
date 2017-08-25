@@ -911,6 +911,41 @@ BC31417: 'Private Protected Overrides Sub F()' cannot override 'Private Protecte
                                     ~
 </errors>)
         End Sub
+
+        <Fact>
+        Public Sub VerifyPPExtension()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
+
+Public Module M
+    <Extension()>
+    Private Protected Sub SomeExtension(s As Integer) ' error: Methods in a Module cannot be declared 'Protected'.
+    End Sub
+End Module
+
+Class C
+    Shared Sub M(s As String)
+        s.SomeExtension() ' error: no accessible SomeExtension
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef},
+                    parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<errors>
+BC30433: Methods in a Module cannot be declared 'Protected'.
+    Private Protected Sub SomeExtension(s As Integer) ' error: Methods in a Module cannot be declared 'Protected'.
+            ~~~~~~~~~
+BC30456: 'SomeExtension' is not a member of 'String'.
+        s.SomeExtension() ' error: no accessible SomeExtension
+        ~~~~~~~~~~~~~~~
+</errors>)
+        End Sub
     End Class
 End Namespace
 
