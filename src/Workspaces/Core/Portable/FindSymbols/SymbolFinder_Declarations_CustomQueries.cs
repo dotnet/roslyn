@@ -95,10 +95,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 throw new ArgumentNullException(nameof(project));
             }
 
+            if (query.Name != null && string.IsNullOrWhiteSpace(query.Name))
+            {
+                return ImmutableArray<SymbolAndProjectId>.Empty;
+            }
+
             using (Logger.LogBlock(FunctionId.SymbolFinder_Project_Predicate_FindSourceDeclarationsAsync, cancellationToken))
             {
-                if (!string.IsNullOrWhiteSpace(query.Name) &&
-                    await project.ContainsSymbolsWithNameAsync(query.GetPredicate(), filter, cancellationToken).ConfigureAwait(false))
+                if (await project.ContainsSymbolsWithNameAsync(query.GetPredicate(), filter, cancellationToken).ConfigureAwait(false))
                 {
                     var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
