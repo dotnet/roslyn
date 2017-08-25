@@ -4657,7 +4657,7 @@ $$        int Local(object[] a) => [|a.Length|];
 }");
         }
 
-        [Fact, WorkItem(98990, "https://developercommunity.visualstudio.com/content/problem/98990")]
+        [Fact, WorkItem(98990, "https://developercommunity.visualstudio.com/content/problem/98990/cant-set-breakpoint.html")]
         public void IncompleteExpressionStatement()
         {
             TestSpan(
