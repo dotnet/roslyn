@@ -43,10 +43,296 @@ class C
             Assert.Equal("void C.M(System.Int32 a, System.Int32 b)",
                 model.GetSymbolInfo(firstInvocation).Symbol.ToTestDisplayString());
 
+            var firstNamedArgA = nodes.OfType<NameColonSyntax>().ElementAt(0);
+            Assert.Equal("a: 1", firstNamedArgA.Parent.ToString());
+            var firstASymbol = model.GetSymbolInfo(firstNamedArgA.Name);
+            Assert.Equal(SymbolKind.Parameter, firstASymbol.Symbol.Kind);
+            Assert.Equal("a", firstASymbol.Symbol.Name);
+            Assert.Equal("void C.M(System.Int32 a, System.Int32 b)", firstASymbol.Symbol.ContainingSymbol.ToTestDisplayString());
+
             var secondInvocation = nodes.OfType<InvocationExpressionSyntax>().ElementAt(3);
             Assert.Equal("M(3, a: 4)", secondInvocation.ToString());
             Assert.Equal("void C.M(System.Int64 b, System.Int64 a)",
                 model.GetSymbolInfo(secondInvocation).Symbol.ToTestDisplayString());
+
+            var secondNamedArgA = nodes.OfType<NameColonSyntax>().ElementAt(1);
+            Assert.Equal("a: 4", secondNamedArgA.Parent.ToString());
+            var secondASymbol = model.GetSymbolInfo(secondNamedArgA.Name);
+            Assert.Equal(SymbolKind.Parameter, secondASymbol.Symbol.Kind);
+            Assert.Equal("a", secondASymbol.Symbol.Name);
+            Assert.Equal("void C.M(System.Int64 b, System.Int64 a)", secondASymbol.Symbol.ContainingSymbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void TestSimpleConstructor()
+        {
+            var source = @"
+class C
+{
+    C(int a, int b)
+    {
+        System.Console.Write($""{a} {b}."");
+    }
+    static void Main()
+    {
+        new C(a: 1, 2);
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2);
+            verifier.VerifyDiagnostics();
+
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics(
+                // (10,21): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
+                //         new C(a: 1, 2);
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "2").WithArguments("7.2").WithLocation(10, 21)
+                );
+        }
+
+        [Fact]
+        public void TestSimpleThis()
+        {
+            var source = @"
+class C
+{
+    C(int a, int b)
+    {
+        System.Console.Write($""{a} {b}."");
+    }
+    C() : this(a: 1, 2) { }
+
+    static void Main()
+    {
+        new C();
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestSimpleBase()
+        {
+            var source = @"
+public class C
+{
+    public C(int a, int b)
+    {
+        System.Console.Write($""{a} {b}."");
+    }
+}
+class Derived : C
+{
+    Derived() : base(a: 1, 2) { }
+
+    static void Main()
+    {
+        new Derived();
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestSimpleExtension()
+        {
+            var source = @"
+public static class Extension
+{
+    public static void M(this C c, int a, int b)
+    {
+        System.Console.Write($""{a} {b}."");
+    }
+}
+public class C
+{
+    static void Main()
+    {
+        var c = new C();
+        c.M(a: 1, 2);
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, additionalRefs: new[] { SystemCoreRef });
+            verifier.VerifyDiagnostics();
+
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, references: new[] { SystemCoreRef });
+            comp.VerifyDiagnostics(
+                // (14,19): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
+                //         c.M(a: 1, 2);
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "2").WithArguments("7.2").WithLocation(14, 19)
+                );
+        }
+
+        [Fact]
+        public void TestSimpleDelegate()
+        {
+            var source = @"
+class C
+{
+    delegate void MyDelegate(int a, int b);
+    event MyDelegate e;
+
+    static void M(int a, int b)
+    {
+        System.Console.Write($""{a} {b}. "");
+    }
+
+    static void Main()
+    {
+        var c = new C();
+        c.e += M;
+        c.e.Invoke(a: 1, 2);
+        c.e(a: 1, 2);
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "1 2. 1 2.", parseOptions: TestOptions.Regular7_2);
+            verifier.VerifyDiagnostics();
+
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics(
+                // (16,26): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
+                //         c.e.Invoke(a: 1, 2);
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "2").WithArguments("7.2").WithLocation(16, 26),
+                // (17,19): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
+                //         c.e(a: 1, 2);
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "2").WithArguments("7.2").WithLocation(17, 19)
+                );
+        }
+
+        [Fact]
+        public void TestSimpleLocalFunction()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var c = new C();
+        local(a: 1, 2);
+
+        void local(int a, int b)
+        {
+            System.Console.Write($""{a} {b}."");
+        }
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2);
+            verifier.VerifyDiagnostics();
+
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics(
+                // (7,21): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
+                //         local(a: 1, 2);
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "2").WithArguments("7.2").WithLocation(7, 21)
+                );
+        }
+
+        [Fact]
+        public void TestSimpleIndexer()
+        {
+            var source = @"
+class C
+{
+    int this[int a, int b]
+    {
+        get
+        {
+            System.Console.Write($""Get {a} {b}. "");
+            return 0;
+        }
+        set
+        {
+            System.Console.Write($""Set {a} {b} {value}."");
+        }
+    }
+    static void Main()
+    {
+        var c = new C();
+        _ = c[a: 1, 2];
+        c[a: 3, 4] = 5;
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "Get 1 2. Set 3 4 5.", parseOptions: TestOptions.Regular7_2);
+            verifier.VerifyDiagnostics();
+
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics(
+                // (19,21): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
+                //         _ = c[a: 1, 2];
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "2").WithArguments("7.2").WithLocation(19, 21),
+                // (20,17): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
+                //         c[a: 3, 4] = 5;
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "4").WithArguments("7.2").WithLocation(20, 17)
+                );
+        }
+
+        [Fact]
+        public void TestSimpleError()
+        {
+            var source = @"
+class C
+{
+    int this[int a, int b]
+    {
+        get
+        {
+            throw null;
+        }
+    }
+
+    C(int a, int b) { }
+
+    static void Main()
+    {
+        var c = new C(b: 1, 2);
+        _ = c[b: 1, 2];
+        local(b: 1, 2);
+
+        void local(int a, int b) { }
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2);
+            comp.VerifyDiagnostics(
+                // (16,23): error CS8322: Named argument 'b' is used out-of-position but is followed by an unnamed argument
+                //         var c = new C(b: 1, 2);
+                Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "b").WithArguments("b").WithLocation(16, 23),
+                // (17,15): error CS8322: Named argument 'b' is used out-of-position but is followed by an unnamed argument
+                //         _ = c[b: 1, 2];
+                Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "b").WithArguments("b").WithLocation(17, 15),
+                // (18,15): error CS8322: Named argument 'b' is used out-of-position but is followed by an unnamed argument
+                //         local(b: 1, 2);
+                Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "b").WithArguments("b").WithLocation(18, 15)
+                );
+        }
+
+        [Fact]
+        public void TestMetadataAndPESymbols()
+        {
+            var lib_cs = @"
+public class C
+{
+    public static void M(int a, int b)
+    {
+        System.Console.Write($""{a} {b}."");
+    }
+}";
+
+            var source = @"
+class D
+{
+    static void Main()
+    {
+        C.M(a: 1, 2);
+    }
+}";
+            var lib = CreateStandardCompilation(lib_cs, parseOptions: TestOptions.Regular7);
+
+            var verifier1 = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, additionalRefs: new[] { lib.ToMetadataReference() });
+            verifier1.VerifyDiagnostics();
+
+            var verifier2 = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, additionalRefs: new[] { lib.EmitToImageReference() });
+            verifier2.VerifyDiagnostics();
         }
 
         [Fact]
@@ -80,6 +366,32 @@ class C
         }
 
         [Fact]
+        public void TestGenericInference()
+        {
+            var source = @"
+class C
+{
+    static void M<T1, T2>(T1 a, T2 b)
+    {
+        System.Console.Write($""{a} {b}."");
+    }
+    static void Main()
+    {
+        C.M(a: 1, ""hi"");
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "1 hi.", parseOptions: TestOptions.Regular7_2);
+            verifier.VerifyDiagnostics();
+
+            var tree = verifier.Compilation.SyntaxTrees.First();
+            var model = verifier.Compilation.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var invocation = nodes.OfType<InvocationExpressionSyntax>().ElementAt(1);
+            Assert.Equal(@"C.M(a: 1, ""hi"")", invocation.ToString());
+            Assert.Equal("void C.M<System.Int32, System.String>(System.Int32 a, System.String b)", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
         public void TestPositionalUnaffected2()
         {
             var source = @"
@@ -106,8 +418,10 @@ class C
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
             var invocation = nodes.OfType<InvocationExpressionSyntax>().ElementAt(1);
             Assert.Equal("M(c: 1, 2)", invocation.ToString());
+            SymbolInfo symbol = model.GetSymbolInfo(invocation);
             AssertEx.Equal(new[] { "void C.M(System.Int32 a, System.Int32 b, [System.Int32 c = 1])" },
-                model.GetSymbolInfo(invocation).CandidateSymbols.Select(c => c.ToTestDisplayString()));
+                symbol.CandidateSymbols.Select(c => c.ToTestDisplayString()));
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbol.CandidateReason);
         }
 
         [Fact]
@@ -166,6 +480,27 @@ class C
             var invocation = nodes.OfType<InvocationExpressionSyntax>().Single();
             Assert.Equal("M(1, x: 2)", invocation.ToString());
             Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+        }
+
+        [Fact]
+        public void TestNamedParamsVariousForms()
+        {
+            var source = @"
+class C
+{
+    static void M(int x, params string[] y)
+    {
+        System.Console.Write($""{x} {string.Join("","", y)}. "");
+    }
+    static void Main()
+    {
+        M(x: 1, y: ""2"");
+        M(x: 2, ""3"");
+        M(x: 3, new[] { ""4"", ""5"" });
+    }
+}";
+            var comp = CompileAndVerify(source, expectedOutput: "1 2. 2 3. 3 4,5.", parseOptions: TestOptions.RegularLatest);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -441,6 +776,101 @@ class C
         }
 
         [Fact]
+        public void TestOptionalValues()
+        {
+            var source = @"
+class C
+{
+    static void M(int a, int b, int c = 42)
+    {
+        System.Console.Write(c);
+    }
+    static void Main()
+    {
+        M(a: 1, 2);
+    }
+}";
+            var comp = CompileAndVerify(source, expectedOutput: "42", parseOptions: TestOptions.RegularLatest);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestDynamicInvocation()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        dynamic d = new object();
+        d.M(a: 1, 2);
+        d.M(1, 2);
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2);
+            comp.VerifyDiagnostics(
+                // (7,19): error CS8323: Named argument specifications must appear after all fixed arguments have been specified in a dynamic invocation.
+                //         d.M(a: 1, 2);
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgumentInDynamicInvocation, "2").WithLocation(7, 19)
+                );
+
+            var comp2 = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7);
+            comp2.VerifyDiagnostics(
+                // (7,19): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
+                //         d.M(a: 1, 2);
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "2").WithArguments("7.2").WithLocation(7, 19)
+                );
+        }
+
+        [Fact]
+        public void TestInvocationWithDynamicInLocalFunctionParams()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        dynamic d = new object[] { 0 };
+        local(x: 1, d); 
+        void local(int x, params object[] y) { }
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2);
+            comp.VerifyDiagnostics(
+                // (7,9): error CS8108: Cannot pass argument with dynamic type to params parameter 'y' of local function 'local'.
+                //         local(x: 1, d); 
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "local(x: 1, d)").WithArguments("y", "local").WithLocation(7, 9),
+                // (7,21): error CS8323: Named argument specifications must appear after all fixed arguments have been specified in a dynamic invocation.
+                //         local(x: 1, d); 
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgumentInDynamicInvocation, "d").WithLocation(7, 21)
+                );
+        }
+
+        [Fact]
+        public void TestDynamicWhenNotInvocation()
+        {
+            var source = @"
+class C
+{
+    int this[int a, int b]
+    {
+        get
+        {
+            System.Console.Write($""{a} {b}."");
+            return 0;
+        }
+    }
+    void M(C c)
+    {
+        dynamic d = new object();
+        c[a: 1, d] = d;
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void TestParams()
         {
             var source = @"
@@ -520,6 +950,42 @@ public class C
         }
 
         [Fact]
+        public void TestInAttributeWithOldLangVersion()
+        {
+            var source = @"
+using System;
+
+[AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+public class MyAttribute : Attribute
+{
+    public int P { get; set; }
+	public MyAttribute(bool condition, int other) { }
+}
+
+[MyAttribute(condition: true, 42)]
+[MyAttribute(condition: true, P = 1, 42)]
+[MyAttribute(42, condition: true)]
+public class C
+{
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics(
+                // (11,31): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
+                // [MyAttribute(condition: true, 42)]
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "42").WithArguments("7.2").WithLocation(11, 31),
+                // (12,38): error CS1016: Named attribute argument expected
+                // [MyAttribute(condition: true, P = 1, 42)]
+                Diagnostic(ErrorCode.ERR_NamedArgumentExpected, "42").WithLocation(12, 38),
+                // (12,38): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
+                // [MyAttribute(condition: true, P = 1, 42)]
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "42").WithArguments("7.2").WithLocation(12, 38),
+                // (13,18): error CS1744: Named argument 'condition' specifies a parameter for which a positional argument has already been given
+                // [MyAttribute(42, condition: true)]
+                Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "condition").WithArguments("condition").WithLocation(13, 18)
+                );
+        }
+
+        [Fact]
         public void TestInAttribute2()
         {
             var source = @"
@@ -595,6 +1061,60 @@ class C
                 // (6,33): error CS0226: An __arglist expression may only appear inside of a call or new expression
                 //         M(__arglist(x: 1, x: 2, __arglist()));
                 Diagnostic(ErrorCode.ERR_IllegalArglist, "__arglist()").WithLocation(6, 33)
+                );
+        }
+
+        [Fact]
+        public void TestSimpleArglist()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void M(int x, int y, __arglist)
+    {
+        System.Console.Write($""{x} {y} {ArgListToString(new ArgIterator(__arglist))}. "");
+    }
+    static void Main()
+    {
+        M(1, 2, __arglist(3, 4));
+        M(x: 1, 2, __arglist(5, 6));
+    }
+
+    static string ArgListToString(ArgIterator args)
+    {
+        int argCount = args.GetRemainingCount();
+        string result = """";
+
+        for (int i = 0; i < argCount; i++)
+        {
+            TypedReference tr = args.GetNextArg();
+            result += TypedReference.ToObject(tr);
+        }
+
+        return result;
+    }
+}";
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 34. 1 2 56.", parseOptions: TestOptions.RegularLatest);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestSimpleArglistAfterOutOfPositionArg()
+        {
+            var source = @"
+class C
+{
+    static void M(int x, int y, __arglist)
+    {
+        M(y: 1, x: 2, __arglist(3));
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            comp.VerifyDiagnostics(
+                // (6,11): error CS8322: Named argument 'y' is used out-of-position but is followed by an unnamed argument
+                //         M(y: 1, x: 2, __arglist(3));
+                Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "y").WithArguments("y").WithLocation(6, 11)
                 );
         }
 

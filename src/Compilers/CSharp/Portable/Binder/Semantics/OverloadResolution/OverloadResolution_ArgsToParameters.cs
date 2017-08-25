@@ -62,11 +62,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(arguments != null);
 
             ImmutableArray<ParameterSymbol> parameters = symbol.GetParameters();
+            bool isVararg = symbol.GetIsVararg();
 
             // The easy out is that we have no named arguments and are in normal form.
             if (!expanded && arguments.Names.Count == 0)
             {
-                return AnalyzeArgumentsForNormalFormNoNamedArguments(parameters, arguments, isMethodGroupConversion, symbol.GetIsVararg());
+                return AnalyzeArgumentsForNormalFormNoNamedArguments(parameters, arguments, isMethodGroupConversion, isVararg);
             }
 
             // We simulate an additional non-optional parameter for a vararg method.
@@ -87,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We use -1 as a sentinel to mean that no parameter was found that corresponded to this argument.
                 bool isNamedArgument;
                 int parameterPosition = CorrespondsToAnyParameter(parameters, expanded, arguments, argumentPosition,
-                    isValidParams, out isNamedArgument, ref seenNamedParams, ref seenOutOfPositionNamedArgument) ?? -1;
+                    isValidParams, isVararg, out isNamedArgument, ref seenNamedParams, ref seenOutOfPositionNamedArgument) ?? -1;
 
                 if (parameterPosition == -1 && unmatchedArgumentIndex == null)
                 {
@@ -167,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // __arglist cannot be used with named arguments (as it doesn't have a name)
-            if (arguments.Names.Count != 0 && symbol.GetIsVararg())
+            if (arguments.Names.Any() && arguments.Names.Last() != null && isVararg)
             {
                 return ArgumentAnalysisResult.RequiredParameterMissing(parameters.Length);
             }
@@ -223,6 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments arguments,
             int argumentPosition,
             bool isValidParams,
+            bool isVararg,
             out bool isNamedArgument,
             ref bool seenNamedParams,
             ref bool seenOutOfPositionNamedArgument)
@@ -273,9 +275,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                if (argumentPosition >= memberParameters.Length)
+                int parameterCount = memberParameters.Length + (isVararg ? 1 : 0);
+                if (argumentPosition >= parameterCount)
                 {
-                    return expanded ? memberParameters.Length - 1 : (int?)null;
+                    return expanded ? parameterCount - 1 : (int?)null;
                 }
 
                 return argumentPosition;

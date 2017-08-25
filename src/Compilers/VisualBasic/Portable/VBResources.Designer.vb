@@ -7648,6 +7648,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Named argument specifications must appear after all fixed arguments have been specified in a late bound invocation..
+        '''</summary>
+        Friend ReadOnly Property ERR_NamedArgumentSpecificationBeforeFixedArgumentInLateboundInvocation() As String
+            Get
+                Return ResourceManager.GetString("ERR_NamedArgumentSpecificationBeforeFixedArgumentInLateboundInvocation", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Parameter &apos;{0}&apos; already has a matching argument..
         '''</summary>
         Friend ReadOnly Property ERR_NamedArgUsedTwice1() As String

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             IdentifierNameSyntax syntax = Names[i];
             return syntax == null ? null : syntax.Identifier.ValueText;
         }
-        
+
         public ImmutableArray<string> GetNames()
         {
             int count = this.Names.Count;

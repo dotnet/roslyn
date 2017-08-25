@@ -6470,6 +6470,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Named argument specifications must appear after all fixed arguments have been specified in a dynamic invocation..
+        /// </summary>
+        internal static string ERR_NamedArgumentSpecificationBeforeFixedArgumentInDynamicInvocation {
+            get {
+                return ResourceManager.GetString("ERR_NamedArgumentSpecificationBeforeFixedArgumentInDynamicInvocation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Named argument &apos;{0}&apos; specifies a parameter for which a positional argument has already been given.
         /// </summary>
         internal static string ERR_NamedArgumentUsedInPositional {
