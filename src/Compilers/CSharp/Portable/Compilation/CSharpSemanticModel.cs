@@ -1516,6 +1516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var info = LookupSymbolsInfo.GetInstance();
+            info.FilterName = name;
 
             if ((object)container == null)
             {
@@ -2821,7 +2822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The symbol that was declared.</returns>
         /// <remarks>
-        /// Generally ArgumentSyntax nodes do not declare symbols, except when used as aarguments of a tuple literal.
+        /// Generally ArgumentSyntax nodes do not declare symbols, except when used as arguments of a tuple literal.
         /// Example:  var x = (Alice: 1, Bob: 2);
         ///           ArgumentSyntax "Alice: 1" declares a tuple element field "(int Alice, int Bob).Alice"
         /// </remarks>

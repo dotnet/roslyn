@@ -34,9 +34,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             base.Initialize();
 
             // Load the Roslyn package so that its FatalError handlers are hooked up.
-            IVsPackage roslynPackage;
             var shell = (IVsShell)this.GetService(typeof(SVsShell));
-            shell.LoadPackage(Guids.RoslynPackageId, out roslynPackage);
+            shell.LoadPackage(Guids.RoslynPackageId, out var roslynPackage);
             
             // Explicitly set up FatalError handlers for the InteractiveWindowPackage.
             SetErrorHandlers(typeof(IInteractiveWindow).Assembly);

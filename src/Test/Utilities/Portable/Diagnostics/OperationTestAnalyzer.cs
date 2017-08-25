@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             SyntaxNode syntax = increment.Syntax;
             ITypeSymbol type = increment.Type;
             Optional<object> constantValue = new Optional<object>(1);
-            return new LiteralExpression(text, semanticModel, syntax, type, constantValue, increment.IsImplicit);
+            return new LiteralExpression(semanticModel, syntax, type, constantValue, increment.IsImplicit);
         }
 
         private static int Abs(int value)
@@ -570,8 +570,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
                          if (argument.ArgumentKind == ArgumentKind.ParamArray)
                          {
-                             IArrayCreationExpression arrayArgument = argument.Value as IArrayCreationExpression;
-                             if (arrayArgument != null)
+                             if (argument.Value is IArrayCreationExpression arrayArgument)
                              {
                                  var initializer = arrayArgument.Initializer;
                                  if (initializer != null)
@@ -1122,8 +1121,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      {
                          if (argument.Parameter.IsParams)
                          {
-                             IArrayCreationExpression arrayValue = argument.Value as IArrayCreationExpression;
-                             if (arrayValue != null)
+                             if (argument.Value is IArrayCreationExpression arrayValue)
                              {
                                  Optional<object> dimensionSize = arrayValue.DimensionSizes[0].ConstantValue;
                                  if (dimensionSize.HasValue && IntegralValue(dimensionSize.Value) > 3)
@@ -1150,8 +1148,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     {
                         if (argument.Parameter.IsParams)
                         {
-                            IArrayCreationExpression arrayValue = argument.Value as IArrayCreationExpression;
-                            if (arrayValue != null)
+                            if (argument.Value is IArrayCreationExpression arrayValue)
                             {
                                 Optional<object> dimensionSize = arrayValue.DimensionSizes[0].ConstantValue;
                                 if (dimensionSize.HasValue && IntegralValue(dimensionSize.Value) > 3)
@@ -2106,7 +2103,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  (operationContext) =>
                  {
                      var literal = (ILiteralExpression)operationContext.Operation;
-                     operationContext.ReportDiagnostic(Diagnostic.Create(LiteralDescriptor, literal.Syntax.GetLocation(), literal.Text));
+                     operationContext.ReportDiagnostic(Diagnostic.Create(LiteralDescriptor, literal.Syntax.GetLocation(), literal.Syntax.ToString()));
                  },
                  OperationKind.LiteralExpression);
         }

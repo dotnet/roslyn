@@ -122,8 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return speculativeModel;
             }
 
-            var typeNode = nodeToSpeculate as TypeSyntax;
-            if (typeNode != null)
+            if (nodeToSpeculate is TypeSyntax typeNode)
             {
                 var bindingOption = isInNamespaceOrTypeContext ?
                     SpeculativeBindingOption.BindAsTypeOrNamespace :
@@ -132,8 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return speculativeModel;
             }
 
-            var cref = nodeToSpeculate as CrefSyntax;
-            if (cref != null)
+            if (nodeToSpeculate is CrefSyntax cref)
             {
                 semanticModel.TryGetSpeculativeSemanticModel(position, cref, out speculativeModel);
                 return speculativeModel;
@@ -424,11 +422,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     var newSwitchLabels = newSwitchStatement.Sections.SelectMany(section => section.Labels).ToArray();
                     for (int i = 0; i < originalSwitchLabels.Length; i++)
                     {
-                        var originalSwitchLabel = originalSwitchLabels[i] as CaseSwitchLabelSyntax;
-                        if (originalSwitchLabel != null)
+                        if (originalSwitchLabels[i] is CaseSwitchLabelSyntax originalSwitchLabel)
                         {
-                            var newSwitchLabel = newSwitchLabels[i] as CaseSwitchLabelSyntax;
-                            if (newSwitchLabel != null && !ImplicitConversionsAreCompatible(originalSwitchLabel.Value, newSwitchLabel.Value))
+                            if (newSwitchLabels[i] is CaseSwitchLabelSyntax newSwitchLabel && !ImplicitConversionsAreCompatible(originalSwitchLabel.Value, newSwitchLabel.Value))
                             {
                                 return true;
                             }

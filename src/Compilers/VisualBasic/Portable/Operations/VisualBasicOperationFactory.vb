@@ -313,12 +313,11 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function CreateBoundLiteralOperation(boundLiteral As BoundLiteral) As ILiteralExpression
-            Dim text As String = boundLiteral.Syntax.ToString()
             Dim syntax As SyntaxNode = boundLiteral.Syntax
             Dim type As ITypeSymbol = boundLiteral.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundLiteral.ConstantValueOpt)
             Dim isImplicit As Boolean = boundLiteral.WasCompilerGenerated
-            Return New LiteralExpression(text, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LiteralExpression(_semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundAwaitOperatorOperation(boundAwaitOperator As BoundAwaitOperator) As IAwaitExpression

@@ -78,7 +78,7 @@ IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x 
       Left: ILocalReferenceExpression: x (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
       Right: IBinaryOperatorExpression (BinaryOperationKind.OperatorMethodAdd) (OperationKind.BinaryOperatorExpression, Type: B2, IsInvalid) (Syntax: 'x + 10')
           Left: ILocalReferenceExpression: x (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
-          Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
+          Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
 ")
 
             ' x = x + y passes semantic analysis.
@@ -237,7 +237,7 @@ End Class
 IIfStatement (OperationKind.IfStatement) (Syntax: 'If x <> 0 T ... End If')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerNotEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x <> 0')
       Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
-      Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If x <> 0 T ... End If')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Console.Write(x)')
         Expression: IInvocationExpression (Sub System.Console.Write(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Console.Write(x)')
@@ -247,8 +247,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If x <> 0 T ... End If')
                   IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
                   InConversion: null
                   OutConversion: null
-  IfFalse: null
-]]>.Value
+  IfFalse: null]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
@@ -271,12 +270,12 @@ End Class]]>.Value
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i = 0 T ... Next')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '10')
       Left: ILocalReferenceExpression: i (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
-      Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
   Before:
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '0')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '0')
             Left: ILocalReferenceExpression: i (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
-            Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   AtLoopBottom:
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For i = 0 T ... Next')
         Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'For i = 0 T ... Next')

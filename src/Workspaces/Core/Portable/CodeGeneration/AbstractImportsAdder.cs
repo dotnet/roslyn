@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             var namespaceScopeToReferencedDefinitions = new Dictionary<SyntaxNode, ISet<INamedTypeSymbol>>();
             var root = await Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            Func<SyntaxNode, ISet<INamedTypeSymbol>> createSet = _ => new HashSet<INamedTypeSymbol>();
+            ISet<INamedTypeSymbol> createSet(SyntaxNode _) => new HashSet<INamedTypeSymbol>();
 
             var annotatedNodes = root.GetAnnotatedNodesAndTokens(SymbolAnnotation.Kind);
             foreach (var annotatedNode in annotatedNodes)

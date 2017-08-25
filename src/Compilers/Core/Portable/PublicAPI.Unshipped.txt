@@ -489,7 +489,6 @@ Microsoft.CodeAnalysis.Semantics.IAnonymousFunctionExpression
 Microsoft.CodeAnalysis.Semantics.IAnonymousFunctionExpression.Body.get -> Microsoft.CodeAnalysis.Semantics.IBlockStatement
 Microsoft.CodeAnalysis.Semantics.IAnonymousFunctionExpression.Symbol.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.Semantics.ILiteralExpression
-Microsoft.CodeAnalysis.Semantics.ILiteralExpression.Text.get -> string
 Microsoft.CodeAnalysis.Semantics.ILocalFunctionStatement
 Microsoft.CodeAnalysis.Semantics.ILocalFunctionStatement.Body.get -> Microsoft.CodeAnalysis.Semantics.IBlockStatement
 Microsoft.CodeAnalysis.Semantics.ILocalFunctionStatement.LocalFunctionSymbol.get -> Microsoft.CodeAnalysis.IMethodSymbol

@@ -77,7 +77,7 @@ IEventAssignmentExpression (EventRemove)) (OperationKind.EventAssignmentExpressi
       Instance Receiver: ILocalReferenceExpression: t (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: Test) (Syntax: 't')
   Handler: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.EventHandler, Constant: null) (Syntax: 'null')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
 ";
             var expectedDiagnostics = new[] { 
                 // file.cs(6,31): warning CS0067: The event 'Test.MyEvent' is never used

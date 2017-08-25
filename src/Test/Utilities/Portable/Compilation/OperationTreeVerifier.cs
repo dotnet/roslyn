@@ -914,12 +914,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitLiteralExpression(ILiteralExpression operation)
         {
             LogString(nameof(ILiteralExpression));
-
-            if (operation.ConstantValue.HasValue && ConstantToString(operation.ConstantValue.Value, quoteString: false) == operation.Text)
-            {
-                LogString($" (Text: {operation.Text})");
-            }
-
             LogCommonPropertiesAndNewLine(operation);
         }
 

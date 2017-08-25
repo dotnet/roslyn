@@ -114,8 +114,8 @@ class P
             string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement) (Syntax: 'if (1 == 1) ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: True) (Syntax: '1 == 1')
-      Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-      Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
   IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'condition = true;')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Boolean) (Syntax: 'condition = true')
@@ -162,12 +162,12 @@ class P
 IIfStatement (OperationKind.IfStatement) (Syntax: 'if (m > 10) ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'm > 10')
       Left: ILocalReferenceExpression: m (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'm')
-      Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
   IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       IIfStatement (OperationKind.IfStatement) (Syntax: 'if (n > 20) ... iteLine(m);')
         Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'n > 20')
             Left: ILocalReferenceExpression: n (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'n')
-            Right: ILiteralExpression (Text: 20) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
         IfTrue: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(m);')
             Expression: IInvocationExpression (void System.Console.WriteLine(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(m)')
                 Instance Receiver: null
@@ -220,11 +220,11 @@ class P
 IIfStatement (OperationKind.IfStatement) (Syntax: 'if (m > 10) ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'm > 10')
       Left: ILocalReferenceExpression: m (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'm')
-      Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
   IfTrue: IIfStatement (OperationKind.IfStatement) (Syntax: 'if (n > 20) ... }')
       Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'n > 20')
           Left: ILocalReferenceExpression: n (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'n')
-          Right: ILiteralExpression (Text: 20) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
+          Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
       IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
           IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(m);')
             Expression: IInvocationExpression (void System.Console.WriteLine(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(m)')
@@ -327,7 +327,7 @@ class P
 IIfStatement (OperationKind.IfStatement) (Syntax: 'if (n > 20) ... }')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'n > 20')
       Left: ILocalReferenceExpression: n (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'n')
-      Right: ILiteralExpression (Text: 20) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
+      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
   IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... ""Result1"");')
         Expression: IInvocationExpression (void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... (""Result1"")')
@@ -340,7 +340,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (n > 20) ... }')
   IfFalse: IIfStatement (OperationKind.IfStatement) (Syntax: 'if (m > 10) ... }')
       Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'm > 10')
           Left: ILocalReferenceExpression: m (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'm')
-          Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+          Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
       IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
           IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... ""Result2"");')
             Expression: IInvocationExpression (void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... (""Result2"")')
@@ -403,13 +403,13 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (int.Try ... , s ={s}"");'
                 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""i ={i}, s ={s}""')
                   Parts(4):
                       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'i =')
-                        Text: ILiteralExpression (Text: i =) (OperationKind.LiteralExpression, Type: System.String, Constant: ""i ="") (Syntax: 'i =')
+                        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""i ="") (Syntax: 'i =')
                       IInterpolation (OperationKind.Interpolation) (Syntax: '{i}')
                         Expression: ILocalReferenceExpression: i (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
                         Alignment: null
                         FormatString: null
                       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ', s =')
-                        Text: ILiteralExpression (Text: , s =) (OperationKind.LiteralExpression, Type: System.String, Constant: "", s ="") (Syntax: ', s =')
+                        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "", s ="") (Syntax: ', s =')
                       IInterpolation (OperationKind.Interpolation) (Syntax: '{s}')
                         Expression: ILocalReferenceExpression: s (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 's')
                         Alignment: null
@@ -424,13 +424,13 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (int.Try ... , s ={s}"");'
                 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""i ={i}, s ={s}""')
                   Parts(4):
                       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'i =')
-                        Text: ILiteralExpression (Text: i =) (OperationKind.LiteralExpression, Type: System.String, Constant: ""i ="") (Syntax: 'i =')
+                        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""i ="") (Syntax: 'i =')
                       IInterpolation (OperationKind.Interpolation) (Syntax: '{i}')
                         Expression: ILocalReferenceExpression: i (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
                         Alignment: null
                         FormatString: null
                       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ', s =')
-                        Text: ILiteralExpression (Text: , s =) (OperationKind.LiteralExpression, Type: System.String, Constant: "", s ="") (Syntax: ', s =')
+                        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "", s ="") (Syntax: ', s =')
                       IInterpolation (OperationKind.Interpolation) (Syntax: '{s}')
                         Expression: ILocalReferenceExpression: s (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 's')
                         Alignment: null
@@ -583,7 +583,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ...  int i, 1);')
                   InConversion: null
                   OutConversion: null
                 IArgument (ArgumentKind.Explicit, Matching Parameter: number) (OperationKind.Argument) (Syntax: '1')
-                  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
                   InConversion: null
                   OutConversion: null
   IfFalse: null
@@ -665,7 +665,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ... A(25);')
               IArgument (ArgumentKind.Explicit, Matching Parameter: o) (OperationKind.Argument) (Syntax: '25')
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '25')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Operand: ILiteralExpression (Text: 25) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 25) (Syntax: '25')
+                  Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 25) (Syntax: '25')
                 InConversion: null
                 OutConversion: null
   IfFalse: null
@@ -716,7 +716,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ... }')
                   InConversion: null
                   OutConversion: null
                 IArgument (ArgumentKind.Explicit, Matching Parameter: number) (OperationKind.Argument) (Syntax: '1')
-                  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
                   InConversion: null
                   OutConversion: null
   IfFalse: null
@@ -810,12 +810,12 @@ IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if () ... }')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a = 2;')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'a = 2')
             Left: ILocalReferenceExpression: a (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
-            Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
   IfFalse: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a = 3;')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'a = 3')
             Left: ILocalReferenceExpression: a (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
-            Right: ILiteralExpression (Text: 3) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ')'
@@ -852,7 +852,7 @@ class P
 IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if (a == 1) ... else')
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'a == 1')
       Left: ILocalReferenceExpression: a (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
-      Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
   IfTrue: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '')
       Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?) (Syntax: '')
           Children(0)
@@ -969,7 +969,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (d.GetTy ... }')
                     OutConversion: null
   IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return 1;')
-        ReturnedValue: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        ReturnedValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
   IfFalse: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;

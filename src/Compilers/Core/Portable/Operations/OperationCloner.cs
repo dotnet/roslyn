@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IOperation VisitLiteralExpression(ILiteralExpression operation, object argument)
         {
-            return new LiteralExpression(operation.Text, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new LiteralExpression(((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitAwaitExpression(IAwaitExpression operation, object argument)
