@@ -4922,6 +4922,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
+            // To be removed when we will enable EnC for local functions
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.SwitchBetweenLambdaAndLocalFunction, "localF", CSharpFeaturesResources.local_function));
         }
