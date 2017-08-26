@@ -200,8 +200,15 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
                 if (document.SemanticModel.TryGetSpeculativeSemanticModel(ctorInitializer.Span.Start, newCtorInitializer, out var speculativeModel))
                 {
                     var symbolInfo = speculativeModel.GetSymbolInfo(newCtorInitializer, cancellationToken);
-                    return GenerateConstructorHelpers.GetDelegatingConstructor(
+                    var delegatingConstructor = GenerateConstructorHelpers.GetDelegatingConstructor(
                         document, symbolInfo, candidates, namedType, state.ParameterTypes);
+
+                    if (delegatingConstructor == null || thisOrBaseKeyword.IsKind(SyntaxKind.BaseKeyword))
+                    {
+                        return delegatingConstructor;
+                    }
+
+                    return CanDelegeteThisConstructor(state, document, delegatingConstructor, cancellationToken) ? delegatingConstructor : null;
                 }
             }
             else
@@ -270,37 +277,18 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
             return SyntaxFactory.ArgumentList(new SeparatedSyntaxList<ArgumentSyntax>().AddRange(newArguments));
         }
 
-        protected override bool CanDelegeteThisConstructor(State state, SemanticDocument document, IMethodSymbol delegatedConstructor, CancellationToken cancellationToken = default)
+        protected override IMethodSymbol GetCurrentConstructor(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
+            => semanticModel.GetDeclaredSymbol(token.GetAncestor<ConstructorDeclarationSyntax>(), cancellationToken);
+
+        protected override IMethodSymbol GetDelegatedConstructor(SemanticModel semanticModel, IMethodSymbol constructor, CancellationToken cancellationToken)
         {
-            var currentConstructor = document.SemanticModel.GetDeclaredSymbol(state.Token.GetAncestor<ConstructorDeclarationSyntax>(), cancellationToken);
-            if (currentConstructor == delegatedConstructor)
+            if (constructor.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken) is ConstructorDeclarationSyntax constructorDeclarationSyntax
+                && constructorDeclarationSyntax.Initializer.IsKind(SyntaxKind.ThisConstructorInitializer))
             {
-                return false;
-            }
-            else
-            {
-                while (delegatedConstructor != null)
-                {
-                    var constructorInitializerSyntax = delegatedConstructor
-                        .DeclaringSyntaxReferences[0]
-                        .GetSyntax(cancellationToken)
-                        .ChildNodes()
-                        .FirstOrDefault(n => n.IsKind(SyntaxKind.ThisConstructorInitializer)) as ConstructorInitializerSyntax;
-
-                    if (constructorInitializerSyntax == null)
-                    {
-                        return true;
-                    }
-
-                    delegatedConstructor = document.SemanticModel.GetSymbolInfo(constructorInitializerSyntax, cancellationToken).Symbol as IMethodSymbol;
-                    if (delegatedConstructor == currentConstructor)
-                    {
-                        return false;
-                    }
-                }
+                return semanticModel.GetSymbolInfo(constructorDeclarationSyntax.Initializer, cancellationToken).Symbol as IMethodSymbol;
             }
 
-            return true;
+            return null;
         }
     }
 }

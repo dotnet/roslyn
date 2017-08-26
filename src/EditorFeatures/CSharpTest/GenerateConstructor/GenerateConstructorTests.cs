@@ -3291,6 +3291,7 @@ class P {
 }",
 @"class A
 {
+    private int a;
     private int v;
 
     public A(int a) : this(a, 1)
@@ -3299,6 +3300,7 @@ class P {
 
     public A(int a, int v)
     {
+        this.a = a;
         this.v = v;
     }
 }");
@@ -3343,12 +3345,14 @@ class P {
 }",
 @"class C
 {
+    private int x;
     private int y;
 
     public C(int x) : this(x, 0, 0) { }
 
     public C(int x, int y)
     {
+        this.x = x;
         this.y = y;
     }
 
@@ -3369,6 +3373,8 @@ class P {
 }",
 @"class C
 {
+    private int x;
+    private int y;
     private int v;
 
     public C(int x) : this(x, 0) { }
@@ -3377,8 +3383,41 @@ class P {
 
     public C(int x, int y, int v)
     {
+        this.x = x;
+        this.y = y;
         this.v = v;
     }
+}");
+        }
+
+        [WorkItem(21692, "https://github.com/dotnet/roslyn/issues/21692")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestDelegateConstructor5()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public C(int a) { }
+    public C(bool b, bool a) : this(0, 0) { }
+    public C(int i, int i1) : this(true, true) { }
+    public C(int x, int y, int z, int e) : [|this(x, y, z)|] { }
+}",
+@"class C
+{
+    private int y;
+    private int z;
+
+    public C(int a) { }
+    public C(bool b, bool a) : this(0, 0) { }
+    public C(int i, int i1) : this(true, true) { }
+
+    public C(int a, int y, int z) : this(a)
+    {
+        this.y = y;
+        this.z = z;
+    }
+
+    public C(int x, int y, int z, int e) : this(x, y, z) { }
 }");
         }
     }

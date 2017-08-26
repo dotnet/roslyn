@@ -192,8 +192,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
                 Dim speculativeModel As SemanticModel = Nothing
                 If document.SemanticModel.TryGetSpeculativeSemanticModel(invocationStatement.SpanStart, newInvocationStatement, speculativeModel) Then
                     Dim symbolInfo = speculativeModel.GetSymbolInfo(newInvocation, cancellationToken)
-                    Return GenerateConstructorHelpers.GetDelegatingConstructor(
+                    Dim delegatingConstructor = GenerateConstructorHelpers.GetDelegatingConstructor(
                         document, symbolInfo, candidates, namedType, state.ParameterTypes)
+
+                    If (delegatingConstructor Is Nothing OrElse meOrMybaseExpression.IsKind(SyntaxKind.MyBaseExpression)) Then
+                        Return delegatingConstructor
+                    End If
+
+                    Return If(CanDelegeteThisConstructor(state, document, delegatingConstructor, cancellationToken), delegatingConstructor, Nothing)
                 End If
             Else
                 Dim oldNode = oldToken.Parent _
@@ -250,28 +256,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
             Return SyntaxFactory.ArgumentList(New SeparatedSyntaxList(Of ArgumentSyntax)().AddRange(newArguments))
         End Function
 
-        Protected Overrides Function CanDelegeteThisConstructor(state As State, document As SemanticDocument, delegatedConstructor As IMethodSymbol, Optional cancellationToken As CancellationToken = Nothing) As Boolean
-            Dim currentConstructor = document.SemanticModel.GetDeclaredSymbol(state.Token.GetAncestor(Of ConstructorBlockSyntax)().SubNewStatement, cancellationToken)
-            If (currentConstructor.Equals(delegatedConstructor)) Then
-                Return False
-            Else
-                While (delegatedConstructor IsNot Nothing)
-                    Dim constructorStatements = delegatedConstructor.DeclaringSyntaxReferences(0).GetSyntax(cancellationToken).Parent.GetStatements()
-                    If (constructorStatements.IsEmpty()) Then
-                        Return True
-                    End If
-                    Dim constructorInitializerSyntax = constructorStatements(0)
-                    Dim expression = CType(constructorInitializerSyntax, ExpressionStatementSyntax).Expression
-                    If (expression.IsKind(SyntaxKind.InvocationExpression)) Then
-                        delegatedConstructor = CType(document.SemanticModel.GetSymbolInfo(expression, cancellationToken).Symbol, IMethodSymbol)
-                        If (delegatedConstructor.Equals(currentConstructor)) Then
-                            Return False
-                        End If
-                    End If
-                End While
+        Protected Overrides Function GetCurrentConstructor(semanticModel As SemanticModel, token As SyntaxToken, cancellationToken As CancellationToken) As IMethodSymbol
+            Return semanticModel.GetDeclaredSymbol(token.GetAncestor(Of ConstructorBlockSyntax)().SubNewStatement, cancellationToken)
+        End Function
+
+        Protected Overrides Function GetDelegatedConstructor(semanticModel As SemanticModel, constructor As IMethodSymbol, cancellationToken As CancellationToken) As IMethodSymbol
+            Dim constructorStatements = constructor.DeclaringSyntaxReferences(0).GetSyntax(cancellationToken).Parent.GetStatements()
+            If (constructorStatements.IsEmpty()) Then
+                Return Nothing
+            End If
+            Dim constructorInitializerSyntax = constructorStatements(0)
+            Dim expression = CType(constructorInitializerSyntax, ExpressionStatementSyntax).Expression
+            If (expression.IsKind(SyntaxKind.InvocationExpression)) Then
+                Return CType(semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol, IMethodSymbol)
             End If
 
-            Return True
+            Return Nothing
         End Function
     End Class
 End Namespace

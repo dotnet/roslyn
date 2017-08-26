@@ -23,7 +23,35 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
         internal abstract IMethodSymbol GetDelegatingConstructor(State state, SemanticDocument document, int argumentCount, INamedTypeSymbol namedType, ISet<IMethodSymbol> candidates, CancellationToken cancellationToken);
 
-        protected abstract bool CanDelegeteThisConstructor(State state, SemanticDocument document, IMethodSymbol delegatedConstructor, CancellationToken cancellationToken = default);
+        protected abstract IMethodSymbol GetCurrentConstructor(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken);
+
+        protected abstract IMethodSymbol GetDelegatedConstructor(SemanticModel semanticModel, IMethodSymbol constructor, CancellationToken cancellationToken);
+
+        protected bool CanDelegeteThisConstructor(State state, SemanticDocument document, IMethodSymbol delegatedConstructor, CancellationToken cancellationToken = default)
+        {
+            var constructorsCount = delegatedConstructor.ContainingType.Constructors.Length;
+            var currentConstructor = GetCurrentConstructor(document.SemanticModel, state.Token, cancellationToken);
+            if (currentConstructor == delegatedConstructor)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < constructorsCount; i++)
+            {
+                delegatedConstructor = GetDelegatedConstructor(document.SemanticModel, delegatedConstructor, cancellationToken);
+                if (delegatedConstructor == null)
+                {
+                    return true;
+                }
+
+                if (delegatedConstructor == currentConstructor)
+                {
+                    return false;
+                }
+            }
+
+            return false;
+        }
 
         private partial class Editor
         {
@@ -170,9 +198,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 var isThis = namedType.Equals(_state.TypeToGenerateIn);
                 var delegatingArguments = syntaxFactory.CreateArguments(delegatedConstructor.Parameters);
                 var baseConstructorArguments = isThis ? default : delegatingArguments;
-                var thisConstructorArguments = isThis && !(_state.IsConstructorInitializerGeneration && !_service.CanDelegeteThisConstructor(_state, _document, delegatedConstructor, _cancellationToken))
-                    ? delegatingArguments 
-                    : default;
+                var thisConstructorArguments = isThis ? delegatingArguments : default;
 
                 var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
                     attributes: default,
