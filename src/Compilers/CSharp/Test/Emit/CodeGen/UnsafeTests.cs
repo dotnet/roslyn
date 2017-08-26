@@ -5537,6 +5537,7 @@ unsafe class C
             p = p + u;
             p = p + l;
             p = p + ul;
+            p = p + (-2);
         }
     }
 
@@ -5554,6 +5555,7 @@ unsafe class C
             p = p - u;
             p = p - l;
             p = p - ul;
+            p = p - (-1);
         }
     }
 }
@@ -5565,7 +5567,7 @@ unsafe class C
 
             comp.VerifyIL("C.Test", @"
 {
-  // Code size       51 (0x33)
+  // Code size       57 (0x39)
   .maxstack  2
   .locals init (byte V_0, //b
                 byte* V_1) //p
@@ -5616,13 +5618,18 @@ unsafe class C
   IL_002e:  conv.u
   IL_002f:  add.ovf.un
   IL_0030:  stloc.1
-  IL_0031:  nop
-  IL_0032:  ret
+  IL_0031:  ldloc.1
+  IL_0032:  ldc.i4.s   -2
+  IL_0034:  conv.i
+  IL_0035:  add.ovf.un
+  IL_0036:  stloc.1
+  IL_0037:  nop
+  IL_0038:  ret
 }");
 
             comp.VerifyIL("C.Test1", @"
 {
-  // Code size       51 (0x33)
+  // Code size       56 (0x38)
   .maxstack  2
   .locals init (byte V_0, //b
                 byte* V_1) //p
@@ -5673,8 +5680,13 @@ unsafe class C
   IL_002e:  conv.u
   IL_002f:  sub.ovf.un
   IL_0030:  stloc.1
-  IL_0031:  nop
-  IL_0032:  ret
+  IL_0031:  ldloc.1
+  IL_0032:  ldc.i4.m1
+  IL_0033:  conv.i
+  IL_0034:  sub.ovf.un
+  IL_0035:  stloc.1
+  IL_0036:  nop
+  IL_0037:  ret
 }");
         }
 
