@@ -424,6 +424,7 @@
   <Node Name="PostfixUnaryExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="PostIncrementExpression"/>
     <Kind Name="PostDecrementExpression"/>
+    <Kind Name="SuppressNullableWarningExpression"/>
     <Field Name="Operand" Type="ExpressionSyntax">
       <PropertyComment>
         <summary>ExpressionSyntax representing the operand of the postfix unary expression.</summary>
@@ -432,6 +433,7 @@
     <Field Name="OperatorToken" Type="SyntaxToken">
       <Kind Name="PlusPlusToken"/>
       <Kind Name="MinusMinusToken"/>
+      <Kind Name="ExclamationToken"/>
       <PropertyComment>
         <summary>SyntaxToken representing the kind of the operator of the postfix unary expression.</summary>
       </PropertyComment>

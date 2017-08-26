@@ -114,6 +114,7 @@
     <Compile Include="Operations\ISingleValueCaseClause.cs" />
     <Compile Include="Operations\ISizeOfExpression.cs" />
     <Compile Include="Operations\IStopStatement.cs" />
+    <Compile Include="Operations\ISuppressNullableWarningExpression.cs" />
     <Compile Include="Operations\ISwitchCase.cs" />
     <Compile Include="Operations\ISwitchStatement.cs" />
     <Compile Include="Operations\ISymbolInitializer.cs" />

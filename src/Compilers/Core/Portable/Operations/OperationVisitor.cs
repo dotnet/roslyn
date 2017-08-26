@@ -180,6 +180,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
+        public virtual void VisitSuppressNullableWarningExpression(ISuppressNullableWarningExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
         public virtual void VisitPointerIndirectionReferenceExpression(IPointerIndirectionReferenceExpression operation)
         {
             DefaultVisit(operation);
@@ -571,6 +576,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual TResult VisitArrayElementReferenceExpression(IArrayElementReferenceExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitSuppressNullableWarningExpression(ISuppressNullableWarningExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

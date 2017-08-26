@@ -2709,6 +2709,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitSuppressNullableWarningExpression(BoundSuppressNullableWarningExpression node)
+        {
+            VisitRvalue(node.Expression);
+            return null;
+        }
+
         public override BoundNode VisitAddressOfOperator(BoundAddressOfOperator node)
         {
             VisitAddressOfOperand(node.Operand, shouldReadOperand: false);

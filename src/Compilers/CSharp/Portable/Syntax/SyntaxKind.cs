@@ -563,5 +563,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         RefExpression = 9050,
         RefType = 9051,
         ThrowExpression = 9052,
+        SuppressNullableWarningExpression = 9053,
     }
 }

@@ -1101,6 +1101,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal partial class BoundSuppressNullableWarningExpression : ISuppressNullableWarningExpression
+    {
+        IOperation ISuppressNullableWarningExpression.Expression => this.Expression;
+
+        protected override OperationKind ExpressionKind => OperationKind.SuppressNullableWarningExpression;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitSuppressNullableWarningExpression(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitSuppressNullableWarningExpression(this, argument);
+        }
+    }
+
     internal partial class BoundPointerIndirectionOperator : IPointerIndirectionReferenceExpression
     {
         IOperation IPointerIndirectionReferenceExpression.Pointer => this.Operand;

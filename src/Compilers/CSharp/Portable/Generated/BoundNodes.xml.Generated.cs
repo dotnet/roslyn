@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         TypeOrValueExpression,
         NamespaceExpression,
         UnaryOperator,
+        SuppressNullableWarningExpression,
         IncrementOperator,
         AddressOfOperator,
         PointerIndirectionOperator,
@@ -709,6 +710,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (operatorKind != this.OperatorKind || operand != this.Operand || constantValueOpt != this.ConstantValueOpt || methodOpt != this.MethodOpt || resultKind != this.ResultKind || type != this.Type)
             {
                 var result = new BoundUnaryOperator(this.Syntax, operatorKind, operand, constantValueOpt, methodOpt, resultKind, type, this.HasErrors);
+                result.WasCompilerGenerated = this.WasCompilerGenerated;
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundSuppressNullableWarningExpression : BoundExpression
+    {
+        public BoundSuppressNullableWarningExpression(SyntaxNode syntax, BoundExpression expression, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.SuppressNullableWarningExpression, syntax, type, hasErrors || expression.HasErrors())
+        {
+
+            Debug.Assert(expression != null, "Field 'expression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.Expression = expression;
+        }
+
+
+        public BoundExpression Expression { get; }
+
+        public override BoundNode Accept(BoundTreeVisitor visitor)
+        {
+            return visitor.VisitSuppressNullableWarningExpression(this);
+        }
+
+        public BoundSuppressNullableWarningExpression Update(BoundExpression expression, TypeSymbol type)
+        {
+            if (expression != this.Expression || type != this.Type)
+            {
+                var result = new BoundSuppressNullableWarningExpression(this.Syntax, expression, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -6150,6 +6182,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitNamespaceExpression(node as BoundNamespaceExpression, arg);
                 case BoundKind.UnaryOperator: 
                     return VisitUnaryOperator(node as BoundUnaryOperator, arg);
+                case BoundKind.SuppressNullableWarningExpression: 
+                    return VisitSuppressNullableWarningExpression(node as BoundSuppressNullableWarningExpression, arg);
                 case BoundKind.IncrementOperator: 
                     return VisitIncrementOperator(node as BoundIncrementOperator, arg);
                 case BoundKind.AddressOfOperator: 
@@ -6481,6 +6515,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node, arg);
         }
         public virtual R VisitUnaryOperator(BoundUnaryOperator node, A arg)
+        {
+            return this.DefaultVisit(node, arg);
+        }
+        public virtual R VisitSuppressNullableWarningExpression(BoundSuppressNullableWarningExpression node, A arg)
         {
             return this.DefaultVisit(node, arg);
         }
@@ -7085,6 +7123,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node);
         }
         public virtual BoundNode VisitUnaryOperator(BoundUnaryOperator node)
+        {
+            return this.DefaultVisit(node);
+        }
+        public virtual BoundNode VisitSuppressNullableWarningExpression(BoundSuppressNullableWarningExpression node)
         {
             return this.DefaultVisit(node);
         }
@@ -7699,6 +7741,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitUnaryOperator(BoundUnaryOperator node)
         {
             this.Visit(node.Operand);
+            return null;
+        }
+        public override BoundNode VisitSuppressNullableWarningExpression(BoundSuppressNullableWarningExpression node)
+        {
+            this.Visit(node.Expression);
             return null;
         }
         public override BoundNode VisitIncrementOperator(BoundIncrementOperator node)
@@ -8483,6 +8530,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(node.OperatorKind, operand, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, type);
+        }
+        public override BoundNode VisitSuppressNullableWarningExpression(BoundSuppressNullableWarningExpression node)
+        {
+            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update(expression, type);
         }
         public override BoundNode VisitIncrementOperator(BoundIncrementOperator node)
         {
@@ -9423,6 +9476,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
                 new TreeDumperNode("methodOpt", node.MethodOpt, null),
                 new TreeDumperNode("resultKind", node.ResultKind, null),
+                new TreeDumperNode("type", node.Type, null)
+            }
+            );
+        }
+        public override TreeDumperNode VisitSuppressNullableWarningExpression(BoundSuppressNullableWarningExpression node, object arg)
+        {
+            return new TreeDumperNode("suppressNullableWarningExpression", null, new TreeDumperNode[]
+            {
+                new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
                 new TreeDumperNode("type", node.Type, null)
             }
             );

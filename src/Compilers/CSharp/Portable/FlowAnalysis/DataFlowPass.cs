@@ -2204,20 +2204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
             this.State.ResultIsNotNull = null;
-            var result = base.VisitExpressionWithoutStackGuard(node);
-
-            Debug.Assert(!IsConditionalState || node.ConstantValue == null || node.Type?.IsReferenceType != true);
-            if (_performStaticNullChecks && !IsConditionalState && this.State.Reachable)
-            {
-                var constant = node.ConstantValue;
-
-                if (constant != null && node.Type?.IsReferenceType == true)
-                {
-                    this.State.ResultIsNotNull = !constant.IsNull;
-                }
-            }
-
-            return result;
+            return base.VisitExpressionWithoutStackGuard(node);
         }
 
         public override BoundNode VisitObjectCreationExpression(BoundObjectCreationExpression node)
@@ -2248,6 +2235,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void SetResultIsNotNull(BoundExpression node)
         {
             Debug.Assert(!IsConditionalState);
+
+            // PROTOTYPE(NullableReferenceTypes): Is it necessary to check
+            // this.State.Reachable for null checks, here or elsewhere?
             if (_performStaticNullChecks && this.State.Reachable)
             {
                 if (node.Type?.IsReferenceType == true)
@@ -2828,9 +2818,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ConversionKind.NoConversion:
                         return null;
 
-                    case ConversionKind.DefaultOrNullLiteral:
-                        return false;
-
                     case ConversionKind.Boxing:
                         if (sourceTypeOpt?.IsValueType == true)
                         {
@@ -2851,6 +2838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return null;
                         }
 
+                    case ConversionKind.DefaultOrNullLiteral:
                     case ConversionKind.Identity:
                     case ConversionKind.ImplicitReference:
                     case ConversionKind.ExplicitReference:
@@ -4016,6 +4004,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     this.State.ResultIsNotNull = null;
                 }
+            }
+
+            return result;
+        }
+
+        public override BoundNode VisitSuppressNullableWarningExpression(BoundSuppressNullableWarningExpression node)
+        {
+            var result = base.VisitSuppressNullableWarningExpression(node);
+
+            Debug.Assert(!IsConditionalState);
+            if (_performStaticNullChecks && this.State.Reachable)
+            {
+                this.State.ResultIsNotNull = null;
             }
 
             return result;

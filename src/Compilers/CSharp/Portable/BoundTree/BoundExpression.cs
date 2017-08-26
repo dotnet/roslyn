@@ -313,6 +313,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; }
     }
 
+    internal partial class BoundSuppressNullableWarningExpression
+    {
+        public override ConstantValue ConstantValue
+        {
+            get { return this.Expression.ConstantValue; }
+        }
+    }
+
     internal partial class BoundLiteral
     {
         public override ConstantValue ConstantValue

@@ -38012,6 +38012,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       {
         case SyntaxKind.PostIncrementExpression:
         case SyntaxKind.PostDecrementExpression:
+        case SyntaxKind.SuppressNullableWarningExpression:
           break;
         default:
           throw new ArgumentException("kind");
@@ -38025,6 +38026,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       {
         case SyntaxKind.PlusPlusToken:
         case SyntaxKind.MinusMinusToken:
+        case SyntaxKind.ExclamationToken:
           break;
         default:
           throw new ArgumentException("operatorToken");
@@ -44926,6 +44928,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       {
         case SyntaxKind.PostIncrementExpression:
         case SyntaxKind.PostDecrementExpression:
+        case SyntaxKind.SuppressNullableWarningExpression:
           break;
         default:
           throw new ArgumentException("kind");
@@ -44939,6 +44942,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       {
         case SyntaxKind.PlusPlusToken:
         case SyntaxKind.MinusMinusToken:
+        case SyntaxKind.ExclamationToken:
           break;
         default:
           throw new ArgumentException("operatorToken");
