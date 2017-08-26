@@ -780,15 +780,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IUnaryOperatorExpression));
 
-            var kindStr = $"{nameof(UnaryOperationKind)}.{operation.UnaryOperationKind}";
+            var kindStr = $"{nameof(UnaryOperatorKind)}.{operation.OperatorKind}";
             if (operation.IsLifted)
             {
-                LogString($" ({kindStr}-IsLifted)");
+                kindStr += ", IsLifted";
             }
-            else
+
+            if (operation.IsChecked)
             {
-                LogString($" ({kindStr})");
+                kindStr += ", Checked";
             }
+
+            LogString($" ({kindStr})");
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);
 
@@ -799,15 +802,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IBinaryOperatorExpression));
 
-            var kindStr = $"{nameof(BinaryOperationKind)}.{operation.BinaryOperationKind}";
+            var kindStr = $"{nameof(BinaryOperatorKind)}.{operation.OperatorKind}";
             if (operation.IsLifted)
             {
-                LogString($" ({kindStr}-IsLifted)");
+                kindStr += ", IsLifted";
             }
-            else
+
+            if (operation.IsChecked)
             {
-                LogString($" ({kindStr})");
+                kindStr += ", Checked";
             }
+
+            if (operation.IsCompareText)
+            {
+                kindStr += ", CompareText";
+            }
+
+            LogString($" ({kindStr})");
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);
 
@@ -1093,15 +1104,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(ICompoundAssignmentExpression));
 
-            var kindStr = $"{nameof(BinaryOperationKind)}.{operation.BinaryOperationKind}";
+            var kindStr = $"{nameof(BinaryOperatorKind)}.{operation.OperatorKind}";
             if (operation.IsLifted)
             {
-                LogString($" ({kindStr}-IsLifted)");
+                kindStr += ", IsLifted";
             }
-            else
+
+            if (operation.IsChecked)
             {
-                LogString($" ({kindStr})");
+                kindStr += ", Checked";
             }
+
+            LogString($" ({kindStr})");
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);
 
@@ -1113,12 +1127,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IIncrementExpression));
 
-            var unaryKindStr = $"{nameof(UnaryOperandKind)}.{operation.IncrementOperationKind}";
-            LogString($" ({unaryKindStr})");
+            var kindStr = operation.IsPostfix ? "Postfix" : "Prefix";
+            kindStr += operation.IsDecrement ? "Decrement" : "Increment";
+            if (operation.IsLifted)
+            {
+                kindStr += ", IsLifted";
+            }
+
+            if (operation.IsChecked)
+            {
+                kindStr += ", Checked";
+            }
+
+            LogString($" ({kindStr})");
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.Target, "Left");
+            Visit(operation.Target, "Target");
         }
 
         public override void VisitParenthesizedExpression(IParenthesizedExpression operation)
@@ -1204,8 +1229,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitSingleValueCaseClause(ISingleValueCaseClause operation)
         {
             LogString(nameof(ISingleValueCaseClause));
-            var kindStr = $"{nameof(BinaryOperationKind)}.{operation.Equality}";
-            LogString($" (Equality operator kind: {kindStr})");
             LogCaseClauseCommon(operation);
 
             Visit(operation.Value, "Value");
@@ -1214,7 +1237,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitRelationalCaseClause(IRelationalCaseClause operation)
         {
             LogString(nameof(IRelationalCaseClause));
-            var kindStr = $"{nameof(BinaryOperationKind)}.{operation.Relation}";
+            var kindStr = $"{nameof(BinaryOperatorKind)}.{operation.Relation}";
             LogString($" (Relational operator kind: {kindStr})");
             LogCaseClauseCommon(operation);
 
