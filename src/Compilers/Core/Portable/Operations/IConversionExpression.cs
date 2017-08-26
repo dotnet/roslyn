@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         ConversionKind ConversionKind { get; }
         /// <summary>
-        /// True if and only if the conversion is indicated explicity by a cast operation in the source code.
+        /// True if and only if the conversion is indicated explicitly by a cast operation in the source code.
         /// </summary>
         bool IsExplicit { get; }
     }

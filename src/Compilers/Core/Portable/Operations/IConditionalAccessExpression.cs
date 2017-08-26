@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         IOperation ConditionalValue { get; }
         /// <summary>
-        /// Expresson that is conditionally accessed.
+        /// Expression that is conditionally accessed.
         /// </summary>
         IOperation ConditionalInstance { get; }
     }

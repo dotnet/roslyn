@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents a C# foreach statement or a VB For Each staement.
+    /// Represents a C# foreach statement or a VB For Each statement.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
