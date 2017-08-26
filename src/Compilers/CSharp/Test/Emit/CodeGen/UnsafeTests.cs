@@ -5513,6 +5513,7 @@ unsafe class C
 ");
         }
 
+        [WorkItem(18871, "https://github.com/dotnet/roslyn/issues/18871")]
         [WorkItem(546750, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546750")]
         [Fact]
         public void NumericAdditionChecked_SizeOne()
@@ -5538,14 +5539,33 @@ unsafe class C
             p = p + ul;
         }
     }
+
+    void Test1(int i, uint u, long l, ulong ul)
+    {
+        checked
+        {
+            byte b = 3;
+            byte* p = &b;
+            p = p - 2;
+            p = p - 3u;
+            p = p - 4l;
+            p = p - 5ul;
+            p = p - i;
+            p = p - u;
+            p = p - l;
+            p = p - ul;
+        }
+    }
 }
 ";
             // NOTE: even when not optimized.
             // NOTE: additional conversions applied to constants of type int and uint.
             // NOTE: identical to unchecked except "add" becomes "add.ovf.un".
-            CompileAndVerify(text, options: TestOptions.UnsafeDebugDll).VerifyIL("C.Test", @"
+            var comp = CompileAndVerify(text, options: TestOptions.UnsafeDebugDll);
+
+            comp.VerifyIL("C.Test", @"
 {
-  // Code size       50 (0x32)
+  // Code size       51 (0x33)
   .maxstack  2
   .locals init (byte V_0, //b
                 byte* V_1) //p
@@ -5578,25 +5598,83 @@ unsafe class C
   IL_001b:  stloc.1
   IL_001c:  ldloc.1
   IL_001d:  ldarg.1
-  IL_001e:  add.ovf.un
-  IL_001f:  stloc.1
-  IL_0020:  ldloc.1
-  IL_0021:  ldarg.2
-  IL_0022:  conv.u
-  IL_0023:  add.ovf.un
-  IL_0024:  stloc.1
-  IL_0025:  ldloc.1
-  IL_0026:  ldarg.3
-  IL_0027:  conv.i
-  IL_0028:  add.ovf.un
-  IL_0029:  stloc.1
-  IL_002a:  ldloc.1
-  IL_002b:  ldarg.s    V_4
-  IL_002d:  conv.u
-  IL_002e:  add.ovf.un
-  IL_002f:  stloc.1
-  IL_0030:  nop
-  IL_0031:  ret
+  IL_001e:  conv.i
+  IL_001f:  add.ovf.un
+  IL_0020:  stloc.1
+  IL_0021:  ldloc.1
+  IL_0022:  ldarg.2
+  IL_0023:  conv.u
+  IL_0024:  add.ovf.un
+  IL_0025:  stloc.1
+  IL_0026:  ldloc.1
+  IL_0027:  ldarg.3
+  IL_0028:  conv.i
+  IL_0029:  add.ovf.un
+  IL_002a:  stloc.1
+  IL_002b:  ldloc.1
+  IL_002c:  ldarg.s    V_4
+  IL_002e:  conv.u
+  IL_002f:  add.ovf.un
+  IL_0030:  stloc.1
+  IL_0031:  nop
+  IL_0032:  ret
+}");
+
+            comp.VerifyIL("C.Test1", @"
+{
+  // Code size       51 (0x33)
+  .maxstack  2
+  .locals init (byte V_0, //b
+                byte* V_1) //p
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ldc.i4.3
+  IL_0003:  stloc.0
+  IL_0004:  ldloca.s   V_0
+  IL_0006:  conv.u
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.1
+  IL_0009:  ldc.i4.2
+  IL_000a:  sub.ovf.un
+  IL_000b:  stloc.1
+  IL_000c:  ldloc.1
+  IL_000d:  ldc.i4.3
+  IL_000e:  sub.ovf.un
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.1
+  IL_0011:  ldc.i4.4
+  IL_0012:  conv.i8
+  IL_0013:  conv.i
+  IL_0014:  sub.ovf.un
+  IL_0015:  stloc.1
+  IL_0016:  ldloc.1
+  IL_0017:  ldc.i4.5
+  IL_0018:  conv.i8
+  IL_0019:  conv.u
+  IL_001a:  sub.ovf.un
+  IL_001b:  stloc.1
+  IL_001c:  ldloc.1
+  IL_001d:  ldarg.1
+  IL_001e:  conv.i
+  IL_001f:  sub.ovf.un
+  IL_0020:  stloc.1
+  IL_0021:  ldloc.1
+  IL_0022:  ldarg.2
+  IL_0023:  conv.u
+  IL_0024:  sub.ovf.un
+  IL_0025:  stloc.1
+  IL_0026:  ldloc.1
+  IL_0027:  ldarg.3
+  IL_0028:  conv.i
+  IL_0029:  sub.ovf.un
+  IL_002a:  stloc.1
+  IL_002b:  ldloc.1
+  IL_002c:  ldarg.s    V_4
+  IL_002e:  conv.u
+  IL_002f:  sub.ovf.un
+  IL_0030:  stloc.1
+  IL_0031:  nop
+  IL_0032:  ret
 }");
         }
 
