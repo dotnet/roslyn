@@ -146,6 +146,39 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestSessionClosed()
+        {
+            // enable local remote host service
+            var service = CreateRemoteHostClientService();
+            service.Enable();
+
+            var client = (InProcRemoteHostClient)(await service.TryGetRemoteHostClientAsync(CancellationToken.None));
+
+            // register local service
+            TestService testService = null;
+            client.RegisterService("Test", (s, p) =>
+            {
+                testService = new TestService(s, p);
+                return testService;
+            });
+
+            // create session that stay alive until client alive (ex, SymbolSearchUpdateEngine)
+            var session = await client.TryCreateKeepAliveSessionAsync("Test", CancellationToken.None);
+
+            // mimic unfortunate call that happens to be in the middle of communication.
+            var task = session.TryInvokeAsync("TestMethodAsync", SpecializedCollections.EmptyReadOnlyList<object>(), CancellationToken.None);
+
+            // make client to go away
+            service.Disable();
+
+            // let the service to return
+            testService.Event.Set();
+
+            // make sure task finished gracefully
+            await task;
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestRequestNewRemoteHost()
         {
             var service = CreateRemoteHostClientService();
@@ -196,6 +229,26 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var mock = new Mock<IDiagnosticAnalyzerService>(MockBehavior.Strict);
             mock.Setup(a => a.GetHostAnalyzerReferences()).Returns(references);
             return mock.Object;
+        }
+
+        private class TestService : ServiceHubServiceBase
+        {
+            public TestService(Stream stream, IServiceProvider serviceProvider) :
+                base(serviceProvider, stream)
+            {
+                Event = new ManualResetEvent(false);
+
+                Rpc.StartListening();
+            }
+
+            public readonly ManualResetEvent Event;
+
+            public Task TestMethodAsync()
+            {
+                Event.WaitOne();
+
+                return SpecializedTasks.EmptyTask;
+            }
         }
 
         private class Listener : AsynchronousOperationListener { }
