@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Semantics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal abstract class BaseCSharpArgument : BaseArgument, IArgument
+    internal abstract class BaseCSharpArgument : BaseArgument
     {
         public BaseCSharpArgument(ArgumentKind argumentKind, IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(argumentKind, parameter, semanticModel, syntax, type, constantValue)

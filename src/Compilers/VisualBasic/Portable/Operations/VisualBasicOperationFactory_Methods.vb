@@ -74,11 +74,12 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function CreateConversion(expression As BoundExpression) As Conversion
             If expression.Kind = BoundKind.Conversion Then
                 Dim conversion = DirectCast(expression, BoundConversion)
+                Dim conversionKind = conversion.ConversionKind
                 Dim method As MethodSymbol = Nothing
-                If conversion.Operand.Kind = BoundKind.UserDefinedConversion Then
+                If conversionKind.HasFlag(VisualBasic.ConversionKind.UserDefined) AndAlso conversion.Operand.Kind = BoundKind.UserDefinedConversion Then
                     method = DirectCast(conversion.Operand, BoundUserDefinedConversion).Call.Method
                 End If
-                Return New Conversion(KeyValuePair.Create(conversion.ConversionKind, method))
+                Return New Conversion(KeyValuePair.Create(conversionKind, method))
             End If
             Return New Conversion(Nothing) 'NoConversion
         End Function

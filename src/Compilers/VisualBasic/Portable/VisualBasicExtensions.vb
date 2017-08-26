@@ -1384,7 +1384,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="argument">The argument to get original info from.</param>
         ''' <returns>The underlying <see cref="Conversion"/> of the InConversion.</returns>
-        ''' <exception cref="InvalidCastException">If the <see cref="IArgument"/> was not created from Visual Basic code.</exception>
+        ''' <exception cref="ArgumentException">If the <see cref="IArgument"/> was not created from Visual Basic code.</exception>
         <Extension>
         Public Function GetInConversion(argument As IArgument) As Conversion
             Dim basicArgument = TryCast(argument, BaseVisualBasicArgument)
@@ -1402,7 +1402,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="argument">The argument to get original info from.</param>
         ''' <returns>The underlying <see cref="Conversion"/> of the OutConversion.</returns>
-        ''' <exception cref="InvalidCastException">If the <see cref="IArgument"/> was not created from Visual Basic code.</exception>
+        ''' <exception cref="ArgumentException">If the <see cref="IArgument"/> was not created from Visual Basic code.</exception>
         <Extension>
         Public Function GetOutConversion(argument As IArgument) As Conversion
             Dim basicArgument = TryCast(argument, BaseVisualBasicArgument)

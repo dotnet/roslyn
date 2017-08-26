@@ -758,8 +758,6 @@ BC30272: 'y' is not a parameter of 'Public Sub M2(x As Integer)'.
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-
-
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub InOutConversion()
