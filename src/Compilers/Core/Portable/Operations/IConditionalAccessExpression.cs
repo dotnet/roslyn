@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     public interface IConditionalAccessExpression : IOperation
     {
         /// <summary>
-        /// Expression that is conditionally accessed.
+        /// Expression that will be evaulated and accessed if non null.
         /// </summary>
         IOperation Expression { get; }
         /// <summary>
