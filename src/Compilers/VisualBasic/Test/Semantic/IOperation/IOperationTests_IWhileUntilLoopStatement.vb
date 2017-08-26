@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -81,8 +81,6 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
               Arguments(1):
                   IArgument (ArgumentKind.Explicit, Matching Parameter: location) (OperationKind.Argument) (Syntax: 'index')
                     ILocalReferenceExpression: index (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'index')
-                    InConversion: null
-                    OutConversion: null
       IIfStatement (OperationKind.IfStatement) (Syntax: 'If value >  ... End If')
         Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'value > 10')
             Left: ILocalReferenceExpression: value (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'value')
@@ -92,7 +90,8 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
               Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Boolean) (Syntax: 'condition = False')
                   Left: ILocalReferenceExpression: condition (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'condition')
                   Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False) (Syntax: 'False')
-        IfFalse: null]]>.Value
+        IfFalse: null
+]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
         End Sub
@@ -167,8 +166,6 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
               Arguments(1):
                   IArgument (ArgumentKind.Explicit, Matching Parameter: location) (OperationKind.Argument) (Syntax: 'index')
                     ILocalReferenceExpression: index (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'index')
-                    InConversion: null
-                    OutConversion: null
       IIfStatement (OperationKind.IfStatement) (Syntax: 'If value >  ... End If')
         Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'value > 5')
             Left: ILocalReferenceExpression: value (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'value')
@@ -180,8 +177,6 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
                   Arguments(1):
                       IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"While-loop break"')
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "While-loop break") (Syntax: '"While-loop break"')
-                        InConversion: null
-                        OutConversion: null
             IBranchStatement (BranchKind.Break, Label: exit) (OperationKind.BranchStatement) (Syntax: 'Exit While')
         IfFalse: null
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... statement")')
@@ -190,8 +185,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"While-loop statement"')
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "While-loop statement") (Syntax: '"While-loop statement"')
-                  InConversion: null
-                  OutConversion: null]]>.Value
+]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
         End Sub
@@ -227,8 +221,6 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
               Arguments(1):
                   IArgument (ArgumentKind.Explicit, Matching Parameter: location) (OperationKind.Argument) (Syntax: 'index')
                     ILocalReferenceExpression: index (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'index')
-                    InConversion: null
-                    OutConversion: null
       IIfStatement (OperationKind.IfStatement) (Syntax: 'If value >  ... End If')
         Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'value > 100')
             Left: ILocalReferenceExpression: value (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'value')
@@ -240,8 +232,6 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
                     Arguments(1):
                         IArgument (ArgumentKind.Explicit, Matching Parameter: message) (OperationKind.Argument) (Syntax: '"An excepti ...  occurred."')
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "An exception has occurred.") (Syntax: '"An excepti ...  occurred."')
-                          InConversion: null
-                          OutConversion: null
                     Initializer: null
         IfFalse: null
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... statement")')
@@ -250,8 +240,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"While-loop statement"')
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "While-loop statement") (Syntax: '"While-loop statement"')
-                  InConversion: null
-                  OutConversion: null]]>.Value
+]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
         End Sub
@@ -285,12 +274,8 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
               Arguments(2):
                   IArgument (ArgumentKind.Explicit, Matching Parameter: target) (OperationKind.Argument) (Syntax: 'i')
                     ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
-                    InConversion: null
-                    OutConversion: null
                   IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'value')
                     ILocalReferenceExpression: value (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'value')
-                    InConversion: null
-                    OutConversion: null
       Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   Body: IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'While (Inli ... End While')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... , i, value)')
@@ -299,24 +284,19 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             Arguments(3):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: format) (OperationKind.Argument) (Syntax: '"While {0} {1}"')
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "While {0} {1}") (Syntax: '"While {0} {1}"')
-                  InConversion: null
-                  OutConversion: null
                 IArgument (ArgumentKind.Explicit, Matching Parameter: arg0) (OperationKind.Argument) (Syntax: 'i')
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'i')
                     Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
-                  InConversion: null
-                  OutConversion: null
                 IArgument (ArgumentKind.Explicit, Matching Parameter: arg1) (OperationKind.Argument) (Syntax: 'value')
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'value')
                     Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: ILocalReferenceExpression: value (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'value')
-                  InConversion: null
-                  OutConversion: null
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'value -= 1')
         Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerSubtract) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'value -= 1')
             Left: ILocalReferenceExpression: value (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'value')
-            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')]]>.Value
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
         End Sub
@@ -469,8 +449,6 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
               Arguments(1):
                   IArgument (ArgumentKind.Explicit, Matching Parameter: location) (OperationKind.Argument) (Syntax: 'index')
                     ILocalReferenceExpression: index (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'index')
-                    InConversion: null
-                    OutConversion: null
       IIfStatement (OperationKind.IfStatement) (Syntax: 'If value >  ... End If')
         Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'value > 100')
             Left: ILocalReferenceExpression: value (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'value')
@@ -480,7 +458,8 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
               Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Boolean) (Syntax: 'condition = False')
                   Left: ILocalReferenceExpression: condition (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'condition')
                   Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False) (Syntax: 'False')
-        IfFalse: null]]>.Value
+        IfFalse: null
+]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
         End Sub
@@ -551,8 +530,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'i')
                   ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
-                  InConversion: null
-                  OutConversion: null]]>.Value
+]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
         End Sub
@@ -586,8 +564,6 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
       Arguments(1):
           IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: 'i')
             ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
-            InConversion: null
-            OutConversion: null
   Body: IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'While IsTru ... End While')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i += 1')
         Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'i += 1')
@@ -599,8 +575,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'i')
                   ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
-                  InConversion: null
-                  OutConversion: null]]>.Value
+]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
         End Sub
@@ -655,16 +630,13 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
                   Arguments(1):
                       IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'j')
                         ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
-                        InConversion: null
-                        OutConversion: null
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... riteLine(i)')
         Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... riteLine(i)')
             Instance Receiver: null
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'i')
                   ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
-                  InConversion: null
-                  OutConversion: null]]>.Value
+]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
         End Sub
@@ -726,16 +698,13 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
                   Arguments(1):
                       IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'j')
                         ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
-                        InConversion: null
-                        OutConversion: null
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... riteLine(i)')
         Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... riteLine(i)')
             Instance Receiver: null
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'i')
                   ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
-                  InConversion: null
-                  OutConversion: null]]>.Value
+]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
         End Sub
@@ -762,8 +731,6 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
           Arguments(1):
               IArgument (ArgumentKind.Explicit, Matching Parameter: location) (OperationKind.Argument) (Syntax: 'i')
                 ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
-                InConversion: null
-                OutConversion: null
       Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'While Syste ... End While')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... riteLine(i)')
@@ -772,8 +739,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'i')
                   ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
-                  InConversion: null
-                  OutConversion: null]]>.Value
+]]>.Value
 
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
         End Sub
@@ -929,8 +895,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '1')
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-                  InConversion: null
-                  OutConversion: null]]>.Value
+]]>.Value
 
             VerifyOperationTreeForTest(Of DoLoopBlockSyntax)(source, expectedOperationTree)
         End Sub
@@ -966,8 +931,7 @@ IWhileUntilLoopStatement (IsTopTest: False, IsWhile: True) (LoopKind.WhileUntil)
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '1')
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-                  InConversion: null
-                  OutConversion: null]]>.Value
+]]>.Value
 
             VerifyOperationTreeForTest(Of DoLoopBlockSyntax)(source, expectedOperationTree)
         End Sub
@@ -1003,14 +967,10 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             Arguments(2):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: format) (OperationKind.Argument) (Syntax: '"Iterate {0}"')
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Iterate {0}") (Syntax: '"Iterate {0}"')
-                  InConversion: null
-                  OutConversion: null
                 IArgument (ArgumentKind.Explicit, Matching Parameter: arg0) (OperationKind.Argument) (Syntax: 'x')
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                  InConversion: null
-                  OutConversion: null
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'breakLoop = True')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Boolean) (Syntax: 'breakLoop = True')
             Left: ILocalReferenceExpression: breakLoop (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'breakLoop')

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -336,8 +336,6 @@ ILockStatement (OperationKind.LockStatement) (Syntax: 'lock (new o ... }')
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '""Hello World!""')
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""Hello World!"") (Syntax: '""Hello World!""')
-                  InConversion: null
-                  OutConversion: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

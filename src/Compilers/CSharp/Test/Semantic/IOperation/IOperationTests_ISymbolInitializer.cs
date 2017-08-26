@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -326,8 +326,6 @@ IFieldInitializer (Field: System.Action C.e) (OperationKind.FieldInitializer) (S
     Arguments(1):
         IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-          InConversion: null
-          OutConversion: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -353,8 +351,6 @@ IFieldInitializer (Field: System.Action C.f) (OperationKind.FieldInitializer) (S
     Arguments(1):
         IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '2')
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
-          InConversion: null
-          OutConversion: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
