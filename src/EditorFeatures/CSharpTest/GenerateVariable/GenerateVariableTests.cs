@@ -1782,8 +1782,7 @@ class Program
     {
         Goo#();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(539536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539536")]
@@ -1843,8 +1842,7 @@ class D
         C.P = 10;
     }
 }
-",
-ignoreTrivia: false);
+");
         }
 
         [WorkItem(539793, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539793")]
@@ -2309,8 +2307,7 @@ static class MyExtension
     {
         P = 10;
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(539675, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539675")]
@@ -2336,8 +2333,7 @@ ignoreTrivia: false);
         P = 10;
     }
 }",
-index: 1,
-ignoreTrivia: false);
+index: 1);
         }
 
         [WorkItem(543813, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543813")]
@@ -2361,8 +2357,7 @@ ignoreTrivia: false);
         P = 10;
     }
 }",
-index: 1,
-ignoreTrivia: false);
+index: 1);
         }
 
         [WorkItem(543813, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543813")]
@@ -2386,8 +2381,7 @@ ignoreTrivia: false);
         P = 10;
     }
 }",
-index: 0,
-ignoreTrivia: false);
+index: 0);
         }
 
         [WorkItem(543813, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543813")]
@@ -2416,8 +2410,7 @@ ignoreTrivia: false);
         A = 9;
     }
 }",
-index: 1,
-ignoreTrivia: false);
+index: 1);
         }
 
         [WorkItem(543813, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543813")]
@@ -2446,8 +2439,7 @@ ignoreTrivia: false);
         A = 9;
     }
 }",
-index: 0,
-ignoreTrivia: false);
+index: 0);
         }
 
         [WorkItem(539665, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539665")]
@@ -2473,8 +2465,7 @@ class D
     {
         C.P = 10;
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(540595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540595")]
@@ -2486,8 +2477,7 @@ ignoreTrivia: false);
 @"object Goo { get; private set; }
 
 Goo",
-parseOptions: Options.Script,
-ignoreTrivia: false);
+parseOptions: Options.Script);
         }
 
         [WorkItem(542535, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542535")]
@@ -3849,8 +3839,7 @@ class Program
     }
 
     public static object X { get; private set; }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -3904,8 +3893,7 @@ class Program
     }
 #line hidden
 }
-#line default",
-ignoreTrivia: false);
+#line default");
         }
 
         [WorkItem(545217, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545217")]
@@ -4431,8 +4419,7 @@ namespace CSharpDemoApp
     }
 }
 ",
-index: 3,
-ignoreTrivia: false);
+index: 3);
         }
 
         [WorkItem(863346, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863346")]
@@ -4473,8 +4460,7 @@ class TestClass<T1>
     }
 }
 ",
-index: 3,
-ignoreTrivia: false);
+index: 3);
         }
 
         [WorkItem(863346, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863346")]
@@ -4515,8 +4501,7 @@ class TestClass<T1>
         return function(zoo);
     }
 }
-",
-ignoreTrivia: false);
+");
         }
 
         [WorkItem(865067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865067")]
