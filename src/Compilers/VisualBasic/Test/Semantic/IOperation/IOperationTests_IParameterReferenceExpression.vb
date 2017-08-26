@@ -325,7 +325,7 @@ IObjectCreationExpression (Constructor: Sub [Class]..ctor()) (OperationKind.Obje
                     Element Values(3):
                         IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
                         IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
-                        ILiteralExpression (Text: 3) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void) (Syntax: '.Z = New Di ... om {{x, y}}')
             Left: IPropertyReferenceExpression: Property [Class].Z As System.Collections.Generic.Dictionary(Of System.Int32, System.Int32) (OperationKind.PropertyReferenceExpression, Type: System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)) (Syntax: 'Z')
                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New [Class] ... }')
@@ -347,8 +347,7 @@ IObjectCreationExpression (Constructor: Sub [Class]..ctor()) (OperationKind.Obje
                         ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void) (Syntax: '.X = z')
                           Left: IPropertyReferenceExpression: Property [Class].X As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'X')
                               Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New [Class] ... th {.X = z}')
-                          Right: IParameterReferenceExpression: z (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'z')
-]]>.Value
+                          Right: IParameterReferenceExpression: z (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'z')]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
@@ -372,7 +371,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.EventHandler) (Syntax: 'New EventHa ... nction() x)')
   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  Operand: ILambdaExpression (Signature: Function () As System.Object) (OperationKind.LambdaExpression, Type: null) (Syntax: 'Function() x')
+  Operand: IAnonymousFunctionExpression (Symbol: Function () As System.Object) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Function() x')
       IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Function() x')
         Locals: Local_1: <anonymous local> As System.Object
         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x')
@@ -585,24 +584,23 @@ End Class]]>.Value
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {x ... nstant {1}"')
   Parts(6):
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
-        Text: ILiteralExpression (Text: String ) (OperationKind.LiteralExpression, Type: System.String, Constant: "String ") (Syntax: 'String ')
+        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "String ") (Syntax: 'String ')
       IInterpolation (OperationKind.Interpolation) (Syntax: '{x,20}')
         Expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 'x')
-        Alignment: ILiteralExpression (Text: 20) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
+        Alignment: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
         FormatString: null
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and ')
-        Text: ILiteralExpression (Text:  and ) (OperationKind.LiteralExpression, Type: System.String, Constant: " and ") (Syntax: ' and ')
+        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " and ") (Syntax: ' and ')
       IInterpolation (OperationKind.Interpolation) (Syntax: '{y:D3}')
         Expression: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
         Alignment: null
         FormatString: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "D3") (Syntax: ':D3')
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and constant ')
-        Text: ILiteralExpression (Text:  and constant ) (OperationKind.LiteralExpression, Type: System.String, Constant: " and constant ") (Syntax: ' and constant ')
+        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " and constant ") (Syntax: ' and constant ')
       IInterpolation (OperationKind.Interpolation) (Syntax: '{1}')
-        Expression: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Expression: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Alignment: null
-        FormatString: null
-]]>.Value
+        FormatString: null]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 

@@ -4889,15 +4889,15 @@ class D
   IL_0018:  ldc.i4.1
   IL_0019:  callvirt   ""System.Func<int> System.Func<int, System.Func<int>>.Invoke(int)""
   IL_001e:  pop
-  IL_001f:  ldsfld     ""System.Func<int, System.Func<int>> Program.<>c.<>9__1_2""
+  IL_001f:  ldsfld     ""System.Func<int, System.Func<int>> Program.<>c.<>9__1_1""
   IL_0024:  dup
   IL_0025:  brtrue.s   IL_003e
   IL_0027:  pop
   IL_0028:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_002d:  ldftn      ""System.Func<int> Program.<>c.<Test>b__1_2(int)""
+  IL_002d:  ldftn      ""System.Func<int> Program.<>c.<Test>b__1_1(int)""
   IL_0033:  newobj     ""System.Func<int, System.Func<int>>..ctor(object, System.IntPtr)""
   IL_0038:  dup
-  IL_0039:  stsfld     ""System.Func<int, System.Func<int>> Program.<>c.<>9__1_2""
+  IL_0039:  stsfld     ""System.Func<int, System.Func<int>> Program.<>c.<>9__1_1""
   IL_003e:  ldc.i4.1
   IL_003f:  callvirt   ""System.Func<int> System.Func<int, System.Func<int>>.Invoke(int)""
   IL_0044:  pop
@@ -4905,7 +4905,7 @@ class D
 }
 ");
 
-            verifier.VerifyIL("Program.<>c.<Test>b__1_2(int)",
+            verifier.VerifyIL("Program.<>c.<Test>b__1_1(int)",
 @"
 {
   // Code size       44 (0x2c)
@@ -4943,17 +4943,17 @@ class D
   IL_0004:  ldc.i4.s   123
   IL_0006:  call       ""void System.Console.WriteLine(int)""
   IL_000b:  ldarg.0
-  IL_000c:  ldfld      ""System.Func<int> Program.<>c__DisplayClass1_0.<>9__1""
+  IL_000c:  ldfld      ""System.Func<int> Program.<>c__DisplayClass1_0.<>9__2""
   IL_0011:  dup
   IL_0012:  brtrue.s   IL_002a
   IL_0014:  pop
   IL_0015:  ldarg.0
   IL_0016:  ldarg.0
-  IL_0017:  ldftn      ""int Program.<>c__DisplayClass1_0.<Test>b__1()""
+  IL_0017:  ldftn      ""int Program.<>c__DisplayClass1_0.<Test>b__2()""
   IL_001d:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
   IL_0022:  dup
   IL_0023:  stloc.0
-  IL_0024:  stfld      ""System.Func<int> Program.<>c__DisplayClass1_0.<>9__1""
+  IL_0024:  stfld      ""System.Func<int> Program.<>c__DisplayClass1_0.<>9__2""
   IL_0029:  ldloc.0
   IL_002a:  ret
   IL_002b:  ldnull

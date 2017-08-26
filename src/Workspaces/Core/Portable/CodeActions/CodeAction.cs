@@ -196,8 +196,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
             foreach (var op in operations)
             {
-                var ac = op as ApplyChangesOperation;
-                if (ac != null)
+                if (op is ApplyChangesOperation ac)
                 {
                     arrayBuilder.Add(new ApplyChangesOperation(await this.PostProcessChangesAsync(ac.ChangedSolution, cancellationToken).ConfigureAwait(false)));
                 }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -40,6 +40,8 @@ IForEachLoopStatement (Iteration variable: System.String value) (LoopKind.ForEac
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'value')
                   ILocalReferenceExpression: value (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'value')
+                  InConversion: null
+                  OutConversion: null
 ";
             VerifyOperationTreeForTest<ForEachStatementSyntax>(source, expectedOperationTree);
         }
@@ -80,6 +82,8 @@ IForEachLoopStatement (Iteration variable: System.String item) (LoopKind.ForEach
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'item')
                   ILocalReferenceExpression: item (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'item')
+                  InConversion: null
+                  OutConversion: null
 ";
             VerifyOperationTreeForTest<ForEachStatementSyntax>(source, expectedOperationTree);
         }
@@ -122,16 +126,22 @@ IForEachLoopStatement (Iteration variable: System.Collections.Generic.KeyValuePa
             Arguments(3):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: format) (OperationKind.Argument) (Syntax: '""{0},{1}""')
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""{0},{1}"") (Syntax: '""{0},{1}""')
+                  InConversion: null
+                  OutConversion: null
                 IArgument (ArgumentKind.Explicit, Matching Parameter: arg0) (OperationKind.Argument) (Syntax: 'pair.Key')
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'pair.Key')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: IPropertyReferenceExpression: System.Int32 System.Collections.Generic.KeyValuePair<System.Int32, System.Int32>.Key { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'pair.Key')
                         Instance Receiver: ILocalReferenceExpression: pair (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.KeyValuePair<System.Int32, System.Int32>) (Syntax: 'pair')
+                  InConversion: null
+                  OutConversion: null
                 IArgument (ArgumentKind.Explicit, Matching Parameter: arg1) (OperationKind.Argument) (Syntax: 'pair.Value')
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'pair.Value')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: IPropertyReferenceExpression: System.Int32 System.Collections.Generic.KeyValuePair<System.Int32, System.Int32>.Value { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'pair.Value')
                         Instance Receiver: ILocalReferenceExpression: pair (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.KeyValuePair<System.Int32, System.Int32>) (Syntax: 'pair')
+                  InConversion: null
+                  OutConversion: null
 ";
             VerifyOperationTreeForTest<ForEachStatementSyntax>(source, expectedOperationTree);
         }
@@ -167,7 +177,7 @@ IForEachLoopStatement (Iteration variable: System.Int32 num) (LoopKind.ForEach) 
       IIfStatement (OperationKind.IfStatement) (Syntax: 'if (num>3) ... }')
         Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'num>3')
             Left: ILocalReferenceExpression: num (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'num')
-            Right: ILiteralExpression (Text: 3) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
         IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
             IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
         IfFalse: null
@@ -177,6 +187,8 @@ IForEachLoopStatement (Iteration variable: System.Int32 num) (LoopKind.ForEach) 
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'num')
                   ILocalReferenceExpression: num (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'num')
+                  InConversion: null
+                  OutConversion: null
 ";
             VerifyOperationTreeForTest<ForEachStatementSyntax>(source, expectedOperationTree);
         }
@@ -212,7 +224,7 @@ IForEachLoopStatement (Iteration variable: System.Int32 num) (LoopKind.ForEach) 
       IIfStatement (OperationKind.IfStatement) (Syntax: 'if (num>3) ... }')
         Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'num>3')
             Left: ILocalReferenceExpression: num (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'num')
-            Right: ILiteralExpression (Text: 3) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
         IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
             IBranchStatement (BranchKind.Continue) (OperationKind.BranchStatement) (Syntax: 'continue;')
         IfFalse: null
@@ -222,6 +234,8 @@ IForEachLoopStatement (Iteration variable: System.Int32 num) (LoopKind.ForEach) 
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'num')
                   ILocalReferenceExpression: num (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'num')
+                  InConversion: null
+                  OutConversion: null
 ";
             VerifyOperationTreeForTest<ForEachStatementSyntax>(source, expectedOperationTree);
         }
@@ -256,6 +270,8 @@ IForEachLoopStatement (Iteration variable: System.String value) (LoopKind.ForEac
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'value')
                   ILocalReferenceExpression: value (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'value')
+                  InConversion: null
+                  OutConversion: null
 ";
             VerifyOperationTreeForTest<ForEachStatementSyntax>(source, expectedOperationTree);
         }
@@ -328,6 +344,12 @@ IForEachLoopStatement (Iteration variable: System.Reflection.FieldInfo fi) (Loop
                                       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'employee')
                                         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                         Operand: ILocalReferenceExpression: employee (OperationKind.LocalReferenceExpression, Type: DisplayStructContentsTest.Program.Employee) (Syntax: 'employee')
+                                      InConversion: null
+                                      OutConversion: null
+                              InConversion: null
+                              OutConversion: null
+                  InConversion: null
+                  OutConversion: null
 ";
             VerifyOperationTreeForTest<ForEachStatementSyntax>(source, expectedOperationTree);
         }
@@ -363,6 +385,8 @@ IForEachLoopStatement (Iteration variable: System.Char c) (LoopKind.ForEach) (Op
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'c')
                   ILocalReferenceExpression: c (OperationKind.LocalReferenceExpression, Type: System.Char) (Syntax: 'c')
+                  InConversion: null
+                  OutConversion: null
 ";
             VerifyOperationTreeForTest<ForEachStatementSyntax>(source, expectedOperationTree);
         }
@@ -403,16 +427,22 @@ IForEachLoopStatement (Iteration variable: System.Collections.Generic.KeyValuePa
             Arguments(3):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: format) (OperationKind.Argument) (Syntax: '""{0},{1}""')
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""{0},{1}"") (Syntax: '""{0},{1}""')
+                  InConversion: null
+                  OutConversion: null
                 IArgument (ArgumentKind.Explicit, Matching Parameter: arg0) (OperationKind.Argument) (Syntax: 'pair.Key')
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'pair.Key')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: IPropertyReferenceExpression: System.Int32 System.Collections.Generic.KeyValuePair<System.Int32, System.Int32>.Key { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'pair.Key')
                         Instance Receiver: ILocalReferenceExpression: pair (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.KeyValuePair<System.Int32, System.Int32>) (Syntax: 'pair')
+                  InConversion: null
+                  OutConversion: null
                 IArgument (ArgumentKind.Explicit, Matching Parameter: arg1) (OperationKind.Argument) (Syntax: 'pair.Value')
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'pair.Value')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: IPropertyReferenceExpression: System.Int32 System.Collections.Generic.KeyValuePair<System.Int32, System.Int32>.Value { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'pair.Value')
                         Instance Receiver: ILocalReferenceExpression: pair (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.KeyValuePair<System.Int32, System.Int32>) (Syntax: 'pair')
+                  InConversion: null
+                  OutConversion: null
 ";
             VerifyOperationTreeForTest<ForEachStatementSyntax>(source, expectedOperationTree);
         }
@@ -449,7 +479,9 @@ IForEachLoopStatement (Iteration variable: MissingType x) (LoopKind.ForEach) (Op
                       Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'x.Equals')
                       Arguments(1):
                           IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: 'null')
-                            ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+                            ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+                            InConversion: null
+                            OutConversion: null
 ";
             VerifyOperationTreeForTest<ForEachStatementSyntax>(source, expectedOperationTree);
         }
@@ -471,7 +503,7 @@ class C
 ";
             string expectedOperationTree = @"
 IForEachLoopStatement (Iteration variable: System.Int32 x) (LoopKind.ForEach) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'foreach (in ... }')
-  Collection: ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+  Collection: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
 ";
             VerifyOperationTreeForTest<ForEachStatementSyntax>(source, expectedOperationTree);
@@ -671,6 +703,8 @@ IForEachLoopStatement (Iteration variable: System.Object x) (LoopKind.ForEach) (
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'x')
                   ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'x')
+                  InConversion: null
+                  OutConversion: null
 ";
             VerifyOperationTreeForTest<ForEachStatementSyntax>(source, expectedOperationTree);
         }
@@ -690,7 +724,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForEachLoopStatement (Iteration variable: System.String x) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (st ... e)args) { }')
   Collection: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: '(IEnumerable)args')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -734,14 +768,17 @@ IForEachLoopStatement (Iteration variable: System.Int32 num) (LoopKind.ForEach) 
       IIfStatement (OperationKind.IfStatement) (Syntax: 'if (num > 3 ... }')
         Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'num > 3')
             Left: ILocalReferenceExpression: num (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'num')
-            Right: ILiteralExpression (Text: 3) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
         IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-            IThrowStatement (OperationKind.ThrowStatement) (Syntax: 'throw new S ... ""testing"");')
-              ThrownObject: IObjectCreationExpression (Constructor: System.Exception..ctor(System.String message)) (OperationKind.ObjectCreationExpression, Type: System.Exception) (Syntax: 'new System. ... (""testing"")')
-                  Arguments(1):
-                      IArgument (ArgumentKind.Explicit, Matching Parameter: message) (OperationKind.Argument) (Syntax: '""testing""')
-                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""testing"") (Syntax: '""testing""')
-                  Initializer: null
+            IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'throw new S ... ""testing"");')
+              Expression: IThrowExpression (OperationKind.ThrowExpression, Type: System.Exception) (Syntax: 'throw new S ... ""testing"");')
+                  IObjectCreationExpression (Constructor: System.Exception..ctor(System.String message)) (OperationKind.ObjectCreationExpression, Type: System.Exception) (Syntax: 'new System. ... (""testing"")')
+                    Arguments(1):
+                        IArgument (ArgumentKind.Explicit, Matching Parameter: message) (OperationKind.Argument) (Syntax: '""testing""')
+                          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""testing"") (Syntax: '""testing""')
+                          InConversion: null
+                          OutConversion: null
+                    Initializer: null
         IfFalse: null
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... eLine(num);')
         Expression: IInvocationExpression (void System.Console.WriteLine(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... teLine(num)')
@@ -749,6 +786,8 @@ IForEachLoopStatement (Iteration variable: System.Int32 num) (LoopKind.ForEach) 
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'num')
                   ILocalReferenceExpression: num (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'num')
+                  InConversion: null
+                  OutConversion: null
 ";
             VerifyOperationTreeForTest<ForEachStatementSyntax>(source, expectedOperationTree);
         }

@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             // NOTE: It is acceptable for hierarchy to be null in Deferred Project Load scenarios.
             var vsHierarchy = hierarchy as IVsHierarchy;
 
-            Func<ProjectId, IVsReportExternalErrors> getExternalErrorReporter = id => GetExternalErrorReporter(id, languageName);
+            IVsReportExternalErrors getExternalErrorReporter(ProjectId id) => GetExternalErrorReporter(id, languageName);
             return new CPSProject(_visualStudioWorkspace.GetProjectTrackerAndInitializeIfNecessary(ServiceProvider.GlobalProvider), getExternalErrorReporter, projectDisplayName, projectFilePath,
                 vsHierarchy, languageName, projectGuid, binOutputPath, _serviceProvider, _visualStudioWorkspace, _hostDiagnosticUpdateSource,
                 commandLineParserServiceOpt: _visualStudioWorkspace.Services.GetLanguageServices(languageName)?.GetService<ICommandLineParserService>());
@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             // NOTE: It is acceptable for hierarchy to be null in Deferred Project Load scenarios.
             var vsHierarchy = hierarchy as IVsHierarchy;
 
-            Func<ProjectId, IVsReportExternalErrors> getExternalErrorReporter = id => errorReporter;
+            IVsReportExternalErrors getExternalErrorReporter(ProjectId id) => errorReporter;
             return new CPSProject(_visualStudioWorkspace.GetProjectTrackerAndInitializeIfNecessary(ServiceProvider.GlobalProvider), getExternalErrorReporter, projectDisplayName, projectFilePath,
                 vsHierarchy, languageName, projectGuid, binOutputPath, _serviceProvider, _visualStudioWorkspace, _hostDiagnosticUpdateSource,
                 commandLineParserServiceOpt: _visualStudioWorkspace.Services.GetLanguageServices(languageName)?.GetService<ICommandLineParserService>());

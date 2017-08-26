@@ -36,8 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 foreach (var member in containingType.ContainingType.GetMembers(sourceMethodName))
                 {
-                    var candidateMethod = member as PEMethodSymbol;
-                    if (candidateMethod != null)
+                    if (member is PEMethodSymbol candidateMethod)
                     {
                         var module = metadataDecoder.Module;
                         methodHandle = candidateMethod.Handle;

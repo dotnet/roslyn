@@ -54,7 +54,9 @@ IInvocationExpression (void P.M2(System.Int32 x, System.Double y)) (OperationKin
   Instance Receiver: null
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
-        ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: null
+        OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: '2.0')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 2) (Syntax: '2.0')
 ";
@@ -83,7 +85,9 @@ IInvocationExpression (void P.M2(System.Int32 x, [System.Double y = 0])) (Operat
   Instance Receiver: null
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
-        ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: null
+        OutConversion: null
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'M2(1)')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 0) (Syntax: 'M2(1)')
 ";
@@ -112,9 +116,13 @@ IInvocationExpression (void P.M2(System.Int32 x, [System.Double y = 0])) (Operat
   Instance Receiver: null
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
-        ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: null
+        OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: '9.9')
-        ILiteralExpression (Text: 9.9) (OperationKind.LiteralExpression, Type: System.Double, Constant: 9.9) (Syntax: '9.9')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 9.9) (Syntax: '9.9')
+        InConversion: null
+        OutConversion: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -141,9 +149,13 @@ IInvocationExpression (void P.M2(System.Int32 x, [System.Double y = 0])) (Operat
   Instance Receiver: null
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: '9.9')
-        ILiteralExpression (Text: 9.9) (OperationKind.LiteralExpression, Type: System.Double, Constant: 9.9) (Syntax: '9.9')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 9.9) (Syntax: '9.9')
+        InConversion: null
+        OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
-        ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: null
+        OutConversion: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -170,9 +182,13 @@ IInvocationExpression (void P.M2([System.Int32 x = 1], [System.Int32 y = 2], [Sy
   Instance Receiver: null
   Arguments(3):
       IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: '0')
-        ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+        InConversion: null
+        OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument) (Syntax: '2')
-        ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+        InConversion: null
+        OutConversion: null
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'M2(y: 0, z: 2)')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(y: 0, z: 2)')
 
@@ -202,9 +218,13 @@ IInvocationExpression (void P.M2([System.Int32 x = 1], [System.Int32 y = 2], [Sy
   Instance Receiver: null
   Arguments(3):
       IArgument (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument) (Syntax: '2')
-        ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+        InConversion: null
+        OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '9')
-        ILiteralExpression (Text: 9) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 9) (Syntax: '9')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 9) (Syntax: '9')
+        InConversion: null
+        OutConversion: null
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'M2(z: 2, x: 9)')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'M2(z: 2, x: 9)')
 ";
@@ -234,9 +254,13 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'M2(9, z: 10);
       Instance Receiver: null
       Arguments(3):
           IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '9')
-            ILiteralExpression (Text: 9) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 9) (Syntax: '9')
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 9) (Syntax: '9')
+            InConversion: null
+            OutConversion: null
           IArgument (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument) (Syntax: '10')
-            ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+            InConversion: null
+            OutConversion: null
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'M2(9, z: 10)')
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'M2(9, z: 10)')
 ";
@@ -450,9 +474,13 @@ IInvocationExpression (void Extensions.E1(this P p, [System.Int32 x = 0], [Syste
       IArgument (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument) (Syntax: 'this')
         IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
-        ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: null
+        OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: '2')
-        ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+        InConversion: null
+        OutConversion: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -486,9 +514,13 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'this.E1(y: 1,
           IArgument (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument) (Syntax: 'this')
             IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
           IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: '1')
-            ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+            InConversion: null
+            OutConversion: null
           IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '2')
-            ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+            InConversion: null
+            OutConversion: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -521,7 +553,9 @@ IInvocationExpression (void Extensions.E1(this P p, [System.Int32 x = 0], [Syste
       IArgument (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument) (Syntax: 'this')
         IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
       IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: '1')
-        ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: null
+        OutConversion: null
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'this.E1(y: 1)')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'this.E1(y: 1)')
 ";
@@ -551,7 +585,9 @@ IInvocationExpression ( void P.M2(System.Int32 x, params System.Double[] array))
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
-        ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: null
+        OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'a')
         ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Double[]) (Syntax: 'a')
 ";
@@ -580,15 +616,19 @@ IInvocationExpression ( void P.M2(System.Int32 x, params System.Double[] array))
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
-        ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: null
+        OutConversion: null
       IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'M2(1, 0.1, 0.2)')
         IArrayCreationExpression (Element Type: System.Double) (OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: 'M2(1, 0.1, 0.2)')
           Dimension Sizes(1):
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'M2(1, 0.1, 0.2)')
           Initializer: IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(1, 0.1, 0.2)')
               Element Values(2):
-                  ILiteralExpression (Text: 0.1) (OperationKind.LiteralExpression, Type: System.Double, Constant: 0.1) (Syntax: '0.1')
-                  ILiteralExpression (Text: 0.2) (OperationKind.LiteralExpression, Type: System.Double, Constant: 0.2) (Syntax: '0.2')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 0.1) (Syntax: '0.1')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 0.2) (Syntax: '0.2')
+        InConversion: null
+        OutConversion: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -615,7 +655,9 @@ IInvocationExpression ( void P.M2(System.Int32 x, params System.Double[] array))
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
-        ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: null
+        OutConversion: null
       IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'M2(1)')
         IArrayCreationExpression (Element Type: System.Double) (OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: 'M2(1)')
           Dimension Sizes(1):
@@ -719,7 +761,9 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
               Element Values(1):
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, Constant: 1) (Syntax: '1')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                    Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: null
+        OutConversion: null
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'M2(array: 1)')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'M2(array: 1)')
 ";
@@ -749,7 +793,9 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
-        ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: null
+        OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'a')
         ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Double[]) (Syntax: 'a')
 ";
@@ -778,7 +824,9 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
-        ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: null
+        OutConversion: null
       IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'M2(1, array: 1)')
         IArrayCreationExpression (Element Type: System.Double) (OperationKind.ArrayCreationExpression, Type: System.Double[]) (Syntax: 'M2(1, array: 1)')
           Dimension Sizes(1):
@@ -787,7 +835,9 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
               Element Values(1):
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, Constant: 1) (Syntax: '1')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                    Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: null
+        OutConversion: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -818,7 +868,9 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'M2(array: a, 
           IArgument (ArgumentKind.Explicit, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'a')
             ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Double[]) (Syntax: 'a')
           IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
-            ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+            InConversion: null
+            OutConversion: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -852,9 +904,13 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
               Element Values(1):
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, Constant: 1) (Syntax: '1')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                    Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: null
+        OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '10')
-        ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+        InConversion: null
+        OutConversion: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1039,9 +1095,13 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0])) (OperationKind.Invocati
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid) (Syntax: 'M2')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: '1')
-        ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: null
+        OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: '2')
-        ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+        InConversion: null
+        OutConversion: null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1501: No overload for method 'M2' takes 2 arguments
@@ -1073,7 +1133,9 @@ IInvocationExpression ( void P.M2(System.String x)) (OperationKind.InvocationExp
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '1')
-        ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+        InConversion: null
+        OutConversion: null
 ";
             var expectedDiagnostics = new DiagnosticDescription[]
             {
@@ -1109,23 +1171,33 @@ IInvocationExpression (void System.Console.Write(System.String format, System.Ob
       IArgument (ArgumentKind.Explicit, Matching Parameter: arg0) (OperationKind.Argument) (Syntax: '1')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '1')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+          Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: null
+        OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: arg1) (OperationKind.Argument) (Syntax: '2')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '2')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+          Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+        InConversion: null
+        OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: arg2) (OperationKind.Argument) (Syntax: '3')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '3')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: ILiteralExpression (Text: 3) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
+          Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
+        InConversion: null
+        OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: arg3) (OperationKind.Argument) (Syntax: '4')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '4')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: ILiteralExpression (Text: 4) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
+          Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
+        InConversion: null
+        OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: '__arglist(5)')
         IOperation:  (OperationKind.None) (Syntax: '__arglist(5)')
           Children(1):
-              ILiteralExpression (Text: 5) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+        InConversion: null
+        OutConversion: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1189,7 +1261,9 @@ IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; set
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument) (Syntax: '10')
-        ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+        InConversion: null
+        OutConversion: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1221,7 +1295,9 @@ IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; set
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument) (Syntax: '10')
-        ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+        InConversion: null
+        OutConversion: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1253,7 +1329,9 @@ IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 1], [System.
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: j) (OperationKind.Argument) (Syntax: '10')
-        ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+        InConversion: null
+        OutConversion: null
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: i) (OperationKind.Argument) (Syntax: 'this[j:10]')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'this[j:10]')
 ";
@@ -1287,7 +1365,9 @@ IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { set; } (
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid) (Syntax: 'this')
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '10')
-        ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
+        InConversion: null
+        OutConversion: null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // file.cs(12,27): error CS0154: The property or indexer 'P.this[int]' cannot be used in this context because it lacks the get accessor
@@ -1322,7 +1402,9 @@ IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; } (
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid) (Syntax: 'this')
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '10')
-        ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
+        InConversion: null
+        OutConversion: null
 ";
 
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -1370,7 +1452,9 @@ IPropertyReferenceExpression: System.Int32 Derived.this[[System.Int32 x = 8], [S
   Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: Derived) (Syntax: 'd')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '0')
-        ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+        InConversion: null
+        OutConversion: null
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'd[0]')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'd[0]')
 ";
@@ -1407,7 +1491,9 @@ IPropertyReferenceExpression: System.Int32 P.this[System.Int32 x, params System.
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '0')
-        ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+        InConversion: null
+        OutConversion: null
       IArgument (ArgumentKind.ParamArray, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'this[0]')
         IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'this[0]')
           Dimension Sizes(1):
@@ -1443,7 +1529,9 @@ IPropertyReferenceExpression: ref System.Int32 P.this[System.Int32 x] { get; } (
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '0')
-        ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+        InConversion: null
+        OutConversion: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1549,9 +1637,14 @@ IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.
   Instance Receiver: ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: P) (Syntax: 'p')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: '10')
-        ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+        InConversion: null
+        OutConversion: null
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: j) (OperationKind.Argument) (Syntax: 'p[10]')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: 'p[10]')
+        InConversion: null
+        OutConversion: null
+
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
             var expectedOutput = @"10 4
@@ -1661,7 +1754,9 @@ IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.
   Instance Receiver: ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: P) (Syntax: 'p')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: '10')
-        ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+        InConversion: null
+        OutConversion: null
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: j) (OperationKind.Argument) (Syntax: 'p[10]')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'p[10]')
 ";
@@ -1774,7 +1869,9 @@ IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.
   Instance Receiver: ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: P) (Syntax: 'p')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: '10')
-        ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+        InConversion: null
+        OutConversion: null
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: j) (OperationKind.Argument) (Syntax: 'p[10]')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'p[10]')
 ";
@@ -1913,7 +2010,9 @@ IInvocationExpression (void P.M2(System.Int32 x, [S s = null])) (OperationKind.I
   Instance Receiver: null
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: '1')
-        ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: null
+        OutConversion: null
 ";
 
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -1957,7 +2056,9 @@ IInvocationExpression (void P.M2(System.Int32 x, [G<S> s = null])) (OperationKin
   Instance Receiver: null
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
-        ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: null
+        OutConversion: null
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument) (Syntax: 'M2(1)')
         ILiteralExpression (OperationKind.LiteralExpression, Type: G<S>, Constant: null) (Syntax: 'M2(1)')
 ";
@@ -2000,7 +2101,9 @@ IInvocationExpression (void P.M2(System.Int32 x, [G<S>? s = null])) (OperationKi
   Instance Receiver: null
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
-        ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: null
+        OutConversion: null
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument) (Syntax: 'M2(1)')
         IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: G<S>?) (Syntax: 'M2(1)')
 ";

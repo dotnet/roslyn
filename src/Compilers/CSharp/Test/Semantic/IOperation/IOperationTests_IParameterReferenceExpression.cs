@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -159,7 +159,7 @@ IOperation:  (OperationKind.None) (Syntax: 'from cust i ... t cust.Name')
                   IArgument (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument) (Syntax: 'cust.Name')
                     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func<Customer, System.String>) (Syntax: 'cust.Name')
                       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      Operand: ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: 'cust.Name')
+                      Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'cust.Name')
                           IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'cust.Name')
                             IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'cust.Name')
                               ReturnedValue: IPropertyReferenceExpression: System.String Customer.Name { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'cust.Name')
@@ -212,7 +212,7 @@ IObjectCreationExpression (Constructor: Class..ctor()) (OperationKind.ObjectCrea
                           IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
                     ICollectionElementInitializerExpression (AddMethod: void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void) (Syntax: '3')
                       Arguments(1):
-                          ILiteralExpression (Text: 3) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
+                          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
           IMemberInitializerExpression (OperationKind.MemberInitializerExpression, Type: System.Collections.Generic.Dictionary<System.Int32, System.Int32>) (Syntax: 'Z = { { x, y } }')
             InitializedMember: IPropertyReferenceExpression: System.Collections.Generic.Dictionary<System.Int32, System.Int32> Class.Z { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Collections.Generic.Dictionary<System.Int32, System.Int32>) (Syntax: 'Z')
                 Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Class) (Syntax: 'Z')
@@ -259,7 +259,7 @@ class Class
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'new Action( ... })')
   Children(1):
-      ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: '() => ... }')
+      IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => ... }')
         IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
           IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a();')
             Expression: IInvocationExpression (virtual void System.Action.Invoke()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'a()')
@@ -679,21 +679,21 @@ internal class Class
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""String {x ... nstant {1}""')
   Parts(6):
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
-        Text: ILiteralExpression (Text: String ) (OperationKind.LiteralExpression, Type: System.String, Constant: ""String "") (Syntax: 'String ')
+        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""String "") (Syntax: 'String ')
       IInterpolation (OperationKind.Interpolation) (Syntax: '{x,20}')
         Expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 'x')
-        Alignment: ILiteralExpression (Text: 20) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
+        Alignment: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
         FormatString: null
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and ')
-        Text: ILiteralExpression (Text:  and ) (OperationKind.LiteralExpression, Type: System.String, Constant: "" and "") (Syntax: ' and ')
+        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "" and "") (Syntax: ' and ')
       IInterpolation (OperationKind.Interpolation) (Syntax: '{y:D3}')
         Expression: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
         Alignment: null
         FormatString: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""D3"") (Syntax: ':D3')
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and constant ')
-        Text: ILiteralExpression (Text:  and constant ) (OperationKind.LiteralExpression, Type: System.String, Constant: "" and constant "") (Syntax: ' and constant ')
+        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "" and constant "") (Syntax: ' and constant ')
       IInterpolation (OperationKind.Interpolation) (Syntax: '{1}')
-        Expression: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Expression: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Alignment: null
         FormatString: null
 ";
@@ -758,7 +758,7 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) 
                 Pattern: IDeclarationPattern (Declared Symbol: System.Int32 y) (OperationKind.DeclarationPattern) (Syntax: 'var y')
                 Guard Expression: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x >= 10')
                     Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                    Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+                    Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
           Body:
               IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
 ";
@@ -797,7 +797,7 @@ ISwitchStatement (2 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) 
                 Pattern: IDeclarationPattern (Declared Symbol: System.Int32 y) (OperationKind.DeclarationPattern) (Syntax: 'var y')
                 Guard Expression: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x >= 10')
                     Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                    Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+                    Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
           Body:
               IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'default:/*< ... break;')

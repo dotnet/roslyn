@@ -31,6 +31,108 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
         [Fact]
+        [WorkItem(294554, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=294554")]
+        public void ThisOnlyClosureBetweenStructCaptures()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    int _x = 0;
+    void M()
+    {
+        void L1()
+        {
+            int x = 0;
+            _x++;
+            void L2()
+            {
+                Action a2 = L2;
+                int y = 0;
+                L3();
+                void L3()
+                {
+                    _x++;
+                    y++;
+                }
+            }
+            L2();
+
+            void L5() => x++;
+            L5();
+        }
+        L1();
+    }
+}");
+        }
+
+        [Fact]
+        public void CaptureThisInDifferentScopes()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    int _x;
+    void M()
+    {
+        {
+            int y = 0;
+            Func<int> f1 = () => _x + y;
+        }
+        {
+            int y = 0;
+            Func<int> f2 = () => _x + y;
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public void CaptureThisInDifferentScopes2()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    int _x;
+    void M()
+    {
+        {
+            int y = 0;
+            int L1() => _x + y;
+        }
+        {
+            int y = 0;
+            int L2() => _x + y;
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public void CaptureFramePointerInDifferentScopes()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    void M(int x)
+    {
+        Func<int> f1 = () => x;
+        {
+            int z = 0;
+            Func<int> f2 = () => x + z;
+        }
+        {
+            int z = 0;
+            Func<int> f3 = () => x + z;
+        }
+    }
+}");
+        }
+
+        [Fact]
         public void EnvironmentChainContainsStructEnvironment()
         {
             CompileAndVerify(@"
@@ -208,23 +310,23 @@ class C
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""void C.<M>g__L32_2(ref C.<>c__DisplayClass2_0)""
+  IL_0002:  call       ""void C.<M>g__L32_3(ref C.<>c__DisplayClass2_0)""
   IL_0007:  ret
 }");
             // Skip some... L5
-            verifier.VerifyIL("C.<M>g__L52_4(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
+            verifier.VerifyIL("C.<M>g__L52_5(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
 {
   // Code size       10 (0xa)
   .maxstack  3
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
   IL_0002:  ldarg.2
-  IL_0003:  call       ""int C.<M>g__L62_5(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)""
+  IL_0003:  call       ""int C.<M>g__L62_6(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)""
   IL_0008:  pop
   IL_0009:  ret
 }");
             // L6
-            verifier.VerifyIL("C.<M>g__L62_5(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
+            verifier.VerifyIL("C.<M>g__L62_6(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
 {
   // Code size       25 (0x19)
   .maxstack  4
@@ -3556,6 +3658,121 @@ class Program
 ";
             VerifyOutput(source, output: @"202
 00222");
+        }
+
+        [Fact]
+        [WorkItem(21317, "https://github.com/dotnet/roslyn/issues/21317")]
+        [CompilerTrait(CompilerFeature.Dynamic)]
+        public void DynamicGenericArg()
+        {
+            var src = @"
+void L1<T>(T x)
+{
+    Console.WriteLine($""{x}: {typeof(T)}"");
+}
+dynamic val = 2;
+L1<object>(val);
+L1<int>(val);
+L1<dynamic>(val);
+L1<dynamic>(4);
+
+void L2<T>(int x, T y) => Console.WriteLine($""{x}, {y}: {typeof(T)}"");
+L2<float>(val, 3.0f);
+
+List<dynamic> listOfDynamic = new List<dynamic> { 1, 2, 3 };
+void L3<T>(List<T> x) => Console.WriteLine($""{string.Join("", "", x)}: {typeof(T)}"");
+L3(listOfDynamic);
+
+void L4<T>(T x, params int[] y) => Console.WriteLine($""{x}, {string.Join("", "", y)}: {typeof(T)}"");
+L4<dynamic>(val, 3, 4);
+L4<int>(val, 3, 4);
+L4<int>(1, 3, val);
+
+void L5<T>(int x, params T[] y) => Console.WriteLine($""{x}, {string.Join("", "", y)}: {typeof(T)}"");
+L5<int>(val, 3, 4);
+L5<int>(1, 3, val);
+L5<dynamic>(1, 3, val);
+";
+            var output = @"
+2: System.Object
+2: System.Int32
+2: System.Object
+4: System.Object
+2, 3: System.Single
+1, 2, 3: System.Object
+2, 3, 4: System.Object
+2, 3, 4: System.Int32
+1, 3, 2: System.Int32
+2, 3, 4: System.Int32
+1, 3, 2: System.Int32
+1, 3, 2: System.Object
+";
+            VerifyOutputInMain(src, output, "System", "System.Collections.Generic");
+        }
+
+        [Fact]
+        [WorkItem(21317, "https://github.com/dotnet/roslyn/issues/21317")]
+        [CompilerTrait(CompilerFeature.Dynamic)]
+        public void DynamicGenericClassMethod()
+        {
+            var src = @"
+using System;
+class C1<T1>
+{
+    public static void M1<T2>()
+    {
+        void F(int x)
+        {
+            Console.WriteLine($""C1<{typeof(T1)}>.M1<{typeof(T2)}>.F({x})"");
+        }
+        F((dynamic)2);
+    }
+    public static void M2()
+    {
+        void F(int x)
+        {
+            Console.WriteLine($""C1<{typeof(T1)}>.M2.F({x})"");
+        }
+        F((dynamic)2);
+    }
+}
+class C2
+{
+    public static void M1<T2>()
+    {
+        void F(int x)
+        {
+            Console.WriteLine($""C2.M1<{typeof(T2)}>.F({x})"");
+        }
+        F((dynamic)2);
+    }
+    public static void M2()
+    {
+        void F(int x)
+        {
+            Console.WriteLine($""C2.M2.F({x})"");
+        }
+        F((dynamic)2);
+    }
+}
+class Program
+{
+    static void Main()
+    {
+        C1<int>.M1<float>();
+        C1<int>.M2();
+        C2.M1<float>();
+        C2.M2();
+    }
+}
+";
+            var output = @"
+C1<System.Int32>.M1<System.Single>.F(2)
+C1<System.Int32>.M2.F(2)
+C2.M1<System.Single>.F(2)
+C2.M2.F(2)
+";
+            VerifyOutput(src, output);
         }
 
         [Fact]

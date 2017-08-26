@@ -26,11 +26,13 @@ End Class",
     Private v1 As Integer
     Private v2 As Integer
     Private v3 As Integer
+
     Public Sub New(v1 As Integer, v2 As Integer, v3 As Integer)
         Me.v1 = v1
         Me.v2 = v2
         Me.v3 = v3
     End Sub
+
     Sub Main()
         Dim f = New C(4, 5, 6)
     End Sub
@@ -56,6 +58,7 @@ End Class",
 End Class
 Friend Class B
     Private v As Integer
+
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
@@ -106,6 +109,7 @@ End Class
 Class A
     Public Sub New()
     End Sub
+
     Sub New(x As Integer)
     End Sub
 End Class")
@@ -128,6 +132,7 @@ End Class",
 End Class
 Class A
     Private v As Integer
+
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
@@ -153,8 +158,10 @@ End Class",
 End Class
 Class A
     Private v As Integer
+
     Public Sub New()
     End Sub
+
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
@@ -181,8 +188,10 @@ End Class",
 End Class
 Class A
     Private v As Integer
+
     Public Sub New()
     End Sub
+
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
@@ -207,9 +216,11 @@ Public Class A
 End Class",
 "Public Partial Class Test
     Private v As Integer
+
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
+
     Public Sub S1()
     End Sub
 End Class
@@ -242,9 +253,11 @@ Public Class A
 End Class",
 "Public Partial Class Test
     Private v As Integer
+
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
+
     Public Sub S1()
     End Sub
 End Class
@@ -273,6 +286,7 @@ Public Class A
 End Class",
 "Public Partial Class Test2
     Private v As Integer
+
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
@@ -316,6 +330,7 @@ End Class",
 "Class Goo
     Class Bar
         Private v As Integer
+
         Public Sub New(v As Integer)
             Me.v = v
         End Sub
@@ -351,9 +366,11 @@ End Class",
 "Public Partial Class Test
     Public Partial Class NestedTest
         Private v As Integer
+
         Public Sub New(v As Integer)
             Me.v = v
         End Sub
+
         Public Sub S1()
         End Sub
     End Class
@@ -382,6 +399,7 @@ End Class",
 "Class Outer(Of T)
     Public Class Inner
         Private v As Integer
+
         Public Sub New(v As Integer)
             Me.v = v
         End Sub
@@ -403,6 +421,7 @@ End Class",
 "Class Base(Of T, V)
     Private v1 As Integer
     Private v2 As Integer
+
     Public Sub New(v1 As Integer, v2 As Integer)
         Me.v1 = v1
         Me.v2 = v2
@@ -433,7 +452,9 @@ End Class",
 End Class
 Class Derived(Of V)
     Inherits Base(Of Integer, V)
+
     Private v1 As Integer
+
     Public Sub New(v1 As Integer)
         Me.v1 = v1
     End Sub
@@ -471,7 +492,9 @@ Class Derived(Of V)
 End Class
 Class MoreDerived
     Inherits Derived(Of Double)
+
     Private v As Double
+
     Public Sub New(v As Double)
         Me.v = v
     End Sub
@@ -498,6 +521,7 @@ Class A
 End Class",
 "Class Goo
     Private now As Date
+
     Public Sub New(now As Date)
         Me.now = now
     End Sub
@@ -524,6 +548,7 @@ Class Derived
 End Class",
 "Class Base
     Private x As Integer
+
     Public Sub New(x As Integer)
         Me.x = x
     End Sub
@@ -556,6 +581,7 @@ Class Derived
 End Class",
 "MustInherit Class Base
     Private x As Integer
+
     Protected Sub New(x As Integer)
         Me.x = x
     End Sub
@@ -619,7 +645,7 @@ Class C
     Public v1 As Integer
     Private i As Char
 
-    Public Sub New(v1 As Integer) 
+    Public Sub New(v1 As Integer)
         Me.v1 = v1
     End Sub
 
@@ -647,6 +673,7 @@ End Class",
 End Module
 Friend Class C
     Private c As C
+
     Public Sub New(c As C)
         Me.c = c
     End Sub
@@ -672,6 +699,7 @@ End Class
 Friend Class Test
     Private x As Object
     Private y As Object
+
     Public Sub New(x As Object, y As Object)
         Me.x = x
         Me.y = y
@@ -699,6 +727,7 @@ End Class",
 End Class
 Class A
     Private [class] As Integer
+
     Public Sub New([class] As Integer)
         Me.class = [class]
     End Sub
@@ -723,6 +752,7 @@ End Class",
 End Class
 Class A
     Private p As Object
+
     Public Sub New(p As Object)
         Me.p = p
     End Sub
@@ -747,6 +777,7 @@ End Class",
 End Class
 Class Bar(Of V)
     Private v1 As Integer
+
     Public Sub New(v1 As Integer)
         Me.v1 = v1
     End Sub
@@ -766,9 +797,11 @@ End Class")
 End Class",
 "Class C
     ReadOnly x As Integer
+
     Public Sub New(x As Integer)
         Me.x = x
     End Sub
+
     Sub Test()
         Dim x As Integer = 1
         Dim obj As New C(x)
@@ -796,6 +829,7 @@ Class A
     Public Sub New(P As Integer)
         Me.P = P
     End Sub
+
     Public Property P As Integer
 End Class")
         End Function
@@ -820,9 +854,11 @@ End Class",
 End Class
 Class C
     Private u1 As Integer
+
     Public Sub New(u As Integer)
         u1 = u
     End Sub
+
     Public Sub u()
     End Sub
 End Class")
@@ -847,9 +883,11 @@ End Class",
 End Class
 Class A
     Private P1 As Integer
+
     Public Sub New(P As Integer)
         P1 = P
     End Sub
+
     Shared Property P As Integer
 End Class")
         End Function
@@ -874,6 +912,7 @@ End Class
 Class B
     Private x As String
     Private x1 As Integer
+
     Public Sub New(x As Integer)
         x1 = x
     End Sub
@@ -903,6 +942,7 @@ End Class
 Class C
     Inherits B
     Private x As String
+
     Public Sub New(u As Integer)
         Me.u = u
     End Sub
@@ -923,9 +963,11 @@ End Class")
 End Class",
 "Class C
     Private v As Integer
+
     Sub New
         Me.New(1)
     End Sub
+
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
@@ -958,9 +1000,11 @@ End Class")
 End Class",
 "Class C
     Private v As Integer
+
     Sub New
         MyClass.New(1)
     End Sub
+
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
@@ -1002,6 +1046,7 @@ End Class",
 End Class
 Class B
     Private v As Integer
+
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
@@ -1113,6 +1158,7 @@ Class C
 End Class
 Class D
     Private v As Integer
+
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
@@ -1163,9 +1209,11 @@ End Module
 Class C
     Private prop As String
     Private v As Integer
+
     Public Sub New(prop As String)
         Me.prop = prop
     End Sub
+
     Public Sub New(v As Integer, prop As String)
         Me.v = v
         Me.prop = prop
@@ -1209,7 +1257,9 @@ End Class",
 "<AttributeUsage(AttributeTargets.Class)>
 Public Class MyAttribute
     Inherits System.Attribute
+
     Private v As Integer
+
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
@@ -1233,9 +1283,11 @@ End Class",
 "<AttributeUsage(AttributeTargets.Class)>
 Public Class MyAttribute
     Inherits System.Attribute
+
     Private v1 As Boolean
     Private v2 As Integer
     Private v3 As String
+
     Public Sub New(v1 As Boolean, v2 As Integer, v3 As String)
         Me.v1 = v1
         Me.v2 = v2
@@ -1297,9 +1349,11 @@ Public Class MyAttribute
     Inherits System.Attribute
     Private v As Integer
     Private v1 As Integer
+
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
+
     Public Sub New(v As Integer, v1 As Integer)
         Me.New(v)
         Me.v1 = v1
@@ -1329,6 +1383,7 @@ End Enum
 <AttributeUsage(AttributeTargets.Class)>
 Public Class MyAttribute
     Inherits System.Attribute
+
     Private v1 As Short()
     Private a1 As A
     Private v2 As Boolean
@@ -1340,6 +1395,7 @@ Public Class MyAttribute
     Private v8 As Double
     Private v9 As Single
     Private v10 As String
+
     Public Sub New(v1() As Short, a1 As A, v2 As Boolean, v3 As Integer, v4 As Char, v5 As Short, v6 As Integer, v7 As Long, v8 As Double, v9 As Single, v10 As String)
         Me.v1 = v1
         Me.a1 = a1
@@ -1355,8 +1411,7 @@ Public Class MyAttribute
     End Sub
 End Class
 <MyAttribute(New Short(1) {1, 2, 3}, A.A1, True, 1, ""Z""c, 5S, 1I, 5L, 6.0R, 2.1F, ""abc"")>
-Public Class D
-End Class")
+Public Class D End Class")
         End Function
 
         <WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")>
@@ -1432,9 +1487,11 @@ Module Module1
     Class Classic
         Private int As Integer
         Private obj As Object
+
         Public Sub New(int As Integer)
             Me.int = int
         End Sub
+
         Public Sub New(obj As Object)
             Me.obj = obj
         End Sub
@@ -1458,6 +1515,7 @@ End Class",
 "Class Goo
     Private Class Bar
         Private v As Integer
+
         Public Sub New(v As Integer)
             Me.v = v
         End Sub
@@ -1490,12 +1548,14 @@ Class C
 "Imports System.Linq
 Class C
     Private v As Integer
+
     Sub New()
         Dim s As Action = Sub()
-                              Dim a = New C(0)Public Sub New(v As Integer) 
- Me.v = v
-                          End Sub
- End Class")
+                              Dim a = New C(0)Public Sub New(v As Integer)
+        Me.v = v
+    End Sub
+End Class
+")
             End Function
 
             <WorkItem(5920, "https://github.com/dotnet/roslyn/issues/5920")>
@@ -1515,17 +1575,18 @@ Class C
 Class C
     Private v As Integer
     Private v1 As Integer
+
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
     Sub New()
         Dim s As Action = Sub()
-                              Dim a = New C(0, 0) 
- Public Sub New(v As Integer, v1 As Integer)
+                              Dim a = New C(0, 0)Public Sub New(v As Integer, v1 As Integer)
         Me.New(v)
         Me.v1 = v1
     End Sub
-End Class")
+End Class
+")
             End Function
         End Class
 

@@ -5,22 +5,26 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents a lambda expression.
+    /// Represents a C# ?: or VB If expression.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface ILambdaExpression : IOperation
+    public interface IConditionalExpression : IOperation
     {
         /// <summary>
-        /// Signature of the lambda.
+        /// Condition to be tested.
         /// </summary>
-        IMethodSymbol Signature { get; }
+        IOperation Condition { get; }
         /// <summary>
-        /// Body of the lambda.
+        /// Value evaluated if the Condition is true.
         /// </summary>
-        IBlockStatement Body { get; }
+        IOperation WhenTrue { get; }
+        /// <summary>
+        /// Value evaluated if the Condition is false.
+        /// </summary>
+        IOperation WhenFalse { get; }
     }
 }
 

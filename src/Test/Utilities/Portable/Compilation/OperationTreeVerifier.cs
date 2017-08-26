@@ -510,14 +510,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
         }
 
-        public override void VisitThrowStatement(IThrowStatement operation)
-        {
-            LogString(nameof(IThrowStatement));
-            LogCommonPropertiesAndNewLine(operation);
-
-            Visit(operation.ThrownObject, "ThrownObject");
-        }
-
         public override void VisitReturnStatement(IReturnStatement operation)
         {
             LogString(nameof(IReturnStatement));
@@ -531,7 +523,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(ILockStatement));
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.LockedObject, "LockedObject");
+            Visit(operation.Expression, "Expression");
             Visit(operation.Body, "Body");
         }
 
@@ -869,23 +861,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Operand, "Operand");
         }
 
-        public override void VisitConditionalChoiceExpression(IConditionalChoiceExpression operation)
+        public override void VisitConditionalExpression(IConditionalExpression operation)
         {
-            LogString(nameof(IConditionalChoiceExpression));
+            LogString(nameof(IConditionalExpression));
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Condition, "Condition");
-            Visit(operation.IfTrueValue, "IfTrue");
-            Visit(operation.IfFalseValue, "IfFalse");
+            Visit(operation.WhenTrue, "WhenTrue");
+            Visit(operation.WhenFalse, "WhenFalse");
         }
 
-        public override void VisitNullCoalescingExpression(INullCoalescingExpression operation)
+        public override void VisitCoalesceExpression(ICoalesceExpression operation)
         {
-            LogString(nameof(INullCoalescingExpression));
+            LogString(nameof(ICoalesceExpression));
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.PrimaryOperand, "Left");
-            Visit(operation.SecondaryOperand, "Right");
+            Visit(operation.Expression, "Expression");
+            Visit(operation.WhenNull, "WhenNull");
         }
 
         public override void VisitIsTypeExpression(IIsTypeExpression operation)
@@ -920,26 +912,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogTypeOperationExpressionCommon(operation);
         }
 
-        public override void VisitLambdaExpression(ILambdaExpression operation)
+        public override void VisitAnonymousFunctionExpression(IAnonymousFunctionExpression operation)
         {
-            LogString(nameof(ILambdaExpression));
+            LogString(nameof(IAnonymousFunctionExpression));
 
-            LogSymbol(operation.Signature, header: " (Signature");
+            LogSymbol(operation.Symbol, header: " (Symbol");
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
-            base.VisitLambdaExpression(operation);
+            base.VisitAnonymousFunctionExpression(operation);
         }
 
         public override void VisitLiteralExpression(ILiteralExpression operation)
         {
             LogString(nameof(ILiteralExpression));
-
-            if (operation.ConstantValue.HasValue && ConstantToString(operation.ConstantValue.Value, quoteString: false) == operation.Text)
-            {
-                LogString($" (Text: {operation.Text})");
-            }
-
             LogCommonPropertiesAndNewLine(operation);
         }
 

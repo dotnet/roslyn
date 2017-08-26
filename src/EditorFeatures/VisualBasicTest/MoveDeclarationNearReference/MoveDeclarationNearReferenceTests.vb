@@ -71,8 +71,8 @@ end class")
 end class",
 "class C
     sub M()
-
         Console.WriteLine()
+
         dim x as integer
         if true
             Console.WriteLine(x)
@@ -123,7 +123,8 @@ end class",
 "class C
     sub M()
         if true
-            dim x as integer = 5
+            dim x as integer
+= 5
             Console.WriteLine(x)
         end if
     end sub
@@ -255,7 +256,7 @@ using System.Linq
 class Program
     sub M()
         for each (v in x)
-            {|Warning:dim i = CInt(0)|}
+        {|Warning:dim i = CInt(0)|}
             Console.Write(i)
             i = i + 1
         next

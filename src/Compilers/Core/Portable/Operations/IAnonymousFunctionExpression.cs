@@ -5,26 +5,22 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents a C# ?: or VB If expression.
+    /// Represents an anonymous function expression, such as a lambda or anonymous delegate.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IConditionalChoiceExpression : IOperation
+    public interface IAnonymousFunctionExpression : IOperation
     {
         /// <summary>
-        /// Condition to be tested.
+        /// Symbol of the anonymous function.
         /// </summary>
-        IOperation Condition { get; }
+        IMethodSymbol Symbol { get; }
         /// <summary>
-        /// Value evaluated if the Condition is true.
+        /// Body of the anonymous function.
         /// </summary>
-        IOperation IfTrueValue { get; }
-        /// <summary>
-        /// Value evaluated if the Condition is false.
-        /// </summary>
-        IOperation IfFalseValue { get; }
+        IBlockStatement Body { get; }
     }
 }
 

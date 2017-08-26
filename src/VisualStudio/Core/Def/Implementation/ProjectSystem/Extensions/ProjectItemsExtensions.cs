@@ -18,8 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.E
         {
             foreach (var item in items)
             {
-                var projectItem = item as ProjectItem;
-                if (projectItem != null)
+                if (item is ProjectItem projectItem)
                 {
                     if (projectItem.TryGetFullPath(out var filePath) && comparer.Compare(filePath, itemFilePath) == 0)
                     {

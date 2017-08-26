@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// Use this method to gain access to potentially incomplete semantics quickly.
         /// </summary>
-        internal async Task<Document> WithFrozenPartialSemanticsAsync(CancellationToken cancellationToken)
+        internal Document WithFrozenPartialSemantics(CancellationToken cancellationToken)
         {
             var solution = this.Project.Solution;
             var workspace = solution.Workspace;
@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis
                 workspace.PartialSemanticsEnabled &&
                 this.Project.SupportsCompilation)
             {
-                var newSolution = await this.Project.Solution.WithFrozenPartialCompilationIncludingSpecificDocumentAsync(this.Id, cancellationToken).ConfigureAwait(false);
+               var newSolution = this.Project.Solution.WithFrozenPartialCompilationIncludingSpecificDocument(this.Id, cancellationToken);
                 return newSolution.GetDocument(this.Id);
             }
             else

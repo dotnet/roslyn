@@ -251,5 +251,31 @@ Class C
     End Sub
 End Class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        Public Async Function TestNullable1() As Task
+            Await TestMissingAsync(
+"
+Imports System
+
+Class C
+    Function M(o As String) As Integer?
+        return [||]If (o Is Nothing, Nothing, o.Length)
+    End Function
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        Public Async Function TestNullable2() As Task
+            Await TestMissingAsync(
+"
+Imports System
+
+Class C
+    Sub M(o As String)
+        Dim x = [||]If (o Is Nothing, Nothing, o.Length)
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace

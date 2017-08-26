@@ -144,7 +144,7 @@ IBlockStatement (4 statements, 4 locals) (OperationKind.BlockStatement) (Syntax:
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Constant: 1) (Syntax: 'aa = 1')
                     Left: IPropertyReferenceExpression: System.Int32 <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC>.aa { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'aa')
                         Instance Receiver: null
-                    Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                    Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, Constant: """") (Syntax: 'BB = """"')
                     Left: IPropertyReferenceExpression: System.String <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC>.BB { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'BB')
                         Instance Receiver: null
@@ -171,7 +171,7 @@ IBlockStatement (4 statements, 4 locals) (OperationKind.BlockStatement) (Syntax:
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Double, Constant: 123.456) (Syntax: 'BB = 123.456')
                     Left: IPropertyReferenceExpression: System.Double <anonymous type: ClassA.SSS aa, System.Double BB, <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC> CCC>.BB { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.Double) (Syntax: 'BB')
                         Instance Receiver: null
-                    Right: ILiteralExpression (Text: 123.456) (OperationKind.LiteralExpression, Type: System.Double, Constant: 123.456) (Syntax: '123.456')
+                    Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 123.456) (Syntax: '123.456')
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC>) (Syntax: 'CCC = new ... }')
                     Left: IPropertyReferenceExpression: <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC> <anonymous type: ClassA.SSS aa, System.Double BB, <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC> CCC>.CCC { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC>) (Syntax: 'CCC')
                         Instance Receiver: null
@@ -349,7 +349,7 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
             Instance Receiver: null
         Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: D1) (Syntax: '(D1)(() => false)')
             Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand: ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: '() => false')
+            Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => false')
                 IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'false')
                   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'false')
                     ReturnedValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False) (Syntax: 'false')
@@ -495,7 +495,7 @@ IInvocationExpression (virtual System.Boolean System.Object.Equals(System.Object
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Constant: 1) (Syntax: 'f1 = 1')
             Left: IPropertyReferenceExpression: System.Int32 <anonymous type: System.Int32 f1, System.String f2>.f1 { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'f1')
                 Instance Receiver: null
-            Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, Constant: """") (Syntax: 'f2 = """"')
             Left: IPropertyReferenceExpression: System.String <anonymous type: System.Int32 f1, System.String f2>.f2 { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'f2')
                 Instance Receiver: null
@@ -787,7 +787,7 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Constant: 1) (Syntax: 'x = 1')
         Left: IPropertyReferenceExpression: System.Int32 <anonymous type: System.Int32 x, <empty anonymous type> y>.x { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x')
             Instance Receiver: null
-        Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: <empty anonymous type>) (Syntax: 'y = new { }')
         Left: IPropertyReferenceExpression: <empty anonymous type> <anonymous type: System.Int32 x, <empty anonymous type> y>.y { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: <empty anonymous type>) (Syntax: 'y')
             Instance Receiver: null
@@ -848,7 +848,7 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Constant: 1) (Syntax: 'x = 1')
         Left: IPropertyReferenceExpression: System.Int32 <anonymous type: System.Int32 x, <empty anonymous type> y>.x { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x')
             Instance Receiver: null
-        Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: <empty anonymous type>) (Syntax: 'y = new { }')
         Left: IPropertyReferenceExpression: <empty anonymous type> <anonymous type: System.Int32 x, <empty anonymous type> y>.y { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: <empty anonymous type>) (Syntax: 'y')
             Instance Receiver: null
@@ -1047,7 +1047,7 @@ IBlockStatement (2 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Double, Constant: 123.456) (Syntax: 'BB = 123.456')
                     Left: IPropertyReferenceExpression: System.Double <anonymous type: SSS aa, System.Double BB, <anonymous type: ? aa, ? BB, ? CCC> CCC>.BB { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.Double) (Syntax: 'BB')
                         Instance Receiver: null
-                    Right: ILiteralExpression (Text: 123.456) (OperationKind.LiteralExpression, Type: System.Double, Constant: 123.456) (Syntax: '123.456')
+                    Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 123.456) (Syntax: '123.456')
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: <anonymous type: ? aa, ? BB, ? CCC>, IsInvalid) (Syntax: 'CCC = new ... }')
                     Left: IPropertyReferenceExpression: <anonymous type: ? aa, ? BB, ? CCC> <anonymous type: SSS aa, System.Double BB, <anonymous type: ? aa, ? BB, ? CCC> CCC>.CCC { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: <anonymous type: ? aa, ? BB, ? CCC>) (Syntax: 'CCC')
                         Instance Receiver: null
@@ -1208,11 +1208,11 @@ class ClassA
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: System.Int32 aa, System.String $1, System.Double bb>, IsInvalid) (Syntax: 'new ... }')
   Initializers(3): ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Constant: 1) (Syntax: 'aa = 1')
       Left: IPropertyReferenceExpression: System.Int32 <anonymous type: System.Int32 aa, System.String $1, System.Double bb>.aa { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'aa')
-      Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     IFieldReferenceExpression: System.String ClassA.aa (Static) (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'ClassA.aa')
     ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Double) (Syntax: 'ClassA.aa')
       Left: IPropertyReferenceExpression: System.Double <anonymous type: System.Int32 aa, System.String $1, System.Double bb>.bb { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.Double) (Syntax: 'bb')
-      Right: ILiteralExpression (Text: 1.2) (OperationKind.LiteralExpression, Type: System.Double, Constant: 1.2) (Syntax: '1.2')
+      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 1.2) (Syntax: '1.2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0833: An anonymous type cannot have multiple properties with the same name
@@ -1311,7 +1311,7 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Constant: 2) (Syntax: 'a = 2')
         Left: IPropertyReferenceExpression: System.Int32 <anonymous type: System.Int32 a>.a { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'a')
             Instance Receiver: null
-        Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0836: Cannot use anonymous type in a constant expression
@@ -1383,9 +1383,9 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID>) (Syntax: 'Conditional ... upplierID }')
         Left: IPropertyReferenceExpression: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID> <anonymous type: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID> Conditional>.Conditional { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID>) (Syntax: 'Conditional')
             Instance Receiver: null
-        Right: IConditionalChoiceExpression (OperationKind.ConditionalChoiceExpression, Type: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID>) (Syntax: 'false ? new ... upplierID }')
+        Right: IConditionalExpression (OperationKind.ConditionalExpression, Type: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID>) (Syntax: 'false ? new ... upplierID }')
             Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False) (Syntax: 'false')
-            IfTrue: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID>) (Syntax: 'new { p.Pro ... upplierID }')
+            WhenTrue: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID>) (Syntax: 'new { p.Pro ... upplierID }')
                 Initializers(3):
                     IFieldReferenceExpression: System.Int32 Product.ProductID (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'p.ProductID')
                       Instance Receiver: IParameterReferenceExpression: p (OperationKind.ParameterReferenceExpression, Type: Product) (Syntax: 'p')
@@ -1393,7 +1393,7 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
                       Instance Receiver: IParameterReferenceExpression: p (OperationKind.ParameterReferenceExpression, Type: Product) (Syntax: 'p')
                     IFieldReferenceExpression: System.Int32 Product.SupplierID (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'p.SupplierID')
                       Instance Receiver: IParameterReferenceExpression: p (OperationKind.ParameterReferenceExpression, Type: Product) (Syntax: 'p')
-            IfFalse: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID>) (Syntax: 'new { p.Pro ... upplierID }')
+            WhenFalse: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID>) (Syntax: 'new { p.Pro ... upplierID }')
                 Initializers(3):
                     IFieldReferenceExpression: System.Int32 Product.ProductID (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'p.ProductID')
                       Instance Receiver: IParameterReferenceExpression: p (OperationKind.ParameterReferenceExpression, Type: Product) (Syntax: 'p')

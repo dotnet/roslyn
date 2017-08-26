@@ -23,9 +23,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 foreach (var hierarchy in hierarchyToItemIDsMap.Keys)
                 {
                     var itemIDs = hierarchyToItemIDsMap[hierarchy];
-                    var refactorNotify = hierarchy as IVsHierarchyRefactorNotify;
 
-                    if (refactorNotify != null)
+                    if (hierarchy is IVsHierarchyRefactorNotify refactorNotify)
                     {
                         var hresult = refactorNotify.OnBeforeGlobalSymbolRenamed(
                             (uint)itemIDs.Count,
@@ -61,9 +60,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 foreach (var hierarchy in hierarchyToItemIDsMap.Keys)
                 {
                     var itemIDs = hierarchyToItemIDsMap[hierarchy];
-                    var refactorNotify = hierarchy as IVsHierarchyRefactorNotify;
 
-                    if (refactorNotify != null)
+                    if (hierarchy is IVsHierarchyRefactorNotify refactorNotify)
                     {
                         var hresult = refactorNotify.OnGlobalSymbolRenamed(
                             (uint)itemIDs.Count,
