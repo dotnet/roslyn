@@ -93,7 +93,7 @@ public class C<T, U> : Attribute
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
 
                 // NOTE: Dev11 reports ERR_AttributeCantBeGeneric for these, but this makes more sense.
@@ -145,7 +145,7 @@ public class C<T> : Attribute
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,2): error CS0307: The using alias 'Alias' cannot be used with type arguments
                 // [Alias<>]
@@ -222,7 +222,7 @@ public class Outer<T>
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
             // (5,2): error CS0616: 'Outer<int>.Inner' is not an attribute class
             // [InnerAlias]
@@ -252,7 +252,7 @@ public class Test
 }";
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilationWithMscorlib(source, null, options: opt);
+            var compilation = CreateStandardCompilation(source, null, options: opt);
 
             compilation.VerifyDiagnostics(
                 // (5,2): error CS0616: 'Gen<T>' is not an attribute class
@@ -277,7 +277,7 @@ class Foo<T>
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics(
                 // (2,2): error CS0616: 'Foo<T>' is not an attribute class
                 // [Foo<int>]
