@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.ComponentModel.Composition
 Imports Microsoft.CodeAnalysis
@@ -11,7 +11,7 @@ Imports Microsoft.VisualStudio.Shell
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Progression
 
-    <GraphProvider(Name:="VisualBasicRoslynProvider", IntellisenseType:=Guids.VbCompilerProjectIdString)>
+    <GraphProvider(Name:="VisualBasicRoslynProvider", ProjectCapability:="VB")>
     Friend NotInheritable Class VisualBasicGraphProvider
         Inherits AbstractGraphProvider
 

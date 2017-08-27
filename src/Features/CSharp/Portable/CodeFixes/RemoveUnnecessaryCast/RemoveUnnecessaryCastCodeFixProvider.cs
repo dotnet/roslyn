@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryCast
         {
             context.RegisterCodeFix(
                 new MyCodeAction(
-                    CSharpFeaturesResources.RemoveUnnecessaryCast,
+                    CSharpFeaturesResources.Remove_Unnecessary_Cast,
                     c => RemoveUnnecessaryCastAsync(context.Document, context.Span, c)),
                 context.Diagnostics);
             return SpecializedTasks.EmptyTask;

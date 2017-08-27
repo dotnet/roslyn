@@ -20,21 +20,9 @@ namespace Roslyn.Utilities
                     _moveNextCalled = false;
                 }
 
-                public T Current
-                {
-                    get
-                    {
-                        return _loneValue;
-                    }
-                }
+                public T Current => _loneValue;
 
-                object IEnumerator.Current
-                {
-                    get
-                    {
-                        return _loneValue;
-                    }
-                }
+                object IEnumerator.Current => _loneValue;
 
                 public void Dispose()
                 {

@@ -2,6 +2,7 @@
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.SpecialType
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
@@ -18,6 +19,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
         <Fact>
         Public Sub Test1()
+
+            Dim currCulture = System.Threading.Thread.CurrentThread.CurrentCulture
+            System.Threading.Thread.CurrentThread.CurrentCulture = New System.Globalization.CultureInfo("en-US", useUserOverride:=False)
+
+            Try
 
             Dim compilationDef =
 <compilation name="VBBinaryOperators1">
@@ -40,6 +46,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             Assert.False(compilation.Options.CheckOverflow)
 
             CompileAndVerify(compilation, expectedOutput:=My.Resources.Resource.BinaryOperatorsTestBaseline1)
+
+            Catch ex As Exception
+                Assert.Null(ex)
+            Finally
+                System.Threading.Thread.CurrentThread.CurrentCulture = currCulture
+            End Try
 
         End Sub
 

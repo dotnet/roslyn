@@ -7,11 +7,14 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Compilers.CSharp.UnitTests
 {
     public class NameAttributeValueParsingTests : ParsingTests
     {
+        public NameAttributeValueParsingTests(ITestOutputHelper output) : base(output) { }
+
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
         {
             throw new NotSupportedException();

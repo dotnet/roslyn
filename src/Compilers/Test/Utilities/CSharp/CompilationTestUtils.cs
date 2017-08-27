@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -268,11 +269,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal static ImmutableArray<SynthesizedAttributeData> GetSynthesizedAttributes(this ISymbol symbol, bool forReturnType = false)
         {
-            var context = new ModuleCompilationState();
-
             ArrayBuilder<SynthesizedAttributeData> attributes = null;
             if (!forReturnType)
             {
+                var context = new ModuleCompilationState();
                 ((Symbol)symbol).AddSynthesizedAttributes(context, ref attributes);
             }
             else

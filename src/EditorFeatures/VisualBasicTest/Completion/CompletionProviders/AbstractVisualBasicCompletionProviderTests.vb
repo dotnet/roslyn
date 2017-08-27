@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -6,7 +6,6 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
@@ -17,8 +16,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             MyBase.New(workspaceFixture)
         End Sub
 
-        Protected Overrides Function CreateWorkspaceAsync(fileContents As String) As Task(Of TestWorkspace)
-            Return TestWorkspace.CreateVisualBasicAsync(fileContents)
+        Protected Overrides Function CreateWorkspace(fileContents As String) As TestWorkspace
+            Return TestWorkspace.CreateVisualBasic(fileContents)
         End Function
 
         Friend Overrides Function CreateCompletionService(workspace As Workspace, exclusiveProviders As ImmutableArray(Of CompletionProvider)) As CompletionServiceWithProviders
@@ -29,32 +28,34 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 code As String, position As Integer,
                 expectedItemOrNull As String, expectedDescriptionOrNull As String,
                 sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean,
-                checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?) As Task
+                checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?,
+                hasSuggestionItem As Boolean?) As Task
             Return MyBase.VerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
                 sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence,
-                glyph, matchPriority)
+                glyph, matchPriority, hasSuggestionItem)
         End Function
 
         Protected Overrides Async Function VerifyWorkerAsync(
                 code As String, position As Integer,
                 expectedItemOrNull As String, expectedDescriptionOrNull As String,
                 sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean,
-                checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?) As Task
+                checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?,
+                hasSuggestionItem As Boolean?) As Task
             ' Script/interactive support removed for now.
             ' TODO: Re-enable these when interactive is back in the product.
             If sourceCodeKind <> Microsoft.CodeAnalysis.SourceCodeKind.Regular Then
                 Return
             End If
 
-            Await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority)
-            Await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority)
+            Await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem)
+            Await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem)
 
             ' Items cannot be partially written if we're checking for their absence,
             ' or if we're verifying that the list will show up (without specifying an actual item)
             If Not checkForAbsence AndAlso expectedItemOrNull <> Nothing Then
-                Await VerifyAtPosition_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority)
-                Await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority)
+                Await VerifyAtPosition_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem)
+                Await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem)
             End If
         End Function
 
@@ -93,32 +94,32 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         Protected Async Function VerifySendEnterThroughToEditorAsync(
                 initialMarkup As String, textTypedSoFar As String, expected As Boolean) As Task
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(initialMarkup)
+            Using workspace = TestWorkspace.CreateVisualBasic(initialMarkup)
                 Dim hostDocument = workspace.DocumentWithCursor
                 Dim documentId = workspace.GetDocumentId(hostDocument)
                 Dim document = workspace.CurrentSolution.GetDocument(documentId)
                 Dim position = hostDocument.CursorPosition.Value
 
                 Dim service = GetCompletionService(workspace)
-                Dim completionList = Await GetCompletionListAsync(service, document, position, CompletionTrigger.Default)
+                Dim completionList = Await GetCompletionListAsync(service, document, position, CompletionTrigger.Invoke)
                 Dim item = completionList.Items.First(Function(i) i.DisplayText.StartsWith(textTypedSoFar))
 
                 Assert.Equal(expected, Controller.SendEnterThroughToEditor(service.GetRules(), item, textTypedSoFar))
             End Using
         End Function
 
-        Protected Async Function TestCommonIsTextualTriggerCharacterAsync() As Task
+        Protected Sub TestCommonIsTextualTriggerCharacter()
             Dim alwaysTriggerList =
             {
-                "foo$$.",
-                "foo$$[",
-                "foo$$#",
-                "foo$$ ",
-                "foo$$="
+                "goo$$.",
+                "goo$$[",
+                "goo$$#",
+                "goo$$ ",
+                "goo$$="
             }
 
             For Each markup In alwaysTriggerList
-                Await VerifyTextualTriggerCharacterAsync(markup, shouldTriggerWithTriggerOnLettersEnabled:=True, shouldTriggerWithTriggerOnLettersDisabled:=True)
+                VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled:=True, shouldTriggerWithTriggerOnLettersDisabled:=True)
             Next
 
             Dim triggerOnlyWithLettersList =
@@ -128,18 +129,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             }
 
             For Each markup In triggerOnlyWithLettersList
-                Await VerifyTextualTriggerCharacterAsync(markup, shouldTriggerWithTriggerOnLettersEnabled:=True, shouldTriggerWithTriggerOnLettersDisabled:=False)
+                VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled:=True, shouldTriggerWithTriggerOnLettersDisabled:=False)
             Next
 
             Dim neverTriggerList =
             {
-                "foo$$x",
-                "foo$$_"
+                "goo$$x",
+                "goo$$_"
             }
 
             For Each markup In neverTriggerList
-                Await VerifyTextualTriggerCharacterAsync(markup, shouldTriggerWithTriggerOnLettersEnabled:=False, shouldTriggerWithTriggerOnLettersDisabled:=False)
+                VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled:=False, shouldTriggerWithTriggerOnLettersDisabled:=False)
             Next
-        End Function
+        End Sub
     End Class
 End Namespace

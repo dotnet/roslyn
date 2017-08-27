@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -9,14 +8,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
+    using DocumentMap = MultiDictionary<Document, (SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>;
+
     internal partial class FindReferencesSearchEngine
     {
         private async Task ProcessDocumentQueueAsync(
             Document document,
-            List<ValueTuple<ISymbol, IReferenceFinder>> documentQueue,
-            ProgressWrapper wrapper)
+            DocumentMap.ValueSet documentQueue)
         {
-            _progress.OnFindInDocumentStarted(document);
+            await _progress.OnFindInDocumentStartedAsync(document).ConfigureAwait(false);
 
             SemanticModel model = null;
             try
@@ -26,32 +26,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // start cache for this semantic model
                 FindReferenceCache.Start(model);
 
-#if PARALLEL
-                Roslyn.Utilities.TaskExtensions.RethrowIncorrectAggregateExceptions(cancellationToken, () =>
-                    {
-                        documentQueue.AsParallel().WithCancellation(cancellationToken).ForAll(symbolAndFinder =>
-                        {
-                            var symbol = symbolAndFinder.Item1;
-                            var finder = symbolAndFinder.Item2;
-
-                            ProcessDocument(document, symbol, finder, wrapper);
-                        });
-                    });
-#else
                 foreach (var symbolAndFinder in documentQueue)
                 {
-                    var symbol = symbolAndFinder.Item1;
-                    var finder = symbolAndFinder.Item2;
+                    var symbol = symbolAndFinder.symbolAndProjectId;
+                    var finder = symbolAndFinder.finder;
 
-                    await ProcessDocumentAsync(document, symbol, finder, wrapper).ConfigureAwait(false);
+                    await ProcessDocumentAsync(document, symbol, finder).ConfigureAwait(false);
                 }
-#endif
             }
             finally
             {
                 FindReferenceCache.Stop(model);
 
-                _progress.OnFindInDocumentCompleted(document);
+                await _progress.OnFindInDocumentCompletedAsync(document).ConfigureAwait(false);
             }
         }
 
@@ -62,23 +49,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private async Task ProcessDocumentAsync(
             Document document,
-            ISymbol symbol,
-            IReferenceFinder finder,
-            ProgressWrapper wrapper)
+            SymbolAndProjectId symbolAndProjectId,
+            IReferenceFinder finder)
         {
-            using (Logger.LogBlock(FunctionId.FindReference_ProcessDocumentAsync, s_logDocument, document, symbol, _cancellationToken))
+            using (Logger.LogBlock(FunctionId.FindReference_ProcessDocumentAsync, s_logDocument, document, symbolAndProjectId.Symbol, _cancellationToken))
             {
                 try
                 {
-                    var references = await finder.FindReferencesInDocumentAsync(symbol, document, _cancellationToken).ConfigureAwait(false) ?? SpecializedCollections.EmptyEnumerable<ReferenceLocation>();
+                    var references = await finder.FindReferencesInDocumentAsync(symbolAndProjectId, document, _cancellationToken).ConfigureAwait(false);
                     foreach (var location in references)
                     {
-                        HandleLocation(symbol, location);
+                        await HandleLocationAsync(symbolAndProjectId, location).ConfigureAwait(false);
                     }
                 }
                 finally
                 {
-                    wrapper.Increment();
+                    await _progressTracker.ItemCompletedAsync().ConfigureAwait(false);
                 }
             }
         }

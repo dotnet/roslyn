@@ -6,6 +6,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -78,7 +80,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns true if this method is an extension method. 
+        /// True if the method itself is excluded from code covarage instrumentation.
+        /// True for source methods marked with <see cref="AttributeDescription.ExcludeFromCodeCoverageAttribute"/>.
+        /// </summary>
+        internal virtual bool IsDirectlyExcludedFromCodeCoverage { get => false; }
+
+        /// <summary>
+        /// Returns true if this method is an extension method.
         /// </summary>
         public abstract bool IsExtensionMethod { get; }
 
@@ -108,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation();
 
         /// <summary>
-        /// Marshalling information for return value (FieldMarshal in metadata). 
+        /// Marshalling information for return value (FieldMarshal in metadata).
         /// </summary>
         internal abstract MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation { get; }
 
@@ -127,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns true if this method hides base methods by name. This cannot be specified directly
         /// in the C# language, but can be true for methods defined in other languages imported from
-        /// metadata. The equivalent of the "hidebyname" flag in metadata. 
+        /// metadata. The equivalent of the "hidebyname" flag in metadata.
         /// </summary>
         public abstract bool HidesBaseMethodsByName { get; }
 
@@ -178,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract TypeSymbol ReturnType { get; }
 
         /// <summary>
-        /// Returns the type arguments that have been substituted for the type parameters. 
+        /// Returns the type arguments that have been substituted for the type parameters.
         /// If nothing has been substituted for a given type parameter,
         /// then the type parameter itself is consider the type argument.
         /// </summary>
@@ -269,15 +277,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns interface methods explicitly implemented by this method.
         /// </summary>
         /// <remarks>
-        /// Methods imported from metadata can explicitly implement more than one method, 
+        /// Methods imported from metadata can explicitly implement more than one method,
         /// that is why return type is ImmutableArray.
         /// </remarks>
         public abstract ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations { get; }
 
         /// <summary>
-        /// Returns the list of custom modifiers, if any, associated with the returned value. 
+        /// Returns the list of custom modifiers, if any, associated with the return type.
         /// </summary>
         public abstract ImmutableArray<CustomModifier> ReturnTypeCustomModifiers { get; }
+
+        /// <summary>
+        /// Custom modifiers associated with the ref modifier, or an empty array if there are none.
+        /// </summary>
+        public abstract ImmutableArray<CustomModifier> RefCustomModifiers { get; }
 
         /// <summary>
         /// Gets the attributes on method's return type.
@@ -298,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// returns the property that this method is the getter or setter for.
         /// If this method has MethodKind of MethodKind.EventAdd or MethodKind.EventRemove,
         /// returns the event that this method is the adder or remover for.
-        /// Note, the set of possible associated symbols might be expanded in the future to 
+        /// Note, the set of possible associated symbols might be expanded in the future to
         /// reflect changes in the languages.
         /// </summary>
         public abstract Symbol AssociatedSymbol { get; }
@@ -316,19 +329,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             while (m.IsOverride && !m.HidesBaseMethodsByName)
             {
                 // We might not be able to access the overridden method. For example,
-                // 
+                //
                 //   .assembly A
                 //   {
                 //      InternalsVisibleTo("B")
                 //      public class A { internal virtual void M() { } }
                 //   }
-                // 
+                //
                 //   .assembly B
                 //   {
                 //      InternalsVisibleTo("C")
                 //      public class B : A { internal override void M() { } }
                 //   }
-                // 
+                //
                 //   .assembly C
                 //   {
                 //      public class C : B { ... new B().M ... }       // A.M is not accessible from here
@@ -363,9 +376,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// If this method overrides another method (because it both had the override modifier
         /// and there correctly was a method to override), returns the overridden method.
-        /// Note that if an overriding method D.M overrides C.M, which in turn overrides 
+        /// Note that if an overriding method D.M overrides C.M, which in turn overrides
         /// virtual method A.M, the "overridden method" of D.M is C.M, not the original virtual
-        /// method A.M. Note also that constructed generic methods are not considered to 
+        /// method A.M. Note also that constructed generic methods are not considered to
         /// override anything.
         /// </summary>
         public MethodSymbol OverriddenMethod
@@ -576,7 +589,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Determines whether this method is a candidate for a default assembly entry point 
+        /// Determines whether this method is a candidate for a default assembly entry point
         /// (i.e. it is a static method called "Main").
         /// </summary>
         internal bool IsEntryPointCandidate
@@ -584,48 +597,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return IsStatic && Name == WellKnownMemberNames.EntryPointMethodName; }
         }
 
-        /// <summary>
-        /// Checks if the method has an entry point compatible signature, i.e.
-        /// - the return type is either void or int
-        /// - has either no parameter or a single parameter of type string[]
-        /// </summary>
-        internal bool HasEntryPointSignature()
-        {
-            if (this.IsVararg)
-            {
-                return false;
-            }
-
-            TypeSymbol returnType = ReturnType;
-            if (returnType.SpecialType != SpecialType.System_Int32 && returnType.SpecialType != SpecialType.System_Void)
-            {
-                return false;
-            }
-
-            if (Parameters.Length == 0)
-            {
-                return true;
-            }
-
-            if (Parameters.Length > 1)
-            {
-                return false;
-            }
-
-            if (!ParameterRefKinds.IsDefault)
-            {
-                return false;
-            }
-
-            var firstType = Parameters[0].Type;
-            if (firstType.TypeKind != TypeKind.Array)
-            {
-                return false;
-            }
-
-            var array = (ArrayTypeSymbol)firstType;
-            return array.IsSZArray && array.ElementType.SpecialType == SpecialType.System_String;
-        }
 
         internal override TResult Accept<TArgument, TResult>(CSharpSymbolVisitor<TArgument, TResult> visitor, TArgument argument)
         {
@@ -722,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// If this method is a reduced extension method, returns a type inferred during reduction process for the type parameter. 
+        /// If this method is a reduced extension method, returns a type inferred during reduction process for the type parameter.
         /// </summary>
         /// <param name="reducedFromTypeParameter">Type parameter of the corresponding <see cref="ReducedFrom"/> method.</param>
         /// <returns>Inferred type or Nothing if nothing was inferred.</returns>
@@ -802,7 +773,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(this.IsDefinition);
             Debug.Assert(ReferenceEquals(newOwner.OriginalDefinition, this.ContainingSymbol.OriginalDefinition));
-            return (newOwner == this.ContainingSymbol) ? this : new SubstitutedMethodSymbol((SubstitutedNamedTypeSymbol)newOwner, this);
+            return (newOwner == this.ContainingSymbol) ? this : new SubstitutedMethodSymbol(newOwner, this);
         }
 
         /// <summary>
@@ -865,19 +836,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Check return type, custom modifiers, parameters
             if (DeriveUseSiteDiagnosticFromType(ref result, this.ReturnType) ||
+                DeriveUseSiteDiagnosticFromCustomModifiers(ref result, this.RefCustomModifiers) ||
                 DeriveUseSiteDiagnosticFromCustomModifiers(ref result, this.ReturnTypeCustomModifiers) ||
                 DeriveUseSiteDiagnosticFromParameters(ref result, this.Parameters))
             {
                 return true;
             }
 
-            // If the member is in an assembly with unified references, 
+            // If the member is in an assembly with unified references,
             // we check if its definition depends on a type from a unified reference.
             if (this.ContainingModule.HasUnifiedReferences)
             {
                 HashSet<TypeSymbol> unificationCheckedTypes = null;
 
                 if (this.ReturnType.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes) ||
+                    GetUnificationUseSiteDiagnosticRecursive(ref result, this.RefCustomModifiers, this, ref unificationCheckedTypes) ||
                     GetUnificationUseSiteDiagnosticRecursive(ref result, this.ReturnTypeCustomModifiers, this, ref unificationCheckedTypes) ||
                     GetUnificationUseSiteDiagnosticRecursive(ref result, this.Parameters, this, ref unificationCheckedTypes) ||
                     GetUnificationUseSiteDiagnosticRecursive(ref result, this.TypeParameters, this, ref unificationCheckedTypes))
@@ -890,7 +863,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Return error code that has highest priority while calculating use site error for this symbol. 
+        /// Return error code that has highest priority while calculating use site error for this symbol.
         /// </summary>
         protected override int HighestPriorityUseSiteError
         {
@@ -931,7 +904,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Generates bound block representing method's body for methods in lowered form and adds it to
-        /// a collection of method bodies of the current module. This method is supposed to only be 
+        /// a collection of method bodies of the current module. This method is supposed to only be
         /// called for method symbols which return SynthesizesLoweredBoundBody == true.
         /// </summary>
         internal virtual void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
@@ -962,7 +935,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Syntax offset is a unique identifier for the local within the emitted method body.
         /// It's based on position of the local declarator. In single-part method bodies it's simply the distance
-        /// from the start of the method body syntax span. If a method body has multiple parts (such as a constructor 
+        /// from the start of the method body syntax span. If a method body has multiple parts (such as a constructor
         /// comprising of code for member initializers and constructor initializer calls) the offset is calculated
         /// as if all source these parts were concatenated together and prepended to the constructor body.
         /// The resulting syntax offset is then negative for locals defined outside of the constructor body.
@@ -1145,6 +1118,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        ImmutableArray<CustomModifier> IMethodSymbol.RefCustomModifiers
+        {
+            get
+            {
+                return this.RefCustomModifiers;
+            }
+        }
+
         ImmutableArray<AttributeData> IMethodSymbol.GetReturnTypeAttributes()
         {
             return this.GetReturnTypeAttributes().Cast<CSharpAttributeData, AttributeData>();
@@ -1206,7 +1187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// If this is a method of a tuple type, return corresponding underlying method from the
-        /// tuple underlying type. Otherwise, null. 
+        /// tuple underlying type. Otherwise, null.
         /// </summary>
         public virtual MethodSymbol TupleUnderlyingMethod
         {

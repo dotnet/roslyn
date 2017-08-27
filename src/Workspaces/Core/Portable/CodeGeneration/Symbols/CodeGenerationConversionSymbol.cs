@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
 using Roslyn.Utilities;
 
@@ -14,35 +11,29 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     {
         public CodeGenerationConversionSymbol(
             INamedTypeSymbol containingType,
-            IList<AttributeData> attributes,
+            ImmutableArray<AttributeData> attributes,
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             ITypeSymbol toType,
             IParameterSymbol fromType,
             bool isImplicit,
-            IList<AttributeData> toTypeAttributes) :
+            ImmutableArray<AttributeData> toTypeAttributes) :
             base(containingType,
                 attributes,
                 declaredAccessibility,
                 modifiers,
                 returnType: toType,
                 returnsByRef: false,
-                explicitInterfaceSymbolOpt: null,
+                explicitInterfaceImplementations: default,
                 name: isImplicit ?
                     WellKnownMemberNames.ImplicitConversionName :
                     WellKnownMemberNames.ExplicitConversionName,
-                typeParameters: SpecializedCollections.EmptyList<ITypeParameterSymbol>(),
-                parameters: new List<IParameterSymbol>(SpecializedCollections.SingletonEnumerable(fromType)),
+                typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
+                parameters: ImmutableArray.Create(fromType),
                 returnTypeAttributes: toTypeAttributes)
         {
         }
 
-        public override MethodKind MethodKind
-        {
-            get
-            {
-                return MethodKind.Conversion;
-            }
-        }
+        public override MethodKind MethodKind => MethodKind.Conversion;
     }
 }

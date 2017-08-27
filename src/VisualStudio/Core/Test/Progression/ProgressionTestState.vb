@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.ComponentModel.Composition.Hosting
 Imports System.Threading
@@ -21,9 +21,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             _workspace = workspace
         End Sub
 
-        Public Shared Async Function CreateAsync(workspaceXml As XElement) As Task(Of ProgressionTestState)
-            Dim workspace = Await TestWorkspace.CreateAsync(workspaceXml,
-                                                              exportProvider:=MinimalTestExportProvider.CreateExportProvider(CompositionCatalog))
+        Public Shared Function Create(workspaceXml As XElement) As ProgressionTestState
+            Dim workspace = TestWorkspace.Create(workspaceXml,
+exportProvider:=MinimalTestExportProvider.CreateExportProvider(CompositionCatalog))
 
             Return New ProgressionTestState(workspace)
         End Function

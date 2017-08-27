@@ -101,11 +101,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 if (_cache == null)
                 {
                     // return single project name
-                    return Workspace.GetProjectName(projectId) ?? ServicesVSResources.Unknown;
+                    return Workspace.GetProjectName(projectId) ?? ServicesVSResources.Unknown2;
                 }
 
                 // return joined project names
-                return _cache.GetProjectName(Workspace) ?? ServicesVSResources.Unknown;
+                return _cache.GetProjectName(Workspace) ?? ServicesVSResources.Unknown2;
             }
         }
 

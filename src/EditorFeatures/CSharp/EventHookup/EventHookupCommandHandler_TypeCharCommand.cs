@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Threading;
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             AssertIsForeground();
             nextHandler();
 
-            if (!args.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.EventHookup))
+            if (!args.SubjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.EventHookup))
             {
                 EventHookupSessionManager.CancelAndDismissExistingSessions();
                 return;

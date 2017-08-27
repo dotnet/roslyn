@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private ReadOnly _identifierText As String
         Private ReadOnly _typeCharacter As TypeCharacter
 
-        Friend Sub New(kind As SyntaxKind, errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), text As String, precedingTrivia As VisualBasicSyntaxNode, followingTrivia As VisualBasicSyntaxNode, possibleKeywordKind As SyntaxKind, isBracketed As Boolean, identifierText As String, typeCharacter As TypeCharacter)
+        Friend Sub New(kind As SyntaxKind, errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), text As String, precedingTrivia As GreenNode, followingTrivia As GreenNode, possibleKeywordKind As SyntaxKind, isBracketed As Boolean, identifierText As String, typeCharacter As TypeCharacter)
             MyBase.New(kind, errors, annotations, text, precedingTrivia, followingTrivia)
 
             Me._possibleKeywordKind = possibleKeywordKind
@@ -35,9 +35,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             _typeCharacter = CType(reader.ReadByte(), TypeCharacter)
         End Sub
 
-        Friend Overrides Function GetReader() As Func(Of ObjectReader, Object)
-            Return Function(r) New ComplexIdentifierSyntax(r)
-        End Function
+        Shared Sub New()
+            ObjectBinder.RegisterTypeReader(GetType(ComplexIdentifierSyntax), Function(r) New ComplexIdentifierSyntax(r))
+        End Sub
 
         Friend Overrides Sub WriteTo(writer As ObjectWriter)
             MyBase.WriteTo(writer)
@@ -92,11 +92,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Property
 
         Public Overrides Function WithLeadingTrivia(trivia As GreenNode) As GreenNode
-            Return New ComplexIdentifierSyntax(Kind, GetDiagnostics, GetAnnotations, Text, DirectCast(trivia, VisualBasicSyntaxNode), GetTrailingTrivia, PossibleKeywordKind, IsBracketed, IdentifierText, TypeCharacter)
+            Return New ComplexIdentifierSyntax(Kind, GetDiagnostics, GetAnnotations, Text, trivia, GetTrailingTrivia, PossibleKeywordKind, IsBracketed, IdentifierText, TypeCharacter)
         End Function
 
         Public Overrides Function WithTrailingTrivia(trivia As GreenNode) As GreenNode
-            Return New ComplexIdentifierSyntax(Kind, GetDiagnostics, GetAnnotations, Text, GetLeadingTrivia, DirectCast(trivia, VisualBasicSyntaxNode), PossibleKeywordKind, IsBracketed, IdentifierText, TypeCharacter)
+            Return New ComplexIdentifierSyntax(Kind, GetDiagnostics, GetAnnotations, Text, GetLeadingTrivia, trivia, PossibleKeywordKind, IsBracketed, IdentifierText, TypeCharacter)
         End Function
 
         Friend Overrides Function SetDiagnostics(newErrors As DiagnosticInfo()) As GreenNode

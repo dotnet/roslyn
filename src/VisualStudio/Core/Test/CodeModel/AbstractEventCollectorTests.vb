@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
@@ -95,7 +95,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
     </Project>
 </Workspace>
 
-            Using workspace = Await TestWorkspace.CreateAsync(definition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
+            Using workspace = TestWorkspace.Create(definition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
                 Dim project = workspace.CurrentSolution.Projects.First()
                 Dim codeModelService = project.LanguageServices.GetService(Of ICodeModelService)()
                 Assert.NotNull(codeModelService)

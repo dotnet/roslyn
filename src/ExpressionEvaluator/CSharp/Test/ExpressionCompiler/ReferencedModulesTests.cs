@@ -1,13 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection.PortableExecutable;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger.Evaluation;
@@ -483,14 +490,14 @@ class C
             string errorMessage;
             CompilationTestData testData;
             int attempts = 0;
-            ExpressionCompiler.CreateContextDelegate contextFactory = (b, u) =>
+            EvaluationContextBase contextFactory(ImmutableArray<MetadataBlock> b, bool u)
             {
                 attempts++;
                 return EvaluationContext.CreateTypeContext(
                     ToCompilation(b, u, moduleVersionId),
                     moduleVersionId,
                     typeToken);
-            };
+            }
 
             // Compile: [DebuggerDisplay("{new B()}")]
             const string expr = "new B()";
@@ -534,9 +541,9 @@ IL_0005:  ret
         var o = (System.Collections.ObjectModel.ReadOnlyDictionary<object, object>)null;
     }
 }";
-            var systemConsoleComp = CreateCompilationWithMscorlib(sourceConsole, options: TestOptions.DebugDll, assemblyName: "System.Console");
+            var systemConsoleComp = CreateStandardCompilation(sourceConsole, options: TestOptions.DebugDll, assemblyName: "System.Console");
             var systemConsoleRef = systemConsoleComp.EmitToImageReference();
-            var systemObjectModelComp = CreateCompilationWithMscorlib(sourceObjectModel, options: TestOptions.DebugDll, assemblyName: "System.ObjectModel");
+            var systemObjectModelComp = CreateStandardCompilation(sourceObjectModel, options: TestOptions.DebugDll, assemblyName: "System.ObjectModel");
             var systemObjectModelRef = systemObjectModelComp.EmitToImageReference();
             var identityObjectModel = systemObjectModelRef.GetAssemblyIdentity();
 
@@ -653,7 +660,7 @@ public class B
                 ObjectIdAlias(1, typeof(object)));
 
             int attempts = 0;
-            ExpressionCompiler.CreateContextDelegate contextFactory = (b, u) =>
+            EvaluationContextBase contextFactory(ImmutableArray<MetadataBlock> b, bool u)
             {
                 attempts++;
                 return EvaluationContext.CreateMethodContext(
@@ -664,7 +671,7 @@ public class B
                     methodVersion: 1,
                     ilOffset: 0,
                     localSignatureToken: localSignatureToken);
-            };
+            }
 
             string errorMessage;
             CompilationTestData testData;
@@ -705,6 +712,250 @@ IL_0030:  ret
 }");
         }
 
+        private const string CorLibAssemblyName = "System.Private.CoreLib";
+
+        // An assembly with the expected corlib name and with System.Object should
+        // be considered the corlib, even with references to external assemblies.
+        [WorkItem(13275, "https://github.com/dotnet/roslyn/issues/13275")]
+        [Fact]
+        public void CorLibWithAssemblyReferences()
+        {
+            string sourceLib =
+@"public class Private1
+{
+}
+public class Private2
+{
+}";
+            var compLib = CreateStandardCompilation(sourceLib, assemblyName: "System.Private.Library");
+            compLib.VerifyDiagnostics();
+            var refLib = compLib.EmitToImageReference();
+
+            string sourceCorLib =
+@"using System.Runtime.CompilerServices;
+[assembly: TypeForwardedTo(typeof(Private2))]
+namespace System
+{
+    public class Object
+    {
+        public Private1 F() => null;
+    }
+#pragma warning disable 0436
+    public class Void : Object { }
+#pragma warning restore 0436
+}";
+            // Create a custom corlib with a reference to compilation
+            // above and a reference to the actual mscorlib.
+            var compCorLib = CreateCompilation(sourceCorLib, assemblyName: CorLibAssemblyName, references: new[] { MscorlibRef, refLib });
+            compCorLib.VerifyDiagnostics();
+            var objectType = compCorLib.SourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("System.Object");
+            Assert.NotNull(objectType.BaseType);
+
+            ImmutableArray<byte> peBytes;
+            ImmutableArray<byte> pdbBytes;
+            ExpressionCompilerTestHelpers.EmitCorLibWithAssemblyReferences(
+                compCorLib,
+                null,
+                (moduleBuilder, emitOptions) => new PEAssemblyBuilderWithAdditionalReferences(moduleBuilder, emitOptions, objectType),
+                out peBytes,
+                out pdbBytes);
+
+            using (var reader = new PEReader(peBytes))
+            {
+                var metadata = reader.GetMetadata();
+                var module = metadata.ToModuleMetadata(ignoreAssemblyRefs: true);
+                var metadataReader = metadata.ToMetadataReader();
+                var moduleInstance = ModuleInstance.Create(metadata, metadataReader.GetModuleVersionIdOrThrow());
+
+                // Verify the module declares System.Object.
+                Assert.True(metadataReader.DeclaresTheObjectClass());
+                // Verify the PEModule has no assembly references.
+                Assert.Equal(0, module.Module.ReferencedAssemblies.Length);
+                // Verify the underlying metadata has the expected assembly references.
+                var actualReferences = metadataReader.AssemblyReferences.Select(r => metadataReader.GetString(metadataReader.GetAssemblyReference(r).Name)).ToImmutableArray();
+                AssertEx.Equal(new[] { "mscorlib", "System.Private.Library" }, actualReferences);
+
+                var source =
+@"class C
+{
+    static void M()
+    {
+    }
+}";
+                var comp = CreateCompilation(source, options: TestOptions.DebugDll, references: new[] { refLib, AssemblyMetadata.Create(module).GetReference() });
+                comp.VerifyDiagnostics();
+
+                using (var runtime = RuntimeInstance.Create(new[] { comp.ToModuleInstance(), moduleInstance }))
+                {
+                    string error;
+                    var context = CreateMethodContext(runtime, "C.M");
+
+                    // Valid expression.
+                    var testData = new CompilationTestData();
+                    context.CompileExpression(
+                        "new object()",
+                        out error,
+                        testData);
+                    Assert.Null(error);
+                    testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  newobj     ""object..ctor()""
+  IL_0005:  ret
+}");
+
+                    // Invalid expression: System.Int32 is not defined in corlib above.
+                    testData = new CompilationTestData();
+                    context.CompileExpression(
+                        "1",
+                        out error,
+                        testData);
+                    Assert.Equal("error CS0518: Predefined type 'System.Int32' is not defined or imported", error);
+
+                    // Invalid expression: type in method signature from missing referenced assembly.
+                    testData = new CompilationTestData();
+                    context.CompileExpression(
+                        "(new object()).F()",
+                        out error,
+                        testData);
+                    Assert.Equal("error CS0570: 'object.F()' is not supported by the language", error);
+
+                    // Invalid expression: type forwarded to missing referenced assembly.
+                    testData = new CompilationTestData();
+                    context.CompileExpression(
+                        "new Private2()",
+                        out error,
+                        testData);
+                    Assert.Equal("error CS0246: The type or namespace name 'Private2' could not be found (are you missing a using directive or an assembly reference?)", error);
+                }
+            }
+        }
+
+        // References to missing assembly from PDB custom debug info.
+        [WorkItem(13275, "https://github.com/dotnet/roslyn/issues/13275")]
+        [Fact]
+        public void CorLibWithAssemblyReferences_Pdb()
+        {
+            string sourceLib =
+@"namespace Namespace
+{
+    public class Private { }
+}";
+            var compLib = CreateStandardCompilation(sourceLib, assemblyName: "System.Private.Library");
+            compLib.VerifyDiagnostics();
+            var refLib = compLib.EmitToImageReference(aliases: ImmutableArray.Create("A"));
+
+            string sourceCorLib =
+@"extern alias A;
+#pragma warning disable 8019
+using N = A::Namespace;
+namespace System
+{
+    public class Object
+    {
+        public void F()
+        {
+        }
+    }
+#pragma warning disable 0436
+    public class Void : Object { }
+#pragma warning restore 0436
+}";
+            // Create a custom corlib with a reference to compilation
+            // above and a reference to the actual mscorlib.
+            var compCorLib = CreateCompilation(sourceCorLib, assemblyName: CorLibAssemblyName, references: new[] { MscorlibRef, refLib });
+            compCorLib.VerifyDiagnostics();
+            var objectType = compCorLib.SourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("System.Object");
+            Assert.NotNull(objectType.BaseType);
+
+            var pdbPath = Temp.CreateDirectory().Path;
+            ImmutableArray<byte> peBytes;
+            ImmutableArray<byte> pdbBytes;
+            ExpressionCompilerTestHelpers.EmitCorLibWithAssemblyReferences(
+                compCorLib,
+                pdbPath,
+                (moduleBuilder, emitOptions) => new PEAssemblyBuilderWithAdditionalReferences(moduleBuilder, emitOptions, objectType),
+                out peBytes,
+                out pdbBytes);
+            var symReader = SymReaderFactory.CreateReader(pdbBytes);
+
+            using (var reader = new PEReader(peBytes))
+            {
+                var metadata = reader.GetMetadata();
+                var module = metadata.ToModuleMetadata(ignoreAssemblyRefs: true);
+                var metadataReader = metadata.ToMetadataReader();
+                var moduleInstance = ModuleInstance.Create(metadata, metadataReader.GetModuleVersionIdOrThrow(), symReader);
+
+                // Verify the module declares System.Object.
+                Assert.True(metadataReader.DeclaresTheObjectClass());
+                // Verify the PEModule has no assembly references.
+                Assert.Equal(0, module.Module.ReferencedAssemblies.Length);
+                // Verify the underlying metadata has the expected assembly references.
+                var actualReferences = metadataReader.AssemblyReferences.Select(r => metadataReader.GetString(metadataReader.GetAssemblyReference(r).Name)).ToImmutableArray();
+                AssertEx.Equal(new[] { "mscorlib", "System.Private.Library" }, actualReferences);
+
+                using (var runtime = RuntimeInstance.Create(new[] { moduleInstance }))
+                {
+                    string error;
+                    var context = CreateMethodContext(runtime, "System.Object.F");
+                    var testData = new CompilationTestData();
+                    // Invalid import: "using N = A::Namespace;".
+                    context.CompileExpression(
+                        "new N.Private()",
+                        out error,
+                        testData);
+                    Assert.Equal("error CS0246: The type or namespace name 'N' could not be found (are you missing a using directive or an assembly reference?)", error);
+                }
+            }
+        }
+
+        // An assembly with the expected corlib name but without
+        // System.Object should not be considered the corlib.
+        [Fact]
+        public void CorLibWithAssemblyReferencesNoSystemObject()
+        {
+            // Assembly with expected corlib name but without System.Object declared.
+            string sourceLib =
+@"class Private
+{
+}";
+            var compLib = CreateStandardCompilation(sourceLib, assemblyName: CorLibAssemblyName);
+            compLib.VerifyDiagnostics();
+            var refLib = compLib.EmitToImageReference();
+
+            var source =
+@"class C
+{
+    static void M()
+    {
+    }
+}";
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics();
+
+            using (var runtime = RuntimeInstance.Create(new[] { comp.ToModuleInstance(), refLib.ToModuleInstance(), MscorlibRef.ToModuleInstance() }))
+            {
+                string error;
+                var context = CreateMethodContext(runtime, "C.M");
+                var testData = new CompilationTestData();
+                context.CompileExpression(
+                    "1.GetType()",
+                    out error,
+                    testData);
+                Assert.Null(error);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  box        ""int""
+  IL_0006:  call       ""System.Type object.GetType()""
+  IL_000b:  ret
+}");
+            }
+        }
+
         private static ExpressionCompiler.CreateContextDelegate CreateTypeContextFactory(
             Guid moduleVersionId,
             int typeToken)
@@ -737,6 +988,41 @@ IL_0030:  ret
             Guid moduleVersionId)
         {
             return useReferencedModulesOnly ? blocks.ToCompilationReferencedModulesOnly(moduleVersionId) : blocks.ToCompilation();
+        }
+
+        private sealed class PEAssemblyBuilderWithAdditionalReferences : PEModuleBuilder, IAssemblyReference
+        {
+            private readonly CommonPEModuleBuilder _builder;
+            private readonly NamespaceTypeDefinitionNoBase _objectType;
+
+            internal PEAssemblyBuilderWithAdditionalReferences(CommonPEModuleBuilder builder, EmitOptions emitOptions, INamespaceTypeDefinition objectType) :
+                base((SourceModuleSymbol)builder.CommonSourceModule, emitOptions, builder.OutputKind, builder.SerializationProperties, builder.ManifestResources)
+            {
+                _builder = builder;
+                _objectType = new NamespaceTypeDefinitionNoBase(objectType);
+            }
+
+            internal override IEnumerable<INamespaceTypeDefinition> GetTopLevelTypesCore(EmitContext context)
+            {
+                foreach (var type in base.GetTopLevelTypesCore(context))
+                {
+                    yield return (type == _objectType.UnderlyingType) ? _objectType : type;
+                }
+            }
+
+            public override int CurrentGenerationOrdinal => _builder.CurrentGenerationOrdinal;
+
+            public override ISourceAssemblySymbolInternal SourceAssemblyOpt => _builder.SourceAssemblyOpt;
+
+            public override IEnumerable<IFileReference> GetFiles(EmitContext context) => _builder.GetFiles(context);
+
+            protected override void AddEmbeddedResourcesFromAddedModules(ArrayBuilder<ManagedResource> builder, DiagnosticBag diagnostics)
+            {
+            }
+
+            AssemblyIdentity IAssemblyReference.Identity => ((IAssemblyReference)_builder).Identity;
+
+            Version IAssemblyReference.AssemblyVersionPattern => ((IAssemblyReference)_builder).AssemblyVersionPattern;
         }
     }
 }

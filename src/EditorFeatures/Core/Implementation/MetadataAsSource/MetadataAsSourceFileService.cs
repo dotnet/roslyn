@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -7,9 +7,9 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.SymbolMapping;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             return _rootTemporaryPathWithGuid;
         }
 
-        public async Task<MetadataAsSourceFile> GetGeneratedFileAsync(Project project, ISymbol symbol, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<MetadataAsSourceFile> GetGeneratedFileAsync(Project project, ISymbol symbol, CancellationToken cancellationToken = default)
         {
             if (project == null)
             {
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
 
             if (symbol.Kind == SymbolKind.Namespace)
             {
-                throw new ArgumentException(EditorFeaturesResources.SymbolCannotBeNamespace, nameof(symbol));
+                throw new ArgumentException(EditorFeaturesResources.symbol_cannot_be_a_namespace, nameof(symbol));
             }
 
             symbol = symbol.GetOriginalUnreducedDefinition();
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             var documentName = string.Format(
                 "{0} [{1}]",
                 topLevelNamedType.Name,
-                EditorFeaturesResources.FromMetadata);
+                EditorFeaturesResources.from_metadata);
 
             var documentTooltip = topLevelNamedType.ToDisplayString(new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces));
 
@@ -163,9 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
         {
             // We need to relocate the symbol in the already existing file. If the file is open, we can just
             // reuse that workspace. Otherwise, we have to go spin up a temporary project to do the binding.
-
-            DocumentId openDocumentId;
-            if (_openedDocumentIds.TryGetValue(fileInfo, out openDocumentId))
+            if (_openedDocumentIds.TryGetValue(fileInfo, out var openDocumentId))
             {
                 // Awesome, it's already open. Let's try to grab a document for it
                 var document = _workspace.CurrentSolution.GetDocument(openDocumentId);
@@ -185,9 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
         {
             using (_gate.DisposableWait())
             {
-                MetadataAsSourceGeneratedFileInfo fileInfo;
-
-                if (_generatedFilenameToInformation.TryGetValue(filePath, out fileInfo))
+                if (_generatedFilenameToInformation.TryGetValue(filePath, out var fileInfo))
                 {
                     Contract.ThrowIfTrue(_openedDocumentIds.ContainsKey(fileInfo));
 
@@ -210,9 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
         {
             using (_gate.DisposableWait())
             {
-                MetadataAsSourceGeneratedFileInfo fileInfo;
-
-                if (_generatedFilenameToInformation.TryGetValue(filePath, out fileInfo))
+                if (_generatedFilenameToInformation.TryGetValue(filePath, out var fileInfo))
                 {
                     if (_openedDocumentIds.ContainsKey(fileInfo))
                     {
@@ -326,10 +320,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                         // Let's look through directories to delete.
                         foreach (var directoryInfo in new DirectoryInfo(_rootTemporaryPath).EnumerateDirectories())
                         {
-                            Mutex acquiredMutex;
 
                             // Is there a mutex for this one?
-                            if (Mutex.TryOpenExisting(CreateMutexName(directoryInfo.Name), out acquiredMutex))
+                            if (Mutex.TryOpenExisting(CreateMutexName(directoryInfo.Name), out var acquiredMutex))
                             {
                                 acquiredMutex.Dispose();
                                 deletedEverything = false;

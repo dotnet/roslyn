@@ -1,8 +1,7 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -13,6 +12,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.Cci
 {
@@ -25,23 +25,25 @@ namespace Microsoft.Cci
 
     internal static class PeWriter
     {
-        public static bool WritePeToStream(
+        internal static bool WritePeToStream(
             EmitContext context,
             CommonMessageProvider messageProvider,
             Func<Stream> getPeStream,
             Func<Stream> getPortablePdbStreamOpt,
             PdbWriter nativePdbWriterOpt,
             string pdbPathOpt,
-            bool allowMissingMethodBodies,
+            bool metadataOnly,
             bool isDeterministic,
+            bool emitTestCoverageData,
             CancellationToken cancellationToken)
         {
             // If PDB writer is given, we have to have PDB path.
             Debug.Assert(nativePdbWriterOpt == null || pdbPathOpt != null);
 
-            var mdWriter = FullMetadataWriter.Create(context, messageProvider, allowMissingMethodBodies, isDeterministic, getPortablePdbStreamOpt != null, cancellationToken);
+            var mdWriter = FullMetadataWriter.Create(context, messageProvider, metadataOnly, isDeterministic,
+                emitTestCoverageData, getPortablePdbStreamOpt != null, cancellationToken);
 
-            var properties = context.Module.Properties;
+            var properties = context.Module.SerializationProperties;
 
             nativePdbWriterOpt?.SetMetadataEmitter(mdWriter);
 
@@ -54,18 +56,19 @@ namespace Microsoft.Cci
             var mappedFieldDataBuilder = new BlobBuilder();
             var managedResourceBuilder = new BlobBuilder(1024);
 
-            Blob mvidFixup;
+            Blob mvidFixup, mvidStringFixup;
             mdWriter.BuildMetadataAndIL(
                 nativePdbWriterOpt,
                 ilBuilder,
                 mappedFieldDataBuilder,
                 managedResourceBuilder,
-                out mvidFixup);
+                out mvidFixup,
+                out mvidStringFixup);
 
             MethodDefinitionHandle entryPointHandle;
             MethodDefinitionHandle debugEntryPointHandle;
             mdWriter.GetEntryPoints(out entryPointHandle, out debugEntryPointHandle);
-            
+
             if (!debugEntryPointHandle.IsNil)
             {
                 nativePdbWriterOpt?.SetEntryPoint((uint)MetadataTokens.GetToken(debugEntryPointHandle));
@@ -73,8 +76,12 @@ namespace Microsoft.Cci
 
             if (nativePdbWriterOpt != null)
             {
-                var assembly = mdWriter.Module.AsAssembly;
-                if (assembly != null && assembly.Kind == OutputKind.WindowsRuntimeMetadata)
+                if (context.Module.SourceLinkStreamOpt != null)
+                {
+                    nativePdbWriterOpt.EmbedSourceLink(context.Module.SourceLinkStreamOpt);
+                }
+
+                if (mdWriter.Module.OutputKind == OutputKind.WindowsRuntimeMetadata)
                 {
                     // Dev12: If compiling to winmdobj, we need to add to PDB source spans of
                     //        all types and members for better error reporting by WinMDExp.
@@ -88,6 +95,8 @@ namespace Microsoft.Cci
                     nativePdbWriterOpt.AssertAllDefinitionsHaveTokens(mdWriter.Module.GetSymbolToLocationMap());
 #endif
                 }
+
+                nativePdbWriterOpt.WriteRemainingEmbeddedDocuments(mdWriter.Module.DebugDocumentsBuilder.EmbeddedDocuments);
             }
 
             Stream peStream = getPeStream();
@@ -129,25 +138,41 @@ namespace Microsoft.Cci
                 new Func<IEnumerable<Blob>, BlobContentId>(content => BlobContentId.FromHash(CryptographicHashProvider.ComputeSha1(content))) :
                 null;
 
+            BlobBuilder portablePdbToEmbed = null;
             if (mdWriter.EmitStandaloneDebugMetadata)
             {
-                Debug.Assert(getPortablePdbStreamOpt != null);
+                mdWriter.AddRemainingEmbeddedDocuments(mdWriter.Module.DebugDocumentsBuilder.EmbeddedDocuments);
 
                 var portablePdbBlob = new BlobBuilder();
-                var portablePdbBuilder = mdWriter.GetPortablePdbBuilder(metadataRootBuilder.Sizes, debugEntryPointHandle, deterministicIdProvider);
+                var portablePdbBuilder = mdWriter.GetPortablePdbBuilder(metadataRootBuilder.Sizes.RowCounts, debugEntryPointHandle, deterministicIdProvider);
                 pdbContentId = portablePdbBuilder.Serialize(portablePdbBlob);
                 portablePdbVersion = portablePdbBuilder.FormatVersion;
 
-                // write to Portable PDB stream:
-                Stream portablePdbStream = getPortablePdbStreamOpt();
-                if (portablePdbStream != null)
+                if (getPortablePdbStreamOpt == null)
                 {
-                    portablePdbBlob.WriteContentTo(portablePdbStream);
+                    // embed to debug directory:
+                    portablePdbToEmbed = portablePdbBlob;
+                }
+                else
+                {
+                    // write to Portable PDB stream:
+                    Stream portablePdbStream = getPortablePdbStreamOpt();
+                    if (portablePdbStream != null)
+                    {
+                        try
+                        {
+                            portablePdbBlob.WriteContentTo(portablePdbStream);
+                        }
+                        catch (Exception e) when (!(e is OperationCanceledException))
+                        {
+                            throw new PdbWritingException(e);
+                        }
+                    }
                 }
             }
 
             DebugDirectoryBuilder debugDirectoryBuilder;
-            if (pdbPathOpt != null || isDeterministic)
+            if (pdbPathOpt != null || isDeterministic || portablePdbToEmbed != null)
             {
                 debugDirectoryBuilder = new DebugDirectoryBuilder();
                 if (pdbPathOpt != null)
@@ -160,13 +185,18 @@ namespace Microsoft.Cci
                 {
                     debugDirectoryBuilder.AddReproducibleEntry();
                 }
+
+                if (portablePdbToEmbed != null)
+                {
+                    debugDirectoryBuilder.AddEmbeddedPortablePdbEntry(portablePdbToEmbed, portablePdbVersion);
+                }
             }
             else
             {
                 debugDirectoryBuilder = null;
             }
 
-            var peBuilder = new ManagedPEBuilder(
+            var peBuilder = new ExtendedPEBuilder(
                 peHeaderBuilder,
                 metadataRootBuilder,
                 ilBuilder,
@@ -177,19 +207,13 @@ namespace Microsoft.Cci
                 CalculateStrongNameSignatureSize(context.Module),
                 entryPointHandle,
                 properties.CorFlags,
-                deterministicIdProvider);
+                deterministicIdProvider,
+                metadataOnly && !context.IncludePrivateMembers);
 
             var peBlob = new BlobBuilder();
-            BlobContentId peContentId;
-            peBuilder.Serialize(peBlob, out peContentId);
+            var peContentId = peBuilder.Serialize(peBlob, out Blob mvidSectionFixup);
 
-            // Patch MVID
-            if (!mvidFixup.IsDefault)
-            {
-                var writer = new BlobWriter(mvidFixup);
-                writer.WriteGuid(peContentId.Guid);
-                Debug.Assert(writer.RemainingBytes == 0);
-            }
+            PatchModuleVersionIds(mvidFixup, mvidSectionFixup, mvidStringFixup, peContentId.Guid);
 
             try
             {
@@ -203,6 +227,30 @@ namespace Microsoft.Cci
             return true;
         }
 
+        private static void PatchModuleVersionIds(Blob guidFixup, Blob guidSectionFixup, Blob stringFixup, Guid mvid)
+        {
+            if (!guidFixup.IsDefault)
+            {
+                var writer = new BlobWriter(guidFixup);
+                writer.WriteGuid(mvid);
+                Debug.Assert(writer.RemainingBytes == 0);
+            }
+
+            if (!guidSectionFixup.IsDefault)
+            {
+                var writer = new BlobWriter(guidSectionFixup);
+                writer.WriteGuid(mvid);
+                Debug.Assert(writer.RemainingBytes == 0);
+            }
+
+            if (!stringFixup.IsDefault)
+            {
+                var writer = new BlobWriter(stringFixup);
+                writer.WriteUserString(mvid.ToString());
+                Debug.Assert(writer.RemainingBytes == 0);
+            }
+        }
+
         // Padding: We pad the path to this minimal size to
         // allow some tools to patch the path without the need to rewrite the entire image.
         // This is a workaround put in place until these tools are retired.
@@ -212,7 +260,7 @@ namespace Microsoft.Cci
             return path + new string('\0', Math.Max(0, minLength - Encoding.UTF8.GetByteCount(path) - 1));
         }
 
-        private static ResourceSectionBuilder CreateNativeResourceSectionSerializer(IModule module)
+        private static ResourceSectionBuilder CreateNativeResourceSectionSerializer(CommonPEModuleBuilder module)
         {
             // Win32 resources are supplied to the compiler in one of two forms, .RES (the output of the resource compiler),
             // or .OBJ (the output of running cvtres.exe on a .RES file). A .RES file is parsed and processed into
@@ -269,9 +317,9 @@ namespace Microsoft.Cci
             }
         }
 
-        private static int CalculateStrongNameSignatureSize(IModule module)
+        private static int CalculateStrongNameSignatureSize(CommonPEModuleBuilder module)
         {
-            IAssembly assembly = module.AsAssembly;
+            ISourceAssemblySymbolInternal assembly = module.SourceAssemblyOpt;
             if (assembly == null)
             {
                 return 0;
@@ -282,7 +330,7 @@ namespace Microsoft.Cci
 
             if (keySize == 0)
             {
-                keySize = assembly.PublicKey.Length;
+                keySize = assembly.Identity.PublicKey.Length;
             }
 
             if (keySize == 0)

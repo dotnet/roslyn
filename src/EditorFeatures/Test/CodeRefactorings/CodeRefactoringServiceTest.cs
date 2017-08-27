@@ -31,10 +31,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
             await VerifyRefactoringDisabledAsync(new ErrorCases.ExceptionInComputeRefactoringsAsync());
         }
 
-        public async Task VerifyRefactoringDisabledAsync(CodeRefactoringProvider codeRefactoring)
+        private async Task VerifyRefactoringDisabledAsync(CodeRefactoringProvider codeRefactoring)
         {
             var refactoringService = new CodeRefactorings.CodeRefactoringService(GetMetadata(codeRefactoring));
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(@"class Program {}"))
+            using (var workspace = TestWorkspace.CreateCSharp(@"class Program {}"))
             {
                 var project = workspace.CurrentSolution.Projects.Single();
                 var document = project.Documents.Single();

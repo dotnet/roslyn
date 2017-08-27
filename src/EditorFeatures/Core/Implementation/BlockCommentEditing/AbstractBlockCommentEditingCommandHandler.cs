@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BlockCommentEditing
             var subjectBuffer = args.SubjectBuffer;
             var textView = args.TextView;
 
-            if (!subjectBuffer.GetOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString))
+            if (!subjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString))
             {
                 return false;
             }
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BlockCommentEditing
                 return false;
             }
 
-            using (var transaction = _undoHistoryRegistry.GetHistory(args.TextView.TextBuffer).CreateTransaction(EditorFeaturesResources.InsertNewLine))
+            using (var transaction = _undoHistoryRegistry.GetHistory(args.TextView.TextBuffer).CreateTransaction(EditorFeaturesResources.Insert_new_line))
             {
                 var editorOperations = _editorOperationsFactoryService.GetEditorOperations(args.TextView);
 

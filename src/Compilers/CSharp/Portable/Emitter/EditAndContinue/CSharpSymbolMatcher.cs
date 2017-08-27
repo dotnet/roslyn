@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Concurrent;
@@ -490,6 +491,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     var typeMap = new TypeMap(otherTypeParameters, otherTypeArguments, allowAlpha: true);
                     return typeMap.SubstituteNamedType(otherDef);
                 }
+                else if (sourceType.IsTupleType)
+                {
+                    var otherDef = (NamedTypeSymbol)this.Visit(sourceType.TupleUnderlyingType);
+                    if ((object)otherDef == null || !otherDef.IsTupleOrCompatibleWithTupleOfCardinality(sourceType.TupleElementTypes.Length))
+                    {
+                        return null;
+                    }
+
+                    return otherDef;
+                }
 
                 Debug.Assert(sourceType.IsDefinition);
 
@@ -694,8 +705,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 other = SubstituteTypeParameters(other);
 
                 return _comparer.Equals(method.ReturnType, other.ReturnType) &&
+                    method.RefKind.Equals(other.RefKind) &&
                     method.Parameters.SequenceEqual(other.Parameters, AreParametersEqual) &&
-                    method.TypeArguments.SequenceEqual(other.TypeArguments, AreTypesEqual);
+                    method.TypeParameters.SequenceEqual(other.TypeParameters, AreTypesEqual);
             }
 
             private static MethodSymbol SubstituteTypeParameters(MethodSymbol method)
@@ -718,6 +730,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 // TODO: Test with overloads (from PE base class?) that have modifiers.
                 Debug.Assert(!type.HasTypeArgumentsCustomModifiers);
                 Debug.Assert(!other.HasTypeArgumentsCustomModifiers);
+
+                // Tuple types should be unwrapped to their underlying type before getting here (see MatchSymbols.VisitNamedType)
+                Debug.Assert(!type.IsTupleType);
+                Debug.Assert(!other.IsTupleType);
+
                 return type.TypeArgumentsNoUseSiteDiagnostics.SequenceEqual(other.TypeArgumentsNoUseSiteDiagnostics, AreTypesEqual);
             }
 
@@ -742,6 +759,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 Debug.Assert(StringOrdinalComparer.Equals(property.Name, other.Name));
                 return _comparer.Equals(property.Type, other.Type) &&
+                    property.RefKind.Equals(other.RefKind) &&
                     property.Parameters.SequenceEqual(other.Parameters, AreParametersEqual);
             }
 
@@ -824,7 +842,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     var visitedSource = (TypeSymbol)_matcher.Visit(source);
                     var visitedOther = (_deepTranslatorOpt != null) ? (TypeSymbol)_deepTranslatorOpt.Visit(other) : other;
 
-                    return visitedSource?.Equals(visitedOther, ignoreDynamic: true) == true;
+                    return visitedSource?.Equals(visitedOther, TypeCompareKind.IgnoreDynamicAndTupleNames) == true;
                 }
             }
         }
@@ -871,6 +889,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             public override Symbol VisitNamedType(NamedTypeSymbol type)
             {
+                if (type.IsTupleType)
+                {
+                    type = type.TupleUnderlyingType;
+                    Debug.Assert(!type.IsTupleType);
+                }
+
                 var originalDef = type.OriginalDefinition;
                 if ((object)originalDef != type)
                 {

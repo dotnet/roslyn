@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -363,6 +364,38 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             AssertEx.Equal(new[] { 10, 20, 30, 40 }, ImmutableArray.Create(1, 2, 3, 4).SelectAsArray(i => 10 * i));
             AssertEx.Equal(new[] { 10, 20, 30, 40, 50 }, ImmutableArray.Create(1, 2, 3, 4, 5).SelectAsArray(i => 10 * i));
         }
+
+        [Fact]
+        public void ZipAsArray()
+        {
+            var empty = ImmutableArray.Create<object>();
+            Assert.True(empty.SequenceEqual(empty.ZipAsArray(empty, (item1, item2)  => item1)));
+
+            var single1 = ImmutableArray.Create(1);
+            var single2 = ImmutableArray.Create(10);
+            var single3 = ImmutableArray.Create(11);
+            Assert.True(single3.SequenceEqual(single1.ZipAsArray(single2, (item1, item2)  => item1 + item2)));
+
+            var pair1 = ImmutableArray.Create(1, 2);
+            var pair2 = ImmutableArray.Create(10, 11);
+            var pair3 = ImmutableArray.Create(11, 13);
+            Assert.True(pair3.SequenceEqual(pair1.ZipAsArray(pair2, (item1, item2)  => item1 + item2)));
+
+            var triple1 = ImmutableArray.Create(1, 2, 3);
+            var triple2 = ImmutableArray.Create(10, 11, 12);
+            var triple3 = ImmutableArray.Create(11, 13, 15);
+            Assert.True(triple3.SequenceEqual(triple1.ZipAsArray(triple2, (item1, item2) => item1 + item2)));
+
+            var quad1 = ImmutableArray.Create(1, 2, 3, 4);
+            var quad2 = ImmutableArray.Create(10, 11, 12, 13);
+            var quad3 = ImmutableArray.Create(11, 13, 15, 17);
+            Assert.True(quad3.SequenceEqual(quad1.ZipAsArray(quad2, (item1, item2) => item1 + item2)));
+
+            var quin1 = ImmutableArray.Create(1, 2, 3, 4, 5);
+            var quin2 = ImmutableArray.Create(10, 11, 12, 13, 14);
+            var quin3 = ImmutableArray.Create(11, 13, 15, 17, 19);
+            Assert.True(quin3.SequenceEqual(quin1.ZipAsArray(quin2, (item1, item2) => item1 + item2)));
+         }
 
         [Fact]
         public void WhereAsArray()

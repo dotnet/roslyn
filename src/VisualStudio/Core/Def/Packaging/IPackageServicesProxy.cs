@@ -1,14 +1,15 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using EnvDTE;
 using NuGet.VisualStudio;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
-    // Wrapper types to ensure we delay load the nuget libraries.
+    /// <summary>Wrapper type to ensure we delay load the nuget libraries.</summary> 
+    /// <remarks>All methods may throw exceptions due to <see cref="IVsPackageSourceProvider"/>
+    /// throwing in all sorts of bad nuget states (for example a bad nuget.config file)</remarks>
     internal interface IPackageServicesProxy
     {
         event EventHandler SourcesChanged;
@@ -23,6 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         bool IsPackageInstalled(Project project, string id);
 
         void InstallPackage(string source, Project project, string packageId, string version, bool ignoreDependencies);
+        void InstallLatestPackage(string source, Project project, string packageId, bool includePrerelease, bool ignoreDependencies);
 
         void UninstallPackage(Project project, string packageId, bool removeDependencies);
     }
@@ -38,5 +40,4 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             VersionString = versionString;
         }
     }
-
 }

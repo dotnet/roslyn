@@ -73,12 +73,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override async Task<Document> AddAsync(
-            IEnumerable<ISymbol> members,
             bool placeSystemNamespaceFirst,
             CodeGenerationOptions options,
             CancellationToken cancellationToken)
         {
-            var importsContainerToMissingNamespaces = await DetermineNamespaceToImportAsync(members, options, cancellationToken).ConfigureAwait(false);
+            var importsContainerToMissingNamespaces = await DetermineNamespaceToImportAsync(
+                options, cancellationToken).ConfigureAwait(false);
             if (importsContainerToMissingNamespaces.Count == 0)
             {
                 return this.Document;

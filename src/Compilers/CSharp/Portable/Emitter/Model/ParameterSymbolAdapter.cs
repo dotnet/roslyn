@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
@@ -29,11 +30,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        ushort Cci.IParameterTypeInformation.CountOfCustomModifiersPrecedingByRef
+        ImmutableArray<Cci.ICustomModifier> Cci.IParameterTypeInformation.RefCustomModifiers
         {
             get
             {
-                return this.CountOfCustomModifiersPrecedingByRef;
+                return this.RefCustomModifiers.As<Cci.ICustomModifier>();
             }
         }
 
@@ -55,13 +56,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Gets constant value to be stored in metadata Constant table.
         /// </summary>
-        Cci.IMetadataConstant Cci.IParameterDefinition.GetDefaultValue(EmitContext context)
+        MetadataConstant Cci.IParameterDefinition.GetDefaultValue(EmitContext context)
         {
             CheckDefinitionInvariant();
             return this.GetMetadataConstantValue(context);
         }
 
-        internal Cci.IMetadataConstant GetMetadataConstantValue(EmitContext context)
+        internal MetadataConstant GetMetadataConstantValue(EmitContext context)
         {
             if (!HasMetadataConstantValue)
             {

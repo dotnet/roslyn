@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.CompilerServices
 Imports System.Threading
@@ -298,7 +298,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Function
 
         Private Shared Function CreateItems(count As Integer) As IList(Of SignatureHelpItem)
-            Return Enumerable.Range(0, count).Select(Function(i) New SignatureHelpItem(isVariadic:=False, documentationFactory:=Nothing, prefixParts:={}, separatorParts:={}, suffixParts:={}, parameters:={}, descriptionParts:={})).ToList()
+            Return Enumerable.Range(0, count).Select(Function(i) New SignatureHelpItem(isVariadic:=False, documentationFactory:=Nothing, prefixParts:=New List(Of TaggedText), separatorParts:={}, suffixParts:={}, parameters:={}, descriptionParts:={})).ToList()
         End Function
 
         Friend Class MockSignatureHelpProvider

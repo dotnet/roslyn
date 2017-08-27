@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
@@ -94,6 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 const int targetSymbolCustomModifierCount = 0;
                 _eventType = DynamicTypeDecoder.TransformType(originalEventType, targetSymbolCustomModifierCount, handle, moduleSymbol);
+                _eventType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(_eventType, handle, moduleSymbol);
             }
 
             // IsWindowsRuntimeEvent checks the signatures, so we just have to check the accessors.
@@ -422,7 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var metadataDecoder = new MetadataDecoder(moduleSymbol, method);
             SignatureHeader signatureHeader;
             BadImageFormatException mrEx;
-            var methodParams = metadataDecoder.GetSignatureForMethod(method.Handle, out signatureHeader, out mrEx, allowByRefReturn: false, setParamHandles: false);
+            var methodParams = metadataDecoder.GetSignatureForMethod(method.Handle, out signatureHeader, out mrEx, setParamHandles: false);
 
             if (mrEx != null)
             {

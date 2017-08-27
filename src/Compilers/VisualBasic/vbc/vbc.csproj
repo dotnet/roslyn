@@ -1,44 +1,35 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-    <Import Project="..\..\..\..\build\Targets\GenerateCompilerExecutableBindingRedirects.targets" />
-  </ImportGroup>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
+  <Import Project="..\..\..\..\build\Targets\GenerateCompilerExecutableBindingRedirects.targets" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{E58EE9D7-1239-4961-A0C1-F9EC3952C4C1}</ProjectGuid>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Exe</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.VisualBasic.CommandLine</RootNamespace>
-    <AssemblyName>vbc</AssemblyName>
-    <Prefer32Bit>false</Prefer32Bit>
     <LargeAddressAware>true</LargeAddressAware>
     <StartupObject>Microsoft.CodeAnalysis.VisualBasic.CommandLine.Program</StartupObject>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Portable\BasicCodeAnalysis.vbproj">
-      <Project>{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}</Project>
-      <Name>BasicCodeAnalysis</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\Portable\BasicCodeAnalysis.vbproj" />
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="System" />
+    <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\Shared\BuildClient.cs">
+      <Link>BuildClient.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Shared\BuildServerConnection.cs">
+      <Link>BuildServerConnection.cs</Link>
+    </Compile>
     <Compile Include="..\..\Shared\DesktopBuildClient.cs">
       <Link>DesktopBuildClient.cs</Link>
     </Compile>
@@ -51,20 +42,16 @@
     <Compile Include="..\..\Shared\Vbc.cs">
       <Link>Vbc.cs</Link>
     </Compile>
-    <Compile Include="Program.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.CommandLine.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
     <None Include="App.config" />
     <None Include="vbc.rsp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <Import Project="..\..\Core\CommandLine\CommandLine.projitems" Label="Shared" />
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

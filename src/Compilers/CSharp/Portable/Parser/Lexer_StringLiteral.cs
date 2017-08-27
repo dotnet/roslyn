@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -579,7 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         case '"':
                         case '\'':
                             // handle string or character literal inside an expression hole.
-                            ScanInterpolatedStringLiteralNestedString(ch);
+                            ScanInterpolatedStringLiteralNestedString();
                             continue;
                         case '@':
                             if (lexer.TextWindow.PeekChar(1) == '"')
@@ -666,7 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            private void ScanInterpolatedStringLiteralNestedString(char quote)
+            private void ScanInterpolatedStringLiteralNestedString()
             {
                 var discarded = default(TokenInfo);
                 lexer.ScanStringLiteral(ref discarded, true);

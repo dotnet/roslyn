@@ -37,8 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private static void AddPropertyDeclarationSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
-            var basePropertyDeclaration = node as BasePropertyDeclarationSyntax;
-            if (basePropertyDeclaration != null && basePropertyDeclaration.AccessorList != null &&
+            if (node is BasePropertyDeclarationSyntax basePropertyDeclaration && basePropertyDeclaration.AccessorList != null &&
                 basePropertyDeclaration.AccessorList.Accessors.All(a => a.Body == null) &&
                 basePropertyDeclaration.GetAnnotatedTrivia(SyntaxAnnotation.ElasticAnnotation).Any())
             {
@@ -58,8 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
-            var anonymousCreationNode = node as AnonymousObjectCreationExpressionSyntax;
-            if (anonymousCreationNode != null)
+            if (node is AnonymousObjectCreationExpressionSyntax anonymousCreationNode)
             {
                 AddSuppressWrappingIfOnSingleLineOperation(list, anonymousCreationNode.NewKeyword, anonymousCreationNode.CloseBraceToken, SuppressOption.IgnoreElastic);
                 return;
@@ -68,22 +66,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private InitializerExpressionSyntax GetInitializerNode(SyntaxNode node)
         {
-            var objectCreationNode = node as ObjectCreationExpressionSyntax;
-            if (objectCreationNode != null)
+            switch (node)
             {
-                return objectCreationNode.Initializer;
-            }
-
-            var arrayCreationNode = node as ArrayCreationExpressionSyntax;
-            if (arrayCreationNode != null)
-            {
-                return arrayCreationNode.Initializer;
-            }
-
-            var implicitArrayNode = node as ImplicitArrayCreationExpressionSyntax;
-            if (implicitArrayNode != null)
-            {
-                return implicitArrayNode.Initializer;
+                case ObjectCreationExpressionSyntax objectCreationNode:
+                    return objectCreationNode.Initializer;
+                case ArrayCreationExpressionSyntax arrayCreationNode:
+                    return arrayCreationNode.Initializer;
+                case ImplicitArrayCreationExpressionSyntax implicitArrayNode:
+                    return implicitArrayNode.Initializer;
             }
 
             return null;
@@ -91,20 +81,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private SyntaxToken? GetLastTokenOfType(SyntaxNode node)
         {
-            var objectCreationNode = node as ObjectCreationExpressionSyntax;
-            if (objectCreationNode != null)
+            if (node is ObjectCreationExpressionSyntax objectCreationNode)
             {
                 return objectCreationNode.Type.GetLastToken();
             }
 
-            var arrayCreationNode = node as ArrayCreationExpressionSyntax;
-            if (arrayCreationNode != null)
+            if (node is ArrayCreationExpressionSyntax arrayCreationNode)
             {
                 return arrayCreationNode.Type.GetLastToken();
             }
 
-            var implicitArrayNode = node as ImplicitArrayCreationExpressionSyntax;
-            if (implicitArrayNode != null)
+            if (node is ImplicitArrayCreationExpressionSyntax implicitArrayNode)
             {
                 return implicitArrayNode.CloseBracketToken;
             }
@@ -207,9 +194,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
 
                 // Don't insert a blank line between properties, indexers or events with no accessors
-                if (previousMember is BasePropertyDeclarationSyntax)
+                if (previousMember is BasePropertyDeclarationSyntax previousProperty)
                 {
-                    var previousProperty = (BasePropertyDeclarationSyntax)previousMember;
                     var nextProperty = (BasePropertyDeclarationSyntax)nextMember;
 
                     if (previousProperty?.AccessorList?.Accessors.All(a => a.Body == null) == true &&
@@ -220,9 +206,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
 
                 // Don't insert a blank line between methods with no bodies
-                if (previousMember is BaseMethodDeclarationSyntax)
+                if (previousMember is BaseMethodDeclarationSyntax previousMethod)
                 {
-                    var previousMethod = (BaseMethodDeclarationSyntax)previousMember;
                     var nextMethod = (BaseMethodDeclarationSyntax)nextMember;
 
                     if (previousMethod.Body == null &&
@@ -297,11 +282,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                         || currentToken.Kind() == SyntaxKind.OpenBraceToken) ? 1 : 0;
 
                 case SyntaxKind.CloseBracketToken:
-                    if (previousToken.Parent is AttributeListSyntax)
+                    // Assembly and module-level attributes followed by non-attributes should have
+                    // a blank line after them.
+                    if (previousToken.Parent is AttributeListSyntax parent)
                     {
-                        // Assembly and module-level attributes followed by non-attributes should have
-                        // a blank line after them.
-                        var parent = (AttributeListSyntax)previousToken.Parent;
                         if (parent.Target != null &&
                             (parent.Target.Identifier.IsKindOrHasMatchingText(SyntaxKind.AssemblyKeyword) ||
                              parent.Target.Identifier.IsKindOrHasMatchingText(SyntaxKind.ModuleKeyword)))
@@ -359,11 +343,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return 1;
 
                 case SyntaxKind.OpenBracketToken:
-                    if (currentToken.Parent is AttributeListSyntax)
+                    // Assembly and module-level attributes preceded by non-attributes should have
+                    // a blank line separating them.
+                    if (currentToken.Parent is AttributeListSyntax parent)
                     {
-                        // Assembly and module-level attributes preceded by non-attributes should have
-                        // a blank line separating them.
-                        var parent = (AttributeListSyntax)currentToken.Parent;
                         if (parent.Target != null)
                         {
                             if (parent.Target.Identifier == SyntaxFactory.Token(SyntaxKind.AssemblyKeyword) ||

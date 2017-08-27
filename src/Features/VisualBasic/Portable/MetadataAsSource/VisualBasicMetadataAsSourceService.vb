@@ -1,5 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.DocumentationComments
@@ -63,10 +64,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
             Return _memberSeparationRule.Concat(Formatter.GetDefaultFormattingRules(document))
         End Function
 
-        Protected Overrides Iterator Function GetReducers() As IEnumerable(Of AbstractReducer)
-            Yield New VisualBasicNameReducer
-            Yield New VisualBasicEscapingReducer
-            Yield New VisualBasicParenthesesReducer
+        Protected Overrides Function GetReducers() As ImmutableArray(Of AbstractReducer)
+            Return ImmutableArray.Create(Of AbstractReducer)(
+                New VisualBasicNameReducer(),
+                New VisualBasicEscapingReducer(),
+                New VisualBasicParenthesesReducer())
         End Function
 
         Private Class FormattingRule
@@ -182,11 +184,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
             End Function
 
             Private Iterator Function ConvertDocCommentToRegularComment(structuredTrivia As DocumentationCommentTriviaSyntax) As IEnumerable(Of SyntaxTrivia)
-                Dim xmlFragment = DocumentationCommentUtilities.ExtractXMLFragment(structuredTrivia.ToFullString())
+                Dim xmlFragment = DocumentationCommentUtilities.ExtractXMLFragment(structuredTrivia.ToFullString(), "'''")
 
                 Dim docComment = DocumentationComment.FromXmlFragment(xmlFragment)
 
-                Dim commentLines = AbstractMetadataAsSourceService.DocCommentFormatter.Format(Me._formattingService, docComment)
+                Dim commentLines = DocCommentFormatter.Format(Me._formattingService, docComment)
 
                 For Each line In commentLines
                     If Not String.IsNullOrWhiteSpace(line) Then

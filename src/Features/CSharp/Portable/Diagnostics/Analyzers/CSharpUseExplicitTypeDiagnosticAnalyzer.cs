@@ -16,16 +16,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
     internal sealed class CSharpUseExplicitTypeDiagnosticAnalyzer : CSharpTypeStyleDiagnosticAnalyzerBase
     {
         private static readonly LocalizableString s_Title =
-            new LocalizableResourceString(nameof(CSharpFeaturesResources.UseExplicitTypeDiagnosticTitle), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
+            new LocalizableResourceString(nameof(CSharpFeaturesResources.Use_explicit_type), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
 
         private static readonly LocalizableString s_Message =
-            new LocalizableResourceString(nameof(CSharpFeaturesResources.UseExplicitType), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
+            new LocalizableResourceString(nameof(CSharpFeaturesResources.Use_explicit_type_instead_of_var), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
 
         public CSharpUseExplicitTypeDiagnosticAnalyzer()
             : base(diagnosticId: IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
                    title: s_Title,
                    message: s_Message)
         {
+        }
+
+        protected override bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            if (!variableDeclaration.Type.IsVar)
+            {
+                // If the type is not 'var', this analyze has no work to do
+                return false;
+            }
+
+            // The base analyzer may impose further limitations
+            return base.ShouldAnalyzeVariableDeclaration(variableDeclaration, semanticModel, cancellationToken);
+        }
+
+        protected override bool ShouldAnalyzeForEachStatement(ForEachStatementSyntax forEachStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            if (!forEachStatement.Type.IsVar)
+            {
+                // If the type is not 'var', this analyze has no work to do
+                return false;
+            }
+
+            // The base analyzer may impose further limitations
+            return base.ShouldAnalyzeForEachStatement(forEachStatement, semanticModel, cancellationToken);
         }
 
         protected override bool IsStylePreferred(SemanticModel semanticModel, OptionSet optionSet, State state, CancellationToken cancellationToken)
@@ -55,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
         protected override bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken, out TextSpan issueSpan)
         {
-            issueSpan = default(TextSpan);
+            issueSpan = default;
 
             // If it is currently not var, explicit typing exists, return. 
             // this also takes care of cases where var is mapped to a named type via an alias or a class declaration.
@@ -69,7 +93,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             {
                 // check assignment for variable declarations.
                 var variable = ((VariableDeclarationSyntax)typeName.Parent).Variables.First();
-                if (!AssignmentSupportsStylePreference(variable.Identifier, typeName, variable.Initializer, semanticModel, optionSet, cancellationToken))
+                if (!AssignmentSupportsStylePreference(
+                        variable.Identifier, typeName, variable.Initializer.Value,
+                        semanticModel, optionSet, cancellationToken))
+                {
+                    return false;
+                }
+            }
+            else if (typeName.Parent.IsKind(SyntaxKind.ForEachStatement))
+            {
+                var foreachStatement = (ForEachStatementSyntax)typeName.Parent;
+                if (!AssignmentSupportsStylePreference(
+                        foreachStatement.Identifier, typeName, foreachStatement.Expression, 
+                        semanticModel, optionSet, cancellationToken))
                 {
                     return false;
                 }
@@ -86,7 +122,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
         /// false, if explicit typing cannot be used.
         /// true, otherwise.
         /// </returns>
-        protected override bool AssignmentSupportsStylePreference(SyntaxToken identifier, TypeSyntax typeName, EqualsValueClauseSyntax initializer, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
+        protected override bool AssignmentSupportsStylePreference(
+            SyntaxToken identifier,
+            TypeSyntax typeName,
+            ExpressionSyntax initializer,
+            SemanticModel semanticModel,
+            OptionSet optionSet,
+            CancellationToken cancellationToken)
         {
             // is or contains an anonymous type
             // cases :
@@ -99,8 +141,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             }
 
             // cannot find type if initializer resolves to an ErrorTypeSymbol
-            var initializerTypeInfo = semanticModel.GetTypeInfo(initializer.Value, cancellationToken);
+            var initializerTypeInfo = semanticModel.GetTypeInfo(initializer, cancellationToken);
             return !initializerTypeInfo.Type.IsErrorType();
+        }
+
+        protected override bool ShouldAnalyzeDeclarationExpression(DeclarationExpressionSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            if (!declaration.Type.IsVar)
+            {
+                // If the type is not 'var', this analyze has no work to do
+                return false;
+            }
+
+            // The base analyzer may impose further limitations
+            return base.ShouldAnalyzeDeclarationExpression(declaration, semanticModel, cancellationToken);
         }
     }
 }

@@ -110,20 +110,20 @@ namespace CSharpSyntaxGenerator
             return IsOverride(field) ? "override " : IsNew(field) ? "new " : "";
         }
 
-        protected static string AccessibilityModifier(Field field)
-        {
-            return IsInternal(field) ? "internal" : "public";
-        }
-
         protected static bool CanBeField(Field field)
         {
             return field.Type != "SyntaxToken" && !IsAnyList(field.Type) && !IsOverride(field) && !IsNew(field);
         }
 
-        protected static string GetFieldType(Field field)
+        protected static string GetFieldType(Field field, bool green)
         {
             if (IsAnyList(field.Type))
-                return "CSharpSyntaxNode";
+            {
+                return green
+                    ? "GreenNode"
+                    : "SyntaxNode";
+            }
+
             return field.Type;
         }
 
@@ -175,8 +175,7 @@ namespace CSharpSyntaxGenerator
         {
             if (typeName == derivedTypeName)
                 return true;
-            string baseType;
-            if (derivedTypeName != null && _parentMap.TryGetValue(derivedTypeName, out baseType))
+            if (derivedTypeName != null && _parentMap.TryGetValue(derivedTypeName, out var baseType))
             {
                 return IsDerivedType(typeName, baseType);
             }
@@ -195,8 +194,7 @@ namespace CSharpSyntaxGenerator
 
         protected Node GetNode(string typeName)
         {
-            Node node;
-            return _nodeMap.TryGetValue(typeName, out node) ? node : null;
+            return _nodeMap.TryGetValue(typeName, out var node) ? node : null;
         }
 
         protected static bool IsOptional(Field f)
@@ -207,11 +205,6 @@ namespace CSharpSyntaxGenerator
         protected static bool IsOverride(Field f)
         {
             return f.Override != null && string.Compare(f.Override, "true", true) == 0;
-        }
-
-        protected static bool IsInternal(Field f)
-        {
-            return f.Internal != null && string.Compare(f.Internal, "true", true) == 0;
         }
 
         protected static bool IsNew(Field f)

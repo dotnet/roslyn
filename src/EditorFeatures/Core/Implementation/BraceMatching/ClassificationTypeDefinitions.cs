@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
         {
             private BraceMatchingFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_BraceMatching;
+                this.DisplayName = EditorFeaturesResources.Brace_Matching;
                 this.BackgroundColor = Color.FromRgb(0xDB, 0xE0, 0xCC);
             }
         }

@@ -2,8 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -143,6 +142,24 @@ namespace Microsoft.CodeAnalysis
         public static ImmutableArray<T> ToImmutableOrEmptyAndFree<T>(this ArrayBuilder<T> builderOpt)
         {
             return builderOpt?.ToImmutableAndFree() ?? ImmutableArray<T>.Empty;
+        }
+
+        public static void AddIfNotNull<T> (this ArrayBuilder<T> builder, T? value)
+            where T : struct
+        {
+            if (value != null)
+            {
+                builder.Add(value.Value);
+            }
+        }
+
+        public static void AddIfNotNull<T>(this ArrayBuilder<T> builder, T value)
+            where T : class
+        {
+            if (value != null)
+            {
+                builder.Add(value);
+            }
         }
     }
 }

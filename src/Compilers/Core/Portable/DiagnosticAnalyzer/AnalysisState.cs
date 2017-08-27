@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver;
 
@@ -51,27 +52,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly HashSet<SyntaxTree> _treesWithGeneratedSourceEvents;
         private readonly HashSet<ISymbol> _partialSymbolsWithGeneratedSourceEvents;
         private readonly CompilationData _compilationData;
+        private readonly CompilationOptions _compilationOptions;
         private bool _compilationStartGenerated;
         private bool _compilationEndGenerated;
-
-        /// <summary>
-        /// Cached semantic model for the compilation trees.
-        /// PERF: This cache enables us to re-use semantic model's bound node cache across analyzer execution and diagnostic queries.
-        /// </summary>
-        private readonly ConditionalWeakTable<SyntaxTree, SemanticModel> _semanticModelsMap;
 
         private readonly ObjectPool<HashSet<CompilationEvent>> _compilationEventsPool;
         private readonly HashSet<CompilationEvent> _pooledEventsWithAnyActionsSet;
 
-        public AnalysisState(ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationData compilationData)
+        public AnalysisState(ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationData compilationData, CompilationOptions compilationOptions)
         {
             _gate = new object();
             _analyzerStateMap = CreateAnalyzerStateMap(analyzers, out _analyzerStates);
             _compilationData = compilationData;
+            _compilationOptions = compilationOptions;
             _pendingSourceEvents = new Dictionary<SyntaxTree, HashSet<CompilationEvent>>();
             _pendingNonSourceEvents = new HashSet<CompilationEvent>();
             _lazyAnalyzerActionCountsMap = null;
-            _semanticModelsMap = new ConditionalWeakTable<SyntaxTree, SemanticModel>();
             _treesWithGeneratedSourceEvents = new HashSet<SyntaxTree>();
             _partialSymbolsWithGeneratedSourceEvents = new HashSet<ISymbol>();
             _compilationStartGenerated = false;
@@ -400,9 +396,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (_lazyAnalyzerActionCountsMap == null)
             {
                 var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, AnalyzerActionCounts>();
-                foreach (var analyzer in _analyzerStateMap.Keys)
+                foreach (var (analyzer, _) in _analyzerStateMap)
                 {
-                    var actionCounts = await driver.GetAnalyzerActionCountsAsync(analyzer, cancellationToken).ConfigureAwait(false);
+                    var actionCounts = await driver.GetAnalyzerActionCountsAsync(analyzer, _compilationOptions, cancellationToken).ConfigureAwait(false);
                     builder.Add(analyzer, actionCounts);
                 }
 
@@ -695,6 +691,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
+        /// Checks if the given event has been fully analyzed for the given analyzer.
+        /// </summary>
+        public bool IsEventComplete(CompilationEvent compilationEvent, DiagnosticAnalyzer analyzer)
+        {
+            return GetAnalyzerState(analyzer).IsEventAnalyzed(compilationEvent);
+        }
+
+        /// <summary>
         /// Attempts to start processing a symbol for the given analyzer's symbol actions.
         /// </summary>
         /// <returns>
@@ -727,11 +731,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// True if the given symbol declaration is fully analyzed.
+        /// True if the given symbol declaration is fully analyzed for all the analyzers.
         /// </summary>
         public bool IsDeclarationComplete(ISymbol symbol, int declarationIndex)
         {
-            foreach (var analyzerState in _analyzerStates)
+            return IsDeclarationComplete(symbol, declarationIndex, _analyzerStates);
+        }
+
+        /// <summary>
+        /// True if the given symbol declaration is fully analyzed for the given analyzer.
+        /// </summary>
+        public bool IsDeclarationComplete(ISymbol symbol, int declarationIndex, DiagnosticAnalyzer analyzer)
+        {
+            var analyzerState = GetAnalyzerState(analyzer);
+            return IsDeclarationComplete(symbol, declarationIndex, SpecializedCollections.SingletonEnumerable(analyzerState));
+        }
+
+        private static bool IsDeclarationComplete(ISymbol symbol, int declarationIndex, IEnumerable<PerAnalyzerState> analyzerStates)
+        {
+            foreach (var analyzerState in analyzerStates)
             {
                 if (!analyzerState.IsDeclarationComplete(symbol, declarationIndex))
                 {

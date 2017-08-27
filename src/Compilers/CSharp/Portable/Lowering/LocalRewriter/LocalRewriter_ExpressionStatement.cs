@@ -11,18 +11,28 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitExpressionStatement(BoundExpressionStatement node)
         {
-            var syntax = node.Syntax;
+            // NOTE: not using a BoundNoOpStatement, since we don't want a nop to be emitted.
+            // CONSIDER: could use a BoundNoOpStatement (DevDiv #12943).
+            return RewriteExpressionStatement(node) ?? BoundStatementList.Synthesized(node.Syntax);
+        }
+
+        private BoundStatement RewriteExpressionStatement(BoundExpressionStatement node, bool suppressInstrumentation = false)
+        {
             var loweredExpression = VisitUnusedExpression(node.Expression);
 
             if (loweredExpression == null)
             {
-                // NOTE: not using a BoundNoOpStatement, since we don't want a nop to be emitted.
-                // CONSIDER: could use a BoundNoOpStatement (DevDiv #12943).
-                return BoundStatementList.Synthesized(syntax);
+                return null;
             }
             else
             {
-                return AddSequencePoint(node.Update(loweredExpression));
+                BoundStatement result = node.Update(loweredExpression);
+                if (!suppressInstrumentation && this.Instrument && !node.WasCompilerGenerated)
+                {
+                    result = _instrumenter.InstrumentExpressionStatement(node, result);
+                }
+
+                return result;
             }
         }
 

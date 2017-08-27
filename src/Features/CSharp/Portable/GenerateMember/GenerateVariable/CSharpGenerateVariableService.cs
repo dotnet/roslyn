@@ -1,19 +1,17 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateVariable;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -24,19 +22,13 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
         AbstractGenerateVariableService<CSharpGenerateVariableService, SimpleNameSyntax, ExpressionSyntax>
     {
         protected override bool IsExplicitInterfaceGeneration(SyntaxNode node)
-        {
-            return node is PropertyDeclarationSyntax;
-        }
+            => node is PropertyDeclarationSyntax;
 
         protected override bool IsIdentifierNameGeneration(SyntaxNode node)
-        {
-            return node is IdentifierNameSyntax;
-        }
+            => node is IdentifierNameSyntax identifier && !identifier.Identifier.CouldBeKeyword();
 
         protected override bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType)
-        {
-            return containingType.ContainingTypesOrSelfHasUnsafeKeyword();
-        }
+            => containingType.ContainingTypesOrSelfHasUnsafeKeyword();
 
         protected override bool TryInitializeExplicitInterfaceState(
             SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken,
@@ -57,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
                 }
             }
 
-            identifierToken = default(SyntaxToken);
+            identifierToken = default;
             propertySymbol = null;
             typeToGenerateIn = null;
             return false;
@@ -69,7 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
         {
             identifierToken = identifierName.Identifier;
             if (identifierToken.ValueText != string.Empty &&
-                !identifierName.IsVar)
+                !identifierName.IsVar &&
+                !IsProbablyGeneric(identifierName, cancellationToken))
             {
                 var memberAccess = identifierName.Parent as MemberAccessExpressionSyntax;
                 var conditionalMemberAccess = identifierName.Parent.Parent as ConditionalAccessExpressionSyntax;
@@ -102,11 +95,38 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
                 return true;
             }
 
-            identifierToken = default(SyntaxToken);
+            identifierToken = default;
             simpleNameOrMemberAccessExpression = null;
             isInExecutableBlock = false;
             isConditionalAccessExpression = false;
             return false;
+        }
+
+        private bool IsProbablyGeneric(SimpleNameSyntax identifierName, CancellationToken cancellationToken)
+        {
+            if (identifierName.IsKind(SyntaxKind.GenericName))
+            {
+                return true;
+            }
+
+            // We might have something of the form:   Goo < Bar.
+            // In this case, we would want to generate offer a member called 'Goo'.  however, if we have
+            // something like "Goo < string >" then that's clearly something generic and we don't want
+            // to offer to generate a member there.
+            var localRoot = identifierName.GetAncestor<StatementSyntax>() ?? 
+                            identifierName.GetAncestor<MemberDeclarationSyntax>() ??
+                            identifierName.SyntaxTree.GetRoot(cancellationToken);
+
+            // In order to figure this out (without writing our own parser), we just try to parse out a
+            // type name here.  If we get a generic name back, without any errors, then we'll assume the
+            // user realy is typing a generic name, and thus should not get recommendations to create a
+            // variable.
+            var localText = localRoot.ToString();
+            var startIndex = identifierName.Span.Start - localRoot.Span.Start;
+
+            var parsedType = SyntaxFactory.ParseTypeName(localText, startIndex, consumeFullText: false);
+
+            return parsedType.IsKind(SyntaxKind.GenericName) && !parsedType.ContainsDiagnostics;
         }
 
         private bool IsLegal(

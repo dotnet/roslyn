@@ -126,7 +126,7 @@ End Class"
             runtime = New DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(GetAssembly(source)), getMemberValue:=getMemberValue)
             Using runtime.Load()
                 Dim type = runtime.GetType("C")
-                Dim value = CreateDkmClrValue(type.Instantiate(), type:=type)
+                Dim value = type.Instantiate()
                 Dim result = FormatResult("o", value)
                 Verify(result,
                        EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable))

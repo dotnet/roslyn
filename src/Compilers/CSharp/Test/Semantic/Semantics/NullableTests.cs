@@ -30,7 +30,7 @@ class C {
   }
 }";
 
-            var comp = CreateCompilationWithMscorlib(src);
+            var comp = CreateStandardCompilation(src);
             comp.VerifyDiagnostics(
                 // (5,16): error CS0453: The type 'int?' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'System.Nullable<T>'
                 //       Nullable<Nullable<int>> x = null;
@@ -54,7 +54,7 @@ class C
     Console.WriteLine(s1.ToString() + s2.ToString());
   }
 }";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
 // (7,5): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'System.Nullable<T>'
 //     string? s1 = null;
@@ -99,7 +99,7 @@ class C
     System.Console.WriteLine(object.ReferenceEquals(c, null));
   }
 }";
-            var comp = CreateCompilationWithMscorlib(source1);
+            var comp = CreateStandardCompilation(source1);
             comp.VerifyDiagnostics(
                 // (11,5): error CS0266: Cannot implicitly convert type 'int?' to 'C'. An explicit conversion exists (are you missing a cast?)
                 //     c++;
@@ -1739,13 +1739,13 @@ class Test
             string source = @"
 public class Parent
 {
-    public int Foo(int? d = 0) { return (int)d; }
+    public int Goo(int? d = 0) { return (int)d; }
 }
 ";
             string source2 = @"
 public class Parent
 {
-    public int Foo(int? d = 0) { return (int)d; }
+    public int Goo(int? d = 0) { return (int)d; }
 }
 
 public class Test
@@ -1753,17 +1753,17 @@ public class Test
     public static void Main()
     {
         Parent p = new Parent();
-        System.Console.Write(p.Foo(0));
+        System.Console.Write(p.Goo(0));
     }
 }
 ";
 
-            var complib = CreateCompilationWithMscorlib(
+            var complib = CreateStandardCompilation(
                 source,
                 options: TestOptions.ReleaseDll,
                 assemblyName: "TestDLL");
 
-            var comp = CreateCompilationWithMscorlib(
+            var comp = CreateStandardCompilation(
                 source2,
                 references: new MetadataReference[] { complib.EmitToImageReference() },
                 options: TestOptions.ReleaseExe,
@@ -1797,7 +1797,7 @@ public class Test
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(544909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544909")]
@@ -1851,7 +1851,7 @@ class A
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
 // (7,18): error CS0019: Operator '&&' cannot be applied to operands of type 'bool?' and 'bool?'
 //         var bb = b1 && b2;
 Diagnostic(ErrorCode.ERR_BadBinaryOps, "b1 && b2").WithArguments("&&", "bool?", "bool?"),
@@ -2060,7 +2060,7 @@ class Test
             // Dev11: error CS0118: 'int?' is a 'type' but is used like a 'variable'
             // Roslyn: (9,18): error CS0119: 'int?' is a type, which is not valid in the given context
             // Roslyn: (9,33): error CS0571: 'int?.implicit operator int?(int)': cannot explicitly call operator or accessor
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ".").WithArguments("."),
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "Nullable<int>").WithArguments("int?", "type"),
                 Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "op_Implicit").WithArguments("int?.implicit operator int?(int)")

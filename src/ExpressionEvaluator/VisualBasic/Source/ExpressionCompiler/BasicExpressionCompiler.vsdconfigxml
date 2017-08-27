@@ -24,6 +24,7 @@
           CallOnlyWhenLoaded="true">
           <NoFilter/>
           <Interface Name="IDkmModuleModifiedNotification"/>
+          <Interface Name="IDkmModuleInstanceUnloadNotification"/>
         </InterfaceGroup>
       </Implements>
     </Class>
@@ -33,6 +34,7 @@
           <Filter>
             <LanguageId RequiredValue="DkmLanguageId.VB"/>
             <RuntimeId RequiredValue="DkmRuntimeId.Clr"/>
+            <RuntimeId RequiredValue="DkmRuntimeId.ClrNativeCompilation"/>
           </Filter>
           <Interface Name="IDkmLanguageFrameDecoder"/>
         </InterfaceGroup>
@@ -44,6 +46,7 @@
           <Filter>
             <LanguageId RequiredValue="DkmLanguageId.VB"/>
             <RuntimeId RequiredValue="DkmRuntimeId.Clr"/>
+            <RuntimeId RequiredValue="DkmRuntimeId.ClrNativeCompilation"/>
           </Filter>
           <Interface Name="IDkmLanguageInstructionDecoder"/>
         </InterfaceGroup>

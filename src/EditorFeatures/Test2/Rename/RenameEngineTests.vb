@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 Imports Microsoft.CodeAnalysis.Options
@@ -20,8 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         End Sub
 
         <WorkItem(543661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543661")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CannotRenameNamespaceAlias()
             Using result = RenameEngineResult.Create(_outputHelper,
                    <Workspace>
@@ -38,6 +37,267 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                             </Document>
                        </Project>
                    </Workspace>, renameTo:="Sys2")
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInaccessibleMember1()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class C
+{
+    void Main()
+    {
+        D.[|field|] = 8;
+    }
+}
+ 
+class D
+{
+    private static int [|$$field|];
+}                             </Document>
+                       </Project>
+                   </Workspace>, renameTo:="_field")
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInaccessibleMember2()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class C
+{
+    void Main()
+    {
+        D.[|$$field|] = 8;
+    }
+}
+ 
+class D
+{
+    private static int [|field|];
+}                             </Document>
+                       </Project>
+                   </Workspace>, renameTo:="_field")
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameNonAttribute1()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+[[|NotAnAttribute|]]
+class C
+{
+}
+ 
+class [|$$NotAnAttribute|]
+{
+}                             </Document>
+                       </Project>
+                   </Workspace>, renameTo:="X")
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameNonAttribute2()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+[[|$$NotAnAttribute|]]
+class C
+{
+}
+ 
+class [|NotAnAttribute|]
+{
+}                             </Document>
+                       </Project>
+                   </Workspace>, renameTo:="X")
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameWrongArity1()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class [|$$List|]&lt;T&gt;
+{
+}
+ 
+class C
+{
+    [|List|]&lt;int,string&gt; list;
+}                             </Document>
+                       </Project>
+                   </Workspace>, renameTo:="X")
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameWrongArity2()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class [|List|]&lt;T&gt;
+{
+}
+ 
+class C
+{
+    [|$$List|]&lt;int,string&gt; list;
+}                             </Document>
+                       </Project>
+                   </Workspace>, renameTo:="X")
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameNotCreatable1()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+abstract class [|A|]
+{
+}
+ 
+class C
+{
+    void M()
+    {
+        var v = new [|$$A|]();
+    }
+}                             </Document>
+                       </Project>
+                   </Workspace>, renameTo:="X")
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameNotCreatable2()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+abstract class [|$$A|]
+{
+}
+ 
+class C
+{
+    void M()
+    {
+        var v = new [|A|]();
+    }
+}                             </Document>
+                       </Project>
+                   </Workspace>, renameTo:="X")
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInvocable1()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class C
+{
+    void M()
+    {
+        var [|$$v|] = "";
+        {|unresolved:v|}();
+    }
+}                             </Document>
+                       </Project>
+
+                   </Workspace>, renameTo:="X")
+
+                result.AssertLabeledSpansAre("unresolved", type:=RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameInvocable2()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class C
+{
+    void M()
+    {
+        var [|v|] = "";
+        {|unresolved:$$v|}();
+    }
+}                             </Document>
+                       </Project>
+                   </Workspace>, renameTo:="X")
+
+                result.AssertLabeledSpansAre("unresolved", type:=RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameStaticInstance1()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class C
+{
+    static void M()
+    {
+        var v = [|$$N|];
+    }
+
+    int [|N|];
+}                             </Document>
+                       </Project>
+                   </Workspace>, renameTo:="X")
+            End Using
+        End Sub
+
+        <WorkItem(4904, "https://github.com/dotnet/roslyn/issues/4904")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameStaticInstance2()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class C
+{
+    static void M()
+    {
+        var v = [|N|];
+    }
+
+    int [|$$N|];
+}                             </Document>
+                       </Project>
+                   </Workspace>, renameTo:="X")
             End Using
         End Sub
 
@@ -97,14 +357,14 @@ class C2
                             <Document>
 class C
 {
-    public delegate void Foo(int x);
-    public void FooMeth(int x)
+    public delegate void Goo(int x);
+    public void GooMeth(int x)
     {
  
     }
     public void Sub()
     {
-        Foo {|DeclConflict:x|} = new Foo(FooMeth);
+        Goo {|DeclConflict:x|} = new Goo(GooMeth);
         int [|$$z|] = 1; // Rename z to x
         x({|unresolve2:z|});
     }
@@ -166,7 +426,7 @@ class {|unresolve3:$$D|} // Rename to C
                         <Document FilePath="Test2.cs">
                             public class B
                             {
-                                void foo()
+                                void goo()
                                 {
                                     [|ClassA|].Bar();
                                 }
@@ -203,7 +463,7 @@ class {|unresolve3:$$D|} // Rename to C
                         <Document FilePath="Test2.cs">
                             public class B
                             {
-                                void foo()
+                                void goo()
                                 {
                                     [|ClassA|].Bar();
                                 }
@@ -245,7 +505,7 @@ class {|unresolve3:$$D|} // Rename to C
 
                             public class B
                             {
-                                void foo()
+                                void goo()
                                 {
                                     {|resolve2:ClassA|}.Bar();
                                 }
@@ -323,19 +583,19 @@ class {|unresolve3:$$D|} // Rename to C
 
                                         class Program
                                         {
-                                            public void [|$$foo|]()
+                                            public void [|$$goo|]()
                                             {
-                                                [|foo|]();
+                                                [|goo|]();
                                             }
 
-                                            public void [|foo|]&lt;T&gt;()
+                                            public void [|goo|]&lt;T&gt;()
                                             {
-                                                [|foo|]&lt;T&gt;();
+                                                [|goo|]&lt;T&gt;();
                                             }
 
-                                            public void [|foo|](int i)
+                                            public void [|goo|](int i)
                                             {
-                                                [|foo|](i);
+                                                [|goo|](i);
                                             }
                                         }
                                     </Document>
@@ -363,20 +623,20 @@ class {|unresolve3:$$D|} // Rename to C
 
                                             End Sub
 
-                                            Public Sub [|$$foo|]()
-                                                [|foo|]()
+                                            Public Sub [|$$goo|]()
+                                                [|goo|]()
                                             End Sub
 
-                                            Public Sub [|foo|](Of T)()
-                                                [|foo|](Of T)()
+                                            Public Sub [|goo|](Of T)()
+                                                [|goo|](Of T)()
                                             End Sub
 
-                                            Public Sub [|foo|](s As String)
-                                                [|foo|](s)
+                                            Public Sub [|goo|](s As String)
+                                                [|goo|](s)
                                             End Sub
 
-                                            Public Shared Sub [|foo|](d As Double)
-                                                [|foo|](d)
+                                            Public Shared Sub [|goo|](d As Double)
+                                                [|goo|](d)
                                             End Sub
                                         End Class
                                     </Document>
@@ -453,11 +713,11 @@ class {|unresolve3:$$D|} // Rename to C
                     <Project Language="C#" CommonReferences="true">
                         <Document>
 
-                            class [|$$Foo|]
+                            class [|$$Goo|]
                             {
                                 void Blah()
                                 {
-                                    {|stmt1:Foo|} f = new {|stmt1:Foo|}();
+                                    {|stmt1:Goo|} f = new {|stmt1:Goo|}();
                                 }
                             }
 
@@ -470,18 +730,17 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameTypeAcrossFiles()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#">
                         <Document>
-                            class [|$$Foo|]
+                            class [|$$Goo|]
                             {
                                 void Blah()
                                 {
-                                    {|stmt1:Foo|} f = new {|stmt1:Foo|}();
+                                    {|stmt1:Goo|} f = new {|stmt1:Goo|}();
                                 }
                             }
                         </Document>
@@ -490,7 +749,7 @@ class {|unresolve3:$$D|} // Rename to C
                             {
                                 void Blah()
                                 {
-                                    {|stmt2:Foo|} f = new {|stmt2:Foo|}();
+                                    {|stmt2:Goo|} f = new {|stmt2:Goo|}();
                                 }
                             }
                         </Document>
@@ -503,8 +762,7 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameTypeAcrossProjectsAndLanguages()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -512,11 +770,11 @@ class {|unresolve3:$$D|} // Rename to C
                         <Document>
                             namespace N
                             {
-                                 public class [|$$Foo|]
+                                 public class [|$$Goo|]
                                  {
                                      void Blah()
                                      {
-                                         {|csstmt1:Foo|} f = new {|csstmt1:Foo|}();
+                                         {|csstmt1:Goo|} f = new {|csstmt1:Goo|}();
                                      }
                                  }
                             }
@@ -528,7 +786,7 @@ class {|unresolve3:$$D|} // Rename to C
                             Imports N
                             Class FogBar
                                 Sub Blah()
-                                   Dim f = new {|vbstmt1:Foo|}()
+                                   Dim f = new {|vbstmt1:Goo|}()
                                 End Sub
                             End Class
                          </Document>
@@ -541,22 +799,21 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCSharpTypeFromConstructorDefinition()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                            class [|Foo|]
+                            class [|Goo|]
                             {
-                                [|$$Foo|]()
+                                [|$$Goo|]()
                                 {
                                 }
                             
                                 void Blah()
                                 {
-                                    {|stmt1:Foo|} f = new {|stmt1:Foo|}();
+                                    {|stmt1:Goo|} f = new {|stmt1:Goo|}();
                                 }
                             }
                         </Document>
@@ -567,22 +824,21 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCSharpTypeFromConstructorUse()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                            class [|Foo|]
+                            class [|Goo|]
                             {
-                                [|Foo|]()
+                                [|Goo|]()
                                 {
                                 }
                             
                                 void Blah()
                                 {
-                                    {|stmt1:Foo|} f = new {|stmt1:$$Foo|}();
+                                    {|stmt1:Goo|} f = new {|stmt1:$$Goo|}();
                                 }
                             }
                         </Document>
@@ -593,16 +849,15 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCSharpTypeFromDestructor()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                            class [|Foo|]
+                            class [|Goo|]
                             {
-                                ~[|$$Foo|]()
+                                ~[|$$Goo|]()
                                 {
                                 }
                             }
@@ -613,18 +868,17 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCSharpTypeFromSynthesizedConstructorUse()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                               class [|Foo|]
+                               class [|Goo|]
                                {
                                    void Blah()
                                    {
-                                       {|stmt1:Foo|} f = new {|stmt1:$$Foo|}();
+                                       {|stmt1:Goo|} f = new {|stmt1:$$Goo|}();
                                    }
                                }
                            </Document>
@@ -635,8 +889,7 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCSharpPredefinedTypeVariables1()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -648,7 +901,7 @@ class {|unresolve3:$$D|} // Rename to C
                                     {
                                         static void Main(string[] args)
                                         {
-                                            System.Int32 {|stmt1:$$foofoo|} = 23;
+                                            System.Int32 {|stmt1:$$goofoo|} = 23;
                                         }
                                     }
                                 </Document>
@@ -659,8 +912,7 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCSharpPredefinedTypeVariables2()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -672,7 +924,7 @@ class {|unresolve3:$$D|} // Rename to C
                                     {
                                         static void Main(string[] args)
                                         {
-                                            Int32 {|stmt1:$$foofoo|} = 23;
+                                            Int32 {|stmt1:$$goofoo|} = 23;
                                         }
                                     }
                                 </Document>
@@ -683,8 +935,7 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCSharpPredefinedTypeVariables3()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -707,8 +958,7 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameVisualBasicPredefinedTypeVariables1()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -727,8 +977,7 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameVisualBasicPredefinedTypeVariables2()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -747,8 +996,7 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameVisualBasicPredefinedTypeVariables3()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -806,19 +1054,18 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameVisualBasicTypeFromConstructorUse()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-                            Class [|Foo|]
+                            Class [|Goo|]
                                 Public Sub New()
                                 End Sub
 
                                 Public Sub Blah()
-                                    Dim x = New {|stmt1:$$Foo|}()
+                                    Dim x = New {|stmt1:$$Goo|}()
                                 End Sub
                             End Class
                         </Document>
@@ -830,16 +1077,15 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameVisualBasicTypeFromSynthesizedConstructorUse()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-                           Class [|Foo|]
+                           Class [|Goo|]
                                Public Sub Blah()
-                                   Dim x = New {|stmt1:$$Foo|}()
+                                   Dim x = New {|stmt1:$$Goo|}()
                                End Sub
                            End Class
                         </Document>
@@ -850,18 +1096,17 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameNamespace()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-                            Namespace [|$$FooNamespace|]
+                            Namespace [|$$GooNamespace|]
                             End Namespace
                         </Document>
                         <Document>
-                            namespace [|FooNamespace|] { }
+                            namespace [|GooNamespace|] { }
                         </Document>
                     </Project>
                 </Workspace>, renameTo:="BarBazNamespace")
@@ -870,8 +1115,7 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(6874, "http://vstfdevdiv:8080/DevDiv_Projects/Roslyn/_workitems/edit/6874")>
+        <Fact, WorkItem(6874, "http://vstfdevdiv:8080/DevDiv_Projects/Roslyn/_workitems/edit/6874")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameVisualBasicEnum()
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -890,8 +1134,7 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(6874, "http://vstfdevdiv:8080/DevDiv_Projects/Roslyn/_workitems/edit/6874")>
+        <Fact, WorkItem(6874, "http://vstfdevdiv:8080/DevDiv_Projects/Roslyn/_workitems/edit/6874")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameVisualBasicEnumMember()
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -910,15 +1153,14 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(539525, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539525")>
+        <Fact, WorkItem(539525, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539525")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub DoNothingRename()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                           class Foo
+                           class Goo
                            {
                                void [|$$Blah|]()
                                {
@@ -932,8 +1174,7 @@ class {|unresolve3:$$D|} // Rename to C
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(553631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553631")>
+        <Fact, WorkItem(553631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553631")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CSharpBugfix553631()
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -944,12 +1185,12 @@ class Program
 {
     void Main(string[] args)
     {
-        string {|stmt1:$$s|} = Foo&lt;string, string&gt;();
+        string {|stmt1:$$s|} = Goo&lt;string, string&gt;();
     }
  
-    string Foo&lt;T, S&gt;()
+    string Goo&lt;T, S&gt;()
     {
-        Return Foo &lt;T, S&gt;();
+        Return Goo &lt;T, S&gt;();
     }
 }
                         </Document>
@@ -960,8 +1201,7 @@ class Program
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(553631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553631")>
+        <Fact, WorkItem(553631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553631")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VisualBasicBugfix553631()
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -978,10 +1218,10 @@ Class Program
     End Sub
 
     Public Sub Bar()
-        Dim {|stmt1:$$e|} As String = Foo(Of String)()
+        Dim {|stmt1:$$e|} As String = Goo(Of String)()
     End Sub
 
-    Public Function Foo(Of A)() As String
+    Public Function Goo(Of A)() As String
     End Function
 End Class
                         </Document>
@@ -992,8 +1232,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(541697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541697")>
+        <Fact, WorkItem(541697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541697")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameExtensionMethod()
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -1002,14 +1241,14 @@ End Class
                         <Document>
                             public static class C
                             {
-                                public static void [|$$Foo|](this string s) { }
+                                public static void [|$$Goo|](this string s) { }
                             }
                             
                             class Program
                             {
                                 static void Main()
                                 {
-                                    "".{|stmt1:Foo|}();
+                                    "".{|stmt1:Goo|}();
                                 }
                             }
                        </Document>
@@ -1021,8 +1260,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(542202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542202")>
+        <Fact, WorkItem(542202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542202")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCSharpIndexerNamedArgument1()
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -1033,7 +1271,7 @@ End Class
                             {
                                 int this[int x = 5, int [|y|] = 7] { get { return 0; } set { } }
  
-                                void Foo()
+                                void Goo()
                                 {
                                     var y = this[{|stmt1:$$y|}: 1];
                                 }
@@ -1047,8 +1285,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(542106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542106")>
+        <Fact, WorkItem(542106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542106")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCSharpIndexerNamedArgument2()
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -1059,7 +1296,7 @@ End Class
                             {
                                 int this[int [|$$x|]] { set { } }
 
-                                void Foo()
+                                void Goo()
                                 {
                                     this[{|stmt1:x|}: 1] = 0;
                                 }
@@ -1072,8 +1309,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(541928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541928")>
+        <Fact, WorkItem(541928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541928")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameRangeVariable()
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -1099,8 +1335,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(542106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542106")>
+        <Fact, WorkItem(542106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542106")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameVisualBasicParameterizedPropertyNamedArgument()
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -1116,7 +1351,7 @@ End Class
                                     End Set
                                 End Property
 
-                                Sub Foo()
+                                Sub Goo()
                                     Me({|stmt1:x|}:=1) = 0
                                 End Sub
                             End Class
@@ -1129,8 +1364,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(543340, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543340")>
+        <Fact, WorkItem(543340, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543340")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameIndexerParameterFromDeclaration()
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -1154,8 +1388,7 @@ class Program
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(543340, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543340")>
+        <Fact, WorkItem(543340, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543340")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameIndexerParameterFromUseInsideGetAccessor()
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -1179,8 +1412,7 @@ class Program
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(543340, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543340")>
+        <Fact, WorkItem(543340, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543340")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameIndexerParameterFromUseInsideSetAccessor()
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -1204,8 +1436,7 @@ class Program
             End Using
         End Sub
 
-        <Fact>
-        <WorkItem(542492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542492")>
+        <Fact, WorkItem(542492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542492")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamePartialMethodParameter()
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -1217,14 +1448,14 @@ using System;
 
 public partial class Test
 {
-    partial void Foo(object [|$$o|])
+    partial void Goo(object [|$$o|])
     {
     }
 }
 
 partial class Test
 {
-    partial void Foo(object [|o|]);
+    partial void Goo(object [|o|]);
 }
 
                        </Document>
@@ -1385,10 +1616,10 @@ Class M
 End Class
                        </Document>
                     </Project>
-                </Workspace>, renameTo:="Foo")
+                </Workspace>, renameTo:="Goo")
 
 
-                result.AssertLabeledSpansAre("stmt1", "Foo", RelatedLocationType.NoConflict)
+                result.AssertLabeledSpansAre("stmt1", "Goo", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
@@ -1402,7 +1633,7 @@ End Class
 Class C
     Event E([|$$x|] As Integer)
 
-    Sub Foo()
+    Sub Goo()
         RaiseEvent E({|stmt1:x|}:=1)
     End Sub
 End Class
@@ -1426,14 +1657,14 @@ End Class
                         <Document FilePath="Test.cs">
 using System;
 
-interface IFoo
+interface IGoo
 {
-    event EventHandler [|$$Foo|];
+    event EventHandler [|$$Goo|];
 }
 
-class Bar : IFoo
+class Bar : IGoo
 {
-    public event EventHandler [|Foo|];
+    public event EventHandler [|Goo|];
 }
 
                        </Document>
@@ -1474,8 +1705,8 @@ class Bar : IFoo
                         <Document><![CDATA[
 partial class Class1
 {
-    partial void foo<$$[|T|]>([|T|] x);
-    partial void foo<[|T|]>([|T|] x)
+    partial void goo<$$[|T|]>([|T|] x);
+    partial void goo<[|T|]>([|T|] x)
     {
     }
 }]]></Document>
@@ -1495,8 +1726,8 @@ partial class Class1
                         <Document><![CDATA[
 partial class Class1
 {
-    partial void foo<[|T|]>([|T|] x);
-    partial void foo<$$[|T|]>([|T|] x)
+    partial void goo<[|T|]>([|T|] x);
+    partial void goo<$$[|T|]>([|T|] x)
     {
     }
 }]]></Document>
@@ -1515,9 +1746,9 @@ partial class Class1
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document><![CDATA[
 Public Module Module1
-    Partial Private Sub Foo(Of [|$$T|] As Class)(x as [|T|])
+    Partial Private Sub Goo(Of [|$$T|] As Class)(x as [|T|])
     End Sub
-    Private Sub foo(Of [|T|] As Class)(x as [|T|])
+    Private Sub goo(Of [|T|] As Class)(x as [|T|])
     End Sub
 End Module
 ]]></Document>
@@ -1536,9 +1767,9 @@ End Module
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document><![CDATA[
 Public Module Module1
-    Partial Private Sub Foo(Of [|T|] As Class)(x as [|T|])
+    Partial Private Sub Goo(Of [|T|] As Class)(x as [|T|])
     End Sub
-    Private Sub foo(Of [|$$T|] As Class)(x as [|T|])
+    Private Sub goo(Of [|$$T|] As Class)(x as [|T|])
     End Sub
 End Module
 ]]></Document>
@@ -1550,8 +1781,7 @@ End Module
         End Sub
 
         <WorkItem(529163, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529163")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub AmbiguousBeforeRenameHandledCorrectly_Bug11516()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -1567,26 +1797,23 @@ End Module
                             </Document>
                     </Project>
                 </Workspace>, renameTo:="N")
-
-
             End Using
         End Sub
 
         <WorkItem(529163, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529163")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub AmbiguousBeforeRenameHandledCorrectly_Bug11516_2()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                            namespace Foo
+                            namespace Goo
                             {
                                 class B
                                 { }
                             }
 
-                            namespace Foo.[|$$B|]
+                            namespace Goo.[|$$B|]
                             { }
                             </Document>
                     </Project>
@@ -1597,18 +1824,17 @@ End Module
         End Sub
 
         <WorkItem(554092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554092")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamePartialMethods_1_CS()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                            partial class Foo
+                            partial class Goo
                             {
                                 partial void [|F|]();
                             }
-                            partial class Foo
+                            partial class Goo
                             {
                                 partial void [|$$F|]()
                                 {
@@ -1624,18 +1850,17 @@ End Module
         End Sub
 
         <WorkItem(554092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554092")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamePartialMethods_2_CS()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                            partial class Foo
+                            partial class Goo
                             {
                                 partial void [|$$F|]();
                             }
-                            partial class Foo
+                            partial class Goo
                             {
                                 partial void [|F|]()
                                 {
@@ -1651,17 +1876,16 @@ End Module
         End Sub
 
         <WorkItem(554092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554092")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamePartialMethods_1_VB()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-                            partial class Foo
+                            partial class Goo
                                 partial private sub [|F|]()
                             end class
-                            partial class Foo
+                            partial class Goo
                                 private sub [|$$F|]()
                                     throw new System.Exception("F")
                                 end sub
@@ -1675,17 +1899,16 @@ End Module
         End Sub
 
         <WorkItem(554092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554092")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamePartialMethods_2_VB()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-                            partial class Foo
+                            partial class Goo
                                 partial private sub [|$$F|]()
                             end class
-                            partial class Foo
+                            partial class Goo
                                 private sub [|F|]()
                                     throw new System.Exception("F")
                                 end sub
@@ -1699,8 +1922,7 @@ End Module
         End Sub
 
         <WorkItem(530740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530740")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug530740()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -1722,11 +1944,11 @@ End Module
  
                             class A
                             {
-                                static void Foo(int x) { Console.WriteLine("int"); }
-                                static void Foo(MyInt x) { Console.WriteLine("MyInt"); }
+                                static void Goo(int x) { Console.WriteLine("int"); }
+                                static void Goo(MyInt x) { Console.WriteLine("MyInt"); }
                                 static void Main()
                                 {
-                                    Foo((MyInt)0);
+                                    Goo((MyInt)0);
                                 }
                             }
                             </Document>
@@ -1738,8 +1960,7 @@ End Module
         End Sub
 
         <WorkItem(530082, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530082")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMethodThatImplementsInterfaceMethod()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -1748,31 +1969,30 @@ End Module
                             Imports System
 
                             Interface I
-                                Sub Foo(Optional x As Integer = 0)
+                                Sub Goo(Optional x As Integer = 0)
                             End Interface
 
                             Class C
                                 Implements I
 
                                 Shared Sub Main()
-                                    DirectCast(New C(), I).Foo()
+                                    DirectCast(New C(), I).Goo()
                                 End Sub
 
-                                Private Sub [|$$I_Foo|](Optional x As Integer = 0) Implements I.Foo
+                                Private Sub [|$$I_Goo|](Optional x As Integer = 0) Implements I.Goo
                                     Console.WriteLine("test")
                                 End Sub
                             End Class
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="Foo")
+                </Workspace>, renameTo:="Goo")
 
 
             End Using
         End Sub
 
         <WorkItem(529874, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529874")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub DoNotRemoveAttributeSuffixOn__Attribute()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -1794,8 +2014,7 @@ End Module
         End Sub
 
         <WorkItem(553315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553315")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameEventParameterOnUsage()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -1804,7 +2023,7 @@ End Module
                             Class C
                             Event E([|x|] As Integer)
  
-                            Sub Foo()
+                            Sub Goo()
                                 RaiseEvent E({|stmt1:$$x|}:=1)
                             End Sub
                         End Class
@@ -1818,8 +2037,7 @@ End Module
         End Sub
 
         <WorkItem(529819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529819")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCompilerGeneratedBackingFieldForNonCustomEvent()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -1827,7 +2045,7 @@ End Module
                         <Document>
                             Class B
                                 Event [|$$X|]() ' Rename X to Y
-                                Sub Foo()
+                                Sub Goo()
                                     {|stmt1:XEvent|}()
                                 End Sub
                             End Class
@@ -1851,7 +2069,7 @@ End Module
                         <Document>
                             Class B
                                 Event [|$$X|]() ' Rename X to Y
-                                Sub Foo()
+                                Sub Goo()
                                     Dim y = New B.{|stmt1:XEventHandler|}(AddressOf bar)
                                 End Sub
 
@@ -1877,9 +2095,9 @@ End Module
                         <Document>
                         class C
                         {
-                            void [|$$Foo|]()
+                            void [|$$Goo|]()
                             {
-                                (({|stmt1:Foo|}))();
+                                (({|stmt1:Goo|}))();
                             }
                         }
                         </Document>
@@ -1902,10 +2120,10 @@ End Module
                             Imports System
                             Module M
                                 Async Function methodIt() As Task(Of String)
-                                    Dim a As Func(Of String) = AddressOf {|stmt1:Foo|}
+                                    Dim a As Func(Of String) = AddressOf {|stmt1:Goo|}
                                 End Function
 
-                                Function [|$$Foo|]() As String
+                                Function [|$$Goo|]() As String
                                 End Function
                             End Module
                             </Document>
@@ -1932,11 +2150,11 @@ class M
 {
     async public Task<string> methodIt()
     {
-        Func<string> a = {|stmt1:Foo|};
+        Func<string> a = {|stmt1:Goo|};
         return null;
     }
 
-    public static string [|$$Foo|]()
+    public static string [|$$Goo|]()
     {
         return "";
     }
@@ -1966,10 +2184,10 @@ class s
 {
     public void abc()
     {
-        Func<Task> sin = async () => { {|stmt1:Foo|}(); };
+        Func<Task> sin = async () => { {|stmt1:Goo|}(); };
     }
 
-    public int [|$$Foo|]()
+    public int [|$$Goo|]()
     {
         return 0;
     }
@@ -2000,10 +2218,10 @@ class s
 {
     public void abc()
     {
-        Func<int, Task<int>> sink2 = (async c => { return {|stmt2:Foo|}(); });
+        Func<int, Task<int>> sink2 = (async c => { return {|stmt2:Goo|}(); });
     }
 
-    public int [|$$Foo|]()
+    public int [|$$Goo|]()
     {
         return 0;
     }
@@ -2035,10 +2253,10 @@ class s
 {
     public void abc()
     {
-        Func<int, int> sink4 = ((c) => { return {|stmt3:Foo|}(); });
+        Func<int, int> sink4 = ((c) => { return {|stmt3:Goo|}(); });
     }
 
-    public int [|$$Foo|]()
+    public int [|$$Goo|]()
     {
         return 0;
     }
@@ -2066,13 +2284,13 @@ class s
 
                         Module Program
                             Sub Main()
-                                Dim mybar As N.{|stmt1:Foo|} = New {|stmt1:Foo|}()
+                                Dim mybar As N.{|stmt1:Goo|} = New {|stmt1:Goo|}()
                             End Sub
                         End Module
 
                         Namespace N
                             Module X
-                                Class [|$$Foo|]
+                                Class [|$$Goo|]
                                 End Class
                             End Module
 
@@ -2097,13 +2315,13 @@ class s
 
                         Module Program
                             Sub Main()
-                                N.{|stmt1:Foo|}()
+                                N.{|stmt1:Goo|}()
                             End Sub
                         End Module
 
                         Namespace N
                             Module X
-                                Sub [|$$Foo|]()
+                                Sub [|$$Goo|]()
                                 End Sub
                             End Module
 
@@ -2158,8 +2376,8 @@ class s
                         <Document>
                             Imports System
 
-                            &lt;{|escaped:Foo|}&gt;
-                            Class {|escaped:$$Foo|} ' Rename Foo to Global
+                            &lt;{|escaped:Goo|}&gt;
+                            Class {|escaped:$$Goo|} ' Rename Goo to Global
                                 Inherits Attribute
                             End Class
                             </Document>
@@ -2179,8 +2397,8 @@ class s
                         <Document>
                             Imports System
 
-                            &lt;{|escaped:Foo|}&gt;
-                            Class {|escaped:$$Foo|} ' Rename Foo to Global
+                            &lt;{|escaped:Goo|}&gt;
+                            Class {|escaped:$$Goo|} ' Rename Goo to Global
                                 Inherits Attribute
                             End Class
                             </Document>
@@ -2200,7 +2418,7 @@ class s
                         <Document>
                             class C1
                             {
-                                override void [|$$Foo|]() {}
+                                override void [|$$Goo|]() {}
                             }
                             </Document>
                     </Project>
@@ -2219,7 +2437,7 @@ class s
                         <Document>
 Class B
     Event [|$$X|]()
-    Sub Foo()
+    Sub Goo()
         Dim y = New {|stmt1:XEventHandler|}(AddressOf bar)
     End Sub
 
@@ -2229,7 +2447,6 @@ End Class
                             </Document>
                     </Project>
                 </Workspace>, renameTo:="Baz")
-
 
                 result.AssertLabeledSpecialSpansAre("stmt1", "BazEventHandler", RelatedLocationType.NoConflict)
             End Using
@@ -2815,9 +3032,9 @@ public class A
                         <Document>
 class C
 {
-    void [|$$Foo|]()
+    void [|$$Goo|]()
     {
-        (({|stmt1:Foo|}))();
+        (({|stmt1:Goo|}))();
     }
 }
                             </Document>
@@ -3018,7 +3235,7 @@ class B<[|T|]>
     /// <typeparam name="P"></typeparam>
     /// <param name="x"></param>
     /// <param name="z"></param>
-    [|T|] Foo<U, P>(U x, [|T|] z) { return z; }
+    [|T|] Goo<U, P>(U x, [|T|] z) { return z; }
 }]]>
                             </Document>
                         </Project>
@@ -3046,7 +3263,7 @@ Class B(Of [|T|])
     ''' <typeparam name="P"></typeparam>
     ''' <param name="x"></param>
     ''' <param name="z"></param>
-    Private Function Foo(Of U, P)(x As U, z As [|T|]) As [|T|]
+    Private Function Goo(Of U, P)(x As U, z As [|T|]) As [|T|]
         Return z
     End Function
 End Class]]>
@@ -3142,14 +3359,14 @@ class Program
                         <Document><![CDATA[
 namespace X
 {
-    interface [|$$IFoo|]
+    interface [|$$IGoo|]
     {
         void Clone();
     }
 
-    class Baz : [|IFoo|]
+    class Baz : [|IGoo|]
     {
-        void [|IFoo|].Clone()
+        void [|IGoo|].Clone()
         {
 
         }
@@ -3158,7 +3375,7 @@ namespace X
 ]]>]
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="IFooEx")
+                </Workspace>, renameTo:="IGooEx")
             End Using
         End Sub
 
@@ -3200,7 +3417,7 @@ public interface IInterface
                         </Document>
                     </Project>
 
-                </Workspace>, renameTo:="Foo")
+                </Workspace>, renameTo:="Goo")
             End Using
         End Sub
 
@@ -3711,7 +3928,7 @@ class Y : [|$$N|].X { }
                         </Document>
                     </Project>
 
-                </Workspace>, renameTo:="Foo")
+                </Workspace>, renameTo:="Goo")
 
 
             End Using
@@ -3864,10 +4081,10 @@ End Class
                             <![CDATA[
 using System;
 /// <summary>
-/// <see cref="{|yAttribute:FooAttribute|}" />
+/// <see cref="{|yAttribute:GooAttribute|}" />
 /// </summary>
-[{|y:Foo|}]
-class {|yAttribute:F$$ooAttribute|} : Attribute
+[{|y:Goo|}]
+class {|yAttribute:G$$ooAttribute|} : Attribute
 {
 }
 
@@ -3891,10 +4108,10 @@ class {|yAttribute:F$$ooAttribute|} : Attribute
                         <Document>
                             <![CDATA[
 ''' <summary>
-''' <see cref="{|YAttribute:$$FooAttribute|}" />
+''' <see cref="{|YAttribute:$$GooAttribute|}" />
 ''' </summary>
-<{|Y:Foo|}>
-Class {|YAttribute:FooAttribute|}
+<{|Y:Goo|}>
+Class {|YAttribute:GooAttribute|}
 	Inherits Attribute
 End Class
 ]]>
@@ -3917,10 +4134,10 @@ End Class
                             <![CDATA[
 using System;
 /// <summary>
-/// <see cref="{|yAttribute:FooA$$ttribute|}" />
+/// <see cref="{|yAttribute:GooA$$ttribute|}" />
 /// </summary>
-[{|y:Foo|}]
-class {|yAttribute:FooAttribute|} : Attribute
+[{|y:Goo|}]
+class {|yAttribute:GooAttribute|} : Attribute
 {
 }
 
@@ -3944,10 +4161,10 @@ class {|yAttribute:FooAttribute|} : Attribute
                             <![CDATA[
 Imports System
 ''' <summary>
-''' <see cref="{|yAttribute:FooA$$ttribute|}" />
+''' <see cref="{|yAttribute:GooA$$ttribute|}" />
 ''' </summary>
-<{|y:Foo|}>
-Class {|yAttribute:FooAttribute|} : Inherits Attribute
+<{|y:Goo|}>
+Class {|yAttribute:GooAttribute|} : Inherits Attribute
 End Class
 ]]>
                         </Document>
@@ -4125,7 +4342,7 @@ class C<[|$$T|]>
     /// <see cref="C{T}"/>
     /// </summary>
     /// <param name="x"></param>
-    void Foo(C<dynamic> x, C<string> y) { }
+    void Goo(C<dynamic> x, C<string> y) { }
 }]]>
                             </Document>
                         </Project>
@@ -4145,7 +4362,7 @@ Class C(Of [|$$T|])
     ''' <see cref="C(Of [|T|])"/>
     ''' </summary>
     ''' <param name="x"></param>
-    Sub Foo(x As C(Of Object), y As C(Of String))
+    Sub Goo(x As C(Of Object), y As C(Of String))
     End Sub
 End Class]]>
                             </Document>
@@ -4169,7 +4386,7 @@ class C<T>
     /// <see cref="C{T}.Bar(T)" />
     /// </summary>
     /// <param name="x"></param>
-    void Foo(C<dynamic> x, C<string> y) { }
+    void Goo(C<dynamic> x, C<string> y) { }
     void Bar(T x) { }
 }]]>
 
@@ -4191,7 +4408,7 @@ Class C(Of [|T|])
     ''' <see cref="C(Of [|T|]).Bar(Of [|T|])" />
     ''' </summary>
     ''' <param name="x"></param>
-    Sub Foo(x As C(Of Object), y As C(Of String))
+    Sub Goo(x As C(Of Object), y As C(Of String))
     End Sub
     Sub Bar(x As [|T|])
     End Sub
@@ -4216,7 +4433,7 @@ class {|Resolve:C|}<T>
     /// <see cref="{|Resolve:C|}{T}"/>
     /// </summary>
     /// <param name="x"></param>
-    void Foo({|Resolve:$$C|}<dynamic> x, {|Resolve:C|}<string> y) { }
+    void Goo({|Resolve:$$C|}<dynamic> x, {|Resolve:C|}<string> y) { }
 }]]>
                             </Document>
                         </Project>
@@ -4237,7 +4454,7 @@ Class {|Resolve:C|}(Of T)
     ''' <see cref="{|Resolve:C|}(Of T)"/>
     ''' </summary>
     ''' <param name="x"></param>
-    Sub Foo(x As {|Resolve:$$C|}(Of Object), y As {|Resolve:C|}(Of String))
+    Sub Goo(x As {|Resolve:$$C|}(Of Object), y As {|Resolve:C|}(Of String))
     End Sub
 End Class]]>
                             </Document>
@@ -4261,7 +4478,7 @@ namespace Test
     /// </summary>
     class C
     {
-        void Foo() { }
+        void Goo() { }
     }
 }
 class [|C|]
@@ -4287,7 +4504,7 @@ Namespace Test
     ''' <seealso cref="Global.[|$$C|]"/>
     ''' </summary>
     Class C
-        Sub Foo()
+        Sub Goo()
         End Sub
     End Class
 End Namespace
@@ -4413,7 +4630,7 @@ class B : C, I
 }]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Foo")
+                    </Workspace>, renameTo:="Goo")
 
 
             End Using
@@ -4444,7 +4661,7 @@ Class B : Inherits C : Implements I
 End Class]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="Foo")
+                    </Workspace>, renameTo:="Goo")
 
 
             End Using
@@ -4458,23 +4675,23 @@ End Class]]>
                             <Document><![CDATA[
 interface I
 {
-    void [|Foo|]();
+    void [|Goo|]();
 }
 abstract class C
 {
-    public void [|Foo|]() { }
+    public void [|Goo|]() { }
 }
 
 class B : C, I
 {
     /// <summary>
-    /// <see cref="I.[|Foo|]()"/>
-    /// <see cref="[|Foo|]()"/>
-    /// <see cref="C.[|Foo|]()"/>
+    /// <see cref="I.[|Goo|]()"/>
+    /// <see cref="[|Goo|]()"/>
+    /// <see cref="C.[|Goo|]()"/>
     /// </summary>
     public void Bar()
     {
-        [|$$Foo|]();
+        [|$$Goo|]();
     }
 }]]>
                             </Document>
@@ -4492,27 +4709,27 @@ class B : C, I
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
 Interface I
-    Sub {|Interface:Foo|}()
+    Sub {|Interface:Goo|}()
 End Interface
 MustInherit Class C
-    Public Sub [|Foo|]()
+    Public Sub [|Goo|]()
     End Sub
 End Class
 Class B : Inherits C : Implements I
     ''' <summary>
-    ''' <see cref="I.{|Interface:Foo|}()"/>
-    ''' <see cref="[|Foo|]()"/>
-    ''' <see cref="C.[|Foo|]()"/>
+    ''' <see cref="I.{|Interface:Goo|}()"/>
+    ''' <see cref="[|Goo|]()"/>
+    ''' <see cref="C.[|Goo|]()"/>
     ''' </summary>
-    Public Sub Bar() Implements I.Foo
-        [|$$Foo|]()
+    Public Sub Bar() Implements I.Goo
+        [|$$Goo|]()
     End Sub
 End Class]]>
                             </Document>
                         </Project>
                     </Workspace>, renameTo:="Baz")
 
-                result.AssertLabeledSpansAre("Interface", "Foo")
+                result.AssertLabeledSpansAre("Interface", "Goo")
 
             End Using
         End Sub
@@ -4530,7 +4747,7 @@ class C
     /// <see cref="[|Del|]"/>
     /// <see cref="B.Del" />
     /// </summary>
-    void Foo()
+    void Goo()
     {
         [|Del|] d;
     }
@@ -4563,7 +4780,7 @@ Class C
     ''' <see cref="[|Del|]"/>
     ''' <see cref="B.Del" />
     ''' </summary>
-    Sub Foo()
+    Sub Goo()
         Dim d As [|Del|]
     End Sub
     Class B
@@ -4650,7 +4867,7 @@ class Program
     {   
     }
 
-    static void [|$$Foo|]()
+    static void [|$$Goo|]()
     {
     }
 }
@@ -4683,7 +4900,7 @@ Class Program
     Shared Sub Main(args As String())
     End Sub
 
-    Shared Sub [|$$Foo|]()
+    Shared Sub [|$$Goo|]()
     End Sub
 End Class
 
@@ -4778,7 +4995,7 @@ public class A
             /// <summary>
             /// <see cref=" {|resolve:D|}"/>
             /// </summary>
-            static void [|$$foo|]()
+            static void [|$$goo|]()
             {
 
             }
@@ -4812,7 +5029,7 @@ Public Class A
             ''' <summary>
             ''' <see cref="{|resolve:D|}"/>
             ''' </summary>
-            Shared Sub [|$$foo|]()
+            Shared Sub [|$$goo|]()
             End Sub
         End Class
         Public Class D
@@ -5139,14 +5356,14 @@ namespace N
 {
     interface [|I|]
     {
-        void Foo();
+        void Goo();
     }
     class C : [|I|]
     {
         /// <summary>
-        /// <see cref="{|Resolve:$$I|}.Foo"/>
+        /// <see cref="{|Resolve:$$I|}.Goo"/>
         /// </summary>
-        public void Foo() { }
+        public void Goo() { }
         class K
         {
 
@@ -5172,13 +5389,13 @@ namespace N
                             <Document><![CDATA[
 Namespace N
     Interface [|I|]
-        Sub Foo()
+        Sub Goo()
     End Interface
     Class C : Implements {|Resolve1:I|}
         ''' <summary>
-        ''' <see cref="{|Resolve2:$$I|}.Foo"/>
+        ''' <see cref="{|Resolve2:$$I|}.Goo"/>
         ''' </summary>
-        Public Sub Foo() Implements {|Resolve1:I|}.Foo
+        Public Sub Goo() Implements {|Resolve1:I|}.Goo
         End Sub
         Class K
         End Class
@@ -5190,7 +5407,7 @@ End Namespace]]>
 
 
                 result.AssertLabeledSpansAre("Resolve1", "N.K", RelatedLocationType.ResolvedReferenceConflict)
-                result.AssertLabeledSpansAre("Resolve2", "N.K.Foo", RelatedLocationType.ResolvedReferenceConflict)
+                result.AssertLabeledSpansAre("Resolve2", "N.K.Goo", RelatedLocationType.ResolvedReferenceConflict)
             End Using
         End Sub
 
@@ -5204,17 +5421,17 @@ End Namespace]]>
 class D : [|N|].C
 {
     /// <summary>
-    /// <see cref="{|Resolve:N|}.C.Foo"/>
+    /// <see cref="{|Resolve:N|}.C.Goo"/>
     /// </summary>
     public void Sub()
     {
-        Foo();
+        Goo();
     }
     class R
     {
         class C
         {
-            public void Foo() { }
+            public void Goo() { }
         }
     }
 
@@ -5225,7 +5442,7 @@ class D : [|N|].C
                             <Document>
 Namespace [|$$N|]
     Public Class C
-        Public Sub Foo()
+        Public Sub Goo()
 
         End Sub
     End Class
@@ -5249,14 +5466,14 @@ End Namespace
                             <Document><![CDATA[
 Class D : Inherits {|Resolve1:N|}.C
     ''' <summary>
-    ''' <see cref="{|Resolve2:N|}.C.Foo"/>
+    ''' <see cref="{|Resolve2:N|}.C.Goo"/>
     ''' </summary>
     Public Sub Subroutine()
-        Foo()
+        Goo()
     End Sub
     Class R
         Class C
-            Public Sub Foo()
+            Public Sub Goo()
             End Sub
         End Class
     End Class
@@ -5269,7 +5486,7 @@ namespace [|$$N|]
 {
     public class C
     {
-        public void Foo() { }
+        public void Goo() { }
     }
 }]]>
                             </Document>
@@ -5278,7 +5495,7 @@ namespace [|$$N|]
 
 
                 result.AssertLabeledSpansAre("Resolve1", "Global.R", RelatedLocationType.ResolvedReferenceConflict)
-                result.AssertLabeledSpansAre("Resolve2", "Global.R.C.Foo", RelatedLocationType.ResolvedReferenceConflict)
+                result.AssertLabeledSpansAre("Resolve2", "Global.R.C.Goo", RelatedLocationType.ResolvedReferenceConflict)
             End Using
         End Sub
 
@@ -5558,7 +5775,7 @@ namespace N
 {
     class C
     {
-        void Foo()
+        void Goo()
         {
             {|Resolve:N|}.C x;
         }
@@ -5923,6 +6140,24 @@ End Class
                             </Document>
                         </Project>
                     </Workspace>, renameTo:="msg2")
+            End Using
+        End Sub
+
+        <WorkItem(8297, "https://github.com/dotnet/roslyn/issues/8297")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameVBClassNamedNew()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
+                            <Document><![CDATA[
+Class [|[$$New]|]
+    Sub New()
+    End Sub
+End Class
+]]>
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="New2")
             End Using
         End Sub
 
@@ -6608,7 +6843,7 @@ public class NotReferencingProject
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
 Module M
-    Public Sub [|$$Foo|](Of T)(ByVal x As T) {|RenameInComment1:' Rename Foo to Bar|}
+    Public Sub [|$$Goo|](Of T)(ByVal x As T) {|RenameInComment1:' Rename Goo to Bar|}
     End Sub
 End Module
 
@@ -6620,11 +6855,11 @@ Class C
                                                  End Sub
     End Class
     Public Sub Test()
-        {|stmt1:Foo|}("1")
+        {|stmt1:Goo|}("1")
 
-        {|RenameInComment2:' Foo FOO! Foo!|}
-        Dim renamed = {|RenameInString:"Foo Foo!"|}    {|RenameInComment3:' Foo|}
-        Dim notRenamed = "FOO! Foo1 FooFoo"
+        {|RenameInComment2:' Goo GOO! Goo!|}
+        Dim renamed = {|RenameInString:"Goo Goo!"|}    {|RenameInComment3:' Goo|}
+        Dim notRenamed = "GOO! Goo1 GooGoo"
     End Sub
 End Class
 ]]>
@@ -6635,7 +6870,7 @@ End Class
                 result.AssertLabeledSpansAre("stmt1", "Call Global.M.Bar(""1"")", RelatedLocationType.ResolvedReferenceConflict)
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment1", "' Rename Bar to Bar")
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """Bar Bar!""")
-                result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment2", "' Bar FOO! Bar!")
+                result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment2", "' Bar GOO! Bar!")
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment3", "' Bar")
             End Using
         End Sub
@@ -6650,12 +6885,12 @@ End Class
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
-class Foo
+class Goo
 {
-    int foo;
+    int goo;
     void Blah(int [|$$bar|])
     {
-        {|stmt2:foo|} = {|stmt1:bar|};
+        {|stmt2:goo|} = {|stmt1:bar|};
 
 		{|RenameInComment:// bar BAR! bar!|}
 		var renamed = {|RenameInString:"bar bar!"|};
@@ -6667,12 +6902,12 @@ End Class
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="foo", changedOptionSet:=renamingOptions)
+                    </Workspace>, renameTo:="goo", changedOptionSet:=renamingOptions)
 
-                result.AssertLabeledSpansAre("stmt1", "this.foo = foo;", RelatedLocationType.NoConflict)
-                result.AssertLabeledSpansAre("stmt2", "this.foo = foo;", RelatedLocationType.ResolvedNonReferenceConflict)
-                result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """foo foo!""")
-                result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment", "// foo BAR! foo!")
+                result.AssertLabeledSpansAre("stmt1", "this.goo = goo;", RelatedLocationType.NoConflict)
+                result.AssertLabeledSpansAre("stmt2", "this.goo = goo;", RelatedLocationType.ResolvedNonReferenceConflict)
+                result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """goo goo!""")
+                result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment", "// goo BAR! goo!")
             End Using
         End Sub
 
@@ -6688,12 +6923,12 @@ End Class
                             <Document><![CDATA[
 Option Explicit Off
 Module Program
-    Function [|$$Foo|]
+    Function [|$$Goo|]
         {|Conflict:Bar|} = 1
 
-        {|RenameInComment1:' Foo FOO! Foo!|}
-        Dim renamed = {|RenameInString:"Foo Foo!"|}    {|RenameInComment2:' Foo|}
-        Dim notRenamed = "FOO! Foo1 FooFoo"
+        {|RenameInComment1:' Goo GOO! Goo!|}
+        Dim renamed = {|RenameInString:"Goo Goo!"|}    {|RenameInComment2:' Goo|}
+        Dim notRenamed = "GOO! Goo1 GooGoo"
     End Function
 End Module
 ]]>
@@ -6703,7 +6938,7 @@ End Module
 
                 result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """Bar Bar!""")
-                result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment1", "' Bar FOO! Bar!")
+                result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment1", "' Bar GOO! Bar!")
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment2", "' Bar")
             End Using
         End Sub
@@ -6718,7 +6953,7 @@ End Module
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
-class {|Conflict:foo|}
+class {|Conflict:goo|}
 {
     int [|$$bar|];
 
@@ -6729,12 +6964,12 @@ class {|Conflict:foo|}
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, renameTo:="foo", changedOptionSet:=renamingOptions)
+                    </Workspace>, renameTo:="goo", changedOptionSet:=renamingOptions)
 
                 result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
 
-                result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """foo foo!""")
-                result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment", "// foo BAR! foo!")
+                result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """goo goo!""")
+                result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment", "// goo BAR! goo!")
             End Using
         End Sub
 

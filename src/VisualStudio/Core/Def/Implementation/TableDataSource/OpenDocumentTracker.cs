@@ -27,16 +27,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             lock (_gate)
             {
-                Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<T>>> secondMap;
-                if (!_map.TryGetValue(documentId, out secondMap))
+                if (!_map.TryGetValue(documentId, out var secondMap))
                 {
                     secondMap = new Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<T>>>();
                     _map.Add(documentId, secondMap);
                 }
 
-                AbstractTableEntriesSnapshot<T> oldSnapshot;
-                WeakReference<AbstractTableEntriesSnapshot<T>> oldWeakSnapshot;
-                if (secondMap.TryGetValue(id, out oldWeakSnapshot) && oldWeakSnapshot.TryGetTarget(out oldSnapshot))
+                if (secondMap.TryGetValue(id, out var oldWeakSnapshot) && oldWeakSnapshot.TryGetTarget(out var oldSnapshot))
                 {
                     oldSnapshot.StopTracking();
                 }
@@ -72,8 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private void StopTracking_NoLock(DocumentId documentId)
         {
-            Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<T>>> secondMap;
-            if (!_map.TryGetValue(documentId, out secondMap))
+            if (!_map.TryGetValue(documentId, out var secondMap))
             {
                 return;
             }
@@ -81,8 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             _map.Remove(documentId);
             foreach (var weakSnapshot in secondMap.Values)
             {
-                AbstractTableEntriesSnapshot<T> snapshot;
-                if (!weakSnapshot.TryGetTarget(out snapshot))
+                if (!weakSnapshot.TryGetTarget(out var snapshot))
                 {
                     continue;
                 }

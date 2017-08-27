@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class MethodBodySemanticModel
         Inherits MemberSemanticModel
 
-        Private Sub New(root As VisualBasicSyntaxNode, binder As Binder, Optional parentSemanticModelOpt As SyntaxTreeSemanticModel = Nothing, Optional speculatedPosition As Integer = 0, Optional ignoreAccessibility As Boolean = False)
+        Private Sub New(root As SyntaxNode, binder As Binder, Optional parentSemanticModelOpt As SyntaxTreeSemanticModel = Nothing, Optional speculatedPosition As Integer = 0, Optional ignoreAccessibility As Boolean = False)
             MyBase.New(root, binder, parentSemanticModelOpt, speculatedPosition, ignoreAccessibility:=ignoreAccessibility)
         End Sub
 

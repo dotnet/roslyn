@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.ComponentModel.Composition;
@@ -27,8 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             _serviceProvider = serviceProvider;
 
             var shell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
-            object property;
-            shell.GetProperty((int)__VSSPROPID5.VSSPROPID_ReleaseVersion, out property);
+            shell.GetProperty((int)__VSSPROPID5.VSSPROPID_ReleaseVersion, out var property);
 
             _isUpdate1 = Equals(property, "14.0.24720.0 D14REL");
         }
@@ -51,8 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
                 }
                 catch (AggregateException e)
                 {
-                    var operationCanceledException = e.InnerExceptions[0] as OperationCanceledException;
-                    if (operationCanceledException != null)
+                    if (e.InnerExceptions[0] is OperationCanceledException operationCanceledException)
                     {
                         return WaitIndicatorResult.Canceled;
                     }

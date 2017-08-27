@@ -1,107 +1,63 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <NonShipping>true</NonShipping>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
-    <Platform Condition="'$(Platform)' == ''">x86</Platform>
-    <ProjectGuid>{50D26304-0961-4A51-ABF6-6CAD1A56D203}</ProjectGuid>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Compilers.CSharp.CommandLine.UnitTests</AssemblyName>
-    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
-    <PlatformTarget>x86</PlatformTarget>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Dependencies\xUnit.net\xUnit.net.csproj">
-      <Project>{8635cb8f-d210-41ed-b4ff-71502cdb475c}</Project>
-      <Name>xUnit.net</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Utilities\CSharp.Desktop\CSharpCompilerTestUtilities.Desktop.csproj">
-      <Project>{7a4b2176-7bfd-4b75-a61a-e25a1fdd0a1e}</Project>
-      <Name>CSharpCompilerTestUtilities.Desktop</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\csc\csc.csproj">
-      <Project>{4B45CA0C-03A0-400F-B454-3D4BCB16AF38}</Project>
-      <Name>csc</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
-      <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
-      <Name>TestUtilities.Desktop</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Server\VBCSCompiler\VBCSCompiler.csproj">
-      <Project>{9508F118-F62E-4C16-A6F4-7C3B56E166AD}</Project>
-      <Name>VBCSCompiler</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Resources\Core\CompilerTestResources.csproj">
-      <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
-      <Name>CompilerTestResources</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
-      <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
-      <Name>TestUtilities.FX45</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Portable\CSharpCodeAnalysis.csproj">
-      <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
-      <Name>CSharpCodeAnalysis</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj" />
+    <ProjectReference Include="..\..\..\Test\Utilities\CSharp.Desktop\CSharpCompilerTestUtilities.Desktop.csproj" />
+    <ProjectReference Include="..\..\..\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj" />
+    <ProjectReference Include="..\..\csc\csc.csproj" />
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj" />
+    <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\Server\VBCSCompiler\VBCSCompiler.csproj" />
+    <ProjectReference Include="..\..\..\Test\Resources\Core\CompilerTestResources.csproj" />
+    <ProjectReference Include="..\..\Portable\CSharpCodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
+    <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\Debug\</OutputPath>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <OutputPath>bin\Release\</OutputPath>
-    <Optimize>true</Optimize>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
+    <PackageReference Include="xunit" Version="$(xunitVersion)" />
+    <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
+    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommandLineDiagnosticFormatterTests.cs" />
-    <Compile Include="CommandLineTests.cs" />
-    <Compile Include="CommandLineTestResources.Designer.cs">
+    <Compile Update="CommandLineTestResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>CommandLineTestResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="ErrorLoggerTests.cs" />
-    <Compile Include="MiscTests.cs" />
-    <Compile Include="TouchedFileLoggingTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\csc\csc.rsp">
       <Link>csc.rsp</Link>
     </None>
-    <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="CommandLineTestResources.resx">
+    <EmbeddedResource Update="CommandLineTestResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>CommandLineTestResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>

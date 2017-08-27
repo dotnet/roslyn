@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Threading;
@@ -12,7 +11,6 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
 {
@@ -162,17 +160,52 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
 
         private static bool IsCaretInsideBlockCommentSyntax(SnapshotPoint caretPosition)
         {
-            var document = caretPosition.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var snapshot = caretPosition.Snapshot;
+            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
                 return false;
             }
 
-            var syntaxTree = document.GetSyntaxTreeAsync().WaitAndGetResult(CancellationToken.None);
+            var syntaxTree = document.GetSyntaxTreeSynchronously(CancellationToken.None);
             var trivia = syntaxTree.FindTriviaAndAdjustForEndOfFile(caretPosition, CancellationToken.None);
 
             var isBlockComment = trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
-            return isBlockComment && trivia.FullSpan.Start < caretPosition;
+            if (isBlockComment)
+            {
+                var span = trivia.FullSpan;
+                if (span.Start < caretPosition && caretPosition < span.End)
+                {
+                    return true;
+                }
+
+                // FindTriviaAndAdjustForEndOfFile always returns something if position is EOF,
+                // whether or not the result includes the position.
+                // And the SyntaxTrivia for block comments always ends on EOF, closed or not.
+                // So we need to handle
+                // /**/|EOF
+                // and
+                // /*  |EOF
+                if (caretPosition == snapshot.Length)
+                {
+                    if (span.Length < "/**/".Length)
+                    {
+                        return true;
+                    }
+
+                    // If the block comment is not closed, SyntaxTrivia contains diagnostics
+                    // So when the SyntaxTrivia is clean, the block comment should be closed
+                    if (!trivia.ContainsDiagnostics)
+                    {
+                        return false;
+                    }
+
+                    var textBeforeCaret = snapshot.GetText(caretPosition.Position - 2, 2);
+                    return textBeforeCaret != "*/";
+                }
+            }
+
+            return false;
         }
     }
 }

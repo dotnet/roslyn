@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -8,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
@@ -23,21 +25,28 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         protected BatchSimplificationFixAllProvider() { }
 
-        public override async Task AddDocumentFixesAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction> addFix, 
+        protected override async Task AddDocumentFixesAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics,
+            ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
+            // quick bail out
+            if (diagnostics.IsEmpty)
+            {
+                return;
+            }
+
             var changedDocument = await AddSimplifierAnnotationsAsync(
                 document, diagnostics, fixAllState, cancellationToken).ConfigureAwait(false);
             var title = GetFixAllTitle(fixAllState);
-            var codeAction = new MyCodeAction(title, (c) => Task.FromResult(changedDocument));
-            addFix(codeAction);
+            var codeAction = new MyCodeAction(title, c => Task.FromResult(changedDocument));
+            fixes.Add((diagnostics.First(), codeAction));
         }
 
         /// <summary>
         /// Get node on which to add simplifier and formatter annotation for fixing the given diagnostic.
         /// </summary>
-        protected virtual SyntaxNode GetNodeToSimplify(SyntaxNode root, SemanticModel model, Diagnostic diagnostic, Document document, out string codeActionEquivalenceKey, CancellationToken cancellationToken)
+        protected virtual SyntaxNode GetNodeToSimplify(SyntaxNode root, SemanticModel model, Diagnostic diagnostic, DocumentOptionSet options, out string codeActionEquivalenceKey, CancellationToken cancellationToken)
         {
             codeActionEquivalenceKey = null;
             var span = diagnostic.Location.SourceSpan;
@@ -56,28 +65,30 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         /// <summary>
         /// By default, this property returns false and <see cref="AddSimplifierAnnotationsAsync(Document, ImmutableArray{Diagnostic}, FixAllState, CancellationToken)"/> will just add <see cref="Simplifier.Annotation"/> to each node to simplify
-        /// returned by <see cref="GetNodeToSimplify(SyntaxNode, SemanticModel, Diagnostic, Document, out string, CancellationToken)"/>.
+        /// returned by <see cref="GetNodeToSimplify(SyntaxNode, SemanticModel, Diagnostic, DocumentOptionSet, out string, CancellationToken)"/>.
         /// 
         /// Override this property to return true if the fix all provider needs to add simplify annotations/fixup any of the parent nodes of the nodes to simplify.
         /// This could be the case if simplifying certain nodes can enable cascaded simplifications, such as parentheses removal on parenting node.
         /// <see cref="AddSimplifierAnnotationsAsync(Document, ImmutableArray{Diagnostic}, FixAllState, CancellationToken)"/> will end up invoking <see cref="AddSimplifyAnnotationsAsync(Document, SyntaxNode, CancellationToken)"/> for each node to simplify.
         /// Ensure that you override <see cref="AddSimplifyAnnotationsAsync(Document, SyntaxNode, CancellationToken)"/> method when this property returns true.
         /// </summary>
-        protected virtual bool NeedsParentFixup { get { return false; } }
+        protected virtual bool NeedsParentFixup => false;
 
         private async Task<Document> AddSimplifierAnnotationsAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            Document document, ImmutableArray<Diagnostic> diagnostics,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             // Find all nodes to simplify corresponding to diagnostic spans.
             var nodesToSimplify = new List<SyntaxNode>();
             foreach (var diagnostic in diagnostics)
             {
-                string codeActionEquivalenceKey;
-                var node = GetNodeToSimplify(root, model, diagnostic, document, out codeActionEquivalenceKey, cancellationToken);
+                var node = GetNodeToSimplify(root, model, diagnostic, options,
+                    out var codeActionEquivalenceKey, cancellationToken);
+
                 if (node != null && fixAllState.CodeActionEquivalenceKey == codeActionEquivalenceKey)
                 {
                     nodesToSimplify.Add(node);

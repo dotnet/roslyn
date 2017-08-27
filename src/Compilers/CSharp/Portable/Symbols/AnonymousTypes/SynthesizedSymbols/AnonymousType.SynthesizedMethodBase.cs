@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -116,6 +117,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             public sealed override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
+            {
+                get { return ImmutableArray<CustomModifier>.Empty; }
+            }
+
+            public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
             {
                 get { return ImmutableArray<CustomModifier>.Empty; }
             }

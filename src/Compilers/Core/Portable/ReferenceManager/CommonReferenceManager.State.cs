@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Enumerates all referenced assemblies and their aliases.
         /// </summary>
-        internal abstract IEnumerable<ValueTuple<IAssemblySymbol, ImmutableArray<string>>> GetReferencedAssemblyAliases();
+        internal abstract IEnumerable<(IAssemblySymbol, ImmutableArray<string>)> GetReferencedAssemblyAliases();
 
         internal abstract MetadataReference GetMetadataReference(IAssemblySymbol assemblySymbol);
         internal abstract ImmutableArray<MetadataReference> ExplicitReferences { get; }
@@ -100,7 +101,7 @@ namespace Microsoft.CodeAnalysis
         /// Maps (containing syntax tree file name, reference string) of #r directive to a resolved metadata reference.
         /// If multiple #r's in the same tree use the same value as a reference the resolved metadata reference is the same as well.
         /// </summary>
-        private IDictionary<ValueTuple<string, string>, MetadataReference> _lazyReferenceDirectiveMap;
+        private IDictionary<(string, string), MetadataReference> _lazyReferenceDirectiveMap;
 
         /// <summary>
         /// Array of unique bound #r references.
@@ -216,7 +217,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal IDictionary<ValueTuple<string, string>, MetadataReference> ReferenceDirectiveMap
+        internal IDictionary<(string, string), MetadataReference> ReferenceDirectiveMap
         {
             get
             {
@@ -373,7 +374,7 @@ namespace Microsoft.CodeAnalysis
         internal void InitializeNoLock(
             Dictionary<MetadataReference, int> referencedAssembliesMap,
             Dictionary<MetadataReference, int> referencedModulesMap,
-            IDictionary<ValueTuple<string, string>, MetadataReference> boundReferenceDirectiveMap,
+            IDictionary<(string, string), MetadataReference> boundReferenceDirectiveMap,
             ImmutableArray<MetadataReference> directiveReferences,
             ImmutableArray<MetadataReference> explicitReferences,
             ImmutableArray<MetadataReference> implicitReferences,
@@ -662,11 +663,11 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
-        internal override IEnumerable<ValueTuple<IAssemblySymbol, ImmutableArray<string>>> GetReferencedAssemblyAliases()
+        internal override IEnumerable<(IAssemblySymbol, ImmutableArray<string>)> GetReferencedAssemblyAliases()
         {
             for (int i = 0; i < ReferencedAssemblies.Length; i++)
             {
-                yield return ValueTuple.Create((IAssemblySymbol)ReferencedAssemblies[i], AliasesOfReferencedAssemblies[i]);
+                yield return ((IAssemblySymbol)ReferencedAssemblies[i], AliasesOfReferencedAssemblies[i]);
             }
         }
 

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Xunit;
 
@@ -93,7 +93,7 @@ class H
     private class op_Implicit {}
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
                 // (6,21): error CS0111: Type 'C' already defines a member called 'op_Addition' with the same parameter types
                 //     public static C op_Addition(C c1, C c2) { return c1; } 
@@ -150,7 +150,7 @@ class C
     public static explicit operator int (C c) { }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
 // (5,54): error CS0029: Cannot implicitly convert type 'C' to 'C.D'
 //     public static D operator + (C c1, C c2) { return c1; }
@@ -188,7 +188,7 @@ partial class C
             // UNDONE: Native compiler squiggles "operator +". Roslyn squiggles "operator". But perhaps
             // UNDONE: the better thing to actually squiggle is the offending token.
 
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
                 // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
                 //     partial public static int operator + (C c1, C c2) { return 0; }
@@ -196,9 +196,6 @@ partial class C
                 // (12,12): error CS1004: Duplicate 'public' modifier
                 //     public public public static int operator & (C c1, C c2) { return 0; }
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public"),
-                // (4,40): error CS0753: Only methods, classes, structs, or interfaces may be partial
-                //     partial public static int operator + (C c1, C c2) { return 0; }
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyMethods, "+"),
                 // (5,34): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract public int operator - (C c1, C c2) { return 0; }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "-").WithArguments("abstract"),
@@ -259,7 +256,7 @@ public class C
             // UNDONE: Consider matching the native compiler behavior, or, even better, squiggle the
             // UNDONE: offending type.
 
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
 // (6,30): error CS0056: Inconsistent accessibility: return type 'C.D' is less accessible than operator 'C.operator +(C, C)'
 //     public static D operator + (C c1, C c2) { return null; }
@@ -293,7 +290,7 @@ public class C
             // UNDONE: token if the return type is bad and the parameter name if the parameter type is 
             // UNDONE: bad. This seems no better; surely the right thing to squiggle is the offending type.
 
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
 // (5,35): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'C.D<T>'
 //     public static D<int> operator + (C c1, C c2) { return null; }

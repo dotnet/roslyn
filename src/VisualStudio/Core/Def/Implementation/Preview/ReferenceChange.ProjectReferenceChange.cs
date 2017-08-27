@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
             protected override string GetDisplayText()
             {
-                return string.Format(ServicesVSResources.PreviewChangesProjectReference, _projectReferenceName, this.ProjectName);
+                return string.Format(ServicesVSResources.Project_reference_to_0_in_project_1, _projectReferenceName, this.ProjectName);
             }
         }
     }

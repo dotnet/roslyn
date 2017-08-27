@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
@@ -13,11 +13,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
         Inherits AbstractKeywordRecommender
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
-            Dim preselect As Boolean = ShouldPreselect(context, cancellationToken)
+            Dim matchPriority = If(ShouldPreselect(context, cancellationToken), CodeAnalysis.Completion.MatchPriority.Preselect, CodeAnalysis.Completion.MatchPriority.Default)
 
             If context.IsAnyExpressionContext Then
-                Return {New RecommendedKeyword("True", VBFeaturesResources.TrueKeywordToolTip, shouldPreselect:=preselect),
-                        New RecommendedKeyword("False", VBFeaturesResources.FalseKeywordToolTip, shouldPreselect:=preselect)}
+                Return {New RecommendedKeyword("True", VBFeaturesResources.Represents_a_Boolean_value_that_passes_a_conditional_test, matchPriority:=matchPriority),
+                        New RecommendedKeyword("False", VBFeaturesResources.Represents_a_Boolean_value_that_fails_a_conditional_test, matchPriority:=matchPriority)}
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

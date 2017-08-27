@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
@@ -18,13 +19,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
         }
 
-        Cci.INestedTypeReference Cci.ISpecializedNestedTypeReference.UnspecializedVersion
+        Cci.INestedTypeReference Cci.ISpecializedNestedTypeReference.GetUnspecializedVersion(EmitContext context)
         {
-            get
-            {
-                System.Diagnostics.Debug.Assert(UnderlyingNamedType.OriginalDefinition.IsDefinition);
-                return this.UnderlyingNamedType.OriginalDefinition;
-            }
+            Debug.Assert(UnderlyingNamedType.OriginalDefinition.IsDefinition);
+            var result = ((PEModuleBuilder)context.Module).Translate(this.UnderlyingNamedType.OriginalDefinition, 
+                                          (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics, needDeclaration: true).AsNestedTypeReference;
+
+            Debug.Assert(result != null);
+            return result;
         }
 
         public override void Dispatch(Cci.MetadataVisitor visitor)

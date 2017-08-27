@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -80,8 +80,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     var spans = pooledObject.Object;
 
-                    var root = document.GetSyntaxRootAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-                    var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                    var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
+                    var text = root.SyntaxTree.GetText(CancellationToken.None);
 
                     spans.AddRange(containedDocument.GetEditorVisibleSpans());
 

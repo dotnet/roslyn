@@ -1,10 +1,12 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SignatureHelp;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
@@ -70,9 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             // care of cases where the filtered set of providers didn't provide anything but one of the
             // other providers could still be valid, but doesn't explicitly treat the typed character as
             // a trigger character.
-            var filteredProviders = FilterProviders(allProviders, args.TypedChar);
-            var textuallyTriggeredProviders = filteredProviders.Item1;
-            var untriggeredProviders = filteredProviders.Item2;
+            var (textuallyTriggeredProviders, untriggeredProviders) = FilterProviders(allProviders, args.TypedChar);
             var triggerInfo = new SignatureHelpTriggerInfo(SignatureHelpTriggerReason.TypeCharCommand, args.TypedChar);
 
             if (!IsSessionActive)
@@ -109,10 +109,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 if (textuallyTriggeredProviders.Any())
                 {
                     // The character typed was something like "(".  It can both filter a list if
-                    // it was in a string like: Foo(bar, "(
+                    // it was in a string like: Goo(bar, "(
                     //
                     // Or it can trigger a new list. Ask the computation to compute again.
-                    sessionOpt.ComputeModel(textuallyTriggeredProviders, untriggeredProviders, triggerInfo);
+                    sessionOpt.ComputeModel(
+                        textuallyTriggeredProviders.Concat(untriggeredProviders), triggerInfo);
                     computed = true;
                 }
 
@@ -124,12 +125,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             }
         }
 
-        private Tuple<List<ISignatureHelpProvider>, List<ISignatureHelpProvider>> FilterProviders(IList<ISignatureHelpProvider> providers, char ch)
+        private (ImmutableArray<ISignatureHelpProvider> matched, ImmutableArray<ISignatureHelpProvider> unmatched) FilterProviders(
+            ImmutableArray<ISignatureHelpProvider> providers, char ch)
         {
             AssertIsForeground();
 
-            var matchedProviders = new List<ISignatureHelpProvider>();
-            var unmatchedProviders = new List<ISignatureHelpProvider>();
+            var matchedProviders = ArrayBuilder<ISignatureHelpProvider>.GetInstance();
+            var unmatchedProviders = ArrayBuilder<ISignatureHelpProvider>.GetInstance();
             foreach (var provider in providers)
             {
                 if (provider.IsTriggerCharacter(ch))
@@ -142,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 }
             }
 
-            return Tuple.Create(matchedProviders, unmatchedProviders);
+            return (matchedProviders.ToImmutableAndFree(), unmatchedProviders.ToImmutableAndFree());
         }
     }
 }

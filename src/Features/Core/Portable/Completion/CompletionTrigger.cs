@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Roslyn.Utilities;
+using System;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
@@ -27,24 +27,28 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         /// <summary>
+        /// Do not use.  Use <see cref="Invoke"/> instead.
+        /// </summary>
+        [Obsolete("Use 'Invoke' instead.")]
+        public static readonly CompletionTrigger Default = 
+            new CompletionTrigger(CompletionTriggerKind.Other);
+
+        /// <summary>
         /// The default <see cref="CompletionTrigger"/> when none is specified.
         /// </summary>
-        public static readonly CompletionTrigger Default = new CompletionTrigger(CompletionTriggerKind.Other);
+        public static readonly CompletionTrigger Invoke = 
+            new CompletionTrigger(CompletionTriggerKind.Invoke);
 
         /// <summary>
         /// Creates a new instance of a <see cref="CompletionTrigger"/> association with the insertion of a typed character into the document.
         /// </summary>
         public static CompletionTrigger CreateInsertionTrigger(char insertedCharacter)
-        {
-            return new CompletionTrigger(CompletionTriggerKind.Insertion, insertedCharacter);
-        }
+            => new CompletionTrigger(CompletionTriggerKind.Insertion, insertedCharacter);
 
         /// <summary>
         /// Creates a new instance of a <see cref="CompletionTrigger"/> association with the deletion of a character from the document.
         /// </summary>
         public static CompletionTrigger CreateDeletionTrigger(char deletedCharacter)
-        {
-            return new CompletionTrigger(CompletionTriggerKind.Deletion, deletedCharacter);
-        }
+            => new CompletionTrigger(CompletionTriggerKind.Deletion, deletedCharacter);
     }
 }

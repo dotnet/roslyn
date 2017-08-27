@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Threading;
@@ -167,14 +167,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
         }
 
-        protected override CompletionItem CreateItem(RecommendedKeyword keyword, TextSpan span)
+        private static readonly CompletionItemRules s_tupleRules = CompletionItemRules.Default.
+           WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));
+
+        protected override CompletionItem CreateItem(RecommendedKeyword keyword, CSharpSyntaxContext context)
         {
+            var rules = context.IsPossibleTupleContext ? s_tupleRules : CompletionItemRules.Default;
+
             return CommonCompletionItem.Create(
                 displayText: keyword.Keyword,
-                span: span,
                 description: keyword.DescriptionFactory(CancellationToken.None),
                 glyph: Glyph.Keyword,
-                shouldFormatOnCommit: keyword.ShouldFormatOnCommit);
+                rules: rules.WithMatchPriority(keyword.MatchPriority)
+                            .WithFormatOnCommit(keyword.ShouldFormatOnCommit));
+        }
+
+        internal override TextSpan GetCurrentSpan(TextSpan span, SourceText text)
+        {
+            return CompletionUtilities.GetCompletionItemSpan(text, span.End);
         }
     }
 }

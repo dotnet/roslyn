@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -225,12 +226,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
+            public override ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
             {
-                get
-                {
-                    return CreateEmptyTypeArgumentsCustomModifiers();
-                }
+                return GetEmptyTypeArgumentCustomModifiers(ordinal);
             }
 
             public override ImmutableArray<Symbol> GetMembers(string name)

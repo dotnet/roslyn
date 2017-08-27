@@ -4,12 +4,14 @@ using System;
 using System.Composition;
 using System.Diagnostics;
 using System.IO;
+using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -27,10 +29,73 @@ namespace Microsoft.CodeAnalysis.Host
         /// <summary>
         /// Temporarily stores text and streams in memory mapped files.
         /// </summary>
-        internal class TemporaryStorageService : ITemporaryStorageService
+        internal class TemporaryStorageService : ITemporaryStorageService2
         {
+            /// <summary>
+            /// The maximum size in bytes of a single storage unit in a memory mapped file which is shared with other
+            /// storage units.
+            /// </summary>
+            /// <remarks>
+            /// <para>This value was arbitrarily chosen and appears to work well. Can be changed if data suggests
+            /// something better.</para>
+            /// </remarks>
+            /// <seealso cref="_weakFileReference"/>
+            private const long SingleFileThreshold = 128 * 1024;
+
+            /// <summary>
+            /// The size in bytes of a memory mapped file created to store multiple temporary objects.
+            /// </summary>
+            /// <remarks>
+            /// <para>This value was arbitrarily chosen and appears to work well. Can be changed if data suggests
+            /// something better.</para>
+            /// </remarks>
+            /// <seealso cref="_weakFileReference"/>
+            private const long MultiFileBlockSize = SingleFileThreshold * 32;
+
             private readonly ITextFactoryService _textFactory;
-            private readonly MemoryMappedFileManager _memoryMappedFileManager = new MemoryMappedFileManager();
+
+            /// <summary>
+            /// The synchronization object for accessing the memory mapped file related fields (indicated in the remarks
+            /// of each field).
+            /// </summary>
+            /// <remarks>
+            /// <para>PERF DEV NOTE: A concurrent (but complex) implementation of this type with identical semantics is
+            /// available in source control history. The use of exclusive locks was not causing any measurable
+            /// performance overhead even on 28-thread machines at the time this was written.</para>
+            /// </remarks>
+            private readonly object _gate = new object();
+
+            /// <summary>
+            /// The most recent memory mapped file for creating multiple storage units. It will be used via bump-pointer
+            /// allocation until space is no longer available in it.
+            /// </summary>
+            /// <remarks>
+            /// <para>Access should be synchronized on <see cref="_gate"/>.</para>
+            /// </remarks>
+            private ReferenceCountedDisposable<MemoryMappedFile>.WeakReference _weakFileReference;
+
+            /// <summary>The name of the current memory mapped file for multiple storage units.</summary>
+            /// <remarks>
+            /// <para>Access should be synchronized on <see cref="_gate"/>.</para>
+            /// </remarks>
+            /// <seealso cref="_weakFileReference"/>
+            private string _name;
+
+            /// <summary>The total size of the current memory mapped file for multiple storage units.</summary>
+            /// <remarks>
+            /// <para>Access should be synchronized on <see cref="_gate"/>.</para>
+            /// </remarks>
+            /// <seealso cref="_weakFileReference"/>
+            private long _fileSize;
+
+            /// <summary>
+            /// The offset into the current memory mapped file where the next storage unit can be held.
+            /// </summary>
+            /// <remarks>
+            /// <para>Access should be synchronized on <see cref="_gate"/>.</para>
+            /// </remarks>
+            /// <seealso cref="_weakFileReference"/>
+            private long _offset;
 
             public TemporaryStorageService(ITextFactoryService textFactory)
             {
@@ -42,12 +107,73 @@ namespace Microsoft.CodeAnalysis.Host
                 return new TemporaryTextStorage(this);
             }
 
+            public ITemporaryTextStorage AttachTemporaryTextStorage(string storageName, long offset, long size, Encoding encoding, CancellationToken cancellationToken)
+            {
+                return new TemporaryTextStorage(this, storageName, offset, size, encoding);
+            }
+
             public ITemporaryStreamStorage CreateTemporaryStreamStorage(CancellationToken cancellationToken)
             {
                 return new TemporaryStreamStorage(this);
             }
 
-            private class TemporaryTextStorage : ITemporaryTextStorage
+            public ITemporaryStreamStorage AttachTemporaryStreamStorage(string storageName, long offset, long size, CancellationToken cancellationToken)
+            {
+                return new TemporaryStreamStorage(this, storageName, offset, size);
+            }
+
+            /// <summary>
+            /// Allocate shared storage of a specified size.
+            /// </summary>
+            /// <remarks>
+            /// <para>"Small" requests are fulfilled from oversized memory mapped files which support several individual
+            /// storage units. Larger requests are allocated in their own memory mapped files.</para>
+            /// </remarks>
+            /// <param name="size">The size of the shared storage block to allocate.</param>
+            /// <returns>A <see cref="MemoryMappedInfo"/> describing the allocated block.</returns>
+            private MemoryMappedInfo CreateTemporaryStorage(long size)
+            {
+                if (size >= SingleFileThreshold)
+                {
+                    // Larger blocks are allocated separately
+                    var mapName = CreateUniqueName(size);
+                    var storage = MemoryMappedFile.CreateNew(mapName, size);
+                    return new MemoryMappedInfo(new ReferenceCountedDisposable<MemoryMappedFile>(storage), mapName, offset: 0, size: size);
+                }
+
+                lock (_gate)
+                {
+                    // Obtain a reference to the memory mapped file, creating one if necessary. If a reference counted
+                    // handle to a memory mapped file is obtained in this section, it must either be disposed before
+                    // returning or returned to the caller who will own it through the MemoryMappedInfo.
+                    var reference = _weakFileReference.TryAddReference();
+                    if (reference == null || _offset + size > _fileSize)
+                    {
+                        var mapName = CreateUniqueName(MultiFileBlockSize);
+                        var file = MemoryMappedFile.CreateNew(mapName, MultiFileBlockSize);
+
+                        reference = new ReferenceCountedDisposable<MemoryMappedFile>(file);
+                        _weakFileReference = new ReferenceCountedDisposable<MemoryMappedFile>.WeakReference(reference);
+                        _name = mapName;
+                        _fileSize = MultiFileBlockSize;
+                        _offset = size;
+                        return new MemoryMappedInfo(reference, _name, offset: 0, size: size);
+                    }
+                    else
+                    {
+                        // Reserve additional space in the existing storage location
+                        _offset += size;
+                        return new MemoryMappedInfo(reference, _name, _offset - size, size);
+                    }
+                }
+            }
+
+            public static string CreateUniqueName(long size)
+            {
+                return "Roslyn Temp Storage " + size.ToString() + " " + Guid.NewGuid().ToString("N");
+            }
+
+            private class TemporaryTextStorage : ITemporaryTextStorage, ITemporaryStorageWithName
             {
                 private readonly TemporaryStorageService _service;
                 private Encoding _encoding;
@@ -57,6 +183,17 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     _service = service;
                 }
+
+                public TemporaryTextStorage(TemporaryStorageService service, string storageName, long offset, long size, Encoding encoding)
+                {
+                    _service = service;
+                    _encoding = encoding;
+                    _memoryMappedInfo = new MemoryMappedInfo(storageName, offset, size);
+                }
+
+                public string Name => _memoryMappedInfo?.Name;
+                public long Offset => _memoryMappedInfo.Offset;
+                public long Size => _memoryMappedInfo.Size;
 
                 public void Dispose()
                 {
@@ -121,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Host
 
                         // the method we use to get text out of SourceText uses Unicode (2bytes per char). 
                         var size = Encoding.Unicode.GetMaxByteCount(text.Length);
-                        _memoryMappedInfo = _service._memoryMappedFileManager.CreateViewInfo(size);
+                        _memoryMappedInfo = _service.CreateTemporaryStorage(size);
 
                         // Write the source text out as Unicode. We expect that to be cheap.
                         using (var stream = _memoryMappedInfo.CreateWritableStream())
@@ -134,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Host
                     }
                 }
 
-                public Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default(CancellationToken))
+                public Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default)
                 {
                     // See commentary in ReadTextAsync for why this is implemented this way.
                     return Task.Factory.StartNew(() => WriteText(text, cancellationToken), cancellationToken, TaskCreationOptions.None, TaskScheduler.Default);
@@ -150,61 +287,9 @@ namespace Microsoft.CodeAnalysis.Host
 
                     return new DirectMemoryAccessStreamReader(src + 1, streamLength / sizeof(char) - 1);
                 }
-
-                private unsafe class DirectMemoryAccessStreamReader : TextReader
-                {
-                    private char* _position;
-                    private readonly char* _end;
-
-                    public DirectMemoryAccessStreamReader(char* src, int length)
-                    {
-                        Debug.Assert(src != null);
-                        Debug.Assert(length >= 0);
-
-                        _position = src;
-                        _end = _position + length;
-                    }
-
-                    public override int Read()
-                    {
-                        if (_position >= _end)
-                        {
-                            return -1;
-                        }
-
-                        return *_position++;
-                    }
-
-                    public override int Read(char[] buffer, int index, int count)
-                    {
-                        if (buffer == null)
-                        {
-                            throw new ArgumentNullException(nameof(buffer));
-                        }
-
-                        if (index < 0 || index >= buffer.Length)
-                        {
-                            throw new ArgumentOutOfRangeException(nameof(index));
-                        }
-
-                        if (count < 0 || (index + count) > buffer.Length)
-                        {
-                            throw new ArgumentOutOfRangeException(nameof(count));
-                        }
-
-                        count = Math.Min(count, (int)(_end - _position));
-                        if (count > 0)
-                        {
-                            Marshal.Copy((IntPtr)_position, buffer, index, count);
-                            _position += count;
-                        }
-
-                        return count;
-                    }
-                }
             }
 
-            private class TemporaryStreamStorage : ITemporaryStreamStorage
+            private class TemporaryStreamStorage : ITemporaryStreamStorage, ITemporaryStorageWithName
             {
                 private readonly TemporaryStorageService _service;
                 private MemoryMappedInfo _memoryMappedInfo;
@@ -213,6 +298,16 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     _service = service;
                 }
+
+                public TemporaryStreamStorage(TemporaryStorageService service, string storageName, long offset, long size)
+                {
+                    _service = service;
+                    _memoryMappedInfo = new MemoryMappedInfo(storageName, offset, size);
+                }
+
+                public string Name => _memoryMappedInfo?.Name;
+                public long Offset => _memoryMappedInfo.Offset;
+                public long Size => _memoryMappedInfo.Size;
 
                 public void Dispose()
                 {
@@ -241,20 +336,20 @@ namespace Microsoft.CodeAnalysis.Host
                     }
                 }
 
-                public Task<Stream> ReadStreamAsync(CancellationToken cancellationToken = default(CancellationToken))
+                public Task<Stream> ReadStreamAsync(CancellationToken cancellationToken = default)
                 {
                     // See commentary in ReadTextAsync for why this is implemented this way.
                     return Task.Factory.StartNew(() => ReadStream(cancellationToken), cancellationToken, TaskCreationOptions.None, TaskScheduler.Default);
                 }
 
-                public void WriteStream(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+                public void WriteStream(Stream stream, CancellationToken cancellationToken = default)
                 {
                     // The Wait() here will not actually block, since with useAsync: false, the
                     // entire operation will already be done when WaitStreamMaybeAsync completes.
                     WriteStreamMaybeAsync(stream, useAsync: false, cancellationToken: cancellationToken).GetAwaiter().GetResult();
                 }
 
-                public Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+                public Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default)
                 {
                     return WriteStreamMaybeAsync(stream, useAsync: true, cancellationToken: cancellationToken);
                 }
@@ -263,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     if (_memoryMappedInfo != null)
                     {
-                        throw new InvalidOperationException(WorkspacesResources.TemporaryStorageCannotBeWrittenMultipleTimes);
+                        throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
                     }
 
                     if (stream.Length == 0)
@@ -274,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Host
                     using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_WriteStream, cancellationToken))
                     {
                         var size = stream.Length;
-                        _memoryMappedInfo = _service._memoryMappedFileManager.CreateViewInfo(size);
+                        _memoryMappedInfo = _service.CreateTemporaryStorage(size);
                         using (var viewStream = _memoryMappedInfo.CreateWritableStream())
                         {
                             var buffer = SharedPools.ByteArray.Allocate();
@@ -307,6 +402,69 @@ namespace Microsoft.CodeAnalysis.Host
                         }
                     }
                 }
+            }
+        }
+
+        internal unsafe class DirectMemoryAccessStreamReader : TextReaderWithLength
+        {
+            private char* _position;
+            private readonly char* _end;
+
+            public DirectMemoryAccessStreamReader(char* src, int length) :
+                base(length)
+            {
+                Debug.Assert(src != null);
+                Debug.Assert(length >= 0);
+
+                _position = src;
+                _end = _position + length;
+            }
+
+            public override int Peek()
+            {
+                if (_position >= _end)
+                {
+                    return -1;
+                }
+
+                return *_position;
+            }
+
+            public override int Read()
+            {
+                if (_position >= _end)
+                {
+                    return -1;
+                }
+
+                return *_position++;
+            }
+
+            public override int Read(char[] buffer, int index, int count)
+            {
+                if (buffer == null)
+                {
+                    throw new ArgumentNullException(nameof(buffer));
+                }
+
+                if (index < 0 || index >= buffer.Length)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(index));
+                }
+
+                if (count < 0 || (index + count) > buffer.Length)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(count));
+                }
+
+                count = Math.Min(count, (int)(_end - _position));
+                if (count > 0)
+                {
+                    Marshal.Copy((IntPtr)_position, buffer, index, count);
+                    _position += count;
+                }
+
+                return count;
             }
         }
     }

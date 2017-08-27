@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Completion.CompletionProviders
 {
@@ -27,10 +26,9 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.CompletionProviders
             SourceText sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             if (Workspace.TryGetWorkspace(sourceText.Container, out ws))
             {
-                var workspace = ws as InteractiveWorkspace;
-                if (workspace != null)
+                if (ws is InteractiveWorkspace workspace)
                 {
-                    var window = workspace.Engine.CurrentWindow;
+                    var window = workspace.Window;
                     var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
                     if (await ShouldDisplayCommandCompletionsAsync(tree, position, cancellationToken).ConfigureAwait(false))
@@ -44,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.CompletionProviders
                                 {
                                     string completion = GetCompletionString(commandName);
                                     context.AddItem(CommonCompletionItem.Create(
-                                        completion, context.DefaultItemSpan, description: command.Description.ToSymbolDisplayParts(), glyph: Glyph.Intrinsic));
+                                        completion, CompletionItemRules.Default, description: command.Description.ToSymbolDisplayParts(), glyph: Glyph.Intrinsic));
                                 }
                             }
                         }

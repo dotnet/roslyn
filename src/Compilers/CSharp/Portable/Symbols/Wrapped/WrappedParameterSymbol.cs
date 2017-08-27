@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -32,11 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return _underlyingParameter;
             }
-        }
-
-        public abstract override Symbol ContainingSymbol
-        {
-            get;
         }
 
         #region Forwarded
@@ -121,6 +117,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingParameter.CustomModifiers; }
         }
 
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get { return _underlyingParameter.RefCustomModifiers; }
+        }
+
         internal override MarshalPseudoCustomAttributeData MarshallingInformation
         {
             get { return _underlyingParameter.MarshallingInformation; }
@@ -154,11 +155,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsCallerMemberName
         {
             get { return _underlyingParameter.IsCallerMemberName; }
-        }
-
-        internal sealed override ushort CountOfCustomModifiersPrecedingByRef
-        {
-            get { return _underlyingParameter.CountOfCustomModifiersPrecedingByRef; }
         }
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))

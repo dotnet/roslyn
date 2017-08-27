@@ -45,6 +45,8 @@ namespace Microsoft.CodeAnalysis
             {
                 return _fixedString?.GetHashCode() ?? 0;
             }
+
+            internal override bool CanThrowExceptions => false;
         }
     }
 }

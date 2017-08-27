@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 Imports InternalSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
+Imports Microsoft.CodeAnalysis.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -266,7 +267,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException(NameOf(text))
             End If
 
-            Return New SyntaxToken(Nothing, InternalSyntax.SyntaxFactory.IntegerLiteralToken(text, base, typeSuffix, value, DirectCast(leadingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode)), 0, 0)
+            Return New SyntaxToken(Nothing, InternalSyntax.SyntaxFactory.IntegerLiteralToken(text, base, typeSuffix, value, leadingTrivia.Node, trailingTrivia.Node), 0, 0)
         End Function
 
         Public Shared Function FloatingLiteralToken(text As String, typeSuffix As TypeCharacter, value As Double) As SyntaxToken
@@ -278,7 +279,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException(NameOf(text))
             End If
 
-            Return New SyntaxToken(Nothing, InternalSyntax.SyntaxFactory.FloatingLiteralToken(text, typeSuffix, value, DirectCast(leadingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode)), 0, 0)
+            Return New SyntaxToken(Nothing, InternalSyntax.SyntaxFactory.FloatingLiteralToken(text, typeSuffix, value, leadingTrivia.Node, trailingTrivia.Node), 0, 0)
         End Function
 
         Public Shared Function Identifier(text As String, isBracketed As Boolean, identifierText As String, typeCharacter As TypeCharacter) As SyntaxToken
@@ -294,7 +295,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentException(NameOf(text))
             End If
 
-            Return New SyntaxToken(Nothing, New InternalSyntax.ComplexIdentifierSyntax(SyntaxKind.IdentifierToken, Nothing, Nothing, text, DirectCast(leadingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode), SyntaxKind.IdentifierToken, isBracketed, identifierText, typeCharacter), 0, 0)
+            Return New SyntaxToken(Nothing, New InternalSyntax.ComplexIdentifierSyntax(SyntaxKind.IdentifierToken, Nothing, Nothing, text, leadingTrivia.Node, trailingTrivia.Node, SyntaxKind.IdentifierToken, isBracketed, identifierText, typeCharacter), 0, 0)
         End Function
 
         Public Shared Function Identifier(text As String) As SyntaxToken
@@ -310,7 +311,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentException(NameOf(text))
             End If
 
-            Return New SyntaxToken(Nothing, New InternalSyntax.ComplexIdentifierSyntax(SyntaxKind.IdentifierToken, Nothing, Nothing, text, DirectCast(leadingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode), SyntaxKind.IdentifierToken, False, text, TypeCharacter.None), 0, 0)
+            Return New SyntaxToken(Nothing, New InternalSyntax.ComplexIdentifierSyntax(SyntaxKind.IdentifierToken, Nothing, Nothing, text, leadingTrivia.Node, trailingTrivia.Node, SyntaxKind.IdentifierToken, False, text, TypeCharacter.None), 0, 0)
         End Function
 
         ''' <summary>
@@ -332,7 +333,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentException(NameOf(text))
             End If
 
-            Return New SyntaxToken(Nothing, New InternalSyntax.ComplexIdentifierSyntax(SyntaxKind.IdentifierToken, Nothing, Nothing, "[" + text + "]", DirectCast(leadingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode), SyntaxKind.IdentifierToken, True, text, TypeCharacter.None), 0, 0)
+            Return New SyntaxToken(Nothing, New InternalSyntax.ComplexIdentifierSyntax(SyntaxKind.IdentifierToken, Nothing, Nothing, "[" + text + "]", leadingTrivia.Node, trailingTrivia.Node, SyntaxKind.IdentifierToken, True, text, TypeCharacter.None), 0, 0)
         End Function
 
         ''' <summary>
@@ -340,7 +341,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Shared Function MissingIdentifier() As SyntaxToken
             Return New SyntaxToken(Nothing, New InternalSyntax.SimpleIdentifierSyntax(SyntaxKind.IdentifierToken, Nothing, Nothing, "",
-                    DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode), DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode)), 0, 0)
+                    ElasticMarker.UnderlyingNode, ElasticMarker.UnderlyingNode), 0, 0)
         End Function
 
         ''' <summary>
@@ -348,7 +349,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Shared Function MissingIdentifier(kind As SyntaxKind) As SyntaxToken
             Return New SyntaxToken(Nothing, New InternalSyntax.ComplexIdentifierSyntax(SyntaxKind.IdentifierToken, Nothing, Nothing, "",
-                    DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode), DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode),
+                    ElasticMarker.UnderlyingNode, ElasticMarker.UnderlyingNode,
                     kind, False, "", TypeCharacter.None), 0, 0)
         End Function
 
@@ -357,7 +358,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Shared Function MissingKeyword(kind As SyntaxKind) As SyntaxToken
             Return New SyntaxToken(Nothing, New InternalSyntax.KeywordSyntax(kind, "",
-                    DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode), DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode)), 0, 0)
+                    ElasticMarker.UnderlyingNode, ElasticMarker.UnderlyingNode), 0, 0)
         End Function
 
         ''' <summary>
@@ -365,7 +366,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Shared Function MissingPunctuation(kind As SyntaxKind) As SyntaxToken
             Return New SyntaxToken(Nothing, New InternalSyntax.PunctuationSyntax(kind, "",
-                    DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode), DirectCast(ElasticMarker.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode)), 0, 0)
+                    ElasticMarker.UnderlyingNode, ElasticMarker.UnderlyingNode), 0, 0)
         End Function
 
         ''' <summary>
@@ -698,7 +699,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentException(NameOf(text))
             End If
             Return New SyntaxToken(Nothing, New InternalSyntax.BadTokenSyntax(SyntaxKind.BadToken, InternalSyntax.SyntaxSubKind.None, Nothing, Nothing, text,
-                    DirectCast(leadingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode)), 0, 0)
+                    leadingTrivia.Node, trailingTrivia.Node), 0, 0)
         End Function
 
 #End Region
@@ -736,14 +737,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <typeparam name="TNode">The specific type of the element nodes.</typeparam>
         ''' <param name="nodes">A sequence of element nodes.</param>
         Public Shared Function List(Of TNode As SyntaxNode)(nodes As IEnumerable(Of TNode)) As SyntaxList(Of TNode)
-            If nodes IsNot Nothing Then
-                Dim builder = SyntaxListBuilder(Of TNode).Create()
-                For Each node In nodes
-                    builder.Add(node)
-                Next
-                Return builder.ToList
-            End If
-            Return New SyntaxList(Of TNode)
+            Return New SyntaxList(Of TNode)(nodes)
         End Function
 
         ''' <summary>
@@ -766,14 +760,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="tokens">An array of tokens.</param>
         Public Shared Function TokenList(ParamArray tokens As SyntaxToken()) As SyntaxTokenList
-            If tokens IsNot Nothing Then
-                Dim builder As New SyntaxTokenListBuilder(tokens.Length)
-                For i = 0 To tokens.Length - 1
-                    builder.Add(DirectCast(tokens(i).Node, InternalSyntax.SyntaxToken))
-                Next
-                Return builder.ToList
-            End If
-            Return New SyntaxTokenList()
+            Return New SyntaxTokenList(tokens)
         End Function
 
         ''' <summary>
@@ -781,14 +768,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="tokens"></param>
         Public Shared Function TokenList(tokens As IEnumerable(Of SyntaxToken)) As SyntaxTokenList
-            If tokens IsNot Nothing Then
-                Dim builder = SyntaxTokenListBuilder.Create()
-                For Each t In tokens
-                    builder.Add(DirectCast(t.Node, InternalSyntax.SyntaxToken))
-                Next
-                Return builder.ToList
-            End If
-            Return New SyntaxTokenList()
+            Return New SyntaxTokenList(tokens)
         End Function
 
         ''' <summary>
@@ -811,12 +791,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="trivias">An array of trivia.</param>
         Public Shared Function TriviaList(ParamArray trivias As SyntaxTrivia()) As SyntaxTriviaList
-            If trivias IsNot Nothing Then
-                Dim builder As New SyntaxTriviaListBuilder(trivias.Length)
-                builder.Add(trivias)
-                Return builder.ToList
-            End If
-            Return New SyntaxTriviaList()
+            Return New SyntaxTriviaList(trivias)
         End Function
 
         ''' <summary>
@@ -824,14 +799,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="trivias">A sequence of trivia.</param>
         Public Shared Function TriviaList(trivias As IEnumerable(Of SyntaxTrivia)) As SyntaxTriviaList
-            If trivias IsNot Nothing Then
-                Dim builder = SyntaxTriviaListBuilder.Create()
-                For Each t In trivias
-                    builder.Add(t)
-                Next
-                Return builder.ToList
-            End If
-            Return New SyntaxTriviaList()
+            Return New SyntaxTriviaList(trivias)
         End Function
 
         ''' <summary>
@@ -997,13 +965,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="nodesAndTokens">A sequence of nodes and tokens.</param>
         Public Shared Function NodeOrTokenList(nodesAndTokens As IEnumerable(Of SyntaxNodeOrToken)) As SyntaxNodeOrTokenList
-            If nodesAndTokens Is Nothing Then
-                Throw New ArgumentNullException(NameOf(nodesAndTokens))
-            End If
-
-            Dim builder = New SyntaxNodeOrTokenListBuilder(8)
-            builder.AddRange(nodesAndTokens)
-            Return builder.ToList()
+            Return New SyntaxNodeOrTokenList(nodesAndTokens)
         End Function
 
         ''' <summary>
@@ -1011,7 +973,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="nodesAndTokens">An array of nodes and tokens.</param>
         Public Shared Function NodeOrTokenList(ParamArray nodesAndTokens As SyntaxNodeOrToken()) As SyntaxNodeOrTokenList
-            Return NodeOrTokenList(DirectCast(nodesAndTokens, IEnumerable(Of SyntaxNodeOrToken)))
+            Return New SyntaxNodeOrTokenList(nodesAndTokens)
         End Function
 
 #End Region

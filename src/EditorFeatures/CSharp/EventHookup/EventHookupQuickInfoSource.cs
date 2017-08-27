@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
@@ -29,10 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         {
             // Augmenting quick info isn't cancellable.
             var cancellationToken = CancellationToken.None;
-            EventHookupSessionManager eventHookupSessionManager;
 
             // Ensure this is a quick info session created by event hookup
-            if (!existingQuickInfoSession.Properties.TryGetProperty(typeof(EventHookupSessionManager), out eventHookupSessionManager))
+            if (!existingQuickInfoSession.Properties.TryGetProperty(typeof(EventHookupSessionManager), out EventHookupSessionManager eventHookupSessionManager))
             {
                 applicableToSpan = null;
                 return;
@@ -89,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             eventNameRun.FontWeight = FontWeights.Bold;
             textBlock.Inlines.Add(eventNameRun);
 
-            var pressTabRun = new Run(CSharpEditorResources.PressTABToInsert);
+            var pressTabRun = new Run(CSharpEditorResources.Press_TAB_to_insert);
             textBlock.Inlines.Add(pressTabRun);
 
             return textBlock;

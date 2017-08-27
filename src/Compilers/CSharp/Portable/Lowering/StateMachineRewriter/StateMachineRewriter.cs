@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -208,13 +209,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (parameter.IsThis)
                     {
                         var containingType = method.ContainingType;
-                        var proxyField = F.StateMachineField(containingType, GeneratedNames.ThisProxyFieldName(), isPublic: true);
+                        var proxyField = F.StateMachineField(containingType, GeneratedNames.ThisProxyFieldName(), isPublic: true, isThis: true);
                         proxiesBuilder.Add(parameter, new CapturedToStateMachineFieldReplacement(proxyField, isReusable: false));
 
                         if (PreserveInitialParameterValues)
                         {
                             var initialThis = containingType.IsStructType() ?
-                                F.StateMachineField(containingType, GeneratedNames.StateMachineThisParameterProxyName(), isPublic: true) : proxyField;
+                                F.StateMachineField(containingType, GeneratedNames.StateMachineThisParameterProxyName(), isPublic: true, isThis: true) : proxyField;
 
                             initialParameters.Add(parameter, new CapturedToStateMachineFieldReplacement(initialThis, isReusable: false));
                         }

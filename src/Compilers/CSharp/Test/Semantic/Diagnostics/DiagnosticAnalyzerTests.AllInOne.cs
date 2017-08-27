@@ -25,19 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.Property);
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.NamedType);
 
-            // AllInOneCSharpCode has no pattern matching.
-            var syntaxKindsPatterns = new HashSet<SyntaxKind>();
-            syntaxKindsPatterns.Add(SyntaxKind.IsPatternExpression);
-            syntaxKindsPatterns.Add(SyntaxKind.DeclarationPattern);
-            syntaxKindsPatterns.Add(SyntaxKind.ConstantPattern);
-            syntaxKindsPatterns.Add(SyntaxKind.WhenClause);
-            syntaxKindsPatterns.Add(SyntaxKind.CasePatternSwitchLabel);
-
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             CreateCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { analyzer });
             analyzer.VerifyAllAnalyzerMembersWereCalled();
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
-            analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(syntaxKindsPatterns);
+            analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(new HashSet<SyntaxKind>());
             analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds(symbolKindsWithNoCodeBlocks);
         }
 

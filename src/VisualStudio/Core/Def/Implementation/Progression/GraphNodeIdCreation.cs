@@ -117,25 +117,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         private static async Task<GraphNodeId> GetPartialForTypeAsync(ITypeSymbol symbol, GraphNodeIdName nodeName, Solution solution, CancellationToken cancellationToken, bool isInGenericArguments = false)
         {
-            if (symbol is IArrayTypeSymbol)
+            if (symbol is IArrayTypeSymbol arrayType)
             {
-                return await GetPartialForArrayTypeAsync((IArrayTypeSymbol)symbol, nodeName, solution, cancellationToken).ConfigureAwait(false);
+                return await GetPartialForArrayTypeAsync(arrayType, nodeName, solution, cancellationToken).ConfigureAwait(false);
             }
-            else if (symbol is INamedTypeSymbol)
+            else if (symbol is INamedTypeSymbol namedType)
             {
-                return await GetPartialForNamedTypeAsync((INamedTypeSymbol)symbol, nodeName, solution, cancellationToken, isInGenericArguments).ConfigureAwait(false);
+                return await GetPartialForNamedTypeAsync(namedType, nodeName, solution, cancellationToken, isInGenericArguments).ConfigureAwait(false);
             }
-            else if (symbol is IPointerTypeSymbol)
+            else if (symbol is IPointerTypeSymbol pointerType)
             {
-                return await GetPartialForPointerTypeAsync((IPointerTypeSymbol)symbol, nodeName, solution, cancellationToken).ConfigureAwait(false);
+                return await GetPartialForPointerTypeAsync(pointerType, nodeName, solution, cancellationToken).ConfigureAwait(false);
             }
-            else if (symbol is ITypeParameterSymbol)
+            else if (symbol is ITypeParameterSymbol typeParameter)
             {
-                return await GetPartialForTypeParameterSymbolAsync((ITypeParameterSymbol)symbol, nodeName, solution, cancellationToken).ConfigureAwait(false);
+                return await GetPartialForTypeParameterSymbolAsync(typeParameter, nodeName, solution, cancellationToken).ConfigureAwait(false);
             }
-            else if (symbol is IDynamicTypeSymbol)
+            else if (symbol is IDynamicTypeSymbol dynamicType)
             {
-                return GetPartialForDynamicType((IDynamicTypeSymbol)symbol, nodeName);
+                return GetPartialForDynamicType(dynamicType, nodeName);
             }
 
             throw ExceptionUtilities.Unreachable;
@@ -313,8 +313,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                         parameterTypeIds.Add(GraphNodeId.GetNested(nodes.ToArray()));
                     }
 
-                    IMethodSymbol methodSymbol = member as IMethodSymbol;
-                    if (methodSymbol != null && methodSymbol.MethodKind == MethodKind.Conversion)
+                    if (member is IMethodSymbol methodSymbol && methodSymbol.MethodKind == MethodKind.Conversion)
                     {
                         // For explicit/implicit conversion operators, we need to include the return type in the method Id,
                         // because there can be several conversion operators with same parameters and only differ by return type.
@@ -401,13 +400,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             Project foundProject = solution.GetProject(containingAssembly, cancellationToken);
             if (foundProject != null)
             {
-                var workspace = solution.Workspace as VisualStudioWorkspaceImpl;
-                if (workspace != null)
+                if (solution.Workspace is VisualStudioWorkspaceImpl workspace)
                 {
-                    var vsProject = workspace.ProjectTracker.GetProject(foundProject.Id);
+                    // We have found a project in the solution, so clearly the deferred state has been loaded
+                    var vsProject = workspace.DeferredState.ProjectTracker.GetProject(foundProject.Id);
                     if (vsProject != null)
                     {
-                        var output = vsProject.TryGetBinOutputPath();
+                        var output = vsProject.BinOutputPath;
                         if (!string.IsNullOrWhiteSpace(output))
                         {
                             return new Uri(output, UriKind.RelativeOrAbsolute);
@@ -426,8 +425,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                     if (compilation != null)
                     {
-                        var reference = compilation.GetMetadataReference(containingAssembly) as PortableExecutableReference;
-                        if (reference != null && !string.IsNullOrEmpty(reference.FilePath))
+                        if (compilation.GetMetadataReference(containingAssembly) is PortableExecutableReference reference && !string.IsNullOrEmpty(reference.FilePath))
                         {
                             return new Uri(reference.FilePath, UriKind.RelativeOrAbsolute);
                         }
@@ -468,8 +466,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
 
             ISymbol containingSymbol = symbol.ContainingSymbol;
-            IMethodSymbol method = containingSymbol as IMethodSymbol;
-            if (method != null && method.AssociatedSymbol != null && method.AssociatedSymbol.Kind == SymbolKind.Property)
+            if (containingSymbol is IMethodSymbol method && method.AssociatedSymbol != null && method.AssociatedSymbol.Kind == SymbolKind.Property)
             {
                 IPropertySymbol property = (IPropertySymbol)method.AssociatedSymbol;
                 if (property.Parameters.Any(p => p.Name == symbol.Name))
@@ -511,11 +508,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         /// <summary>
         /// Get the position of where a given local variable is defined considering there could be multiple variables with the same name in method body.
-        /// For example, in "int M() { { int foo = 0; ...} { int foo = 1; ...} }",
-        /// the return value for the first "foo" would be 0 while the value for the second one would be 1.
+        /// For example, in "int M() { { int goo = 0; ...} { int goo = 1; ...} }",
+        /// the return value for the first "goo" would be 0 while the value for the second one would be 1.
         /// It will be used to create a node with LocalVariableIndex for a non-zero value.
-        /// In the above example, hence, a node id for the first "foo" would look like (... Member=M LocalVariable=bar)
-        /// but an id for the second "foo" would be (... Member=M LocalVariable=bar LocalVariableIndex=1)
+        /// In the above example, hence, a node id for the first "goo" would look like (... Member=M LocalVariable=bar)
+        /// but an id for the second "goo" would be (... Member=M LocalVariable=bar LocalVariableIndex=1)
         /// </summary>
         private static async Task<int> GetLocalVariableIndexAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {

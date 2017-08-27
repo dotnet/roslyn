@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateEnumMember
             get { return ImmutableArray.Create(CS0117); }
         }
 
-        protected override Task<IEnumerable<CodeAction>> GetCodeActionsAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
             var service = document.GetLanguageService<IGenerateEnumMemberService>();
             return service.GenerateEnumMemberAsync(document, node, cancellationToken);

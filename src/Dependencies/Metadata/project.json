@@ -1,9 +1,0 @@
-{
-  "supports": {},
-  "dependencies": {
-    "System.Reflection.Metadata": "1.4.1-beta-24227-04"
-  },
-  "frameworks": {
-    ".NETPortable,Version=v4.5,Profile=Profile7": {}
-  }
-}

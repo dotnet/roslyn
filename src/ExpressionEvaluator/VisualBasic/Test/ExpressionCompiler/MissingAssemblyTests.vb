@@ -9,8 +9,8 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Imports Microsoft.DiaSymReader
 Imports Microsoft.VisualStudio.Debugger.Evaluation
-Imports Roslyn.Test.PdbUtilities
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 Imports Xunit
@@ -145,7 +145,7 @@ Class C
 End Class
 "
 
-            Dim ilRef = CompileIL(il, appendDefaultHeader:=False)
+            Dim ilRef = CompileIL(il, prependDefaultHeader:=False)
             Dim comp = CreateCompilationWithMscorlib({vb}, {ilRef}, TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
@@ -358,7 +358,9 @@ End Class
 
                     Dim aliases = ImmutableArray.Create(ExceptionAlias("Microsoft.CSharp.RuntimeBinder.RuntimeBinderException, Microsoft.CSharp, Version = 4.0.0.0, Culture = neutral, PublicKeyToken = b03f5f7f11d50a3a", stowed:=True))
 
-                    Const expectedError = "error BC30002: Type 'System.Void' is not defined."
+                    Const expectedError = "error BC30652: Reference required to assembly " &
+                                          "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' " &
+                                          "containing the type 'Exception'. Add one to your project."
                     Dim expectedMissingAssemblyIdentity = comp.Assembly.CorLibrary.Identity
 
                     Dim resultProperties As ResultProperties = Nothing
@@ -590,6 +592,119 @@ End Class"
 
                     Assert.Equal(2, retryCount)
                 End Sub)
+        End Sub
+
+        <Fact>
+        Public Sub TupleNoSystemRuntimeWithVB15()
+            Const source =
+"Class C
+    Shared Sub M()
+        Dim x = 1
+        Dim y = (x, 2)
+        Dim z = (3, 4, (5, 6))
+    End Sub
+End Class"
+            TupleContextNoSystemRuntime(
+                source,
+                "C.M",
+                "y",
+"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (Integer V_0, //x
+                (x As Integer, Integer) V_1, //y
+                (Integer, Integer, (Integer, Integer)) V_2) //z
+  IL_0000:  ldloc.1
+  IL_0001:  ret
+}")
+        End Sub
+
+        <Fact>
+        Public Sub TupleNoSystemRuntimeWithVB15_3()
+            Const source =
+"Class C
+    Shared Sub M()
+        Dim x = 1
+        Dim y = (x, 2)
+        Dim z = (3, 4, (5, 6))
+    End Sub
+End Class"
+            TupleContextNoSystemRuntime(
+                source,
+                "C.M",
+                "y",
+"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (Integer V_0, //x
+                (x As Integer, Integer) V_1, //y
+                (Integer, Integer, (Integer, Integer)) V_2) //z
+  IL_0000:  ldloc.1
+  IL_0001:  ret
+}", LanguageVersion.VisualBasic15_3)
+        End Sub
+
+        <WorkItem(16879, "https://github.com/dotnet/roslyn/issues/16879")>
+        <Fact>
+        Public Sub NonTupleNoSystemRuntime()
+            Const source =
+"Class C
+    Shared Sub M()
+        Dim x = 1
+        Dim y = (x, 2)
+        Dim z = (3, 4, (5, 6))
+    End Sub
+End Class"
+            TupleContextNoSystemRuntime(
+                source,
+                "C.M",
+                "x",
+"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (Integer V_0, //x
+                (x As Integer, Integer) V_1, //y
+                (Integer, Integer, (Integer, Integer)) V_2) //z
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}")
+        End Sub
+
+        Private Shared Sub TupleContextNoSystemRuntime(source As String, methodName As String, expression As String, expectedIL As String,
+                                                       Optional languageVersion As LanguageVersion = LanguageVersion.VisualBasic15)
+            Dim comp = CreateCompilationWithMscorlib({source}, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll,
+                                                     parseOptions:=TestOptions.Regular.WithLanguageVersion(languageVersion))
+            Using systemRuntime = SystemRuntimeFacadeRef.ToModuleInstance()
+                WithRuntimeInstance(comp, {MscorlibRef, ValueTupleRef},
+                    Sub(runtime)
+                        Dim methodBlocks As ImmutableArray(Of MetadataBlock) = Nothing
+                        Dim moduleVersionId As Guid = Nothing
+                        Dim symReader As ISymUnmanagedReader = Nothing
+                        Dim typeToken = 0
+                        Dim methodToken = 0
+                        Dim localSignatureToken = 0
+                        GetContextState(runtime, "C.M", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+                        Dim errorMessage As String = Nothing
+                        Dim testData As CompilationTestData = Nothing
+                        Dim retryCount = 0
+                        Dim compileResult = ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
+                            runtime.Modules.Select(Function(m) m.MetadataBlock).ToImmutableArray(),
+                            expression,
+                            ImmutableArray(Of [Alias]).Empty,
+                            Function(b, u) EvaluationContext.CreateMethodContext(b.ToCompilation(), MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion:=1, ilOffset:=0, localSignatureToken:=localSignatureToken),
+                            Function(assemblyIdentity As AssemblyIdentity, ByRef uSize As UInteger)
+                                retryCount += 1
+                                Assert.Equal("System.Runtime", assemblyIdentity.Name)
+                                Dim block = systemRuntime.MetadataBlock
+                                uSize = CUInt(block.Size)
+                                Return block.Pointer
+                            End Function,
+                            errorMessage:=errorMessage,
+                            testData:=testData)
+                        Assert.Equal(1, retryCount)
+                        testData.GetMethodData("<>x.<>m0").VerifyIL(expectedIL)
+                    End Sub)
+            End Using
         End Sub
 
         Private Shared Function GetMissingAssemblyIdentities(code As ERRID, ParamArray arguments() As Object) As ImmutableArray(Of AssemblyIdentity)

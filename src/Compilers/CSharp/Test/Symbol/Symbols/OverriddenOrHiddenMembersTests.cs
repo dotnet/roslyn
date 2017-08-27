@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -67,7 +67,7 @@ class D : B<D>
 ";
 
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
 
             var global = comp.GlobalNamespace;
 
@@ -154,7 +154,7 @@ class Out3 : Out2
 ";
 
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
 
             var global = comp.GlobalNamespace;
 
@@ -235,7 +235,7 @@ interface DerivedInterface2 : BaseInterface2, BaseInterface1
     int Property { get; set; }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
 
             var baseInterface1 = (NamedTypeSymbol)global.GetMembers("BaseInterface1").Single();
@@ -330,7 +330,7 @@ interface DerivedInterface2 : BaseInterface2<int>, BaseInterface1<int>
     int Property { get; set; }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
 
             var baseInterface1 = (NamedTypeSymbol)global.GetMembers("BaseInterface1").Single();
@@ -415,7 +415,7 @@ class DerivedClass : BaseClass
     public int Property { get; set; }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
 
             var baseClass = (NamedTypeSymbol)global.GetMembers("BaseClass").Single();
@@ -468,7 +468,7 @@ class DerivedClass : BaseClass<int>
     public int Property { get; set; }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
 
             var baseClass = (NamedTypeSymbol)global.GetMembers("BaseClass").Single();
@@ -611,7 +611,7 @@ abstract class DerivedClass : BaseClass<int, long>
     public override int GetHashCode() { return 1; }
     public override bool Equals(object obj) { return true; }
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
             var system = comp.GlobalNamespace.GetNestedNamespace("System");
 
@@ -677,7 +677,7 @@ class DerivedClass : BaseClass<int, long>
     public override int Property { get; set; }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
 
             var baseClass = (NamedTypeSymbol)global.GetMembers("BaseClass").Single();
@@ -750,15 +750,15 @@ class OverridingClass : HidingClass
 }
 ";
 
-            var comp1 = CreateCompilationWithMscorlib(text1);
+            var comp1 = CreateStandardCompilation(text1);
             var comp1ref = new CSharpCompilationReference(comp1);
             var refs = new System.Collections.Generic.List<MetadataReference>() { comp1ref };
 
-            var comp2 = CreateCompilationWithMscorlib(text2, references: refs, assemblyName: "Test2");
+            var comp2 = CreateStandardCompilation(text2, references: refs, assemblyName: "Test2");
             var comp2ref = new CSharpCompilationReference(comp2);
 
             refs.Add(comp2ref);
-            var comp = CreateCompilationWithMscorlib(text3, refs, assemblyName: "Test3");
+            var comp = CreateStandardCompilation(text3, refs, assemblyName: "Test3");
 
             var global = comp.GlobalNamespace;
 
@@ -881,7 +881,7 @@ class Base4 : Base3
 {
     public override int Property { set { } }
 }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Base4").WithArguments("Base4", "Base3.Method(int, long)"),
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Base4").WithArguments("Base4", "Base2.Method(int)"),
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Base4").WithArguments("Base4", "Base.Property.get"));
@@ -917,7 +917,7 @@ class CustomModifierOverridingE : CustomModifierOverridingD
 ";
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
 
-            var comp = CreateCompilationWithMscorlib(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             Assert.False(comp.GetDiagnostics().Any());
@@ -1135,7 +1135,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(text)
+            CreateStandardCompilation(text)
                 .VerifyDiagnostics(Diagnostic(ErrorCode.ERR_PropertyLacksGet, "c2.P1").WithArguments("TestClass2.P1"));
         }
 
@@ -1160,7 +1160,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             Assert.Empty(comp.GetDiagnostics());
         }
 
@@ -1178,7 +1178,7 @@ public class Derived1 : Base
     public override long Property1 { get { return 0; } }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             Assert.Empty(comp.GetDiagnostics());
         }
 
@@ -1207,7 +1207,7 @@ public class CSClass : Metadata.VBClass02
 ";
             #endregion
 
-            var comp = CreateCompilationWithMscorlib(
+            var comp = CreateStandardCompilation(
                 text1,
                 references: new[] { TestReferences.MetadataTests.InterfaceAndClass.VBClasses02 },
                 assemblyName: "OHI_OverrideSealNotVisibleMember001",
@@ -1244,7 +1244,7 @@ class CSHide : VBIMeth02Impl, IMeth02, IMeth03
 ";
             #endregion
 
-            var comp = CreateCompilationWithMscorlib(
+            var comp = CreateStandardCompilation(
                 text1,
                 references: new[]
                 {
@@ -1280,7 +1280,7 @@ abstract class Derived : AccessorModifierMismatch
 }
 ";
             var refs = new MetadataReference[] { TestReferences.SymbolsTests.Properties };
-            CreateCompilationWithMscorlib(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            CreateStandardCompilation(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics();
         }
 
         [WorkItem(543263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543263")]
@@ -1294,7 +1294,7 @@ class Derived : AccessorModifierMismatch
 }
 ";
             var refs = new MetadataReference[] { TestReferences.SymbolsTests.Properties };
-            CreateCompilationWithMscorlib(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateStandardCompilation(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (2,7): error CS0534: 'Derived' does not implement inherited abstract member 'AccessorModifierMismatch.NoneAbstract.set'
                 // class Derived : AccessorModifierMismatch
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "AccessorModifierMismatch.NoneAbstract.set"),
@@ -1342,7 +1342,7 @@ class Derived : AccessorModifierMismatch // CS0534 (didn't implement AbstractAbs
 }
 ";
             var refs = new MetadataReference[] { TestReferences.SymbolsTests.Properties };
-            CreateCompilationWithMscorlib(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateStandardCompilation(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (4,25): error CS0506: 'Derived.NoneNone': cannot override inherited member 'AccessorModifierMismatch.NoneNone' because it is not marked virtual, abstract, or override
                 //     public override int NoneNone { get { return 0; } } // CS0506 (not virtual)
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "NoneNone").WithArguments("Derived.NoneNone", "AccessorModifierMismatch.NoneNone"),
@@ -1441,7 +1441,7 @@ class Derived : AccessorModifierMismatch // CS0534 (didn't implement AbstractAbs
 }
 ";
             var refs = new MetadataReference[] { TestReferences.SymbolsTests.Properties };
-            CreateCompilationWithMscorlib(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateStandardCompilation(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (4,25): error CS0506: 'Derived.NoneNone': cannot override inherited member 'AccessorModifierMismatch.NoneNone' because it is not marked virtual, abstract, or override
                 //     public override int NoneNone { set { } } // CS0506 (not virtual)
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "NoneNone").WithArguments("Derived.NoneNone", "AccessorModifierMismatch.NoneNone"),
@@ -1576,7 +1576,7 @@ abstract class Derived : AccessorModifierMismatch
 }
 ";
             var refs = new[] { TestReferences.SymbolsTests.Events };
-            CreateCompilationWithMscorlib(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            CreateStandardCompilation(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics();
         }
 
         [WorkItem(543263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543263")]
@@ -1590,7 +1590,7 @@ class Derived : AccessorModifierMismatch
 }
 ";
             var refs = new MetadataReference[] { TestReferences.SymbolsTests.Events };
-            CreateCompilationWithMscorlib(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateStandardCompilation(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (2,7): error CS0534: 'Derived' does not implement inherited abstract member 'AccessorModifierMismatch.NoneAbstract.remove'
                 // class Derived : AccessorModifierMismatch
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "AccessorModifierMismatch.NoneAbstract.remove"),
@@ -1640,7 +1640,7 @@ class Derived : AccessorModifierMismatch
 ";
             // ACASEY: these are not exactly the errors that Dev10 produces, but they seem sensible.
             var refs = new MetadataReference[] { TestReferences.SymbolsTests.Events };
-            CreateCompilationWithMscorlib(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateStandardCompilation(text1, references: refs, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (4,41): error CS0506: 'Derived.NoneNone': cannot override inherited member 'AccessorModifierMismatch.NoneNone' because it is not marked virtual, abstract, or override
                 //     public override event System.Action NoneNone { add { } remove { } } // CS0506 (not virtual)
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "NoneNone").WithArguments("Derived.NoneNone", "AccessorModifierMismatch.NoneNone"),
@@ -1844,7 +1844,7 @@ public class MainClass
     public static void Main() { }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            CreateStandardCompilation(text).VerifyDiagnostics();
         }
 
 
@@ -1868,26 +1868,26 @@ namespace A
 {
     public class Base<T>
     {
-        public class Foo<U> { }
+        public class Goo<U> { }
 
         public class Nested<U>
         {
-            public static Foo<U> sFld = new Foo<U>();
+            public static Goo<U> sFld = new Goo<U>();
         }
     }
 
     public class Derived<T> : Base<T>
     {
-        public class Foo<U, V> { } // Roslyn warning CS0108
+        public class Goo<U, V> { } // Roslyn warning CS0108
 
         public class Nested<U, V> // Roslyn warning CS0108
         {
-            public static Foo<U, V> sFld = new Foo<U, V>();
+            public static Goo<U, V> sFld = new Goo<U, V>();
         }
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             Assert.Equal(0, comp.GetDiagnostics().Count());
         }
 
@@ -1913,7 +1913,7 @@ public class TestClass3 : TestClass2
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "P2").WithArguments("TestClass2.P2", "TestClass1.P2"),
                 Diagnostic(ErrorCode.ERR_NoGetToOverride, "get").WithArguments("TestClass3.P2.get", "TestClass2.P2"),
@@ -1927,25 +1927,25 @@ public class TestClass3 : TestClass2
             var text = @"
 interface I1
 {
-    int Foo { get; set; }
+    int Goo { get; set; }
 }
 class B1
 {
-    public int Foo { get { return 1; } set { } }
+    public int Goo { get { return 1; } set { } }
 }
 class B2 : B1, I1
 {
-    private new int Foo { get { return 1; } }
+    private new int Goo { get { return 1; } }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
             Assert.Equal(
-                global.GetMember<NamedTypeSymbol>("B1").GetMember<PropertySymbol>("Foo"),
+                global.GetMember<NamedTypeSymbol>("B1").GetMember<PropertySymbol>("Goo"),
                 global.GetMember<NamedTypeSymbol>("B2").FindImplementationForInterfaceMember(
-                    global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Foo")));
+                    global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Goo")));
         }
 
         [WorkItem(540383, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540383")]
@@ -1955,25 +1955,25 @@ class B2 : B1, I1
             var text = @"
 interface I1
 {
-    int Foo { get; set; }
+    int Goo { get; set; }
 }
 class B1
 {
-    public int Foo { get { return 1; } set { } }
+    public int Goo { get { return 1; } set { } }
 }
 class B2 : B1, I1
 {
-    public static new int Foo { get { return 1; } }
+    public static new int Goo { get { return 1; } }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
             Assert.Equal(
-                global.GetMember<NamedTypeSymbol>("B1").GetMember<PropertySymbol>("Foo"),
+                global.GetMember<NamedTypeSymbol>("B1").GetMember<PropertySymbol>("Goo"),
                 global.GetMember<NamedTypeSymbol>("B2").FindImplementationForInterfaceMember(
-                    global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Foo")));
+                    global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Goo")));
         }
 
         [WorkItem(540383, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540383")]
@@ -1983,25 +1983,25 @@ class B2 : B1, I1
             var text = @"
 interface I1
 {
-    int Foo { get; set; }
+    int Goo { get; set; }
 }
 class B1
 {
-    public int Foo { get { return 1; } set { } }
+    public int Goo { get { return 1; } set { } }
 }
 class B2 : B1, I1
 {
-    public new float Foo { get { return 1; } }
+    public new float Goo { get { return 1; } }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
             Assert.Equal(
-                global.GetMember<NamedTypeSymbol>("B1").GetMember<PropertySymbol>("Foo"),
+                global.GetMember<NamedTypeSymbol>("B1").GetMember<PropertySymbol>("Goo"),
                 global.GetMember<NamedTypeSymbol>("B2").FindImplementationForInterfaceMember(
-                    global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Foo")));
+                    global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Goo")));
         }
 
         [WorkItem(540383, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540383")]
@@ -2011,26 +2011,26 @@ class B2 : B1, I1
             var text = @"
 interface I1
 {
-    int Foo { get; set; }
+    int Goo { get; set; }
 }
 class B1
 {
-    public float Foo { get { return 1; } set { } }
+    public float Goo { get { return 1; } set { } }
 }
 class B2 : B1, I1
 {
-    private new int Foo { get { return 1; } }
+    private new int Goo { get { return 1; } }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
-                // (10,16): error CS0737: 'B2' does not implement interface member 'I1.Foo'. 'B2.Foo' cannot implement an interface member because it is not public.
+                // (10,16): error CS0737: 'B2' does not implement interface member 'I1.Goo'. 'B2.Goo' cannot implement an interface member because it is not public.
                 // class B2 : B1, I1
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "I1").WithArguments("B2", "I1.Foo", "B2.Foo").WithLocation(10, 16));
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "I1").WithArguments("B2", "I1.Goo", "B2.Goo").WithLocation(10, 16));
 
             var global = comp.GlobalNamespace;
             Assert.Null(global.GetMember<NamedTypeSymbol>("B2").FindImplementationForInterfaceMember(
-                    global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Foo")));
+                    global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Goo")));
         }
 
         [WorkItem(540383, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540383")]
@@ -2040,26 +2040,26 @@ class B2 : B1, I1
             var text = @"
 interface I1
 {
-    int Foo { get; set; }
+    int Goo { get; set; }
 }
 class B1
 {
-    public float Foo { get { return 1; } set { } }
+    public float Goo { get { return 1; } set { } }
 }
 class B2 : B1, I1
 {
-    public static new int Foo { get { return 1; } }
+    public static new int Goo { get { return 1; } }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
-                // (10,16): error CS0736: 'B2' does not implement interface member 'I1.Foo'. 'B2.Foo' cannot implement an interface member because it is static.
+                // (10,16): error CS0736: 'B2' does not implement interface member 'I1.Goo'. 'B2.Goo' cannot implement an interface member because it is static.
                 // class B2 : B1, I1
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "I1").WithArguments("B2", "I1.Foo", "B2.Foo").WithLocation(10, 16));
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "I1").WithArguments("B2", "I1.Goo", "B2.Goo").WithLocation(10, 16));
 
             var global = comp.GlobalNamespace;
             Assert.Null(global.GetMember<NamedTypeSymbol>("B2").FindImplementationForInterfaceMember(
-                    global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Foo")));
+                    global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Goo")));
         }
 
         /// <summary>
@@ -2107,26 +2107,26 @@ class B3 : I
             var text = @"
 interface I1
 {
-    int Foo { get; set; }
+    int Goo { get; set; }
 }
 class B1
 {
-    public float Foo { get { return 1; } set { } }
+    public float Goo { get { return 1; } set { } }
 }
 class B2 : B1, I1
 {
-    public new float Foo { get { return 1; } }
+    public new float Goo { get { return 1; } }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
-                // (10,16): error CS0738: 'B2' does not implement interface member 'I1.Foo'. 'B2.Foo' cannot implement 'I1.Foo' because it does not have the matching return type of 'int'.
+                // (10,16): error CS0738: 'B2' does not implement interface member 'I1.Goo'. 'B2.Goo' cannot implement 'I1.Goo' because it does not have the matching return type of 'int'.
                 // class B2 : B1, I1
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1").WithArguments("B2", "I1.Foo", "B2.Foo", "int").WithLocation(10, 16));
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1").WithArguments("B2", "I1.Goo", "B2.Goo", "int").WithLocation(10, 16));
 
             var global = comp.GlobalNamespace;
             Assert.Null(global.GetMember<NamedTypeSymbol>("B2").FindImplementationForInterfaceMember(
-                    global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Foo")));
+                    global.GetMember<NamedTypeSymbol>("I1").GetMember<PropertySymbol>("Goo")));
         }
 
         [WorkItem(540420, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540420")]
@@ -2139,13 +2139,13 @@ enum E
     Equals
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            CreateStandardCompilation(text).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(543448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543448")]
         public void GenericMethodsHidingFieldsAndEvents()
         {
-            CreateCompilationWithMscorlib(@"
+            CreateStandardCompilation(@"
 class Base
 {
     public int A = 1;
@@ -2186,7 +2186,7 @@ class Sub : Base
     public void C<T>() { }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (11,17): warning CS0108: 'Sub.A<T>()' hides inherited member 'Base.A'. Use the new keyword if hiding was intended.
                 Diagnostic(ErrorCode.WRN_NewRequired, "A").WithArguments("Sub.A<T>()", "Base.A"),
                 // (12,17): warning CS0108: 'Sub.B<T>()' hides inherited member 'Base.B'. Use the new keyword if hiding was intended.
@@ -2202,7 +2202,7 @@ class Sub : Base
         [Fact]
         public void OverrideMemberOfConstructedProtectedInnerClass()
         {
-            var c1 = CreateCompilationWithMscorlib(@"
+            var c1 = CreateStandardCompilation(@"
 public class Outer1<T>
 {
     protected abstract class Inner1
@@ -2216,7 +2216,7 @@ public class Outer1<T>
     }
 }
 ");
-            var c2 = CreateCompilationWithMscorlib(@"
+            var c2 = CreateStandardCompilation(@"
 internal class Outer2 : Outer1<Outer2>
 {
         private class Inner3 : Inner2 {}
@@ -2231,7 +2231,7 @@ internal class Outer2 : Outer1<Outer2>
         [Fact]
         public void Repro11967()
         {
-            var c1 = CreateCompilationWithMscorlib(@"
+            var c1 = CreateStandardCompilation(@"
 
 using System.Collections.Generic;
 
@@ -2257,7 +2257,7 @@ public abstract partial class AbstractGenerateMethodService<TService, TSimpleNam
     }
 }
 ");
-            var c2 = CreateCompilationWithMscorlib(@"
+            var c2 = CreateStandardCompilation(@"
 
 internal partial class CSharpGenerateMethodService :
         AbstractGenerateMethodService<CSharpGenerateMethodService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>
@@ -2412,7 +2412,7 @@ internal partial class CSharpGenerateMethodService :
             var csharp = @"
 class Test
 {
-    void Foo()
+    void Goo()
     {
         C c = new C();
 
@@ -2458,7 +2458,7 @@ class D : C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             var global = comp.GlobalNamespace;
 
             var propA = global.GetMember<NamedTypeSymbol>("A").GetMember<PropertySymbol>("X");
@@ -2517,7 +2517,7 @@ class D : C
     public override event System.Action E;
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             var global = comp.GlobalNamespace;
 
             var eventA = global.GetMember<NamedTypeSymbol>("A").GetMember<EventSymbol>("E");
@@ -2543,12 +2543,18 @@ class D : C
             Assert.Equal(0, ohmD.HiddenMembers.Length);
 
             comp.VerifyDiagnostics(
-                // (19,41): error CS1715: 'D.E': type must be 'System.Func<int>' to match overridden member 'C.E'
+                // (19,41): error CS1715: 'D.E': type must be 'Func<int>' to match overridden member 'C.E'
                 //     public override event System.Action E;
-                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "E").WithArguments("D.E", "C.E", "System.Func<int>"),
+                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "E").WithArguments("D.E", "C.E", "System.Func<int>").WithLocation(19, 41),
                 // (19,41): warning CS0067: The event 'D.E' is never used
                 //     public override event System.Action E;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("D.E"));
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("D.E").WithLocation(19, 41),
+                // (9,41): warning CS0067: The event 'B.E' is never used
+                //     public override event System.Action E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("B.E").WithLocation(9, 41),
+                // (14,47): warning CS0067: The event 'C.E' is never used
+                //     public new virtual event System.Func<int> E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(14, 47));
         }
 
         [WorkItem(545653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545653")]
@@ -2576,7 +2582,7 @@ class D : C
     public override int M() { return 0; }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             var global = comp.GlobalNamespace;
 
             var methodA = global.GetMember<NamedTypeSymbol>("A").GetMember<MethodSymbol>("M");
@@ -2635,7 +2641,7 @@ class D : C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             var global = comp.GlobalNamespace;
 
             var indexerA = global.GetMember<NamedTypeSymbol>("A").GetMember<PropertySymbol>(WellKnownMemberNames.Indexer);
@@ -2669,8 +2675,9 @@ class D : C
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "D").WithArguments("D", "A.this[int].get"));
         }
 
+        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
         [WorkItem(545658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545658")]
-        [ClrOnlyFact]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void MethodConstructedFromOverrideWithCustomModifiers()
         {
             var il = @"
@@ -2847,7 +2854,7 @@ class Test
 ";
             var ref1 = CompileIL(il);
 
-            var comp = CreateCompilationWithMscorlib(csharp, new[] { ref1 }, options: TestOptions.ReleaseExe);
+            var comp = CreateStandardCompilation(csharp, new[] { ref1 }, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: @"
 SubSubT[System.Int32].vMeth(System.Int32)
 Base[System.Int32].vMeth(System.Int32)
@@ -2918,13 +2925,13 @@ public class C : B
 }
 ";
 
-            var comp1 = CreateCompilationWithMscorlib(source1, assemblyName: "A.dll");
+            var comp1 = CreateStandardCompilation(source1, assemblyName: "A.dll");
             var ref1 = comp1.EmitToImageReference();
 
-            var comp2 = CreateCompilationWithMscorlib(source2, new[] { ref1 }, assemblyName: "B.dll");
+            var comp2 = CreateStandardCompilation(source2, new[] { ref1 }, assemblyName: "B.dll");
             var ref2 = comp2.EmitToImageReference();
 
-            var comp3 = CreateCompilationWithMscorlib(source3, new[] { ref1, ref2 }, assemblyName: "C.dll");
+            var comp3 = CreateStandardCompilation(source3, new[] { ref1, ref2 }, assemblyName: "C.dll");
             comp3.VerifyDiagnostics();
 
             var properties = new[]
@@ -2966,13 +2973,13 @@ public class C : B
 }
 ";
 
-            var comp1 = CreateCompilationWithMscorlib(source1, assemblyName: "A.dll");
+            var comp1 = CreateStandardCompilation(source1, assemblyName: "A.dll");
             var ref1 = comp1.EmitToImageReference();
 
-            var comp2 = CreateCompilationWithMscorlib(source2, new[] { ref1 }, assemblyName: "B.dll");
+            var comp2 = CreateStandardCompilation(source2, new[] { ref1 }, assemblyName: "B.dll");
             var ref2 = comp2.EmitToImageReference();
 
-            var comp3 = CreateCompilationWithMscorlib(source3, new[] { ref1, ref2 }, assemblyName: "C.dll");
+            var comp3 = CreateStandardCompilation(source3, new[] { ref1, ref2 }, assemblyName: "C.dll");
             comp3.VerifyDiagnostics();
 
             var properties = new[]
@@ -3014,13 +3021,13 @@ public class C : B
 }
 ";
 
-            var comp1 = CreateCompilationWithMscorlib(source1, assemblyName: "A.dll");
+            var comp1 = CreateStandardCompilation(source1, assemblyName: "A.dll");
             var ref1 = comp1.EmitToImageReference();
 
-            var comp2 = CreateCompilationWithMscorlib(source2, new[] { ref1 }, assemblyName: "B.dll");
+            var comp2 = CreateStandardCompilation(source2, new[] { ref1 }, assemblyName: "B.dll");
             var ref2 = comp2.EmitToImageReference();
 
-            var comp3 = CreateCompilationWithMscorlib(source3, new[] { ref1, ref2 }, assemblyName: "C.dll");
+            var comp3 = CreateStandardCompilation(source3, new[] { ref1, ref2 }, assemblyName: "C.dll");
             comp3.VerifyDiagnostics();
 
             var properties = new[]
@@ -3061,13 +3068,13 @@ public class C : B
 }
 ";
 
-            var comp1 = CreateCompilationWithMscorlib(source1, assemblyName: "A");
+            var comp1 = CreateStandardCompilation(source1, assemblyName: "A");
             var ref1 = comp1.EmitToImageReference();
 
-            var comp2 = CreateCompilationWithMscorlib(source2, new[] { ref1 }, assemblyName: "B");
+            var comp2 = CreateStandardCompilation(source2, new[] { ref1 }, assemblyName: "B");
             var ref2 = comp2.EmitToImageReference();
 
-            var comp3 = CreateCompilationWithMscorlib(source3, new[] { ref1, ref2 }, assemblyName: "C");
+            var comp3 = CreateStandardCompilation(source3, new[] { ref1, ref2 }, assemblyName: "C");
             comp3.VerifyDiagnostics();
 
             var properties = new[]
@@ -3108,13 +3115,13 @@ public class C : B
 }
 ";
 
-            var comp1 = CreateCompilationWithMscorlib(source1, assemblyName: "A.dll");
+            var comp1 = CreateStandardCompilation(source1, assemblyName: "A.dll");
             var ref1 = comp1.EmitToImageReference();
 
-            var comp2 = CreateCompilationWithMscorlib(source2, new[] { ref1 }, assemblyName: "B.dll");
+            var comp2 = CreateStandardCompilation(source2, new[] { ref1 }, assemblyName: "B.dll");
             var ref2 = comp2.EmitToImageReference();
 
-            var comp3 = CreateCompilationWithMscorlib(source3, new[] { ref1, ref2 }, assemblyName: "C.dll");
+            var comp3 = CreateStandardCompilation(source3, new[] { ref1, ref2 }, assemblyName: "C.dll");
             comp3.VerifyDiagnostics();
 
             var properties = new[]
@@ -3155,13 +3162,13 @@ public class C : B
 }
 ";
 
-            var comp1 = CreateCompilationWithMscorlib(source1, assemblyName: "A.dll");
+            var comp1 = CreateStandardCompilation(source1, assemblyName: "A.dll");
             var ref1 = comp1.EmitToImageReference();
 
-            var comp2 = CreateCompilationWithMscorlib(source2, new[] { ref1 }, assemblyName: "B.dll");
+            var comp2 = CreateStandardCompilation(source2, new[] { ref1 }, assemblyName: "B.dll");
             var ref2 = comp2.EmitToImageReference();
 
-            var comp3 = CreateCompilationWithMscorlib(source3, new[] { ref1, ref2 }, assemblyName: "C.dll");
+            var comp3 = CreateStandardCompilation(source3, new[] { ref1, ref2 }, assemblyName: "C.dll");
             comp3.VerifyDiagnostics();
 
             var properties = new[]
@@ -3227,15 +3234,15 @@ public class B : A
 } // end of class C
 ";
 
-            var comp1 = CreateCompilationWithMscorlib(source1, assemblyName: "A");
+            var comp1 = CreateStandardCompilation(source1, assemblyName: "A");
             var ref1 = comp1.EmitToImageReference();
 
-            var comp2 = CreateCompilationWithMscorlib(source2, new[] { ref1 }, assemblyName: "B");
+            var comp2 = CreateStandardCompilation(source2, new[] { ref1 }, assemblyName: "B");
             var ref2 = comp2.EmitToImageReference();
 
-            var ilRef = CompileIL(source3, appendDefaultHeader: false);
+            var ilRef = CompileIL(source3, prependDefaultHeader: false);
 
-            var comp3 = CreateCompilationWithMscorlib("", new[] { ref1, ref2, ilRef }, assemblyName: "Test");
+            var comp3 = CreateStandardCompilation("", new[] { ref1, ref2, ilRef }, assemblyName: "Test");
             comp3.VerifyDiagnostics();
 
             var properties = new[]
@@ -3282,13 +3289,13 @@ public class C : B
 }
 ";
 
-            var comp1 = CreateCompilationWithMscorlib(source1, assemblyName: "A.dll");
+            var comp1 = CreateStandardCompilation(source1, assemblyName: "A.dll");
             var ref1 = comp1.EmitToImageReference();
 
-            var comp2 = CreateCompilationWithMscorlib(source2, new[] { ref1 }, assemblyName: "B.dll");
+            var comp2 = CreateStandardCompilation(source2, new[] { ref1 }, assemblyName: "B.dll");
             var ref2 = comp2.EmitToImageReference();
 
-            var comp3 = CreateCompilationWithMscorlib(source3, new[] { ref1, ref2 }, assemblyName: "C.dll");
+            var comp3 = CreateStandardCompilation(source3, new[] { ref1, ref2 }, assemblyName: "C.dll");
             comp3.VerifyDiagnostics();
 
             var events = new[]
@@ -3385,7 +3392,7 @@ public class D8 : B
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (36,16): warning CS0108: 'D3.op_Explicit' hides inherited member 'B.explicit operator int(B)'. Use the new keyword if hiding was intended.
                 //     public int op_Explicit = 1;//
                 Diagnostic(ErrorCode.WRN_NewRequired, "op_Explicit").WithArguments("D3.op_Explicit", "B.explicit operator int(B)"),
@@ -3501,59 +3508,59 @@ public class D8 : B
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (23,22): warning CS0109: The member 'D1.Finalize' does not hide an inherited member. The new keyword is not required.
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (23,22): warning CS0109: The member 'D1.Finalize' does not hide an accessible member. The new keyword is not required.
                 //     new public class Finalize { } //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Finalize").WithArguments("D1.Finalize"),
-                // (21,22): warning CS0109: The member 'D1.op_UnaryPlus' does not hide an inherited member. The new keyword is not required.
+                // (21,22): warning CS0109: The member 'D1.op_UnaryPlus' does not hide an accessible member. The new keyword is not required.
                 //     new public class op_UnaryPlus { } //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "op_UnaryPlus").WithArguments("D1.op_UnaryPlus"),
-                // (22,22): warning CS0109: The member 'D1.op_Explicit' does not hide an inherited member. The new keyword is not required.
+                // (22,22): warning CS0109: The member 'D1.op_Explicit' does not hide an accessible member. The new keyword is not required.
                 //     new public class op_Explicit { } //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "op_Explicit").WithArguments("D1.op_Explicit"),
-                // (58,30): warning CS0109: The member 'D6.Finalize' does not hide an inherited member. The new keyword is not required.
+                // (58,30): warning CS0109: The member 'D6.Finalize' does not hide an accessible member. The new keyword is not required.
                 //     new public delegate void Finalize(); //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Finalize").WithArguments("D6.Finalize"),
-                // (56,30): warning CS0109: The member 'D6.op_UnaryPlus' does not hide an inherited member. The new keyword is not required.
+                // (56,30): warning CS0109: The member 'D6.op_UnaryPlus' does not hide an accessible member. The new keyword is not required.
                 //     new public delegate void op_UnaryPlus(); //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "op_UnaryPlus").WithArguments("D6.op_UnaryPlus"),
-                // (57,30): warning CS0109: The member 'D6.op_Explicit' does not hide an inherited member. The new keyword is not required.
+                // (57,30): warning CS0109: The member 'D6.op_Explicit' does not hide an accessible member. The new keyword is not required.
                 //     new public delegate void op_Explicit(); //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "op_Explicit").WithArguments("D6.op_Explicit"),
-                // (37,20): warning CS0109: The member 'D3.Finalize' does not hide an inherited member. The new keyword is not required.
+                // (37,20): warning CS0109: The member 'D3.Finalize' does not hide an accessible member. The new keyword is not required.
                 //     new public int Finalize = 1; //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Finalize").WithArguments("D3.Finalize"),
-                // (51,36): warning CS0109: The member 'D5.Finalize' does not hide an inherited member. The new keyword is not required.
+                // (51,36): warning CS0109: The member 'D5.Finalize' does not hide an accessible member. The new keyword is not required.
                 //     new public event System.Action Finalize { add { } remove { } } //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Finalize").WithArguments("D5.Finalize"),
-                // (71,27): warning CS0109: The member 'D8.op_Explicit(B)' does not hide an inherited member. The new keyword is not required.
+                // (71,27): warning CS0109: The member 'D8.op_Explicit(B)' does not hide an accessible member. The new keyword is not required.
                 //     new public static int op_Explicit(B b) { return 0; } //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "op_Explicit").WithArguments("D8.op_Explicit(B)"),
-                // (72,28): warning CS0109: The member 'D8.Finalize()' does not hide an inherited member. The new keyword is not required.
+                // (72,28): warning CS0109: The member 'D8.Finalize()' does not hide an accessible member. The new keyword is not required.
                 //     new public static void Finalize() { } //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Finalize").WithArguments("D8.Finalize()"),
-                // (70,27): warning CS0109: The member 'D8.op_UnaryPlus(B)' does not hide an inherited member. The new keyword is not required.
+                // (70,27): warning CS0109: The member 'D8.op_UnaryPlus(B)' does not hide an accessible member. The new keyword is not required.
                 //     new public static int op_UnaryPlus(B b) { return 0; } //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "op_UnaryPlus").WithArguments("D8.op_UnaryPlus(B)"),
-                // (44,36): warning CS0109: The member 'D4.Finalize' does not hide an inherited member. The new keyword is not required.
+                // (44,36): warning CS0109: The member 'D4.Finalize' does not hide an accessible member. The new keyword is not required.
                 //     new public event System.Action Finalize; //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Finalize").WithArguments("D4.Finalize"),
-                // (64,21): warning CS0109: The member 'D7.op_Explicit(B)' does not hide an inherited member. The new keyword is not required.
+                // (64,21): warning CS0109: The member 'D7.op_Explicit(B)' does not hide an accessible member. The new keyword is not required.
                 //     new public void op_Explicit(B b) { } //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "op_Explicit").WithArguments("D7.op_Explicit(B)"),
-                // (65,21): warning CS0109: The member 'D7.Finalize()' does not hide an inherited member. The new keyword is not required.
+                // (65,21): warning CS0109: The member 'D7.Finalize()' does not hide an accessible member. The new keyword is not required.
                 //     new public void Finalize() { } //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Finalize").WithArguments("D7.Finalize()"),
-                // (63,21): warning CS0109: The member 'D7.op_UnaryPlus(B)' does not hide an inherited member. The new keyword is not required.
+                // (63,21): warning CS0109: The member 'D7.op_UnaryPlus(B)' does not hide an accessible member. The new keyword is not required.
                 //     new public void op_UnaryPlus(B b) { } //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "op_UnaryPlus").WithArguments("D7.op_UnaryPlus(B)"),
-                // (29,20): warning CS0109: The member 'D2.op_Explicit' does not hide an inherited member. The new keyword is not required.
+                // (29,20): warning CS0109: The member 'D2.op_Explicit' does not hide an accessible member. The new keyword is not required.
                 //     new public int op_Explicit { get; set; } //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "op_Explicit").WithArguments("D2.op_Explicit"),
-                // (30,20): warning CS0109: The member 'D2.Finalize' does not hide an inherited member. The new keyword is not required.
+                // (30,20): warning CS0109: The member 'D2.Finalize' does not hide an accessible member. The new keyword is not required.
                 //     new public int Finalize { get; set; } //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Finalize").WithArguments("D2.Finalize"),
-                // (28,20): warning CS0109: The member 'D2.op_UnaryPlus' does not hide an inherited member. The new keyword is not required.
+                // (28,20): warning CS0109: The member 'D2.op_UnaryPlus' does not hide an accessible member. The new keyword is not required.
                 //     new public int op_UnaryPlus { get; set; } //CS0109
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "op_UnaryPlus").WithArguments("D2.op_UnaryPlus"),
 
@@ -3596,7 +3603,7 @@ public class Derived2 : Base
     public override int M { get; set; }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,16): error CS0102: The type 'Base' already contains a definition for 'M'
                 //     public int M; // NOTE: illegal, since there's already a method M.
@@ -3645,7 +3652,7 @@ class Derived : Base
 }";
 
             // Dev11 spuriously reports WRN_EqualsWithoutGetHashCode.
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3700,7 +3707,7 @@ public class Required : ValidatorBase<object>
 {
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe);
 
             var validatorBaseT = compilation.GetTypeByMetadataName("ValidatorBase`1");
             var doVaidateT = validatorBaseT.GetMember<MethodSymbol>("DoValidate");
@@ -3772,7 +3779,7 @@ public abstract class ValidatorBase<T> : Validator<T>
 public class Required : ValidatorBase<object>
 {
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe);
 
             compilation.VerifyDiagnostics(
         // (46,14): error CS0534: 'Required' does not implement inherited abstract member 'Validator<object>.DoValidate(object)'
@@ -3832,7 +3839,7 @@ public class Required : ValidatorBase<object>
 {
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: @"void Validator<T>.DoValidate(object objectToValidate)
 void ValidatorBase<T>.DoValidate(T objectToValidate)");
@@ -3898,7 +3905,7 @@ public class Required : ValidatorBase<object>
 {
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: @"void ValidatorBase<T>.DoValidate(object objectToValidate)
 void Validator<T>.DoValidate(T objectToValidate)");
@@ -3956,7 +3963,7 @@ public class Required : ValidatorBase<object>
 {
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe);
 
             var validatorBaseT = compilation.GetTypeByMetadataName("ValidatorBase`1");
             var doVaidateT = validatorBaseT.GetMember<MethodSymbol>("DoValidate");

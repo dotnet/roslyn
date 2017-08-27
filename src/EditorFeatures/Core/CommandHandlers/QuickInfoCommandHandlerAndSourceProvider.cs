@@ -19,39 +19,34 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
     [Export]
-    [Export(typeof(IQuickInfoSourceProvider))]
     [Order(After = PredefinedQuickInfoPresenterNames.RoslynQuickInfoPresenter)]
-    [ExportCommandHandler(PredefinedCommandHandlerNames.QuickInfo, ContentTypeNames.RoslynContentType)]
+    [ContentType(ContentTypeNames.RoslynContentType)]
+    [Export(typeof(IQuickInfoSourceProvider))]
+    [Name("RoslynQuickInfoProvider")]
     internal partial class QuickInfoCommandHandlerAndSourceProvider :
         ForegroundThreadAffinitizedObject,
-        ICommandHandler<InvokeQuickInfoCommandArgs>,
         IQuickInfoSourceProvider
     {
-        private readonly IInlineRenameService _inlineRenameService;
         private readonly IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> _presenter;
         private readonly IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> _asyncListeners;
         private readonly IList<Lazy<IQuickInfoProvider, OrderableLanguageMetadata>> _providers;
 
         [ImportingConstructor]
         public QuickInfoCommandHandlerAndSourceProvider(
-            IInlineRenameService inlineRenameService,
             [ImportMany] IEnumerable<Lazy<IQuickInfoProvider, OrderableLanguageMetadata>> providers,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
             [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession>, OrderableMetadata>> presenters)
-            : this(inlineRenameService,
-                   ExtensionOrderer.Order(presenters).Select(lazy => lazy.Value).FirstOrDefault(),
+            : this(ExtensionOrderer.Order(presenters).Select(lazy => lazy.Value).FirstOrDefault(),
                    providers, asyncListeners)
         {
         }
 
         // For testing purposes.
         public QuickInfoCommandHandlerAndSourceProvider(
-            IInlineRenameService inlineRenameService,
             IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> presenter,
             [ImportMany] IEnumerable<Lazy<IQuickInfoProvider, OrderableLanguageMetadata>> providers,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
-            _inlineRenameService = inlineRenameService;
             _providers = ExtensionOrderer.Order(providers);
             _asyncListeners = asyncListeners;
             _presenter = presenter;
@@ -62,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             AssertIsForeground();
 
             // check whether this feature is on.
-            if (!args.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.QuickInfo))
+            if (!args.SubjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.QuickInfo))
             {
                 controller = null;
                 return false;
@@ -85,65 +80,6 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             return true;
         }
 
-        private bool TryGetControllerCommandHandler<TCommandArgs>(TCommandArgs args, out ICommandHandler<TCommandArgs> commandHandler)
-            where TCommandArgs : CommandArgs
-        {
-            AssertIsForeground();
-
-            Controller controller;
-            if (!TryGetController(args, out controller))
-            {
-                commandHandler = null;
-                return false;
-            }
-
-            commandHandler = (ICommandHandler<TCommandArgs>)controller;
-            return true;
-        }
-
-        private CommandState GetCommandStateWorker<TCommandArgs>(
-            TCommandArgs args,
-            Func<CommandState> nextHandler)
-            where TCommandArgs : CommandArgs
-        {
-            AssertIsForeground();
-
-            ICommandHandler<TCommandArgs> commandHandler;
-            return TryGetControllerCommandHandler(args, out commandHandler)
-                ? commandHandler.GetCommandState(args, nextHandler)
-                : nextHandler();
-        }
-
-        private void ExecuteCommandWorker<TCommandArgs>(
-            TCommandArgs args,
-            Action nextHandler)
-            where TCommandArgs : CommandArgs
-        {
-            AssertIsForeground();
-
-            ICommandHandler<TCommandArgs> commandHandler;
-            if (!TryGetControllerCommandHandler(args, out commandHandler))
-            {
-                nextHandler();
-            }
-            else
-            {
-                commandHandler.ExecuteCommand(args, nextHandler);
-            }
-        }
-
-        CommandState ICommandHandler<InvokeQuickInfoCommandArgs>.GetCommandState(InvokeQuickInfoCommandArgs args, Func<CommandState> nextHandler)
-        {
-            AssertIsForeground();
-            return GetCommandStateWorker(args, nextHandler);
-        }
-
-        void ICommandHandler<InvokeQuickInfoCommandArgs>.ExecuteCommand(InvokeQuickInfoCommandArgs args, Action nextHandler)
-        {
-            AssertIsForeground();
-            ExecuteCommandWorker(args, nextHandler);
-        }
-
         public IQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer)
         {
             return new QuickInfoSource(this, textBuffer);
@@ -151,8 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
         internal bool TryHandleEscapeKey(EscapeKeyCommandArgs commandArgs)
         {
-            Controller controller;
-            if (!TryGetController(commandArgs, out controller))
+            if (!TryGetController(commandArgs, out var controller))
             {
                 return false;
             }

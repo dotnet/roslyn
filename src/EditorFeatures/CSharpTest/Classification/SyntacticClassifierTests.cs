@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -17,40 +18,43 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public partial class SyntacticClassifierTests : AbstractCSharpClassifierTests
     {
-        internal override async Task<IEnumerable<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan textSpan, CSharpParseOptions options)
+        internal override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan textSpan, CSharpParseOptions options)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code, parseOptions: options))
+            using (var workspace = TestWorkspace.CreateCSharp(code, parseOptions: options))
             {
                 var snapshot = workspace.Documents.First().TextBuffer.CurrentSnapshot;
                 var document = workspace.CurrentSolution.Projects.First().Documents.First();
                 var tree = await document.GetSyntaxTreeAsync();
 
-                var service = document.GetLanguageService<IClassificationService>();
-                var result = new List<ClassifiedSpan>();
+                var service = document.GetLanguageService<ISyntaxClassificationService>();
+                var result = ArrayBuilder<ClassifiedSpan>.GetInstance();
                 service.AddSyntacticClassifications(tree, textSpan, result, CancellationToken.None);
 
-                return result;
+                return result.ToImmutableAndFree();
             }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task VarAtTypeMemberLevel()
         {
-            await TestAsync(@"class C { var foo }",
+            await TestAsync(
+@"class C
+{
+    var goo }",
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenCurly,
                 Identifier("var"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Punctuation.CloseCurly);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task VarAsLocalVariableType()
         {
-            await TestInMethodAsync("var foo = 42",
+            await TestInMethodAsync("var goo = 42",
                 Keyword("var"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Operators.Equals,
                 Number("42"));
         }
@@ -72,7 +76,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task VarInsideLocalAndExpressions()
         {
-            await TestInMethodAsync(@"var var = (var)var as var;",
+            await TestInMethodAsync(
+@"var var = (var)var as var;",
                 Keyword("var"),
                 Identifier("var"),
                 Operators.Equals,
@@ -88,7 +93,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task VarAsMethodParameter()
         {
-            await TestAsync(@"class C { void M(var v) { } }",
+            await TestAsync(
+@"class C
+{
+    void M(var v)
+    {
+    }
+}",
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenCurly,
@@ -106,11 +117,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task YieldYield()
         {
-            await TestAsync(@"using System.Collections.Generic;
-class yield { 
-    IEnumerable<yield> M() { 
-        yield yield = new yield(); 
-        yield return yield; } }",
+            await TestAsync(
+@"using System.Collections.Generic;
+
+class yield
+{
+    IEnumerable<yield> M()
+    {
+        yield yield = new yield();
+        yield return yield;
+    }
+}",
                 Keyword("using"),
                 Identifier("System"),
                 Operators.Dot,
@@ -157,7 +174,9 @@ class yield {
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task YieldFixed()
         {
-            await TestInMethodAsync(@"yield return this.items[0]; yield break; fixed (int* i = 0) { }",
+            await TestInMethodAsync(
+@"yield return this.items[0]; yield break; fixed (int* i = 0) {
+}",
                 Keyword("yield"),
                 Keyword("return"),
                 Keyword("this"),
@@ -185,17 +204,20 @@ class yield {
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PartialClass()
         {
-            await TestAsync("public partial class Foo",
+            await TestAsync("public partial class Goo",
                 Keyword("public"),
                 Keyword("partial"),
                 Keyword("class"),
-                Class("Foo"));
+                Class("Goo"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PartialMethod()
         {
-            await TestInClassAsync("public partial void M() { }",
+            await TestInClassAsync(
+@"public partial void M()
+{
+}",
                 Keyword("public"),
                 Keyword("partial"),
                 Keyword("void"),
@@ -213,7 +235,8 @@ class yield {
         [WorkItem(536313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536313")]
         public async Task PartialAsLocalVariableType()
         {
-            await TestInMethodAsync("partial p1 = 42;",
+            await TestInMethodAsync(
+@"partial p1 = 42;",
                 Identifier("partial"),
                 Identifier("p1"),
                 Operators.Equals,
@@ -224,9 +247,18 @@ class yield {
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PartialClassStructInterface()
         {
-            await TestAsync(@"partial class T1 { }
-partial struct T2 { }
-partial interface T3 { }",
+            await TestAsync(
+@"partial class T1
+{
+}
+
+partial struct T2
+{
+}
+
+partial interface T3
+{
+}",
                 Keyword("partial"),
                 Keyword("class"),
                 Class("T1"),
@@ -254,17 +286,17 @@ partial interface T3 { }",
         {
             foreach (var kw in s_contextualKeywordsOnlyValidInMethods)
             {
-                await TestInNamespaceAsync(kw + " foo",
+                await TestInNamespaceAsync(kw + " goo",
                     Identifier(kw),
-                    Identifier("foo"));
+                    Identifier("goo"));
             }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task VerbatimStringLiterals1()
         {
-            await TestInMethodAsync(@"@""foo""",
-                Verbatim(@"@""foo"""));
+            await TestInMethodAsync(@"@""goo""",
+                Verbatim(@"@""goo"""));
         }
 
         /// <summary>
@@ -283,8 +315,8 @@ partial interface T3 { }",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task VerbatimStringLiteral3()
         {
-            await TestAsync(@"foo @""",
-                Identifier("foo"),
+            await TestAsync(@"goo @""",
+                Identifier("goo"),
                 Verbatim(@"@"""));
         }
 
@@ -296,11 +328,11 @@ partial interface T3 { }",
         {
             var code = @"
 
-@"" foo bar 
+@"" goo bar 
 
 ";
             await TestAsync(code,
-                Verbatim(@"@"" foo bar 
+                Verbatim(@"@"" goo bar 
 
 "));
         }
@@ -310,12 +342,12 @@ partial interface T3 { }",
         {
             var code = @"
 
-@"" foo bar
+@"" goo bar
 and 
 on a new line "" 
 more stuff";
             await TestInMethodAsync(code,
-                Verbatim(@"@"" foo bar
+                Verbatim(@"@"" goo bar
 and 
 on a new line """),
                 Identifier("more"),
@@ -325,7 +357,8 @@ on a new line """),
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task VerbatimStringLiteral6()
         {
-            await TestAsync(@"string s = @""""""/*"";",
+            await TestAsync(
+@"string s = @""""""/*"";",
                 Keyword("string"),
                 Identifier("s"),
                 Operators.Equals,
@@ -336,8 +369,8 @@ on a new line """),
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task StringLiteral1()
         {
-            await TestAsync(@"""foo""",
-                String(@"""foo"""));
+            await TestAsync(@"""goo""",
+                String(@"""goo"""));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -358,23 +391,23 @@ on a new line """),
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task LinqFrom1()
         {
-            var code = @"from it in foo";
+            var code = @"from it in goo";
             await TestInExpressionAsync(code,
                 Keyword("from"),
                 Identifier("it"),
                 Keyword("in"),
-                Identifier("foo"));
+                Identifier("goo"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task LinqFrom2()
         {
-            var code = @"from it in foo.Bar()";
+            var code = @"from it in goo.Bar()";
             await TestInExpressionAsync(code,
                 Keyword("from"),
                 Identifier("it"),
                 Keyword("in"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Operators.Dot,
                 Identifier("Bar"),
                 Punctuation.OpenParen,
@@ -405,12 +438,12 @@ on a new line """),
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task LinqWhere1()
         {
-            var code = "from it in foo where it > 42";
+            var code = "from it in goo where it > 42";
             await TestInExpressionAsync(code,
                 Keyword("from"),
                 Identifier("it"),
                 Keyword("in"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Keyword("where"),
                 Identifier("it"),
                 Operators.GreaterThan,
@@ -420,12 +453,12 @@ on a new line """),
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task LinqWhere2()
         {
-            var code = @"from it in foo where it > ""bar""";
+            var code = @"from it in goo where it > ""bar""";
             await TestInExpressionAsync(code,
                 Keyword("from"),
                 Identifier("it"),
                 Keyword("in"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Keyword("where"),
                 Identifier("it"),
                 Operators.GreaterThan,
@@ -435,11 +468,11 @@ on a new line """),
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task VarContextualKeywordAtNamespaceLevel()
         {
-            var code = @"var foo = 2;";
+            var code = @"var goo = 2;";
             await TestAsync(code,
                 code,
                 Identifier("var"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Operators.Equals,
                 Number("2"),
                 Punctuation.Semicolon);
@@ -449,58 +482,60 @@ on a new line """),
         public async Task LinqKeywordsAtNamespaceLevel()
         {
             // the contextual keywords are actual keywords since we parse top level field declaration and only give a semantic error
-            await TestAsync(@"object foo = from foo in foo 
-join foo in foo 
-on foo equals foo 
-group foo by foo 
-into foo 
-let foo = foo 
-where foo 
-orderby foo ascending, 
-foo descending 
-select foo;",
+            await TestAsync(
+@"object goo = from goo in goo
+             join goo in goo on goo equals goo
+             group goo by goo into goo
+             let goo = goo
+             where goo
+             orderby goo ascending, goo descending
+             select goo;",
                 Keyword("object"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Operators.Equals,
                 Keyword("from"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Keyword("in"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Keyword("join"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Keyword("in"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Keyword("on"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Keyword("equals"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Keyword("group"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Keyword("by"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Keyword("into"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Keyword("let"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Operators.Equals,
-                Identifier("foo"),
+                Identifier("goo"),
                 Keyword("where"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Keyword("orderby"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Keyword("ascending"),
                 Punctuation.Comma,
-                Identifier("foo"),
+                Identifier("goo"),
                 Keyword("descending"),
                 Keyword("select"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Punctuation.Semicolon);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task ContextualKeywordsAsFieldName()
         {
-            await TestAsync(@"class C { int yield, get, set, value, add, remove, global, partial, where, alias; }",
+            await TestAsync(
+@"class C
+{
+    int yield, get, set, value, add, remove, global, partial, where, alias;
+}",
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenCurly,
@@ -531,16 +566,17 @@ select foo;",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task LinqKeywordsInFieldInitializer()
         {
-            await TestAsync(@"class C { int a = from a in a 
-join a in a 
-on a equals a 
-group a by a 
-into a 
-let a = a 
-where a 
-orderby a ascending, 
-a descending 
-select a; }",
+            await TestAsync(
+@"class C
+{
+    int a = from a in a
+            join a in a on a equals a
+            group a by a into a
+            let a = a
+            where a
+            orderby a ascending, a descending
+            select a;
+}",
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenCurly,
@@ -586,20 +622,59 @@ select a; }",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task LinqKeywordsAsTypeName()
         {
-            await TestAsync(@"class var { }
-struct from { }
-interface join { }
-enum on { }
+            await TestAsync(
+@"class var
+{
+}
+
+struct from
+{
+}
+
+interface join
+{
+}
+
+enum on
+{
+}
+
 delegate equals { }
-class group { }
-class by { }
-class into { }
-class let { }
-class where { }
-class orderby { }
-class ascending { }
-class descending { }
-class select { }",
+class group
+{
+}
+
+class by
+{
+}
+
+class into
+{
+}
+
+class let
+{
+}
+
+class where
+{
+}
+
+class orderby
+{
+}
+
+class ascending
+{
+}
+
+class descending
+{
+}
+
+class select
+{
+}",
                 Keyword("class"),
                 Class("var"),
                 Punctuation.OpenCurly,
@@ -661,7 +736,13 @@ class select { }",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task LinqKeywordsAsMethodParameters()
         {
-            await TestAsync(@"class C { orderby M(var foo, from foo, join foo, on foo, equals foo, group foo, by foo, into foo, let foo, where foo, orderby foo, ascending foo, descending foo, select foo) { } }",
+            await TestAsync(
+@"class C
+{
+    orderby M(var goo, from goo, join goo, on goo, equals goo, group goo, by goo, into goo, let goo, where goo, orderby goo, ascending goo, descending goo, select goo)
+    {
+    }
+}",
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenCurly,
@@ -669,46 +750,46 @@ class select { }",
                 Identifier("M"),
                 Punctuation.OpenParen,
                 Identifier("var"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Punctuation.Comma,
                 Identifier("from"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Punctuation.Comma,
                 Identifier("join"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Punctuation.Comma,
                 Identifier("on"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Punctuation.Comma,
                 Identifier("equals"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Punctuation.Comma,
                 Identifier("group"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Punctuation.Comma,
                 Identifier("by"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Punctuation.Comma,
                 Identifier("into"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Punctuation.Comma,
                 Identifier("let"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Punctuation.Comma,
                 Identifier("where"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Punctuation.Comma,
                 Identifier("orderby"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Punctuation.Comma,
                 Identifier("ascending"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Punctuation.Comma,
                 Identifier("descending"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Punctuation.Comma,
                 Identifier("select"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
@@ -718,20 +799,25 @@ class select { }",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task LinqKeywordsInLocalVariableDeclarations()
         {
-            await TestAsync(@"class C { void M() {
-    var foo = (var)foo as var;
-    from foo = (from)foo as from;
-    join foo = (join)foo as join;
-    on foo = (on)foo as on;
-    equals foo = (equals)foo as equals;
-    group foo = (group)foo as group;
-    by foo = (by)foo as by;
-    into foo = (into)foo as into;
-    orderby foo = (orderby)foo as orderby;
-    ascending foo = (ascending)foo as ascending;
-    descending foo = (descending)foo as descending;
-    select foo = (select)foo as select;
-} }",
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        var goo = (var)goo as var;
+        from goo = (from)goo as from;
+        join goo = (join)goo as join;
+        on goo = (on)goo as on;
+        equals goo = (equals)goo as equals;
+        group goo = (group)goo as group;
+        by goo = (by)goo as by;
+        into goo = (into)goo as into;
+        orderby goo = (orderby)goo as orderby;
+        ascending goo = (ascending)goo as ascending;
+        descending goo = (descending)goo as descending;
+        select goo = (select)goo as select;
+    }
+}",
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenCurly,
@@ -741,122 +827,122 @@ class select { }",
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Keyword("var"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Operators.Equals,
                 Punctuation.OpenParen,
                 Identifier("var"),
                 Punctuation.CloseParen,
-                Identifier("foo"),
+                Identifier("goo"),
                 Keyword("as"),
                 Identifier("var"),
                 Punctuation.Semicolon,
                 Identifier("from"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Operators.Equals,
                 Punctuation.OpenParen,
                 Identifier("from"),
                 Punctuation.CloseParen,
-                Identifier("foo"),
+                Identifier("goo"),
                 Keyword("as"),
                 Identifier("from"),
                 Punctuation.Semicolon,
                 Identifier("join"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Operators.Equals,
                 Punctuation.OpenParen,
                 Identifier("join"),
                 Punctuation.CloseParen,
-                Identifier("foo"),
+                Identifier("goo"),
                 Keyword("as"),
                 Identifier("join"),
                 Punctuation.Semicolon,
                 Identifier("on"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Operators.Equals,
                 Punctuation.OpenParen,
                 Identifier("on"),
                 Punctuation.CloseParen,
-                Identifier("foo"),
+                Identifier("goo"),
                 Keyword("as"),
                 Identifier("on"),
                 Punctuation.Semicolon,
                 Identifier("equals"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Operators.Equals,
                 Punctuation.OpenParen,
                 Identifier("equals"),
                 Punctuation.CloseParen,
-                Identifier("foo"),
+                Identifier("goo"),
                 Keyword("as"),
                 Identifier("equals"),
                 Punctuation.Semicolon,
                 Identifier("group"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Operators.Equals,
                 Punctuation.OpenParen,
                 Identifier("group"),
                 Punctuation.CloseParen,
-                Identifier("foo"),
+                Identifier("goo"),
                 Keyword("as"),
                 Identifier("group"),
                 Punctuation.Semicolon,
                 Identifier("by"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Operators.Equals,
                 Punctuation.OpenParen,
                 Identifier("by"),
                 Punctuation.CloseParen,
-                Identifier("foo"),
+                Identifier("goo"),
                 Keyword("as"),
                 Identifier("by"),
                 Punctuation.Semicolon,
                 Identifier("into"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Operators.Equals,
                 Punctuation.OpenParen,
                 Identifier("into"),
                 Punctuation.CloseParen,
-                Identifier("foo"),
+                Identifier("goo"),
                 Keyword("as"),
                 Identifier("into"),
                 Punctuation.Semicolon,
                 Identifier("orderby"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Operators.Equals,
                 Punctuation.OpenParen,
                 Identifier("orderby"),
                 Punctuation.CloseParen,
-                Identifier("foo"),
+                Identifier("goo"),
                 Keyword("as"),
                 Identifier("orderby"),
                 Punctuation.Semicolon,
                 Identifier("ascending"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Operators.Equals,
                 Punctuation.OpenParen,
                 Identifier("ascending"),
                 Punctuation.CloseParen,
-                Identifier("foo"),
+                Identifier("goo"),
                 Keyword("as"),
                 Identifier("ascending"),
                 Punctuation.Semicolon,
                 Identifier("descending"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Operators.Equals,
                 Punctuation.OpenParen,
                 Identifier("descending"),
                 Punctuation.CloseParen,
-                Identifier("foo"),
+                Identifier("goo"),
                 Keyword("as"),
                 Identifier("descending"),
                 Punctuation.Semicolon,
                 Identifier("select"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Operators.Equals,
                 Punctuation.OpenParen,
                 Identifier("select"),
                 Punctuation.CloseParen,
-                Identifier("foo"),
+                Identifier("goo"),
                 Keyword("as"),
                 Identifier("select"),
                 Punctuation.Semicolon,
@@ -867,7 +953,11 @@ class select { }",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task LinqKeywordsAsFieldNames()
         {
-            await TestAsync(@"class C { int var, from, join, on, into, equals, let, orderby, ascending, descending, select, group, by, partial; }",
+            await TestAsync(
+@"class C
+{
+    int var, from, join, on, into, equals, let, orderby, ascending, descending, select, group, by, partial;
+}",
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenCurly,
@@ -906,16 +996,12 @@ class select { }",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task LinqKeywordsAtFieldLevelInvalid()
         {
-            await TestAsync(@"class C { string Property { from a in a 
-join a in a 
-on a equals a 
-group a by a 
-into a 
-let a = a 
-where a 
-orderby a ascending, 
-a descending 
-select a; } }",
+            await TestAsync(
+@"class C
+{
+    string Property { from a in a join a in a on a equals a group a by a into a let a = a where a orderby a ascending, 
+a descending select a; }
+}",
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenCurly,
@@ -962,21 +1048,21 @@ select a; } }",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task CommentSingle()
         {
-            var code = "// foo";
+            var code = "// goo";
 
             await TestAsync(code,
-                Comment("// foo"));
+                Comment("// goo"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task CommentAsTrailingTrivia1()
         {
-            var code = "class Bar { // foo";
+            var code = "class Bar { // goo";
             await TestAsync(code,
                 Keyword("class"),
                 Class("Bar"),
                 Punctuation.OpenCurly,
-                Comment("// foo"));
+                Comment("// goo"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -984,14 +1070,14 @@ select a; } }",
         {
             var code = @"
 class Bar { 
-  // foo
+  // goo
   void Method1() { }
 }";
             await TestAsync(code,
                 Keyword("class"),
                 Class("Bar"),
                 Punctuation.OpenCurly,
-                Comment("// foo"),
+                Comment("// goo"),
                 Keyword("void"),
                 Identifier("Method1"),
                 Punctuation.OpenParen,
@@ -1069,7 +1155,7 @@ System.Console.WriteLine();";
             var code = @"
 class Bar { 
   void Method1() {
-// foo
+// goo
 }
 }";
             await TestAsync(code,
@@ -1081,7 +1167,7 @@ class Bar {
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
-                Comment("// foo"),
+                Comment("// goo"),
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
         }
@@ -1089,8 +1175,11 @@ class Bar {
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task CommentMix1()
         {
-            await TestAsync(@"// comment1 /*
-class cl { }
+            await TestAsync(
+@"// comment1 /*
+class cl
+{
+}
 //comment2 */",
                 Comment("// comment1 /*"),
                 Keyword("class"),
@@ -1103,7 +1192,8 @@ class cl { }
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task CommentMix2()
         {
-            await TestInMethodAsync(@"/**/int /**/i = 0;",
+            await TestInMethodAsync(
+@"/**/int /**/i = 0;",
                 Comment("/**/"),
                 Keyword("int"),
                 Comment("/**/"),
@@ -1502,20 +1592,22 @@ class Bar { }";
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task XmlDocComment_ProcessingDirective()
         {
-            await TestAsync(@"/// <summary><?foo
+            await TestAsync(
+@"/// <summary><?goo
 /// ?></summary>
 public class Program
 {
-    static void Main() { }
-}
-",
+    static void Main()
+    {
+    }
+}",
                 XmlDoc.Delimiter("///"),
                 XmlDoc.Text(" "),
                 XmlDoc.Delimiter("<"),
                 XmlDoc.Name("summary"),
                 XmlDoc.Delimiter(">"),
                 XmlDoc.ProcessingInstruction("<?"),
-                XmlDoc.ProcessingInstruction("foo"),
+                XmlDoc.ProcessingInstruction("goo"),
                 XmlDoc.Delimiter("///"),
                 XmlDoc.ProcessingInstruction(" "),
                 XmlDoc.ProcessingInstruction("?>"),
@@ -1742,7 +1834,11 @@ public class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task GenericParameter_Method()
         {
-            await TestInClassAsync(@"T M<T>(T t) { return default(T); }",
+            await TestInClassAsync(
+@"T M<T>(T t)
+{
+    return default(T);
+}",
                 Identifier("T"),
                 Identifier("M"),
                 Punctuation.OpenAngle,
@@ -1776,7 +1872,10 @@ public class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task BaseClass()
         {
-            await TestAsync("class C : B { }",
+            await TestAsync(
+@"class C : B
+{
+}",
                 Keyword("class"),
                 Class("C"),
                 Punctuation.Colon,
@@ -1788,26 +1887,30 @@ public class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task Label()
         {
-            await TestInMethodAsync("foo:",
-                Identifier("foo"),
+            await TestInMethodAsync("goo:",
+                Identifier("goo"),
                 Punctuation.Colon);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task Attribute()
         {
-            await TestAsync("[assembly: Foo]",
+            await TestAsync(
+@"[assembly: Goo]",
                 Punctuation.OpenBracket,
                 Keyword("assembly"),
                 Punctuation.Colon,
-                Identifier("Foo"),
+                Identifier("Goo"),
                 Punctuation.CloseBracket);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestAngleBracketsOnGenericConstraints_Bug932262()
         {
-            await TestAsync(@"class C<T> where T : A<T> { }",
+            await TestAsync(
+@"class C<T> where T : A<T>
+{
+}",
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenAngle,
@@ -1828,11 +1931,11 @@ public class Program
         public async Task TestYieldPositive()
         {
             await TestInMethodAsync(
-@"yield return foo;",
+@"yield return goo;",
 
                 Keyword("yield"),
                 Keyword("return"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Punctuation.Semicolon);
         }
 
@@ -1873,7 +1976,8 @@ public class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersModule()
         {
-            await TestAsync(@"[module: Obsolete]",
+            await TestAsync(
+@"[module: Obsolete]",
                 Punctuation.OpenBracket,
                 Keyword("module"),
                 Punctuation.Colon,
@@ -1884,7 +1988,8 @@ public class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersAssembly()
         {
-            await TestAsync(@"[assembly: Obsolete]",
+            await TestAsync(
+@"[assembly: Obsolete]",
                 Punctuation.OpenBracket,
                 Keyword("assembly"),
                 Punctuation.Colon,
@@ -1895,7 +2000,10 @@ public class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersOnDelegate()
         {
-            await TestInClassAsync(@"[type: A] [return: A] delegate void M();",
+            await TestInClassAsync(
+@"[type: A]
+[return: A]
+delegate void M();",
                 Punctuation.OpenBracket,
                 Keyword("type"),
                 Punctuation.Colon,
@@ -1917,7 +2025,12 @@ public class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersOnMethod()
         {
-            await TestInClassAsync(@"[return: A] [method: A] void M() { }",
+            await TestInClassAsync(
+@"[return: A]
+[method: A]
+void M()
+{
+}",
                 Punctuation.OpenBracket,
                 Keyword("return"),
                 Punctuation.Colon,
@@ -1939,7 +2052,14 @@ public class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersOnCtor()
         {
-            await TestAsync(@"class C { [method: A] C() { } }",
+            await TestAsync(
+@"class C
+{
+    [method: A]
+    C()
+    {
+    }
+}",
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenCurly,
@@ -1959,7 +2079,14 @@ public class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersOnDtor()
         {
-            await TestAsync(@"class C {  [method: A] ~C() { } }",
+            await TestAsync(
+@"class C
+{
+    [method: A]
+    ~C()
+    {
+    }
+}",
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenCurly,
@@ -1980,7 +2107,12 @@ public class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersOnOperator()
         {
-            await TestInClassAsync(@"[method: A] [return: A] static T operator +(T a, T b) { }",
+            await TestInClassAsync(
+@"[method: A]
+[return: A]
+static T operator +(T a, T b)
+{
+}",
                 Punctuation.OpenBracket,
                 Keyword("method"),
                 Punctuation.Colon,
@@ -2009,14 +2141,22 @@ public class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersOnEventDeclaration()
         {
-            await TestInClassAsync(@"[event: A] event A E {
-[param: Test]
-[method: Test]
-add { }
-[param: Test]
-[method: Test]
-remove { } }
-",
+            await TestInClassAsync(
+@"[event: A]
+event A E
+{
+    [param: Test]
+    [method: Test]
+    add
+    {
+    }
+
+    [param: Test]
+    [method: Test]
+    remove
+    {
+    }
+}",
                 Punctuation.OpenBracket,
                 Keyword("event"),
                 Punctuation.Colon,
@@ -2058,13 +2198,21 @@ remove { } }
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersOnPropertyAccessors()
         {
-            await TestInClassAsync(@"int P {
-[return: T]
-[method: T]
-get { }
-[param: T]
-[method: T]
-set{ } }",
+            await TestInClassAsync(
+@"int P
+{
+    [return: T]
+    [method: T]
+    get
+    {
+    }
+
+    [param: T]
+    [method: T]
+    set
+    {
+    }
+}",
                 Keyword("int"),
                 Identifier("P"),
                 Punctuation.OpenCurly,
@@ -2100,7 +2248,9 @@ set{ } }",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersOnIndexers()
         {
-            await TestInClassAsync(@"[property: A] int this[int i] { get; set; }",
+            await TestInClassAsync(
+@"[property: A]
+int this[int i] { get; set; }",
                 Punctuation.OpenBracket,
                 Keyword("property"),
                 Punctuation.Colon,
@@ -2123,13 +2273,21 @@ set{ } }",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersOnIndexerAccessors()
         {
-            await TestInClassAsync(@"int this[int i] {
-[return: T] 
-[method: T]
-get { }
-[param: T]
-[method: T]
-set { } }",
+            await TestInClassAsync(
+@"int this[int i]
+{
+    [return: T]
+    [method: T]
+    get
+    {
+    }
+
+    [param: T]
+    [method: T]
+    set
+    {
+    }
+}",
                 Keyword("int"),
                 Keyword("this"),
                 Punctuation.OpenBracket,
@@ -2169,7 +2327,8 @@ set { } }",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task AttributeTargetSpecifiersOnField()
         {
-            await TestInClassAsync(@"[field: A]
+            await TestInClassAsync(
+@"[field: A]
 const int a = 0;",
                 Punctuation.OpenBracket,
                 Keyword("field"),
@@ -2187,34 +2346,52 @@ const int a = 0;",
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestAllKeywords()
         {
-            await TestAsync(@"using System;
+            await TestAsync(
+@"using System;
 #region TaoRegion
 namespace MyNamespace
 {
-    abstract class Foo : Bar
+    abstract class Goo : Bar
     {
-        bool foo = default(bool);
-        byte foo1;
-        char foo2;
-        const int foo3 = 999;
-        decimal foo4;
+        bool goo = default(bool);
+        byte goo1;
+        char goo2;
+        const int goo3 = 999;
+        decimal goo4;
+
         delegate void D();
-        double foo5;
-        enum MyEnum { one, two, three };
+
+        double goo5;
+
+        enum MyEnum
+        {
+            one,
+            two,
+            three
+        };
+
         event D MyEvent;
-        float foo6;
+
+        float goo6;
         static int x;
-        long foo7;
-        sbyte foo8;
-        short foo9;
-        int foo10 = sizeof(int);
-        string foo11;
-        uint foo12;
-        ulong foo13;
-        volatile ushort foo14;
-        struct SomeStruct { }
-        protected virtual void someMethod() { }
-        public Foo(int i)
+        long goo7;
+        sbyte goo8;
+        short goo9;
+        int goo10 = sizeof(int);
+        string goo11;
+        uint goo12;
+        ulong goo13;
+        volatile ushort goo14;
+
+        struct SomeStruct
+        {
+        }
+
+        protected virtual void someMethod()
+        {
+        }
+
+        public Goo(int i)
         {
             bool var = i is int;
             try
@@ -2224,7 +2401,8 @@ namespace MyNamespace
                     continue;
                     break;
                 }
-                switch (foo)
+
+                switch (goo)
                 {
                     case true:
                         break;
@@ -2232,44 +2410,72 @@ namespace MyNamespace
                         break;
                 }
             }
-            catch (System.Exception) { }
-            finally { }
+            catch (System.Exception)
+            {
+            }
+            finally
+            {
+            }
+
             checked
             {
                 int i2 = 10000;
                 i2++;
             }
-            do { } while (true);
-            if (false) { }
-            else { }
+
+            do
+            {
+            }
+            while (true);
+            if (false)
+            {
+            }
+            else
+            {
+            }
+
             unsafe
             {
-                fixed (int* p = &x) { }
+                fixed (int* p = &x)
+                {
+                }
+
                 char* buffer = stackalloc char[16];
             }
+
             for (int i1 = 0; i1 < 10; i1++)
-            { }
+            {
+            }
+
             System.Collections.ArrayList al = new System.Collections.ArrayList();
             foreach (object o in al)
             {
                 object o1 = o;
             }
-            lock (this) { }
+
+            lock (this)
+            {
+            }
         }
-        Foo method(Bar i, out int z)
+
+        Goo method(Bar i, out int z)
         {
             z = 5;
-            return i as Foo;
+            return i as Goo;
         }
-        public static explicit operator Foo(int i)
+
+        public static explicit operator Goo(int i)
         {
             return new Baz(1);
         }
-        public static implicit operator Foo(double x)
+
+        public static implicit operator Goo(double x)
         {
             return new Baz(1);
         }
+
         public extern void doSomething();
+
         internal void method2(object o)
         {
             if (o == null)
@@ -2278,20 +2484,25 @@ namespace MyNamespace
                 return;
             else
                 throw new System.Exception();
-        Output:
+            Output:
             Console.WriteLine(""Finished"");
         }
     }
-    sealed class Baz : Foo
+
+    sealed class Baz : Goo
     {
         readonly int field;
-        public Baz(int i)
-            : base(i) { }
+
+        public Baz(int i) : base(i)
+        {
+        }
+
         public void someOtherMethod(ref int i, System.Type c)
         {
             int f = 1;
             someOtherMethod(ref f, typeof(int));
         }
+
         protected override void someMethod()
         {
             unchecked
@@ -2300,9 +2511,15 @@ namespace MyNamespace
                 i++;
             }
         }
-        private void method(params object[] args) { }
+
+        private void method(params object[] args)
+        {
+        }
     }
-    interface Bar { }
+
+    interface Bar
+    {
+    }
 }
 #endregion TaoRegion",
                 Keyword("using"),
@@ -2316,12 +2533,12 @@ namespace MyNamespace
                 Punctuation.OpenCurly,
                 Keyword("abstract"),
                 Keyword("class"),
-                Class("Foo"),
+                Class("Goo"),
                 Punctuation.Colon,
                 Identifier("Bar"),
                 Punctuation.OpenCurly,
                 Keyword("bool"),
-                Identifier("foo"),
+                Identifier("goo"),
                 Operators.Equals,
                 Keyword("default"),
                 Punctuation.OpenParen,
@@ -2329,19 +2546,19 @@ namespace MyNamespace
                 Punctuation.CloseParen,
                 Punctuation.Semicolon,
                 Keyword("byte"),
-                Identifier("foo1"),
+                Identifier("goo1"),
                 Punctuation.Semicolon,
                 Keyword("char"),
-                Identifier("foo2"),
+                Identifier("goo2"),
                 Punctuation.Semicolon,
                 Keyword("const"),
                 Keyword("int"),
-                Identifier("foo3"),
+                Identifier("goo3"),
                 Operators.Equals,
                 Number("999"),
                 Punctuation.Semicolon,
                 Keyword("decimal"),
-                Identifier("foo4"),
+                Identifier("goo4"),
                 Punctuation.Semicolon,
                 Keyword("delegate"),
                 Keyword("void"),
@@ -2350,7 +2567,7 @@ namespace MyNamespace
                 Punctuation.CloseParen,
                 Punctuation.Semicolon,
                 Keyword("double"),
-                Identifier("foo5"),
+                Identifier("goo5"),
                 Punctuation.Semicolon,
                 Keyword("enum"),
                 Enum("MyEnum"),
@@ -2367,23 +2584,23 @@ namespace MyNamespace
                 Identifier("MyEvent"),
                 Punctuation.Semicolon,
                 Keyword("float"),
-                Identifier("foo6"),
+                Identifier("goo6"),
                 Punctuation.Semicolon,
                 Keyword("static"),
                 Keyword("int"),
                 Identifier("x"),
                 Punctuation.Semicolon,
                 Keyword("long"),
-                Identifier("foo7"),
+                Identifier("goo7"),
                 Punctuation.Semicolon,
                 Keyword("sbyte"),
-                Identifier("foo8"),
+                Identifier("goo8"),
                 Punctuation.Semicolon,
                 Keyword("short"),
-                Identifier("foo9"),
+                Identifier("goo9"),
                 Punctuation.Semicolon,
                 Keyword("int"),
-                Identifier("foo10"),
+                Identifier("goo10"),
                 Operators.Equals,
                 Keyword("sizeof"),
                 Punctuation.OpenParen,
@@ -2391,17 +2608,17 @@ namespace MyNamespace
                 Punctuation.CloseParen,
                 Punctuation.Semicolon,
                 Keyword("string"),
-                Identifier("foo11"),
+                Identifier("goo11"),
                 Punctuation.Semicolon,
                 Keyword("uint"),
-                Identifier("foo12"),
+                Identifier("goo12"),
                 Punctuation.Semicolon,
                 Keyword("ulong"),
-                Identifier("foo13"),
+                Identifier("goo13"),
                 Punctuation.Semicolon,
                 Keyword("volatile"),
                 Keyword("ushort"),
-                Identifier("foo14"),
+                Identifier("goo14"),
                 Punctuation.Semicolon,
                 Keyword("struct"),
                 Struct("SomeStruct"),
@@ -2416,7 +2633,7 @@ namespace MyNamespace
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Keyword("public"),
-                Identifier("Foo"),
+                Identifier("Goo"),
                 Punctuation.OpenParen,
                 Keyword("int"),
                 Identifier("i"),
@@ -2443,7 +2660,7 @@ namespace MyNamespace
                 Punctuation.CloseCurly,
                 Keyword("switch"),
                 Punctuation.OpenParen,
-                Identifier("foo"),
+                Identifier("goo"),
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Keyword("case"),
@@ -2573,7 +2790,7 @@ namespace MyNamespace
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly,
-                Identifier("Foo"),
+                Identifier("Goo"),
                 Identifier("method"),
                 Punctuation.OpenParen,
                 Identifier("Bar"),
@@ -2591,14 +2808,14 @@ namespace MyNamespace
                 Keyword("return"),
                 Identifier("i"),
                 Keyword("as"),
-                Identifier("Foo"),
+                Identifier("Goo"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Keyword("public"),
                 Keyword("static"),
                 Keyword("explicit"),
                 Keyword("operator"),
-                Identifier("Foo"),
+                Identifier("Goo"),
                 Punctuation.OpenParen,
                 Keyword("int"),
                 Identifier("i"),
@@ -2616,7 +2833,7 @@ namespace MyNamespace
                 Keyword("static"),
                 Keyword("implicit"),
                 Keyword("operator"),
-                Identifier("Foo"),
+                Identifier("Goo"),
                 Punctuation.OpenParen,
                 Keyword("double"),
                 Identifier("x"),
@@ -2686,7 +2903,7 @@ namespace MyNamespace
                 Keyword("class"),
                 Class("Baz"),
                 Punctuation.Colon,
-                Identifier("Foo"),
+                Identifier("Goo"),
                 Punctuation.OpenCurly,
                 Keyword("readonly"),
                 Keyword("int"),
@@ -2781,15 +2998,23 @@ namespace MyNamespace
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestAllOperators()
         {
-            await TestAsync(@"using IO = System.IO;
-public class Foo<T>
+            await TestAsync(
+@"using IO = System.IO;
+
+public class Goo<T>
 {
     public void method()
     {
         int[] a = new int[5];
-        int[] var = { 1, 2, 3, 4, 5 };
+        int[] var = {
+            1,
+            2,
+            3,
+            4,
+            5
+        };
         int i = a[i];
-        Foo<T> f = new Foo<int>();
+        Goo<T> f = new Goo<int>();
         f.method();
         i = i + i - i * i / i % i & i | i ^ i;
         bool b = true & false | true ^ false;
@@ -2821,6 +3046,7 @@ public class Foo<T>
             Point* p = &point;
             p->x = 10;
         }
+
         IO::BinaryReader br = null;
     }
 }",
@@ -2833,7 +3059,7 @@ public class Foo<T>
                 Punctuation.Semicolon,
                 Keyword("public"),
                 Keyword("class"),
-                Class("Foo"),
+                Class("Goo"),
                 Punctuation.OpenAngle,
                 TypeParameter("T"),
                 Punctuation.CloseAngle,
@@ -2880,14 +3106,14 @@ public class Foo<T>
                 Identifier("i"),
                 Punctuation.CloseBracket,
                 Punctuation.Semicolon,
-                Identifier("Foo"),
+                Identifier("Goo"),
                 Punctuation.OpenAngle,
                 Identifier("T"),
                 Punctuation.CloseAngle,
                 Identifier("f"),
                 Operators.Equals,
                 Keyword("new"),
-                Identifier("Foo"),
+                Identifier("Goo"),
                 Punctuation.OpenAngle,
                 Keyword("int"),
                 Punctuation.CloseAngle,
@@ -3088,16 +3314,23 @@ public class Foo<T>
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestPartialMethodWithNamePartial()
         {
-            await TestAsync(@"partial class C
+            await TestAsync(
+@"partial class C
 {
     partial void partial(string bar);
-    partial void partial(string baz) {}
-    partial int Foo();
-    partial int Foo() {}
-    public partial void 
-    partial void
-}
-",
+
+    partial void partial(string baz)
+    {
+    }
+
+    partial int Goo();
+
+    partial int Goo()
+    {
+    }
+
+    public partial void partial void
+}",
                 Keyword("partial"),
                 Keyword("class"),
                 Class("C"),
@@ -3121,13 +3354,13 @@ public class Foo<T>
                 Punctuation.CloseCurly,
                 Keyword("partial"),
                 Keyword("int"),
-                Identifier("Foo"),
+                Identifier("Goo"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.Semicolon,
                 Keyword("partial"),
                 Keyword("int"),
-                Identifier("Foo"),
+                Identifier("Goo"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
@@ -3143,7 +3376,17 @@ public class Foo<T>
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task ValueInSetterAndAnonymousTypePropertyName()
         {
-            await TestAsync(@"class C { int P { set { var t = new { value = value }; } } }",
+            await TestAsync(
+@"class C
+{
+    int P
+    {
+        set
+        {
+            var t = new { value = value };
+        }
+    }
+}",
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenCurly,
@@ -3171,14 +3414,18 @@ public class Foo<T>
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestValueInLabel()
         {
-            await TestAsync(@"class C
+            await TestAsync(
+@"class C
 {
     int X
     {
-        set { value:; }
+        set
+        {
+        value:
+            ;
+        }
     }
-}
-",
+}",
                 Keyword("class"),
                 Class("C"),
                 Punctuation.OpenCurly,
@@ -3199,8 +3446,9 @@ public class Foo<T>
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestGenericVar()
         {
-            await TestAsync(@"using System;
- 
+            await TestAsync(
+@"using System;
+
 static class Program
 {
     static void Main()
@@ -3208,9 +3456,10 @@ static class Program
         var x = 1;
     }
 }
- 
-class var<T> { }
-",
+
+class var<T>
+{
+}",
                 Keyword("using"),
                 Identifier("System"),
                 Punctuation.Semicolon,
@@ -3244,21 +3493,23 @@ class var<T> { }
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestInaccessibleVar()
         {
-            await TestAsync(@"using System;
- 
+            await TestAsync(
+@"using System;
+
 class A
 {
-    private class var { }
+    private class var
+    {
+    }
 }
- 
+
 class B : A
 {
     static void Main()
     {
         var x = 1;
     }
-}
-",
+}",
                 Keyword("using"),
                 Identifier("System"),
                 Punctuation.Semicolon,
@@ -3295,7 +3546,8 @@ class B : A
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestEscapedVar()
         {
-            await TestAsync(@"class Program
+            await TestAsync(
+@"class Program
 {
     static void Main(string[] args)
     {
@@ -3328,10 +3580,18 @@ class B : A
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestVar()
         {
-            await TestAsync(@"class Program
+            await TestAsync(
+@"class Program
 {
-    class var<T> { }
-    static var<int> GetVarT() { return null; }
+    class var<T>
+    {
+    }
+
+    static var<int> GetVarT()
+    {
+        return null;
+    }
+
     static void Main()
     {
         var x = GetVarT();
@@ -3393,14 +3653,16 @@ class B : A
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestVar2()
         {
-            await TestAsync(@"class Program
+            await TestAsync(
+@"class Program
 {
     void Main(string[] args)
     {
-        foreach (var v in args) { }
+        foreach (var v in args)
+        {
+        }
     }
-}
-",
+}",
                 Keyword("class"),
                 Class("Program"),
                 Punctuation.OpenCurly,
@@ -3715,6 +3977,39 @@ void M()
                 Punctuation.Colon,
                 Number("2"),
                 Punctuation.CloseParen);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestConflictMarkers1()
+        {
+            await TestAsync(
+@"class C
+{
+<<<<<<< Start
+    public void Goo();
+=======
+    public void Bar();
+>>>>>>> End
+}",
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Comment("<<<<<<< Start"),
+                Keyword("public"),
+                Keyword("void"),
+                Identifier("Goo"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Comment("======="),
+                Keyword("public"),
+                Keyword("void"),
+                Identifier("Bar"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Comment(">>>>>>> End"),
+                Punctuation.CloseCurly);
         }
     }
 }

@@ -1,10 +1,10 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestWinmdCSInterfaceProjection() As Task
             Dim input =
 <Workspace>
@@ -38,10 +38,10 @@ namespace SampleComponent
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestWinmdVBInterfaceProjection() As Task
             Dim input =
 <Workspace>
@@ -78,10 +78,10 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestWinmdCSCollectionProjection() As Task
             Dim input =
 <Workspace>
@@ -120,10 +120,10 @@ namespace SampleComponent
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestWinmdVBCollectionProjection() As Task
             Dim input =
 <Workspace>
@@ -150,10 +150,10 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestWinmdCSEventProjection() As Task
             Dim input =
 <Workspace>
@@ -182,7 +182,7 @@ namespace SampleComponent
                     .RemoveEventHandler(value);
             }
         }
-        public void Foo()
+        public void Goo()
         {
             Class1 c1 = new Class1();
             Class2 c2 = new Class2();
@@ -210,10 +210,10 @@ namespace SampleComponent
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestWinmdVBEventProjection() As Task
             Dim input =
 <Workspace>
@@ -263,10 +263,10 @@ End Module
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestWinmdCSAllIsWellTest() As Task
             Dim input =
 <Workspace>
@@ -451,7 +451,7 @@ namespace SampleComponent
     }
     public sealed class Test
     {
-        public void Foo()
+        public void Goo()
         {
             Class1 c1 = new Class1();
             Class1 c2 = new Class1();
@@ -467,10 +467,10 @@ namespace SampleComponent
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestWinmdVBAllIsWellTest() As Task
             Dim input =
 <Workspace>
@@ -619,7 +619,7 @@ Public NotInheritable Class Class2
 End Class
 
 Public NotInheritable Class Test
-    Public Sub Foo()
+    Public Sub Goo()
         Dim c1 = DirectCast(New Class1(), IList(Of Integer))
         Dim c2 As New Class1
         Dim c3 As New Class2
@@ -631,7 +631,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
     End Class
 End Namespace

@@ -1,111 +1,113 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{B617717C-7881-4F01-AB6D-B1B6CC0483A0}</ProjectGuid>
-    <ProjectTypeGuids>{82b43b9b-a64c-4715-b499-d71e9ca2bd60};{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ExpressionEvaluatorPackage</RootNamespace>
-    <AssemblyName>ExpressionEvaluatorPackage</AssemblyName>
-    <UseCodebase>true</UseCodebase>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
-    <StartAction>Program</StartAction>
-    <StartProgram>$(DevEnvDir)devenv.exe</StartProgram>
-    <StartArguments>/rootsuffix RoslynDev /log</StartArguments>
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
-    <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
     <TargetVsixContainerName>ExpressionEvaluatorPackage.vsix</TargetVsixContainerName>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
-    <!-- Don't transitively copy output files, since everything builds to the same folder. -->
-    <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
-    <RestorePackages>true</RestorePackages>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <RoslynProjectType>Vsix</RoslynProjectType>
+    <IsProductComponent>true</IsProductComponent>
+    <ExtensionInstallationRoot>CommonExtensions</ExtensionInstallationRoot>
+    <ExtensionInstallationFolder>Microsoft\ManagedLanguages\VBCSharp\ExpressionEvaluators</ExtensionInstallationFolder>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Dependencies\VisualStudio\VisualStudio.csproj">
-      <Project>{8da861d8-0cce-4334-b6c0-01a846c881ec}</Project>
-      <Name>VisualStudio</Name>
-      <Private>False</Private>
-    </ProjectReference>
     <ProjectReference Include="..\..\VisualStudio\Setup\VisualStudioSetup.csproj">
-      <Project>{201EC5B7-F91E-45E5-B9F2-67A266CCE6FC}</Project>
       <Name>VisualStudioSetup</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\Core\Source\ExpressionCompiler\ExpressionCompiler.csproj">
-      <Project>{b8da3a90-a60c-42e3-9d8e-6c67b800c395}</Project>
       <Name>ExpressionCompiler</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <Ngen>true</Ngen>
+      <NgenArchitecture>All</NgenArchitecture>
+      <NgenPriority>3</NgenPriority>
+    </ProjectReference>
+    <ProjectReference Include="..\Core\Source\FunctionResolver\FunctionResolver.csproj">
+      <Name>FunctionResolver</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bVsdConfigOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <Ngen>true</Ngen>
+      <NgenArchitecture>All</NgenArchitecture>
+      <NgenPriority>3</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\Core\Source\ResultProvider\Portable\ResultProvider.Portable.csproj">
-      <Project>{BEDC5A4A-809E-4017-9CFD-6C8D4E1847F0}</Project>
       <Name>ResultProvider.Portable</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <Ngen>true</Ngen>
+      <NgenArchitecture>All</NgenArchitecture>
+      <NgenPriority>3</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\CSharp\Source\ExpressionCompiler\CSharpExpressionCompiler.csproj">
-      <Project>{FD6BA96C-7905-4876-8BCC-E38E2CA64F31}</Project>
       <Name>CSharpExpressionCompiler</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bVsdConfigOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <Ngen>true</Ngen>
+      <NgenArchitecture>All</NgenArchitecture>
+      <NgenPriority>3</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\CSharp\Source\ResultProvider\Portable\CSharpResultProvider.Portable.csproj">
-      <Project>{BF9DAC1E-3A5E-4DC3-BB44-9A64E0D4E9D3}</Project>
       <Name>CSharpResultProvider.Portable</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bVsdConfigOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <Ngen>true</Ngen>
+      <NgenArchitecture>All</NgenArchitecture>
+      <NgenPriority>3</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\VisualBasic\Source\ExpressionCompiler\BasicExpressionCompiler.vbproj">
-      <Project>{73242a2d-6300-499d-8c15-fadf7ecb185c}</Project>
       <Name>BasicExpressionCompiler</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bVsdConfigOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <Ngen>true</Ngen>
+      <NgenArchitecture>All</NgenArchitecture>
+      <NgenPriority>3</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\VisualBasic\Source\ResultProvider\Portable\BasicResultProvider.Portable.vbproj">
-      <Project>{76242A2D-2600-49DD-8C15-FEA07ECB1842}</Project>
       <Name>BasicResultProvider.Portable</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bVsdConfigOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <Ngen>true</Ngen>
+      <NgenArchitecture>All</NgenArchitecture>
+      <NgenPriority>3</NgenPriority>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="..\..\VisualStudio\Setup\ProvideRoslynBindingRedirection.cs">
       <Link>ProvideRoslynBindingRedirection.cs</Link>
     </Compile>
-    <Compile Include="AssemblyRedirects.cs" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

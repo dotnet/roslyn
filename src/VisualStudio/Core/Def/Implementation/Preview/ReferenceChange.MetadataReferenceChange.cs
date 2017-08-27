@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
 
@@ -28,8 +28,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
             protected override string GetDisplayText()
             {
-                var display = _reference.Display ?? ServicesVSResources.PreviewChangesUnknownReferenceName;
-                return string.Format(ServicesVSResources.PreviewChangesMetadataReference, display, this.ProjectName);
+                var display = _reference.Display ?? ServicesVSResources.Unknown1;
+                return string.Format(ServicesVSResources.Reference_to_0_in_project_1, display, this.ProjectName);
             }
         }
     }

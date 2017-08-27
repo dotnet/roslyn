@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
         {
             get
             {
-                return string.Format(CSharpInteractiveEditorResources.MicrosoftRoslynCSharpCompiler,
+                return string.Format(CSharpInteractiveEditorResources.Microsoft_R_Roslyn_CSharp_Compiler_version_0,
                 FileVersionInfo.GetVersionInfo(typeof(CSharpCommandLineArguments).Assembly.Location).FileVersion);
             }
         }

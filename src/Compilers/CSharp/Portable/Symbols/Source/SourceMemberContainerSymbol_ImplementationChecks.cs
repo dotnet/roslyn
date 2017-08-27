@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -375,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                             else
                             {
-                                var sourceMethod = method as SourceMethodSymbol;
+                                var sourceMethod = method as SourceMemberMethodSymbol;
                                 if ((object)sourceMethod != null) // skip submission initializer
                                 {
                                     var isNew = sourceMethod.IsNew;
@@ -667,6 +668,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_CantChangeAccessOnOverride, overridingMemberLocation, overridingMember, accessibility, overriddenMember);
                         suppressAccessors = true;
                     }
+                    else if (overridingMember.ContainsTupleNames() &&
+                        MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(overridingMember, overriddenMember))
+                    {
+                        // it is ok to override with no tuple names, for compatibility with C# 6, but otherwise names should match
+                        diagnostics.Add(ErrorCode.ERR_CantChangeTupleNamesOnOverride, overridingMemberLocation, overridingMember, overriddenMember);
+                    }
                     else
                     {
                         // As in dev11, we don't compare obsoleteness to the immediately-overridden member,
@@ -690,7 +697,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             diagnostics.Add(code, overridingMemberLocation, overridingMember, leastOverriddenMember);
                         }
-                        else if (overridingMemberIsProperty)
+
+                        if (overridingMemberIsProperty)
                         {
                             PropertySymbol overridingProperty = (PropertySymbol)overridingMember;
                             PropertySymbol overriddenProperty = (PropertySymbol)overriddenMember;
@@ -704,7 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 diagnostics.Add(ErrorCode.ERR_CantChangeRefReturnOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overridingProperty.RefKind != RefKind.None ? "not " : "");
                                 suppressAccessors = true; //we get really unhelpful errors from the accessor if the ref kind is mismatched
                             }
-                            else if (!overridingMemberType.Equals(overriddenMemberType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
+                            else if (!overridingMemberType.Equals(overriddenMemberType, TypeCompareKind.AllIgnoreOptions))
                             {
                                 diagnostics.Add(ErrorCode.ERR_CantChangeTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMemberType);
                                 suppressAccessors = true; //we get really unhelpful errors from the accessor if the type is mismatched
@@ -741,7 +749,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             TypeSymbol overriddenMemberType = overriddenEvent.Type;
 
                             // Ignore custom modifiers because this diagnostic is based on the C# semantics.
-                            if (!overridingMemberType.Equals(overriddenMemberType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
+                            if (!overridingMemberType.Equals(overriddenMemberType, TypeCompareKind.AllIgnoreOptions))
                             {
                                 diagnostics.Add(ErrorCode.ERR_CantChangeTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMemberType);
                                 suppressAccessors = true; //we get really unhelpful errors from the accessor if the type is mismatched
@@ -1058,7 +1066,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (ReferenceEquals(this.ContainingModule, implementingMethodOriginalDefinition.ContainingModule))
                 {
-                    SourceMethodSymbol sourceImplementMethodOriginalDefinition = implementingMethodOriginalDefinition as SourceMethodSymbol;
+                    SourceMemberMethodSymbol sourceImplementMethodOriginalDefinition = implementingMethodOriginalDefinition as SourceMemberMethodSymbol;
                     if ((object)sourceImplementMethodOriginalDefinition != null)
                     {
                         sourceImplementMethodOriginalDefinition.EnsureMetadataVirtual();

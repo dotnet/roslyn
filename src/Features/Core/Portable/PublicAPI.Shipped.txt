@@ -1,0 +1,246 @@
+abstract Microsoft.CodeAnalysis.Completion.CompletionProvider.ProvideCompletionsAsync(Microsoft.CodeAnalysis.Completion.CompletionContext context) -> System.Threading.Tasks.Task
+abstract Microsoft.CodeAnalysis.Completion.CompletionService.GetCompletionsAsync(Microsoft.CodeAnalysis.Document document, int caretPosition, Microsoft.CodeAnalysis.Completion.CompletionTrigger trigger = default(Microsoft.CodeAnalysis.Completion.CompletionTrigger), System.Collections.Immutable.ImmutableHashSet<string> roles = null, Microsoft.CodeAnalysis.Options.OptionSet options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Completion.CompletionList>
+abstract Microsoft.CodeAnalysis.Completion.CompletionService.Language.get -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.Assembly = "Assembly" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.Class = "Class" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.Constant = "Constant" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.Delegate = "Delegate" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.Enum = "Enum" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.EnumMember = "EnumMember" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.Error = "Error" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.Event = "Event" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.ExtensionMethod = "ExtensionMethod" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.Field = "Field" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.File = "File" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.Folder = "Folder" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.Interface = "Interface" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.Internal = "Internal" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.Intrinsic = "Intrinsic" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.Keyword = "Keyword" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.Label = "Label" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.Local = "Local" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.Method = "Method" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.Module = "Module" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.Namespace = "Namespace" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.Operator = "Operator" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.Parameter = "Parameter" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.Private = "Private" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.Project = "Project" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.Property = "Property" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.Protected = "Protected" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.Public = "Public" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.RangeVariable = "RangeVariable" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.Reference = "Reference" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.Snippet = "Snippet" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.Structure = "Structure" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.TypeParameter = "TypeParameter" -> string
+const Microsoft.CodeAnalysis.Completion.CompletionTags.Warning = "Warning" -> string
+const Microsoft.CodeAnalysis.TextTags.Alias = "Alias" -> string
+const Microsoft.CodeAnalysis.TextTags.AnonymousTypeIndicator = "AnonymousTypeIndicator" -> string
+const Microsoft.CodeAnalysis.TextTags.Assembly = "Assembly" -> string
+const Microsoft.CodeAnalysis.TextTags.Class = "Class" -> string
+const Microsoft.CodeAnalysis.TextTags.Delegate = "Delegate" -> string
+const Microsoft.CodeAnalysis.TextTags.Enum = "Enum" -> string
+const Microsoft.CodeAnalysis.TextTags.ErrorType = "ErrorType" -> string
+const Microsoft.CodeAnalysis.TextTags.Event = "Event" -> string
+const Microsoft.CodeAnalysis.TextTags.Field = "Field" -> string
+const Microsoft.CodeAnalysis.TextTags.Interface = "Interface" -> string
+const Microsoft.CodeAnalysis.TextTags.Keyword = "Keyword" -> string
+const Microsoft.CodeAnalysis.TextTags.Label = "Label" -> string
+const Microsoft.CodeAnalysis.TextTags.LineBreak = "LineBreak" -> string
+const Microsoft.CodeAnalysis.TextTags.Local = "Local" -> string
+const Microsoft.CodeAnalysis.TextTags.Method = "Method" -> string
+const Microsoft.CodeAnalysis.TextTags.Module = "Module" -> string
+const Microsoft.CodeAnalysis.TextTags.Namespace = "Namespace" -> string
+const Microsoft.CodeAnalysis.TextTags.NumericLiteral = "NumericLiteral" -> string
+const Microsoft.CodeAnalysis.TextTags.Operator = "Operator" -> string
+const Microsoft.CodeAnalysis.TextTags.Parameter = "Parameter" -> string
+const Microsoft.CodeAnalysis.TextTags.Property = "Property" -> string
+const Microsoft.CodeAnalysis.TextTags.Punctuation = "Punctuation" -> string
+const Microsoft.CodeAnalysis.TextTags.RangeVariable = "RangeVariable" -> string
+const Microsoft.CodeAnalysis.TextTags.Space = "Space" -> string
+const Microsoft.CodeAnalysis.TextTags.StringLiteral = "StringLiteral" -> string
+const Microsoft.CodeAnalysis.TextTags.Struct = "Struct" -> string
+const Microsoft.CodeAnalysis.TextTags.Text = "Text" -> string
+const Microsoft.CodeAnalysis.TextTags.TypeParameter = "TypeParameter" -> string
+Microsoft.CodeAnalysis.CodeActions.DocumentNavigationOperation
+Microsoft.CodeAnalysis.CodeActions.DocumentNavigationOperation.DocumentNavigationOperation(Microsoft.CodeAnalysis.DocumentId documentId, int position = 0) -> void
+Microsoft.CodeAnalysis.Completion.CharacterSetModificationKind
+Microsoft.CodeAnalysis.Completion.CharacterSetModificationKind.Add = 0 -> Microsoft.CodeAnalysis.Completion.CharacterSetModificationKind
+Microsoft.CodeAnalysis.Completion.CharacterSetModificationKind.Remove = 1 -> Microsoft.CodeAnalysis.Completion.CharacterSetModificationKind
+Microsoft.CodeAnalysis.Completion.CharacterSetModificationKind.Replace = 2 -> Microsoft.CodeAnalysis.Completion.CharacterSetModificationKind
+Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule
+Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule.Characters.get -> System.Collections.Immutable.ImmutableArray<char>
+Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule.Kind.get -> Microsoft.CodeAnalysis.Completion.CharacterSetModificationKind
+Microsoft.CodeAnalysis.Completion.CompletionChange
+Microsoft.CodeAnalysis.Completion.CompletionChange.IncludesCommitCharacter.get -> bool
+Microsoft.CodeAnalysis.Completion.CompletionChange.NewPosition.get -> int?
+Microsoft.CodeAnalysis.Completion.CompletionChange.TextChange.get -> Microsoft.CodeAnalysis.Text.TextChange
+Microsoft.CodeAnalysis.Completion.CompletionChange.TextChanges.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextChange>
+Microsoft.CodeAnalysis.Completion.CompletionChange.WithIncludesCommitCharacter(bool includesCommitCharacter) -> Microsoft.CodeAnalysis.Completion.CompletionChange
+Microsoft.CodeAnalysis.Completion.CompletionChange.WithNewPosition(int? newPostion) -> Microsoft.CodeAnalysis.Completion.CompletionChange
+Microsoft.CodeAnalysis.Completion.CompletionChange.WithTextChange(Microsoft.CodeAnalysis.Text.TextChange textChange) -> Microsoft.CodeAnalysis.Completion.CompletionChange
+Microsoft.CodeAnalysis.Completion.CompletionChange.WithTextChanges(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextChange> textChanges) -> Microsoft.CodeAnalysis.Completion.CompletionChange
+Microsoft.CodeAnalysis.Completion.CompletionContext
+Microsoft.CodeAnalysis.Completion.CompletionContext.AddItem(Microsoft.CodeAnalysis.Completion.CompletionItem item) -> void
+Microsoft.CodeAnalysis.Completion.CompletionContext.AddItems(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Completion.CompletionItem> items) -> void
+Microsoft.CodeAnalysis.Completion.CompletionContext.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.Completion.CompletionContext.CompletionContext(Microsoft.CodeAnalysis.Completion.CompletionProvider provider, Microsoft.CodeAnalysis.Document document, int position, Microsoft.CodeAnalysis.Text.TextSpan defaultSpan, Microsoft.CodeAnalysis.Completion.CompletionTrigger trigger, Microsoft.CodeAnalysis.Options.OptionSet options, System.Threading.CancellationToken cancellationToken) -> void
+Microsoft.CodeAnalysis.Completion.CompletionContext.CompletionListSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
+Microsoft.CodeAnalysis.Completion.CompletionContext.CompletionListSpan.set -> void
+Microsoft.CodeAnalysis.Completion.CompletionContext.DefaultItemSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
+Microsoft.CodeAnalysis.Completion.CompletionContext.Document.get -> Microsoft.CodeAnalysis.Document
+Microsoft.CodeAnalysis.Completion.CompletionContext.IsExclusive.get -> bool
+Microsoft.CodeAnalysis.Completion.CompletionContext.IsExclusive.set -> void
+Microsoft.CodeAnalysis.Completion.CompletionContext.Options.get -> Microsoft.CodeAnalysis.Options.OptionSet
+Microsoft.CodeAnalysis.Completion.CompletionContext.Position.get -> int
+Microsoft.CodeAnalysis.Completion.CompletionContext.SuggestionModeItem.get -> Microsoft.CodeAnalysis.Completion.CompletionItem
+Microsoft.CodeAnalysis.Completion.CompletionContext.SuggestionModeItem.set -> void
+Microsoft.CodeAnalysis.Completion.CompletionContext.Trigger.get -> Microsoft.CodeAnalysis.Completion.CompletionTrigger
+Microsoft.CodeAnalysis.Completion.CompletionDescription
+Microsoft.CodeAnalysis.Completion.CompletionDescription.TaggedParts.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText>
+Microsoft.CodeAnalysis.Completion.CompletionDescription.Text.get -> string
+Microsoft.CodeAnalysis.Completion.CompletionDescription.WithTaggedParts(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText> taggedParts) -> Microsoft.CodeAnalysis.Completion.CompletionDescription
+Microsoft.CodeAnalysis.Completion.CompletionItem
+Microsoft.CodeAnalysis.Completion.CompletionItem.AddProperty(string name, string value) -> Microsoft.CodeAnalysis.Completion.CompletionItem
+Microsoft.CodeAnalysis.Completion.CompletionItem.AddTag(string tag) -> Microsoft.CodeAnalysis.Completion.CompletionItem
+Microsoft.CodeAnalysis.Completion.CompletionItem.DisplayText.get -> string
+Microsoft.CodeAnalysis.Completion.CompletionItem.FilterText.get -> string
+Microsoft.CodeAnalysis.Completion.CompletionItem.Properties.get -> System.Collections.Immutable.ImmutableDictionary<string, string>
+Microsoft.CodeAnalysis.Completion.CompletionItem.Rules.get -> Microsoft.CodeAnalysis.Completion.CompletionItemRules
+Microsoft.CodeAnalysis.Completion.CompletionItem.SortText.get -> string
+Microsoft.CodeAnalysis.Completion.CompletionItem.Span.get -> Microsoft.CodeAnalysis.Text.TextSpan
+Microsoft.CodeAnalysis.Completion.CompletionItem.Tags.get -> System.Collections.Immutable.ImmutableArray<string>
+Microsoft.CodeAnalysis.Completion.CompletionItem.WithDisplayText(string text) -> Microsoft.CodeAnalysis.Completion.CompletionItem
+Microsoft.CodeAnalysis.Completion.CompletionItem.WithFilterText(string text) -> Microsoft.CodeAnalysis.Completion.CompletionItem
+Microsoft.CodeAnalysis.Completion.CompletionItem.WithProperties(System.Collections.Immutable.ImmutableDictionary<string, string> properties) -> Microsoft.CodeAnalysis.Completion.CompletionItem
+Microsoft.CodeAnalysis.Completion.CompletionItem.WithRules(Microsoft.CodeAnalysis.Completion.CompletionItemRules rules) -> Microsoft.CodeAnalysis.Completion.CompletionItem
+Microsoft.CodeAnalysis.Completion.CompletionItem.WithSortText(string text) -> Microsoft.CodeAnalysis.Completion.CompletionItem
+Microsoft.CodeAnalysis.Completion.CompletionItem.WithSpan(Microsoft.CodeAnalysis.Text.TextSpan span) -> Microsoft.CodeAnalysis.Completion.CompletionItem
+Microsoft.CodeAnalysis.Completion.CompletionItem.WithTags(System.Collections.Immutable.ImmutableArray<string> tags) -> Microsoft.CodeAnalysis.Completion.CompletionItem
+Microsoft.CodeAnalysis.Completion.CompletionItemRules
+Microsoft.CodeAnalysis.Completion.CompletionItemRules.CommitCharacterRules.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule>
+Microsoft.CodeAnalysis.Completion.CompletionItemRules.EnterKeyRule.get -> Microsoft.CodeAnalysis.Completion.EnterKeyRule
+Microsoft.CodeAnalysis.Completion.CompletionItemRules.FilterCharacterRules.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule>
+Microsoft.CodeAnalysis.Completion.CompletionItemRules.FormatOnCommit.get -> bool
+Microsoft.CodeAnalysis.Completion.CompletionItemRules.MatchPriority.get -> int
+Microsoft.CodeAnalysis.Completion.CompletionItemRules.SelectionBehavior.get -> Microsoft.CodeAnalysis.Completion.CompletionItemSelectionBehavior
+Microsoft.CodeAnalysis.Completion.CompletionItemRules.WithCommitCharacterRules(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule> commitCharacterRules) -> Microsoft.CodeAnalysis.Completion.CompletionItemRules
+Microsoft.CodeAnalysis.Completion.CompletionItemRules.WithEnterKeyRule(Microsoft.CodeAnalysis.Completion.EnterKeyRule enterKeyRule) -> Microsoft.CodeAnalysis.Completion.CompletionItemRules
+Microsoft.CodeAnalysis.Completion.CompletionItemRules.WithFilterCharacterRules(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule> filterCharacterRules) -> Microsoft.CodeAnalysis.Completion.CompletionItemRules
+Microsoft.CodeAnalysis.Completion.CompletionItemRules.WithFormatOnCommit(bool formatOnCommit) -> Microsoft.CodeAnalysis.Completion.CompletionItemRules
+Microsoft.CodeAnalysis.Completion.CompletionItemRules.WithMatchPriority(int matchPriority) -> Microsoft.CodeAnalysis.Completion.CompletionItemRules
+Microsoft.CodeAnalysis.Completion.CompletionItemRules.WithSelectionBehavior(Microsoft.CodeAnalysis.Completion.CompletionItemSelectionBehavior selectionBehavior) -> Microsoft.CodeAnalysis.Completion.CompletionItemRules
+Microsoft.CodeAnalysis.Completion.CompletionItemSelectionBehavior
+Microsoft.CodeAnalysis.Completion.CompletionItemSelectionBehavior.Default = 0 -> Microsoft.CodeAnalysis.Completion.CompletionItemSelectionBehavior
+Microsoft.CodeAnalysis.Completion.CompletionItemSelectionBehavior.HardSelection = 2 -> Microsoft.CodeAnalysis.Completion.CompletionItemSelectionBehavior
+Microsoft.CodeAnalysis.Completion.CompletionItemSelectionBehavior.SoftSelection = 1 -> Microsoft.CodeAnalysis.Completion.CompletionItemSelectionBehavior
+Microsoft.CodeAnalysis.Completion.CompletionList
+Microsoft.CodeAnalysis.Completion.CompletionList.DefaultSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
+Microsoft.CodeAnalysis.Completion.CompletionList.Items.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Completion.CompletionItem>
+Microsoft.CodeAnalysis.Completion.CompletionList.Rules.get -> Microsoft.CodeAnalysis.Completion.CompletionRules
+Microsoft.CodeAnalysis.Completion.CompletionList.Span.get -> Microsoft.CodeAnalysis.Text.TextSpan
+Microsoft.CodeAnalysis.Completion.CompletionList.SuggestionModeItem.get -> Microsoft.CodeAnalysis.Completion.CompletionItem
+Microsoft.CodeAnalysis.Completion.CompletionList.WithDefaultSpan(Microsoft.CodeAnalysis.Text.TextSpan span) -> Microsoft.CodeAnalysis.Completion.CompletionList
+Microsoft.CodeAnalysis.Completion.CompletionList.WithItems(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Completion.CompletionItem> items) -> Microsoft.CodeAnalysis.Completion.CompletionList
+Microsoft.CodeAnalysis.Completion.CompletionList.WithRules(Microsoft.CodeAnalysis.Completion.CompletionRules rules) -> Microsoft.CodeAnalysis.Completion.CompletionList
+Microsoft.CodeAnalysis.Completion.CompletionList.WithSpan(Microsoft.CodeAnalysis.Text.TextSpan span) -> Microsoft.CodeAnalysis.Completion.CompletionList
+Microsoft.CodeAnalysis.Completion.CompletionList.WithSuggestionModeItem(Microsoft.CodeAnalysis.Completion.CompletionItem suggestionModeItem) -> Microsoft.CodeAnalysis.Completion.CompletionList
+Microsoft.CodeAnalysis.Completion.CompletionProvider
+Microsoft.CodeAnalysis.Completion.CompletionProvider.CompletionProvider() -> void
+Microsoft.CodeAnalysis.Completion.CompletionRules
+Microsoft.CodeAnalysis.Completion.CompletionRules.DefaultCommitCharacters.get -> System.Collections.Immutable.ImmutableArray<char>
+Microsoft.CodeAnalysis.Completion.CompletionRules.DefaultEnterKeyRule.get -> Microsoft.CodeAnalysis.Completion.EnterKeyRule
+Microsoft.CodeAnalysis.Completion.CompletionRules.DismissIfEmpty.get -> bool
+Microsoft.CodeAnalysis.Completion.CompletionRules.DismissIfLastCharacterDeleted.get -> bool
+Microsoft.CodeAnalysis.Completion.CompletionRules.SnippetsRule.get -> Microsoft.CodeAnalysis.Completion.SnippetsRule
+Microsoft.CodeAnalysis.Completion.CompletionRules.WithDefaultCommitCharacters(System.Collections.Immutable.ImmutableArray<char> defaultCommitCharacters) -> Microsoft.CodeAnalysis.Completion.CompletionRules
+Microsoft.CodeAnalysis.Completion.CompletionRules.WithDefaultEnterKeyRule(Microsoft.CodeAnalysis.Completion.EnterKeyRule defaultEnterKeyRule) -> Microsoft.CodeAnalysis.Completion.CompletionRules
+Microsoft.CodeAnalysis.Completion.CompletionRules.WithDismissIfEmpty(bool dismissIfEmpty) -> Microsoft.CodeAnalysis.Completion.CompletionRules
+Microsoft.CodeAnalysis.Completion.CompletionRules.WithDismissIfLastCharacterDeleted(bool dismissIfLastCharacterDeleted) -> Microsoft.CodeAnalysis.Completion.CompletionRules
+Microsoft.CodeAnalysis.Completion.CompletionRules.WithSnippetsRule(Microsoft.CodeAnalysis.Completion.SnippetsRule snippetsRule) -> Microsoft.CodeAnalysis.Completion.CompletionRules
+Microsoft.CodeAnalysis.Completion.CompletionService
+Microsoft.CodeAnalysis.Completion.CompletionService.CompletionService() -> void
+Microsoft.CodeAnalysis.Completion.CompletionServiceWithProviders
+Microsoft.CodeAnalysis.Completion.CompletionServiceWithProviders.CompletionServiceWithProviders(Microsoft.CodeAnalysis.Workspace workspace) -> void
+Microsoft.CodeAnalysis.Completion.CompletionServiceWithProviders.GetProvider(Microsoft.CodeAnalysis.Completion.CompletionItem item) -> Microsoft.CodeAnalysis.Completion.CompletionProvider
+Microsoft.CodeAnalysis.Completion.CompletionServiceWithProviders.GetProviders(System.Collections.Immutable.ImmutableHashSet<string> roles) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Completion.CompletionProvider>
+Microsoft.CodeAnalysis.Completion.CompletionTags
+Microsoft.CodeAnalysis.Completion.CompletionTrigger
+Microsoft.CodeAnalysis.Completion.CompletionTrigger.Character.get -> char
+Microsoft.CodeAnalysis.Completion.CompletionTrigger.Kind.get -> Microsoft.CodeAnalysis.Completion.CompletionTriggerKind
+Microsoft.CodeAnalysis.Completion.CompletionTriggerKind
+Microsoft.CodeAnalysis.Completion.CompletionTriggerKind.Deletion = 2 -> Microsoft.CodeAnalysis.Completion.CompletionTriggerKind
+Microsoft.CodeAnalysis.Completion.CompletionTriggerKind.Insertion = 1 -> Microsoft.CodeAnalysis.Completion.CompletionTriggerKind
+Microsoft.CodeAnalysis.Completion.CompletionTriggerKind.Invoke = 0 -> Microsoft.CodeAnalysis.Completion.CompletionTriggerKind
+Microsoft.CodeAnalysis.Completion.CompletionTriggerKind.InvokeAndCommitIfUnique = 4 -> Microsoft.CodeAnalysis.Completion.CompletionTriggerKind
+Microsoft.CodeAnalysis.Completion.CompletionTriggerKind.Other = 0 -> Microsoft.CodeAnalysis.Completion.CompletionTriggerKind
+Microsoft.CodeAnalysis.Completion.CompletionTriggerKind.Snippets = 3 -> Microsoft.CodeAnalysis.Completion.CompletionTriggerKind
+Microsoft.CodeAnalysis.Completion.EnterKeyRule
+Microsoft.CodeAnalysis.Completion.EnterKeyRule.AfterFullyTypedWord = 3 -> Microsoft.CodeAnalysis.Completion.EnterKeyRule
+Microsoft.CodeAnalysis.Completion.EnterKeyRule.Always = 2 -> Microsoft.CodeAnalysis.Completion.EnterKeyRule
+Microsoft.CodeAnalysis.Completion.EnterKeyRule.Default = 0 -> Microsoft.CodeAnalysis.Completion.EnterKeyRule
+Microsoft.CodeAnalysis.Completion.EnterKeyRule.Never = 1 -> Microsoft.CodeAnalysis.Completion.EnterKeyRule
+Microsoft.CodeAnalysis.Completion.ExportCompletionProviderAttribute
+Microsoft.CodeAnalysis.Completion.ExportCompletionProviderAttribute.ExportCompletionProviderAttribute(string name, string language) -> void
+Microsoft.CodeAnalysis.Completion.ExportCompletionProviderAttribute.Language.get -> string
+Microsoft.CodeAnalysis.Completion.ExportCompletionProviderAttribute.Name.get -> string
+Microsoft.CodeAnalysis.Completion.ExportCompletionProviderAttribute.Roles.get -> string[]
+Microsoft.CodeAnalysis.Completion.ExportCompletionProviderAttribute.Roles.set -> void
+Microsoft.CodeAnalysis.Completion.MatchPriority
+Microsoft.CodeAnalysis.Completion.SnippetsRule
+Microsoft.CodeAnalysis.Completion.SnippetsRule.AlwaysInclude = 2 -> Microsoft.CodeAnalysis.Completion.SnippetsRule
+Microsoft.CodeAnalysis.Completion.SnippetsRule.Default = 0 -> Microsoft.CodeAnalysis.Completion.SnippetsRule
+Microsoft.CodeAnalysis.Completion.SnippetsRule.IncludeAfterTypingIdentifierQuestionTab = 3 -> Microsoft.CodeAnalysis.Completion.SnippetsRule
+Microsoft.CodeAnalysis.Completion.SnippetsRule.NeverInclude = 1 -> Microsoft.CodeAnalysis.Completion.SnippetsRule
+Microsoft.CodeAnalysis.TaggedText
+Microsoft.CodeAnalysis.TaggedText.Tag.get -> string
+Microsoft.CodeAnalysis.TaggedText.TaggedText(string tag, string text) -> void
+Microsoft.CodeAnalysis.TaggedText.Text.get -> string
+Microsoft.CodeAnalysis.TextTags
+override Microsoft.CodeAnalysis.CodeActions.DocumentNavigationOperation.Apply(Microsoft.CodeAnalysis.Workspace workspace, System.Threading.CancellationToken cancellationToken) -> void
+override Microsoft.CodeAnalysis.Completion.CompletionItem.ToString() -> string
+override Microsoft.CodeAnalysis.Completion.CompletionServiceWithProviders.GetChangeAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Completion.CompletionItem item, char? commitKey, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Completion.CompletionChange>
+override Microsoft.CodeAnalysis.Completion.CompletionServiceWithProviders.GetCompletionsAsync(Microsoft.CodeAnalysis.Document document, int caretPosition, Microsoft.CodeAnalysis.Completion.CompletionTrigger trigger, System.Collections.Immutable.ImmutableHashSet<string> roles, Microsoft.CodeAnalysis.Options.OptionSet options, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Completion.CompletionList>
+override Microsoft.CodeAnalysis.Completion.CompletionServiceWithProviders.GetDescriptionAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Completion.CompletionItem item, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Completion.CompletionDescription>
+override Microsoft.CodeAnalysis.Completion.CompletionServiceWithProviders.GetRules() -> Microsoft.CodeAnalysis.Completion.CompletionRules
+override Microsoft.CodeAnalysis.Completion.CompletionServiceWithProviders.ShouldTriggerCompletion(Microsoft.CodeAnalysis.Text.SourceText text, int caretPosition, Microsoft.CodeAnalysis.Completion.CompletionTrigger trigger, System.Collections.Immutable.ImmutableHashSet<string> roles = null, Microsoft.CodeAnalysis.Options.OptionSet options = null) -> bool
+override Microsoft.CodeAnalysis.TaggedText.ToString() -> string
+static Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule.Create(Microsoft.CodeAnalysis.Completion.CharacterSetModificationKind kind, params char[] characters) -> Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule
+static Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule.Create(Microsoft.CodeAnalysis.Completion.CharacterSetModificationKind kind, System.Collections.Immutable.ImmutableArray<char> characters) -> Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule
+static Microsoft.CodeAnalysis.Completion.CompletionChange.Create(Microsoft.CodeAnalysis.Text.TextChange textChange, int? newPosition = null, bool includesCommitCharacter = false) -> Microsoft.CodeAnalysis.Completion.CompletionChange
+static Microsoft.CodeAnalysis.Completion.CompletionChange.Create(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextChange> textChanges, int? newPosition = null, bool includesCommitCharacter = false) -> Microsoft.CodeAnalysis.Completion.CompletionChange
+static Microsoft.CodeAnalysis.Completion.CompletionDescription.Create(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText> taggedParts) -> Microsoft.CodeAnalysis.Completion.CompletionDescription
+static Microsoft.CodeAnalysis.Completion.CompletionDescription.FromText(string text) -> Microsoft.CodeAnalysis.Completion.CompletionDescription
+static Microsoft.CodeAnalysis.Completion.CompletionItem.Create(string displayText, string filterText = null, string sortText = null, System.Collections.Immutable.ImmutableDictionary<string, string> properties = null, System.Collections.Immutable.ImmutableArray<string> tags = default(System.Collections.Immutable.ImmutableArray<string>), Microsoft.CodeAnalysis.Completion.CompletionItemRules rules = null) -> Microsoft.CodeAnalysis.Completion.CompletionItem
+static Microsoft.CodeAnalysis.Completion.CompletionItem.Create(string displayText, string filterText, string sortText, Microsoft.CodeAnalysis.Text.TextSpan span, System.Collections.Immutable.ImmutableDictionary<string, string> properties, System.Collections.Immutable.ImmutableArray<string> tags, Microsoft.CodeAnalysis.Completion.CompletionItemRules rules) -> Microsoft.CodeAnalysis.Completion.CompletionItem
+static Microsoft.CodeAnalysis.Completion.CompletionItemRules.Create(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule> filterCharacterRules = default(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule>), System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule> commitCharacterRules = default(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule>), Microsoft.CodeAnalysis.Completion.EnterKeyRule enterKeyRule = Microsoft.CodeAnalysis.Completion.EnterKeyRule.Default, bool formatOnCommit = false, int? matchPriority = null, Microsoft.CodeAnalysis.Completion.CompletionItemSelectionBehavior selectionBehavior = Microsoft.CodeAnalysis.Completion.CompletionItemSelectionBehavior.Default) -> Microsoft.CodeAnalysis.Completion.CompletionItemRules
+static Microsoft.CodeAnalysis.Completion.CompletionItemRules.Create(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule> filterCharacterRules, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule> commitCharacterRules, Microsoft.CodeAnalysis.Completion.EnterKeyRule enterKeyRule, bool formatOnCommit, int? matchPriority) -> Microsoft.CodeAnalysis.Completion.CompletionItemRules
+static Microsoft.CodeAnalysis.Completion.CompletionItemRules.Default -> Microsoft.CodeAnalysis.Completion.CompletionItemRules
+static Microsoft.CodeAnalysis.Completion.CompletionList.Create(Microsoft.CodeAnalysis.Text.TextSpan defaultSpan, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Completion.CompletionItem> items, Microsoft.CodeAnalysis.Completion.CompletionRules rules = null, Microsoft.CodeAnalysis.Completion.CompletionItem suggestionModeItem = null) -> Microsoft.CodeAnalysis.Completion.CompletionList
+static Microsoft.CodeAnalysis.Completion.CompletionRules.Create(bool dismissIfEmpty = false, bool dismissIfLastCharacterDeleted = false, System.Collections.Immutable.ImmutableArray<char> defaultCommitCharacters = default(System.Collections.Immutable.ImmutableArray<char>), Microsoft.CodeAnalysis.Completion.EnterKeyRule defaultEnterKeyRule = Microsoft.CodeAnalysis.Completion.EnterKeyRule.Default, Microsoft.CodeAnalysis.Completion.SnippetsRule snippetsRule = Microsoft.CodeAnalysis.Completion.SnippetsRule.Default) -> Microsoft.CodeAnalysis.Completion.CompletionRules
+static Microsoft.CodeAnalysis.Completion.CompletionRules.Create(bool dismissIfEmpty, bool dismissIfLastCharacterDeleted, System.Collections.Immutable.ImmutableArray<char> defaultCommitCharacters, Microsoft.CodeAnalysis.Completion.EnterKeyRule defaultEnterKeyRule) -> Microsoft.CodeAnalysis.Completion.CompletionRules
+static Microsoft.CodeAnalysis.Completion.CompletionService.GetService(Microsoft.CodeAnalysis.Document document) -> Microsoft.CodeAnalysis.Completion.CompletionService
+static Microsoft.CodeAnalysis.Completion.CompletionTrigger.CreateDeletionTrigger(char deletedCharacter) -> Microsoft.CodeAnalysis.Completion.CompletionTrigger
+static Microsoft.CodeAnalysis.Completion.CompletionTrigger.CreateInsertionTrigger(char insertedCharacter) -> Microsoft.CodeAnalysis.Completion.CompletionTrigger
+static readonly Microsoft.CodeAnalysis.Completion.CompletionDescription.Empty -> Microsoft.CodeAnalysis.Completion.CompletionDescription
+static readonly Microsoft.CodeAnalysis.Completion.CompletionList.Empty -> Microsoft.CodeAnalysis.Completion.CompletionList
+static readonly Microsoft.CodeAnalysis.Completion.CompletionRules.Default -> Microsoft.CodeAnalysis.Completion.CompletionRules
+static readonly Microsoft.CodeAnalysis.Completion.CompletionTrigger.Default -> Microsoft.CodeAnalysis.Completion.CompletionTrigger
+static readonly Microsoft.CodeAnalysis.Completion.CompletionTrigger.Invoke -> Microsoft.CodeAnalysis.Completion.CompletionTrigger
+static readonly Microsoft.CodeAnalysis.Completion.MatchPriority.Default -> int
+static readonly Microsoft.CodeAnalysis.Completion.MatchPriority.Preselect -> int
+virtual Microsoft.CodeAnalysis.Completion.CompletionProvider.GetChangeAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Completion.CompletionItem item, char? commitKey, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Completion.CompletionChange>
+virtual Microsoft.CodeAnalysis.Completion.CompletionProvider.GetDescriptionAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Completion.CompletionItem item, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Completion.CompletionDescription>
+virtual Microsoft.CodeAnalysis.Completion.CompletionProvider.ShouldTriggerCompletion(Microsoft.CodeAnalysis.Text.SourceText text, int caretPosition, Microsoft.CodeAnalysis.Completion.CompletionTrigger trigger, Microsoft.CodeAnalysis.Options.OptionSet options) -> bool
+virtual Microsoft.CodeAnalysis.Completion.CompletionService.FilterItems(Microsoft.CodeAnalysis.Document document, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Completion.CompletionItem> items, string filterText) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Completion.CompletionItem>
+virtual Microsoft.CodeAnalysis.Completion.CompletionService.GetChangeAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Completion.CompletionItem item, char? commitCharacter = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Completion.CompletionChange>
+virtual Microsoft.CodeAnalysis.Completion.CompletionService.GetDefaultCompletionListSpan(Microsoft.CodeAnalysis.Text.SourceText text, int caretPosition) -> Microsoft.CodeAnalysis.Text.TextSpan
+virtual Microsoft.CodeAnalysis.Completion.CompletionService.GetDefaultItemSpan(Microsoft.CodeAnalysis.Text.SourceText text, int caretPosition) -> Microsoft.CodeAnalysis.Text.TextSpan
+virtual Microsoft.CodeAnalysis.Completion.CompletionService.GetDescriptionAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Completion.CompletionItem item, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Completion.CompletionDescription>
+virtual Microsoft.CodeAnalysis.Completion.CompletionService.GetRules() -> Microsoft.CodeAnalysis.Completion.CompletionRules
+virtual Microsoft.CodeAnalysis.Completion.CompletionService.ShouldTriggerCompletion(Microsoft.CodeAnalysis.Text.SourceText text, int caretPosition, Microsoft.CodeAnalysis.Completion.CompletionTrigger trigger, System.Collections.Immutable.ImmutableHashSet<string> roles = null, Microsoft.CodeAnalysis.Options.OptionSet options = null) -> bool
+virtual Microsoft.CodeAnalysis.Completion.CompletionServiceWithProviders.GetBetterItem(Microsoft.CodeAnalysis.Completion.CompletionItem item, Microsoft.CodeAnalysis.Completion.CompletionItem existingItem) -> Microsoft.CodeAnalysis.Completion.CompletionItem
+virtual Microsoft.CodeAnalysis.Completion.CompletionServiceWithProviders.GetBuiltInProviders() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Completion.CompletionProvider>
+virtual Microsoft.CodeAnalysis.Completion.CompletionServiceWithProviders.GetProviders(System.Collections.Immutable.ImmutableHashSet<string> roles, Microsoft.CodeAnalysis.Completion.CompletionTrigger trigger) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Completion.CompletionProvider>
+virtual Microsoft.CodeAnalysis.Completion.CompletionServiceWithProviders.ItemsMatch(Microsoft.CodeAnalysis.Completion.CompletionItem item, Microsoft.CodeAnalysis.Completion.CompletionItem existingItem) -> bool

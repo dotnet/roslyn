@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression MakeIndexerAccess(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenReceiver,
             PropertySymbol indexer,
             ImmutableArray<BoundExpression> rewrittenArguments,
@@ -105,8 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This node will be rewritten with MakePropertyAssignment when rewriting the enclosing BoundAssignmentOperator.
 
                 return oldNodeOpt != null ?
-                    oldNodeOpt.Update(rewrittenReceiver, indexer, rewrittenArguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, type) :
-                    new BoundIndexerAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, type);
+                    oldNodeOpt.Update(rewrittenReceiver, indexer, rewrittenArguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, null, isLeftOfAssignment, type) :
+                    new BoundIndexerAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, null, isLeftOfAssignment, type);
             }
             else
             {

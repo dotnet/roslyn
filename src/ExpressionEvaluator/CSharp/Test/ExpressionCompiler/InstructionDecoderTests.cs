@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -459,7 +459,6 @@ class C
                 Assert.NotEmpty(serializedTypeArgumentNames);
                 var typeParameters = instructionDecoder.GetAllTypeParameters(method);
                 Assert.NotEmpty(typeParameters);
-                var typeNameDecoder = new EETypeNameDecoder(compilation, (PEModuleSymbol)method.ContainingModule);
                 // Use the same helper method as the FrameDecoder to get the TypeSymbols for the
                 // generic type arguments (rather than using EETypeNameDecoder directly).
                 var typeArguments = instructionDecoder.GetTypeSymbols(compilation, method, serializedTypeArgumentNames);

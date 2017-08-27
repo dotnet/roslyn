@@ -309,6 +309,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+            Get
+                Return Me.TypeSubstitution.SubstituteCustomModifiers(OriginalDefinition.RefCustomModifiers)
+            End Get
+        End Property
+
         Public MustOverride Overrides ReadOnly Property TypeArguments As ImmutableArray(Of TypeSymbol)
 
         Public MustOverride Overrides ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)
@@ -439,7 +445,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return False
         End Function
 
-        Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Friend Overrides ReadOnly Property Syntax As SyntaxNode
             Get
                 Return Nothing
             End Get

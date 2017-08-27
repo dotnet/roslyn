@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return SyntaxFactory.TokenList(SyntaxFactory.Token(argument.RefOrOutKeyword.Kind()));
             }
 
-            return default(SyntaxTokenList);
+            return default;
         }
 
         public static RefKind GetRefKind(this ArgumentSyntax argument)
         {
-            var refSyntaxKind = argument.RefOrOutKeyword.Kind();
+            var refSyntaxKind = argument?.RefOrOutKeyword.Kind();
             return
                 refSyntaxKind == SyntaxKind.RefKeyword ? RefKind.Ref :
                 refSyntaxKind == SyntaxKind.OutKeyword ? RefKind.Out : RefKind.None;
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             this ArgumentSyntax argument,
             SemanticModel semanticModel,
             bool allowParams = false,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var argumentList = argument.Parent as BaseArgumentListSyntax;
             if (argumentList == null)
@@ -98,30 +98,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return null;
-        }
-
-        public static ITypeSymbol DetermineParameterType(
-            this ArgumentSyntax argument,
-            SemanticModel semanticModel,
-            CancellationToken cancellationToken)
-        {
-            TypeInfo typeInfo;
-
-            if (argument.Declaration != null)
-            {
-                typeInfo = semanticModel.GetTypeInfo(argument.Declaration.Type);
-                return typeInfo.Type?.IsErrorType() == false ? typeInfo.Type : semanticModel.Compilation.ObjectType;
-            }
-
-            // If a parameter appears to have a void return type, then just use 'object'
-            // instead.
-            typeInfo = semanticModel.GetTypeInfo(argument.Expression, cancellationToken);
-            if (typeInfo.Type != null && typeInfo.Type.SpecialType == SpecialType.System_Void)
-            {
-                return semanticModel.Compilation.ObjectType;
-            }
-
-            return semanticModel.GetType(argument.Expression, cancellationToken);
         }
     }
 }

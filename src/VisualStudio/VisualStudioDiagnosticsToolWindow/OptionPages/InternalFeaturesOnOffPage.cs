@@ -1,20 +1,15 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
-using Roslyn.Utilities;
 
 namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 {
@@ -23,7 +18,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
     {
         protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider)
         {
-            return new InternalFeaturesOptionsControl(InternalFeatureOnOffOptions.OptionName, serviceProvider);
+            return new InternalFeaturesOptionsControl(nameof(InternalFeatureOnOffOptions), serviceProvider);
         }
 
         internal class InternalFeaturesOptionsControl : InternalOptionsControl
@@ -36,19 +31,30 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
             protected override void AddOptions(Panel panel)
             {
                 // add force low memory mode option
-                var group = new WrapPanel();
+                var lowMemoryGroup = new WrapPanel();
 
                 var cb = new CheckBox { Content = "Forced Low Memory Mode: allocate" };
                 BindToOption(cb, ForceLowMemoryMode.Enabled);
-                group.Children.Add(cb);
+                lowMemoryGroup.Children.Add(cb);
 
                 var textBox = new TextBox { MinWidth = 60 };
                 BindToOption(textBox, ForceLowMemoryMode.SizeInMegabytes);
-                group.Children.Add(textBox);
+                lowMemoryGroup.Children.Add(textBox);
 
-                group.Children.Add(new TextBlock { Text = "megabytes of extra memory in devenv.exe" });
+                lowMemoryGroup.Children.Add(new TextBlock { Text = "megabytes of extra memory in devenv.exe" });
 
-                panel.Children.Add(group);
+                panel.Children.Add(lowMemoryGroup);
+
+                // add OOP feature options
+                var oopFeatureGroup = new StackPanel();
+
+                AddOption(oopFeatureGroup, RemoteFeatureOptions.AddImportEnabled, nameof(RemoteFeatureOptions.AddImportEnabled));
+                AddOption(oopFeatureGroup, RemoteFeatureOptions.DocumentHighlightingEnabled, nameof(RemoteFeatureOptions.DocumentHighlightingEnabled));
+                AddOption(oopFeatureGroup, RemoteFeatureOptions.NavigateToEnabled, nameof(RemoteFeatureOptions.NavigateToEnabled));
+                AddOption(oopFeatureGroup, RemoteFeatureOptions.SymbolFinderEnabled, nameof(RemoteFeatureOptions.SymbolFinderEnabled));
+                AddOption(oopFeatureGroup, RemoteFeatureOptions.SymbolSearchEnabled, nameof(RemoteFeatureOptions.SymbolSearchEnabled));
+
+                panel.Children.Add(oopFeatureGroup);
 
                 // and add the rest of the options
                 base.AddOptions(panel);

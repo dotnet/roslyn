@@ -7,11 +7,11 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Friend Partial Class BoundNamespaceExpression
-        Public Sub New(syntax As VisualBasicSyntaxNode, unevaluatedReceiverOpt As BoundExpression, namespaceSymbol As NamespaceSymbol, hasErrors As Boolean)
+        Public Sub New(syntax As SyntaxNode, unevaluatedReceiverOpt As BoundExpression, namespaceSymbol As NamespaceSymbol, hasErrors As Boolean)
             MyClass.New(syntax, unevaluatedReceiverOpt, Nothing, namespaceSymbol, hasErrors)
         End Sub
 
-        Public Sub New(syntax As VisualBasicSyntaxNode, unevaluatedReceiverOpt As BoundExpression, namespaceSymbol As NamespaceSymbol)
+        Public Sub New(syntax As SyntaxNode, unevaluatedReceiverOpt As BoundExpression, namespaceSymbol As NamespaceSymbol)
             MyClass.New(syntax, unevaluatedReceiverOpt, Nothing, namespaceSymbol)
         End Sub
 

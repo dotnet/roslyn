@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging.Tags
         {
             // this.Border = new Pen(Brushes.Yellow, thickness: 1.5);
             this.BackgroundColor = Colors.Yellow;
-            this.DisplayName = EditorFeaturesResources.Warning;
+            this.DisplayName = EditorFeaturesResources.Preview_Warning;
             this.ZOrder = 10;
         }
     }

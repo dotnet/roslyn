@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Composition;
 using System.Linq;
@@ -106,8 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         private string TryGetText(SyntaxToken token, SemanticModel semanticModel, Document document, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
         {
-            string text = null;
-            if (TryGetTextForContextualKeyword(token, document, syntaxFacts, out text) ||
+            if (TryGetTextForContextualKeyword(token, document, syntaxFacts, out var text) ||
                TryGetTextForKeyword(token, document, syntaxFacts, out text) ||
                TryGetTextForPreProcessor(token, document, syntaxFacts, out text) ||
                TryGetTextForSymbol(token, semanticModel, document, cancellationToken, out text) ||
@@ -134,8 +133,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
             else
             {
-                var symbols = semanticModel.GetSymbols(token, document.Project.Solution.Workspace, bindLiteralsToUnderlyingType: true, cancellationToken: cancellationToken);
-                symbol = symbols.FirstOrDefault();
+                symbol = semanticModel.GetSemanticInfo(token, document.Project.Solution.Workspace, cancellationToken)
+                                      .GetAnySymbol(includeType: true);
 
                 if (symbol == null)
                 {
@@ -318,8 +317,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         {
             var displayString = symbol.ToDisplayString(TypeFormat);
 
-            var type = symbol as ITypeSymbol;
-            if (type != null && type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+            if (symbol is ITypeSymbol type && type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
             {
                 return "System.Nullable`1";
             }

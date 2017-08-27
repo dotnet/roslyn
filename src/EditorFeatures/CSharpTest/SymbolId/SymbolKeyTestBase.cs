@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
@@ -125,13 +124,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
             foreach (var node in symbol.DeclaringSyntaxReferences.Select(d => d.GetSyntax()))
             {
                 BlockSyntax body = null;
-                if (node is BaseMethodDeclarationSyntax)
+                if (node is BaseMethodDeclarationSyntax baseMethod)
                 {
-                    body = (node as BaseMethodDeclarationSyntax).Body;
+                    body = baseMethod.Body;
                 }
-                else if (node is AccessorDeclarationSyntax)
+                else if (node is AccessorDeclarationSyntax accessor)
                 {
-                    body = (node as AccessorDeclarationSyntax).Body;
+                    body = accessor.Body;
                 }
 
                 if (body != null || body.Statements.Any())
@@ -282,8 +281,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
             {
                 foreach (var node in symbol.DeclaringSyntaxReferences.Select(d => d.GetSyntax()))
                 {
-                    var declarator = node as VariableDeclaratorSyntax;
-                    if (declarator != null && declarator.Initializer != null)
+                    if (node is VariableDeclaratorSyntax declarator && declarator.Initializer != null)
                     {
                         var model = _compilation.GetSemanticModel(declarator.SyntaxTree);
 
@@ -301,13 +299,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
                 foreach (var node in symbol.DeclaringSyntaxReferences.Select(d => d.GetSyntax()))
                 {
                     BlockSyntax body = null;
-                    if (node is BaseMethodDeclarationSyntax)
+                    if (node is BaseMethodDeclarationSyntax baseMethod)
                     {
-                        body = (node as BaseMethodDeclarationSyntax).Body;
+                        body = baseMethod.Body;
                     }
-                    else if (node is AccessorDeclarationSyntax)
+                    else if (node is AccessorDeclarationSyntax accessor)
                     {
-                        body = (node as AccessorDeclarationSyntax).Body;
+                        body = accessor.Body;
                     }
 
                     var model = _compilation.GetSemanticModel(node.SyntaxTree);
@@ -323,8 +321,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
                     }
 
                     // C# specific (this|base access)
-                    var ctor = node as ConstructorDeclarationSyntax;
-                    if (ctor != null && ctor.Initializer != null)
+                    if (node is ConstructorDeclarationSyntax ctor && ctor.Initializer != null)
                     {
                         foreach (var a in ctor.Initializer.ArgumentList.Arguments)
                         {
@@ -344,8 +341,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
                 foreach (var v in df.VariablesDeclared)
                 {
                     list.Add((Symbol)v);
-                    var local = v as LocalSymbol;
-                    if (local != null && (local.Type.Kind == SymbolKind.ArrayType || local.Type.Kind == SymbolKind.PointerType))
+                    if (v is LocalSymbol local && (local.Type.Kind == SymbolKind.ArrayType || local.Type.Kind == SymbolKind.PointerType))
                     {
                         list.Add(local.Type);
                     }

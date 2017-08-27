@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -36,8 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             RestoreUnstructuredExceptionHandlingContext(node, saveState)
 
-            Return RewriteWithBlockStatements(node.Body,
-                                              node.Syntax,
+            Return RewriteWithBlockStatements(node,
                                               ShouldGenerateUnstructuredExceptionHandlingResumeCode(node),
                                               result.Locals,
                                               result.Initializers,
@@ -45,26 +45,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                               result.Expression)
         End Function
 
-        Private Function RewriteWithBlockStatements(block As BoundBlock,
-                                                    syntax As VisualBasicSyntaxNode,
+        Private Function RewriteWithBlockStatements(node As BoundWithStatement,
                                                     generateUnstructuredExceptionHandlingResumeCode As Boolean,
                                                     locals As ImmutableArray(Of LocalSymbol),
                                                     initializers As ImmutableArray(Of BoundExpression),
                                                     placeholder As BoundValuePlaceholderBase,
                                                     replaceWith As BoundExpression) As BoundBlock
-            Debug.Assert(block IsNot Nothing)
-            Debug.Assert(syntax IsNot Nothing)
             Debug.Assert(Not locals.IsDefault)
             Debug.Assert(Not initializers.IsDefault)
             Debug.Assert(placeholder IsNot Nothing)
             Debug.Assert(replaceWith IsNot Nothing)
 
+            Dim block As BoundBlock = node.Body
+            Dim syntax As SyntaxNode = node.Syntax
+
             ' We need to create a new Block with locals, initialization 
             ' statements, bound block and optional clean-up statements
             Dim initStatements = ArrayBuilder(Of BoundStatement).GetInstance
+            Dim instrument As Boolean = Me.Instrument(node) AndAlso syntax.Kind = SyntaxKind.WithBlock
 
-            If generateDebugInfo AndAlso syntax.Kind = SyntaxKind.WithBlock Then
-                initStatements.Add(New BoundSequencePoint(DirectCast(syntax, WithBlockSyntax).WithStatement, Nothing))
+            If instrument Then
+                Dim prologue = _instrumenterOpt.CreateWithStatementPrologue(node)
+                If prologue IsNot Nothing Then
+                    initStatements.Add(prologue)
+                End If
             End If
 
             If generateUnstructuredExceptionHandlingResumeCode Then
@@ -83,8 +87,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             initStatements.Add(DirectCast(Visit(block), BoundStatement))
             RemovePlaceholderReplacement(placeholder)
 
-            If generateDebugInfo AndAlso syntax.Kind = SyntaxKind.WithBlock Then
-                initStatements.Add(New BoundSequencePoint(DirectCast(syntax, WithBlockSyntax).EndWithStatement, Nothing))
+            If instrument Then
+                Dim epilogue = _instrumenterOpt.CreateWithStatementEpilogue(node)
+                If epilogue IsNot Nothing Then
+                    initStatements.Add(epilogue)
+                End If
             End If
 
             If generateUnstructuredExceptionHandlingResumeCode Then
@@ -116,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         explicitCastInCode:=False,
                                         type:=localType).MakeCompilerGenerated(),
                                     suppressObjectClone:=True,
-                                    Type:=localType
+                                    type:=localType
                                 ).MakeCompilerGenerated()
                             )
                         ).MakeCompilerGenerated()

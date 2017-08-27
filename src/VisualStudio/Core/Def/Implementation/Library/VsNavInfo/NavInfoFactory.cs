@@ -24,8 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
 
         public IVsNavInfo CreateForReference(MetadataReference reference)
         {
-            var portableExecutableReference = reference as PortableExecutableReference;
-            if (portableExecutableReference != null)
+            if (reference is PortableExecutableReference portableExecutableReference)
             {
                 return new NavInfo(this, libraryName: portableExecutableReference.FilePath);
             }
@@ -35,28 +34,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
 
         public IVsNavInfo CreateForSymbol(ISymbol symbol, Project project, Compilation compilation, bool useExpandedHierarchy = false)
         {
-            var assemblySymbol = symbol as IAssemblySymbol;
-            if (assemblySymbol != null)
+            switch (symbol)
             {
-                return CreateForAssembly(assemblySymbol);
-            }
-
-            var aliasSymbol = symbol as IAliasSymbol;
-            if (aliasSymbol != null)
-            {
-                symbol = aliasSymbol.Target;
-            }
-
-            var namespaceSymbol = symbol as INamespaceSymbol;
-            if (namespaceSymbol != null)
-            {
-                return CreateForNamespace(namespaceSymbol, project, compilation, useExpandedHierarchy);
-            }
-
-            var typeSymbol = symbol as ITypeSymbol;
-            if (typeSymbol != null)
-            {
-                return CreateForType(typeSymbol, project, compilation, useExpandedHierarchy);
+                case IAssemblySymbol assemblySymbol:
+                    return CreateForAssembly(assemblySymbol);
+                case IAliasSymbol aliasSymbol:
+                    symbol = aliasSymbol.Target;
+                    break;
+                case INamespaceSymbol namespaceSymbol:
+                    return CreateForNamespace(namespaceSymbol, project, compilation, useExpandedHierarchy);
+                case ITypeSymbol typeSymbol:
+                    return CreateForType(typeSymbol, project, compilation, useExpandedHierarchy);
             }
 
             if (symbol.Kind == SymbolKind.Event ||
@@ -211,15 +199,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
                 return result;
             }
 
-            IVsHierarchy parentHierarchy;
-            if (hierarchy.TryGetParentHierarchy(out parentHierarchy) && !(parentHierarchy is IVsSolution))
+            if (hierarchy.TryGetParentHierarchy(out var parentHierarchy) && !(parentHierarchy is IVsSolution))
             {
                 var builder = SharedPools.Default<StringBuilder>().AllocateAndClear();
+                builder.Append(result);
 
                 while (parentHierarchy != null && !(parentHierarchy is IVsSolution))
                 {
-                    string parentName;
-                    if (parentHierarchy.TryGetName(out parentName))
+                    if (parentHierarchy.TryGetName(out var parentName))
                     {
                         builder.Insert(0, parentName + "\\");
                     }

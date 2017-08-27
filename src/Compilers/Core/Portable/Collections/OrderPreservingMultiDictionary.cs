@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Collections
@@ -88,8 +89,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// </summary>
         public void Add(K k, V v)
         {
-            ValueSet valueSet;
-            if (!this.IsEmpty && _dictionary.TryGetValue(k, out valueSet))
+            if (!this.IsEmpty && _dictionary.TryGetValue(k, out var valueSet))
             {
                 Debug.Assert(valueSet.Count >= 1);
                 // Have to re-store the ValueSet in case we upgraded the existing ValueSet from 
@@ -126,8 +126,7 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             get
             {
-                ValueSet valueSet;
-                if (!this.IsEmpty && _dictionary.TryGetValue(k, out valueSet))
+                if (!this.IsEmpty && _dictionary.TryGetValue(k, out var valueSet))
                 {
                     Debug.Assert(valueSet.Count >= 1);
                     return valueSet.Items;
@@ -135,6 +134,13 @@ namespace Microsoft.CodeAnalysis.Collections
 
                 return ImmutableArray<V>.Empty;
             }
+        }
+
+        public bool Contains(K key, V value)
+        {
+            return !this.IsEmpty &&
+                _dictionary.TryGetValue(key, out var valueSet) &&
+                valueSet.Contains(value);
         }
 
         /// <summary>
@@ -192,6 +198,15 @@ namespace Microsoft.CodeAnalysis.Collections
                         return arrayBuilder[index];
                     }
                 }
+            }
+
+            internal bool Contains(V item)
+            {
+                Debug.Assert(this.Count >= 1);
+                var arrayBuilder = _value as ArrayBuilder<V>;
+                return arrayBuilder == null
+                    ? EqualityComparer<V>.Default.Equals(item, (V)_value)
+                    : arrayBuilder.Contains(item);
             }
 
             internal ImmutableArray<V> Items

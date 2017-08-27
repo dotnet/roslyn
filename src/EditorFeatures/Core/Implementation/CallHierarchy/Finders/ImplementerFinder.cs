@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
         {
             get
             {
-                return string.Format(EditorFeaturesResources.ImplementsArg, SymbolName);
+                return string.Format(EditorFeaturesResources.Implements_0, SymbolName);
             }
         }
 

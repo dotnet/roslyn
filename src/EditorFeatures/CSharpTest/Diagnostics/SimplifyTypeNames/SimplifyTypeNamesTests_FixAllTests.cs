@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -122,7 +123,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, options: PreferIntrinsicTypeEverywhere, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -232,7 +233,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, options: PreferIntrinsicTypeEverywhere, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -342,7 +343,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, options:PreferIntrinsicTypeEverywhere, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -596,7 +597,7 @@ class ProgramB3
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -850,7 +851,7 @@ class ProgramB3
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -931,14 +932,14 @@ class D
 </Workspace>";
 
             var options = OptionsSet(
-                Tuple.Create(CodeStyleOptions.QualifyPropertyAccess, false, NotificationOption.Suggestion),
-                Tuple.Create(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Suggestion));
-            await TestAsync(
+                SingleOption(CodeStyleOptions.QualifyPropertyAccess, false, NotificationOption.Suggestion),
+                SingleOption(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Suggestion));
+
+            await TestInRegularAndScriptAsync(
                 initialMarkup: input,
                 expectedMarkup: expected,
                 options: options,
-                compareTokens: false,
-                fixAllActionEquivalenceKey: CSharpFeaturesResources.RemoveThisQualification);
+                fixAllActionEquivalenceKey: CSharpFeaturesResources.Remove_this_qualification);
         }
 
         #endregion

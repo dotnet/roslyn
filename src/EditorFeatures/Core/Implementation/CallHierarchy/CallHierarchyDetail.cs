@@ -39,61 +39,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             return location.SourceTree.GetText().GetSubText(TextSpan.FromBounds(start, end)).ToString();
         }
 
-        public int EndColumn
-        {
-            get
-            {
-                return _endColumn;
-            }
-        }
+        public int EndColumn => _endColumn;
 
-        public int EndLine
-        {
-            get
-            {
-                return _endLine;
-            }
-        }
+        public int EndLine => _endLine;
 
-        public string File
-        {
-            get
-            {
-                return _sourceFile;
-            }
-        }
+        public string File => _sourceFile;
 
-        public int StartColumn
-        {
-            get
-            {
-                return _startColumn;
-            }
-        }
+        public int StartColumn => _startColumn;
 
-        public int StartLine
-        {
-            get
-            {
-                return _startLine;
-            }
-        }
+        public int StartLine => _startLine;
 
-        public bool SupportsNavigateTo
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public bool SupportsNavigateTo => true;
 
-        public string Text
-        {
-            get
-            {
-                return _text;
-            }
-        }
+        public string Text => _text;
 
         public void NavigateTo()
         {
@@ -102,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             if (document != null)
             {
                 var navigator = _workspace.Services.GetService<IDocumentNavigationService>();
-                var options = document.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true);
+                var options = _workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true);
                 navigator.TryNavigateToSpan(_workspace, document.Id, _span, options);
             }
         }

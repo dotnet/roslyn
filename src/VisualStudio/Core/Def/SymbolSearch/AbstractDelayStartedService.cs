@@ -1,9 +1,9 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
     /// <summary>
     /// Base type for services that we want to delay running until certain criteria is met.
-    /// For example, we don't want to run the <see cref="SymbolSearchService"/> core codepath
+    /// For example, we don't want to run the <see cref="VisualStudioSymbolSearchService"/> core codepath
     /// if the user has not enabled the features that need it.  That helps us avoid loading
     /// dlls unnecessarily and bloating the VS memory space.
     /// </summary>
@@ -43,7 +43,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         protected abstract void EnableService();
 
         protected abstract void StartWorking();
-        protected abstract void StopWorking();
 
         internal void Connect(string languageName)
         {
@@ -94,31 +93,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         {
             var options = Workspace.Options;
             return _perLanguageOptions.Any(o => options.GetOption(o, language));
-        }
-
-        internal void Disconnect(string languageName)
-        {
-            this.AssertIsForeground();
-
-            var options = Workspace.Options;
-            if (!options.GetOption(_serviceOnOffOption))
-            {
-                // Feature is totally disabled.  Do nothing.
-                return;
-            }
-
-            _registeredLanguageNames.Remove(languageName);
-            if (_registeredLanguageNames.Count == 0)
-            {
-                if (_enabled)
-                {
-                    _enabled = false;
-                    StopWorking();
-                }
-
-                var optionsService = Workspace.Services.GetService<IOptionService>();
-                optionsService.OptionChanged -= OnOptionChanged;
-            }
         }
     }
 }

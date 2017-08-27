@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
@@ -42,22 +42,32 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             /// </summary>
             public abstract Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken);
 
-            internal virtual async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
+            internal async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
                 FixAllContext fixAllContext)
             {
-                using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Diagnostics, fixAllContext.CancellationToken))
+                var result = await GetDocumentDiagnosticsToFixWorkerAsync(fixAllContext).ConfigureAwait(false);
+
+                // Filter out any documents that we don't have any diagnostics for.
+                return result.Where(kvp => !kvp.Value.IsDefaultOrEmpty).ToImmutableDictionary();
+            }
+
+            internal virtual async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixWorkerAsync(
+                FixAllContext fixAllContext)
+            {
+                var cancellationToken = fixAllContext.CancellationToken;
+
+                using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Diagnostics, cancellationToken))
                 {
                     var allDiagnostics = ImmutableArray<Diagnostic>.Empty;
                     var projectsToFix = ImmutableArray<Project>.Empty;
 
                     var document = fixAllContext.Document;
                     var project = fixAllContext.Project;
-                    var generatedCodeServices = project.Solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>();
 
                     switch (fixAllContext.Scope)
                     {
                         case FixAllScope.Document:
-                            if (document != null && !generatedCodeServices.IsGeneratedCode(document))
+                            if (document != null && !document.IsGeneratedCode(cancellationToken))
                             {
                                 var documentDiagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(document).ConfigureAwait(false);
                                 var kvp = SpecializedCollections.SingletonEnumerable(KeyValuePair.Create(document, documentDiagnostics));
@@ -83,19 +93,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                             var tasks = new Task[projectsToFix.Length];
                             for (int i = 0; i < projectsToFix.Length; i++)
                             {
-                                fixAllContext.CancellationToken.ThrowIfCancellationRequested();
+                                cancellationToken.ThrowIfCancellationRequested();
                                 var projectToFix = projectsToFix[i];
                                 tasks[i] = Task.Run(async () =>
                                 {
                                     var projectDiagnostics = await fixAllContext.GetAllDiagnosticsAsync(projectToFix).ConfigureAwait(false);
                                     foreach (var diagnostic in projectDiagnostics)
                                     {
-                                        fixAllContext.CancellationToken.ThrowIfCancellationRequested();
+                                        cancellationToken.ThrowIfCancellationRequested();
                                         diagnostics.Add(diagnostic);
                                     }
 
                                     progressTracker.ItemCompleted();
-                                }, fixAllContext.CancellationToken);
+                                }, cancellationToken);
                             }
 
                             await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -108,14 +118,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         return ImmutableDictionary<Document, ImmutableArray<Diagnostic>>.Empty;
                     }
 
-                    return await GetDocumentDiagnosticsToFixAsync(allDiagnostics, projectsToFix, generatedCodeServices.IsGeneratedCode, fixAllContext.CancellationToken).ConfigureAwait(false);
+                    return await GetDocumentDiagnosticsToFixAsync(
+                        allDiagnostics, projectsToFix, fixAllContext.CancellationToken).ConfigureAwait(false);
                 }
             }
 
             private async static Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
                 ImmutableArray<Diagnostic> diagnostics,
                 ImmutableArray<Project> projects,
-                Func<Document, bool> isGeneratedCode, CancellationToken cancellationToken)
+                CancellationToken cancellationToken)
             {
                 var treeToDocumentMap = await GetTreeToDocumentMapAsync(projects, cancellationToken).ConfigureAwait(false);
 
@@ -124,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     var document = documentAndDiagnostics.Key;
-                    if (!isGeneratedCode(document))
+                    if (!document.IsGeneratedCode(cancellationToken))
                     {
                         var diagnosticsForDocument = documentAndDiagnostics.ToImmutableArray();
                         builder.Add(document, diagnosticsForDocument);
@@ -156,8 +167,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 var tree = diagnostic.Location.SourceTree;
                 if (tree != null)
                 {
-                    Document document;
-                    if (treeToDocumentsMap.TryGetValue(tree, out document))
+                    if (treeToDocumentsMap.TryGetValue(tree, out var document))
                     {
                         return document;
                     }
@@ -194,9 +204,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                                 foreach (var task in tasks)
                                 {
-                                    if (task.Result.Diagnostics.Any())
+                                    var projectAndDiagnostics = await task.ConfigureAwait(false);
+                                    if (projectAndDiagnostics.Diagnostics.Any())
                                     {
-                                        projectsAndDiagnostics[task.Result.Project] = task.Result.Diagnostics;
+                                        projectsAndDiagnostics[projectAndDiagnostics.Project] = projectAndDiagnostics.Diagnostics;
                                     }
                                 }
 

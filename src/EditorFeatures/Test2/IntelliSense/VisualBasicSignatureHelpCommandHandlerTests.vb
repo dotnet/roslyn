@@ -1,8 +1,8 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Options
-Imports Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
+Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Public Class VisualBasicSignatureHelpCommandHandlerTests
@@ -224,7 +224,7 @@ End Class
 ]]></Document>)
 
                 state.SendTypeChars("(")
-                Await state.AssertSelectedSignatureHelpItem($"<{Extension}> Enumerable.OfType(Of TResult)() As IEnumerable(Of TResult)")
+                Await state.AssertSelectedSignatureHelpItem($"<{VBFeaturesResources.Extension}> Enumerable.OfType(Of TResult)() As IEnumerable(Of TResult)")
             End Using
         End Function
 
@@ -244,7 +244,7 @@ End Class
 ]]></Document>)
 
                 state.SendTypeChars("(")
-                Await state.AssertSelectedSignatureHelpItem($"<{Extension}> Enumerable.OfType(Of TResult)() As IEnumerable(Of TResult)")
+                Await state.AssertSelectedSignatureHelpItem($"<{VBFeaturesResources.Extension}> Enumerable.OfType(Of TResult)() As IEnumerable(Of TResult)")
             End Using
         End Function
 
@@ -264,7 +264,7 @@ End Class
 ]]></Document>)
 
                 state.SendTypeChars("(")
-                Await state.AssertSelectedSignatureHelpItem($"<{Extension}> Enumerable.OfType(Of TResult)() As IEnumerable(Of TResult)")
+                Await state.AssertSelectedSignatureHelpItem($"<{VBFeaturesResources.Extension}> Enumerable.OfType(Of TResult)() As IEnumerable(Of TResult)")
             End Using
         End Function
 

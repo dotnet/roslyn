@@ -40,8 +40,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return null;
                 }
 
-                CompilationWithAnalyzers analyzerDriverOpt;
-                if (_map.TryGetValue(project, out analyzerDriverOpt))
+                if (_map.TryGetValue(project, out var analyzerDriverOpt))
                 {
                     // we have cached one, return that.
                     AssertAnalyzers(analyzerDriverOpt, stateSets);
@@ -67,12 +66,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public Task<CompilationWithAnalyzers> CreateAnalyzerDriverAsync(Project project, IEnumerable<StateSet> stateSets, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
             {
-                var analyzers = stateSets.Select(s => s.Analyzer).ToImmutableArrayOrEmpty();
+                var analyzers = stateSets.Select(s => s.Analyzer);
                 return CreateAnalyzerDriverAsync(project, analyzers, includeSuppressedDiagnostics, cancellationToken);
             }
 
             public async Task<CompilationWithAnalyzers> CreateAnalyzerDriverAsync(
-                Project project, ImmutableArray<DiagnosticAnalyzer> analyzers, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+                Project project, IEnumerable<DiagnosticAnalyzer> analyzers, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
             {
                 if (!project.SupportsCompilation)
                 {
@@ -89,10 +88,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private CompilationWithAnalyzers CreateAnalyzerDriver(
                 Project project,
                 Compilation compilation,
-                ImmutableArray<DiagnosticAnalyzer> analyzers,
+                IEnumerable<DiagnosticAnalyzer> allAnalyzers,
                 bool logAnalyzerExecutionTime,
                 bool reportSuppressedDiagnostics)
             {
+                var analyzers = allAnalyzers.Where(a => !a.IsWorkspaceDiagnosticAnalyzer()).ToImmutableArrayOrEmpty();
+
                 // PERF: there is no analyzers for this compilation.
                 //       compilationWithAnalyzer will throw if it is created with no analyzers which is perf optimization.
                 if (analyzers.IsEmpty)
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // in IDE, we always set concurrentAnalysis == false otherwise, we can get into thread starvation due to
                 // async being used with syncronous blocking concurrency.
                 return new CompilationWithAnalyzersOptions(
-                    options: new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Workspace),
+                    options: new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Options, project.Solution),
                     onAnalyzerException: GetOnAnalyzerException(project.Id),
                     analyzerExceptionFilter: GetAnalyzerExceptionFilter(project),
                     concurrentAnalysis: false,
@@ -165,15 +166,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 // make sure analyzers are same.
-                Contract.ThrowIfFalse(analyzerDriver.Analyzers.SetEquals(stateSets.Select(s => s.Analyzer)));
+                Contract.ThrowIfFalse(analyzerDriver.Analyzers.SetEquals(stateSets.Select(s => s.Analyzer).Where(a => !a.IsWorkspaceDiagnosticAnalyzer())));
             }
 
             [Conditional("DEBUG")]
             private void AssertCompilation(Project project, Compilation compilation1)
             {
                 // given compilation must be from given project.
-                Compilation compilation2;
-                Contract.ThrowIfFalse(project.TryGetCompilation(out compilation2));
+                Contract.ThrowIfFalse(project.TryGetCompilation(out var compilation2));
                 Contract.ThrowIfFalse(compilation1 == compilation2);
             }
 

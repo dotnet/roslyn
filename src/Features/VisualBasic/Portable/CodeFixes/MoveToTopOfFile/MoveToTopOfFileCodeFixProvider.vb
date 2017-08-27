@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -171,11 +171,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
         End Function
 
         Private Function MoveStatement(kind As String, line As Integer) As String
-            Return String.Format(VBFeaturesResources.KindLine, kind, line + 1)
+            Return String.Format(VBFeaturesResources.Move_the_0_statement_to_line_1, kind, line + 1)
         End Function
 
         Private Function DeleteStatement(kind As String) As String
-            Return String.Format(VBFeaturesResources.Kind, kind)
+            Return String.Format(VBFeaturesResources.Delete_the_0_statement2, kind)
         End Function
 
         Private Function DestinationPositionIsHidden(root As CompilationUnitSyntax, destinationLine As Integer, cancellationToken As CancellationToken) As Boolean

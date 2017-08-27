@@ -221,6 +221,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+            Get
+                Return TypeSubstitution.SubstituteCustomModifiers(_originalDefinition.RefCustomModifiers)
+            End Get
+        End Property
+
         Friend Overrides ReadOnly Property CallingConvention As Microsoft.Cci.CallingConvention
             Get
                 Return _originalDefinition.CallingConvention

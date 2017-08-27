@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -41,8 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         public IClassificationType GetClassificationType(string name)
         {
-            IClassificationType result;
-            return _identityMap.TryGetValue(name, out result)
+            return _identityMap.TryGetValue(name, out var result)
                 ? result
                 : _registryService.GetClassificationType(name);
         }

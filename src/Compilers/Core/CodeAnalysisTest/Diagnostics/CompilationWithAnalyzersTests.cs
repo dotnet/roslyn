@@ -4,11 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
@@ -44,6 +46,23 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             ds[1] = default(Diagnostic);
 
             AssertEx.Equal(new[] { d1 }, filtered);
+        }
+
+        [Fact]
+        public void GetAnalyzerTelemetry()
+        {
+            var compilation = CSharpCompilation.Create("c", options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            DiagnosticAnalyzer analyzer = new AnalyzerWithDisabledRules();
+            var analyzers = ImmutableArray.Create(analyzer);
+            var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty);
+            var compWithAnalyzers = new CompilationWithAnalyzers(compilation, analyzers, analyzerOptions, CancellationToken.None);
+
+            var analysisResult = compWithAnalyzers.GetAnalysisResultAsync(CancellationToken.None).Result;
+            Assert.Empty(analysisResult.CompilationDiagnostics);
+
+            // Even though the analyzer registers a symbol action, it should never be invoked because all of its rules are disabled.
+            var analyzerTelemetry = compWithAnalyzers.GetAnalyzerTelemetryInfoAsync(analyzer, CancellationToken.None).Result;
+            Assert.Equal(0, analyzerTelemetry.SymbolActionsCount);
         }
     }
 }

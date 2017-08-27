@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -244,7 +245,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                         boundFieldAccessExpression,
                                                         arrayCreation)
 
-            initializer.SetWasCompilerGenerated()
             boundInitializers.Add(initializer)
         End Sub
 
@@ -257,7 +257,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="diagnostics">The diagnostics.</param>
         Friend Sub BindFieldInitializer(
             fieldSymbols As ImmutableArray(Of FieldSymbol),
-            equalsValueOrAsNewSyntax As VisualBasicSyntaxNode,
+            equalsValueOrAsNewSyntax As SyntaxNode,
             boundInitializers As ArrayBuilder(Of BoundInitializer),
             diagnostics As DiagnosticBag,
             Optional bindingForSemanticModel As Boolean = False
@@ -323,12 +323,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Sub BindPropertyInitializer(
             propertySymbols As ImmutableArray(Of PropertySymbol),
-            initValueOrAsNewNode As VisualBasicSyntaxNode,
+            initValueOrAsNewNode As SyntaxNode,
             boundInitializers As ArrayBuilder(Of BoundInitializer),
             diagnostics As DiagnosticBag
         )
             Dim propertySymbol = DirectCast(propertySymbols.First, PropertySymbol)
-            Dim syntaxNode As VisualBasicSyntaxNode = initValueOrAsNewNode
+            Dim syntaxNode As SyntaxNode = initValueOrAsNewNode
 
             Dim boundReceiver = If(propertySymbol.IsShared, Nothing, CreateMeReference(syntaxNode, isSynthetic:=True))
 
@@ -377,7 +377,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Function BindFieldOrPropertyInitializerExpression(
-            equalsValueOrAsNewSyntax As VisualBasicSyntaxNode,
+            equalsValueOrAsNewSyntax As SyntaxNode,
             targetType As TypeSymbol,
             asNewVariablePlaceholderOpt As BoundWithLValueExpressionPlaceholder,
             diagnostics As DiagnosticBag
@@ -515,7 +515,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 boundInitValue = New BoundBadExpression(boundInitValue.Syntax,
                                                         LookupResultKind.Empty,
                                                         ImmutableArray(Of Symbol).Empty,
-                                                        ImmutableArray.Create(Of BoundNode)(boundInitValue),
+                                                        ImmutableArray.Create(boundInitValue),
                                                         fieldType,
                                                         hasErrors:=True)
                 ignoredDiagnostics.Free()
@@ -543,7 +543,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' NOTE: a constant expression") and ERR_RequiredConstExpr ("Constant expression is required") in case
                 ' NOTE: the type (if declared) is a valid type for const fields. This is different from Dev10 that sometimes
                 ' NOTE: reported issues and sometimes not
-                ' NOTE: e.g. reports in "const foo as DelegateType = AddressOf methodName" (ERR_ConstAsNonConstant + ERR_RequiredConstExpr)
+                ' NOTE: e.g. reports in "const goo as DelegateType = AddressOf methodName" (ERR_ConstAsNonConstant + ERR_RequiredConstExpr)
                 ' NOTE: only type diagnostics for "const s as StructureType = nothing"
 
                 If boundInitValueHasErrorsOrConstTypeIsWrong Then
@@ -554,7 +554,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     constValue = Me.GetExpressionConstantValueIfAny(boundInitValue, initValueDiagnostics, ConstantContext.Default)
                 End If
 
-                ' e.g. the init value of "Public foo as Byte = 2.2" is still considered as constant and therefore a CByte(2)
+                ' e.g. the init value of "Public goo as Byte = 2.2" is still considered as constant and therefore a CByte(2)
                 ' is being assigned as the constant value of this field/enum. However in case of Option Strict On there has 
                 ' been a diagnostics in the call to ApplyImplicitConversion.
                 If constValue Is Nothing Then

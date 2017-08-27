@@ -6,6 +6,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -258,6 +259,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // CONSIDER: we may wish to suppress this error in the event that another error
                 // has been reported about the signature.
                 diagnostics.Add(ErrorCode.ERR_InterfaceMemberNotFound, memberLocation, implementingMember);
+            }
+
+            if (implementingMember.ContainsTupleNames() && MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(implementingMember, implementedMember))
+            {
+                // it is ok to explicitly implement with no tuple names, for compatibility with C# 6, but otherwise names should match
+                diagnostics.Add(ErrorCode.ERR_ImplBadTupleNames, memberLocation, implementingMember, implementedMember);
             }
 
             // In constructed types, it is possible that two method signatures could differ by only ref/out

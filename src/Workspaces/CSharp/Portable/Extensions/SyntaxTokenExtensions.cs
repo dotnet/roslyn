@@ -1,13 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -74,17 +73,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static bool IsWord(SyntaxToken token)
         {
-            return new CSharpSyntaxFactsService().IsWord(token);
+            return CSharpSyntaxFactsService.Instance.IsWord(token);
         }
 
         public static SyntaxToken GetNextNonZeroWidthTokenOrEndOfFile(this SyntaxToken token)
         {
             return token.GetNextTokenOrEndOfFile();
-        }
-
-        public static SyntaxToken With(this SyntaxToken token, SyntaxTriviaList leading, SyntaxTriviaList trailing)
-        {
-            return token.WithLeadingTrivia(leading).WithTrailingTrivia(trailing);
         }
 
         /// <summary>
@@ -138,56 +132,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static bool SpansPreprocessorDirective(SyntaxTriviaList list)
         {
             return list.Any(t => t.GetStructure() is DirectiveTriviaSyntax);
-        }
-
-        public static SyntaxToken WithoutTrivia(
-            this SyntaxToken token,
-            params SyntaxTrivia[] trivia)
-        {
-            if (!token.LeadingTrivia.Any() && !token.TrailingTrivia.Any())
-            {
-                return token;
-            }
-
-            return token.With(new SyntaxTriviaList(), new SyntaxTriviaList());
-        }
-
-        public static SyntaxToken WithPrependedLeadingTrivia(
-            this SyntaxToken token,
-            params SyntaxTrivia[] trivia)
-        {
-            if (trivia.Length == 0)
-            {
-                return token;
-            }
-
-            return token.WithPrependedLeadingTrivia((IEnumerable<SyntaxTrivia>)trivia);
-        }
-
-        public static SyntaxToken WithPrependedLeadingTrivia(
-            this SyntaxToken token,
-            SyntaxTriviaList trivia)
-        {
-            if (trivia.Count == 0)
-            {
-                return token;
-            }
-
-            return token.WithLeadingTrivia(trivia.Concat(token.LeadingTrivia));
-        }
-
-        public static SyntaxToken WithPrependedLeadingTrivia(
-            this SyntaxToken token,
-            IEnumerable<SyntaxTrivia> trivia)
-        {
-            return token.WithPrependedLeadingTrivia(trivia.ToSyntaxTriviaList());
-        }
-
-        public static SyntaxToken WithAppendedTrailingTrivia(
-            this SyntaxToken token,
-            IEnumerable<SyntaxTrivia> trivia)
-        {
-            return token.WithTrailingTrivia(token.TrailingTrivia.Concat(trivia));
         }
 
         /// <summary>
@@ -353,6 +297,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsOpenBraceOfAccessorList(this SyntaxToken token)
         {
             return token.IsKind(SyntaxKind.OpenBraceToken) && token.Parent.IsKind(SyntaxKind.AccessorList);
+        }
+
+        /// <summary>
+        /// Returns true if this token is something that looks like a C# keyword. This includes 
+        /// actual keywords, contextual keywords, and even 'var' and 'dynamic'
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public static bool CouldBeKeyword(this SyntaxToken token)
+        {
+            if (token.IsKeyword())
+            {
+                return true;
+            }
+
+            if (token.Kind() == SyntaxKind.IdentifierToken)
+            {
+                var simpleNameText = token.ValueText;
+                return simpleNameText == "var" ||
+                       simpleNameText == "dynamic" ||
+                       SyntaxFacts.GetContextualKeywordKind(simpleNameText) != SyntaxKind.None;
+            }
+
+            return false;
         }
     }
 }

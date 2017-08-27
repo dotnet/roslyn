@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -54,19 +57,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var paramCount = method.ParameterCount;
             var arguments = new BoundExpression[paramCount];
-            var argumentTypes = new TypeSymbol[paramCount];
             for (int i = 0; i < paramCount; i++)
             {
                 var argument = (i == 0) ? thisArgumentValue : otherArgumentValue;
                 arguments[i] = argument;
-                argumentTypes[i] = argument.Type;
             }
 
             var typeArgs = MethodTypeInferrer.InferTypeArgumentsFromFirstArgument(
                 conversions,
                 method,
-                argumentTypes.AsImmutableOrNull(),
-                arguments.AsImmutableOrNull(),
+                arguments.AsImmutable(),
                 ref useSiteDiagnostics);
 
             if (typeArgs.IsDefault)
@@ -78,6 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // For the purpose of constraint checks we use error type symbol in place of type arguments that we couldn't infer from the first argument.
             // This prevents constraint checking from failing for corresponding type parameters. 
+            var notInferredTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
+            var typeParams = method.TypeParameters;
             var typeArgsForConstraintsCheck = typeArgs;
             for (int i = 0; i < typeArgsForConstraintsCheck.Length; i++)
             {
@@ -89,7 +91,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     for (; i < typeArgsForConstraintsCheck.Length; i++)
                     {
-                        builder.Add(typeArgsForConstraintsCheck[i] ?? ErrorTypeSymbol.UnknownResultType);
+                        var typeArg = typeArgsForConstraintsCheck[i];
+                        if ((object)typeArg == null)
+                        {
+                            notInferredTypeParameters.Add(typeParams[i]);
+                            builder.Add(ErrorTypeSymbol.UnknownResultType);
+                        }
+                        else
+                        {
+                            builder.Add(typeArg);
+                        }
                     }
 
                     typeArgsForConstraintsCheck = builder.ToImmutableAndFree();
@@ -99,11 +110,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Check constraints.
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
-            var typeParams = method.TypeParameters;
             var substitution = new TypeMap(typeParams, typeArgsForConstraintsCheck.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers));
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var success = method.CheckConstraints(conversions, substitution, typeParams, typeArgsForConstraintsCheck, compilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
+            var success = method.CheckConstraints(conversions, substitution, typeParams, typeArgsForConstraintsCheck, compilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder, 
+                                                  ignoreTypeConstraintsDependentOnTypeParametersOpt: notInferredTypeParameters.Count > 0 ? notInferredTypeParameters : null);
             diagnosticsBuilder.Free();
+            notInferredTypeParameters.Free();
 
             if (useSiteDiagnosticsBuilder != null && useSiteDiagnosticsBuilder.Count > 0)
             {
@@ -279,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool IsTaskReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
         {
             return method.IsAsync
-                && method.ReturnType == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
+                && method.ReturnType.IsNonGenericTaskType(compilation);
         }
 
         /// <summary>
@@ -288,9 +300,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool IsGenericTaskReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
         {
             return method.IsAsync
-                && (object)method.ReturnType != null
-                && method.ReturnType.Kind == SymbolKind.NamedType
-                && ((NamedTypeSymbol)method.ReturnType).ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
+                && method.ReturnType.IsGenericTaskType(compilation);
+        }
+
+        internal static CSharpSyntaxNode ExtractReturnTypeSyntax(this MethodSymbol method)
+        {
+            method = method.PartialDefinitionPart ?? method;
+            foreach (var reference in method.DeclaringSyntaxReferences)
+            {
+                if (reference.GetSyntax() is MethodDeclarationSyntax methodDeclaration)
+                {
+                    return methodDeclaration.ReturnType;
+                }
+            }
+
+            return (CSharpSyntaxNode)CSharpSyntaxTree.Dummy.GetRoot();
         }
     }
 }

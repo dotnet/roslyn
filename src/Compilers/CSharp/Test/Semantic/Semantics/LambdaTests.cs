@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -119,7 +120,7 @@ class C
     // (17,18): error CS1660: Cannot convert anonymous method to type 'int' because it is not a delegate type
     //         int q2 = delegate { return 1; };
     Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate { return 1; }").WithArguments("anonymous method", "int").WithLocation(17, 18),
-    // (18,24): error CS1593: Delegate 'System.Func<int>' does not take 1 arguments
+    // (18,24): error CS1593: Delegate 'Func<int>' does not take 1 arguments
     //         Func<int> q3 = x3=>1;
     Diagnostic(ErrorCode.ERR_BadDelArgCount, "x3=>1").WithArguments("System.Func<int>", "1").WithLocation(18, 24),
     // (19,37): error CS0234: The type or namespace name 'Itn23' does not exist in the namespace 'System' (are you missing an assembly reference?)
@@ -128,7 +129,7 @@ class C
     // (20,35): error CS0234: The type or namespace name 'Duobel' does not exist in the namespace 'System' (are you missing an assembly reference?)
     //         Func<double> q5 = (System.Duobel x5)=>1;  // but arity error should not be suppressed on error type
     Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Duobel").WithArguments("Duobel", "System").WithLocation(20, 35),
-    // (20,27): error CS1593: Delegate 'System.Func<double>' does not take 1 arguments
+    // (20,27): error CS1593: Delegate 'Func<double>' does not take 1 arguments
     //         Func<double> q5 = (System.Duobel x5)=>1;  // but arity error should not be suppressed on error type
     Diagnostic(ErrorCode.ERR_BadDelArgCount, "(System.Duobel x5)=>1").WithArguments("System.Func<double>", "1").WithLocation(20, 27),
     // (21,17): error CS1661: Cannot convert lambda expression to delegate type 'C.D1' because the parameter types do not match the delegate parameter types
@@ -167,9 +168,9 @@ class C
     // (56,42): warning CS0162: Unreachable code detected
     //         Func<int> q13 = ()=>{ if (false) return 1; };
     Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(56, 42),
-    // (56,25): error CS1643: Not all code paths return a value in lambda expression of type 'System.Func<int>'
+    // (56,27): error CS1643: Not all code paths return a value in lambda expression of type 'Func<int>'
     //         Func<int> q13 = ()=>{ if (false) return 1; };
-    Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "()=>{ if (false) return 1; }").WithArguments("lambda expression", "System.Func<int>").WithLocation(56, 25),
+    Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "=>").WithArguments("lambda expression", "System.Func<int>").WithLocation(56, 27),
     // (58,29): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
     //         Func<int> q14 = ()=>123.456;
     Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "123.456").WithArguments("double", "int").WithLocation(58, 29),
@@ -194,10 +195,10 @@ class C
     // (68,45): error CS1670: params is not valid in this context
     //         Action<int, double[]> q18 = (int x, params double[] s)=>{};
     Diagnostic(ErrorCode.ERR_IllegalParams, "params double[] s").WithLocation(68, 45),
-    // (70,34): error CS1593: Delegate 'System.Action' does not take 1 arguments
+    // (70,34): error CS1593: Delegate 'Action' does not take 1 arguments
     //         object q19 = new Action( (int x)=>{} );
     Diagnostic(ErrorCode.ERR_BadDelArgCount, "(int x)=>{}").WithArguments("System.Action", "1").WithLocation(70, 34),
-    // (72,9): warning CS0436: The type 'System.Linq.Expressions.Expression<T>' in '' conflicts with the imported type 'System.Linq.Expressions.Expression<TDelegate>' in 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
+    // (72,9): warning CS0436: The type 'Expression<T>' in '' conflicts with the imported type 'Expression<TDelegate>' in 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
     //         Expression<int> ex1 = ()=>1;  
     Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Expression<int>").WithArguments("", "System.Linq.Expressions.Expression<T>", "System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Linq.Expressions.Expression<TDelegate>").WithLocation(72, 9),
     // (72,31): error CS0835: Cannot convert lambda to an expression tree whose type argument 'int' is not a delegate type
@@ -217,7 +218,7 @@ class C
         System.Func<int, int> del = x => x + 1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(code);
+            var compilation = CreateStandardCompilation(code);
             compilation.VerifyDiagnostics(); // no errors expected
         }
 
@@ -232,18 +233,18 @@ interface I : IComparable<IComparable<I>> { }
 
 class C
 {
-    static void Foo(Func<IComparable<I>> x) { }
-    static void Foo(Func<I> x) {}
+    static void Goo(Func<IComparable<I>> x) { }
+    static void Goo(Func<I> x) {}
     static void M()
     {
-        Foo(() => null);
+        Goo(() => null);
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (12,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Foo(Func<IComparable<I>>)' and 'C.Foo(Func<I>)'
-                //         Foo(() => null);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("C.Foo(System.Func<System.IComparable<I>>)", "C.Foo(System.Func<I>)").WithLocation(12, 9));
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (12,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Goo(Func<IComparable<I>>)' and 'C.Goo(Func<I>)'
+                //         Goo(() => null);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("C.Goo(System.Func<System.IComparable<I>>)", "C.Goo(System.Func<I>)").WithLocation(12, 9));
         }
 
         [WorkItem(539976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539976")]
@@ -263,7 +264,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(Parse(text));
+            var comp = CreateStandardCompilation(Parse(text));
             comp.VerifyDiagnostics();
         }
 
@@ -275,8 +276,8 @@ class C
 using System;
 public static class A
 {
-    public static void Foo(Func<B, object> func) { }
-    public static void Foo(Func<C, object> func) { }
+    public static void Goo(Func<B, object> func) { }
+    public static void Goo(Func<C, object> func) { }
 }
 
 public class B
@@ -295,7 +296,7 @@ public class C
     }
 }";
 
-            var comp1 = CreateCompilationWithMscorlib(
+            var comp1 = CreateStandardCompilation(
                 Parse(text1),
                 new[] { TestReferences.NetFx.v4_0_30319.System });
 
@@ -304,12 +305,12 @@ class Program
 {
     static void Main()
     {
-        A.Foo(x => x.GetUrl());
+        A.Goo(x => x.GetUrl());
     }
 }
 ";
 
-            var comp2 = CreateCompilationWithMscorlib(
+            var comp2 = CreateStandardCompilation(
                 Parse(text2),
                 new[] { new CSharpCompilationReference(comp1) });
 
@@ -327,11 +328,11 @@ using stdole;
 
 public static class A
 {
-    public static void Foo(Func<X> func) 
+    public static void Goo(Func<X> func) 
     { 
         System.Console.WriteLine(""X"");
 }
-    public static void Foo(Func<Y> func) 
+    public static void Goo(Func<Y> func) 
     { 
         System.Console.WriteLine(""Y"");
     }
@@ -341,7 +342,7 @@ public delegate void X(List<IDispatch> addin);
 public delegate void Y(List<string> addin);
 ";
 
-            var comp1 = CreateCompilationWithMscorlib(
+            var comp1 = CreateStandardCompilation(
                 Parse(text1),
                 new[] { TestReferences.SymbolsTests.NoPia.StdOle.WithEmbedInteropTypes(true) },
                 options: TestOptions.ReleaseDll);
@@ -351,12 +352,12 @@ public class Program
 {
     public static void Main()
     {
-        A.Foo(() => delegate { });
+        A.Goo(() => delegate { });
     }
 }
 ";
 
-            var comp2 = CreateCompilationWithMscorlib(
+            var comp2 = CreateStandardCompilation(
                 Parse(text2),
                 new MetadataReference[]
                     {
@@ -367,7 +368,7 @@ public class Program
 
             CompileAndVerify(comp2, expectedOutput: "Y").Diagnostics.Verify();
 
-            var comp3 = CreateCompilationWithMscorlib(
+            var comp3 = CreateStandardCompilation(
                 Parse(text2),
                 new MetadataReference[]
                     {
@@ -397,7 +398,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(Parse(text1));
+            var comp = CreateStandardCompilation(Parse(text1));
             var errs = comp.GetDiagnostics();
             Assert.True(0 < errs.Count(), "Diagnostics not empty");
             Assert.True(0 < errs.Where(e => e.Code == 1525).Select(e => e).Count(), "Diagnostics contains CS1525");
@@ -426,9 +427,9 @@ End Namespace
 
 
 Public Module M
-  Sub Foo(x as Action(Of String))
+  Sub Goo(x as Action(Of String))
   End Sub
-  Sub Foo(x as Action(Of GC))
+  Sub Goo(x as Action(Of GC))
   End Sub
 End Module
 ";
@@ -443,7 +444,7 @@ class Program
 {
     static void Main()
     {
-        M.Foo(x => { });
+        M.Goo(x => { });
     }
 }
 ";
@@ -451,7 +452,7 @@ class Program
             var emitResult = vbProject.Emit(metadataStream, options: new EmitOptions(metadataOnly: true));
             Assert.True(emitResult.Success);
 
-            var csProject = CreateCompilationWithMscorlib(
+            var csProject = CreateStandardCompilation(
                 Parse(csSource),
                 new[] { MetadataReference.CreateFromImage(metadataStream.ToImmutable()) });
 
@@ -498,7 +499,7 @@ class Program
 }
 ";
             var vbMetadata = vbProject.EmitToArray(options: new EmitOptions(metadataOnly: true));
-            var csProject = CreateCompilationWithMscorlib(Parse(csSource), new[] { MetadataReference.CreateFromImage(vbMetadata) });
+            var csProject = CreateStandardCompilation(Parse(csSource), new[] { MetadataReference.CreateFromImage(vbMetadata) });
 
             var diagnostics = csProject.GetDiagnostics().Select(DumpDiagnostic);
             Assert.Equal(1, diagnostics.Count());
@@ -522,7 +523,7 @@ class Program
 }
 ";
 
-            var csProject = CreateCompilationWithMscorlib(csSource);
+            var csProject = CreateStandardCompilation(csSource);
 
             var emitResult = csProject.Emit(Stream.Null);
             Assert.False(emitResult.Success);
@@ -547,26 +548,26 @@ class Program
 }
 ";
 
-            CreateCompilationWithMscorlib(csSource).VerifyDiagnostics(
+            CreateStandardCompilation(csSource).VerifyDiagnostics(
     // (7,39): error CS0029: Cannot implicitly convert type 'string' to 'int'
     //         ((Func<int>)delegate { return ""; })();
     Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""""").WithArguments("string", "int").WithLocation(7, 39),
     // (7,39): error CS1662: Cannot convert anonymous method to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
     //         ((Func<int>)delegate { return ""; })();
     Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, @"""""").WithArguments("anonymous method").WithLocation(7, 39),
-    // (8,21): error CS1643: Not all code paths return a value in anonymous method of type 'System.Func<int>'
+    // (8,21): error CS1643: Not all code paths return a value in anonymous method of type 'Func<int>'
     //         ((Func<int>)delegate { })();
-    Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "delegate { }").WithArguments("anonymous method", "System.Func<int>").WithLocation(8, 21),
+    Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "delegate").WithArguments("anonymous method", "System.Func<int>").WithLocation(8, 21),
     // (9,32): error CS0020: Division by constant zero
     //         ((Func<int>)delegate { 1 / 0; })();
     Diagnostic(ErrorCode.ERR_IntDivByZero, "1 / 0").WithLocation(9, 32),
     // (9,32): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
     //         ((Func<int>)delegate { 1 / 0; })();
     Diagnostic(ErrorCode.ERR_IllegalStatement, "1 / 0").WithLocation(9, 32),
-    // (9,21): error CS1643: Not all code paths return a value in anonymous method of type 'System.Func<int>'
+    // (9,21): error CS1643: Not all code paths return a value in anonymous method of type 'Func<int>'
     //         ((Func<int>)delegate { 1 / 0; })();
-    Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "delegate { 1 / 0; }").WithArguments("anonymous method", "System.Func<int>").WithLocation(9, 21)
-        );
+    Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "delegate").WithArguments("anonymous method", "System.Func<int>").WithLocation(9, 21)
+            );
         }
 
         [WorkItem(540181, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540181")]
@@ -584,7 +585,7 @@ class Program
     }
 }";
 
-            CreateCompilationWithMscorlib(csSource).VerifyDiagnostics(
+            CreateStandardCompilation(csSource).VerifyDiagnostics(
             // (5,37): error CS1660: Cannot convert lambda expression to type 'string' because it is not a delegate type
                 Diagnostic(ErrorCode.ERR_AnonMethToNonDel, @"() => x").WithArguments("lambda expression", "string"),
             // (8,55): error CS0103: The name 'nulF' does not exist in the current context
@@ -610,7 +611,7 @@ class Program
             // for its side effects, a delegate-creation-expression is not allowed as a
             // statement expression.
 
-            CreateCompilationWithMscorlib(csSource).VerifyDiagnostics(
+            CreateStandardCompilation(csSource).VerifyDiagnostics(
                 // (7,21): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
                 //         D d = () => new D(() => { });
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "new D(() => { })"),
@@ -634,7 +635,7 @@ class Program
         };
     }
 }";
-            CreateCompilationWithMscorlib(csSource).VerifyDiagnostics(
+            CreateStandardCompilation(csSource).VerifyDiagnostics(
                 // (8,24): error CS0026: Keyword 'this' is not valid in a static property, static method, or static field initializer
                 //             object o = this;
                 Diagnostic(ErrorCode.ERR_ThisInStaticMeth, "this")
@@ -653,7 +654,7 @@ class C
         System.Func<int> f = new System.Func<int>(r => 0);
     }
 }";
-            CreateCompilationWithMscorlib(csSource).VerifyDiagnostics(
+            CreateStandardCompilation(csSource).VerifyDiagnostics(
                 // (6,51): error CS1593: Delegate 'System.Func<int>' does not take 1 arguments
                 Diagnostic(ErrorCode.ERR_BadDelArgCount, "r => 0").WithArguments("System.Func<int>", "1"));
         }
@@ -670,7 +671,7 @@ public class Program
         bool exists = System.Array.Exists(b, o => o != ""BB"");
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
     // (7,46): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
     //         bool exists = System.Array.Exists(b, o => o != "BB");
     Diagnostic(ErrorCode.ERR_BadDynamicMethodArgLambda, @"o => o != ""BB""")
@@ -695,7 +696,7 @@ class Program
 }
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             ExpressionSyntax expr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().
@@ -742,7 +743,7 @@ public class TestClass
     }
 }
 ";
-            CreateCompilationWithMscorlib(csSource).VerifyDiagnostics(
+            CreateStandardCompilation(csSource).VerifyDiagnostics(
                 // (4,29): error CS0133: The expression being assigned to 'TestClass.Test.aa' must be constant
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "((System.Func<int>)(() => 1))()").WithArguments("TestClass.Test.aa"),
                 // (5,10): warning CS0414: The field 'TestClass.MyTest' is assigned but its value is never used
@@ -787,14 +788,14 @@ class Program
 {
     static void Main()
     {
-        Foo(() => () => { var x = (IEnumerable<int>)null; return x; });
+        Goo(() => () => { var x = (IEnumerable<int>)null; return x; });
     }
  
-    static void Foo(Func<Func<IEnumerable>> x) { }
-    static void Foo(Func<Func<IFormattable>> x) { }
+    static void Goo(Func<Func<IEnumerable>> x) { }
+    static void Goo(Func<Func<IFormattable>> x) { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -803,7 +804,7 @@ class Program
             // Used to throw a NRE because of the ExpressionSyntax's null SyntaxTree.
             model.GetSpeculativeSymbolInfo(
                 invocation.SpanStart,
-                SyntaxFactory.ParseExpression("Foo(() => () => { var x = null; return x; })"), // cast removed
+                SyntaxFactory.ParseExpression("Goo(() => () => { var x = null; return x; })"), // cast removed
                 SpeculativeBindingOption.BindAsExpression);
         }
 
@@ -1027,7 +1028,7 @@ class C
 
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var expr = (ExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single().Body;
@@ -1055,7 +1056,7 @@ class C
 
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var expr = (ExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer.Value;
@@ -1087,7 +1088,7 @@ class C
 
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var expr = (ExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single().Body;
@@ -1193,13 +1194,13 @@ class C
 ";
 
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-                // (11,22): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                // (11,22): error CS8149: By-reference returns may only be used in by-reference returning methods.
                 //         ME(() => ref i);
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "i").WithLocation(11, 22),
-                // (12,20): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                // (12,20): error CS8149: By-reference returns may only be used in by-reference returning methods.
                 //         ME(() => { return ref i; });
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "return").WithLocation(12, 20),
-                // (13,23): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                // (13,23): error CS8149: By-reference returns may only be used in by-reference returning methods.
                 //         ME(delegate { return ref i; });
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "return").WithLocation(13, 23));
         }
@@ -1223,13 +1224,13 @@ class C
 ";
 
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-                // (9,33): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                // (9,33): error CS8149: By-reference returns may only be used in by-reference returning methods.
                 //         var e = new E(() => ref i);
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "i").WithLocation(9, 33),
-                // (10,27): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                // (10,27): error CS8149: By-reference returns may only be used in by-reference returning methods.
                 //         e = new E(() => { return ref i; });
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "return").WithLocation(10, 27),
-                // (11,30): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                // (11,30): error CS8149: By-reference returns may only be used in by-reference returning methods.
                 //         e = new E(delegate { return ref i; });
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "return").WithLocation(11, 30));
         }
@@ -1268,10 +1269,10 @@ class C
 ";
 
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-                // (18,13): error CS8084: By-value returns may only be used in by-value returning methods.
+                // (18,13): error CS8150: By-value returns may only be used in by-value returning methods.
                 //             return i;
                 Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(18, 13),
-                // (23,17): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                // (23,17): error CS8149: By-reference returns may only be used in by-reference returning methods.
                 //                 return ref i;
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "return").WithLocation(23, 17));
         }
@@ -1281,7 +1282,7 @@ class C
         [Fact]
         public void Bug1112875_1()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 using System;
  
 class Program
@@ -1289,11 +1290,11 @@ class Program
     static void Main()
     {
         ICloneable c = """";
-        Foo(() => (c.Clone()), null);
+        Goo(() => (c.Clone()), null);
     }
  
-    static void Foo(Action x, string y) { }
-    static void Foo(Func<object> x, object y) { Console.WriteLine(42); }
+    static void Goo(Action x, string y) { }
+    static void Goo(Func<object> x, object y) { Console.WriteLine(42); }
 }", options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
@@ -1304,7 +1305,7 @@ class Program
         [Fact]
         public void Bug1112875_2()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class Program
 {
     void M()
@@ -1323,7 +1324,7 @@ class Program
         [Fact]
         public void FuncOfVoid()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 using System;
 class Program
 {
@@ -1355,7 +1356,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(src);
+            var compilation = CreateStandardCompilation(src);
             compilation.VerifyDiagnostics(
     // (8,23): error CS1001: Identifier expected
     //         return a => a.
@@ -1390,7 +1391,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(src);
+            var compilation = CreateStandardCompilation(src);
             compilation.VerifyDiagnostics(
     // (8,42): error CS1001: Identifier expected
     //         Func<Program, string> l = a => a.
@@ -1427,7 +1428,7 @@ class Program
     static void M1(Func<Program, string> l){}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(src);
+            var compilation = CreateStandardCompilation(src);
             compilation.VerifyDiagnostics(
     // (8,20): error CS1001: Identifier expected
     //          M1(a => a.);
@@ -1459,7 +1460,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(src);
+            var compilation = CreateStandardCompilation(src);
             compilation.VerifyDiagnostics(
     // (8,49): error CS1001: Identifier expected
     //         var l = (Func<Program, string>) (a => a.);
@@ -1536,7 +1537,7 @@ public static class Program
 
 public interface IColumn { }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: "Select<T, S>");
         }
 
@@ -1574,7 +1575,7 @@ public static class Program
 
 public interface IColumn { }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: "Select<T, S>");
         }
 
@@ -1593,7 +1594,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,47): error CS1002: ; expected
                 //         Action a = () => { new X().ToString() };
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(7, 47),
@@ -1638,8 +1639,8 @@ namespace RoslynAsyncDelegate
 
             var lambdaParameters = ((MethodSymbol)(model.GetSymbolInfo(node1)).Symbol).Parameters;
 
-            Assert.Equal("System.Object <sender>", lambdaParameters[0].ToTestDisplayString());
-            Assert.Equal("System.EventArgs <e>", lambdaParameters[1].ToTestDisplayString());
+            Assert.Equal("System.Object <p0>", lambdaParameters[0].ToTestDisplayString());
+            Assert.Equal("System.EventArgs <p1>", lambdaParameters[1].ToTestDisplayString());
 
             CompileAndVerify(compilation);
         }
@@ -2006,7 +2007,7 @@ class Program
     static void Main(string[] args)
     {
         var z = args.Select(a => a.
-        var foo = 
+        var goo = 
     }
 }";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
@@ -2270,6 +2271,257 @@ class Program
                 Assert.Equal("String", typeInfo.Type.Name);
                 Assert.NotEmpty(typeInfo.Type.GetMembers("Replace"));
             }
+        }
+
+        // See MaxParameterListsForErrorRecovery.
+        [Fact]
+        public void BuildArgumentsForErrorRecovery_ManyOverloads()
+        {
+            BuildArgumentsForErrorRecovery_ManyOverloads_Internal(Binder.MaxParameterListsForErrorRecovery - 1, tooMany: false);
+            BuildArgumentsForErrorRecovery_ManyOverloads_Internal(Binder.MaxParameterListsForErrorRecovery, tooMany: true);
+        }
+
+        private void BuildArgumentsForErrorRecovery_ManyOverloads_Internal(int n, bool tooMany)
+        {
+            var builder = new StringBuilder();
+            builder.AppendLine("using System;");
+            for (int i = 0; i < n; i++)
+            {
+                builder.AppendLine($"class C{i} {{ }}");
+            }
+            builder.Append(
+@"class A { }
+class B { }
+class C
+{
+    void M()
+    {
+        F(1, (t, a, b, c) => { });
+        var o = this[(a, b, c) => { }];
+    }
+");
+            // Too few parameters.
+            AppendLines(builder, n, i => $"    void F<T>(T t, Action<T, A, C{i}> a) {{ }}");
+            AppendLines(builder, n, i => $"    object this[Action<A, C{i}> a] => {i}");
+            // Type inference failure.
+            AppendLines(builder, n, i => $"    void F<T, U>(T t, Action<T, U, C{i}> a) where U : T {{ }}");
+            // Too many parameters.
+            AppendLines(builder, n, i => $"    void F<T>(T t, Action<T, A, B, C, C{i}> a) {{ }}");
+            AppendLines(builder, n, i => $"    object this[Action<A, B, C, C{i}> a] => {i}");
+            builder.AppendLine("}");
+
+            var source = builder.ToString();
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var tree = compilation.SyntaxTrees[0];
+            var sm = compilation.GetSemanticModel(tree);
+            var lambdas = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().ToArray();
+
+            // F(1, (t, a, b, c) => { });
+            var lambda = lambdas[0];
+            var parameters = lambda.ParameterList.Parameters;
+            var parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[0]);
+            Assert.False(parameter.Type.IsErrorType());
+            Assert.Equal("System.Int32 t", parameter.ToTestDisplayString());
+            parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[1]);
+            Assert.False(parameter.Type.IsErrorType());
+            Assert.Equal("A a", parameter.ToTestDisplayString());
+            parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[3]);
+            Assert.Equal(tooMany, parameter.Type.IsErrorType());
+            Assert.Equal(tooMany ? "? c" : "C c", parameter.ToTestDisplayString());
+
+            // var o = this[(a, b, c) => { }];
+            lambda = lambdas[1];
+            parameters = lambda.ParameterList.Parameters;
+            parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[0]);
+            Assert.False(parameter.Type.IsErrorType());
+            Assert.Equal("A a", parameter.ToTestDisplayString());
+            parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[2]);
+            Assert.Equal(tooMany, parameter.Type.IsErrorType());
+            Assert.Equal(tooMany ? "? c" : "C c", parameter.ToTestDisplayString());
+        }
+
+        private static void AppendLines(StringBuilder builder, int n, Func<int, string> getLine)
+        {
+            for (int i = 0; i < n; i++)
+            {
+                builder.AppendLine(getLine(i));
+            }
+        }
+
+        [Fact]
+        [WorkItem(13797, "https://github.com/dotnet/roslyn/issues/13797")]
+        public void DelegateAsAction()
+        {
+            var source = @"
+using System;
+
+public static class C
+{
+    public static void M() => Dispatch(delegate { });
+
+    public static T Dispatch<T>(Func<T> func) => default(T);
+
+    public static void Dispatch(Action func) { }
+}";
+            var comp = CreateStandardCompilation(source);
+            CompileAndVerify(comp);
+        }
+
+        [Fact, WorkItem(278481, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=278481")]
+        public void LambdaReturningNull_1()
+        {
+            var src = @"
+public static class ExtensionMethods
+{
+    public static System.Linq.IQueryable<TResult> LeftOuterJoin<TOuter, TInner, TKey, TResult>(
+        this System.Linq.IQueryable<TOuter> outerValues,
+        System.Linq.IQueryable<TInner> innerValues,
+        System.Linq.Expressions.Expression<System.Func<TOuter, TKey>> outerKeySelector,
+        System.Linq.Expressions.Expression<System.Func<TInner, TKey>> innerKeySelector,
+        System.Linq.Expressions.Expression<System.Func<TOuter, TInner, TResult>> fullResultSelector,
+        System.Linq.Expressions.Expression<System.Func<TOuter, TResult>> partialResultSelector,
+        System.Collections.Generic.IEqualityComparer<TKey> comparer)
+    { return null; }
+
+    public static System.Linq.IQueryable<TResult> LeftOuterJoin<TOuter, TInner, TKey, TResult>(
+        this System.Linq.IQueryable<TOuter> outerValues, 
+        System.Linq.IQueryable<TInner> innerValues, 
+        System.Linq.Expressions.Expression<System.Func<TOuter, TKey>> outerKeySelector, 
+        System.Linq.Expressions.Expression<System.Func<TInner, TKey>> innerKeySelector, 
+        System.Linq.Expressions.Expression<System.Func<TOuter, TInner, TResult>> fullResultSelector, 
+        System.Linq.Expressions.Expression<System.Func<TOuter, TResult>> partialResultSelector)
+    {
+        System.Console.WriteLine(""1""); 
+        return null; 
+    }
+
+    public static System.Collections.Generic.IEnumerable<TResult> LeftOuterJoin<TOuter, TInner, TKey, TResult>(
+        this System.Collections.Generic.IEnumerable<TOuter> outerValues, 
+        System.Linq.IQueryable<TInner> innerValues, 
+        System.Func<TOuter, TKey> outerKeySelector, 
+        System.Func<TInner, TKey> innerKeySelector, 
+        System.Func<TOuter, TInner, TResult> fullResultSelector, 
+        System.Func<TOuter, TResult> partialResultSelector)
+    {
+        System.Console.WriteLine(""2""); 
+        return null; 
+    }
+
+    public static System.Collections.Generic.IEnumerable<TResult> LeftOuterJoin<TOuter, TInner, TKey, TResult>(
+        this System.Collections.Generic.IEnumerable<TOuter> outerQueryable,
+        System.Collections.Generic.IEnumerable<TInner> innerQueryable,
+        System.Func<TOuter, TKey> outerKeySelector,
+        System.Func<TInner, TKey> innerKeySelector,
+        System.Func<TOuter, TInner, TResult> resultSelector)
+    { return null; }
+}
+
+partial class C
+{
+    public static void Main()
+    {
+        System.Linq.IQueryable<A> outerValue = null;
+        System.Linq.IQueryable<B> innerValues = null;
+
+        outerValue.LeftOuterJoin(innerValues,
+                    co => co.id,
+                    coa => coa.id,
+                    (co, coa) => null,
+                    co => co);
+    }
+}
+
+class A
+{
+    public int id=2;
+}
+
+class B
+{
+    public int id = 2;
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "1");
+        }
+
+        [Fact, WorkItem(296550, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=296550")]
+        public void LambdaReturningNull_2()
+        {
+            var src = @"
+class Test1<T>
+    {
+        public void M1(System.Func<T> x) {}
+        public void M1<S>(System.Func<S> x) {}
+        public void M2<S>(System.Func<S> x) {}
+        public void M2(System.Func<T> x) {}
+    }
+
+    class Test2 : Test1<System.>
+    {
+        void Main()
+        {
+            M1(()=> null);
+            M2(()=> null);
+        }
+    }
+";
+            var comp = CreateStandardCompilation(src, options: TestOptions.DebugDll);
+
+            comp.VerifyDiagnostics(
+                // (10,32): error CS1001: Identifier expected
+                //     class Test2 : Test1<System.>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(10, 32)
+                );
+        }
+
+        [Fact]
+        public void ThrowExpression_Lambda()
+        {
+            var src = @"using System;
+class C
+{
+    public static void Main()
+    {
+        Action a = () => throw new Exception(""1"");
+        try
+        {
+            a();
+        }
+        catch (Exception ex)
+        {
+            Console.Write(ex.Message);
+        }
+        Func<int, int> b = x => throw new Exception(""2"");
+        try
+        {
+            b(0);
+        }
+        catch (Exception ex)
+        {
+            Console.Write(ex.Message);
+        }
+        b = (int x) => throw new Exception(""3"");
+        try
+        {
+            b(0);
+        }
+        catch (Exception ex)
+        {
+            Console.Write(ex.Message);
+        }
+        b = (x) => throw new Exception(""4"");
+        try
+        {
+            b(0);
+        }
+        catch (Exception ex)
+        {
+            Console.Write(ex.Message);
+        }
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "1234");
         }
     }
 }

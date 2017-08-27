@@ -47,10 +47,8 @@ namespace Microsoft.VisualStudio.LanguageServices
             _workspaceCacheService = workspace.Services.GetService<IWorkspaceCacheService>() as WorkspaceCacheService;
 
             var shell = (IVsShell)serviceProvider.GetService(typeof(SVsShell));
-
             // Note: We never unhook this event sink. It lives for the lifetime of the host.
-            uint cookie;
-            ErrorHandler.ThrowOnFailure(shell.AdviseBroadcastMessages(this, out cookie));
+            ErrorHandler.ThrowOnFailure(shell.AdviseBroadcastMessages(this, out var cookie));
         }
 
         /// <summary>
@@ -96,10 +94,10 @@ namespace Microsoft.VisualStudio.LanguageServices
                                 // make sure we show info bar only once for the same solution.
                                 _workspace.Options = _workspace.Options.WithChangedOption(RuntimeOptions.FullSolutionAnalysisInfoBarShown, true);
 
-                                _workspace.Services.GetService<IErrorReportingService>().ShowErrorInfo(ServicesVSResources.FullSolutionAnalysisOff,
-                                    new ErrorReportingUI(ServicesVSResources.Reenable, ErrorReportingUI.UIKind.Button, () =>
+                                _workspace.Services.GetService<IErrorReportingService>().ShowGlobalErrorInfo(ServicesVSResources.Visual_Studio_has_suspended_some_advanced_features_to_improve_performance,
+                                    new InfoBarUI(ServicesVSResources.Re_enable, InfoBarUI.UIKind.Button, () =>
                                         _workspace.Options = _workspace.Options.WithChangedOption(RuntimeOptions.FullSolutionAnalysis, true)),
-                                    new ErrorReportingUI(ServicesVSResources.LearnMore, ErrorReportingUI.UIKind.HyperLink, () =>
+                                    new InfoBarUI(ServicesVSResources.Learn_more, InfoBarUI.UIKind.HyperLink, () =>
                                         BrowserHelper.StartBrowser(new Uri(LowVMMoreInfoLink)), closeAfterAction: false));
                             }
                         }

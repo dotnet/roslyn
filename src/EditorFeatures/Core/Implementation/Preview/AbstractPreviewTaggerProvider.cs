@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -41,8 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
             public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
             {
-                NormalizedSnapshotSpanCollection matchingSpans;
-                if (_buffer.Properties.TryGetProperty<NormalizedSnapshotSpanCollection>(_key, out matchingSpans))
+                if (_buffer.Properties.TryGetProperty(_key, out NormalizedSnapshotSpanCollection matchingSpans))
                 {
                     var intersection = NormalizedSnapshotSpanCollection.Intersection(matchingSpans, spans);
 

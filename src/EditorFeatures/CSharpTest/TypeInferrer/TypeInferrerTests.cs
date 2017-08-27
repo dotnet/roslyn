@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -60,8 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TypeInferrer
             var currentNode = token.Parent;
             while (currentNode != null)
             {
-                ExpressionSyntax result = currentNode as ExpressionSyntax;
-                if (result != null && result.Span == textSpan)
+                if (currentNode is ExpressionSyntax result && result.Span == textSpan)
                 {
                     return result;
                 }
@@ -77,112 +76,140 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TypeInferrer
         {
             // We do not support position inference here as we're before the ? and we only look
             // backwards to infer a type here.
-            await TestInMethodAsync("var q = [|Foo()|] ? 1 : 2;", "global::System.Boolean",
+            await TestInMethodAsync(
+@"var q = [|Goo()|] ? 1 : 2;", "global::System.Boolean",
                 testPosition: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestConditional2()
         {
-            await TestInMethodAsync("var q = a ? [|Foo()|] : 2;", "global::System.Int32");
+            await TestInMethodAsync(
+@"var q = a ? [|Goo()|] : 2;", "global::System.Int32");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestConditional3()
         {
-            await TestInMethodAsync(@"var q = a ? """" : [|Foo()|];", "global::System.String");
+            await TestInMethodAsync(
+@"var q = a ? """" : [|Goo()|];", "global::System.String");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestVariableDeclarator1()
         {
-            await TestInMethodAsync("int q = [|Foo()|];", "global::System.Int32");
+            await TestInMethodAsync(
+@"int q = [|Goo()|];", "global::System.Int32");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestVariableDeclarator2()
         {
-            await TestInMethodAsync("var q = [|Foo()|];", "global::System.Object");
+            await TestInMethodAsync(
+@"var q = [|Goo()|];", "global::System.Object");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestCoalesce1()
         {
-            await TestInMethodAsync("var q = [|Foo()|] ?? 1;", "global::System.Int32?", testPosition: false);
+            await TestInMethodAsync(
+@"var q = [|Goo()|] ?? 1;", "global::System.Int32?", testPosition: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestCoalesce2()
         {
-            await TestInMethodAsync(@"bool? b;
-    var q = b ?? [|Foo()|];", "global::System.Boolean");
+            await TestInMethodAsync(
+@"bool? b;
+var q = b ?? [|Goo()|];", "global::System.Boolean");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestCoalesce3()
         {
-            await TestInMethodAsync(@"string s;
-    var q = s ?? [|Foo()|];", "global::System.String");
+            await TestInMethodAsync(
+@"string s;
+var q = s ?? [|Goo()|];", "global::System.String");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestCoalesce4()
         {
-            await TestInMethodAsync("var q = [|Foo()|] ?? string.Empty;", "global::System.String", testPosition: false);
+            await TestInMethodAsync(
+@"var q = [|Goo()|] ?? string.Empty;", "global::System.String", testPosition: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestBinaryExpression1()
         {
-            await TestInMethodAsync(@"string s;
-    var q = s + [|Foo()|];", "global::System.String");
+            await TestInMethodAsync(
+@"string s;
+var q = s + [|Goo()|];", "global::System.String");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestBinaryExpression2()
         {
-            await TestInMethodAsync(@"var s;
-    var q = s || [|Foo()|];", "global::System.Boolean");
+            await TestInMethodAsync(
+@"var s;
+var q = s || [|Goo()|];", "global::System.Boolean");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestBinaryOperator1()
         {
-            await TestInMethodAsync(@"var q = x << [|Foo()|];", "global::System.Int32");
+            await TestInMethodAsync(
+@"var q = x << [|Goo()|];", "global::System.Int32");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestBinaryOperator2()
         {
-            await TestInMethodAsync(@"var q = x >> [|Foo()|];", "global::System.Int32");
+            await TestInMethodAsync(
+@"var q = x >> [|Goo()|];", "global::System.Int32");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestAssignmentOperator3()
         {
-            await TestInMethodAsync(@"var q <<= [|Foo()|];", "global::System.Int32");
+            await TestInMethodAsync(
+@"var q <<= [|Goo()|];", "global::System.Int32");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestAssignmentOperator4()
         {
-            await TestInMethodAsync(@"var q >>= [|Foo()|];", "global::System.Int32");
+            await TestInMethodAsync(
+@"var q >>= [|Goo()|];", "global::System.Int32");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(617633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
         public async Task TestOverloadedConditionalLogicalOperatorsInferBool()
         {
-            await TestAsync(@"using System;
+            await TestAsync(
+@"using System;
+
 class C
 {
-    public static C operator &(C c, C d) { return null; }
-    public static bool operator true(C c) { return true; }
-    public static bool operator false(C c) { return false; }
+    public static C operator &(C c, C d)
+    {
+        return null;
+    }
+
+    public static bool operator true(C c)
+    {
+        return true;
+    }
+
+    public static bool operator false(C c)
+    {
+        return false;
+    }
 
     static void Main(string[] args)
     {
-        var c = new C() && [|Foo()|];
+        var c = new C() && [|Goo()|];
     }
 }", "global::System.Boolean");
         }
@@ -271,9 +298,9 @@ class C
 {
     static void Main(string[] args)
     {
-        var x = Foo([|a|] | b);
+        var x = Goo([|a|] | b);
     }
-    static object Foo(Program p)
+    static object Goo(Program p)
     {
         return p;
     }
@@ -290,9 +317,9 @@ class C
 {
     static void Main(string[] args)
     {
-        var x = Foo([|a|] | b);
+        var x = Goo([|a|] | b);
     }
-    static object Foo(bool p)
+    static object Goo(bool p)
     {
         return p;
     }
@@ -384,9 +411,9 @@ class C
 {
     static void Main(string[] args)
     {
-        var x = Foo([|a|] & b);
+        var x = Goo([|a|] & b);
     }
-    static object Foo(Program p)
+    static object Goo(Program p)
     {
         return p;
     }
@@ -403,9 +430,9 @@ class C
 {
     static void Main(string[] args)
     {
-        var x = Foo([|a|] & b);
+        var x = Goo([|a|] & b);
     }
-    static object Foo(bool p)
+    static object Goo(bool p)
     {
         return p;
     }
@@ -497,9 +524,9 @@ class C
 {
     static void Main(string[] args)
     {
-        var x = Foo([|a|] ^ b);
+        var x = Goo([|a|] ^ b);
     }
-    static object Foo(Program p)
+    static object Goo(Program p)
     {
         return p;
     }
@@ -516,9 +543,9 @@ class C
 {
     static void Main(string[] args)
     {
-        var x = Foo([|a|] ^ b);
+        var x = Goo([|a|] ^ b);
     }
-    static object Foo(bool p)
+    static object Goo(bool p)
     {
         return p;
     }
@@ -649,19 +676,31 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestReturn1()
         {
-            await TestInClassAsync(@"int M() { return [|Foo()|]; }", "global::System.Int32");
+            await TestInClassAsync(
+@"int M()
+{
+    return [|Goo()|];
+}", "global::System.Int32");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestReturn2()
         {
-            await TestInMethodAsync("return [|Foo()|];", "void");
+            await TestInMethodAsync(
+@"return [|Goo()|];", "void");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestReturn3()
         {
-            await TestInClassAsync(@"int Property { get { return [|Foo()|]; } }", "global::System.Int32");
+            await TestInClassAsync(
+@"int Property
+{
+    get
+    {
+        return [|Goo()|];
+    }
+}", "global::System.Int32");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
@@ -684,252 +723,363 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestReturnInLambda()
         {
-            await TestInMethodAsync("System.Func<string,int> f = s => { return [|Foo()|]; };", "global::System.Int32");
+            await TestInMethodAsync(
+@"System.Func<string, int> f = s =>
+{
+    return [|Goo()|];
+};", "global::System.Int32");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestLambda()
         {
-            await TestInMethodAsync("System.Func<string, int> f = s => [|Foo()|];", "global::System.Int32");
+            await TestInMethodAsync(
+@"System.Func<string, int> f = s => [|Goo()|];", "global::System.Int32");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestThrow()
         {
-            await TestInMethodAsync("throw [|Foo()|];", "global::System.Exception");
+            await TestInMethodAsync(
+@"throw [|Goo()|];", "global::System.Exception");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestCatch()
         {
-            await TestInMethodAsync("try { } catch ([|Foo|] ex) { }", "global::System.Exception");
+            await TestInMethodAsync("try { } catch ([|Goo|] ex) { }", "global::System.Exception");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestIf()
         {
-            await TestInMethodAsync(@"if ([|Foo()|]) { }", "global::System.Boolean");
+            await TestInMethodAsync(@"if ([|Goo()|]) { }", "global::System.Boolean");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestWhile()
         {
-            await TestInMethodAsync(@"while ([|Foo()|]) { }", "global::System.Boolean");
+            await TestInMethodAsync(@"while ([|Goo()|]) { }", "global::System.Boolean");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestDo()
         {
-            await TestInMethodAsync(@"do { } while ([|Foo()|])", "global::System.Boolean");
+            await TestInMethodAsync(@"do { } while ([|Goo()|])", "global::System.Boolean");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestFor1()
         {
-            await TestInMethodAsync(@"for (int i = 0; [|Foo()|]; i++) { }", "global::System.Boolean");
+            await TestInMethodAsync(
+@"for (int i = 0; [|Goo()|];
+
+i++) { }", "global::System.Boolean");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestFor2()
         {
-            await TestInMethodAsync(@"for (string i = [|Foo()|]; ; ) { }", "global::System.String");
+            await TestInMethodAsync(@"for (string i = [|Goo()|]; ; ) { }", "global::System.String");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestFor3()
         {
-            await TestInMethodAsync(@"for (var i = [|Foo()|]; ; ) { }", "global::System.Int32");
+            await TestInMethodAsync(@"for (var i = [|Goo()|]; ; ) { }", "global::System.Int32");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestUsing1()
         {
-            await TestInMethodAsync(@"using ([|Foo()|]) { }", "global::System.IDisposable");
+            await TestInMethodAsync(@"using ([|Goo()|]) { }", "global::System.IDisposable");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestUsing2()
         {
-            await TestInMethodAsync(@"using (int i = [|Foo()|]) { }", "global::System.Int32");
+            await TestInMethodAsync(@"using (int i = [|Goo()|]) { }", "global::System.Int32");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestUsing3()
         {
-            await TestInMethodAsync(@"using (var v = [|Foo()|]) { }", "global::System.IDisposable");
+            await TestInMethodAsync(@"using (var v = [|Goo()|]) { }", "global::System.IDisposable");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestForEach()
         {
-            await TestInMethodAsync(@"foreach (int v in [|Foo()|]) { }", "global::System.Collections.Generic.IEnumerable<global::System.Int32>");
+            await TestInMethodAsync(@"foreach (int v in [|Goo()|]) { }", "global::System.Collections.Generic.IEnumerable<global::System.Int32>");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestPrefixExpression1()
         {
-            await TestInMethodAsync(@"var q = +[|Foo()|];", "global::System.Int32");
+            await TestInMethodAsync(
+@"var q = +[|Goo()|];", "global::System.Int32");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestPrefixExpression2()
         {
-            await TestInMethodAsync(@"var q = -[|Foo()|];", "global::System.Int32");
+            await TestInMethodAsync(
+@"var q = -[|Goo()|];", "global::System.Int32");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestPrefixExpression3()
         {
-            await TestInMethodAsync(@"var q = ~[|Foo()|];", "global::System.Int32");
+            await TestInMethodAsync(
+@"var q = ~[|Goo()|];", "global::System.Int32");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestPrefixExpression4()
         {
-            await TestInMethodAsync(@"var q = ![|Foo()|];", "global::System.Boolean");
+            await TestInMethodAsync(
+@"var q = ![|Goo()|];", "global::System.Boolean");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestPrefixExpression5()
         {
-            await TestInMethodAsync(@"var q = System.DayOfWeek.Monday & ~[|Foo()|];", "global::System.DayOfWeek");
+            await TestInMethodAsync(
+@"var q = System.DayOfWeek.Monday & ~[|Goo()|];", "global::System.DayOfWeek");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestArrayRankSpecifier()
         {
-            await TestInMethodAsync(@"var q = new string[[|Foo()|]];", "global::System.Int32");
+            await TestInMethodAsync(
+@"var q = new string[[|Goo()|]];", "global::System.Int32");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestSwitch1()
         {
-            await TestInMethodAsync(@"switch ([|Foo()|]) { }", "global::System.Int32");
+            await TestInMethodAsync(@"switch ([|Goo()|]) { }", "global::System.Int32");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestSwitch2()
         {
-            await TestInMethodAsync(@"switch ([|Foo()|]) { default: }", "global::System.Int32");
+            await TestInMethodAsync(@"switch ([|Goo()|]) { default: }", "global::System.Int32");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestSwitch3()
         {
-            await TestInMethodAsync(@"switch ([|Foo()|]) { case ""a"": }", "global::System.String");
+            await TestInMethodAsync(@"switch ([|Goo()|]) { case ""a"": }", "global::System.String");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestMethodCall1()
         {
-            await TestInMethodAsync(@"Bar([|Foo()|]);", "global::System.Object");
+            await TestInMethodAsync(
+@"Bar([|Goo()|]);", "global::System.Object");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestMethodCall2()
         {
-            await TestInClassAsync(@"void M() { Bar([|Foo()|]); } void Bar(int i);", "global::System.Int32");
+            await TestInClassAsync(
+@"void M()
+{
+    Bar([|Goo()|]);
+}
+
+void Bar(int i);", "global::System.Int32");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestMethodCall3()
         {
-            await TestInClassAsync(@"void M() { Bar([|Foo()|]); } void Bar();", "global::System.Object");
+            await TestInClassAsync(
+@"void M()
+{
+    Bar([|Goo()|]);
+}
+
+void Bar();", "global::System.Object");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestMethodCall4()
         {
-            await TestInClassAsync(@"void M() { Bar([|Foo()|]); } void Bar(int i, string s);", "global::System.Int32");
+            await TestInClassAsync(
+@"void M()
+{
+    Bar([|Goo()|]);
+}
+
+void Bar(int i, string s);", "global::System.Int32");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestMethodCall5()
         {
-            await TestInClassAsync(@"void M() { Bar(s: [|Foo()|]); } void Bar(int i, string s);", "global::System.String");
+            await TestInClassAsync(
+@"void M()
+{
+    Bar(s: [|Goo()|]);
+}
+
+void Bar(int i, string s);", "global::System.String");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestConstructorCall1()
         {
-            await TestInMethodAsync(@"new C([|Foo()|]);", "global::System.Object");
+            await TestInMethodAsync(
+@"new C([|Goo()|]);", "global::System.Object");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestConstructorCall2()
         {
-            await TestInClassAsync(@"void M() { new C([|Foo()|]); } C(int i) { }", "global::System.Int32");
+            await TestInClassAsync(
+@"void M()
+{
+    new C([|Goo()|]);
+} C(int i)
+{
+}", "global::System.Int32");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestConstructorCall3()
         {
-            await TestInClassAsync(@"void M() { new C([|Foo()|]); } C() { }", "global::System.Object");
+            await TestInClassAsync(
+@"void M()
+{
+    new C([|Goo()|]);
+} C()
+{
+}", "global::System.Object");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestConstructorCall4()
         {
-            await TestInClassAsync(@"void M() { new C([|Foo()|]); } C(int i, string s) { }", "global::System.Int32");
+            await TestInClassAsync(
+@"void M()
+{
+    new C([|Goo()|]);
+} C(int i, string s)
+{
+}", "global::System.Int32");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestConstructorCall5()
         {
-            await TestInClassAsync(@"void M() { new C(s: [|Foo()|]); } C(int i, string s) { }", "global::System.String");
+            await TestInClassAsync(
+@"void M()
+{
+    new C(s: [|Goo()|]);
+} C(int i, string s)
+{
+}", "global::System.String");
         }
 
         [WorkItem(858112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112")]
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestThisConstructorInitializer1()
         {
-            await TestAsync(@"class MyClass { public MyClass(int x) : this([|test|]) { } }", "global::System.Int32");
+            await TestAsync(
+@"class MyClass
+{
+    public MyClass(int x) : this([|test|])
+    {
+    }
+}", "global::System.Int32");
         }
 
         [WorkItem(858112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112")]
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestThisConstructorInitializer2()
         {
-            await TestAsync(@"class MyClass { public MyClass(int x, string y) : this(5, [|test|]) { } }", "global::System.String");
+            await TestAsync(
+@"class MyClass
+{
+    public MyClass(int x, string y) : this(5, [|test|])
+    {
+    }
+}", "global::System.String");
         }
 
         [WorkItem(858112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858112")]
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestBaseConstructorInitializer()
         {
-            await TestAsync(@"class B { public B(int x) { } } class D : B { public D() : base([|test|]) { } }", "global::System.Int32");
+            await TestAsync(
+@"class B
+{
+    public B(int x)
+    {
+    }
+}
+
+class D : B
+{
+    public D() : base([|test|])
+    {
+    }
+}", "global::System.Int32");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestIndexAccess1()
         {
-            await TestInMethodAsync(@"string[] i; i[[|Foo()|]];", "global::System.Int32");
+            await TestInMethodAsync(
+@"string[] i;
+
+i[[|Goo()|]];", "global::System.Int32");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestIndexerCall1()
         {
-            await TestInMethodAsync(@"this[[|Foo()|]];", "global::System.Int32");
+            await TestInMethodAsync(@"this[[|Goo()|]];", "global::System.Int32");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestIndexerCall2()
         {
             // Update this when binding of indexers is working.
-            await TestInClassAsync(@"void M() { this[[|Foo()|]]; } int this [int i] { get; }", "global::System.Int32");
+            await TestInClassAsync(
+@"void M()
+{
+    this[[|Goo()|]];
+}
+
+int this[int i] { get; }", "global::System.Int32");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestIndexerCall3()
         {
             // Update this when binding of indexers is working.
-            await TestInClassAsync(@"void M() { this[[|Foo()|]]; } int this [int i, string s] { get; }", "global::System.Int32");
+            await TestInClassAsync(
+@"void M()
+{
+    this[[|Goo()|]];
+}
+
+int this[int i, string s] { get; }", "global::System.Int32");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestIndexerCall5()
         {
-            await TestInClassAsync(@"void M() { this[s: [|Foo()|]]; } int this [int i, string s] { get; }", "global::System.String");
+            await TestInClassAsync(
+@"void M()
+{
+    this[s: [|Goo()|]];
+}
+
+int this[int i, string s] { get; }", "global::System.String");
         }
 
         [Fact]
@@ -959,11 +1109,11 @@ class C
 {
   void M()
   {
-       var a = new[] { Bar(), [|Foo()|] };
+       var a = new[] { Bar(), [|Goo()|] };
   }
 
   int Bar() { return 1; }
-  int Foo() { return 2; }
+  int Goo() { return 2; }
 }";
 
             await TestAsync(text, "global::System.Int32");
@@ -979,7 +1129,7 @@ class C
 {
   void M()
   {
-       var a = new[] { Bar(), [|Foo()|] };
+       var a = new[] { Bar(), [|Goo()|] };
   }
 
   int Bar() { return 1; }
@@ -998,7 +1148,7 @@ class C
 {
   void M()
   {
-       var a = new[] { Bar(), [|Foo()|] };
+       var a = new[] { Bar(), [|Goo()|] };
   }
 }";
 
@@ -1032,7 +1182,7 @@ class C
 {
   void M()
   {
-       int[] a = { Bar(), [|Foo()|] };
+       int[] a = { Bar(), [|Goo()|] };
   }
 
   int Bar() { return 1; }
@@ -1053,7 +1203,7 @@ class C
 {
   void M()
   {
-    new List<int>() { [|Foo()|] };
+    new List<int>() { [|Goo()|] };
   }
 }";
 
@@ -1073,7 +1223,7 @@ class C
 {
   void M()
   {
-    new Dictionary<int,string>() { { [|Foo()|], """" } };
+    new Dictionary<int,string>() { { [|Goo()|], """" } };
   }
 }";
 
@@ -1093,7 +1243,7 @@ class C
 {
   void M()
   {
-    new Dictionary<int,string>() { { 0, [|Foo()|] } };
+    new Dictionary<int,string>() { { 0, [|Goo()|] } };
   }
 }";
 
@@ -1182,7 +1332,7 @@ class C
 @"
 class A
 {
-    void Foo()
+    void Goo()
     {
         A[] x = new [|C|][] { };
     }
@@ -1198,7 +1348,7 @@ class A
 @"
 class A
 {
-    void Foo()
+    void Goo()
     {
         A[] x = new [|C|][] { };
     }
@@ -1214,7 +1364,7 @@ class A
 @"
 class A
 {
-    void Foo()
+    void Goo()
     {
         A[][] x = new [|C|][][] { };
     }
@@ -1230,7 +1380,7 @@ class A
 @"
 class A
 {
-    void Foo()
+    void Goo()
     {
         A[][] x = new [|C|][][] { };
     }
@@ -1246,7 +1396,7 @@ class A
 @"
 class A
 {
-    void Foo()
+    void Goo()
     {
         A[][] x = new [|C|][] { };
     }
@@ -1262,7 +1412,7 @@ class A
 @"
 class A
 {
-    void Foo()
+    void Goo()
     {
         A[][] x = new [|C|][] { };
     }
@@ -1279,7 +1429,7 @@ class A
 using System;
 class A
 {
-    void Foo()
+    void Goo()
     {
         Func<int, int>[] x = new Func<int, int>[] { [|Bar()|] };
     }
@@ -1314,7 +1464,7 @@ class C
 {
   void M(int* i)
   {
-    var q = i[[|Foo()|]];
+    var q = i[[|Goo()|]];
   }
 }";
 
@@ -1330,7 +1480,7 @@ class C
 {
   void M(dynamic i)
   {
-    var q = i[[|Foo()|]];
+    var q = i[[|Goo()|]];
   }
 }";
 
@@ -1345,7 +1495,7 @@ class C
 {
   void M()
   {
-    string q = checked([|Foo()|]);
+    string q = checked([|Goo()|]);
   }
 }";
 
@@ -1362,7 +1512,7 @@ class C
 {
   void M()
   {
-    int x = await [|Foo()|];
+    int x = await [|Goo()|];
   }
 }";
 
@@ -1379,7 +1529,7 @@ class C
 {
   void M()
   {
-    Task<int> x = await [|Foo()|];
+    Task<int> x = await [|Goo()|];
   }
 }";
 
@@ -1396,7 +1546,7 @@ class C
 {
   void M()
   {
-    await [|Foo()|];
+    await [|Goo()|];
   }
 }";
 
@@ -1412,7 +1562,7 @@ class C
 {
   void M()
   {
-    lock([|Foo()|])
+    lock([|Goo()|])
     {
     }
   }
@@ -1430,7 +1580,7 @@ class C
 {
   async void M()
   {
-    lock(await [|Foo()|])
+    lock(await [|Goo()|])
     {
     }
   }
@@ -1745,7 +1895,7 @@ class C
 {
     IEnumerable<B> GetB(IEnumerable<A> a)
     {
-        return a.Select(i => [|Foo(i)|]);
+        return a.Select(i => [|Goo(i)|]);
     }
 }";
             await TestAsync(text, "global::B");
@@ -1811,9 +1961,9 @@ public class C
             var text =
     @"class C
 {
-    static void Foo(System.ConsoleModifiers arg)
+    static void Goo(System.ConsoleModifiers arg)
     {
-        Foo(default([||])
+        Goo(default([||])
     }
 }";
             await TestAsync(text, "global::System.ConsoleModifiers", testNode: false);
@@ -1827,7 +1977,7 @@ public class C
 using System.Collections.Generic;
 class C
 {
-    void Foo()
+    void Goo()
     {
         [|ints|].Where(i => i > 10);
     }
@@ -1843,12 +1993,56 @@ class C
 using System.Collections.Generic;
 class C
 {
-    void Foo()
+    void Goo()
     {
         [|ints|].Where(i => null);
     }
 }";
             await TestAsync(text, "global::System.Collections.Generic.IEnumerable<global::System.Object>", testPosition: false);
+        }
+
+        [WorkItem(12755, "https://github.com/dotnet/roslyn/issues/12755")]
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestObjectCreationBeforeArrayIndexing()
+        {
+            var text =
+@"using System;
+class C
+{
+  void M()
+  {
+        int[] array;
+        C p = new [||]
+        array[4] = 4;
+  }
+}";
+
+            await TestAsync(text, "global::C", testNode: false);
+        }
+
+        [WorkItem(15468, "https://github.com/dotnet/roslyn/issues/15468")]
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestDeconstruction()
+        {
+            await TestInMethodAsync(
+@"[|(int i, _)|] =", "global::System.Object");
+        }
+
+        [WorkItem(13402, "https://github.com/dotnet/roslyn/issues/13402")]
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestObjectCreationBeforeBlock()
+        {
+            var text =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        Program p = new [||] 
+        { }
+    }
+}";
+
+            await TestAsync(text, "global::Program", testNode: false);
         }
     }
 }

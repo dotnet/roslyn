@@ -96,7 +96,7 @@ using F = System.IO;
         [Fact]
         public void ConcatCollidingExternAliases()
         {
-            var comp = CreateCompilationWithMscorlib(
+            var comp = CreateStandardCompilation(
                 "extern alias A; extern alias B;",
                 new[]
                 {
@@ -140,7 +140,7 @@ using F = System.IO;
             var compilationUnits = trees.Select(tree => (CompilationUnitSyntax)tree.GetRoot());
             var externAliases = compilationUnits.SelectMany(cu => cu.Externs).Select(e => e.Identifier.ValueText).Distinct();
 
-            var comp = CreateCompilationWithMscorlib(trees, new[] { SystemCoreRef.WithAliases(externAliases) });
+            var comp = CreateStandardCompilation(trees, new[] { SystemCoreRef.WithAliases(externAliases) });
             comp.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
 
             var factories = trees.Select(tree => comp.GetBinderFactory(tree));

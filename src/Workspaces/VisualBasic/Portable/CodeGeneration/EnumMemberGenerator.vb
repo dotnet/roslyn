@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim member = SyntaxFactory.EnumMemberDeclaration(enumMember.Name.ToIdentifierToken()) _
                                .WithInitializer(If(value Is Nothing, Nothing, SyntaxFactory.EqualsValue(value:=value)))
 
-            Return AddCleanupAnnotationsTo(ConditionallyAddDocumentationCommentTo(member, enumMember, options))
+            Return AddFormatterAndCodeGeneratorAnnotationsTo(ConditionallyAddDocumentationCommentTo(member, enumMember, options))
         End Function
 
         Private Function CreateEnumMemberValue(destinationOpt As EnumBlockSyntax, enumMember As IFieldSymbol) As ExpressionSyntax
@@ -121,6 +121,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                 End If
                             ElseIf numericText.StartsWith("&O", StringComparison.OrdinalIgnoreCase) Then
                                 Return SyntaxFactory.NumericLiteralExpression(SyntaxFactory.IntegerLiteralToken(numericText.Substring(0, 2) + Convert.ToString(value, 8), LiteralBase.Octal, TypeCharacter.None, IntegerUtilities.ToUnsigned(value)))
+                            ElseIf numericText.StartsWith("&B", StringComparison.OrdinalIgnoreCase) Then
+                                Return SyntaxFactory.NumericLiteralExpression(SyntaxFactory.IntegerLiteralToken(numericText.Substring(0, 2) + Convert.ToString(value, 2), LiteralBase.Binary, TypeCharacter.None, IntegerUtilities.ToUnsigned(value)))
                             End If
                         End If
                     End If

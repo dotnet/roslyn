@@ -1,10 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Editor.Interactive;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
@@ -13,15 +14,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
     {
         private readonly ISolutionCrawlerRegistrationService _registrationService;
 
-        internal InteractiveEvaluator Engine { get; }
+        internal IInteractiveWindow Window { get; set; }
         private SourceTextContainer _openTextContainer;
         private DocumentId _openDocumentId;
 
-        internal InteractiveWorkspace(InteractiveEvaluator engine, HostServices hostServices)
-            : base(hostServices, "Interactive")
+        internal InteractiveWorkspace(HostServices hostServices)
+            : base(hostServices, WorkspaceKind.Interactive)
         {
-            this.Engine = engine;
-
             // register work coordinator for this workspace
             _registrationService = this.Services.GetService<ISolutionCrawlerRegistrationService>();
             _registrationService.Register(this);

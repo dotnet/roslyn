@@ -1,5 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
@@ -19,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Dim textSpan As TextSpan
             MarkupTestFile.GetSpan(codeWithMarker.NormalizedValue, codeWithoutMarker, textSpan)
 
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(codeWithoutMarker)
+            Using workspace = TestWorkspace.CreateVisualBasic(codeWithoutMarker)
                 Dim treeAfterExtractMethod = Await ExtractMethodAsync(workspace, workspace.Documents.First(), textSpan, succeeded:=False, dontPutOutOrRefOnStruct:=dontPutOutOrRefOnStruct)
             End Using
         End Function
@@ -29,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Dim textSpan As TextSpan
             MarkupTestFile.GetSpan(codeWithMarker.NormalizedValue, codeWithoutMarker, textSpan)
 
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(codeWithoutMarker)
+            Using workspace = TestWorkspace.CreateVisualBasic(codeWithoutMarker)
                 Assert.NotNull(Await Record.ExceptionAsync(Async Function()
                                                                Dim tree = Await ExtractMethodAsync(workspace, workspace.Documents.First(), textSpan)
                                                            End Function))
@@ -42,13 +43,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Optional temporaryFailing As Boolean = False,
             Optional allowMovingDeclaration As Boolean = True,
             Optional dontPutOutOrRefOnStruct As Boolean = True,
-            Optional metadataReference As String = Nothing,
-            Optional compareTokens As Boolean = False
+            Optional metadataReference As String = Nothing
         ) As Tasks.Task
 
             Dim metadataReferences = If(metadataReference Is Nothing, Array.Empty(Of String)(), New String() {metadataReference})
 
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(New String() {codeWithMarker}, metadataReferences:=metadataReferences, compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            Using workspace = TestWorkspace.CreateVisualBasic(New String() {codeWithMarker}, metadataReferences:=metadataReferences, compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
 
                 Dim document = workspace.Documents.First()
                 Dim subjectBuffer = document.TextBuffer
@@ -64,11 +64,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
                 If temporaryFailing Then
                     Assert.NotEqual(expected, subjectBuffer.CurrentSnapshot.GetText())
                 Else
-                    If compareTokens Then
-                        TokenUtilities.AssertTokensEqual(expected, subjectBuffer.CurrentSnapshot.GetText(), LanguageNames.VisualBasic)
-                    Else
-                        Assert.Equal(expected, subjectBuffer.CurrentSnapshot.GetText())
-                    End If
+                    Assert.Equal(expected, subjectBuffer.CurrentSnapshot.GetText())
                 End If
             End Using
         End Function
@@ -79,11 +75,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Optional temporaryFailing As Boolean = False,
             Optional allowMovingDeclaration As Boolean = True,
             Optional dontPutOutOrRefOnStruct As Boolean = True,
-            Optional metadataReference As String = Nothing,
-            Optional compareTokens As Boolean = False
+            Optional metadataReference As String = Nothing
         ) As Tasks.Task
 
-            Await TestExtractMethodAsync(codeWithMarker.NormalizedValue, expected.NormalizedValue, temporaryFailing, allowMovingDeclaration, dontPutOutOrRefOnStruct, metadataReference, compareTokens)
+            Await TestExtractMethodAsync(codeWithMarker.NormalizedValue, expected.NormalizedValue, temporaryFailing, allowMovingDeclaration, dontPutOutOrRefOnStruct, metadataReference)
         End Function
 
         Private Shared Async Function ExtractMethodAsync(workspace As TestWorkspace,
@@ -97,8 +92,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Dim document = workspace.CurrentSolution.GetDocument(testDocument.Id)
             Assert.NotNull(document)
 
-            Dim options = document.Options.WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, allowMovingDeclaration) _
-                                          .WithChangedOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, document.Project.Language, dontPutOutOrRefOnStruct)
+            Dim originalOptions = Await document.GetOptionsAsync()
+            Dim options = originalOptions.WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, allowMovingDeclaration) _
+                                         .WithChangedOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, document.Project.Language, dontPutOutOrRefOnStruct)
 
             Dim sdocument = Await SemanticDocument.CreateAsync(document, CancellationToken.None)
             Dim validator = New VisualBasicSelectionValidator(sdocument, snapshotSpan.Span.ToTextSpan(), options)
@@ -121,15 +117,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
 
         Private Shared Async Function TestSelectionAsync(codeWithMarker As XElement, Optional ByVal expectedFail As Boolean = False) As Tasks.Task
             Dim codeWithoutMarker As String = Nothing
-            Dim namedSpans = CType(New Dictionary(Of String, IList(Of TextSpan))(), IDictionary(Of String, IList(Of TextSpan)))
+            Dim namedSpans = CType(New Dictionary(Of String, ImmutableArray(Of TextSpan))(), IDictionary(Of String, ImmutableArray(Of TextSpan)))
 
             MarkupTestFile.GetSpans(codeWithMarker.NormalizedValue, codeWithoutMarker, namedSpans)
 
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(codeWithoutMarker)
+            Using workspace = TestWorkspace.CreateVisualBasic(codeWithoutMarker)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
                 Assert.NotNull(document)
 
-                Dim options = document.Options.WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, True)
+                Dim originalOptions = Await document.GetOptionsAsync()
+                Dim options = originalOptions.WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, True)
+
                 Dim sdocument = Await SemanticDocument.CreateAsync(document, CancellationToken.None)
                 Dim validator = New VisualBasicSelectionValidator(sdocument, namedSpans("b").Single(), options)
                 Dim result = Await validator.GetValidSelectionAsync(CancellationToken.None)
@@ -154,7 +152,7 @@ End Class</text>
         End Function
 
         Private Shared Async Function IterateAllAsync(code As String) As Tasks.Task
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(code)
+            Using workspace = TestWorkspace.CreateVisualBasic(code)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
                 Assert.NotNull(document)
 
@@ -163,7 +161,8 @@ End Class</text>
                 Dim root = Await document.GetSyntaxRootAsync()
                 Dim iterator = root.DescendantNodesAndSelf()
 
-                Dim options = document.Options.WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, True)
+                Dim originalOptions = Await document.GetOptionsAsync()
+                Dim options = originalOptions.WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, True)
 
                 For Each node In iterator
                     Try

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         {
             this.ForegroundBrush = Brushes.Purple;
             this.BackgroundCustomizable = false;
-            this.DisplayName = EditorFeaturesResources.RudeEdit;
+            this.DisplayName = EditorFeaturesResources.Rude_Edit;
         }
     }
 }

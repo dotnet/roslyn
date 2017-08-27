@@ -2,6 +2,7 @@
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -58,6 +59,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public MustOverride ReadOnly Property TypeCustomModifiers As ImmutableArray(Of CustomModifier)
 
         ''' <summary>
+        ''' Custom modifiers associated with the ref modifier, or an empty array if there are none.
+        ''' </summary>
+        Public MustOverride ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+
+        ''' <summary>
         ''' Gets the parameters of this property. If this property has no parameters, returns
         ''' an empty list.
         ''' </summary>
@@ -73,6 +79,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overridable ReadOnly Property ParameterCount As Integer
             Get
                 Return Me.Parameters.Length
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' True if the property itself Is excluded from code covarage instrumentation.
+        ''' True for source properties marked with <see cref="AttributeDescription.ExcludeFromCodeCoverageAttribute"/>.
+        ''' </summary>
+        Friend Overridable ReadOnly Property IsDirectlyExcludedFromCodeCoverage As Boolean
+            Get
+                Return False
             End Get
         End Property
 
@@ -331,11 +347,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Debug.Assert(IsDefinition)
 
-            ' Check returns by ref.
-            If Me.ReturnsByRef Then
-                Return ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedProperty1, CustomSymbolDisplayFormatter.ShortErrorName(Me))
-            End If
-
             ' Check return type.
             Dim errorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(Me.Type)
 
@@ -344,17 +355,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             ' Check return type custom modifiers.
-            Dim paramsErrorInfo = DeriveUseSiteErrorInfoFromCustomModifiers(Me.TypeCustomModifiers)
+            Dim refModifiersErrorInfo = DeriveUseSiteErrorInfoFromCustomModifiers(Me.RefCustomModifiers)
 
-            If paramsErrorInfo IsNot Nothing Then
-                If paramsErrorInfo.Code = ERRID.ERR_UnsupportedProperty1 Then
-                    Return paramsErrorInfo
-                End If
-
-                If errorInfo Is Nothing Then
-                    errorInfo = paramsErrorInfo
-                End If
+            If refModifiersErrorInfo IsNot Nothing AndAlso refModifiersErrorInfo.Code = ERRID.ERR_UnsupportedProperty1 Then
+                Return refModifiersErrorInfo
             End If
+
+            Dim typeModifiersErrorInfo = DeriveUseSiteErrorInfoFromCustomModifiers(Me.TypeCustomModifiers)
+
+            If typeModifiersErrorInfo IsNot Nothing AndAlso typeModifiersErrorInfo.Code = ERRID.ERR_UnsupportedProperty1 Then
+                Return typeModifiersErrorInfo
+            End If
+
+            errorInfo = If(errorInfo, If(refModifiersErrorInfo, typeModifiersErrorInfo))
 
             ' Check parameters.
             Dim result = MergeUseSiteErrorInfo(errorInfo, DeriveUseSiteErrorInfoFromParameters(Me.Parameters))
@@ -364,8 +377,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If result Is Nothing AndAlso Me.ContainingModule.HasUnifiedReferences Then
                 Dim unificationCheckedTypes As HashSet(Of TypeSymbol) = Nothing
                 result = If(Me.Type.GetUnificationUseSiteDiagnosticRecursive(Me, unificationCheckedTypes),
+                         If(GetUnificationUseSiteDiagnosticRecursive(Me.RefCustomModifiers, Me, unificationCheckedTypes),
                          If(GetUnificationUseSiteDiagnosticRecursive(Me.TypeCustomModifiers, Me, unificationCheckedTypes),
-                            GetUnificationUseSiteDiagnosticRecursive(Me.Parameters, Me, unificationCheckedTypes)))
+                            GetUnificationUseSiteDiagnosticRecursive(Me.Parameters, Me, unificationCheckedTypes))))
             End If
 
             Return result
@@ -405,6 +419,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property EmbeddedSymbolKind As EmbeddedSymbolKind
             Get
                 Return Me.ContainingSymbol.EmbeddedSymbolKind
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Is this a property of a tuple type?
+        ''' </summary>
+        Public Overridable ReadOnly Property IsTupleProperty() As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' If this is a property of a tuple type, return corresponding underlying property from the
+        ''' tuple underlying type. Otherwise, Nothing. 
+        ''' </summary>
+        Public Overridable ReadOnly Property TupleUnderlyingProperty() As PropertySymbol
+            Get
+                Return Nothing
             End Get
         End Property
 
@@ -477,6 +510,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IPropertySymbol_Type As ITypeSymbol Implements IPropertySymbol.Type
             Get
                 Return Me.Type
+            End Get
+        End Property
+
+        Private ReadOnly Property IPropertySymbol_RefCustomModifiers As ImmutableArray(Of CustomModifier) Implements IPropertySymbol.RefCustomModifiers
+            Get
+                Return Me.RefCustomModifiers
             End Get
         End Property
 

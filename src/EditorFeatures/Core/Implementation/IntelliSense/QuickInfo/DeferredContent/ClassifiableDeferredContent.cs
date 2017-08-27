@@ -4,28 +4,20 @@ using System.Collections.Generic;
 using System.Windows;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
     internal class ClassifiableDeferredContent : IDeferredQuickInfoContent
     {
         // Internal for testing purposes.
-        internal readonly IList<SymbolDisplayPart> ClassifiableContent;
-        private readonly ITextBufferFactoryService _textBufferFactoryService;
-        private readonly IContentTypeRegistryService _contentTypeRegistryService;
+        internal readonly IList<TaggedText> ClassifiableContent;
         private readonly ClassificationTypeMap _typeMap;
 
         public ClassifiableDeferredContent(
-            IList<SymbolDisplayPart> content,
-            ITextBufferFactoryService textBufferFactoryService,
-            IContentTypeRegistryService contentTypeRegistryService,
+            IList<TaggedText> content,
             ClassificationTypeMap typeMap)
         {
             this.ClassifiableContent = content;
-            _textBufferFactoryService = textBufferFactoryService;
-            _contentTypeRegistryService = contentTypeRegistryService;
             _typeMap = typeMap;
         }
 

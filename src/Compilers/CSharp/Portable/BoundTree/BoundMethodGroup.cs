@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class BoundMethodGroup : BoundMethodOrPropertyGroup
     {
         public BoundMethodGroup(
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             ImmutableArray<TypeSymbol> typeArgumentsOpt,
             BoundExpression receiverOpt,
             string name,
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public CSharpSyntaxNode NameSyntax
+        public SyntaxNode NameSyntax
         {
             get
             {

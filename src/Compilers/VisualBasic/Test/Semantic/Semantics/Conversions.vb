@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class ConversionsTests
         Inherits BasicTestBase
 
-        Private Shared ReadOnly s_noConversion As ConversionKind = Nothing
+        Private Const s_noConversion As ConversionKind = Nothing
 
         <Fact()>
         Public Sub TryCastDirectCastConversions()
@@ -1484,8 +1484,8 @@ End Class
 
             Assert.NotEqual(modifiedArrayInt32, arrayInt32)
             Assert.NotEqual(arrayInt32, modifiedArrayInt32)
-            Assert.True(arrayInt32.IsSameTypeIgnoringCustomModifiers(modifiedArrayInt32))
-            Assert.True(modifiedArrayInt32.IsSameTypeIgnoringCustomModifiers(arrayInt32))
+            Assert.True(arrayInt32.IsSameTypeIgnoringAll(modifiedArrayInt32))
+            Assert.True(modifiedArrayInt32.IsSameTypeIgnoringAll(arrayInt32))
             Assert.True(Conversions.IsIdentityConversion(ClassifyPredefinedAssignment(arrayInt32, modifiedArrayInt32)))
             Assert.True(Conversions.IsIdentityConversion(ClassifyPredefinedAssignment(modifiedArrayInt32, arrayInt32)))
 
@@ -1495,8 +1495,8 @@ End Class
 
             Assert.NotEqual(enumerableOfModifiedArrayInt32, enumerableOfArrayInt32)
             Assert.NotEqual(enumerableOfArrayInt32, enumerableOfModifiedArrayInt32)
-            Assert.True(enumerableOfArrayInt32.IsSameTypeIgnoringCustomModifiers(enumerableOfModifiedArrayInt32))
-            Assert.True(enumerableOfModifiedArrayInt32.IsSameTypeIgnoringCustomModifiers(enumerableOfArrayInt32))
+            Assert.True(enumerableOfArrayInt32.IsSameTypeIgnoringAll(enumerableOfModifiedArrayInt32))
+            Assert.True(enumerableOfModifiedArrayInt32.IsSameTypeIgnoringAll(enumerableOfArrayInt32))
             Assert.True(Conversions.IsIdentityConversion(ClassifyPredefinedAssignment(enumerableOfArrayInt32, enumerableOfModifiedArrayInt32)))
             Assert.True(Conversions.IsIdentityConversion(ClassifyPredefinedAssignment(enumerableOfModifiedArrayInt32, enumerableOfArrayInt32)))
 
@@ -4023,9 +4023,9 @@ Public Module Program
         Dim inner As New C1(Of Integer).S1
         outer.EnumField = C1(Of Integer).E1.A
         inner.EnumField = C1(Of Integer).E1.A     
-        Foo(inner.EnumField)
+        Goo(inner.EnumField)
     End Sub
-    Sub Foo(x As Object)
+    Sub Goo(x As Object)
         Console.WriteLine(x.ToString)
     End Sub
 End Module]]>,

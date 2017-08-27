@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -125,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         For i = 0 To signatureParameterCount - 1
                             Dim parameter As ParameterSymbol = parameters(i)
                             If parameter.IsByRef <> signatureTypes(i).IsByRef OrElse
-                                    Not parameter.Type.IsSameTypeIgnoringCustomModifiers(signatureTypes(i).Type) Then
+                                    Not parameter.Type.IsSameTypeIgnoringAll(signatureTypes(i).Type) Then
 
                                 ' Signature does not match
                                 Exit Select
@@ -133,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Next
 
                         If returnType IsNot Nothing Then
-                            If candidateMethod.IsSub OrElse Not candidateMethod.ReturnType.IsSameTypeIgnoringCustomModifiers(returnType) Then
+                            If candidateMethod.IsSub OrElse Not candidateMethod.ReturnType.IsSameTypeIgnoringAll(returnType) Then
                                 ' Return type does not match
                                 Exit Select
                             End If
@@ -157,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         For i = 0 To signatureParameterCount - 1
                             Dim parameter As ParameterSymbol = parameters(i)
                             If parameter.IsByRef <> signatureTypes(i).IsByRef OrElse
-                                    Not parameter.Type.IsSameTypeIgnoringCustomModifiers(signatureTypes(i).Type) Then
+                                    Not parameter.Type.IsSameTypeIgnoringAll(signatureTypes(i).Type) Then
 
                                 ' Signature does not match
                                 Exit Select

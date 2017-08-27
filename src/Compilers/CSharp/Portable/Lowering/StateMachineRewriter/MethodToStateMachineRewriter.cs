@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -43,6 +44,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// tested whether the subtask is complete but before the awaiter has returned)
         /// </summary>
         protected readonly LocalSymbol cachedState;
+
+        /// <summary>
+        /// Cached "this" local, used to store the captured "this", which is safe to cache locally since "this" 
+        /// is sematically immutable.
+        /// It would be hard for such caching to happen at JIT level (since JIT does not know that it never changes).
+        /// NOTE: this field is null when we are not caching "this" which happens when
+        ///       - not optimizing
+        ///       - method is not capturing "this" at all
+        ///       - containing type is a struct 
+        ///       (we could cache "this" as a ref local for struct containers, 
+        ///       but such caching would not save as much indirection and could actually 
+        ///       be done at JIT level, possibly more efficiently)
+        /// </summary>
+        protected readonly LocalSymbol cachedThis;
 
         private int _nextState;
 
@@ -136,6 +151,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 this.proxies.Add(proxy.Key, proxy.Value);
             }
+
+            // create cache local for reference type "this" in Release
+            var thisParameter = originalMethod.ThisParameter;
+            CapturedSymbolReplacement thisProxy;
+            if ((object)thisParameter != null && 
+                thisParameter.Type.IsReferenceType &&
+                proxies.TryGetValue(thisParameter, out thisProxy) &&
+                F.Compilation.Options.OptimizationLevel == OptimizationLevel.Release)
+            {
+                BoundExpression thisProxyReplacement = thisProxy.Replacement(F.Syntax, frameType => F.This());
+                this.cachedThis = F.SynthesizedLocal(thisProxyReplacement.Type, syntax: F.Syntax, kind: SynthesizedLocalKind.FrameCache);
+            }
         }
 
         protected override bool NeedsProxy(Symbol localOrParameter)
@@ -167,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override BoundExpression FramePointer(CSharpSyntaxNode syntax, NamedTypeSymbol frameClass)
+        protected override BoundExpression FramePointer(SyntaxNode syntax, NamedTypeSymbol frameClass)
         {
             var oldSyntax = F.Syntax;
             F.Syntax = syntax;
@@ -266,7 +293,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We need to produce hoisted local scope debug information for user locals as well as 
                 // lambda display classes, since Dev12 EE uses them to determine which variables are displayed 
                 // in Locals window.
-                if (local.SynthesizedKind == SynthesizedLocalKind.UserDefined ||
+                if ((local.SynthesizedKind == SynthesizedLocalKind.UserDefined && 
+                        local.ScopeDesignatorOpt?.Kind() != SyntaxKind.SwitchSection) ||
                     local.SynthesizedKind == SynthesizedLocalKind.LambdaDisplayClass)
                 {
                     hoistedLocalsWithDebugScopes.Add(((CapturedToStateMachineFieldReplacement)proxy).HoistedField);
@@ -410,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_lazyAvailableReusableHoistedFields == null)
                 {
-                    _lazyAvailableReusableHoistedFields = new Dictionary<TypeSymbol, ArrayBuilder<StateMachineFieldSymbol>>(TypeSymbol.EqualsIgnoringDynamicComparer);
+                    _lazyAvailableReusableHoistedFields = new Dictionary<TypeSymbol, ArrayBuilder<StateMachineFieldSymbol>>(TypeSymbol.EqualsIgnoringDynamicAndTupleNamesComparer);
                 }
 
                 _lazyAvailableReusableHoistedFields.Add(field.Type, fields = new ArrayBuilder<StateMachineFieldSymbol>());
@@ -522,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ThisReference:
                 case BoundKind.BaseReference:
-                case BoundKind.DefaultOperator:
+                case BoundKind.DefaultExpression:
                     return expr;
 
                 default:
@@ -593,6 +621,66 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitBlock(BoundBlock node)
         {
             return PossibleIteratorScope(node.Locals, () => (BoundStatement)base.VisitBlock(node));
+        }
+
+        public override BoundNode VisitScope(BoundScope node)
+        {
+            Debug.Assert(!node.Locals.IsEmpty);
+            var newLocalsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
+            var hoistedLocalsWithDebugScopes = ArrayBuilder<StateMachineFieldSymbol>.GetInstance();
+            bool localsRewritten = false;
+            foreach (var local in node.Locals)
+            {
+                Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
+                    local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection);
+
+                LocalSymbol localToUse;
+                if (TryRewriteLocal(local, out localToUse))
+                {
+                    newLocalsBuilder.Add(localToUse);
+                    localsRewritten |= ((object)local != localToUse);
+                    continue;
+                }
+
+                hoistedLocalsWithDebugScopes.Add(((CapturedToStateMachineFieldReplacement)proxies[local]).HoistedField);
+            }
+
+            var statements = VisitList(node.Statements);
+
+            // wrap the node in an iterator scope for debugging
+            if (hoistedLocalsWithDebugScopes.Count != 0)
+            {
+                BoundStatement translated;
+
+                if (newLocalsBuilder.Count == 0)
+                {
+                    newLocalsBuilder.Free();
+                    translated = new BoundStatementList(node.Syntax, statements);
+                }
+                else
+                {
+                    translated = node.Update(newLocalsBuilder.ToImmutableAndFree(), statements);
+                }
+
+                return MakeStateMachineScope(hoistedLocalsWithDebugScopes.ToImmutable(), translated);
+            }
+            else
+            {
+                hoistedLocalsWithDebugScopes.Free();
+                ImmutableArray<LocalSymbol> newLocals;
+
+                if (localsRewritten)
+                {
+                    newLocals = newLocalsBuilder.ToImmutableAndFree();
+                }
+                else
+                {
+                    newLocalsBuilder.Free();
+                    newLocals = node.Locals;
+                }
+
+                return node.Update(newLocals, statements);
+            }
         }
 
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
@@ -739,8 +827,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        public override BoundNode VisitThisReference(BoundThisReference node)
+        protected BoundStatement CacheThisIfNeeded()
         {
+            // restore "this" cache, if there is a cache
+            if ((object)this.cachedThis != null)
+            {
+                CapturedSymbolReplacement proxy = proxies[this.OriginalMethod.ThisParameter];
+                var fetchThis = proxy.Replacement(F.Syntax, frameType => F.This());
+                return F.Assignment(F.Local(this.cachedThis), fetchThis);
+            }
+
+            // do nothing
+            return F.StatementList();
+        }
+
+        public sealed override BoundNode VisitThisReference(BoundThisReference node)
+        {
+            // if "this" is cached, return it.
+            if ((object)this.cachedThis != null)
+            {
+                return F.Local(this.cachedThis);
+            }
+
             var thisParameter = this.OriginalMethod.ThisParameter;
             CapturedSymbolReplacement proxy;
             if ((object)thisParameter == null || !proxies.TryGetValue(thisParameter, out proxy))
@@ -768,6 +876,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitBaseReference(BoundBaseReference node)
         {
             // TODO: fix up the type of the resulting node to be the base type
+
+            // if "this" is cached, return it.
+            if ((object)this.cachedThis != null)
+            {
+                return F.Local(this.cachedThis);
+            }
+
             CapturedSymbolReplacement proxy = proxies[this.OriginalMethod.ThisParameter];
             Debug.Assert(proxy != null);
             return proxy.Replacement(F.Syntax, frameType => F.This());

@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
@@ -20,20 +19,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
         }
 
-        public MockCSharpCompiler(string responseFile, string baseDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers)
-            : base(CSharpCommandLineParser.Default, responseFile, args, Path.GetDirectoryName(typeof(CSharpCompiler).Assembly.Location), baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Environment.GetEnvironmentVariable("LIB"), new DesktopAnalyzerAssemblyLoader())
+        public MockCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers)
+            : base(CSharpCommandLineParser.Default, responseFile, args, CreateBuildPaths(workingDirectory), Environment.GetEnvironmentVariable("LIB"), new DesktopAnalyzerAssemblyLoader())
         {
             _analyzers = analyzers;
         }
 
-        protected override void CompilerSpecificSqm(IVsSqmMulti sqm, uint sqmSession)
+        private static BuildPaths CreateBuildPaths(string workingDirectory)
         {
-            throw new NotImplementedException();
-        }
-
-        protected override uint GetSqmAppID()
-        {
-            throw new NotImplementedException();
+            return new BuildPaths(
+                clientDir: Path.GetDirectoryName(typeof(CSharpCompiler).Assembly.Location),
+                workingDir: workingDirectory,
+                sdkDir: RuntimeEnvironment.GetRuntimeDirectory(),
+                tempDir: Path.GetTempPath());
         }
 
         protected override ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(

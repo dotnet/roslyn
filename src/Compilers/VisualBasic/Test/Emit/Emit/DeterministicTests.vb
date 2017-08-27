@@ -132,6 +132,94 @@ Partial.c = 3
         End Sub
 
         <Fact>
+        <WorkItem(11990, "https://github.com/dotnet/roslyn/issues/11990")>
+        Public Sub ForwardedTypesAreEmittedInADeterministicOrder()
+            ' VBC doesn't recognize type forwards in VB source code. Because of that,
+            ' this test generates types as a C# library (1), then generates a C# netmodule (2) that
+            ' contains the type forwards that forwards to reference (1), then generates an empty VB
+            ' library (3) that contains (2) and references (1).
+
+            Dim forwardedToCode = "
+namespace Namespace2 {
+    public class GenericType1<T> {}
+    public class GenericType3<T> {}
+    public class GenericType2<T> {}
+}
+namespace Namespace1 {
+    public class Type3 {}
+    public class Type2 {}
+    public class Type1 {}
+}
+namespace Namespace4 {
+    namespace Embedded {
+        public class Type2 {}
+        public class Type1 {}
+    }
+}
+namespace Namespace3 {
+    public class GenericType {}
+    public class GenericType<T> {}
+    public class GenericType<T, U> {}
+}
+"
+            Dim forwardedToCompilation = CreateCSharpCompilation(
+                forwardedToCode,
+                compilationOptions:=New CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+
+            Dim forwardedToReference = forwardedToCompilation.EmitToImageReference()
+
+            Dim forwardingCode = "
+using System.Runtime.CompilerServices;
+[assembly: TypeForwardedTo(typeof(Namespace2.GenericType1<int>))]
+[assembly: TypeForwardedTo(typeof(Namespace2.GenericType3<int>))]
+[assembly: TypeForwardedTo(typeof(Namespace2.GenericType2<int>))]
+[assembly: TypeForwardedTo(typeof(Namespace1.Type3))]
+[assembly: TypeForwardedTo(typeof(Namespace1.Type2))]
+[assembly: TypeForwardedTo(typeof(Namespace1.Type1))]
+[assembly: TypeForwardedTo(typeof(Namespace4.Embedded.Type2))]
+[assembly: TypeForwardedTo(typeof(Namespace4.Embedded.Type1))]
+[assembly: TypeForwardedTo(typeof(Namespace3.GenericType))]
+[assembly: TypeForwardedTo(typeof(Namespace3.GenericType<int>))]
+[assembly: TypeForwardedTo(typeof(Namespace3.GenericType<int, int>))]
+"
+            Dim forwardingNetModule = CreateCSharpCompilation(
+                    "ForwardingAssembly",
+                    forwardingCode,
+                    compilationOptions:=New CSharp.CSharpCompilationOptions(OutputKind.NetModule),
+                    referencedAssemblies:={MscorlibRef, SystemRef, forwardedToReference})
+
+            Dim forwardingNetModuleReference = forwardingNetModule.EmitToImageReference()
+
+            Dim forwardingCompilation = CreateCompilationWithMscorlib(
+                    assemblyName:="ForwardingAssembly",
+                    source:=String.Empty,
+                    options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                    references:={forwardingNetModuleReference, forwardedToReference})
+
+            Dim sortedFullNames =
+            {
+                "Namespace1.Type1",
+                "Namespace1.Type2",
+                "Namespace1.Type3",
+                "Namespace2.GenericType1`1",
+                "Namespace2.GenericType2`1",
+                "Namespace2.GenericType3`1",
+                "Namespace3.GenericType",
+                "Namespace3.GenericType`1",
+                "Namespace3.GenericType`2",
+                "Namespace4.Embedded.Type1",
+                "Namespace4.Embedded.Type2"
+            }
+
+            Using stream = forwardingCompilation.EmitToStream()
+                Using block = ModuleMetadata.CreateFromStream(stream)
+                    Dim metadataFullNames = MetadataValidation.GetExportedTypesFullNames(block.MetadataReader)
+                    Assert.Equal(sortedFullNames, metadataFullNames)
+                End Using
+            End Using
+        End Sub
+
+        <Fact>
         Public Sub TestInterfacesPartialClassDeterminism()
             ' When we have parts of a class in different trees,
             ' their bases must be emitted in a deterministic order.

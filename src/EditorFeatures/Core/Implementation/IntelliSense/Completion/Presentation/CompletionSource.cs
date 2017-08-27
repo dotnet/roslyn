@@ -12,8 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         void ICompletionSource.AugmentCompletionSession(ICompletionSession session, IList<CompletionSet> completionSets)
         {
             AssertIsForeground();
-            CompletionPresenterSession presenterSession;
-            if (!session.Properties.TryGetProperty<CompletionPresenterSession>(CompletionPresenterSession.Key, out presenterSession))
+            if (!session.Properties.TryGetProperty<CompletionPresenterSession>(CompletionPresenterSession.Key, out var presenterSession))
             {
                 return;
             }

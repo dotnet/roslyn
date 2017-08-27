@@ -1,9 +1,11 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -11,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -67,11 +70,11 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             // Looks good!
             context.RegisterRefactoring(new ReplacePropertyWithMethodsCodeAction(
                 string.Format(resourceString, propertyName),
-                c => ReplacePropertyWithMethods(context.Document, propertySymbol, c),
+                c => ReplacePropertyWithMethodsAsync(context.Document, propertySymbol, c),
                 propertyName));
         }
 
-        private async Task<Solution> ReplacePropertyWithMethods(
+        private async Task<Solution> ReplacePropertyWithMethodsAsync(
            Document document,
            IPropertySymbol propertySymbol,
            CancellationToken cancellationToken)
@@ -89,19 +92,14 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
             // Get the warnings we'd like to put at the definition site.
             var definitionWarning = GetDefinitionIssues(propertyReferences);
-
-            var equalityComparer = (IEqualityComparer<IPropertySymbol>)SymbolEquivalenceComparer.Instance;
-            var definitionToBackingField = 
-                propertyReferences.Select(r => r.Definition)
-                                  .OfType<IPropertySymbol>()
-                                  .ToDictionary(d => d, GetBackingField, equalityComparer);
+            var definitionToBackingField = CreateDefinitionToBackingFieldMap(propertyReferences);
 
             var q = from r in propertyReferences
                     where r.Definition is IPropertySymbol
                     from loc in r.Locations
-                    select ValueTuple.Create((IPropertySymbol)r.Definition, loc);
+                    select (property: (IPropertySymbol)r.Definition, location: loc);
 
-            var referencesByDocument = q.ToLookup(t => t.Item2.Document);
+            var referencesByDocument = q.ToLookup(t => t.location.Document);
 
             // References and definitions can overlap (for example, references to one property
             // inside the definition of another).  So we do a multi phase rewrite.  We first
@@ -110,14 +108,30 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             var updatedSolution = originalSolution;
 
             updatedSolution = await UpdateReferencesAsync(
-                updatedSolution, referencesByDocument, definitionToBackingField, 
+                updatedSolution, referencesByDocument, definitionToBackingField,
                 desiredGetMethodName, desiredSetMethodName, cancellationToken).ConfigureAwait(false);
 
             updatedSolution = await ReplaceDefinitionsWithMethodsAsync(
-                originalSolution, updatedSolution, propertyReferences, definitionToBackingField, 
+                originalSolution, updatedSolution, propertyReferences, definitionToBackingField,
                 desiredGetMethodName, desiredSetMethodName, cancellationToken).ConfigureAwait(false);
 
             return updatedSolution;
+        }
+
+        private static Dictionary<IPropertySymbol, IFieldSymbol> CreateDefinitionToBackingFieldMap(IEnumerable<ReferencedSymbol> propertyReferences)
+        {
+            var definitionToBackingField = new Dictionary<IPropertySymbol, IFieldSymbol>(SymbolEquivalenceComparer.Instance);
+
+            foreach (var reference in propertyReferences)
+            {
+                if (reference.Definition is IPropertySymbol property)
+                {
+                    var backingField = GetBackingField(property);
+                    definitionToBackingField[property] = backingField;
+                }
+            }
+
+            return definitionToBackingField;
         }
 
         private bool HasAnyMatchingGetOrSetMethods(IPropertySymbol property, string name)
@@ -147,9 +161,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
         private static IFieldSymbol GetBackingField(IPropertySymbol property)
         {
-            var field = property.ContainingType.GetMembers()
-                                .OfType<IFieldSymbol>()
-                                .FirstOrDefault(f => property.Equals(f.AssociatedSymbol));
+            var field = property.GetBackingFieldIfAny();
             if (field == null)
             {
                 return null;
@@ -171,7 +183,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 n => !property.ContainingType.GetMembers(n).Any());
 
             return CodeGenerationSymbolFactory.CreateFieldSymbol(
-                attributes: null,
+                attributes: default,
                 accessibility: field.DeclaredAccessibility,
                 modifiers: DeclarationModifiers.From(field),
                 type: field.Type,
@@ -189,7 +201,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
         private async Task<Solution> UpdateReferencesAsync(
             Solution updatedSolution, 
-            ILookup<Document, ValueTuple<IPropertySymbol, ReferenceLocation>> referencesByDocument, 
+            ILookup<Document, (IPropertySymbol property, ReferenceLocation location)> referencesByDocument, 
             Dictionary<IPropertySymbol, IFieldSymbol> propertyToBackingField,
             string desiredGetMethodName, string desiredSetMethodName,
             CancellationToken cancellationToken)
@@ -208,7 +220,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
         private async Task<Solution> UpdateReferencesInDocumentAsync(
             Solution updatedSolution,
             Document originalDocument,
-            IEnumerable<ValueTuple<IPropertySymbol, ReferenceLocation>> references,
+            IEnumerable<(IPropertySymbol property, ReferenceLocation location)> references,
             Dictionary<IPropertySymbol, IFieldSymbol> propertyToBackingField,
             string desiredGetMethodName, string desiredSetMethodName,
             CancellationToken cancellationToken)
@@ -229,7 +241,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
         private static async Task ReplaceReferencesAsync(
             Document originalDocument,
-            IEnumerable<ValueTuple<IPropertySymbol, ReferenceLocation>> references,
+            IEnumerable<(IPropertySymbol property, ReferenceLocation location)> references,
             IDictionary<IPropertySymbol, IFieldSymbol> propertyToBackingField,
             SyntaxNode root, SyntaxEditor editor,
             IReplacePropertyWithMethodsService service,
@@ -238,26 +250,30 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
         {
             if (references != null)
             {
+                var syntaxFacts = originalDocument.GetLanguageService<ISyntaxFactsService>();
+
                 foreach (var tuple in references)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var property = tuple.Item1;
-                    var referenceLocation = tuple.Item2;
+                    var property = tuple.property;
+                    var referenceLocation = tuple.location;
                     var location = referenceLocation.Location;
-                    var nameToken = root.FindToken(location.SourceSpan.Start);
+                    var nameToken = root.FindToken(location.SourceSpan.Start, findInsideTrivia: true);
 
-                    if (referenceLocation.IsImplicit)
+                    var parent = nameToken.Parent;
+
+                    if (referenceLocation.IsImplicit || !syntaxFacts.IsIdentifierName(parent))
                     {
                         // Warn the user that we can't properly replace this property with a method.
-                        editor.ReplaceNode(nameToken.Parent, nameToken.Parent.WithAdditionalAnnotations(
+                        editor.ReplaceNode(parent, nameToken.Parent.WithAdditionalAnnotations(
                             ConflictAnnotation.Create(FeaturesResources.Property_referenced_implicitly)));
                     }
                     else
                     {
-                        var fieldSymbol = propertyToBackingField.GetValueOrDefault(tuple.Item1);
+                        var fieldSymbol = propertyToBackingField.GetValueOrDefault(tuple.property);
                         await service.ReplaceReferenceAsync(
-                            originalDocument, editor, nameToken, 
+                            originalDocument, editor, parent, 
                             property, fieldSymbol,
                             desiredGetMethodName, desiredSetMethodName,
                             cancellationToken).ConfigureAwait(false);
@@ -346,15 +362,15 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var propertyDefinition = definition.Item1;
-                var propertyDeclaration = definition.Item2;
+                var propertyDefinition = definition.property;
+                var propertyDeclaration = definition.declaration;
 
-                var members = service.GetReplacementMembers(
+                var members = await service.GetReplacementMembersAsync(
                     updatedDocument,
                     propertyDefinition, propertyDeclaration,
                     definitionToBackingField.GetValueOrDefault(propertyDefinition),
                     desiredGetMethodName, desiredSetMethodName,
-                    cancellationToken);
+                    cancellationToken).ConfigureAwait(false);
 
                 // Properly make the members fit within an interface if that's what
                 // we're generating into.
@@ -373,14 +389,14 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             return updatedSolution.WithDocumentSyntaxRoot(documentId, editor.GetChangedRoot());
         }
 
-        private async Task<List<ValueTuple<IPropertySymbol, SyntaxNode>>> GetCurrentPropertiesAsync(
+        private async Task<List<(IPropertySymbol property, SyntaxNode declaration)>> GetCurrentPropertiesAsync(
             Solution updatedSolution,
             Compilation compilation,
             DocumentId documentId,
             MultiDictionary<DocumentId, IPropertySymbol>.ValueSet originalDefinitions,
             CancellationToken cancellationToken)
         {
-            var result = new List<ValueTuple<IPropertySymbol, SyntaxNode>>();
+            var result = new List<(IPropertySymbol property, SyntaxNode declaration)>();
             foreach (var originalDefinition in originalDefinitions)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -390,7 +406,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
                 if (declaration != null && updatedSolution.GetDocument(declaration.SyntaxTree)?.Id == documentId)
                 {
-                    result.Add(ValueTuple.Create(property, declaration));
+                    result.Add((property, declaration));
                 }
             }
 

@@ -7,19 +7,21 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SourcePropertyAccessorSymbol : SourceMethodSymbol
+    internal sealed class SourcePropertyAccessorSymbol : SourceMemberMethodSymbol
     {
         private readonly SourcePropertySymbol _property;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private TypeSymbol _lazyReturnType;
-        private ImmutableArray<CustomModifier> _lazyReturnTypeCustomModifiers;
+        private CustomModifiersTuple _lazyCustomModifiers;
         private readonly ImmutableArray<MethodSymbol> _explicitInterfaceImplementations;
         private readonly string _name;
         private readonly bool _isAutoPropertyAccessor;
+        private readonly bool _isExpressionBodied;
 
         public static SourcePropertyAccessorSymbol CreateAccessorSymbol(
             NamedTypeSymbol containingType,
@@ -97,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _property.IsExpressionBodied;
+                return _isExpressionBodied;
             }
         }
 
@@ -148,6 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _explicitInterfaceImplementations = explicitInterfaceImplementations;
             _name = name;
             _isAutoPropertyAccessor = false;
+            _isExpressionBodied = true;
 
             // The modifiers for the accessor are the same as the modifiers for the property,
             // minus the indexer bit
@@ -191,13 +194,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AccessorDeclarationSyntax syntax,
             MethodKind methodKind,
             bool isAutoPropertyAccessor,
-            DiagnosticBag diagnostics) :
-            base(containingType, syntax.GetReference(), syntax.Body?.GetReference(), location)
+            DiagnosticBag diagnostics)
+            : base(containingType,
+                   syntax.GetReference(),
+                   ((SyntaxNode)syntax.Body ?? syntax.ExpressionBody)?.GetReference(),
+                   location)
         {
             _property = property;
             _explicitInterfaceImplementations = explicitInterfaceImplementations;
             _name = name;
             _isAutoPropertyAccessor = isAutoPropertyAccessor;
+            Debug.Assert(!_property.IsExpressionBodied, "Cannot have accessors in expression bodied lightweight properties");
+            var hasBody = syntax.Body != null;
+            var hasExpressionBody = syntax.ExpressionBody != null;
+            _isExpressionBodied = !hasBody && hasExpressionBody;
 
             bool modifierErrors;
             var declarationModifiers = this.MakeModifiers(syntax, location, diagnostics, out modifierErrors);
@@ -216,8 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false,
                 isMetadataVirtualIgnoringModifiers: explicitInterfaceImplementations.Any());
 
-            var bodyOpt = syntax.Body;
-            if (bodyOpt != null)
+            if (hasBody || hasExpressionBody)
             {
                 CheckModifiersForBody(location, diagnostics);
             }
@@ -244,6 +253,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     _name = overriddenMethod.Name;
                 }
             }
+
+            CheckForBlockAndExpressionBody(
+                syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
         }
 
         protected override void MethodChecks(DiagnosticBag diagnostics)
@@ -252,13 +264,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // event that we need to find the overridden accessor.
             _lazyParameters = ComputeParameters(diagnostics);
             _lazyReturnType = ComputeReturnType(diagnostics);
-            _lazyReturnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
+            _lazyCustomModifiers = CustomModifiersTuple.Empty;
 
             if (_explicitInterfaceImplementations.Length > 0)
             {
                 Debug.Assert(_explicitInterfaceImplementations.Length == 1);
                 MethodSymbol implementedMethod = _explicitInterfaceImplementations[0];
-                CustomModifierUtils.CopyMethodCustomModifiers(implementedMethod, this, out _lazyReturnType, out _lazyReturnTypeCustomModifiers, out _lazyParameters, alsoCopyParamsModifier: false);
+                CustomModifierUtils.CopyMethodCustomModifiers(implementedMethod, this, out _lazyReturnType, 
+                                                              out _lazyCustomModifiers, 
+                                                              out _lazyParameters, alsoCopyParamsModifier: false);
             }
             else if (this.IsOverride)
             {
@@ -267,14 +281,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MethodSymbol overriddenMethod = this.OverriddenMethod;
                 if ((object)overriddenMethod != null)
                 {
-                    CustomModifierUtils.CopyMethodCustomModifiers(overriddenMethod, this, out _lazyReturnType, out _lazyReturnTypeCustomModifiers, out _lazyParameters, alsoCopyParamsModifier: true);
+                    CustomModifierUtils.CopyMethodCustomModifiers(overriddenMethod, this, out _lazyReturnType, 
+                                                                  out _lazyCustomModifiers, 
+                                                                  out _lazyParameters, alsoCopyParamsModifier: true);
                 }
             }
             else if (_lazyReturnType.SpecialType != SpecialType.System_Void)
             {
                 PropertySymbol associatedProperty = _property;
-                _lazyReturnType = CustomModifierUtils.CopyTypeCustomModifiers(associatedProperty.Type, _lazyReturnType, RefKind.None, this.ContainingAssembly);
-                _lazyReturnTypeCustomModifiers = associatedProperty.TypeCustomModifiers;
+                _lazyReturnType = CustomModifierUtils.CopyTypeCustomModifiers(associatedProperty.Type, _lazyReturnType, this.ContainingAssembly);
+                _lazyCustomModifiers = CustomModifiersTuple.Create(associatedProperty.TypeCustomModifiers, associatedProperty.RefCustomModifiers);
             }
         }
 
@@ -323,6 +339,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
         }
 
+        public override ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraintClauses
+            => ImmutableArray<TypeParameterConstraintClause>.Empty;
+
         internal override RefKind RefKind
         {
             get { return _property.RefKind; }
@@ -369,7 +388,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 LazyMethodChecks();
-                return _lazyReturnTypeCustomModifiers;
+                return _lazyCustomModifiers.TypeCustomModifiers;
+            }
+        }
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get
+            {
+                LazyMethodChecks();
+                return _lazyCustomModifiers.RefCustomModifiers;
             }
         }
 

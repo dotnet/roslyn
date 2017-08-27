@@ -1,13 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
@@ -16,19 +10,16 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         public static CompletionItem Create(
             string displayText,
-            TextSpan span,
+            CompletionItemRules rules,
             Glyph? glyph = null,
-            ImmutableArray<SymbolDisplayPart> description = default(ImmutableArray<SymbolDisplayPart>),
+            ImmutableArray<SymbolDisplayPart> description = default,
             string sortText = null,
             string filterText = null,
-            int? matchPriority = null,
             bool showsWarningIcon = false,
-            bool shouldFormatOnCommit = false,
             ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default(ImmutableArray<string>),
-            CompletionItemRules rules = null)
+            ImmutableArray<string> tags = default)
         {
-            tags = tags.IsDefault ? ImmutableArray<string>.Empty : tags;
+            tags = tags.NullToEmpty();
 
             if (glyph != null)
             {
@@ -47,15 +38,10 @@ namespace Microsoft.CodeAnalysis.Completion
                 properties = properties.Add("Description", EncodeDescription(description));
             }
 
-            rules = rules ?? CompletionItemRules.Default;
-            rules = rules.WithMatchPriority(matchPriority.GetValueOrDefault())
-                         .WithFormatOnCommit(shouldFormatOnCommit);
-
             return CompletionItem.Create(
                 displayText: displayText,
                 filterText: filterText,
                 sortText: sortText,
-                span: span,
                 properties: properties,
                 tags: tags,
                 rules: rules);
@@ -68,8 +54,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public static CompletionDescription GetDescription(CompletionItem item)
         {
-            string encodedDescription;
-            if (item.Properties.TryGetValue("Description", out encodedDescription))
+            if (item.Properties.TryGetValue("Description", out var encodedDescription))
             {
                 return DecodeDescription(encodedDescription);
             }
@@ -83,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private static string EncodeDescription(ImmutableArray<SymbolDisplayPart> description)
         {
-            return EncodeDescription(description.Select(d => new TaggedText(SymbolDisplayPartKindTags.GetTag(d.Kind), d.ToString())).ToImmutableArray());
+            return EncodeDescription(description.ToTaggedText());
         }
 
         private static string EncodeDescription(ImmutableArray<TaggedText> description)

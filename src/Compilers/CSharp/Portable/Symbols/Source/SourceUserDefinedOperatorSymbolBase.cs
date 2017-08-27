@@ -11,7 +11,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal abstract class SourceUserDefinedOperatorSymbolBase : SourceMethodSymbol
+    internal abstract class SourceUserDefinedOperatorSymbolBase : SourceMemberMethodSymbol
     {
         private readonly string _name;
         private readonly bool _isExpressionBodied;
@@ -42,12 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool modifierErrors;
             var declarationModifiers = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
-                modifiersSyntax,
-                defaultAccess,
-                allowedModifiers,
-                location,
-                diagnostics,
-                out modifierErrors);
+                modifiersSyntax, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
             this.CheckUnsafeModifier(declarationModifiers, diagnostics);
 
@@ -128,10 +123,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 signatureBinder,
                 this,
                 ParameterListSyntax,
-                true,
                 out arglistToken,
-                diagnostics,
-                false);
+                allowRefOrOut: true,
+                allowThis: false,
+                diagnostics: diagnostics);
 
             if (arglistToken.Kind() == SyntaxKind.ArgListKeyword)
             {
@@ -285,10 +280,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // SPEC: Either S0 or T0 is the class or struct type in which the operator
             // SPEC: declaration takes place.
 
-            if (source0 != this.ContainingType && target0 != this.ContainingType &&
+            if (source0.TupleUnderlyingTypeOrSelf() != this.ContainingType && target0.TupleUnderlyingTypeOrSelf() != this.ContainingType &&
                 // allow conversion between T and Nullable<T> in declaration of Nullable<T>
-                source.TupleUnderlyingTypeOrSelf() != this.ContainingType &&
-                target.TupleUnderlyingTypeOrSelf() != this.ContainingType)
+                source != this.ContainingType && target != this.ContainingType)
             {
                 // CS0556: User-defined conversion must convert to or from the enclosing type
                 diagnostics.Add(ErrorCode.ERR_ConversionNotInvolvingContainedType, this.Locations[0]);
@@ -397,12 +391,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
-                if (same.IsDerivedFrom(different, ignoreDynamic: false, useSiteDiagnostics: ref useSiteDiagnostics)) // tomat: ignoreDynamic should be true, but we don't want to introduce breaking change. See bug 605326.
+                if (same.IsDerivedFrom(different, TypeCompareKind.IgnoreTupleNames, useSiteDiagnostics: ref useSiteDiagnostics)) // tomat: ignoreDynamic should be true, but we don't want to introduce breaking change. See bug 605326.
                 {
                     // '{0}': user-defined conversions to or from a base class are not allowed
                     diagnostics.Add(ErrorCode.ERR_ConversionWithBase, this.Locations[0], this);
                 }
-                else if (different.IsDerivedFrom(same, ignoreDynamic: false, useSiteDiagnostics: ref useSiteDiagnostics)) // tomat: ignoreDynamic should be true, but we don't want to introduce breaking change. See bug 605326.
+                else if (different.IsDerivedFrom(same, TypeCompareKind.IgnoreTupleNames, useSiteDiagnostics: ref useSiteDiagnostics)) // tomat: ignoreDynamic should be true, but we don't want to introduce breaking change. See bug 605326.
                 {
                     // '{0}': user-defined conversions to or from a derived class are not allowed
                     diagnostics.Add(ErrorCode.ERR_ConversionWithDerived, this.Locations[0], this);
@@ -497,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // CS0559: The parameter type for ++ or -- operator must be the containing type
                 diagnostics.Add(ErrorCode.ERR_BadIncDecSignature, this.Locations[0]);
             }
-            else if (!this.ReturnType.EffectiveTypeNoUseSiteDiagnostics.IsEqualToOrDerivedFrom(parameterType, ignoreDynamic: false, useSiteDiagnostics: ref useSiteDiagnostics))
+            else if (!this.ReturnType.EffectiveTypeNoUseSiteDiagnostics.IsEqualToOrDerivedFrom(parameterType, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics))
             {
                 // CS0448: The return type for ++ or -- operator must match the parameter type
                 //         or be derived from the parameter type
@@ -611,6 +605,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
         }
+
+        public sealed override ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraintClauses
+            => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
         internal override RefKind RefKind
         {

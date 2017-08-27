@@ -1,17 +1,19 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Snippets
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Text.Projection
+Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Public Class VisualBasicCompletionCommandHandlerTests
-
         <WorkItem(546208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546208")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function MultiWordKeywordCommitBehavior() As Task
@@ -25,10 +27,10 @@ End Class
                               </Document>)
                 state.SendTypeChars("on")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem("On Error GoTo", description:=String.Format(FeaturesResources.Keyword, "On Error GoTo") + vbCrLf + VBFeaturesResources.OnErrorGotoKeywordToolTip)
+                Await state.AssertSelectedCompletionItem("On Error GoTo", description:=String.Format(FeaturesResources._0_Keyword, "On Error GoTo") + vbCrLf + VBFeaturesResources.Enables_the_error_handling_routine_that_starts_at_the_line_specified_in_the_line_argument_The_specified_line_must_be_in_the_same_procedure_as_the_On_Error_statement_On_Error_GoTo_bracket_label_0_1_bracket)
                 state.SendTypeChars(" ")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem("Error GoTo", description:=String.Format(FeaturesResources.Keyword, "Error GoTo") + vbCrLf + VBFeaturesResources.OnErrorGotoKeywordToolTip)
+                Await state.AssertSelectedCompletionItem("On Error GoTo", description:=String.Format(FeaturesResources._0_Keyword, "On Error GoTo") + vbCrLf + VBFeaturesResources.Enables_the_error_handling_routine_that_starts_at_the_line_specified_in_the_line_argument_The_specified_line_must_be_in_the_same_procedure_as_the_On_Error_statement_On_Error_GoTo_bracket_label_0_1_bracket)
             End Using
         End Function
 
@@ -46,7 +48,7 @@ End Class
 
                 state.SendTypeChars("next")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem("On Error Resume Next", description:=String.Format(FeaturesResources.Keyword, "On Error Resume Next") + vbCrLf + VBFeaturesResources.OnErrorResumeNextKeywordToolTip)
+                Await state.AssertSelectedCompletionItem("On Error Resume Next", description:=String.Format(FeaturesResources._0_Keyword, "On Error Resume Next") + vbCrLf + VBFeaturesResources.When_a_run_time_error_occurs_execution_transfers_to_the_statement_following_the_statement_or_procedure_call_that_resulted_in_the_error)
                 state.SendTypeChars(" ")
                 Await state.AssertNoCompletionSession()
             End Using
@@ -57,7 +59,7 @@ End Class
             Using state = TestState.CreateVisualBasicTestState(
                               <Document>
                                   Module M
-                                      Sub Foo()
+                                      Sub Goo()
                                           If True Then $$Console.WriteLine()
                                       End Sub
                                   End Module
@@ -130,7 +132,7 @@ End Module
                               <Document>
                                   Imports System
                                   Class C
-                                      Sub Foo() Implements ICloneable$$
+                                      Sub Goo() Implements ICloneable$$
                                   End Module
                               </Document>)
 
@@ -343,7 +345,7 @@ End Class
                               </document>)
                 state.SendTypeChars(".A")
                 Await state.AssertCompletionSession()
-                Assert.Equal(3, state.CurrentCompletionPresenterSession.PresentationItems.Count)
+                Assert.Equal(3, state.CurrentCompletionPresenterSession.CompletionItems.Count)
             End Using
         End Function
 
@@ -369,10 +371,10 @@ End Class
                               </document>)
                 state.SendTypeChars(".A")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.Equal(4, state.CurrentCompletionPresenterSession.PresentationItems.Count)
+                Assert.Equal(4, state.CurrentCompletionPresenterSession.CompletionItems.Count)
                 state.SendTypeChars("A")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.Equal(2, state.CurrentCompletionPresenterSession.PresentationItems.Count)
+                Assert.Equal(2, state.CurrentCompletionPresenterSession.CompletionItems.Count)
             End Using
         End Function
 
@@ -563,8 +565,8 @@ End Class
                 Await state.AssertCompletionSession()
                 Await state.AssertSelectedCompletionItem(displayText:="A", isHardSelected:=True)
                 Await state.WaitForAsynchronousOperationsAsync()
-                state.SendSelectCompletionItemThroughPresenterSession(state.CurrentCompletionPresenterSession.PresentationItems.First(
-                                                           Function(i) i.Item.DisplayText = "B"))
+                state.SendSelectCompletionItemThroughPresenterSession(state.CurrentCompletionPresenterSession.CompletionItems.First(
+                                                           Function(i) i.DisplayText = "B"))
                 state.SendTab()
                 Assert.Contains(".B", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -830,15 +832,15 @@ end class
             Using state = TestState.CreateVisualBasicTestState(
                               <Document>
 class c
-    sub Foo(Of X)()
+    sub Goo(Of X)()
         $$
     end sub
 end class
                               </Document>)
-                state.SendTypeChars("Fo(")
+                state.SendTypeChars("Go(")
                 Await state.AssertCompletionSession()
-                Assert.Equal("        Foo(", state.GetLineTextFromCaretPosition())
-                Assert.DoesNotContain("Foo(Of", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Equal("        Goo(", state.GetLineTextFromCaretPosition())
+                Assert.DoesNotContain("Goo(Of", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -848,14 +850,14 @@ end class
             Using state = TestState.CreateVisualBasicTestState(
                               <Document>
 class c
-    sub Foo(Of X)()
+    sub Goo(Of X)()
         $$
     end sub
 end class
                               </Document>)
-                state.SendTypeChars("Fo ")
+                state.SendTypeChars("Go ")
                 Await state.AssertCompletionSession()
-                Assert.Equal("        Foo(Of ", state.GetLineTextFromCaretPosition())
+                Assert.Equal("        Goo(Of ", state.GetLineTextFromCaretPosition())
             End Using
         End Function
 
@@ -973,20 +975,18 @@ Enum Numeros
     Uno
     Dos
 End Enum
-Class Foo
+Class Goo
     Sub Bar(a As Integer, n As Numeros)
     End Sub
     Sub Baz()
         Bar(0$$
     End Sub
 End Class
-class Foo
                               </Document>)
 
                 state.SendTypeChars(", ")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem(displayText:="Numeros", isSoftSelected:=True)
-                Assert.Equal(1, state.CurrentCompletionPresenterSession.PresentationItems.Where(Function(c) c.Item.DisplayText = "Numeros").Count())
+                Await state.AssertSelectedCompletionItem(displayText:="Numeros.Dos", isSoftSelected:=True)
             End Using
         End Function
 
@@ -1012,10 +1012,10 @@ End Class
 
                 state.SendTypeChars("s")
                 Await state.AssertCompletionSession()
-                Assert.True(state.CurrentCompletionPresenterSession.PresentationItems.Any(Function(i) i.Item.DisplayText = "string:="))
+                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "string:="))
                 state.SendTypeChars("t")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.True(state.CurrentCompletionPresenterSession.PresentationItems.Any(Function(i) i.Item.DisplayText = "string:="))
+                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "string:="))
             End Using
         End Function
 
@@ -1026,21 +1026,21 @@ End Class
                               <Document>
 Class Class1
     Private Sub Test()
-        Foo(bool:=False,$$
+        Goo(bool:=False,$$
     End Sub
  
-    Private Sub Foo(str As String, character As Char)
+    Private Sub Goo(str As String, character As Char)
     End Sub
  
-    Private Sub Foo(str As String, bool As Boolean)
+    Private Sub Goo(str As String, bool As Boolean)
     End Sub
 End Class
                               </Document>)
 
                 state.SendTypeChars(" ")
                 Await state.AssertCompletionSession()
-                Assert.Equal(1, state.CurrentCompletionPresenterSession.PresentationItems.Count)
-                Assert.True(state.CurrentCompletionPresenterSession.PresentationItems.Any(Function(i) i.Item.DisplayText = "str:="))
+                Assert.Equal(1, state.CurrentCompletionPresenterSession.CompletionItems.Count)
+                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "str:="))
             End Using
         End Function
 
@@ -1049,7 +1049,7 @@ End Class
         Public Async Function TestExclusiveNamedParameterCompletion2() As Task
             Using state = TestState.CreateVisualBasicTestState(
                               <Document>
-Class Foo
+Class Goo
     Private Sub Test()
         Dim m As Object = Nothing
         Method(obj:=m, $$
@@ -1068,11 +1068,11 @@ End Class
 
                 state.SendTypeChars(" ")
                 Await state.AssertCompletionSession()
-                Assert.Equal(3, state.CurrentCompletionPresenterSession.PresentationItems.Count)
-                Assert.True(state.CurrentCompletionPresenterSession.PresentationItems.Any(Function(i) i.Item.DisplayText = "b:="))
-                Assert.True(state.CurrentCompletionPresenterSession.PresentationItems.Any(Function(i) i.Item.DisplayText = "num:="))
-                Assert.True(state.CurrentCompletionPresenterSession.PresentationItems.Any(Function(i) i.Item.DisplayText = "str:="))
-                Assert.False(state.CurrentCompletionPresenterSession.PresentationItems.Any(Function(i) i.Item.DisplayText = "dbl:="))
+                Assert.Equal(3, state.CurrentCompletionPresenterSession.CompletionItems.Count)
+                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "b:="))
+                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "num:="))
+                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "str:="))
+                Assert.False(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "dbl:="))
             End Using
         End Function
 
@@ -1327,7 +1327,7 @@ End Class
         Public Async Function NoCompletionAfterBackspaceInStringLiteral() As Task
             Using state = TestState.CreateVisualBasicTestState(
                               <Document>
-                                Sub Foo()
+                                Sub Goo()
                                     Dim z = "aa$$"
                                 End Sub
                               </Document>)
@@ -1341,7 +1341,7 @@ End Class
         Public Async Function CompletionUpAfterDeleteDot() As Task
             Using state = TestState.CreateVisualBasicTestState(
                               <Document>
-                                Sub Foo()
+                                Sub Goo()
                                     Dim z = "a"
                                      z.$$ToString()
                                 End Sub
@@ -1356,7 +1356,7 @@ End Class
         Public Async Function NotCompletionUpAfterDeleteRParen() As Task
             Using state = TestState.CreateVisualBasicTestState(
                               <Document>
-                                Sub Foo()
+                                Sub Goo()
                                     "a".ToString()$$
                                 End Sub
                               </Document>)
@@ -1370,7 +1370,7 @@ End Class
         Public Async Function NotCompletionUpAfterDeleteLParen() As Task
             Using state = TestState.CreateVisualBasicTestState(
                               <Document>
-                                Sub Foo()
+                                Sub Goo()
                                     "a".ToString($$
                                 End Sub
                               </Document>)
@@ -1384,8 +1384,8 @@ End Class
         Public Async Function NotCompletionUpAfterDeleteComma() As Task
             Using state = TestState.CreateVisualBasicTestState(
                               <Document>
-                                Sub Foo(x as Integer, y as Integer)
-                                    Foo(1,$$)
+                                Sub Goo(x as Integer, y as Integer)
+                                    Goo(1,$$)
                                 End Sub
                               </Document>)
 
@@ -1398,14 +1398,14 @@ End Class
         Public Async Function CompletionAfterDeleteKeyword() As Task
             Using state = TestState.CreateVisualBasicTestState(
                               <Document>
-                                Sub Foo(x as Integer, y as Integer)
-                                    Foo(1,2)
+                                Sub Goo(x as Integer, y as Integer)
+                                    Goo(1,2)
                                 End$$ Sub
                               </Document>)
 
                 state.SendBackspace()
                 Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem("End", description:=String.Format(FeaturesResources.Keyword, "End") + vbCrLf + VBFeaturesResources.EndKeywordToolTip)
+                Await state.AssertSelectedCompletionItem("End", description:=String.Format(FeaturesResources._0_Keyword, "End") + vbCrLf + VBFeaturesResources.Stops_execution_immediately)
             End Using
         End Function
 
@@ -1464,7 +1464,7 @@ End Class
                 <Document><![CDATA[
 Imports System
 Class G
-    Sub foo()
+    Sub goo()
         Dim x as String$$
     End Sub
 End Class
@@ -1482,7 +1482,7 @@ End Class
                 <Document><![CDATA[
 Imports System
 Class G
-    Sub foo()
+    Sub goo()
         Dim x as Str$$ing
     End Sub
 End Class
@@ -1500,7 +1500,7 @@ End Class
                 <Document><![CDATA[
 Imports System
 Class G
-    Sub foo()
+    Sub goo()
         Dim x as $$String
     End Sub
 End Class
@@ -1517,7 +1517,7 @@ End Class
                 <Document><![CDATA[
 Imports System
 Class G
-    Sub foo()
+    Sub goo()
         Dim x as String$$
     End Sub
 End Class
@@ -1535,7 +1535,7 @@ End Class
                 <Document><![CDATA[
 Imports System
 Class G
-    Sub foo()
+    Sub goo()
         Dim x as $$
     End Sub
 End Class
@@ -1554,7 +1554,7 @@ End Class
                 <Document><![CDATA[
 Imports System
 Class G
-    Sub foo()
+    Sub goo()
         Dim x as gggg$$
     End Sub
 End Class
@@ -1571,7 +1571,7 @@ End Class
                 <Document><![CDATA[
 Imports System
 Class G
-    Sub foo()
+    Sub goo()
         Dim x as gggg$$
     End Sub
 End Class
@@ -1590,7 +1590,7 @@ End Class
                 <Document><![CDATA[
 Imports System
 Class G
-    Sub foo()
+    Sub goo()
         Dim x as Integrr$$
     End Sub
 End Class
@@ -1608,17 +1608,17 @@ End Class
                 <Document><![CDATA[
 Imports System
 Class G
-    Sub foo()
+    Sub goo()
         Dim x as String$$
     End Sub
 End Class
             ]]></Document>)
                 state.SendBackspace()
                 Await state.AssertCompletionSession()
-                Assert.True(state.CurrentCompletionPresenterSession.PresentationItems.Any(Function(c) c.Item.DisplayText = "AccessViolationException"))
+                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(c) c.DisplayText = "AccessViolationException"))
                 state.SendBackspace()
                 Await state.AssertCompletionSession()
-                Assert.True(state.CurrentCompletionPresenterSession.PresentationItems.Any(Function(c) c.Item.DisplayText = "AccessViolationException"))
+                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(c) c.DisplayText = "AccessViolationException"))
             End Using
         End Function
 
@@ -1628,7 +1628,7 @@ End Class
                 <Document><![CDATA[
 Imports System
 Class G
-    Sub foo()
+    Sub goo()
         ?$$
     End Sub
 End Class
@@ -1645,7 +1645,7 @@ End Class
                 <Document><![CDATA[
 Imports System
 Class G
-    Sub foo()
+    Sub goo()
         a?$$
     End Sub
 End Class
@@ -1666,7 +1666,7 @@ Imports System.Linq
 Class Test
     Sub [Select]()
     End Sub
-    Sub Foo()
+    Sub Goo()
         Dim k As Integer = 1
         $$
     End Sub
@@ -1675,7 +1675,7 @@ End Class
             ]]></Document>)
                 state.SendTypeChars("selec")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.Equal(state.CurrentCompletionPresenterSession.PresentationItems.Count, 2)
+                Assert.Equal(state.CurrentCompletionPresenterSession.CompletionItems.Count, 2)
             End Using
         End Function
 
@@ -1840,9 +1840,9 @@ End Class
 
                 state.SendTypeChars("GetType")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem("GetType", VBFeaturesResources.GettypeFunction + vbCrLf +
-                    ReturnsSystemTypeObject + vbCrLf +
-                    $"GetType({Typename}) As Type")
+                Await state.AssertSelectedCompletionItem("GetType", VBFeaturesResources.GetType_function + vbCrLf +
+                    VBWorkspaceResources.Returns_a_System_Type_object_for_the_specified_type_name + vbCrLf +
+                    $"GetType({VBWorkspaceResources.typeName}) As Type")
             End Using
         End Function
 
@@ -1875,7 +1875,7 @@ End Class
             Using state = TestState.CreateVisualBasicTestState(
                               <Document>
 Public Class C
-    Sub Foo()
+    Sub Goo()
         Dim a = new$$
     End Sub
 End Class
@@ -1892,21 +1892,21 @@ End Class
             Using state = TestState.CreateVisualBasicTestState(
                               <Document>
 Enum E
-    Foo
+    Goo
     Bar
 End Enum
 
-Class Foo
+Class Goo
 End Class
 
 Public Class C
-    Sub Foo()
+    Sub Goo()
         E e = $$
     End Sub
 End Class</Document>)
-                state.SendTypeChars("f")
+                state.SendTypeChars("g")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem("E.Foo", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem("E.Goo", isHardSelected:=True)
             End Using
         End Function
 
@@ -1917,7 +1917,7 @@ End Class</Document>)
                               <Document>
 Imports System.Threading.Tasks
 Public Class C
-    Sub Foo()
+    Sub Goo()
         Dim a as $$
     End Sub
 End Class
@@ -1939,7 +1939,7 @@ End Class
                               <Document>
 Imports System.Threading.Tasks
 Public Class C
-    Sub Foo()
+    Sub Goo()
         Dim a as $$
     End Sub
 End Class
@@ -2049,9 +2049,9 @@ End Class</Document>)
                 state.SendTypeChars("(")
                 Await state.AssertCompletionSession()
                 ' DayOfWeek.Monday should  immediately follow DayOfWeek.Friday
-                Dim friday = state.CurrentCompletionPresenterSession.PresentationItems.First(Function(i) i.Item.DisplayText = "DayOfWeek.Friday")
-                Dim monday = state.CurrentCompletionPresenterSession.PresentationItems.First(Function(i) i.Item.DisplayText = "DayOfWeek.Monday")
-                Assert.True(state.CurrentCompletionPresenterSession.PresentationItems.IndexOf(friday) = state.CurrentCompletionPresenterSession.PresentationItems.IndexOf(monday) - 1)
+                Dim friday = state.CurrentCompletionPresenterSession.CompletionItems.First(Function(i) i.DisplayText = "DayOfWeek.Friday")
+                Dim monday = state.CurrentCompletionPresenterSession.CompletionItems.First(Function(i) i.DisplayText = "DayOfWeek.Monday")
+                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.IndexOf(friday) = state.CurrentCompletionPresenterSession.CompletionItems.IndexOf(monday) - 1)
             End Using
         End Function
 
@@ -2079,7 +2079,7 @@ End Class]]></Document>)
                 <Document><![CDATA[
 Imports System
 Class G
-    Sub foo()
+    Sub goo()
         Dim x as Stri$$ng
     End Sub
 End Class
@@ -2132,7 +2132,7 @@ End Class
                 <Document><![CDATA[
 Imports System
 Class G
-    Sub Foo()
+    Sub Goo()
         $$
     End Sub
 End Class
@@ -2140,8 +2140,8 @@ End Class
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
                 ' Should only have one item called 'Double' and it should have a keyword glyph
-                Dim doubleItem = state.CurrentCompletionPresenterSession.PresentationItems.Single(Function(c) c.Item.DisplayText = "Double")
-                Assert.True(doubleItem.Item.Tags.Contains(CompletionTags.Keyword))
+                Dim doubleItem = state.CurrentCompletionPresenterSession.CompletionItems.Single(Function(c) c.DisplayText = "Double")
+                Assert.True(doubleItem.Tags.Contains(CompletionTags.Keyword))
             End Using
         End Function
 
@@ -2152,7 +2152,7 @@ End Class
                 <Document><![CDATA[
 Imports System
 Class [Double]
-    Sub Foo()
+    Sub Goo()
         Dim x as $$
     End Sub
 End Class
@@ -2160,10 +2160,30 @@ End Class
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
                 ' We should have gotten the item corresponding to [Double] and the item for the Double keyword
-                Dim doubleItems = state.CurrentCompletionPresenterSession.PresentationItems.Where(Function(c) c.Item.DisplayText = "Double")
+                Dim doubleItems = state.CurrentCompletionPresenterSession.CompletionItems.Where(Function(c) c.DisplayText = "Double")
                 Assert.Equal(2, doubleItems.Count())
-                Assert.True(doubleItems.Any(Function(c) c.Item.Tags.Contains(CompletionTags.Keyword)))
-                Assert.True(doubleItems.Any(Function(c) c.Item.Tags.Contains(CompletionTags.Class) AndAlso c.Item.Tags.Contains(CompletionTags.Internal)))
+                Assert.True(doubleItems.Any(Function(c) c.Tags.Contains(CompletionTags.Keyword)))
+                Assert.True(doubleItems.Any(Function(c) c.Tags.Contains(CompletionTags.Class) AndAlso c.Tags.Contains(CompletionTags.Internal)))
+            End Using
+        End Function
+
+        <WorkItem(957450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/957450")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestEscapedItemCommittedWithCloseBracket() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                <Document><![CDATA[
+Imports System
+Class [Interface]
+    Sub Goo()
+        Dim x As $$
+    End Sub
+End Class
+            ]]></Document>)
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.SendTypeChars("Interf]")
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.AssertMatchesTextStartingAtLine(4, "Dim x As [Interface]")
             End Using
         End Function
 
@@ -2174,7 +2194,7 @@ End Class
                 <Document><![CDATA[
 Imports System
 Class G
-    Sub Foo()
+    Sub Goo()
         Dim x = String.$$
     End Sub
 End Class
@@ -2191,7 +2211,7 @@ End Class
             Using state = TestState.CreateVisualBasicTestState(
                 <Document><![CDATA[
 Class C
-    Sub foo()
+    Sub goo()
         $$]]></Document>)
                 ' Note: the caret is at the file, so the Select All command's movement
                 ' of the caret to the end of the selection isn't responsible for 
@@ -2211,10 +2231,10 @@ Class C
 Module Program
     Sub Main(args As String())
         Dim Table As Integer
-        foo(table$$)
+        goo(table$$)
     End Sub
 
-    Sub foo(table As String)
+    Sub goo(table As String)
 
     End Sub
 End Module]]></Document>)
@@ -2251,10 +2271,10 @@ End Module]]></Document>)
                 <Document><![CDATA[
 Module Program
     Sub Main(args As String())
-        foo($$
+        foot($$
     End Sub
 
-    Sub foo (x as boolean)
+    Sub foot(x as boolean)
     End Sub
 End Module]]></Document>)
                 state.SendTypeChars("f")
@@ -2292,5 +2312,603 @@ End Module]]></Document>)
                 Await state.AssertSelectedCompletionItem("T")
             End Using
         End Function
-    End Class
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselection1() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                           <Document><![CDATA[
+Imports System.Threading
+Module Program
+    Sub Cancel(x As Integer, cancellationToken As CancellationToken)
+        Cancel(x + 1, $$)
+    End Sub
+End Module]]></Document>)
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("cancellationToken").ConfigureAwait(True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselection2() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                           <Document><![CDATA[
+Module Program
+    Sub Main(args As String())
+        Dim aaz As Integer
+        args = $$
+    End Sub
+End Module]]></Document>)
+                state.SendTypeChars("a")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("args").ConfigureAwait(True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselection3() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                           <Document><![CDATA[
+Class D
+End Class
+Class Program
+
+    Sub Main(string() args)
+    
+       Dim cw = 7
+       Dim cx as D = new D()
+       Dim  cx2 as D = $$
+    End Sub
+End Class
+]]></Document>)
+                state.SendTypeChars("c")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("cx", isHardSelected:=True).ConfigureAwait(True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselectionLocalsOverType() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                           <Document><![CDATA[
+Class A 
+End Class
+Class Program
+
+    Sub Main(string() args)
+    
+       Dim  cx = new A()
+       Dim cx2 as A = $$
+    End Sub
+End Class
+]]></Document>)
+                state.SendTypeChars("c")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("cx", isHardSelected:=True).ConfigureAwait(True)
+            End Using
+        End Function
+
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/6942"), Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselectionConvertibility1() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                           <Document><![CDATA[
+Mustinherit Class C 
+End Class
+Class D 
+inherits C
+End Class
+Class Program
+    Sub Main(string() args)
+    
+       Dim cx = new D()
+       Dim cx2 as C = $$
+    End Sub
+End Class
+]]></Document>)
+                state.SendTypeChars("c")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("cx", isHardSelected:=True).ConfigureAwait(True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselectionParamsArray() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                           <Document><![CDATA[
+
+Class Program
+
+    Sub Main(string() args)
+    
+       Dim azc as integer
+       M2(a$$
+    End Sub
+    Sub M2(params int() yx)  
+    End Sub
+End Class
+ 
+]]></Document>)
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("azc", isHardSelected:=True).ConfigureAwait(True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselectionSetterValue() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                           <Document><![CDATA[
+Class Program
+    Private Async As Integer
+    Public Property NewProperty() As Integer
+        Get
+            Return Async
+        End Get
+        Set(ByVal value As Integer)
+            Async = $$
+        End Set
+    End Property
+End Class]]></Document>)
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("value", isHardSelected:=False, isSoftSelected:=True).ConfigureAwait(True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(12530, "https://github.com/dotnet/roslyn/issues/12530")>
+        Public Async Function TestAnonymousTypeDescription() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                           <Document><![CDATA[
+Imports System.Linq
+
+Public Class Class1
+    Sub Method()
+        Dim x = {New With {.x = 1}}.ToArr$$
+    End Sub
+End Class
+]]></Document>)
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertSelectedCompletionItem(description:=
+"<Extension> Function IEnumerable(Of 'a).ToArray() As 'a()
+
+Anonymous Types:
+    'a is New With { .x As Integer }")
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(12530, "https://github.com/dotnet/roslyn/issues/12530")>
+        Public Async Function TestAnonymousTypeDescription2() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                           <Document><![CDATA[
+Imports System.Linq
+
+Public Class Class1
+    Sub Method()
+        Dim x = {New With { Key .x = 1}}.ToArr$$
+    End Sub
+End Class
+]]></Document>)
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertSelectedCompletionItem(description:=
+"<Extension> Function IEnumerable(Of 'a).ToArray() As 'a()
+
+Anonymous Types:
+    'a is New With { Key .x As Integer }")
+            End Using
+        End Function
+
+        <WorkItem(11812, "https://github.com/dotnet/roslyn/issues/11812")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestObjectCreationQualifiedName() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                            <Document><![CDATA[
+ Class A
+     Sub Test()
+         Dim b As B.C(Of Integer) = New$$
+     End Sub
+ End Class
+ 
+ Namespace B
+     Class C(Of T)
+     End Class
+ End Namespace]]></Document>)
+
+                state.SendTypeChars(" ")
+                Await state.AssertCompletionSession()
+                state.SendTypeChars("(")
+                state.AssertMatchesTextStartingAtLine(3, "Dim b As B.C(Of Integer) = New B.C(Of Integer)(")
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSymbolInTupleLiteral() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Goo()
+        Dim t = ($$)
+    End Sub
+End Class
+}]]></Document>)
+
+                state.SendTypeChars("Go")
+                Await state.AssertSelectedCompletionItem(displayText:="Goo", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("(Go:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSymbolInTupleLiteralAfterComma() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Goo()
+        Dim t = (1, $$)
+    End Sub
+End Class
+]]></Document>)
+
+                state.SendTypeChars("Go")
+                Await state.AssertSelectedCompletionItem(displayText:="Goo", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("(1, Go:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSnippetInTupleLiteral() As Task
+            Dim snippetProvider As CompletionProvider =
+                New VisualStudio.LanguageServices.VisualBasic.Snippets.SnippetCompletionProvider(Nothing)
+
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Goo()
+        Dim t = ($$)
+    End Sub
+End Class
+}]]></Document>,
+                  extraCompletionProviders:={snippetProvider},
+                  extraExportedTypes:={GetType(MockSnippetInfoService)}.ToList())
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.SnippetsBehavior,
+                                                                                    LanguageNames.VisualBasic,
+                                                                                    SnippetsRule.AlwaysInclude)
+
+                state.SendTypeChars("Shortcu")
+                Await state.AssertSelectedCompletionItem(displayText:="Shortcut", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("(Shortcu:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSnippetInTupleLiteralAfterComma() As Task
+            Dim snippetProvider As CompletionProvider =
+                New VisualStudio.LanguageServices.VisualBasic.Snippets.
+                    SnippetCompletionProvider(editorAdaptersFactoryService:=Nothing)
+
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Goo()
+        Dim t = (1, $$)
+    End Sub
+End Class
+}]]></Document>,
+                  extraCompletionProviders:={snippetProvider},
+                  extraExportedTypes:={GetType(MockSnippetInfoService)}.ToList())
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.SnippetsBehavior,
+                                                                                    LanguageNames.VisualBasic,
+                                                                                    SnippetsRule.AlwaysInclude)
+
+                state.SendTypeChars("Shortcu")
+                Await state.AssertSelectedCompletionItem(displayText:="Shortcut", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("(1, Shortcu:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+                <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSnippetsNotExclusiveWhenAlwaysShowing() As Task
+            Dim snippetProvider As CompletionProvider =
+                New VisualStudio.LanguageServices.VisualBasic.Snippets.
+                    SnippetCompletionProvider(editorAdaptersFactoryService:=Nothing)
+
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Goo()
+        Dim x as Integer = 3
+        Dim t = $$
+    End Sub
+End Class
+}]]></Document>,
+                  extraCompletionProviders:={snippetProvider},
+                  extraExportedTypes:={GetType(MockSnippetInfoService)}.ToList())
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.SnippetsBehavior,
+                                                                                    LanguageNames.VisualBasic,
+                                                                                    SnippetsRule.AlwaysInclude)
+
+                state.SendInvokeCompletionList()
+                await state.WaitForAsynchronousOperationsAsync()
+                Assert.True(state.CompletionItemsContainsAll({"x", "Shortcut"}))
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestBuiltInTypesKeywordInTupleLiteral() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Goo()
+        Dim t = ($$)
+    End Sub
+End Class
+}]]></Document>)
+
+                state.SendTypeChars("Intege")
+                Await state.AssertSelectedCompletionItem(displayText:="Integer", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("(Intege:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestBuiltInTypesKeywordInTupleLiteralAfterComma() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Goo()
+        Dim t = (1, $$)
+    End Sub
+End Class
+}]]></Document>)
+
+                state.SendTypeChars("Intege")
+                Await state.AssertSelectedCompletionItem(displayText:="Integer", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("(1, Intege:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestFunctionKeywordInTupleLiteral() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Goo()
+        Dim t = ($$)
+    End Sub
+End Class
+}]]></Document>)
+
+                state.SendTypeChars("Functio")
+                Await state.AssertSelectedCompletionItem(displayText:="Function", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("(Functio:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestFunctionKeywordInTupleLiteralAfterComma() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Goo()
+        Dim t = (1, $$)
+    End Sub
+End Class
+}]]></Document>)
+                state.SendTypeChars("Functio")
+                Await state.AssertSelectedCompletionItem(displayText:="Function", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("(1, Functio:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSymbolInTupleType() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Goo()
+       Dim t As ($$)
+    End Sub
+End Class
+]]></Document>)
+                state.SendTypeChars("Integ")
+                Await state.AssertSelectedCompletionItem(displayText:="Integer", isHardSelected:=True)
+                state.SendTypeChars(",")
+                Assert.Contains("(Integer,", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestInvocationExpression() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Goo(Alice As Integer)
+       Goo($$)
+    End Sub
+End Class
+]]></Document>)
+
+                state.SendTypeChars("Alic")
+                Await state.AssertSelectedCompletionItem(displayText:="Alice", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("Goo(Alice:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestInvocationExpressionAfterComma() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Sub Goo(Alice As Integer, Bob As Integer)
+       Goo(1, $$)
+    End Sub
+End Class
+]]></Document>)
+
+                state.SendTypeChars("B")
+                Await state.AssertSelectedCompletionItem(displayText:="Bob", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("Goo(1, Bob:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WorkItem(13161, "https://github.com/dotnet/roslyn/issues/13161")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitGenericDoesNotInsertEllipsis() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                            <Document><![CDATA[
+Interface Goo(Of T)
+End Interface
+
+Class Bar
+    Implements $$
+End Class]]></Document>)
+
+                Dim unicodeEllipsis = ChrW(&H2026).ToString()
+                state.SendTypeChars("Goo")
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.Equal("Implements Goo(Of", state.GetLineTextFromCaretPosition().Trim())
+                Assert.DoesNotContain(unicodeEllipsis, state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
+        <WorkItem(13161, "https://github.com/dotnet/roslyn/issues/13161")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitGenericDoesNotInsertEllipsisCommitOnParen() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                            <Document><![CDATA[
+Interface Goo(Of T)
+End Interface
+
+Class Bar
+    Implements $$
+End Class]]></Document>)
+
+                Dim unicodeEllipsis = ChrW(&H2026).ToString()
+                state.SendTypeChars("Goo(")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.Equal("Implements Goo(", state.GetLineTextFromCaretPosition().Trim())
+                Assert.DoesNotContain(unicodeEllipsis, state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
+        <WorkItem(13161, "https://github.com/dotnet/roslyn/issues/13161")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitGenericItemDoesNotInsertEllipsisCommitOnTab() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                            <Document><![CDATA[
+Interface Goo(Of T)
+End Interface
+
+Class Bar
+    Dim x as $$
+End Class]]></Document>)
+
+                Dim unicodeEllipsis = ChrW(&H2026).ToString()
+                state.SendTypeChars("Goo")
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.Equal("Dim x as Goo(Of", state.GetLineTextFromCaretPosition().Trim())
+                Assert.DoesNotContain(unicodeEllipsis, state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
+        <WorkItem(15011, "https://github.com/dotnet/roslyn/issues/15011")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function SymbolAndObjectPreselectionUnification() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                            <Document><![CDATA[
+Module Module1
+
+    Sub Main()
+        Dim x As ProcessStartInfo = New $$
+    End Sub
+
+End Module
+]]></Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Dim psi = state.CurrentCompletionPresenterSession.CompletionItems.Where(Function(i) i.DisplayText.Contains("ProcessStartInfo")).ToArray()
+                Assert.Equal(1, psi.Length)
+            End Using
+        End Function
+
+        <WorkItem(394863, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=394863&triage=true")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ImplementsClause() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                            <Document><![CDATA[
+Partial Class TestClass
+    Implements IComparable(Of TestClass)
+
+    Public Function CompareTo(other As TestClass) As Integer Implements I$$
+
+
+    End Function
+
+End Class
+]]></Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.SendTab()
+                Assert.Contains("IComparable(Of TestClass)", state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
+        <WorkItem(18785, "https://github.com/dotnet/roslyn/issues/18785")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function BackspaceSoftSelectionIfNotPrefixMatch() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                            <Document><![CDATA[
+Class C
+    Sub Do()
+        Dim x = new System.Collections.Generic.List(Of String)()
+        x.$$Add("stuff")
+    End Sub
+End Class
+]]></Document>)
+
+                state.SendBackspace()
+                Await state.AssertSelectedCompletionItem("x", isSoftSelected:=True)
+                state.SendTypeChars(".")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.Contains("x.Add", state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
+        <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.VisualBasic), System.Composition.Shared>
+		Friend Class MockSnippetInfoService
+			Implements ISnippetInfoService
+
+			Public Function GetSnippetsAsync_NonBlocking() As IEnumerable(Of SnippetInfo) Implements ISnippetInfoService.GetSnippetsIfAvailable
+				Return SpecializedCollections.SingletonEnumerable(New SnippetInfo("Shortcut", "Title", "Description", "Path"))
+			End Function
+
+			Public Function ShouldFormatSnippet(snippetInfo As SnippetInfo) As Boolean Implements ISnippetInfoService.ShouldFormatSnippet
+				Return False
+			End Function
+
+			Public Function SnippetShortcutExists_NonBlocking(shortcut As String) As Boolean Implements ISnippetInfoService.SnippetShortcutExists_NonBlocking
+				Return shortcut = "Shortcut"
+			End Function
+		End Class
+	End Class
 End Namespace

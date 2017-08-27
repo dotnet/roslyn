@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.ComponentModel;
@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -80,11 +81,11 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
 
             var componentModel = (IComponentModel)GetService(typeof(SComponentModel));
 
-            _forceLowMemoryMode = new ForceLowMemoryMode(componentModel.GetService<IOptionService>());
+            var workspace = componentModel.GetService<VisualStudioWorkspace>();
+            _forceLowMemoryMode = new ForceLowMemoryMode(workspace.Services.GetService<IOptionService>());
 
             // Add our command handlers for menu (commands must exist in the .vsct file)
-            OleMenuCommandService mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
-            if (null != mcs)
+            if (GetService(typeof(IMenuCommandService)) is OleMenuCommandService mcs)
             {
                 // Create the command for the tool window
                 CommandID toolwndCommandID = new CommandID(GuidList.guidVisualStudioDiagnosticsWindowCmdSet, (int)PkgCmdIDList.CmdIDRoslynDiagnosticWindow);

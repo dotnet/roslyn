@@ -9,6 +9,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// 1) Do not elide any user defined locals, even if never read from. 
         ///    Example:
         ///      {
-        ///        var dummy = Foo();    // should not become just "Foo"
+        ///        var dummy = Goo();    // should not become just "Goo"
         ///      }
         ///        
         ///    User might want to examine dummy in the debugger.
@@ -35,8 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// 2) Do not carry values on the stack between statements
         ///    Example:
         ///      {
-        ///        var temp = Foo();
-        ///        temp.ToString();       // should not become   Foo().ToString();
+        ///        var temp = Goo();
+        ///        temp.ToString();       // should not become   Goo().ToString();
         ///      }
         ///       
         ///    User might want to examine temp in the debugger.
@@ -328,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// [1, 3) conflicts with [2, 4)
         /// 
         /// NOTE: with regular spans, it is not possible for two spans to share an edge point 
-        /// unless they belong to the same local. (because we cannot aceess two real locals at the same time)
+        /// unless they belong to the same local. (because we cannot access two real locals at the same time)
         /// 
         /// specifically:
         /// [1, 3) does not conflict with [0, 1)   since such spans would need to belong to the same local
@@ -367,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     // it will affect inference of stack behavior
     // it will also affect when locals can be scheduled to the stack
     // Example:
-    //      Foo(x, ref x)     <-- x cannot be a stack local as it is used in different contexts.
+    //      Goo(x, ref x)     <-- x cannot be a stack local as it is used in different contexts.
     internal enum ExprContext
     {
         None,
@@ -388,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     internal sealed class StackOptimizerPass1 : BoundTreeRewriter
     {
         private readonly bool _debugFriendly;
-        private readonly ArrayBuilder<ValueTuple<BoundExpression, ExprContext>> _evalStack;
+        private readonly ArrayBuilder<(BoundExpression, ExprContext)> _evalStack;
 
         private int _counter;
         private ExprContext _context;
@@ -535,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void PushEvalStack(BoundExpression result, ExprContext context)
         {
             Debug.Assert(result != null || context == ExprContext.None);
-            _evalStack.Add(ValueTuple.Create(result, context));
+            _evalStack.Add((result, context));
         }
 
         private int StackDepth()
@@ -937,7 +938,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // - i.e assigns int value to a short local.
                 // in that case we should force lhs to be a real local.
                 Debug.Assert(
-                    node.Left.Type.Equals(node.Right.Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true),
+                    node.Left.Type.Equals(node.Right.Type, TypeCompareKind.AllIgnoreOptions),
                     @"type of the assignment value is not the same as the type of assignment target. 
                 This is not expected by the optimizer and is typically a result of a bug somewhere else.");
 
@@ -969,21 +970,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private static bool IsIndirectAssignment(BoundAssignmentOperator node)
         {
             var lhs = node.Left;
+
+            Debug.Assert(node.RefKind == RefKind.None || (lhs as BoundLocal)?.LocalSymbol.RefKind == RefKind.Ref,
+                                "only ref locals can be a target of a ref assignment");
+            
             switch (lhs.Kind)
             {
                 case BoundKind.ThisReference:
-                    Debug.Assert(lhs.Type.IsValueType && node.RefKind == RefKind.None);
+                    Debug.Assert(lhs.Type.IsValueType, "'this' is assignable only in structs");
                     return true;
 
                 case BoundKind.Parameter:
                     if (((BoundParameter)lhs).ParameterSymbol.RefKind != RefKind.None)
                     {
                         bool isIndirect = node.RefKind == RefKind.None;
-                        Debug.Assert(isIndirect, "direct assignment to a ref/out parameter is highly suspicious");
                         return isIndirect;
                     }
 
-                    break;
+                    return false;
 
                 case BoundKind.Local:
                     if (((BoundLocal)lhs).LocalSymbol.RefKind != RefKind.None)
@@ -992,21 +996,39 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         return isIndirect;
                     }
 
-                    break;
+                    return false;
 
                 case BoundKind.Call:
                     Debug.Assert(((BoundCall)lhs).Method.RefKind == RefKind.Ref, "only ref returning methods are assignable");
-                    Debug.Assert(node.RefKind == RefKind.None, "methods cannot be ref-assignable");
                     return true;
 
                 case BoundKind.AssignmentOperator:
                     Debug.Assert(((BoundAssignmentOperator)lhs).RefKind == RefKind.Ref, "only ref assignments are assignable");
-                    Debug.Assert(node.RefKind == RefKind.None, "assignments cannot be ref-assignable");
                     return true;
-            }
 
-            Debug.Assert(node.RefKind == RefKind.None, "this is not something that can be assigned indirectly");
-            return false;
+                case BoundKind.Sequence:
+                    Debug.Assert(!IsIndirectAssignment(node.Update(((BoundSequence)node.Left).Value, node.Right, node.RefKind, node.Type)), 
+                        "indirect assignment to a sequence is unexpected");
+                    return false;
+
+                case BoundKind.RefValueOperator:
+                case BoundKind.PointerIndirectionOperator:
+                case BoundKind.PseudoVariable:
+                    return true;
+
+                case BoundKind.ModuleVersionId:
+                case BoundKind.InstrumentationPayloadRoot:
+                    // these are just stores into special static fields
+                    goto case BoundKind.FieldAccess;
+
+                case BoundKind.FieldAccess:
+                case BoundKind.ArrayAccess:
+                    // always symbolic stores
+                    return false;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(lhs.Kind);
+            }
         }
         private static bool IsIndirectOrInstanceFieldAssignment(BoundAssignmentOperator node)
         {
@@ -1120,7 +1142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(node.InitializerExpressionOpt == null);
 
             return node.Update(constructor, rewrittenArguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt,
-                node.Expanded, node.ArgsToParamsOpt, node.ConstantValue, null, node.Type);
+                node.Expanded, node.ArgsToParamsOpt, node.ConstantValue, null, node.BinderOpt, node.Type);
         }
 
         public override BoundNode VisitArrayAccess(BoundArrayAccess node)
@@ -1186,8 +1208,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         public override BoundNode VisitLabel(BoundLabel node)
         {
-            Debug.Assert(true, "we should not have label expressions at this stage");
+            Debug.Assert(false, "we should not have label expressions at this stage");
+            return node;
+        }
 
+        public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
+        {
+            Debug.Assert(false, "we should not have is-pattern expressions at this stage");
             return node;
         }
 
@@ -1400,7 +1427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (node.OperatorKind.IsChecked() && node.OperatorKind.Operator() == UnaryOperatorKind.UnaryMinus)
             {
                 var origStack = StackDepth();
-                PushEvalStack(new BoundDefaultOperator(node.Syntax, node.Operand.Type), ExprContext.Value);
+                PushEvalStack(new BoundDefaultExpression(node.Syntax, node.Operand.Type), ExprContext.Value);
                 BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
                 return node.Update(node.OperatorKind, operand, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, node.Type);
             }
@@ -1583,7 +1610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public override BoundNode VisitAddressOfOperator(BoundAddressOfOperator node)
         {
             BoundExpression visitedOperand = this.VisitExpression(node.Operand, ExprContext.Address);
-            return node.Update(visitedOperand, node.IsFixedStatementAddressOf, node.Type);
+            return node.Update(visitedOperand, node.Type);
         }
 
         public override BoundNode VisitReturnStatement(BoundReturnStatement node)
@@ -1937,7 +1964,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             Debug.Assert(node.InitializerExpressionOpt == null);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.Constructor, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ConstantValueOpt, null, type);
+            return node.Update(node.Constructor, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ConstantValueOpt, null, node.BinderOpt, type);
         }
 
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
@@ -1953,12 +1980,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             // indirect local store is not special. (operands still could be rewritten) 
             // NOTE: if Lhs is a stack local, it will be handled as a read and possibly duped.
-            var indirectStore = left.LocalSymbol.RefKind != RefKind.None && node.RefKind == RefKind.None;
-            if (indirectStore)
+            var isIndirectLocalStore = left.LocalSymbol.RefKind != RefKind.None && node.RefKind == RefKind.None;
+            if (isIndirectLocalStore)
             {
                 return base.VisitAssignmentOperator(node);
             }
-
 
             // ==  here we have a regular write to a stack local
             //
@@ -2055,6 +2081,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         internal override SynthesizedLocalKind SynthesizedKind
         {
             get { return SynthesizedLocalKind.OptimizerTemp; }
+        }
+
+        internal override SyntaxNode ScopeDesignatorOpt
+        {
+            get { return null; }
         }
 
         internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax)

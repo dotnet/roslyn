@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -10,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class LambdaUtilitiesTests : CSharpTestBase
     {
-        private void TestLambdaBody(string markedExpression, bool isLambdaBody)
+        private void TestLambdaBody(string markedExpression, bool isLambdaBody, bool isReducedLambdaBody = false)
         {
             string markedSource = @"
 using System;
@@ -43,8 +44,15 @@ class C
             bool expected = enclosingMethod.MethodKind == MethodKind.LambdaMethod && enclosingSyntax.Span.Contains(span.Value);
 
             var node = tree.GetRoot().FindNode(span.Value);
-            Assert.Equal(expected, LambdaUtilities.IsLambdaBody(node));
-            Assert.Equal(isLambdaBody, expected);
+            Assert.False(isLambdaBody && isReducedLambdaBody);
+            Assert.Equal(expected, LambdaUtilities.IsLambdaBody(node, allowReducedLambdas: true));
+            Assert.Equal(isLambdaBody || isReducedLambdaBody, expected);
+            Assert.Equal(isLambdaBody, LambdaUtilities.IsLambdaBody(node));
+
+            var methodDef = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(d => d.Identifier.ValueText == "M").Single();
+            Assert.Equal("C", model.GetEnclosingSymbol(methodDef.SpanStart).ToTestDisplayString());
+            Assert.Equal("C", model.GetEnclosingSymbol(methodDef.ParameterList.CloseParenToken.SpanStart).ToTestDisplayString());
+            Assert.Equal("void C.M()", model.GetEnclosingSymbol(methodDef.Body.SpanStart).ToTestDisplayString());
         }
 
         [Fact]
@@ -111,31 +119,31 @@ class C
                 "from x in new[] { 1 } select [|x|]", isLambdaBody: true);
 
             TestLambdaBody(
-                "from x in new[] { 1 } where x > 0 select [|x|]", isLambdaBody: false);
+                "from x in new[] { 1 } where x > 0 select [|x|]", isLambdaBody: false, isReducedLambdaBody: true);
 
             TestLambdaBody(
-                "from x in new[] { 1 } where x > 0 select [|@x|]", isLambdaBody: false);
+                "from x in new[] { 1 } where x > 0 select [|@x|]", isLambdaBody: false, isReducedLambdaBody: true);
 
             TestLambdaBody(
-                "from x in new[] { 1 } orderby F(x), F(x) descending select [|x|]", isLambdaBody: false);
+                "from x in new[] { 1 } orderby F(x), F(x) descending select [|x|]", isLambdaBody: false, isReducedLambdaBody: true);
 
             TestLambdaBody(
-                "from x in new[] { 1 } orderby x where x > 0 select [|x|]", isLambdaBody: false);
+                "from x in new[] { 1 } orderby x where x > 0 select [|x|]", isLambdaBody: false, isReducedLambdaBody: true);
 
             TestLambdaBody(
-                "from x in new[] { 1 } select x into y where y > 0 select [|y|]", isLambdaBody: false);
+                "from x in new[] { 1 } select x into y where y > 0 select [|y|]", isLambdaBody: false, isReducedLambdaBody: true);
 
             TestLambdaBody(
-                "from x in new[] { 1 } select x into y orderby y select [|y|]", isLambdaBody: false);
+                "from x in new[] { 1 } select x into y orderby y select [|y|]", isLambdaBody: false, isReducedLambdaBody: true);
 
             TestLambdaBody(
                 "from x in new[] { 1 } select [|x|] into y where y > 0 select y", isLambdaBody: true);
 
             TestLambdaBody(
-                "from x in new[] { 1 } where x > 0 select [|x|] into y where y > 0 select y", isLambdaBody: false);
+                "from x in new[] { 1 } where x > 0 select [|x|] into y where y > 0 select y", isLambdaBody: false, isReducedLambdaBody: true);
 
             TestLambdaBody(
-                "from x in new[] { 1 } where x > 0 select x into y where y > 0 select [|y|]", isLambdaBody: false);
+                "from x in new[] { 1 } where x > 0 select x into y where y > 0 select [|y|]", isLambdaBody: false, isReducedLambdaBody: true);
 
             TestLambdaBody(
                 "from x in new[] { 1 } orderby x let z = x where x > 0 select [|x|]", isLambdaBody: true);
@@ -154,13 +162,13 @@ class C
         public void IsLambdaBody_GroupBy1()
         {
             TestLambdaBody(
-                "from x in new[] { 1 } group [|x|] by x", isLambdaBody: false);
+                "from x in new[] { 1 } group [|x|] by x", isLambdaBody: false, isReducedLambdaBody: true);
 
             TestLambdaBody(
                 "from x in new[] { 1 } group x by [|x|]", isLambdaBody: true);
 
             TestLambdaBody(
-                "from x in new[] { 1 } where x > 0 group [|x|] by x", isLambdaBody: false);
+                "from x in new[] { 1 } where x > 0 group [|x|] by x", isLambdaBody: false, isReducedLambdaBody: true);
 
             TestLambdaBody(
                 "from x in new[] { 1 } where x > 0 group x by [|x|]", isLambdaBody: true);
@@ -169,10 +177,10 @@ class C
                 "from x in new[] { 1 } let y = x group [|x|] by x", isLambdaBody: true);
 
             TestLambdaBody(
-                "from x in new[] { 1 } group [|x|] by x + 1 into y group y by y.Key + 2", isLambdaBody: false);
+                "from x in new[] { 1 } group [|x|] by x + 1 into y group y by y.Key + 2", isLambdaBody: false, isReducedLambdaBody: true);
 
             TestLambdaBody(
-                "from x in new[] { 1 } group x by x + 1 into y group [|y|] by y.Key + 2", isLambdaBody: false);
+                "from x in new[] { 1 } group x by x + 1 into y group [|y|] by y.Key + 2", isLambdaBody: false, isReducedLambdaBody: true);
 
             TestLambdaBody(
                 "from x in new[] { 1 } from y in new[] { 2 } group [|x|] by x", isLambdaBody: true);

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -6,9 +6,10 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
+using Microsoft.CodeAnalysis.Editor.FindUsages;
+using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -24,7 +25,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
-using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
@@ -35,11 +35,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly ITextEditorFactoryService _textEditorFactoryService;
         private readonly ITextDocumentFactoryService _textDocumentFactoryService;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
-        private readonly OutliningTaggerProvider _outliningTaggerProvider;
+        private readonly VisualStudio14StructureTaggerProvider _outliningTaggerProvider;
 
         public VisualStudioSymbolNavigationService(
             SVsServiceProvider serviceProvider,
-            OutliningTaggerProvider outliningTaggerProvider)
+            VisualStudio14StructureTaggerProvider outliningTaggerProvider)
         {
             _serviceProvider = serviceProvider;
             _outliningTaggerProvider = outliningTaggerProvider;
@@ -117,12 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var fileAlreadyOpen = vsRunningDocumentTable4.IsMonikerValid(result.FilePath);
 
             var openDocumentService = _serviceProvider.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>();
-
-            IVsUIHierarchy hierarchy;
-            uint itemId;
-            IOleServiceProvider localServiceProvider;
-            IVsWindowFrame windowFrame;
-            openDocumentService.OpenDocumentViaProject(result.FilePath, VSConstants.LOGVIEWID.TextView_guid, out localServiceProvider, out hierarchy, out itemId, out windowFrame);
+            openDocumentService.OpenDocumentViaProject(result.FilePath, VSConstants.LOGVIEWID.TextView_guid, out var localServiceProvider, out var hierarchy, out var itemId, out var windowFrame);
 
             var documentCookie = vsRunningDocumentTable4.GetDocumentCookie(result.FilePath);
 
@@ -154,49 +149,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return true;
         }
 
-        public bool TrySymbolNavigationNotify(ISymbol symbol, Solution solution)
+        public bool TrySymbolNavigationNotify(ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
-            return TryNotifyForSpecificSymbol(symbol, solution);
+            return TryNotifyForSpecificSymbol(symbol, project, cancellationToken);
         }
 
-        private bool TryNotifyForSpecificSymbol(ISymbol symbol, Solution solution)
+        private bool TryNotifyForSpecificSymbol(
+            ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
             AssertIsForeground();
 
-            IVsHierarchy hierarchy;
-            IVsSymbolicNavigationNotify navigationNotify;
-            string rqname;
-            uint itemID;
-            if (!TryGetNavigationAPIRequiredArguments(symbol, solution, out hierarchy, out itemID, out navigationNotify, out rqname))
+            var definitionItem = symbol.ToNonClassifiedDefinitionItem(project, includeHiddenLocations: true);
+            definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey1, out var rqName);
+
+            if (!TryGetNavigationAPIRequiredArguments(
+                    definitionItem, rqName, cancellationToken,
+                    out var hierarchy, out var itemID, out var navigationNotify))
             {
                 return false;
             }
 
-            int navigationHandled;
             int returnCode = navigationNotify.OnBeforeNavigateToSymbol(
                 hierarchy,
                 itemID,
-                rqname,
-                out navigationHandled);
+                rqName,
+                out var navigationHandled);
 
-            if (returnCode == VSConstants.S_OK && navigationHandled == 1)
-            {
-                return true;
-            }
-
-            return false;
+            return returnCode == VSConstants.S_OK && navigationHandled == 1;
         }
 
-        public bool WouldNavigateToSymbol(ISymbol symbol, Solution solution, out string filePath, out int lineNumber, out int charOffset)
+        public bool WouldNavigateToSymbol(
+            DefinitionItem definitionItem, Solution solution, CancellationToken cancellationToken,
+            out string filePath, out int lineNumber, out int charOffset)
         {
-            if (WouldNotifyToSpecificSymbol(symbol, solution, out filePath, out lineNumber, out charOffset))
-            {
-                return true;
-            }
+            definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey1, out var rqName1);
+            definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey2, out var rqName2);
 
-            // If the symbol being considered is a constructor and no third parties choose to
-            // navigate to the constructor, then try the constructor's containing type.
-            if (symbol.IsConstructor() && WouldNotifyToSpecificSymbol(symbol.ContainingType, solution, out filePath, out lineNumber, out charOffset))
+            if (WouldNotifyToSpecificSymbol(definitionItem, rqName1, solution, cancellationToken, out filePath, out lineNumber, out charOffset) ||
+                WouldNotifyToSpecificSymbol(definitionItem, rqName2, solution, cancellationToken, out filePath, out lineNumber, out charOffset))
             {
                 return true;
             }
@@ -207,7 +197,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return false;
         }
 
-        public bool WouldNotifyToSpecificSymbol(ISymbol symbol, Solution solution, out string filePath, out int lineNumber, out int charOffset)
+        public bool WouldNotifyToSpecificSymbol(
+            DefinitionItem definitionItem, string rqName, Solution solution, CancellationToken cancellationToken,
+            out string filePath, out int lineNumber, out int charOffset)
         {
             AssertIsForeground();
 
@@ -215,28 +207,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             lineNumber = 0;
             charOffset = 0;
 
-            IVsHierarchy hierarchy;
-            IVsSymbolicNavigationNotify navigationNotify;
-            string rqname;
-            uint itemID;
-            if (!TryGetNavigationAPIRequiredArguments(symbol, solution, out hierarchy, out itemID, out navigationNotify, out rqname))
+            if (rqName == null)
             {
                 return false;
             }
 
-            IVsHierarchy navigateToHierarchy;
-            uint navigateToItem;
-            int wouldNavigate;
+            if (!TryGetNavigationAPIRequiredArguments(
+                    definitionItem, rqName, cancellationToken,
+                    out var hierarchy, out var itemID, out var navigationNotify))
+            {
+                return false;
+            }
+
             var navigateToTextSpan = new Microsoft.VisualStudio.TextManager.Interop.TextSpan[1];
 
             int queryNavigateStatusCode = navigationNotify.QueryNavigateToSymbol(
                 hierarchy,
                 itemID,
-                rqname,
-                out navigateToHierarchy,
-                out navigateToItem,
+                rqName,
+                out var navigateToHierarchy,
+                out var navigateToItem,
                 navigateToTextSpan,
-                out wouldNavigate);
+                out var wouldNavigate);
 
             if (queryNavigateStatusCode == VSConstants.S_OK && wouldNavigate == 1)
             {
@@ -250,43 +242,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         private bool TryGetNavigationAPIRequiredArguments(
-            ISymbol symbol,
-            Solution solution,
+            DefinitionItem definitionItem,
+            string rqName,
+            CancellationToken cancellationToken,
             out IVsHierarchy hierarchy,
             out uint itemID,
-            out IVsSymbolicNavigationNotify navigationNotify,
-            out string rqname)
+            out IVsSymbolicNavigationNotify navigationNotify)
         {
             AssertIsForeground();
 
             hierarchy = null;
             navigationNotify = null;
-            rqname = null;
             itemID = (uint)VSConstants.VSITEMID.Nil;
 
-            if (!symbol.Locations.Any())
+            if (rqName == null)
             {
                 return false;
             }
 
-            var sourceLocations = symbol.Locations.Where(loc => loc.IsInSource);
+            var sourceLocations = definitionItem.SourceSpans;
             if (!sourceLocations.Any())
             {
                 return false;
             }
 
-            var documents = sourceLocations.Select(loc => solution.GetDocument(loc.SourceTree)).WhereNotNull();
-            if (!documents.Any())
-            {
-                return false;
-            }
+            var documents = sourceLocations.SelectAsArray(loc => loc.Document);
 
             // We can only pass one itemid to IVsSymbolicNavigationNotify, so prefer itemids from
             // documents we consider to be "generated" to give external language services the best
             // chance of participating.
 
-            var generatedCodeRecognitionService = solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>();
-            var generatedDocuments = documents.Where(d => generatedCodeRecognitionService.IsGeneratedCode(d));
+            var generatedDocuments = documents.WhereAsArray(d => d.IsGeneratedCode(cancellationToken));
 
             var documentToUse = generatedDocuments.FirstOrDefault() ?? documents.First();
             if (!TryGetVsHierarchyAndItemId(documentToUse, out hierarchy, out itemID))
@@ -300,16 +286,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
-            rqname = LanguageServices.RQName.From(symbol);
-            return rqname != null;
+            return true;
         }
 
         private bool TryGetVsHierarchyAndItemId(Document document, out IVsHierarchy hierarchy, out uint itemID)
         {
             AssertIsForeground();
 
-            var visualStudioWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-            if (visualStudioWorkspace != null)
+            if (document.Project.Solution.Workspace is VisualStudioWorkspaceImpl visualStudioWorkspace)
             {
                 var hostProject = visualStudioWorkspace.GetHostProject(document.Project.Id);
                 hierarchy = hostProject.Hierarchy;

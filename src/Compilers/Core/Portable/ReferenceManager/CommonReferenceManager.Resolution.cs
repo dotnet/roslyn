@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -63,6 +64,8 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(index >= 0);
                 _index = index + 1;
                 _kind = kind;
+                _aliasesOpt = default(ImmutableArray<string>);
+                _recursiveAliasesOpt = default(ImmutableArray<string>);
             }
 
             // initialized aliases
@@ -192,7 +195,7 @@ namespace Microsoft.CodeAnalysis
             TCompilation compilation,
             [Out] Dictionary<string, List<ReferencedAssemblyIdentity>> assemblyReferencesBySimpleName,
             out ImmutableArray<MetadataReference> references,
-            out IDictionary<ValueTuple<string, string>, MetadataReference> boundReferenceDirectiveMap,
+            out IDictionary<(string, string), MetadataReference> boundReferenceDirectiveMap,
             out ImmutableArray<MetadataReference> boundReferenceDirectives,
             out ImmutableArray<AssemblyData> assemblies,
             out ImmutableArray<PEModule> modules,
@@ -744,7 +747,7 @@ namespace Microsoft.CodeAnalysis
             TCompilation compilation,
             DiagnosticBag diagnostics,
             out ImmutableArray<MetadataReference> references,
-            out IDictionary<ValueTuple<string, string>, MetadataReference> boundReferenceDirectives,
+            out IDictionary<(string, string), MetadataReference> boundReferenceDirectives,
             out ImmutableArray<Location> referenceDirectiveLocations)
         {
             boundReferenceDirectives = null;
@@ -763,7 +766,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     // we already successfully bound #r with the same value:
-                    if (boundReferenceDirectives != null && boundReferenceDirectives.ContainsKey(ValueTuple.Create(referenceDirective.Location.SourceTree.FilePath, referenceDirective.File)))
+                    if (boundReferenceDirectives != null && boundReferenceDirectives.ContainsKey((referenceDirective.Location.SourceTree.FilePath, referenceDirective.File)))
                     {
                         continue;
                     }
@@ -777,13 +780,13 @@ namespace Microsoft.CodeAnalysis
 
                     if (boundReferenceDirectives == null)
                     {
-                        boundReferenceDirectives = new Dictionary<ValueTuple<string, string>, MetadataReference>();
+                        boundReferenceDirectives = new Dictionary<(string, string), MetadataReference>();
                         referenceDirectiveLocationsBuilder = ArrayBuilder<Location>.GetInstance();
                     }
 
                     referencesBuilder.Add(boundReference);
                     referenceDirectiveLocationsBuilder.Add(referenceDirective.Location);
-                    boundReferenceDirectives.Add(ValueTuple.Create(referenceDirective.Location.SourceTree.FilePath, referenceDirective.File), boundReference);
+                    boundReferenceDirectives.Add((referenceDirective.Location.SourceTree.FilePath, referenceDirective.File), boundReference);
                 }
 
                 // add external reference at the end, so that they are processed first:
@@ -799,7 +802,7 @@ namespace Microsoft.CodeAnalysis
                 if (boundReferenceDirectives == null)
                 {
                     // no directive references resolved successfully:
-                    boundReferenceDirectives = SpecializedCollections.EmptyDictionary<ValueTuple<string, string>, MetadataReference>();
+                    boundReferenceDirectives = SpecializedCollections.EmptyDictionary<(string, string), MetadataReference>();
                 }
 
                 references = referencesBuilder.ToImmutable();

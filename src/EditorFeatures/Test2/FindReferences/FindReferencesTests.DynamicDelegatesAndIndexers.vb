@@ -1,10 +1,10 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestDelegateWithDynamicArgument() As Task
             Dim input =
 <Workspace>
@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 class A
 {
 	    delegate void myDelegate(dynamic d);
-	    void Foo()
+	    void Goo()
 	    {	
             dynamic d = 1;
 		    myDelegate {|Definition:del|} = n => { Console.WriteLine(n); };
@@ -23,10 +23,10 @@ class A
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestIndexerWithStaticParameter() As Task
             Dim input =
 <Workspace>
@@ -39,7 +39,7 @@ class A
 }
 class B
 {
-    public void Foo()
+    public void Goo()
     {
         A a = new A();
         dynamic d = 1;
@@ -51,10 +51,10 @@ class B
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestIndexerWithDynamicParameter() As Task
             Dim input =
 <Workspace>
@@ -67,7 +67,7 @@ class A
 }
 class B
 {
-    public void Foo()
+    public void Goo()
     {
         A a = new A();
         dynamic d = 1;
@@ -78,7 +78,7 @@ class B
 }        </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
     End Class
 End Namespace

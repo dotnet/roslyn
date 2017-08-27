@@ -1,6 +1,5 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class ForKeywordRecommenderTests
 
@@ -62,7 +61,7 @@ Exit |
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NoForAfterExitInsideLambdaInsideLoopTest() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>
-For Each i In foo
+For Each i In goo
     x = Sub()
             Exit |
         End Sub

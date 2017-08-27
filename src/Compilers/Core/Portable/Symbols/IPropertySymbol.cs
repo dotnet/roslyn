@@ -83,6 +83,11 @@ namespace Microsoft.CodeAnalysis
         ImmutableArray<IPropertySymbol> ExplicitInterfaceImplementations { get; }
 
         /// <summary>
+        /// Custom modifiers associated with the ref modifier, or an empty array if there are none.
+        /// </summary>
+        ImmutableArray<CustomModifier> RefCustomModifiers { get; }
+
+        /// <summary>
         /// The list of custom modifiers, if any, associated with the type of the property. 
         /// </summary>
         ImmutableArray<CustomModifier> TypeCustomModifiers { get; }

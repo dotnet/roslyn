@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -40,15 +41,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public bool CanRename { get; }
             public string LocalizedErrorMessage { get; }
             public TextSpan TriggerSpan { get; }
-            public ISymbol RenameSymbol { get; }
+            public SymbolAndProjectId RenameSymbolAndProjectId { get; }
             public bool HasOverloads { get; }
             public bool ForceRenameOverloads { get; }
+
+            public ISymbol RenameSymbol => RenameSymbolAndProjectId.Symbol;
 
             public SymbolInlineRenameInfo(
                 IEnumerable<IRefactorNotifyService> refactorNotifyServices,
                 Document document,
                 TextSpan triggerSpan,
-                ISymbol renameSymbol,
+                SymbolAndProjectId renameSymbolAndProjectId,
                 bool forceRenameOverloads,
                 CancellationToken cancellationToken)
             {
@@ -56,9 +59,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 _refactorNotifyServices = refactorNotifyServices;
                 _document = document;
-                this.RenameSymbol = renameSymbol;
+                this.RenameSymbolAndProjectId = renameSymbolAndProjectId;
 
-                this.HasOverloads = RenameLocations.GetOverloadedSymbols(this.RenameSymbol).Any();
+                this.HasOverloads = RenameLocations.GetOverloadedSymbols(this.RenameSymbolAndProjectId).Any();
                 this.ForceRenameOverloads = forceRenameOverloads;
 
                 _isRenamingAttributePrefix = CanRenameAttributePrefix(document, triggerSpan, cancellationToken);
@@ -90,9 +93,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             /// contains the current replacementText.
             /// 
             /// These cases are currently handled:
-            ///     - Escaped identifiers                          [foo] => foo
-            ///     - Type suffixes in VB                          foo$ => foo
-            ///     - Qualified names from complexification        A.foo => foo
+            ///     - Escaped identifiers                          [goo] => goo
+            ///     - Type suffixes in VB                          goo$ => goo
+            ///     - Qualified names from complexification        A.goo => goo
             ///     - Optional Attribute suffixes                  XAttribute => X
             ///         Careful here:                              XAttribute => XAttribute if renamesymbol is XAttributeAttribute
             ///     - Compiler-generated EventHandler suffix       XEventHandler => X
@@ -213,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         // If this is the first call, then just start finding the initial set of rename
                         // locations.
                         _underlyingFindRenameLocationsTask = RenameLocations.FindAsync(
-                            this.RenameSymbol, _document.Project.Solution, optionSet, cancellationToken);
+                            this.RenameSymbolAndProjectId, _document.Project.Solution, optionSet, cancellationToken);
                         renameTask = _underlyingFindRenameLocationsTask;
 
                         // null out the option set.  We don't need it anymore, and this will ensure

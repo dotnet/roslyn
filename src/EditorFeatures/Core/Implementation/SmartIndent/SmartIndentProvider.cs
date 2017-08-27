@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.ComponentModel.Composition;
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 throw new ArgumentNullException(nameof(textView));
             }
 
-            if (!textView.TextBuffer.GetOption(InternalFeatureOnOffOptions.SmartIndenter))
+            if (!textView.TextBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.SmartIndenter))
             {
                 return null;
             }

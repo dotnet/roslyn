@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Composition;
@@ -18,9 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
         internal static async Task<BreakpointResolutionResult> GetBreakpointAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-
-            TextSpan span;
-            if (!BreakpointSpans.TryGetBreakpointSpan(tree, position, cancellationToken, out span))
+            if (!BreakpointSpans.TryGetBreakpointSpan(tree, position, cancellationToken, out var span))
             {
                 return null;
             }

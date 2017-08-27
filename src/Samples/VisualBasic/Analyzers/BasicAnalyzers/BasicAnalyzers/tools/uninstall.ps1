@@ -9,14 +9,14 @@ if($project.Object.SupportsPackageDependencyResolution)
     }
 }
 
-$analyzersPaths = Join-Path (Join-Path (Split-Path -Path $toolsPath -Parent) "analyzers" ) * -Resolve
+$analyzersPaths = Join-Path (Join-Path (Split-Path -Path $toolsPath -Parent) "analyzers") * -Resolve
 
 foreach($analyzersPath in $analyzersPaths)
 {
     # Uninstall the language agnostic analyzers.
     if (Test-Path $analyzersPath)
     {
-        foreach ($analyzerFilePath in Get-ChildItem $analyzersPath -Filter *.dll)
+        foreach ($analyzerFilePath in Get-ChildItem -Path "$analyzersPath\*.dll" -Exclude *.resources.dll)
         {
             if($project.Object.AnalyzerReferences)
             {
@@ -32,7 +32,7 @@ if($project.Type -eq "C#")
 {
     $languageFolder = "cs"
 }
-if($project.Type -eq " VB.NET")
+if($project.Type -eq "VB.NET")
 {
     $languageFolder = "vb"
 }
@@ -47,11 +47,18 @@ foreach($analyzersPath in $analyzersPaths)
     $languageAnalyzersPath = join-path $analyzersPath $languageFolder
     if (Test-Path $languageAnalyzersPath)
     {
-        foreach ($analyzerFilePath in Get-ChildItem $languageAnalyzersPath -Filter *.dll)
+        foreach ($analyzerFilePath in Get-ChildItem -Path "$languageAnalyzersPath\*.dll" -Exclude *.resources.dll)
         {
             if($project.Object.AnalyzerReferences)
             {
-                $project.Object.AnalyzerReferences.Remove($analyzerFilePath.FullName)
+                try
+                {
+                    $project.Object.AnalyzerReferences.Remove($analyzerFilePath.FullName)
+                }
+                catch
+                {
+
+                }
             }
         }
     }

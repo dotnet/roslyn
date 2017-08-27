@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -88,11 +88,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
         public Icon GetIcon(Glyph glyph)
         {
-            Icon value;
-            if (!_iconCache.TryGetValue(glyph, out value))
+            if (!_iconCache.TryGetValue(glyph, out var value))
             {
-                var bitmapSource = glyph.GetImageSource(_glyphService) as BitmapSource;
-                if (bitmapSource != null)
+                if (glyph.GetImageSource(_glyphService) is BitmapSource bitmapSource)
                 {
                     value = ConvertBitmapSourceToIcon(bitmapSource);
                     _iconCache.Add(glyph, value);

@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundMethodGroup
 
         Public Sub New(
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             typeArgumentsOpt As BoundTypeArguments,
             methods As ImmutableArray(Of MethodSymbol),
             resultKind As LookupResultKind,

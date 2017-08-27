@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -282,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                             null,
                                                                             id: i,
                                                                             type: manager.System_String),
-                                                 ConversionKind.ImplicitReference);
+                                                 Conversion.ImplicitReference);
                     }
                     formatString.Builder.Append(" }}");
 

@@ -21,12 +21,12 @@ using System;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
     }
 }";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
 
             comp.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
@@ -51,7 +51,7 @@ namespace ClassLibrary1
     }
 } 
 ";
-            var classLib1 = CreateCompilationWithMscorlib(text: class1Source, references: new[] { SystemRef }, assemblyName: "ClassLibrary1");
+            var classLib1 = CreateStandardCompilation(text: class1Source, references: new[] { SystemRef }, assemblyName: "ClassLibrary1");
 
             string class2Source = @"using System;
 using ClassLibrary1;
@@ -66,7 +66,7 @@ namespace ClassLibrary2
         }
     }
 }";
-            var classLib2 = CreateCompilationWithMscorlib(text: class2Source, assemblyName: "ClassLibrary2", references: new[] { SystemRef, SystemCoreRef, classLib1.ToMetadataReference() });
+            var classLib2 = CreateStandardCompilation(text: class2Source, assemblyName: "ClassLibrary2", references: new[] { SystemRef, SystemCoreRef, classLib1.ToMetadataReference() });
 
             string consoleApplicationSource = @"using ClassLibrary2;
 using ClassLibrary1;
@@ -83,7 +83,7 @@ namespace ConsoleApplication
     }
 }";
             var tree = Parse(consoleApplicationSource);
-            var comp = CreateCompilationWithMscorlib(tree, new[] { SystemRef, SystemCoreRef, classLib1.ToMetadataReference(), classLib2.ToMetadataReference() }, assemblyName: "ConsoleApplication");
+            var comp = CreateStandardCompilation(tree, new[] { SystemRef, SystemCoreRef, classLib1.ToMetadataReference(), classLib2.ToMetadataReference() }, assemblyName: "ConsoleApplication");
             var model = comp.GetSemanticModel(tree) as CSharpSemanticModel;
 
             var syntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
@@ -115,8 +115,7 @@ class Program
         Enumerable.Repeat(1, 1);
     }
 }";
-            var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateCompilation(text, new[] { MscorlibRef });
             //all unused because system.core was not included and Enumerable didn't bind
             comp.VerifyDiagnostics(
                 // (4,14): error CS0234: The type or namespace name 'Linq' does not exist in the namespace 'System' (are you missing an assembly reference?)
@@ -161,13 +160,13 @@ using System;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Console.WriteLine();
     }
 }";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -179,13 +178,13 @@ using System;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         /*here*/
     }
 }";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var position = text.IndexOf("/*here*/", StringComparison.Ordinal);
@@ -215,7 +214,7 @@ using System.Reflection;
 [assembly: AssemblyKeyFile(@""" + snkPath + @""")]
 ");
 
-            var ivtCompilation = CreateCompilationWithMscorlib(
+            var ivtCompilation = CreateStandardCompilation(
                 assemblyName: "IVT",
                 options: TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()),
                 references: new[] { SystemCoreRef },
@@ -230,14 +229,14 @@ namespace NamespaceContainingInternalsOnly
 {
     internal static class Extensions
     {
-        internal static void Foo(this int x) {}
+        internal static void Goo(this int x) {}
     }
 }
 "),
                     signing
                 });
 
-            var libCompilation = CreateCompilationWithMscorlib(
+            var libCompilation = CreateStandardCompilation(
                 assemblyName: "Lib",
                 options: TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()),
                 references: new[] { ivtCompilation.ToMetadataReference() },
@@ -250,7 +249,7 @@ public class C
 {
     internal static void F(int x)
     {
-        x.Foo();
+        x.Goo();
     }
 }
 "),
@@ -276,7 +275,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Collections;
@@ -296,7 +295,7 @@ using System.Collections;
 using C = System.Console;
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Collections;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections;"),
@@ -313,7 +312,7 @@ using C = System.Console;
 extern alias A;
 ";
             var lib = CreateCompilation("", assemblyName: "lib");
-            var comp = CreateCompilationWithMscorlib(source, new[] { new CSharpCompilationReference(lib, aliases: ImmutableArray.Create("A")) });
+            var comp = CreateStandardCompilation(source, new[] { new CSharpCompilationReference(lib, aliases: ImmutableArray.Create("A")) });
 
             comp.VerifyDiagnostics(
                 // (2,1): info CS8020: Unused extern alias.
@@ -333,7 +332,7 @@ public class C { }
 ";
 
             // Not binding doc comments.
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
@@ -349,7 +348,7 @@ public class C { }
             var source = @"
 using System;
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Error));
+            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Error));
             comp.VerifyEmitDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System;

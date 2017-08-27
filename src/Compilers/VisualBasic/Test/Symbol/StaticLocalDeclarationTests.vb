@@ -23,11 +23,11 @@ Imports System
 
 Module Module1
     Sub Main()
-        Foo()
-        Foo()
+        Goo()
+        Goo()
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Static Dim x As Integer = 1
         Console.WriteLine(x)
         x = x + 1
@@ -50,11 +50,11 @@ Imports System
 
 Module Module1
     Sub Main()
-        Foo()
-        Foo()
+        Goo()
+        Goo()
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Static x As Integer = 1
         Console.WriteLine(x)
         x = x + 1
@@ -302,13 +302,13 @@ End Module
 Module Module1
         Sub Main()
             Dim x as new UDTest()
-            x.Foo(of Integer)()
-            x.Foo(of Integer)()
+            x.Goo(of Integer)()
+            x.Goo(of Integer)()
         End Sub
 End Module
 
         Public Class UDTest
-            Public Sub Foo(of t)
+            Public Sub Goo(of t)
                 Static SLItem as integer = 1
                 SLItem +=1
             End Sub            
@@ -331,13 +331,13 @@ End Module
 Module Module1
     Sub Main()
         Dim x As New UDTest()
-        x.Foo()
-        x.Foo()
+        x.Goo()
+        x.Goo()
     End Sub
 End Module
 
 Public Structure UDTest
-    Public Sub Foo()
+    Public Sub Goo()
         Static SLItem As Integer = 1
         SLItem += 1
     End Sub
@@ -661,11 +661,11 @@ Imports System
 
 Module Module1
     Sub Main()
-        Foo()
-        Foo()
+        Goo()
+        Goo()
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Static SLItem2 As ArgIterator
     End Sub
 End Module</file>
@@ -686,11 +686,11 @@ Imports System
 
 Module Module1
     Sub Main()
-        Foo()
-        Foo()
+        Goo()
+        Goo()
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Static SLItem2 As TypedReference = Nothing
     End Sub
 End Module

@@ -1,9 +1,11 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Reflection
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.CSharp.AddMissingReference
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasic.AddMissingReference
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReference
     Public Class AddMissingReferenceTests
@@ -21,13 +23,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
             s_systemXamlAssembly = Assembly.Load("System.Xaml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")
         End Sub
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As (DiagnosticAnalyzer, CodeFixProvider)
             Dim fixer As CodeFixProvider =
                 CType(If(language = LanguageNames.CSharp,
-                   DirectCast(New Microsoft.CodeAnalysis.CSharp.CodeFixes.AddMissingReference.AddMissingReferenceCodeFixProvider(), CodeFixProvider),
-                   DirectCast(New Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddMissingReference.AddMissingReferenceCodeFixProvider(), CodeFixProvider)), CodeFixProvider)
+                   DirectCast(New CSharpAddMissingReferenceCodeFixProvider(), CodeFixProvider),
+                   DirectCast(New VisualBasicAddMissingReferenceCodeFixProvider(), CodeFixProvider)), CodeFixProvider)
 
-            Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, fixer)
+            Return (Nothing, fixer)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
@@ -109,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                     <Project Language="Visual Basic" AssemblyName="VBProject" CommonReferences="true">
                         <ProjectReference>VBProject2</ProjectReference>
                         <Document>
-                            Public Class Foo
+                            Public Class Goo
                                 Sub M()
                                     AddHandler ModuleWithEvent.E$$, Sub() Exit Sub
                                 End Sub
@@ -134,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="VBProject" CommonReferences="true">
                         <MetadataReference><%= s_presentationCoreAssembly.Location %></MetadataReference>
-                        <Document>Public Class Foo : Inherits System.Windows.UIElement$$ : End Class</Document>
+                        <Document>Public Class Goo : Inherits System.Windows.UIElement$$ : End Class</Document>
                     </Project>
                 </Workspace>,
                 "VBProject", s_windowsBaseAssembly.FullName)
@@ -147,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                     <Project Language="Visual Basic" AssemblyName="VBProject" CommonReferences="true">
                         <ProjectReference>VBProject2</ProjectReference>
                         <Document>
-                            Public Class Foo
+                            Public Class Goo
                                 Sub M()
                                     ModuleWithEvent.E$$(Nothing)
                                 End Sub
@@ -172,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                 <Workspace>
                     <Project Language="C#" AssemblyName="CSharpProject" CommonReferences="true">
                         <MetadataReference><%= s_presentationCoreAssembly.Location %></MetadataReference>
-                        <Document>public class Foo : System.Windows.UIElement$$ { }</Document>
+                        <Document>public class Goo : System.Windows.UIElement$$ { }</Document>
                     </Project>
                 </Workspace>,
                 "CSharpProject", s_windowsBaseAssembly.FullName)

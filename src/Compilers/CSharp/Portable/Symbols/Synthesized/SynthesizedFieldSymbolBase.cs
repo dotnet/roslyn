@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -55,6 +56,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 compilation.CanEmitBoolean())
             {
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, this.CustomModifiers.Length));
+            }
+
+            if (Type.ContainsTupleNames() &&
+                compilation.HasTupleNamesAttributes &&
+                compilation.CanEmitSpecialType(SpecialType.System_String))
+            {
+                AddSynthesizedAttribute(ref attributes,
+                    compilation.SynthesizeTupleNamesAttribute(Type));
             }
         }
 

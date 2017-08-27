@@ -6,11 +6,14 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class VerbatimCrefParsingTests : ParsingTests
     {
+        public VerbatimCrefParsingTests(ITestOutputHelper output) : base(output) { }
+
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
         {
             throw new NotSupportedException();

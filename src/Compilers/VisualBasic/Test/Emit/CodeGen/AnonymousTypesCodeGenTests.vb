@@ -368,7 +368,7 @@ expectedOutput:="VB$AnonymousType_0`1[T0]")
         Public Sub TestAnonymousType_ToString()
             ' test AnonymousType_ToString() itself
             Dim currCulture = System.Threading.Thread.CurrentThread.CurrentCulture
-            System.Threading.Thread.CurrentThread.CurrentCulture = New System.Globalization.CultureInfo("en-US")
+            System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture
             Try
 
                 CompileAndVerify(
@@ -734,7 +734,7 @@ expectedOutput:=<![CDATA[
         Public Sub TestAnonymousType_LocalAsNewWith()
             ' AnonymousType ToString
             Dim currCulture = System.Threading.Thread.CurrentThread.CurrentCulture
-            System.Threading.Thread.CurrentThread.CurrentCulture = New System.Globalization.CultureInfo("en-US")
+            System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture
             Try
 
                 CompileAndVerify(
@@ -791,14 +791,14 @@ Friend Module AnonTProp001mod
         Dim obj = New C
         Try
 
-            Dim scen1 = New With {.With = "aclass", ._p_ = "C"c, Foo, Key New C().extMethod}
-            Console.WriteLine("{0},{1},{2},{3}", scen1.With, scen1._p_, scen1.foo, scen1.Extmethod)
+            Dim scen1 = New With {.With = "aclass", ._p_ = "C"c, Goo, Key New C().extMethod}
+            Console.WriteLine("{0},{1},{2},{3}", scen1.With, scen1._p_, scen1.goo, scen1.Extmethod)
 
             Dim scen2 = New With {obj.Extmethod02, obj!_123, C.APROP}
             Console.WriteLine("{0},{1},{2}", scen2.ExtMethod02, scen2._123, scen2.aprop)
 
             Try
-                Dim scen4 = New With {.prop1 = FooEx("testing")}
+                Dim scen4 = New With {.prop1 = GooEx("testing")}
                 Console.WriteLine("NO EX")
             Catch ex As Exception
                 Console.WriteLine("Exp EX")
@@ -808,11 +808,11 @@ Friend Module AnonTProp001mod
         End Try
     End Sub
 
-    Function Foo() As String
+    Function Goo() As String
         Return "Abc"
     End Function
 
-    Function FooEx(ByVal p1 As String) As String
+    Function GooEx(ByVal p1 As String) As String
         Throw New Exception("This exception is expected")
     End Function
 

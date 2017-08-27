@@ -9,12 +9,53 @@ Imports System.Xml.Linq
 Imports System.Text
 Imports System.IO
 Imports Roslyn.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class DocCommentTests
         Inherits BasicTestBase
 
         Private Shared ReadOnly s_optionsDiagnoseDocComments As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose)
+
+        <Fact>
+        Public Sub DocCommentWriteException()
+            Dim sources =
+<compilation name="DocCommentException">
+    <file name="a.vb">
+        <![CDATA[
+''' <summary>
+''' Doc comment for <see href="C" />
+''' </summary>
+Public Class C
+    ''' <summary>
+    ''' Doc comment for method M
+    ''' </summary>
+    Public Sub M()
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+            Using(new EnsureEnglishUICulture()) 
+            
+                Dim comp = CreateCompilationWithMscorlib(sources)
+                Dim diags = New DiagnosticBag()
+                Dim badStream = New BrokenStream()
+                badStream.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite
+
+                DocumentationCommentCompiler.WriteDocumentationCommentXml(
+                    comp,
+                    assemblyName:=Nothing,
+                    xmlDocStream:=badStream,
+                    diagnostics:=diags,
+                    cancellationToken:=Nothing)
+
+                AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
+									   <errors><![CDATA[
+BC37258: Error writing to XML documentation file: I/O error occurred.
+                                   ]]></errors>)
+            End Using
+        End Sub
 
         <Fact>
         Public Sub NoXmlResolver()
@@ -12367,6 +12408,41 @@ DashDash
 ]]>
     </xml>,
                 stringMapper:=Function(o) StringReplace(o, System.IO.Path.Combine(TestHelpers.AsXmlCommentText(path), "- - -.xml"), "**FILE**"), ensureEnglishUICulture:=True)
+        End Sub
+
+        <Fact>
+        <WorkItem(410932, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=410932")>
+        Public Sub LookupOnCrefTypeParameter()
+
+            Dim sources =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Public Class Test
+    Function F(Of T)() As T
+    End Function
+
+    ''' <summary>
+    ''' <see cref="F(Of U)()"/>
+    ''' </summary>
+    Public Sub S()
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+                sources,
+                options:=TestOptions.ReleaseDll)
+
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model = compilation.GetSemanticModel(tree)
+
+            Dim name = FindNodesOfTypeFromText(Of NameSyntax)(tree, "U").Single()
+            Dim typeParameter = DirectCast(model.GetSymbolInfo(name).Symbol, TypeParameterSymbol)
+            Assert.Empty(model.LookupSymbols(name.SpanStart, typeParameter, "GetAwaiter"))
         End Sub
 
     End Class

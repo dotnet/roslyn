@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
     [Export(typeof(ITaggerProvider))]
     [TagType(typeof(ConflictTag))]
     [ContentType(ContentTypeNames.RoslynContentType)]
+    [ContentType(ContentTypeNames.XamlContentType)]
     [TextViewRole(TextViewRoles.PreviewRole)]
     internal class PreviewConflictTaggerProvider
         : AbstractPreviewTaggerProvider<ConflictTag>

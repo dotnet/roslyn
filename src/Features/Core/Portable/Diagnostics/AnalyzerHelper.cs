@@ -1,10 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -34,9 +38,73 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private const string AnalyzerExceptionDiagnosticCategory = "Intellisense";
 
+        public static bool IsWorkspaceDiagnosticAnalyzer(this DiagnosticAnalyzer analyzer)
+        {
+            return analyzer is DocumentDiagnosticAnalyzer || analyzer is ProjectDiagnosticAnalyzer;
+        }
+
         public static bool IsBuiltInAnalyzer(this DiagnosticAnalyzer analyzer)
         {
-            return analyzer is IBuiltInAnalyzer || analyzer is DocumentDiagnosticAnalyzer || analyzer is ProjectDiagnosticAnalyzer || analyzer.IsCompilerAnalyzer();
+            return analyzer is IBuiltInAnalyzer || analyzer.IsWorkspaceDiagnosticAnalyzer() || analyzer.IsCompilerAnalyzer();
+        }
+
+        public static bool IsOpenFileOnly(this DiagnosticAnalyzer analyzer, Workspace workspace)
+        {
+            if (analyzer is IBuiltInAnalyzer builtInAnalyzer)
+            {
+                return builtInAnalyzer.OpenFileOnly(workspace);
+            }
+
+            return false;
+        }
+
+        public static bool ContainsOpenFileOnlyAnalyzers(this CompilationWithAnalyzers analyzerDriverOpt, Workspace workspace)
+        {
+            if (analyzerDriverOpt == null)
+            {
+                // not Roslyn. no open file only analyzers
+                return false;
+            }
+
+            foreach (var analyzer in analyzerDriverOpt.Analyzers)
+            {
+                if (analyzer.IsOpenFileOnly(workspace))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static bool HasNonHiddenDescriptor(this DiagnosticAnalyzerService service, DiagnosticAnalyzer analyzer, Project project)
+        {
+            // most of analyzers, number of descriptor is quite small, so this should be cheap.
+            return service.GetDiagnosticDescriptors(analyzer).Any(d => d.GetEffectiveSeverity(project.CompilationOptions) != ReportDiagnostic.Hidden);
+        }
+
+        public static ReportDiagnostic GetEffectiveSeverity(this DiagnosticDescriptor descriptor, CompilationOptions options)
+        {
+            return options == null
+                ? descriptor.DefaultSeverity.MapSeverityToReport()
+                : descriptor.GetEffectiveSeverity(options);
+        }
+
+        public static ReportDiagnostic MapSeverityToReport(this DiagnosticSeverity severity)
+        {
+            switch (severity)
+            {
+                case DiagnosticSeverity.Hidden:
+                    return ReportDiagnostic.Hidden;
+                case DiagnosticSeverity.Info:
+                    return ReportDiagnostic.Info;
+                case DiagnosticSeverity.Warning:
+                    return ReportDiagnostic.Warn;
+                case DiagnosticSeverity.Error:
+                    return ReportDiagnostic.Error;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(severity);
+            }
         }
 
         public static bool IsCompilerAnalyzer(this DiagnosticAnalyzer analyzer)
@@ -60,9 +128,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             // Get the unique ID for given diagnostic analyzer.
             // note that we also put version stamp so that we can detect changed analyzer.
-            var type = analyzer.GetType();
-            var typeInfo = type.GetTypeInfo();
-            return ValueTuple.Create(GetAssemblyQualifiedName(type), GetAnalyzerVersion(CorLightup.Desktop.GetAssemblyLocation(typeInfo.Assembly)));
+            var typeInfo = analyzer.GetType().GetTypeInfo();
+            return ValueTuple.Create(analyzer.GetAnalyzerId(), GetAnalyzerVersion(CorLightup.Desktop.GetAssemblyLocation(typeInfo.Assembly)));
         }
 
         public static string GetAnalyzerAssemblyName(this DiagnosticAnalyzer analyzer)
@@ -71,16 +138,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return typeInfo.Assembly.GetName().Name;
         }
 
-        public static OptionSet GetOptionSet(this AnalyzerOptions analyzerOptions)
+        public static Task<OptionSet> GetDocumentOptionSetAsync(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
-            return (analyzerOptions as WorkspaceAnalyzerOptions)?.Workspace.Options;
-        }
+            var workspaceAnalyzerOptions = analyzerOptions as WorkspaceAnalyzerOptions;
+            if (workspaceAnalyzerOptions == null)
+            {
+                return SpecializedTasks.Default<OptionSet>();
+            }
 
-        private static string GetAssemblyQualifiedName(Type type)
-        {
-            // AnalyzerFileReference now includes things like versions, public key as part of its identity. 
-            // so we need to consider them.
-            return type.AssemblyQualifiedName;
+            return workspaceAnalyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken);
         }
 
         internal static void OnAnalyzerException_NoTelemetryLogging(
@@ -126,9 +192,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // However, until we add a LongMessage field to the Diagnostic, we are forced to park the instance specific description onto the Descriptor's Description field.
             // This requires us to create a new DiagnosticDescriptor instance per diagnostic instance.
             var descriptor = new DiagnosticDescriptor(AnalyzerExceptionDiagnosticId,
-                title: FeaturesResources.UserDiagnosticAnalyzerFailure,
-                messageFormat: FeaturesResources.UserDiagnosticAnalyzerThrows,
-                description: string.Format(FeaturesResources.UserDiagnosticAnalyzerThrowsDescription, analyzerName, e.CreateDiagnosticDescription()),
+                title: FeaturesResources.User_Diagnostic_Analyzer_Failure,
+                messageFormat: FeaturesResources.Analyzer_0_threw_an_exception_of_type_1_with_message_2,
+                description: string.Format(FeaturesResources.Analyzer_0_threw_the_following_exception_colon_1, analyzerName, e.CreateDiagnosticDescription()),
                 category: AnalyzerExceptionDiagnosticCategory,
                 defaultSeverity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,
@@ -139,12 +205,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static VersionStamp GetAnalyzerVersion(string path)
         {
-            if (path == null || !PortableShim.File.Exists(path))
+            if (path == null || !File.Exists(path))
             {
                 return VersionStamp.Default;
             }
 
-            return VersionStamp.Create(PortableShim.File.GetLastWriteTimeUtc(path));
+            return VersionStamp.Create(File.GetLastWriteTimeUtc(path));
         }
 
         public static DiagnosticData CreateAnalyzerLoadFailureDiagnostic(string fullPath, AnalyzerLoadFailureEventArgs e)
@@ -155,15 +221,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static DiagnosticData CreateAnalyzerLoadFailureDiagnostic(
             Workspace workspace, ProjectId projectId, string language, string fullPath, AnalyzerLoadFailureEventArgs e)
         {
-            string id, message, messageFormat, description;
-            if (!TryGetErrorMessage(language, fullPath, e, out id, out message, out messageFormat, out description))
+            if (!TryGetErrorMessage(language, fullPath, e, out var id, out var message, out var messageFormat, out var description))
             {
                 return null;
             }
 
             return new DiagnosticData(
                 id,
-                FeaturesResources.ErrorCategory,
+                FeaturesResources.Roslyn_HostError,
                 message,
                 messageFormat,
                 severity: DiagnosticSeverity.Warning,
@@ -182,20 +247,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer:
                     id = Choose(language, WRN_UnableToLoadAnalyzerId, WRN_UnableToLoadAnalyzerIdCS, WRN_UnableToLoadAnalyzerIdVB);
-                    messageFormat = FeaturesResources.WRN_UnableToLoadAnalyzer;
-                    message = string.Format(FeaturesResources.WRN_UnableToLoadAnalyzer, fullPath, e.Message);
+                    messageFormat = FeaturesResources.Unable_to_load_Analyzer_assembly_0_colon_1;
+                    message = string.Format(FeaturesResources.Unable_to_load_Analyzer_assembly_0_colon_1, fullPath, e.Message);
                     description = e.Exception.CreateDiagnosticDescription();
                     break;
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer:
                     id = Choose(language, WRN_AnalyzerCannotBeCreatedId, WRN_AnalyzerCannotBeCreatedIdCS, WRN_AnalyzerCannotBeCreatedIdVB);
-                    messageFormat = FeaturesResources.WRN_AnalyzerCannotBeCreated;
-                    message = string.Format(FeaturesResources.WRN_AnalyzerCannotBeCreated, e.TypeName, fullPath, e.Message);
+                    messageFormat = FeaturesResources.An_instance_of_analyzer_0_cannot_be_created_from_1_colon_2;
+                    message = string.Format(FeaturesResources.An_instance_of_analyzer_0_cannot_be_created_from_1_colon_2, e.TypeName, fullPath, e.Message);
                     description = e.Exception.CreateDiagnosticDescription();
                     break;
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers:
                     id = Choose(language, WRN_NoAnalyzerInAssemblyId, WRN_NoAnalyzerInAssemblyIdCS, WRN_NoAnalyzerInAssemblyIdVB);
-                    messageFormat = FeaturesResources.WRN_NoAnalyzerInAssembly;
-                    message = string.Format(FeaturesResources.WRN_NoAnalyzerInAssembly, fullPath);
+                    messageFormat = FeaturesResources.The_assembly_0_does_not_contain_any_analyzers;
+                    message = string.Format(FeaturesResources.The_assembly_0_does_not_contain_any_analyzers, fullPath);
                     description = e.Exception.CreateDiagnosticDescription();
                     break;
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.None:

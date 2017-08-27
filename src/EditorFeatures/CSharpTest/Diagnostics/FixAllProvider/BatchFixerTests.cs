@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -15,10 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTyp
 {
     public partial class BatchFixerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return Tuple.Create<DiagnosticAnalyzer, CodeFixProvider>(new QualifyWithThisAnalyzer(), new QualifyWithThisFixer());
-        }
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (new QualifyWithThisAnalyzer(), new QualifyWithThisFixer());
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
         private class QualifyWithThisAnalyzer : DiagnosticAnalyzer
@@ -40,8 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTyp
 
             private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {
-                var node = context.Node as SimpleNameSyntax;
-                if (node != null)
+                if (context.Node is SimpleNameSyntax node)
                 {
                     var symbol = context.SemanticModel.GetSymbolInfo(node).Symbol;
                     if (symbol != null && symbol.Kind == SymbolKind.Field)
@@ -66,8 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTyp
             public async override Task RegisterCodeFixesAsync(CodeFixContext context)
             {
                 var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-                var node = root.FindNode(context.Span, getInnermostNodeForTie: true) as SimpleNameSyntax;
-                if (node != null)
+                if (root.FindNode(context.Span, getInnermostNodeForTie: true) is SimpleNameSyntax node)
                 {
                     var leadingTrivia = node.GetLeadingTrivia();
                     var newNode = SyntaxFactory.MemberAccessExpression(
@@ -113,7 +108,7 @@ class C
     {
         class Type
         {
-            void Foo()
+            void Goo()
             {
                 int x = 1 "" + {|FixAllInDocument:Sign|} + @"" "" + Sign + @""3;
             }
@@ -139,7 +134,7 @@ class C
     {
         class Type
         {
-            void Foo()
+            void Goo()
             {
                 int x = 1 "" + this.Sign + @"" "" + this.Sign + @""3;
             }
@@ -152,7 +147,7 @@ class C
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false);
+            await TestInRegularAndScriptAsync(input, expected);
         }
 
         #endregion

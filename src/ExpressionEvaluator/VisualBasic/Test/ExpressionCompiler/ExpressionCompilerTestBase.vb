@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -45,25 +46,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             _runtimeInstances.Free()
         End Sub
 
-        ' TODO: remove -- workaround for bug https://github.com/dotnet/roslyn/issues/8473 in the VB compiler
-        ' https://github.com/dotnet/roslyn/issues/8473
-        Friend Shared Sub WithRuntimeInstancePortableBug(compilation As Compilation, validator As Action(Of RuntimeInstance))
-            Using instance = RuntimeInstance.Create(compilation, Nothing, DebugInformationFormat.Pdb, True)
-                validator(instance)
-            End Using
-        End Sub
-
         Friend Shared Sub WithRuntimeInstance(compilation As Compilation, validator As Action(Of RuntimeInstance))
-            WithRuntimeInstance(compilation, Nothing, True, validator)
+            WithRuntimeInstance(compilation, Nothing, validator)
         End Sub
 
         Friend Shared Sub WithRuntimeInstance(compilation As Compilation, references As IEnumerable(Of MetadataReference), validator As Action(Of RuntimeInstance))
-            WithRuntimeInstance(compilation, references, True, validator)
+            WithRuntimeInstance(compilation, references, includeLocalSignatures:=True, includeIntrinsicAssembly:=True, validator:=validator)
         End Sub
 
-        Friend Shared Sub WithRuntimeInstance(compilation As Compilation, references As IEnumerable(Of MetadataReference), includeLocalSignatures As Boolean, validator As Action(Of RuntimeInstance))
+        Friend Shared Sub WithRuntimeInstance(
+            compilation As Compilation,
+            references As IEnumerable(Of MetadataReference),
+            includeLocalSignatures As Boolean,
+            includeIntrinsicAssembly As Boolean,
+            validator As Action(Of RuntimeInstance))
             For Each debugFormat In {DebugInformationFormat.Pdb, DebugInformationFormat.PortablePdb}
-                Using instance = RuntimeInstance.Create(compilation, references, debugFormat, includeLocalSignatures)
+                Using instance = RuntimeInstance.Create(compilation, references, debugFormat, includeLocalSignatures, includeIntrinsicAssembly)
                     validator(instance)
                 End Using
             Next
@@ -81,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             Optional debugFormat As DebugInformationFormat = DebugInformationFormat.Pdb,
             Optional includeLocalSignatures As Boolean = True) As RuntimeInstance
 
-            Dim instance = RuntimeInstance.Create(compilation, references, debugFormat, includeLocalSignatures)
+            Dim instance = RuntimeInstance.Create(compilation, references, debugFormat, includeLocalSignatures, includeIntrinsicAssembly:=True)
             _runtimeInstances.Add(instance)
             Return instance
         End Function
@@ -316,7 +314,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
         End Function
 
         Friend Shared Function VariableAlias(name As String, typeAssemblyQualifiedName As String) As [Alias]
-            Return New [Alias](DkmClrAliasKind.Variable, name, name, typeAssemblyQualifiedName, Nothing)
+            Return New [Alias](DkmClrAliasKind.Variable, name, name, typeAssemblyQualifiedName, Nothing, Nothing)
         End Function
 
         Friend Shared Function ObjectIdAlias(id As UInteger, Optional type As Type = Nothing) As [Alias]
@@ -326,7 +324,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
         Friend Shared Function ObjectIdAlias(id As UInteger, typeAssemblyQualifiedName As String) As [Alias]
             Assert.NotEqual(Of UInteger)(0, id) ' Not a valid id.
             Dim name = $"${id}"
-            Return New [Alias](DkmClrAliasKind.ObjectId, name, name, typeAssemblyQualifiedName, Nothing)
+            Return New [Alias](DkmClrAliasKind.ObjectId, name, name, typeAssemblyQualifiedName, Nothing, Nothing)
         End Function
 
         Friend Shared Function ReturnValueAlias(Optional id As Integer = -1, Optional type As Type = Nothing) As [Alias]
@@ -336,7 +334,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
         Friend Shared Function ReturnValueAlias(id As Integer, typeAssemblyQualifiedName As String) As [Alias]
             Dim name = $"Method M{If(id < 0, "", id.ToString())} returned"
             Dim fullName = If(id < 0, "$ReturnValue", $"$ReturnValue{id}")
-            Return New [Alias](DkmClrAliasKind.ReturnValue, name, fullName, typeAssemblyQualifiedName, Nothing)
+            Return New [Alias](DkmClrAliasKind.ReturnValue, name, fullName, typeAssemblyQualifiedName, Nothing, Nothing)
         End Function
 
         Friend Shared Function ExceptionAlias(Optional type As Type = Nothing, Optional stowed As Boolean = False) As [Alias]
@@ -347,11 +345,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             Dim fullName = If(stowed, "$stowedexception", "$exception")
             Const name = "Error"
             Dim kind = If(stowed, DkmClrAliasKind.StowedException, DkmClrAliasKind.Exception)
-            Return New [Alias](kind, name, fullName, typeAssemblyQualifiedName, Nothing)
-        End Function
-
-        Friend Shared Function [Alias](kind As DkmClrAliasKind, name As String, fullName As String, typeAssemblyQualifiedName As String, customTypeInfo As CustomTypeInfo) As [Alias]
-            Return New [Alias](kind, name, fullName, typeAssemblyQualifiedName, customTypeInfo)
+            Return New [Alias](kind, name, fullName, typeAssemblyQualifiedName, Nothing, Nothing)
         End Function
 
         Friend Shared Function GetMethodDebugInfo(runtime As RuntimeInstance, qualifiedMethodName As String, Optional ilOffset As Integer = 0) As MethodDebugInfo(Of TypeSymbol, LocalSymbol)
@@ -361,6 +355,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             Dim symReader = runtime.Modules.Single(Function(mi) mi.ModuleVersionId = peModule.Module.GetModuleVersionIdOrThrow()).SymReader
             Dim symbolProvider = New VisualBasicEESymbolProvider(peModule, peMethod)
             Return MethodDebugInfo(Of TypeSymbol, LocalSymbol).ReadMethodDebugInfo(DirectCast(symReader, ISymUnmanagedReader3), symbolProvider, MetadataTokens.GetToken(peMethod.Handle), methodVersion:=1, ilOffset:=ilOffset, isVisualBasicMethod:=True)
+        End Function
+
+        Friend Shared Function GetTupleElementNamesAttributeIfAny(method As IMethodSymbol) As SynthesizedAttributeData
+            Return GetAttributeIfAny(method, "System.Runtime.CompilerServices.TupleElementNamesAttribute")
+        End Function
+
+        Friend Shared Function GetAttributeIfAny(method As IMethodSymbol, typeName As String) As SynthesizedAttributeData
+            Return method.GetSynthesizedAttributes(forReturnType:=True).
+                Where(Function(a) a.AttributeClass.ToTestDisplayString() = typeName).
+                SingleOrDefault()
         End Function
     End Class
 End Namespace

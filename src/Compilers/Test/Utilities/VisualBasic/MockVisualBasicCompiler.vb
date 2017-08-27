@@ -4,7 +4,6 @@ Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.VisualStudio.Shell.Interop
 
 Friend Class MockVisualBasicCompiler
     Inherits VisualBasicCompiler
@@ -20,19 +19,19 @@ Friend Class MockVisualBasicCompiler
         MyClass.New(responseFile, baseDirectory, args, If(analyzer Is Nothing, ImmutableArray(Of DiagnosticAnalyzer).Empty, ImmutableArray.Create(analyzer)))
     End Sub
 
-    Public Sub New(responseFile As String, baseDirectory As String, args As String(), analyzers As ImmutableArray(Of DiagnosticAnalyzer))
-        MyBase.New(VisualBasicCommandLineParser.Default, responseFile, args, Path.GetDirectoryName(GetType(VisualBasicCompiler).Assembly.Location), baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Environment.GetEnvironmentVariable("LIB"), New DesktopAnalyzerAssemblyLoader())
+    Public Sub New(responseFile As String, workingDirectory As String, args As String(), analyzers As ImmutableArray(Of DiagnosticAnalyzer))
+        MyBase.New(VisualBasicCommandLineParser.Default, responseFile, args, CreateBuildPaths(workingDirectory, Path.GetTempPath()), Environment.GetEnvironmentVariable("LIB"), New DesktopAnalyzerAssemblyLoader())
 
         _analyzers = analyzers
     End Sub
 
-    Protected Overrides Function GetSqmAppID() As UInteger
-        Return SqmServiceProvider.BASIC_APPID
+    Private Shared Function CreateBuildPaths(workingDirectory As String, tempDirectory As String) As BuildPaths
+        Return New BuildPaths(
+            clientDir:=Path.GetDirectoryName(GetType(VisualBasicCompiler).Assembly.Location),
+            workingDir:=workingDirectory,
+            sdkDir:=RuntimeEnvironment.GetRuntimeDirectory(),
+            tempDir:=tempDirectory)
     End Function
-
-    Protected Overrides Sub CompilerSpecificSqm(sqm As IVsSqmMulti, sqmSession As UInteger)
-        Throw New NotImplementedException
-    End Sub
 
     Protected Overrides Function ResolveAnalyzersFromArguments(
         diagnostics As List(Of DiagnosticInfo),

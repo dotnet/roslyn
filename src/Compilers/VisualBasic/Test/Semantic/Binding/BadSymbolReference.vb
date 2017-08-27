@@ -1453,13 +1453,8 @@ BC30652: Reference required to assembly 'missing, Version=0.0.0.0, Culture=neutr
 ]]>
 
             compilation = CompilationUtils.CreateCompilationWithCustomILSource(compDef, ilSource2.Value, TestOptions.ReleaseDll)
-
-            AssertTheseDiagnostics(compilation,
-<expected>
-BC30657: 'M1' has a return type that is not supported or parameter types that are not supported.
-            Dim y as Integer = x.M1(1)
-                                 ~~
-</expected>)
+            ' ByRef return supported.
+            AssertTheseDiagnostics(compilation)
         End Sub
 
     End Class

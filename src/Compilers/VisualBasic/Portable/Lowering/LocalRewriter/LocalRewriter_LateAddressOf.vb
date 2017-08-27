@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         Private Shared Function BuildDelegateRelaxationLambda(
-                syntaxNode As VisualBasicSyntaxNode,
+                syntaxNode As SyntaxNode,
                 targetType As NamedTypeSymbol,
                 boundMember As BoundLateMemberAccess,
                 binder As Binder,

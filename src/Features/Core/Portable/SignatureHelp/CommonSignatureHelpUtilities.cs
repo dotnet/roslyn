@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -22,8 +22,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             Func<TArgumentList, IEnumerable<string>> getArgumentNames)
             where TArgumentList : SyntaxNode
         {
-            int argumentIndex;
-            if (TryGetCurrentArgumentIndex(argumentList, position, getOpenToken, getCloseToken, getArgumentsWithSeparators, out argumentIndex))
+            if (TryGetCurrentArgumentIndex(argumentList, position, getOpenToken, getCloseToken, getArgumentsWithSeparators, out var argumentIndex))
             {
                 var argumentNames = getArgumentNames(argumentList).ToList();
                 var argumentCount = argumentNames.Count;

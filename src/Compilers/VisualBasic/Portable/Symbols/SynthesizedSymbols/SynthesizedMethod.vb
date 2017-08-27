@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -17,10 +18,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly _isShared As Boolean
         Private ReadOnly _name As String
-        Private ReadOnly _syntaxNodeOpt As VisualBasicSyntaxNode
+        Private ReadOnly _syntaxNodeOpt As SyntaxNode
 
         Friend Sub New(
-                syntaxNode As VisualBasicSyntaxNode,
+                syntaxNode As SyntaxNode,
                 containingSymbol As NamedTypeSymbol,
                 name As String,
                 isShared As Boolean
@@ -97,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             Dim sourceType = TryCast(ContainingSymbol, SourceMemberContainerTypeSymbol)
@@ -175,7 +176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Dim node As VisualBasicSyntaxNode = Me.Syntax
+                Dim node As SyntaxNode = Me.Syntax
                 Dim asLambda = TryCast(node, LambdaExpressionSyntax)
                 If asLambda IsNot Nothing Then
                     node = asLambda.SubOrFunctionHeader
@@ -196,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
+        Friend Overrides ReadOnly Property Syntax As SyntaxNode
             Get
                 Return _syntaxNodeOpt
             End Get
@@ -208,5 +209,4 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
     End Class
-
 End Namespace

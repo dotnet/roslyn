@@ -1,9 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
-using Roslyn.Utilities;
 using System;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 
@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal struct Alias
     {
-        internal Alias(DkmClrAliasKind kind, string name, string fullName, string type, CustomTypeInfo customTypeInfo)
+        internal Alias(DkmClrAliasKind kind, string name, string fullName, string type, Guid customTypeInfoId, ReadOnlyCollection<byte> customTypeInfo)
         {
             Debug.Assert(!string.IsNullOrEmpty(fullName));
             Debug.Assert(!string.IsNullOrEmpty(type));
@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             this.Name = name;
             this.FullName = fullName;
             this.Type = type;
+            this.CustomTypeInfoId = customTypeInfoId;
             this.CustomTypeInfo = customTypeInfo;
         }
 
@@ -27,7 +28,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal readonly string Name;
         internal readonly string FullName;
         internal readonly string Type;
-        internal readonly CustomTypeInfo CustomTypeInfo;
+        internal readonly Guid CustomTypeInfoId;
+        internal readonly ReadOnlyCollection<byte> CustomTypeInfo;
     }
 
     internal static class PseudoVariableUtilities

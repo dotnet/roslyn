@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CodeGen;
 using Cci = Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
@@ -57,11 +58,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             protected abstract ImmutableArray<TEmbeddedParameter> GetParameters();
             protected abstract bool IsRuntimeSpecial { get; }
             protected abstract bool IsSpecialName { get; }
-            protected abstract Cci.CallingConvention CallingConvention { get; }
-            protected abstract bool ReturnValueIsModified { get; }
-            protected abstract ImmutableArray<Cci.ICustomModifier> ReturnValueCustomModifiers { get; }
-            protected abstract bool ReturnValueIsByRef { get; }
-            protected abstract Cci.ITypeReference GetType(TPEModuleBuilder moduleBuilder, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
+            protected abstract Cci.ISignature UnderlyingPropertySignature { get; }
             protected abstract TEmbeddedType ContainingType { get; }
             protected abstract Cci.TypeMemberVisibility Visibility { get; }
             protected abstract string Name { get; }
@@ -84,19 +81,16 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 get { return _setter; }
             }
 
-            IEnumerable<Cci.IMethodReference> Cci.IPropertyDefinition.Accessors
+            IEnumerable<Cci.IMethodReference> Cci.IPropertyDefinition.GetAccessors(EmitContext context)
             {
-                get
+                if (_getter != null)
                 {
-                    if (_getter != null)
-                    {
-                        yield return _getter;
-                    }
+                    yield return _getter;
+                }
 
-                    if (_setter != null)
-                    {
-                        yield return _setter;
-                    }
+                if (_setter != null)
+                {
+                    yield return _setter;
                 }
             }
 
@@ -105,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 get { return false; }
             }
 
-            Cci.IMetadataConstant Cci.IPropertyDefinition.DefaultValue
+            MetadataConstant Cci.IPropertyDefinition.DefaultValue
             {
                 get { return null; }
             }
@@ -132,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             {
                 get
                 {
-                    return CallingConvention;
+                    return UnderlyingPropertySignature.CallingConvention;
                 }
             }
 
@@ -150,7 +144,15 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             {
                 get
                 {
-                    return ReturnValueCustomModifiers;
+                    return UnderlyingPropertySignature.ReturnValueCustomModifiers;
+                }
+            }
+
+            ImmutableArray<Cci.ICustomModifier> Cci.ISignature.RefCustomModifiers
+            {
+                get
+                {
+                    return UnderlyingPropertySignature.RefCustomModifiers;
                 }
             }
 
@@ -158,13 +160,13 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             {
                 get
                 {
-                    return ReturnValueIsByRef;
+                    return UnderlyingPropertySignature.ReturnValueIsByRef;
                 }
             }
 
             Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
             {
-                return GetType((TPEModuleBuilder)context.Module, (TSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics);
+                return UnderlyingPropertySignature.GetType(context);
             }
 
             protected TEmbeddedMethod AnAccessor

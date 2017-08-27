@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting
@@ -70,13 +69,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return false;
                 }
 
-                public ValueTuple<int, SyntaxToken, SyntaxToken> Current
-                {
-                    get
-                    {
-                        return _current;
-                    }
-                }
+                public ValueTuple<int, SyntaxToken, SyntaxToken> Current => _current;
 
                 object System.Collections.IEnumerator.Current
                 {

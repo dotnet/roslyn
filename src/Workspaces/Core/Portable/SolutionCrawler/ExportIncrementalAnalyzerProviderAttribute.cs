@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Composition;
@@ -16,13 +16,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public ExportIncrementalAnalyzerProviderAttribute(params string[] workspaceKinds)
             : base(typeof(IIncrementalAnalyzerProvider))
         {
-            if (workspaceKinds == null)
-            {
-                throw new ArgumentNullException(nameof(workspaceKinds));
-            }
 
             // TODO: this will be removed once closed side changes are in.
-            this.WorkspaceKinds = workspaceKinds;
+            this.WorkspaceKinds = workspaceKinds ?? throw new ArgumentNullException(nameof(workspaceKinds));
             this.Name = "Unknown";
             this.HighPriorityForActiveFile = false;
         }
@@ -30,13 +26,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public ExportIncrementalAnalyzerProviderAttribute(string name, string[] workspaceKinds)
             : base(typeof(IIncrementalAnalyzerProvider))
         {
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
             this.WorkspaceKinds = workspaceKinds;
-            this.Name = name;
+            this.Name = name ?? throw new ArgumentNullException(nameof(name));
             this.HighPriorityForActiveFile = false;
         }
 

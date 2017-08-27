@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -116,13 +115,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _hasCompilationErrors = hasSemanticErrors;
         }
 
-        public bool HasChanges
-        {
-            get
-            {
-                return _hasCompilationErrors.HasValue;
-            }
-        }
+        public bool HasChanges => _hasCompilationErrors.HasValue;
 
         public bool HasChangesAndErrors
         {
@@ -159,7 +152,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             return new DocumentAnalysisResults(
                 activeStatements,
-                default(ImmutableArray<RudeEditDiagnostic>),
+                default,
                 ImmutableArray<SemanticEdit>.Empty,
                 exceptionRegionsOpt,
                 ImmutableArray<LineChange>.Empty,
@@ -174,9 +167,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return new DocumentAnalysisResults(
                 activeStatements,
                 rudeEdits,
-                default(ImmutableArray<SemanticEdit>),
-                default(ImmutableArray<ImmutableArray<LinePositionSpan>>),
-                default(ImmutableArray<LineChange>),
+                default,
+                default,
+                default,
                 hasSemanticErrors);
         }
 

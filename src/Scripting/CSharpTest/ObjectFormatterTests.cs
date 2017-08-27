@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests;
@@ -89,26 +90,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         [Fact]
         public void DebuggerDisplay_ParseSimpleMemberName()
         {
-            Test_ParseSimpleMemberName("foo", name: "foo", callable: false, nq: false);
-            Test_ParseSimpleMemberName("foo  ", name: "foo", callable: false, nq: false);
-            Test_ParseSimpleMemberName("   foo", name: "foo", callable: false, nq: false);
-            Test_ParseSimpleMemberName("   foo   ", name: "foo", callable: false, nq: false);
+            Test_ParseSimpleMemberName("goo", name: "goo", callable: false, nq: false);
+            Test_ParseSimpleMemberName("goo  ", name: "goo", callable: false, nq: false);
+            Test_ParseSimpleMemberName("   goo", name: "goo", callable: false, nq: false);
+            Test_ParseSimpleMemberName("   goo   ", name: "goo", callable: false, nq: false);
 
-            Test_ParseSimpleMemberName("foo()", name: "foo", callable: true, nq: false);
-            Test_ParseSimpleMemberName("\nfoo (\r\n)", name: "foo", callable: true, nq: false);
-            Test_ParseSimpleMemberName(" foo ( \t) ", name: "foo", callable: true, nq: false);
+            Test_ParseSimpleMemberName("goo()", name: "goo", callable: true, nq: false);
+            Test_ParseSimpleMemberName("\ngoo (\r\n)", name: "goo", callable: true, nq: false);
+            Test_ParseSimpleMemberName(" goo ( \t) ", name: "goo", callable: true, nq: false);
 
-            Test_ParseSimpleMemberName("foo,nq", name: "foo", callable: false, nq: true);
-            Test_ParseSimpleMemberName("foo  ,nq", name: "foo", callable: false, nq: true);
-            Test_ParseSimpleMemberName("foo(),nq", name: "foo", callable: true, nq: true);
-            Test_ParseSimpleMemberName("  foo \t( )   ,nq", name: "foo", callable: true, nq: true);
-            Test_ParseSimpleMemberName("  foo \t( )   , nq", name: "foo", callable: true, nq: true);
+            Test_ParseSimpleMemberName("goo,nq", name: "goo", callable: false, nq: true);
+            Test_ParseSimpleMemberName("goo  ,nq", name: "goo", callable: false, nq: true);
+            Test_ParseSimpleMemberName("goo(),nq", name: "goo", callable: true, nq: true);
+            Test_ParseSimpleMemberName("  goo \t( )   ,nq", name: "goo", callable: true, nq: true);
+            Test_ParseSimpleMemberName("  goo \t( )   , nq", name: "goo", callable: true, nq: true);
 
-            Test_ParseSimpleMemberName("foo,  nq", name: "foo", callable: false, nq: true);
-            Test_ParseSimpleMemberName("foo(,nq", name: "foo(", callable: false, nq: true);
-            Test_ParseSimpleMemberName("foo),nq", name: "foo)", callable: false, nq: true);
-            Test_ParseSimpleMemberName("foo ( ,nq", name: "foo (", callable: false, nq: true);
-            Test_ParseSimpleMemberName("foo ) ,nq", name: "foo )", callable: false, nq: true);
+            Test_ParseSimpleMemberName("goo,  nq", name: "goo", callable: false, nq: true);
+            Test_ParseSimpleMemberName("goo(,nq", name: "goo(", callable: false, nq: true);
+            Test_ParseSimpleMemberName("goo),nq", name: "goo)", callable: false, nq: true);
+            Test_ParseSimpleMemberName("goo ( ,nq", name: "goo (", callable: false, nq: true);
+            Test_ParseSimpleMemberName("goo ) ,nq", name: "goo )", callable: false, nq: true);
 
             Test_ParseSimpleMemberName(",nq", name: "", callable: false, nq: true);
             Test_ParseSimpleMemberName("  ,nq", name: "", callable: false, nq: true);
@@ -342,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             Assert.Equal("LongMembers { LongNa...", str);
 
             str = new TestCSharpObjectFormatter(maximumLineLength: 20).FormatObject(obj, SeparateLinesOptions);
-            Assert.Equal("LongMembers {\r\n  LongName0123456789...\r\n  LongValue: \"012345...\r\n}\r\n", str);
+            Assert.Equal($"LongMembers {{{Environment.NewLine}  LongName0123456789...{Environment.NewLine}  LongValue: \"012345...{Environment.NewLine}}}{Environment.NewLine}", str);
         }
 
         [Fact]
@@ -418,7 +419,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
 
             obj = Enumerable.Range(0, 10);
             str = s_formatter.FormatObject(obj, SingleLineOptions);
-            Assert.Equal("RangeIterator { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }", str);
+
+            // the implementation differs between .NET Core and .NET FX
+            if (str.StartsWith("Enumerable"))
+            {
+                Assert.Equal("Enumerable.RangeIterator { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }", str);
+            }
+            else
+            {
+                Assert.Equal("RangeIterator { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }", str);
+            }
         }
 
         [Fact]
@@ -666,7 +676,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             Assert.Equal("ReadOnlyCollection<int>(3) { 1, 2, 3 }", str);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void DebuggerProxy_FrameworkTypes_Lazy()
         {
             var obj = new Lazy<int[]>(() => new int[] { 1, 2 }, LazyThreadSafetyMode.None);
@@ -698,7 +708,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             );
         }
 
-        public void TaskMethod()
+        private void TaskMethod()
         {
         }
 
@@ -744,17 +754,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         {
             var obj = new DiagnosticBag();
             obj.Add(new DiagnosticInfo(MessageProvider.Instance, (int)ErrorCode.ERR_AbstractAndExtern, "bar"), NoLocation.Singleton);
-            obj.Add(new DiagnosticInfo(MessageProvider.Instance, (int)ErrorCode.ERR_BadExternIdentifier, "foo"), NoLocation.Singleton);
+            obj.Add(new DiagnosticInfo(MessageProvider.Instance, (int)ErrorCode.ERR_BadExternIdentifier, "goo"), NoLocation.Singleton);
 
             using (new EnsureEnglishUICulture())
             {
                 var str = s_formatter.FormatObject(obj, SingleLineOptions);
-                Assert.Equal("DiagnosticBag(Count = 2) { =error CS0180: 'bar' cannot be both extern and abstract, =error CS1679: Invalid extern alias for '/reference'; 'foo' is not a valid identifier }", str);
+                Assert.Equal("DiagnosticBag(Count = 2) { =error CS0180: 'bar' cannot be both extern and abstract, =error CS1679: Invalid extern alias for '/reference'; 'goo' is not a valid identifier }", str);
 
                 str = s_formatter.FormatObject(obj, SeparateLinesOptions);
                 AssertMembers(str, "DiagnosticBag(Count = 2)",
                      ": error CS0180: 'bar' cannot be both extern and abstract",
-                     ": error CS1679: Invalid extern alias for '/reference'; 'foo' is not a valid identifier"
+                     ": error CS1679: Invalid extern alias for '/reference'; 'goo' is not a valid identifier"
                 );
             }
         }
@@ -825,7 +835,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_NonGeneric()
         {
             try
@@ -837,7 +849,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
                 const string filePath = @"z:\Fixture.cs";
 
                 var expected =
-$@"Exception of type 'System.Exception' was thrown.
+$@"{new Exception().Message}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture.Method(){string.Format(ScriptingResources.AtFileLine, filePath, 10006)}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_NonGeneric(){string.Format(ScriptingResources.AtFileLine, filePath, 10036)}
 ";
@@ -846,7 +858,9 @@ $@"Exception of type 'System.Exception' was thrown.
             }
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericMethod()
         {
             try
@@ -859,7 +873,7 @@ $@"Exception of type 'System.Exception' was thrown.
 
                 // TODO (DevDiv #173210): Should show Fixture.Method<char>
                 var expected =
-$@"Exception of type 'System.Exception' was thrown.
+$@"{new Exception().Message}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture.Method<U>(){string.Format(ScriptingResources.AtFileLine, filePath, 10012)}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericMethod(){string.Format(ScriptingResources.AtFileLine, filePath, 10057)}
 ";
@@ -868,7 +882,9 @@ $@"Exception of type 'System.Exception' was thrown.
             }
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericType()
         {
             try
@@ -881,7 +897,7 @@ $@"Exception of type 'System.Exception' was thrown.
 
                 // TODO (DevDiv #173210): Should show Fixture<int>.Method
                 var expected =
-$@"Exception of type 'System.Exception' was thrown.
+$@"{new Exception().Message}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture<T>.Method(){string.Format(ScriptingResources.AtFileLine, filePath, 10021)}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericType(){string.Format(ScriptingResources.AtFileLine, filePath, 10079)}
 ";
@@ -890,7 +906,9 @@ $@"Exception of type 'System.Exception' was thrown.
             }
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericMethodInGenericType()
         {
             try
@@ -903,7 +921,7 @@ $@"Exception of type 'System.Exception' was thrown.
 
                 // TODO (DevDiv #173210): Should show Fixture<int>.Method<char>
                 var expected =
-$@"Exception of type 'System.Exception' was thrown.
+$@"{new Exception().Message}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture<T>.Method<U>(){string.Format(ScriptingResources.AtFileLine, filePath, 10027)}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericMethodInGenericType(){string.Format(ScriptingResources.AtFileLine, filePath, 10101)}
 ";
@@ -922,6 +940,7 @@ $@"Exception of type 'System.Exception' was thrown.
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9221"), WorkItem(9221, "https://github.com/dotnet/roslyn/issues/9221")]
+        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_Dynamic()
         {
             try
@@ -959,7 +978,9 @@ $@"'object' does not contain a definition for 'x'
             }
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_RefOutParameters()
         {
             try
@@ -973,7 +994,7 @@ $@"'object' does not contain a definition for 'x'
                 const string filePath = @"z:\Fixture.cs";
 
                 var expected =
-$@"Exception of type 'System.Exception' was thrown.
+$@"{new Exception().Message}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.ParametersFixture.Method(ref char, out System.DateTime){string.Format(ScriptingResources.AtFileLine, filePath, 10155)}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_RefOutParameters(){string.Format(ScriptingResources.AtFileLine, filePath, 10172)}
 ";
@@ -982,7 +1003,9 @@ $@"Exception of type 'System.Exception' was thrown.
             }
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericRefParameter()
         {
             try
@@ -996,7 +1019,7 @@ $@"Exception of type 'System.Exception' was thrown.
 
                 // TODO (DevDiv #173210): Should show ParametersFixture.Method<char>(ref char)
                 var expected =
-$@"Exception of type 'System.Exception' was thrown.
+$@"{new Exception().Message}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.ParametersFixture.Method<U>(ref U){string.Format(ScriptingResources.AtFileLine, filePath, 10161)}
   + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericRefParameter(){string.Format(ScriptingResources.AtFileLine, filePath, 10194)}
 ";

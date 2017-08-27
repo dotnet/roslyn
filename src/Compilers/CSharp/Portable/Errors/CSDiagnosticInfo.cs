@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ImmutableArray<Location> _additionalLocations;
 
         internal CSDiagnosticInfo(ErrorCode code)
-            : this(code, SpecializedCollections.EmptyArray<object>(), ImmutableArray<Symbol>.Empty, ImmutableArray<Location>.Empty)
+            : this(code, Array.Empty<object>(), ImmutableArray<Symbol>.Empty, ImmutableArray<Location>.Empty)
         {
         }
 

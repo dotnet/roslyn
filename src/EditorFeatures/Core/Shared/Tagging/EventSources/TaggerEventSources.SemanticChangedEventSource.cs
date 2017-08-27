@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using System.Threading;
@@ -48,7 +48,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             {
                 // Whenever this subject buffer has changed, we always consider that to be a 
                 // semantic change.
-                this.RaiseChanged();
+                if (e.Changes.Any())
+                {
+                    RaiseChanged();
+                }
             }
 
             private void OnOpenedDocumentSemanticChanged(object sender, Document document)

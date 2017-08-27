@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -65,11 +66,6 @@ namespace Microsoft.CodeAnalysis
         protected TypeSymbol GetMDArrayTypeSymbol(int rank, TypeSymbol elementType, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers, ImmutableArray<int> sizes, ImmutableArray<int> lowerBounds)
         {
             return _factory.GetMDArrayTypeSymbol(this.moduleSymbol, rank, elementType, customModifiers, sizes, lowerBounds);
-        }
-
-        protected TypeSymbol GetByRefReturnTypeSymbol(TypeSymbol referencedType, ushort countOfCustomModifiersPrecedingByRef)
-        {
-            return _factory.GetByRefReturnTypeSymbol(this.moduleSymbol, referencedType, countOfCustomModifiersPrecedingByRef);
         }
 
         protected TypeSymbol MakePointerTypeSymbol(TypeSymbol type, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
@@ -208,8 +204,8 @@ namespace Microsoft.CodeAnalysis
             {
                 foreach (int rank in fullName.ArrayRanks)
                 {
-                    Debug.Assert(rank > 0);
-                    container = rank == 1 ?
+                    Debug.Assert(rank >= 0);
+                    container = rank == 0 ?
                                 GetSZArrayTypeSymbol(container, default(ImmutableArray<ModifierInfo<TypeSymbol>>)) :
                                 GetMDArrayTypeSymbol(rank, container, default(ImmutableArray<ModifierInfo<TypeSymbol>>), ImmutableArray<int>.Empty, default(ImmutableArray<int>));
                 }

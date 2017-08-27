@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -30,7 +31,7 @@ static class S2
 {
     internal static void E<T, U>(this T t, U u) { }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var sourceModule = compilation.SourceModule;
             var sourceAssembly = (SourceAssemblySymbol)sourceModule.ContainingAssembly;
@@ -101,7 +102,7 @@ class C
         set { }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var sourceModule = compilation.SourceModule;
             var sourceAssembly = (SourceAssemblySymbol)sourceModule.ContainingAssembly;
@@ -134,7 +135,7 @@ class C
     [MarshalAs(UnmanagedType.SafeArray, SafeArraySubType = VarEnum.VT_DISPATCH, SafeArrayUserDefinedSubType = typeof(D))]
     internal int F2;
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var sourceModule = compilation.SourceModule;
             var sourceAssembly = (SourceAssemblySymbol)sourceModule.ContainingAssembly;
@@ -168,7 +169,7 @@ class C
         return 1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var sourceModule = compilation.SourceModule;
             var sourceAssembly = (SourceAssemblySymbol)sourceModule.ContainingAssembly;
@@ -204,7 +205,7 @@ struct S<T> where T : struct
 }
 delegate T D<T>() where T : I<T>;";
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var sourceModule = compilation.SourceModule;
             var sourceAssembly = (SourceAssemblySymbol)sourceModule.ContainingAssembly;
@@ -235,8 +236,8 @@ delegate T D<T>() where T : I<T>;";
 public class A
 {
 }";
-            var compilation1_v1 = CreateCompilationWithMscorlib(source1, assemblyName: "assembly1");
-            var compilation1_v2 = CreateCompilationWithMscorlib(source1, assemblyName: "assembly1");
+            var compilation1_v1 = CreateStandardCompilation(source1, assemblyName: "assembly1");
+            var compilation1_v2 = CreateStandardCompilation(source1, assemblyName: "assembly1");
 
             var source2 =
 @"class B : I<A>
@@ -253,11 +254,11 @@ class C<CT> : I<CT>
     I<CT> I<CT>.P { get { return null; } }
 }
 ";
-            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { new CSharpCompilationReference(compilation1_v1) }, assemblyName: "assembly2");
+            var compilation2 = CreateStandardCompilation(source2, new[] { new CSharpCompilationReference(compilation1_v1) }, assemblyName: "assembly2");
 
             var compilation2Ref = new CSharpCompilationReference(compilation2);
 
-            var compilation3 = CreateCompilationWithMscorlib("", new[] { compilation2Ref, new CSharpCompilationReference(compilation1_v2) }, assemblyName: "assembly3");
+            var compilation3 = CreateStandardCompilation("", new[] { compilation2Ref, new CSharpCompilationReference(compilation1_v2) }, assemblyName: "assembly3");
 
             var assembly2 = compilation3.GetReferencedAssemblySymbol(compilation2Ref);
             MethodSymbol implemented_m;
@@ -398,7 +399,7 @@ public enum E : short
 public class Test : short { }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (2,14): error CS0509: 'Test': cannot derive from sealed type 'short'
                 // public class Test : short { }
@@ -453,7 +454,7 @@ public class Test : short { }
 public struct Test : short { }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (2,22): error CS0527: Type 'short' in interface list is not an interface
                 // public struct Test : short { }
@@ -514,7 +515,7 @@ public struct Test : short { }
 public interface Test : short { }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (2,25): error CS0527: Type 'short' in interface list is not an interface
                 // public interface Test : short { }
@@ -573,7 +574,7 @@ public class C<T> where T : int
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (2,29): error CS0701: 'int' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
                 // public class C<T> where T : int
@@ -650,7 +651,7 @@ public class C<T> where T : int
             Assert.Equal(source == null, retargeting == null);
             if (source != null)
             {
-                var sourceMethod = (SourceMethodSymbol)source;
+                var sourceMethod = (SourceMemberMethodSymbol)source;
                 var retargetingMethod = (RetargetingMethodSymbol)retargeting;
                 CheckUnderlyingMember(sourceMethod, retargetingMethod.UnderlyingMethod);
                 CheckParameters(sourceMethod.Parameters, retargetingMethod.Parameters);

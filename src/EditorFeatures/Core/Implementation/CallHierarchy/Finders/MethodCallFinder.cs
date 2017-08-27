@@ -22,17 +22,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
         {
             get
             {
-                return string.Format(EditorFeaturesResources.CallsTo, SymbolName);
+                return string.Format(EditorFeaturesResources.Calls_To_0, SymbolName);
             }
         }
 
-        public override string SearchCategory
-        {
-            get
-            {
-                return CallHierarchyPredefinedSearchCategoryNames.Callers;
-            }
-        }
+        public override string SearchCategory => CallHierarchyPredefinedSearchCategoryNames.Callers;
 
         protected override async Task<IEnumerable<SymbolCallerInfo>> GetCallers(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
         {

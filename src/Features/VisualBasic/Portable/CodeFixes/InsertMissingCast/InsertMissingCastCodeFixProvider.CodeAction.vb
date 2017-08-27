@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.InsertMissingCast
 
             Public Overrides ReadOnly Property Title As String
                 Get
-                    Return VBFeaturesResources.InsertMissingCast
+                    Return VBFeaturesResources.Insert_Missing_Cast
                 End Get
             End Property
 

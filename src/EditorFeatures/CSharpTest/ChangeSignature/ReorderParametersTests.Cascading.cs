@@ -40,6 +40,36 @@ class C : I
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task ReorderParameters_Cascade_ToImplementedMethod_WithTuples()
+        {
+            var markup = @"
+interface I
+{
+    void M((int, int) x, (string a, string b) y);
+}
+
+class C : I
+{
+    $$public void M((int, int) x, (string a, string b) y)
+    { }
+}";
+            var permutation = new[] { 1, 0 };
+            var updatedCode = @"
+interface I
+{
+    void M((string a, string b) y, (int, int) x);
+}
+
+class C : I
+{
+    public void M((string a, string b) y, (int, int) x)
+    { }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ReorderParameters_Cascade_ToImplementingMethod()
         {
             var markup = @"

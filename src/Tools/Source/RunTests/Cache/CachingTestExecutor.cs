@@ -30,7 +30,31 @@ namespace RunTests.Cache
 
         public async Task<TestResult> RunTestAsync(AssemblyInfo assemblyInfo, CancellationToken cancellationToken)
         {
-            var contentFile = _contentUtil.GetTestResultContentFile(assemblyInfo);
+            ContentFile contentFile;
+            try
+            {
+                contentFile = _contentUtil.GetTestResultContentFile(assemblyInfo);
+            }
+            catch (Exception ex)
+            {
+                var msg = $"Unable to calculate content file for {assemblyInfo.AssemblyPath}";
+                Logger.LogError(ex, msg + Environment.NewLine + ex.Message);
+                contentFile = null;
+
+                var testResult = await _testExecutor.RunTestAsync(assemblyInfo, cancellationToken);
+                return new TestResult(
+                    testResult.AssemblyInfo,
+                    testResult.TestResultInfo,
+                    testResult.CommandLine,
+                    isFromCache: false,
+                    diagnostics: msg);
+            }
+
+            return await RunTestWithCachingAsync(assemblyInfo, contentFile, cancellationToken);
+        }
+
+        private async Task<TestResult> RunTestWithCachingAsync(AssemblyInfo assemblyInfo, ContentFile contentFile, CancellationToken cancellationToken)
+        {
             var assemblyPath = assemblyInfo.AssemblyPath;
             var builder = new StringBuilder();
             builder.AppendLine($"{Path.GetFileName(assemblyPath)} - {contentFile.Checksum}");
@@ -69,18 +93,20 @@ namespace RunTests.Cache
             FileUtil.EnsureDirectory(resultsDir);
             var resultsFilePath = Path.Combine(resultsDir, assemblyInfo.ResultsFileName);
             File.WriteAllText(resultsFilePath, cachedTestResult.ResultsFileContent);
-            var commandLine = _testExecutor.GetCommandLine(assemblyInfo);
-
-            return new TestResult(
+            var testResultInfo = new TestResultInfo(
                 exitCode: cachedTestResult.ExitCode,
-                assemblyInfo: assemblyInfo,
-                resultDir: resultsDir,
+                resultsDirectory: resultsDir,
                 resultsFilePath: resultsFilePath,
-                commandLine: commandLine,
                 elapsed: TimeSpan.FromMilliseconds(0),
                 standardOutput: cachedTestResult.StandardOutput,
-                errorOutput: cachedTestResult.ErrorOutput,
-                isResultFromCache: true);
+                errorOutput: cachedTestResult.ErrorOutput);
+
+            var commandLine = _testExecutor.GetCommandLine(assemblyInfo);
+            return new TestResult(
+                assemblyInfo,
+                testResultInfo,
+                commandLine,
+                isFromCache: true);
         }
 
         private async Task CacheTestResult(ContentFile contentFile, TestResult testResult)
@@ -98,7 +124,7 @@ namespace RunTests.Cache
             }
             catch (Exception ex)
             {
-                Logger.Log($"Failed to create cached {ex}");
+                Logger.Log("Failed to create cached", ex);
             }
         }
     }

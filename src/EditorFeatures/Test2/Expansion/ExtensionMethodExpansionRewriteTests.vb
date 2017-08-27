@@ -1,9 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
     Public Class ExtensionMethodExpansionRewriteTests
@@ -21,13 +18,13 @@ Imports System.Runtime.CompilerServices
 Public Class Program
     Public Sub Main(args As String())
         Dim p As Program = Nothing
-        Dim ss = {|Expand:p.foo()|}
+        Dim ss = {|Expand:p.goo()|}
     End Sub
 End Class
 
 Module ProgramExtensions
     &lt;Extension()&gt;
-    Public Function foo(ByVal Prog As Program) As Program
+    Public Function goo(ByVal Prog As Program) As Program
         Return Prog
     End Function
 End Module
@@ -42,13 +39,13 @@ Imports System.Runtime.CompilerServices
 Public Class Program
     Public Sub Main(args As String())
         Dim p As Program = Nothing
-        Dim ss = Global.ProgramExtensions.foo((CType((p), Global.Program)))
+        Dim ss = Global.ProgramExtensions.goo((CType((p), Global.Program)))
     End Sub
 End Class
 
 Module ProgramExtensions
     &lt;Extension()&gt;
-    Public Function foo(ByVal Prog As Program) As Program
+    Public Function goo(ByVal Prog As Program) As Program
         Return Prog
     End Function
 End Module
@@ -68,13 +65,13 @@ Imports System.Runtime.CompilerServices
 Public Class Program
     Public Sub Main(args As String())
         Dim p As Program = Nothing
-        Dim ss = {|Expand:p.foo("")|}
+        Dim ss = {|Expand:p.goo("")|}
     End Sub
 End Class
 
 Module ProgramExtensions
     &lt;Extension()&gt;
-    Public Function foo(ByVal Prog As Program, str as string) As Program
+    Public Function goo(ByVal Prog As Program, str as string) As Program
         Return Prog
     End Function
 End Module
@@ -89,13 +86,13 @@ Imports System.Runtime.CompilerServices
 Public Class Program
     Public Sub Main(args As String())
         Dim p As Program = Nothing
-        Dim ss = Global.ProgramExtensions.foo((CType((p), Global.Program)), (CType((""), System.String)))
+        Dim ss = Global.ProgramExtensions.goo((CType((p), Global.Program)), (CType((""), System.String)))
     End Sub
 End Class
 
 Module ProgramExtensions
     &lt;Extension()&gt;
-    Public Function foo(ByVal Prog As Program, str as string) As Program
+    Public Function goo(ByVal Prog As Program, str as string) As Program
         Return Prog
     End Function
 End Module
@@ -115,13 +112,13 @@ Imports System.Runtime.CompilerServices
 Public Class Program
     Public Sub Main(args As String())
         Dim p As Program = Nothing
-        Dim ss = {|Expand:p.foo().foo()|}
+        Dim ss = {|Expand:p.goo().goo()|}
     End Sub
 End Class
 
 Module ProgramExtensions
     &lt;Extension()&gt;
-    Public Function foo(ByVal Prog As Program) As Program
+    Public Function goo(ByVal Prog As Program) As Program
         Return Prog
     End Function
 End Module
@@ -136,13 +133,13 @@ Imports System.Runtime.CompilerServices
 Public Class Program
     Public Sub Main(args As String())
         Dim p As Program = Nothing
-        Dim ss = Global.ProgramExtensions.foo((CType((Global.ProgramExtensions.foo((CType((p), Global.Program)))), Global.Program)))
+        Dim ss = Global.ProgramExtensions.goo((CType((Global.ProgramExtensions.goo((CType((p), Global.Program)))), Global.Program)))
     End Sub
 End Class
 
 Module ProgramExtensions
     &lt;Extension()&gt;
-    Public Function foo(ByVal Prog As Program) As Program
+    Public Function goo(ByVal Prog As Program) As Program
         Return Prog
     End Function
 End Module
@@ -162,13 +159,13 @@ Imports System.Runtime.CompilerServices
 Public Class Program
     Public Sub Main(args As String())
         Dim p As Program = Nothing
-        Dim ss = {|Expand:p.foo("").foo("")|}
+        Dim ss = {|Expand:p.goo("").goo("")|}
     End Sub
 End Class
 
 Module ProgramExtensions
     &lt;Extension()&gt;
-    Public Function foo(ByVal Prog As Program, str as string) As Program
+    Public Function goo(ByVal Prog As Program, str as string) As Program
         Return Prog
     End Function
 End Module
@@ -183,13 +180,13 @@ Imports System.Runtime.CompilerServices
 Public Class Program
     Public Sub Main(args As String())
         Dim p As Program = Nothing
-        Dim ss = Global.ProgramExtensions.foo((CType((Global.ProgramExtensions.foo((CType((p), Global.Program)), (CType((""), System.String)))), Global.Program)), (CType((""), System.String)))
+        Dim ss = Global.ProgramExtensions.goo((CType((Global.ProgramExtensions.goo((CType((p), Global.Program)), (CType((""), System.String)))), Global.Program)), (CType((""), System.String)))
     End Sub
 End Class
 
 Module ProgramExtensions
     &lt;Extension()&gt;
-    Public Function foo(ByVal Prog As Program, str as string) As Program
+    Public Function goo(ByVal Prog As Program, str as string) As Program
         Return Prog
     End Function
 End Module
@@ -209,13 +206,13 @@ Imports System.Runtime.CompilerServices
 Public Class Program
     Public Sub Main(args As String())
         Dim p As Program = Nothing
-        Dim ss = {|Expand:p.foo("","","").foo("","","")|}
+        Dim ss = {|Expand:p.goo("","","").goo("","","")|}
     End Sub
 End Class
 
 Module ProgramExtensions
     &lt;Extension()&gt;
-    Public Function foo(ByVal Prog As Program, str as string, str1 as string, str2 as string) As Program
+    Public Function goo(ByVal Prog As Program, str as string, str1 as string, str2 as string) As Program
         Return Prog
     End Function
 End Module
@@ -230,13 +227,13 @@ Imports System.Runtime.CompilerServices
 Public Class Program
     Public Sub Main(args As String())
         Dim p As Program = Nothing
-        Dim ss = Global.ProgramExtensions.foo((CType((Global.ProgramExtensions.foo((CType((p), Global.Program)), (CType((""), System.String)), (CType((""), System.String)), (CType((""), System.String)))), Global.Program)), (CType((""), System.String)), (CType((""), System.String)), (CType((""), System.String)))
+        Dim ss = Global.ProgramExtensions.goo((CType((Global.ProgramExtensions.goo((CType((p), Global.Program)), (CType((""), System.String)), (CType((""), System.String)), (CType((""), System.String)))), Global.Program)), (CType((""), System.String)), (CType((""), System.String)), (CType((""), System.String)))
     End Sub
 End Class
 
 Module ProgramExtensions
     &lt;Extension()&gt;
-    Public Function foo(ByVal Prog As Program, str as string, str1 as string, str2 as string) As Program
+    Public Function goo(ByVal Prog As Program, str as string, str1 as string, str2 as string) As Program
         Return Prog
     End Function
 End Module
@@ -256,13 +253,13 @@ Imports System.Runtime.CompilerServices
 Public Class Program
     Public Sub Main(args As String())
         Dim p As Program = Nothing
-        Dim ss = {|ExpandAndSimplify:p.foo()|}
+        Dim ss = {|ExpandAndSimplify:p.goo()|}
     End Sub
 End Class
 
 Module ProgramExtensions
     &lt;Extension()&gt;
-    Public Function foo(ByVal Prog As Program) As Program
+    Public Function goo(ByVal Prog As Program) As Program
         Return Prog
     End Function
 End Module
@@ -277,13 +274,13 @@ Imports System.Runtime.CompilerServices
 Public Class Program
     Public Sub Main(args As String())
         Dim p As Program = Nothing
-        Dim ss = p.foo()
+        Dim ss = p.goo()
     End Sub
 End Class
 
 Module ProgramExtensions
     &lt;Extension()&gt;
-    Public Function foo(ByVal Prog As Program) As Program
+    Public Function goo(ByVal Prog As Program) As Program
         Return Prog
     End Function
 End Module
@@ -303,13 +300,13 @@ Imports System.Runtime.CompilerServices
 Public Class Program
     Public Sub Main(args As String())
         Dim p As Program = Nothing
-        Dim ss = {|ExpandAndSimplify:p.foo("","","").foo("","","")|}
+        Dim ss = {|ExpandAndSimplify:p.goo("","","").goo("","","")|}
     End Sub
 End Class
 
 Module ProgramExtensions
     &lt;Extension()&gt;
-    Public Function foo(ByVal Prog As Program, str as string, str1 as string, str2 as string) As Program
+    Public Function goo(ByVal Prog As Program, str as string, str1 as string, str2 as string) As Program
         Return Prog
     End Function
 End Module
@@ -324,13 +321,13 @@ Imports System.Runtime.CompilerServices
 Public Class Program
     Public Sub Main(args As String())
         Dim p As Program = Nothing
-        Dim ss = p.foo("", "", "").foo("", "", "")
+        Dim ss = p.goo("", "", "").goo("", "", "")
     End Sub
 End Class
 
 Module ProgramExtensions
     &lt;Extension()&gt;
-    Public Function foo(ByVal Prog As Program, str as string, str1 as string, str2 as string) As Program
+    Public Function goo(ByVal Prog As Program, str as string, str1 as string, str2 as string) As Program
         Return Prog
     End Function
 End Module
@@ -349,7 +346,7 @@ Imports System.Runtime.CompilerServices
 
 Public Class Program
     Public Sub Main(args As String())
-        Dim ss = {|ExpandAndSimplify:staticer.statP.foo("", "", "").foo("", "", "")|}
+        Dim ss = {|ExpandAndSimplify:staticer.statP.goo("", "", "").goo("", "", "")|}
     End Sub
 End Class
 
@@ -359,7 +356,7 @@ End Class
 
 Module ProgramExtensions
     &lt;Extension()&gt;
-    Public Function foo(ByVal Prog As Program, str As String, str1 As String, str2 As String) As Program
+    Public Function goo(ByVal Prog As Program, str As String, str1 As String, str2 As String) As Program
         Return Prog
     End Function
 End Module
@@ -373,7 +370,7 @@ Imports System.Runtime.CompilerServices
 
 Public Class Program
     Public Sub Main(args As String())
-        Dim ss = staticer.statP.foo("", "", "").foo("", "", "")
+        Dim ss = staticer.statP.goo("", "", "").goo("", "", "")
     End Sub
 End Class
 
@@ -383,7 +380,7 @@ End Class
 
 Module ProgramExtensions
     &lt;Extension()&gt;
-    Public Function foo(ByVal Prog As Program, str As String, str1 As String, str2 As String) As Program
+    Public Function goo(ByVal Prog As Program, str As String, str1 As String, str2 As String) As Program
         Return Prog
     End Function
 End Module
@@ -713,13 +710,13 @@ public class Program
     static void Main(string[] args)
     {
         Program ss = null;
-        Program s = {|Expand:ss.foo()|};
+        Program s = {|Expand:ss.goo()|};
     }
 }
 
 public static class ProgramExtensions
 {
-    public static Program foo(this Program p)
+    public static Program goo(this Program p)
     {
         return p;
     }
@@ -735,13 +732,13 @@ public class Program
     static void Main(string[] args)
     {
         Program ss = null;
-        Program s = global::ProgramExtensions.foo(ss);
+        Program s = global::ProgramExtensions.goo(ss);
     }
 }
 
 public static class ProgramExtensions
 {
-    public static Program foo(this Program p)
+    public static Program goo(this Program p)
     {
         return p;
     }
@@ -763,13 +760,13 @@ public class Program
     {
         Program ss = null;
         Second sec = null;
-        Program s = {|Expand:ss.foo(sec)|};
+        Program s = {|Expand:ss.goo(sec)|};
     }
 }
 
 public static class ProgramExtensions
 {
-    public static Program foo(this Program p, Second s)
+    public static Program goo(this Program p, Second s)
     {
         return p;
     }
@@ -790,13 +787,13 @@ public class Program
     {
         Program ss = null;
         Second sec = null;
-        Program s = global::ProgramExtensions.foo(ss, (global::Second)(sec));
+        Program s = global::ProgramExtensions.goo(ss, (global::Second)(sec));
     }
 }
 
 public static class ProgramExtensions
 {
-    public static Program foo(this Program p, Second s)
+    public static Program goo(this Program p, Second s)
     {
         return p;
     }
@@ -821,13 +818,13 @@ public class Program
     static void Main(string[] args)
     {
         Program ss = null;
-        Program sss = {|Expand:ss.foo().foo()|};
+        Program sss = {|Expand:ss.goo().goo()|};
     }
 }
 
 public static class ProgramExtensions
 {
-    public static Program foo(this Program p)
+    public static Program goo(this Program p)
     {
         return p;
     }
@@ -843,13 +840,13 @@ public class Program
     static void Main(string[] args)
     {
         Program ss = null;
-        Program sss = global::ProgramExtensions.foo(global::ProgramExtensions.foo(ss));
+        Program sss = global::ProgramExtensions.goo(global::ProgramExtensions.goo(ss));
     }
 }
 
 public static class ProgramExtensions
 {
-    public static Program foo(this Program p)
+    public static Program goo(this Program p)
     {
         return p;
     }
@@ -871,13 +868,13 @@ public class Program
     {
         Program ss = null;
         Second sec = null;
-        Program s = {|Expand:ss.foo(sec).foo(sec)|};
+        Program s = {|Expand:ss.goo(sec).goo(sec)|};
     }
 }
 
 public static class ProgramExtensions
 {
-    public static Program foo(this Program p, Second s)
+    public static Program goo(this Program p, Second s)
     {
         return p;
     }
@@ -898,13 +895,13 @@ public class Program
     {
         Program ss = null;
         Second sec = null;
-        Program s = global::ProgramExtensions.foo(global::ProgramExtensions.foo(ss, (global::Second)(sec)), (global::Second)(sec));
+        Program s = global::ProgramExtensions.goo(global::ProgramExtensions.goo(ss, (global::Second)(sec)), (global::Second)(sec));
     }
 }
 
 public static class ProgramExtensions
 {
-    public static Program foo(this Program p, Second s)
+    public static Program goo(this Program p, Second s)
     {
         return p;
     }
@@ -930,13 +927,13 @@ public class Program
     {
         Program ss = null;
         Second sec = null;
-        Program s = {|Expand:ss.foo(sec, sec, sec).foo(sec, sec, sec)|};
+        Program s = {|Expand:ss.goo(sec, sec, sec).goo(sec, sec, sec)|};
     }
 }
 
 public static class ProgramExtensions
 {
-    public static Program foo(this Program p, Second s, Second ss, Second sss)
+    public static Program goo(this Program p, Second s, Second ss, Second sss)
     {
         return p;
     }
@@ -957,13 +954,13 @@ public class Program
     {
         Program ss = null;
         Second sec = null;
-        Program s = global::ProgramExtensions.foo(global::ProgramExtensions.foo(ss, (global::Second)(sec), (global::Second)(sec), (global::Second)(sec)), (global::Second)(sec), (global::Second)(sec), (global::Second)(sec));
+        Program s = global::ProgramExtensions.goo(global::ProgramExtensions.goo(ss, (global::Second)(sec), (global::Second)(sec), (global::Second)(sec)), (global::Second)(sec), (global::Second)(sec), (global::Second)(sec));
     }
 }
 
 public static class ProgramExtensions
 {
-    public static Program foo(this Program p, Second s, Second ss, Second sss)
+    public static Program goo(this Program p, Second s, Second ss, Second sss)
     {
         return p;
     }
@@ -988,13 +985,13 @@ public class Program
     static void Main(string[] args)
     {
         Program ss = null;
-        Program s = {|ExpandAndSimplify:ss.foo()|};
+        Program s = {|ExpandAndSimplify:ss.goo()|};
     }
 }
 
 public static class ProgramExtensions
 {
-    public static Program foo(this Program p)
+    public static Program goo(this Program p)
     {
         return p;
     }
@@ -1010,13 +1007,13 @@ public class Program
     static void Main(string[] args)
     {
         Program ss = null;
-        Program s = ss.foo();
+        Program s = ss.goo();
     }
 }
 
 public static class ProgramExtensions
 {
-    public static Program foo(this Program p)
+    public static Program goo(this Program p)
     {
         return p;
     }
@@ -1038,13 +1035,13 @@ public class Program
     {
         Program ss = null;
         Second sec = null;
-        Program s = {|ExpandAndSimplify:ss.foo(sec, sec, sec).foo(sec, sec, sec)|};
+        Program s = {|ExpandAndSimplify:ss.goo(sec, sec, sec).goo(sec, sec, sec)|};
     }
 }
 
 public static class ProgramExtensions
 {
-    public static Program foo(this Program p, Second s, Second ss, Second sss)
+    public static Program goo(this Program p, Second s, Second ss, Second sss)
     {
         return p;
     }
@@ -1065,13 +1062,13 @@ public class Program
     {
         Program ss = null;
         Second sec = null;
-        Program s = ss.foo(sec, sec, sec).foo(sec, sec, sec);
+        Program s = ss.goo(sec, sec, sec).goo(sec, sec, sec);
     }
 }
 
 public static class ProgramExtensions
 {
-    public static Program foo(this Program p, Second s, Second ss, Second sss)
+    public static Program goo(this Program p, Second s, Second ss, Second sss)
     {
         return p;
     }
@@ -1095,7 +1092,7 @@ public class Program
 {
     static void Main(string[] args)
     {
-        Program s = {|ExpandAndSimplify:starter.staticP.foo()|};
+        Program s = {|ExpandAndSimplify:starter.staticP.goo()|};
     }
 }
 
@@ -1106,7 +1103,7 @@ public class starter
 
 public static class ProgramExtensions
 {
-    public static Program foo(this Program p)
+    public static Program goo(this Program p)
     {
         return p;
     }
@@ -1121,7 +1118,7 @@ public class Program
 {
     static void Main(string[] args)
     {
-        Program s = starter.staticP.foo();
+        Program s = starter.staticP.goo();
     }
 }
 
@@ -1132,7 +1129,7 @@ public class starter
 
 public static class ProgramExtensions
 {
-    public static Program foo(this Program p)
+    public static Program goo(this Program p)
     {
         return p;
     }
@@ -1158,7 +1155,7 @@ public class Program
     }
 }
 
-public static class FooExtension
+public static class GooExtension
 {
     public static object DoStuff(this Program p, int i, int j, int k)
     {
@@ -1180,7 +1177,7 @@ public class Program
     }
 }
 
-public static class FooExtension
+public static class GooExtension
 {
     public static object DoStuff(this Program p, int i, int j, int k)
     {

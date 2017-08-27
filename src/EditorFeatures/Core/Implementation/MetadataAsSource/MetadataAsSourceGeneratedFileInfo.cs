@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -19,9 +19,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
 
         public readonly string TemporaryFilePath;
 
+        private readonly ParseOptions _parseOptions;
+
         public MetadataAsSourceGeneratedFileInfo(string rootPath, Project sourceProject, INamedTypeSymbol topLevelNamedType)
         {
             this.SourceProjectId = sourceProject.Id;
+            _parseOptions = sourceProject.ParseOptions;
             this.Workspace = sourceProject.Solution.Workspace;
             this.LanguageName = sourceProject.Language;
             this.References = sourceProject.MetadataReferences.ToImmutableArray();
@@ -33,10 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             this.TemporaryFilePath = Path.Combine(rootPath, directoryName, topLevelNamedType.Name + extension);
         }
 
-        public Encoding Encoding
-        {
-            get { return Encoding.UTF8; }
-        }
+        public Encoding Encoding => Encoding.UTF8;
 
         /// <summary>
         /// Creates a ProjectInfo to represent the fake project created for metadata as source documents.
@@ -82,6 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                 assemblyName: AssemblyIdentity.Name,
                 language: LanguageName,
                 compilationOptions: compilationOptions,
+                parseOptions: _parseOptions,
                 documents: new[] { assemblyInfoDocument, generatedDocument },
                 metadataReferences: References);
 

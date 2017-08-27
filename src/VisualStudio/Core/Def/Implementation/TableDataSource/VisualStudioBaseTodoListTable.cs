@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 PopulateInitialData(workspace, _todoListProvider);
             }
 
-            public override string DisplayName => ServicesVSResources.TodoTableSourceName;
+            public override string DisplayName => ServicesVSResources.CSharp_VB_Todo_List_Table_Data_Source;
             public override string SourceTypeIdentifier => StandardTableDataSources.CommentTableDataSource;
             public override string Identifier => _identifier;
             public override object GetItemKey(object data) => ((UpdatedEventArgs)data).DocumentId;

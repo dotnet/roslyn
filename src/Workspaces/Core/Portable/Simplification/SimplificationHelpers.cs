@@ -116,5 +116,15 @@ namespace Microsoft.CodeAnalysis.Simplification
 
             return true;
         }
+
+        internal static bool PreferPredefinedTypeKeywordInDeclarations(OptionSet optionSet, string language)
+        {
+            return optionSet.GetOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language).Value;
+        }
+
+        internal static bool PreferPredefinedTypeKeywordInMemberAccess(OptionSet optionSet, string language)
+        {
+            return optionSet.GetOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, language).Value;
+        }
     }
 }

@@ -15,6 +15,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Report a diagnostic, and also produce an error expression with error type.
         ''' </summary>
         Public Shared Function ReportDiagnosticAndProduceBadExpression(diagBag As DiagnosticBag,
+                                                                       syntax As VisualBasicSyntaxNode,
+                                                                       id As ERRID) As BoundExpression
+            Return ReportDiagnosticAndProduceBadExpression(diagBag, syntax, ErrorFactory.ErrorInfo(id))
+        End Function
+
+        ''' <summary>
+        ''' Report a diagnostic, and also produce an error expression with error type.
+        ''' </summary>
+        Public Shared Function ReportDiagnosticAndProduceBadExpression(diagBag As DiagnosticBag,
                                                                   syntax As VisualBasicSyntaxNode,
                                                                   id As ERRID,
                                                                   ParamArray args As Object()) As BoundExpression
@@ -27,9 +36,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function ReportDiagnosticAndProduceBadExpression(diagBag As DiagnosticBag,
                                                                   syntax As VisualBasicSyntaxNode,
                                                                   info As DiagnosticInfo,
-                                                                  ParamArray nodes As BoundNode()) As BoundExpression
+                                                                  ParamArray nodes As BoundExpression()) As BoundExpression
             Return BadExpression(syntax,
-                                 If(nodes.IsEmpty, ImmutableArray(Of BoundNode).Empty, ImmutableArray.Create(Of BoundNode)(nodes)),
+                                 If(nodes.IsEmpty, ImmutableArray(Of BoundExpression).Empty, ImmutableArray.Create(nodes)),
                                  ReportDiagnosticAndProduceErrorTypeSymbol(diagBag, syntax, info))
         End Function
 

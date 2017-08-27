@@ -7,11 +7,15 @@ using System.Reflection;
 using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.EventHookup;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup;
 using Microsoft.CodeAnalysis.Editor.Implementation.Commands;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Options;
 using Xunit;
+using System.ComponentModel.Composition;
+using System.ComponentModel.Composition.Primitives;
+using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
 {
@@ -21,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
         private Mutex _testSessionHookupMutex;
 
         public EventHookupTestState(XElement workspaceElement, IDictionary<OptionKey, object> options)
-            : base(workspaceElement, null, false)
+            : base(workspaceElement, GetExtraParts(), false)
         {
             CommandHandlerService t = (CommandHandlerService)Workspace.GetService<ICommandHandlerServiceFactory>().GetService(Workspace.Documents.Single().TextBuffer);
             var field = t.GetType().GetField("_commandHandlers", BindingFlags.NonPublic | BindingFlags.GetField | BindingFlags.Instance);
@@ -31,6 +35,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
             _testSessionHookupMutex = new Mutex(false);
             _commandHandler.TESTSessionHookupMutex = _testSessionHookupMutex;
             Workspace.ApplyOptions(options);
+        }
+
+        private static ComposableCatalog GetExtraParts()
+        {
+            return MinimalTestExportProvider.CreateTypeCatalog(new[] { typeof(EventHookupWaiter) });
         }
 
         public static EventHookupTestState CreateTestState(string markup, IDictionary<OptionKey, object> options = null)

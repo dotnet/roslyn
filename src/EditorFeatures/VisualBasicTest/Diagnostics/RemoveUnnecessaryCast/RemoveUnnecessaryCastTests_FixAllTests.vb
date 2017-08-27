@@ -1,10 +1,5 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnnecessaryCast
-Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics.RemoveUnnecessaryCast
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.RemoveUnnecessaryCast
     Partial Public Class RemoveUnnecessaryCastTests
@@ -168,7 +163,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
+            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=Nothing)
         End Function
 
         <Fact>
@@ -305,7 +300,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
+            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=Nothing)
         End Function
 
         <Fact>
@@ -442,7 +437,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
+            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=Nothing)
         End Function
     End Class
 End Namespace

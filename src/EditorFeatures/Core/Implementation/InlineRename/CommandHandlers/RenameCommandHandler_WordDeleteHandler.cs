@@ -53,8 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var caretPoint = view.GetCaretPoint(subjectBuffer);
             if (caretPoint.HasValue)
             {
-                SnapshotSpan span;
-                if (_renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out span))
+                if (_renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out var span))
                 {
                     int start = caretPoint.Value;
                     int end = caretPoint.Value;

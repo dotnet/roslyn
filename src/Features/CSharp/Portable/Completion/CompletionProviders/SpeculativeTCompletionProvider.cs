@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,7 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                 const string T = nameof(T);
-                context.AddItem(CommonCompletionItem.Create(T, context.DefaultItemSpan, glyph: Glyph.TypeParameter));
+                context.AddItem(CommonCompletionItem.Create(
+                    T, CompletionItemRules.Default, glyph: Glyph.TypeParameter));
             }
         }
 
@@ -57,20 +58,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (syntaxTree.IsGenericTypeArgumentContext(position, leftToken, cancellationToken, semanticModel))
             {
                 // Walk out until we find the start of the partial written generic
-                SyntaxToken nameToken;
-                while (syntaxTree.IsInPartiallyWrittenGeneric(testPosition, cancellationToken, out nameToken))
+                while (syntaxTree.IsInPartiallyWrittenGeneric(testPosition, cancellationToken, out var nameToken))
                 {
                     testPosition = nameToken.SpanStart;
                 }
 
-                // If the user types Foo<T, automatic brace completion will insert the close brace
+                // If the user types Goo<T, automatic brace completion will insert the close brace
                 // and the generic won't be "partially written".
                 if (testPosition == position)
                 {
                     var typeArgumentList = leftToken.GetAncestor<TypeArgumentListSyntax>();
                     if (typeArgumentList != null)
                     {
-                        if (typeArgumentList.LessThanToken != default(SyntaxToken) && typeArgumentList.GreaterThanToken != default(SyntaxToken))
+                        if (typeArgumentList.LessThanToken != default && typeArgumentList.GreaterThanToken != default)
                         {
                             testPosition = typeArgumentList.LessThanToken.SpanStart;
                         }
@@ -80,6 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             if ((!leftToken.GetPreviousTokenIfTouchingWord(position).IsKindOrHasMatchingText(SyntaxKind.AsyncKeyword) &&
                 syntaxTree.IsMemberDeclarationContext(testPosition, contextOpt: null, validModifiers: SyntaxKindSet.AllMemberModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken)) ||
+                syntaxTree.IsStatementContext(testPosition, leftToken, cancellationToken) ||
                 syntaxTree.IsGlobalMemberDeclarationContext(testPosition, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                 syntaxTree.IsGlobalStatementContext(testPosition, cancellationToken) ||
                 syntaxTree.IsDelegateReturnTypeContext(testPosition, syntaxTree.FindTokenOnLeftOfPosition(testPosition, cancellationToken), cancellationToken))

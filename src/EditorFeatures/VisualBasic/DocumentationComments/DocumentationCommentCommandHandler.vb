@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.ComponentModel.Composition
 Imports System.Threading
@@ -10,7 +10,8 @@ Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
     <ExportCommandHandler(PredefinedCommandHandlerNames.DocumentationComments, ContentTypeNames.VisualBasicContentType)>
-    <Order(Before:=PredefinedCommandHandlerNames.Commit, After:=PredefinedCommandHandlerNames.Rename)>
+    <Order(After:=PredefinedCommandHandlerNames.Rename)>
+    <Order(After:=PredefinedCommandHandlerNames.Completion)>
     Friend Class DocumentationCommentCommandHandler
         Inherits AbstractDocumentationCommentCommandHandler(Of DocumentationCommentTriviaSyntax, DeclarationStatementSyntax)
 
@@ -18,10 +19,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
         Public Sub New(
             waitIndicator As IWaitIndicator,
             undoHistoryRegistry As ITextUndoHistoryRegistry,
-            editorOperationsFactoryService As IEditorOperationsFactoryService,
-            completionService As IAsyncCompletionService)
+            editorOperationsFactoryService As IEditorOperationsFactoryService)
 
-            MyBase.New(waitIndicator, undoHistoryRegistry, editorOperationsFactoryService, completionService)
+            MyBase.New(waitIndicator, undoHistoryRegistry, editorOperationsFactoryService)
         End Sub
 
         Protected Overrides ReadOnly Property ExteriorTriviaText As String

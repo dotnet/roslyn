@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -20,9 +20,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
         // finalizer complaining we didn't clean it up. Catching AVs is of course not safe, but this is balancing
         // "probably not crash" as an improvement over "will crash when the finalizer throws."
         [HandleProcessCorruptedStateExceptions]
-        public static async Task<Tuple<TestWorkspace, EnvDTE.FileCodeModel>> CreateWorkspaceAndFileCodeModelAsync(string file)
+        public static Tuple<TestWorkspace, EnvDTE.FileCodeModel> CreateWorkspaceAndFileCodeModel(string file)
         {
-            var workspace = await TestWorkspace.CreateCSharpAsync(file, exportProvider: VisualStudioTestExportProvider.ExportProvider);
+            var workspace = TestWorkspace.CreateCSharp(file, exportProvider: VisualStudioTestExportProvider.ExportProvider);
 
             try
             {

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
@@ -57,7 +57,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     <ProvideService(GetType(IVbCompilerService), ServiceName:="Visual Basic Project System Shim")>
     <ProvideService(GetType(IVbTempPECompilerFactory), ServiceName:="Visual Basic TempPE Compiler Factory Service")>
     Friend Class VisualBasicPackage
-        Inherits AbstractPackage(Of VisualBasicPackage, VisualBasicLanguageService, VisualBasicProject)
+        Inherits AbstractPackage(Of VisualBasicPackage, VisualBasicLanguageService)
         Implements IVbCompilerService
         Implements IVsUserSettingsQuery
 
@@ -156,8 +156,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
             miscellaneousFilesWorkspace.RegisterLanguage(
                 Guids.VisualBasicLanguageServiceId,
                 LanguageNames.VisualBasic,
-                ".vbx",
-                VisualBasicParseOptions.Default)
+                ".vbx")
         End Sub
 
         Protected Overrides ReadOnly Property RoslynLanguageName As String

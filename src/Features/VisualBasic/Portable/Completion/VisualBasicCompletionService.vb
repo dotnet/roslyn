@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -92,8 +92,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
 
         Protected Overrides Function GetBetterItem(item As CompletionItem, existingItem As CompletionItem) As CompletionItem
             ' If one Is a keyword, And the other Is some other item that inserts the same text as the keyword,
-            ' keep the keyword (VB only)
-            If IsKeywordItem(existingItem) Then
+            ' keep the keyword (VB only), unless the other item is preselected
+            If IsKeywordItem(existingItem) AndAlso existingItem.Rules.MatchPriority >= item.Rules.MatchPriority Then
                 Return existingItem
             End If
 
@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             Return item.DisplayText
         End Function
 
-        Public Overrides Function GetDefaultItemSpan(text As SourceText, caretPosition As Integer) As TextSpan
+        Public Overrides Function GetDefaultCompletionListSpan(text As SourceText, caretPosition As Integer) As TextSpan
             Return CompletionUtilities.GetCompletionItemSpan(text, caretPosition)
         End Function
 

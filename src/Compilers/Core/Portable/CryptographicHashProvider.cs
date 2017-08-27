@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Security.Cryptography;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -75,10 +76,10 @@ namespace Microsoft.CodeAnalysis
             switch (algorithmId)
             {
                 case SourceHashAlgorithm.Sha1:
-                    return new SHA1CryptoServiceProvider();
+                    return SHA1.Create();
 
                 case SourceHashAlgorithm.Sha256:
-                    return new SHA256CryptoServiceProvider();
+                    return SHA256.Create();
 
                 default:
                     return null;
@@ -91,19 +92,19 @@ namespace Microsoft.CodeAnalysis
             {
                 case AssemblyHashAlgorithm.None:
                 case AssemblyHashAlgorithm.Sha1:
-                    return new SHA1CryptoServiceProvider();
+                    return SHA1.Create();
 
                 case AssemblyHashAlgorithm.Sha256:
-                    return new SHA256CryptoServiceProvider();
+                    return SHA256.Create();
 
                 case AssemblyHashAlgorithm.Sha384:
-                    return new SHA384CryptoServiceProvider();
+                    return SHA384.Create();
 
                 case AssemblyHashAlgorithm.Sha512:
-                    return new SHA512CryptoServiceProvider();
+                    return SHA512.Create();
 
                 case AssemblyHashAlgorithm.MD5:
-                    return new MD5CryptoServiceProvider();
+                    return MD5.Create();
 
                 default:
                     return null;
@@ -144,7 +145,7 @@ namespace Microsoft.CodeAnalysis
             if (stream != null)
             {
                 stream.Seek(0, SeekOrigin.Begin);
-                using (var hashProvider = new SHA1CryptoServiceProvider())
+                using (var hashProvider = SHA1.Create())
                 {
                     return ImmutableArray.Create(hashProvider.ComputeHash(stream));
                 }
@@ -160,7 +161,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static ImmutableArray<byte> ComputeSha1(byte[] bytes)
         {
-            using (var hashProvider = new SHA1CryptoServiceProvider())
+            using (var hashProvider = SHA1.Create())
             {
                 return ImmutableArray.Create(hashProvider.ComputeHash(bytes));
             }
@@ -168,7 +169,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static ImmutableArray<byte> ComputeSha1(IEnumerable<Blob> bytes)
         {
-            using (var incrementalHash = IncrementalHash.Create(AssemblyHashAlgorithm.Sha1))
+            using (var incrementalHash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1))
             {
                 incrementalHash.AppendData(bytes);
                 return ImmutableArray.Create(incrementalHash.GetHashAndReset());

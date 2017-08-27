@@ -5,12 +5,9 @@ extern alias vbc;
 
 using Microsoft.CodeAnalysis.CommandLine;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
@@ -74,12 +71,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         internal static string DefaultClientDirectory { get; } = Path.GetDirectoryName(typeof(DesktopBuildClientTests).Assembly.Location);
         internal static string DefaultSdkDirectory { get; } = RuntimeEnvironment.GetRuntimeDirectory();
 
-        internal static BuildPaths CreateBuildPaths(string workingDir)
+        internal static BuildPaths CreateBuildPaths(string workingDir, string tempDir)
         {
             return new BuildPaths(
                 clientDir: DefaultClientDirectory,
                 workingDir: workingDir,
-                sdkDir: DefaultSdkDirectory);
+                sdkDir: DefaultSdkDirectory,
+                tempDir: tempDir);
         }
 
         internal static ServerData CreateServer(
@@ -94,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var serverStatsSource = new TaskCompletionSource<ServerStats>();
             var serverListenSource = new TaskCompletionSource<bool>();
             var cts = new CancellationTokenSource();
-            var mutexName = DesktopBuildClient.GetServerMutexName(pipeName);
+            var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
             var thread = new Thread(_ =>
             {
                 var listener = new TestableDiagnosticListener();
@@ -121,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             // The contract of this function is that it will return once the server has started.  Spin here until
             // we can verify the server has started or simply failed to start.
-            while (DesktopBuildClient.WasServerMutexOpen(mutexName) != true && thread.IsAlive)
+            while (BuildServerConnection.WasServerMutexOpen(mutexName) != true && thread.IsAlive)
             {
                 Thread.Yield();
             }
@@ -142,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 var thread = new Thread(_ =>
                 {
-                    var mutexName = DesktopBuildClient.GetServerMutexName(pipeName);
+                    var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
                     bool holdsMutex;
                     using (var serverMutex = new Mutex(initiallyOwned: true,
                                                        name: mutexName,
@@ -199,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         internal static CompileFunc GetCompileFunc(RequestLanguage language)
         {
-            Func<string[], string, string, string, TextWriter, IAnalyzerAssemblyLoader, int> func;
+            Func<string[], string, string, string, string, TextWriter, IAnalyzerAssemblyLoader, int> func;
             switch (language)
             {
                 case RequestLanguage.CSharpCompile:
@@ -212,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     throw new InvalidOperationException();
             }
 
-            return (args, buildPaths, textWriter, loader) => func(args, buildPaths.ClientDirectory, buildPaths.WorkingDirectory, buildPaths.SdkDirectory, textWriter, loader);
+            return (args, buildPaths, textWriter, loader) => func(args, buildPaths.ClientDirectory, buildPaths.WorkingDirectory, buildPaths.SdkDirectory, buildPaths.TempDirectory, textWriter, loader);
         }
 
         private static async Task<int> CreateServerFailsConnectionCore(string pipeName, CancellationToken cancellationToken)

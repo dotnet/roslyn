@@ -213,5 +213,25 @@ namespace Microsoft.CodeAnalysis
             }
         }
         #endregion
+
+        #region ExcludeFromCodeCoverageAttribute
+
+        private bool _hasExcludeFromCodeCoverageAttribute;
+        public bool HasExcludeFromCodeCoverageAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasExcludeFromCodeCoverageAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasExcludeFromCodeCoverageAttribute = value;
+                SetDataStored();
+            }
+        }
+
+        #endregion
     }
 }

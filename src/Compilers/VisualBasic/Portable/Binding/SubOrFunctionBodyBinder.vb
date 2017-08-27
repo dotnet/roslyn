@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _methodSymbol As MethodSymbol
         Protected ReadOnly _parameterMap As Dictionary(Of String, Symbol)
 
-        Public Sub New(methodOrLambdaSymbol As MethodSymbol, root As VisualBasicSyntaxNode, containingBinder As Binder)
+        Public Sub New(methodOrLambdaSymbol As MethodSymbol, root As SyntaxNode, containingBinder As Binder)
             MyBase.New(root, containingBinder)
 
             _methodSymbol = methodOrLambdaSymbol
@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' UNDONE: additional filtering based on options?
             If (options And (LookupOptions.NamespacesOrTypesOnly Or LookupOptions.LabelsOnly)) = 0 Then
                 For Each param In _parameterMap.Values
-                    If originalBinder.CanAddLookupSymbolInfo(param, options, Nothing) Then
+                    If originalBinder.CanAddLookupSymbolInfo(param, options, nameSet, Nothing) Then
                         nameSet.AddSymbol(param, param.Name, 0)
                     End If
                 Next

@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting
@@ -54,8 +53,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     var currentOperationIndex = 0;
                     while (currentOperationIndex < _operationPairs.Length)
                     {
-                        int nextPartitionStartOperationIndex;
-                        if (!TryGetNextPartitionIndex(currentOperationIndex, perPartition, out nextPartitionStartOperationIndex))
+                        if (!TryGetNextPartitionIndex(currentOperationIndex, perPartition, out var nextPartitionStartOperationIndex))
                         {
                             // reached end of operation pairs
                             list.Add(GetOperationPairsFromTo(currentOperationIndex, _operationPairs.Length));
@@ -93,8 +91,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 while (true)
                 {
-                    SyntaxToken nextToken;
-                    if (_context.TryGetEndTokenForRelativeIndentationSpan(_operationPairs[index].Token1, 10, out nextToken, cancellationToken))
+                    if (_context.TryGetEndTokenForRelativeIndentationSpan(_operationPairs[index].Token1, 10, out var nextToken, cancellationToken))
                     {
                         return nextToken;
                     }
@@ -103,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     if (!TryGetNextPartitionIndex(index, perPartition, out index))
                     {
                         // reached end of operation pairs
-                        return default(SyntaxToken);
+                        return default;
                     }
                 }
             }

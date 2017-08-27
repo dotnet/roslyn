@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -107,6 +107,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override void RemoveDataItem(DkmClrAppDomain appDomain)
         {
             appDomain.RemoveMetadataContext<CSharpMetadataContext>();
+        }
+
+        internal override ImmutableArray<MetadataBlock> GetMetadataBlocks(DkmClrAppDomain appDomain, DkmClrRuntimeInstance runtimeInstance)
+        {
+            var previous = appDomain.GetMetadataContext<CSharpMetadataContext>();
+            return runtimeInstance.GetMetadataBlocks(appDomain, previous.MetadataBlocks);
         }
     }
 }

@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Case TypeKind.Module
                             Return "module"
                         Case TypeKind.Delegate
-                            ' Dev10 error message format "... delegate Class foo ..." instead of "... delegate foo ..."               
+                            ' Dev10 error message format "... delegate Class goo ..." instead of "... delegate goo ..."               
                             Return "delegate Class"
                         Case Else
                             'TODO: do we need string s for ByRef, Array, TypeParameter etc?
@@ -268,26 +268,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         <Extension()>
         Friend Function IsDefaultValueTypeConstructor(method As MethodSymbol) As Boolean
-            If Not method.ContainingType.IsValueType Then
-                Return False
-            End If
-
-            If Not method.IsParameterlessConstructor() OrElse Not method.IsImplicitlyDeclared Then
-                Return False
-            End If
-
-            Dim container As SourceNamedTypeSymbol = TryCast(method.ContainingType, SourceNamedTypeSymbol)
-            If container Is Nothing Then
-                ' synthesized ctor Not from source -> must be default
-                Return True
-            End If
-
-            ' if we are here we have a struct in source for which a parameterless ctor was not provided by the user.
-            ' So, are we ok with default behavior?
-            ' Returning false will result in a production of synthesized parameterless ctor 
-
-            ' this ctor is not default if we have instance initializers
-            Return container.InstanceInitializers.IsDefaultOrEmpty
+            Return method.IsImplicitlyDeclared AndAlso
+                   method.ContainingType.IsValueType AndAlso
+                   method.IsParameterlessConstructor()
         End Function
 
         <Extension()>
@@ -432,5 +415,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return vbSymbol
         End Function
 
+        <Extension>
+        Friend Function ContainingNonLambdaMember(member As Symbol) As Symbol
+            While member?.Kind = SymbolKind.Method AndAlso DirectCast(member, MethodSymbol).MethodKind = MethodKind.AnonymousFunction
+                member = member.ContainingSymbol
+            End While
+
+            Return member
+        End Function
+
+        <Extension>
+        Friend Function ContainsTupleNames(member As Symbol) As Boolean
+            Select Case member.Kind
+                Case SymbolKind.Method
+                    Dim method = DirectCast(member, MethodSymbol)
+                    Return method.ReturnType.ContainsTupleNames() OrElse ContainsTupleNames(method.Parameters)
+                Case SymbolKind.Property
+                    Dim [property] = DirectCast(member, PropertySymbol)
+                    Return [property].Type.ContainsTupleNames() OrElse ContainsTupleNames([property].Parameters)
+                Case SymbolKind.Event
+                    ' We don't check the event Type directly because materializing it requires checking the tuple names in the type (to validate interface implementations)
+                    Return ContainsTupleNames(DirectCast(member, EventSymbol).DelegateParameters)
+                Case Else
+                    '  We currently don't need to use this method for other kinds of symbols
+                    Throw ExceptionUtilities.UnexpectedValue(member.Kind)
+            End Select
+        End Function
+
+        Private Function ContainsTupleNames(parameters As ImmutableArray(Of ParameterSymbol)) As Boolean
+            Return parameters.Any(Function(p) p.Type.ContainsTupleNames())
+        End Function
     End Module
 End Namespace

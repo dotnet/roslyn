@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting
@@ -60,12 +59,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public override bool Equals(object obj)
         {
-            if (obj is TokenData)
-            {
-                return this.Equals((TokenData)obj);
-            }
-
-            return false;
+            return obj is TokenData data &&
+                   this.Equals(data);
         }
 
         public bool Equals(TokenData other)

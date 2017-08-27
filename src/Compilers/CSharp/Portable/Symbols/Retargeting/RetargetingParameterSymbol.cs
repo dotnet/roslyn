@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
     /// </summary>
     internal abstract class RetargetingParameterSymbol : WrappedParameterSymbol
     {
-        private ImmutableArray<CustomModifier> _lazyCustomModifiers;
+        private CustomModifiersTuple _lazyCustomModifiers;
 
         /// <summary>
         /// Retargeted custom attributes
@@ -47,8 +47,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
+                return CustomModifiersTuple.TypeCustomModifiers;
+            }
+        }
+
+        public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get
+            {
+                return CustomModifiersTuple.RefCustomModifiers;
+            }
+        }
+
+        private CustomModifiersTuple CustomModifiersTuple
+        {
+            get
+            {
                 return RetargetingModule.RetargetingTranslator.RetargetModifiers(
-                    _underlyingParameter.CustomModifiers,
+                    _underlyingParameter.CustomModifiers, _underlyingParameter.RefCustomModifiers,
                     ref _lazyCustomModifiers);
             }
         }

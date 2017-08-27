@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -6,7 +6,6 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
@@ -15,6 +14,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.CodeAnalysis.Host;
 
 // NOTE(DustinCa): The EditorFactory registration is in VisualStudioComponents\CSharpPackageRegistration.pkgdef.
 // The reason for this is because the ProvideEditorLogicalView does not allow a name value to specified in addition to
@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
     [ProvideAutomationProperties("TextEditor", "CSharp-Specific", packageGuid: Guids.CSharpPackageIdString, profileNodeLabelId: 104, profileNodeDescriptionId: 105)]
     [ProvideService(typeof(CSharpLanguageService), ServiceName = "C# Language Service")]
     [ProvideService(typeof(ICSharpTempPECompilerService), ServiceName = "C# TempPE Compiler Service")]
-    internal class CSharpPackage : AbstractPackage<CSharpPackage, CSharpLanguageService, CSharpProjectShim>, IVsUserSettingsQuery
+    internal class CSharpPackage : AbstractPackage<CSharpPackage, CSharpLanguageService>, IVsUserSettingsQuery
     {
         private ObjectBrowserLibraryManager _libraryManager;
         private uint _libraryManagerCookie;
@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             {
                 base.Initialize();
 
-                this.RegisterService<ICSharpTempPECompilerService>(() => new TempPECompilerService(this.Workspace));
+                this.RegisterService<ICSharpTempPECompilerService>(() => new TempPECompilerService(this.Workspace.Services.GetService<IMetadataService>()));
 
                 RegisterObjectBrowserLibraryManager();
             }
@@ -98,8 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         private void RegisterObjectBrowserLibraryManager()
         {
-            var objectManager = this.GetService(typeof(SVsObjectManager)) as IVsObjectManager2;
-            if (objectManager != null)
+            if (this.GetService(typeof(SVsObjectManager)) is IVsObjectManager2 objectManager)
             {
                 _libraryManager = new ObjectBrowserLibraryManager(this);
 
@@ -114,8 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         {
             if (_libraryManagerCookie != 0)
             {
-                var objectManager = this.GetService(typeof(SVsObjectManager)) as IVsObjectManager2;
-                if (objectManager != null)
+                if (this.GetService(typeof(SVsObjectManager)) is IVsObjectManager2 objectManager)
                 {
                     objectManager.UnregisterLibrary(_libraryManagerCookie);
                     _libraryManagerCookie = 0;
@@ -163,8 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             miscellaneousFilesWorkspace.RegisterLanguage(
                 Guids.CSharpLanguageServiceId,
                 LanguageNames.CSharp,
-                ".csx",
-                CSharpParseOptions.Default);
+                ".csx");
         }
 
         protected override string RoslynLanguageName

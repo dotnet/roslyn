@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using System.IO;
@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             public string FilePath { get; }
             public int LineNumber { get; }
             public object Tag { get; }
-            public string StackTrace { get; }
             public Task Task { get; set; }
 
             public DiagnosticAsyncToken(
@@ -33,7 +32,6 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                 Tag = tag;
                 FilePath = filePath;
                 LineNumber = lineNumber;
-                StackTrace = PortableShim.StackTrace.GetString();
             }
 
             internal void AssociateWithTask(Task task)

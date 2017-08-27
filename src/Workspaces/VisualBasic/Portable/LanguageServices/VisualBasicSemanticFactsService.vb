@@ -11,9 +11,22 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    <ExportLanguageService(GetType(ISemanticFactsService), LanguageNames.VisualBasic), [Shared]>
+    <ExportLanguageServiceFactory(GetType(ISemanticFactsService), LanguageNames.VisualBasic), [Shared]>
+    Friend Class VisualBasicSemanticFactsServiceFactory
+        Implements ILanguageServiceFactory
+
+        Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
+            Return VisualBasicSemanticFactsService.Instance
+        End Function
+    End Class
+
     Friend Class VisualBasicSemanticFactsService
         Implements ISemanticFactsService
+
+        Public Shared ReadOnly Instance As New VisualBasicSemanticFactsService()
+
+        Private Sub New()
+        End Sub
 
         Public ReadOnly Property SupportsImplicitInterfaceImplementation As Boolean Implements ISemanticFactsService.SupportsImplicitInterfaceImplementation
             Get
@@ -32,6 +45,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                             cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsExpressionContext
             Dim token = semanticModel.SyntaxTree.GetTargetToken(position, cancellationToken)
             Return semanticModel.SyntaxTree.IsExpressionContext(position, token, cancellationToken, semanticModel)
+        End Function
+
+        Public Function IsInExpressionTree(semanticModel As SemanticModel, node As SyntaxNode, expressionTypeOpt As INamedTypeSymbol, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsInExpressionTree
+            Return node.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken)
         End Function
 
         Public Function IsMemberDeclarationContext(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsMemberDeclarationContext
@@ -107,8 +124,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function GenerateNameForExpression(semanticModel As SemanticModel,
                                                   expression As SyntaxNode,
-                                                  Optional capitalize As Boolean = False) As String Implements ISemanticFactsService.GenerateNameForExpression
-            Return semanticModel.GenerateNameForExpression(DirectCast(expression, ExpressionSyntax), capitalize)
+                                                  capitalize As Boolean,
+                                                  cancellationToken As CancellationToken) As String Implements ISemanticFactsService.GenerateNameForExpression
+            Return semanticModel.GenerateNameForExpression(
+                DirectCast(expression, ExpressionSyntax), capitalize, cancellationToken)
         End Function
 
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, token As SyntaxToken, cancellationToken As CancellationToken) As ISymbol Implements ISemanticFactsService.GetDeclaredSymbol
@@ -143,12 +162,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public ReadOnly Property SupportsParameterizedProperties As Boolean Implements ISemanticFactsService.SupportsParameterizedProperties
             Get
                 Return True
-            End Get
-        End Property
-
-        Public ReadOnly Property SupportsParameterizedEvents As Boolean Implements ISemanticFactsService.SupportsParameterizedEvents
-            Get
-                Return False
             End Get
         End Property
 
@@ -246,6 +259,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsNamespaceDeclarationNameContext(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsNamespaceDeclarationNameContext
             Return semanticModel.SyntaxTree.IsNamespaceDeclarationNameContext(position, cancellationToken)
+        End Function
+
+        Public Function IsPartial(typeSymbol As ITypeSymbol, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsPartial
+            Dim syntaxRefs = typeSymbol.DeclaringSyntaxReferences
+            Return syntaxRefs.Any(
+                Function(n As SyntaxReference)
+                    Return DirectCast(n.GetSyntax(cancellationToken), TypeStatementSyntax).Modifiers.Any(SyntaxKind.PartialKeyword)
+                End Function)
+        End Function
+
+        Public Function GetDeclaredSymbols(semanticModel As SemanticModel, memberDeclaration As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of ISymbol) Implements ISemanticFactsService.GetDeclaredSymbols
+            If TypeOf memberDeclaration Is FieldDeclarationSyntax Then
+                Return DirectCast(memberDeclaration, FieldDeclarationSyntax).Declarators.
+                    SelectMany(Function(d) d.Names.AsEnumerable()).
+                    Select(Function(n) semanticModel.GetDeclaredSymbol(n, cancellationToken))
+            End If
+
+            Return {semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken)}
         End Function
     End Class
 End Namespace

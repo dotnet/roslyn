@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 return CompletionDescription.Empty;
             }
 
-            var textContentBuilder = new List<SymbolDisplayPart>();
+            var textContentBuilder = new List<TaggedText>();
             textContentBuilder.AddRange(sections[SymbolDescriptionGroups.MainDescription]);
 
             switch (symbol.Kind)
@@ -134,14 +135,13 @@ namespace Microsoft.CodeAnalysis.Completion
 
             AddDocumentationPart(textContentBuilder, symbol, semanticModel, position, formatter, cancellationToken);
 
-            if (sections.ContainsKey(SymbolDescriptionGroups.AwaitableUsageText))
+            if (sections.TryGetValue(SymbolDescriptionGroups.AwaitableUsageText, out var parts))
             {
-                textContentBuilder.AddRange(sections[SymbolDescriptionGroups.AwaitableUsageText]);
+                textContentBuilder.AddRange(parts);
             }
 
-            if (sections.ContainsKey(SymbolDescriptionGroups.AnonymousTypes))
+            if (sections.TryGetValue(SymbolDescriptionGroups.AnonymousTypes, out parts))
             {
-                var parts = sections[SymbolDescriptionGroups.AnonymousTypes];
                 if (!parts.IsDefaultOrEmpty)
                 {
                     textContentBuilder.AddLineBreak();
@@ -153,26 +153,27 @@ namespace Microsoft.CodeAnalysis.Completion
             if (supportedPlatforms != null)
             {
                 textContentBuilder.AddLineBreak();
-                textContentBuilder.AddRange(supportedPlatforms.ToDisplayParts());
+                textContentBuilder.AddRange(supportedPlatforms.ToDisplayParts().ToTaggedText());
             }
 
-            return CompletionDescription.Create(textContentBuilder.Select(p => new TaggedText(SymbolDisplayPartKindTags.GetTag(p.Kind), p.ToString())).ToImmutableArray());
+            return CompletionDescription.Create(textContentBuilder.AsImmutable());
         }
 
-        private static void AddOverloadPart(List<SymbolDisplayPart> textContentBuilder, int overloadCount, bool isGeneric)
+        private static void AddOverloadPart(List<TaggedText> textContentBuilder, int overloadCount, bool isGeneric)
         {
             var text = isGeneric
                 ? overloadCount == 1
-                    ? FeaturesResources.GenericOverload
-                    : FeaturesResources.GenericOverloads
+                    ? FeaturesResources.generic_overload
+                    : FeaturesResources.generic_overloads
                 : overloadCount == 1
-                    ? FeaturesResources.Overload
-                    : FeaturesResources.Overloads;
+                    ? FeaturesResources.overload
+                    : FeaturesResources.overloads_;
 
             textContentBuilder.AddText(NonBreakingSpaceString + text);
         }
 
-        private static void AddDocumentationPart(List<SymbolDisplayPart> textContentBuilder, ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
+        private static void AddDocumentationPart(
+            List<TaggedText> textContentBuilder, ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
         {
             var documentation = symbol.GetDocumentationParts(semanticModel, position, formatter, cancellationToken);
 
@@ -206,8 +207,11 @@ namespace Microsoft.CodeAnalysis.Completion
             return true;
         }
 
-        public static bool TryRemoveAttributeSuffix(ISymbol symbol, bool isAttributeNameContext, ISyntaxFactsService syntaxFacts, out string name)
+        public static bool TryRemoveAttributeSuffix(ISymbol symbol, SyntaxContext context, out string name)
         {
+            var isAttributeNameContext = context.IsAttributeNameContext;
+            var syntaxFacts = context.GetLanguageService<ISyntaxFactsService>();
+
             if (!isAttributeNameContext)
             {
                 name = null;

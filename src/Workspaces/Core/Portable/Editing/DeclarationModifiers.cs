@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Editing
             WriteOnly = 0x1000
         }
 
-        public static DeclarationModifiers None => default(DeclarationModifiers);
+        public static DeclarationModifiers None => default;
 
         public static DeclarationModifiers Static => new DeclarationModifiers(Modifiers.Static);
         public static DeclarationModifiers Abstract => new DeclarationModifiers(Modifiers.Abstract);
@@ -282,15 +282,14 @@ namespace Microsoft.CodeAnalysis.Editing
 
         public static bool TryParse(string value, out DeclarationModifiers modifiers)
         {
-            Modifiers mods;
-            if (Enum.TryParse(value, out mods))
+            if (Enum.TryParse(value, out Modifiers mods))
             {
                 modifiers = new DeclarationModifiers(mods);
                 return true;
             }
             else
             {
-                modifiers = default(DeclarationModifiers);
+                modifiers = default;
                 return false;
             }
         }

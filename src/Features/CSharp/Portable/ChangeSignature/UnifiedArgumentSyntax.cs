@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.ChangeSignature;
@@ -60,6 +60,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         public IUnifiedArgumentSyntax WithAdditionalAnnotations(SyntaxAnnotation annotation)
         {
             return new UnifiedArgumentSyntax(_argument.WithAdditionalAnnotations(annotation));
+        }
+
+        public SyntaxNode Expression
+        {
+            get
+            {
+                return _argument.IsKind(SyntaxKind.Argument)
+                    ? ((ArgumentSyntax)_argument).Expression
+                    : ((AttributeArgumentSyntax)_argument).Expression;
+            }
         }
 
         public bool IsDefault

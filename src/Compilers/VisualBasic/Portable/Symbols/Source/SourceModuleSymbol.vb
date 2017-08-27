@@ -7,6 +7,7 @@ Imports System.Collections.ObjectModel
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -154,17 +155,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        ' Get the SourceFile object associated with a root declaration.
-        Friend Function GetSourceFile(tree As SyntaxTree) As SourceFile
+        ''' <summary>
+        ''' Get the SourceFile object associated with a root declaration.
+        ''' Returns Nothing if the tree doesn't belong to the compilation.
+        ''' </summary>
+        Friend Function TryGetSourceFile(tree As SyntaxTree) As SourceFile
             Debug.Assert(tree IsNot Nothing)
-            Debug.Assert(tree.IsEmbeddedOrMyTemplateTree() OrElse _assemblySymbol.DeclaringCompilation.SyntaxTrees.Contains(tree))
 
             Dim srcFile As SourceFile = Nothing
             If _sourceFileMap.TryGetValue(tree, srcFile) Then
                 Return srcFile
-            Else
+
+            ElseIf _assemblySymbol.DeclaringCompilation.AllSyntaxTrees.Contains(tree) Then
                 srcFile = New SourceFile(Me, tree)
                 Return _sourceFileMap.GetOrAdd(tree, srcFile)
+
+            Else
+                Return Nothing
             End If
         End Function
 
@@ -321,6 +328,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             checker.AddName("ExtensionAttribute", QuickAttributes.Extension)
             checker.AddName("ObsoleteAttribute", QuickAttributes.Obsolete)
             checker.AddName("DeprecatedAttribute", QuickAttributes.Obsolete)
+            checker.AddName("ExperimentalAttribute", QuickAttributes.Obsolete)
             checker.AddName("MyGroupCollectionAttribute", QuickAttributes.MyGroupCollection)
 
             ' Now process alias imports
@@ -536,7 +544,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim builder = ArrayBuilder(Of Diagnostic).GetInstance()
 
             ' Force source file to generate errors for Imports and the like.
-            Dim sourceFile As SourceFile = GetSourceFile(tree)
+            Dim sourceFile As SourceFile = TryGetSourceFile(tree)
+            Debug.Assert(sourceFile IsNot Nothing)
+
             If filterSpanWithinTree.HasValue Then
                 Dim diagnostics = sourceFile.GetDeclarationErrorsInSpan(filterSpanWithinTree.Value, cancellationToken)
                 diagnostics = locationFilter(diagnostics, tree, filterSpanWithinTree)
@@ -610,13 +620,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     UICultureUtilities.WithCurrentUICulture(
                         Sub(i As Integer)
                             cancellationToken.ThrowIfCancellationRequested()
-                            GetSourceFile(trees(i)).GenerateAllDeclarationErrors()
+                            TryGetSourceFile(trees(i)).GenerateAllDeclarationErrors()
                         End Sub))
                 trees.Free()
             Else
                 For Each tree In SyntaxTrees
                     cancellationToken.ThrowIfCancellationRequested()
-                    GetSourceFile(tree).GenerateAllDeclarationErrors()
+                    TryGetSourceFile(tree).GenerateAllDeclarationErrors()
                 Next
             End If
 
@@ -662,7 +672,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             builder.AddRange(Me._lazyLinkedAssemblyDiagnostics)
 
             For Each tree In SyntaxTrees
-                builder.AddRange(GetSourceFile(tree).DeclarationErrors)
+                builder.AddRange(TryGetSourceFile(tree).DeclarationErrors)
             Next
 
             Return builder.ToReadOnlyAndFree(Of Diagnostic)()
@@ -996,7 +1006,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim loc = d.Location
                     If loc.IsInSource Then
                         Dim tree = DirectCast(loc.SourceTree, VisualBasicSyntaxTree)
-                        Dim sourceFile = GetSourceFile(tree)
+                        Dim sourceFile = TryGetSourceFile(tree)
+                        Debug.Assert(sourceFile IsNot Nothing)
                         sourceFile.AddDiagnostic(d, stage)
                     Else
                         Me.AddDiagnostic(d, stage)
@@ -1053,6 +1064,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim attrData = arguments.Attribute
             Debug.Assert(Not attrData.HasErrors)
             Debug.Assert(arguments.SymbolPart = AttributeLocation.None)
+
+            If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
+                arguments.Diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
+            End If
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.DefaultCharSetAttribute) Then
                 Dim charSet As CharSet = attrData.GetConstructorArgument(Of CharSet)(0, SpecialType.System_Enum)

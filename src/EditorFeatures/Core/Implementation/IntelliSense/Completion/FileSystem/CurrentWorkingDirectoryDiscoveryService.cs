@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.F
 
         public static ICurrentWorkingDirectoryDiscoveryService GetService(ITextSnapshot textSnapshot)
         {
-            ICurrentWorkingDirectoryDiscoveryService result;
-            return textSnapshot.TextBuffer.Properties.TryGetProperty(typeof(ICurrentWorkingDirectoryDiscoveryService), out result)
+            return textSnapshot.TextBuffer.Properties.TryGetProperty(typeof(ICurrentWorkingDirectoryDiscoveryService), out ICurrentWorkingDirectoryDiscoveryService result)
                 ? result
                 : Instance;
         }

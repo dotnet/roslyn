@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
@@ -103,7 +104,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
 
             var global = comp.GlobalNamespace;
             var c = global.GetTypeMembers("C", 0).Single() as NamedTypeSymbol;
@@ -127,7 +128,7 @@ class C1<C1T1, C1T2>
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var _int = compilation.GetSpecialType(SpecialType.System_Int32);
             var _byte = compilation.GetSpecialType(SpecialType.System_Byte);
@@ -169,7 +170,7 @@ class C1<C1T1, C1T2>
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var _int = compilation.GetSpecialType(SpecialType.System_Int32);
             var _byte = compilation.GetSpecialType(SpecialType.System_Byte);

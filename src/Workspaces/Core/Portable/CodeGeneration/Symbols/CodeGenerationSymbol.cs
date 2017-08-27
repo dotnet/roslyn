@@ -27,13 +27,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         protected CodeGenerationSymbol(
             INamedTypeSymbol containingType,
-            IList<AttributeData> attributes,
+            ImmutableArray<AttributeData> attributes,
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             string name)
         {
             this.ContainingType = containingType;
-            _attributes = attributes.AsImmutableOrEmpty();
+            _attributes = attributes.NullToEmpty();
             this.DeclaredAccessibility = declaredAccessibility;
             this.Modifiers = modifiers;
             this.Name = name;
@@ -43,9 +43,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         internal SyntaxAnnotation[] GetAnnotations()
         {
-            SyntaxAnnotation[] annotations;
-            annotationsTable.TryGetValue(this, out annotations);
-            return annotations ?? SpecializedCollections.EmptyArray<SyntaxAnnotation>();
+            annotationsTable.TryGetValue(this, out var annotations);
+            return annotations ?? Array.Empty<SyntaxAnnotation>();
         }
 
         internal CodeGenerationSymbol WithAdditionalAnnotations(params SyntaxAnnotation[] annotations)
@@ -58,8 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         private CodeGenerationSymbol AddAnnotationsTo(
             CodeGenerationSymbol originalDefinition, CodeGenerationSymbol newDefinition, SyntaxAnnotation[] annotations)
         {
-            SyntaxAnnotation[] originalAnnotations;
-            annotationsTable.TryGetValue(originalDefinition, out originalAnnotations);
+            annotationsTable.TryGetValue(originalDefinition, out var originalAnnotations);
 
             annotations = SyntaxAnnotationExtensions.CombineAnnotations(originalAnnotations, annotations);
             annotationsTable.Add(newDefinition, annotations);
@@ -69,61 +67,19 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public abstract SymbolKind Kind { get; }
 
-        public string Language
-        {
-            get
-            {
-                return "Code Generation Agnostic Language";
-            }
-        }
+        public string Language => "Code Generation Agnostic Language";
 
-        public ISymbol ContainingSymbol
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public ISymbol ContainingSymbol => null;
 
-        public IAssemblySymbol ContainingAssembly
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public IAssemblySymbol ContainingAssembly => null;
 
-        public IMethodSymbol ContainingMethod
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public IMethodSymbol ContainingMethod => null;
 
-        public IModuleSymbol ContainingModule
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public IModuleSymbol ContainingModule => null;
 
-        public INamespaceSymbol ContainingNamespace
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public INamespaceSymbol ContainingNamespace => null;
 
-        public bool IsDefinition
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public bool IsDefinition => true;
 
         public bool IsStatic
         {
@@ -165,29 +121,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public bool IsExtern
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool IsExtern => false;
 
-        public bool IsImplicitlyDeclared
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool IsImplicitlyDeclared => false;
 
-        public bool CanBeReferencedByName
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public bool CanBeReferencedByName => true;
 
         public ImmutableArray<Location> Locations
         {
@@ -281,13 +219,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public bool HasUnsupportedMetadata
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool HasUnsupportedMetadata => false;
 
         public bool Equals(ISymbol other)
         {

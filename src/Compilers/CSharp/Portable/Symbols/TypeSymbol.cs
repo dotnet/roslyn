@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         // TODO (tomat): Consider changing this to an empty name. This name shouldn't ever leak to the user in error messages.
-        internal static readonly string ImplicitTypeName = "<invalid-global-code>";
+        internal const string ImplicitTypeName = "<invalid-global-code>";
 
         // InterfaceInfo for a common case of a type not implementing anything directly or indirectly.
         private static readonly InterfaceInfo s_noInterfaces = new InterfaceInfo();
@@ -105,9 +106,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 
         /// <summary>
-        /// A comparator that treats dynamic and object as "the same" types.
+        /// A comparer that treats dynamic and object as "the same" types, and also ignores tuple element names differences.
         /// </summary>
-        internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringDynamicComparer = new EqualsIgnoringComparer(ignoreDynamic: true, ignoreCustomModifiersAndArraySizesAndLowerBounds: false);
+        internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringDynamicAndTupleNamesComparer = new EqualsIgnoringComparer(TypeCompareKind.IgnoreDynamicAndTupleNames);
 
         /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
@@ -202,6 +203,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// list. This is not quite the same as "all interfaces of which this type is a proper
         /// subtype" because it does not take into account variance: AllInterfaces for
         /// IEnumerable&lt;string&gt; will not include IEnumerable&lt;object&gt;
+        ///
+        /// Note: When interfaces specified on the same inheritance level differ by tuple names only,
+        /// only the last one will be listed here.
         /// </summary>
         public ImmutableArray<NamedTypeSymbol> AllInterfaces
         {
@@ -259,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns true if this type derives from a given type.
         /// </summary>
-        internal bool IsDerivedFrom(TypeSymbol type, bool ignoreDynamic, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal bool IsDerivedFrom(TypeSymbol type, TypeCompareKind comparison, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert((object)type != null);
             Debug.Assert(!type.IsTypeParameter());
@@ -272,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var t = this.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
             while ((object)t != null)
             {
-                if (type.Equals(t, ignoreDynamic: ignoreDynamic))
+                if (type.Equals(t, comparison))
                 {
                     return true;
                 }
@@ -286,9 +290,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns true if this type is equal or derives from a given type.
         /// </summary>
-        internal bool IsEqualToOrDerivedFrom(TypeSymbol type, bool ignoreDynamic, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal bool IsEqualToOrDerivedFrom(TypeSymbol type, TypeCompareKind comparison, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            return this.Equals(type, ignoreDynamic: ignoreDynamic) || this.IsDerivedFrom(type, ignoreDynamic, ref useSiteDiagnostics);
+            return this.Equals(type, comparison) || this.IsDerivedFrom(type, comparison, ref useSiteDiagnostics);
         }
 
         /// <summary>
@@ -296,10 +300,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// semantics.
         /// </summary>
         /// <param name="t2">The other type.</param>
-        /// <param name="ignoreCustomModifiersAndArraySizesAndLowerBounds">True to compare without regard to custom modifiers, false by default.</param>
-        /// <param name="ignoreDynamic">True to ignore the distinction between object and dynamic, false by default.</param>
+        /// <param name="compareKind">
+        /// What kind of comparison to use? 
+        /// You can ignore custom modifiers, ignore the distinction between object and dynamic, or ignore tuple element names differences.
+        /// </param>
         /// <returns>True if the types are equivalent.</returns>
-        internal virtual bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds = false, bool ignoreDynamic = false)
+        internal virtual bool Equals(TypeSymbol t2, TypeCompareKind compareKind = TypeCompareKind.ConsiderEverything)
         {
             return ReferenceEquals(this, t2);
         }
@@ -308,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var t2 = obj as TypeSymbol;
             if ((object)t2 == null) return false;
-            return this.Equals(t2, false, false);
+            return this.Equals(t2, TypeCompareKind.ConsiderEverything);
         }
 
         /// <summary>
@@ -320,26 +326,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return RuntimeHelpers.GetHashCode(this);
         }
 
-        private sealed class EqualsIgnoringComparer : EqualityComparer<TypeSymbol>
+        internal sealed class EqualsIgnoringComparer : EqualityComparer<TypeSymbol>
         {
-            private readonly bool _ignoreDynamic, _ignoreCustomModifiersAndArraySizesAndLowerBounds;
+            public static EqualsIgnoringComparer InstanceIgnoringTupleNames { get; } = new EqualsIgnoringComparer(TypeCompareKind.IgnoreTupleNames);
 
-            public EqualsIgnoringComparer(bool ignoreDynamic, bool ignoreCustomModifiersAndArraySizesAndLowerBounds)
+            private readonly TypeCompareKind _comparison;
+
+            public EqualsIgnoringComparer(TypeCompareKind comparison)
             {
-                _ignoreDynamic = ignoreDynamic;
-                _ignoreCustomModifiersAndArraySizesAndLowerBounds = ignoreCustomModifiersAndArraySizesAndLowerBounds;
+                _comparison = comparison;
             }
 
             public override int GetHashCode(TypeSymbol obj)
             {
-                return obj.GetHashCode();
+                return (object)obj == null ? 0 : obj.GetHashCode();
             }
 
             public override bool Equals(TypeSymbol x, TypeSymbol y)
             {
                 return
                     (object)x == null ? (object)y == null :
-                    x.Equals(y, ignoreCustomModifiersAndArraySizesAndLowerBounds: _ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic: _ignoreDynamic);
+                    x.Equals(y, _comparison);
             }
         }
 
@@ -366,15 +373,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected virtual ImmutableArray<NamedTypeSymbol> MakeAllInterfaces()
         {
             var result = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            var visited = new HashSet<NamedTypeSymbol>();
+            var visited = new HashSet<NamedTypeSymbol>(EqualsIgnoringComparer.InstanceIgnoringTupleNames);
 
             for (var baseType = this; !ReferenceEquals(baseType, null); baseType = baseType.BaseTypeNoUseSiteDiagnostics)
             {
                 var interfaces = (baseType.TypeKind == TypeKind.TypeParameter) ? ((TypeParameterSymbol)baseType).EffectiveInterfacesNoUseSiteDiagnostics : baseType.InterfacesNoUseSiteDiagnostics();
                 for (int i = interfaces.Length - 1; i >= 0; i--)
                 {
-                    var @interface = interfaces[i];
-                    AddAllInterfaces(@interface, visited, result);
+                    AddAllInterfaces(interfaces[i], visited, result);
                 }
             }
 
@@ -618,6 +624,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If this symbol represents a tuple type, get the names of the tuple's elements.
         /// </summary>
         public virtual ImmutableArray<string> TupleElementNames => default(ImmutableArray<string>);
+
+        /// <summary>
+        /// If this symbol represents a tuple type, get the fields for the tuple's elements.
+        /// Otherwise, returns default.
+        /// </summary>
+        public virtual ImmutableArray<FieldSymbol> TupleElements => default(ImmutableArray<FieldSymbol>);
 
         /// <summary>
         /// Is this type a managed type (false for everything but enum, pointer, and
@@ -1025,6 +1037,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     interfaceMethod.RefKind,
                     interfaceMethod.ReturnType,
                     interfaceMethod.ReturnTypeCustomModifiers,
+                    interfaceMethod.RefCustomModifiers,
                     interfaceMethod.ExplicitInterfaceImplementations);
 
                 // Make sure that the corresponding accessor is a real implementation.
@@ -1069,6 +1082,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         ReportAnyMismatchedConstraints(interfaceMethod, implementingType, implicitImplMethod, diagnostics);
                     }
                 }
+            }
+
+            if (implicitImpl.ContainsTupleNames() && MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(implicitImpl, interfaceMember))
+            {
+                // it is ok to implement implicitly with no tuple names, for compatibility with C# 6, but otherwise names should match
+                diagnostics.Add(ErrorCode.ERR_ImplBadTupleNames, implicitImpl.Locations[0], implicitImpl, interfaceMember);
             }
 
             // In constructed types, it is possible to see multiple members with the same (runtime) signature.
@@ -1221,7 +1240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="implicitImpl">A member on currType that could implement the interface, or null.</param>
         /// <param name="closeMismatch">A member on currType that could have been an attempt to implement the interface, or null.</param>
         /// <remarks>
-        /// There is some similarity between this member and MemberSymbol.FindOverriddenOrHiddenMembersInType.
+        /// There is some similarity between this member and OverriddenOrHiddenMembersHelpers.FindOverriddenOrHiddenMembersInType.
         /// When making changes to this member, think about whether or not they should also be applied in MemberSymbol.
         /// One key difference is that custom modifiers are considered when looking up overridden members, but
         /// not when looking up implicit implementations.  We're preserving this behavior from Dev10.

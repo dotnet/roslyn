@@ -81,10 +81,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         internal AbstractOleCommandTarget AttachToVsTextView()
         {
             var vsTextView = _editorAdaptersFactory.GetViewAdapter(_wpfTextView);
-
             // Add command filter to IVsTextView. If something goes wrong, throw.
-            IOleCommandTarget nextCommandTarget;
-            int returnValue = vsTextView.AddCommandFilter(this, out nextCommandTarget);
+            int returnValue = vsTextView.AddCommandFilter(this, out var nextCommandTarget);
             Marshal.ThrowExceptionForHR(returnValue);
             Contract.ThrowIfNull(nextCommandTarget);
 

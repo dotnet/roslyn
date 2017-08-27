@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.Free();
         }
 
-        protected override void NoteBranch(PendingBranch pending, BoundStatement gotoStmt, BoundStatement targetStmt)
+        protected override void NoteBranch(PendingBranch pending, BoundNode gotoStmt, BoundStatement targetStmt)
         {
             targetStmt.AssertIsLabeledStatement();
             if (!gotoStmt.WasCompilerGenerated && !targetStmt.WasCompilerGenerated && RegionContains(targetStmt.Syntax.Span) && !RegionContains(gotoStmt.Syntax.Span))

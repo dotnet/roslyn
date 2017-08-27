@@ -1,11 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
 using Roslyn.Utilities;
 
@@ -15,34 +11,28 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     {
         public CodeGenerationOperatorSymbol(
             INamedTypeSymbol containingType,
-            IList<AttributeData> attributes,
+            ImmutableArray<AttributeData> attributes,
             Accessibility accessibility,
             DeclarationModifiers modifiers,
             ITypeSymbol returnType,
             CodeGenerationOperatorKind operatorKind,
-            IList<IParameterSymbol> parameters,
-            IList<AttributeData> returnTypeAttributes) :
-            base(containingType,
+            ImmutableArray<IParameterSymbol> parameters,
+            ImmutableArray<AttributeData> returnTypeAttributes)
+            : base(containingType,
                  attributes,
                  accessibility,
                  modifiers,
                  returnType: returnType,
                  returnsByRef: false,
-                 explicitInterfaceSymbolOpt: null,
+                 explicitInterfaceImplementations: default,
                  name: GetMetadataName(operatorKind),
-                 typeParameters: SpecializedCollections.EmptyList<ITypeParameterSymbol>(),
+                 typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
                  parameters: parameters,
                  returnTypeAttributes: returnTypeAttributes)
         {
         }
 
-        public override MethodKind MethodKind
-        {
-            get
-            {
-                return MethodKind.UserDefinedOperator;
-            }
-        }
+        public override MethodKind MethodKind => MethodKind.UserDefinedOperator;
 
         public static int GetParameterCount(CodeGenerationOperatorKind operatorKind)
         {

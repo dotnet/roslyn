@@ -207,10 +207,10 @@
   <data name="GetMetadataMustReturnInstance" xml:space="preserve">
     <value>{0}.GetMetadata() must return an instance of {1}.</value>
   </data>
-  <data name="ValueTooLargeToBeRepresented" xml:space="preserve">
+  <data name="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer" xml:space="preserve">
     <value>Value too large to be represented as a 30 bit unsigned integer.</value>
   </data>
-  <data name="ArraysWithMoreThanOneDimensionCannotBeSerialized" xml:space="preserve">
+  <data name="Arrays_with_more_than_one_dimension_cannot_be_serialized" xml:space="preserve">
     <value>Arrays with more than one dimension cannot be serialized.</value>
   </data>
   <data name="InvalidAssemblyName" xml:space="preserve">
@@ -279,6 +279,9 @@
   <data name="FileSizeExceedsMaximumAllowed" xml:space="preserve">
     <value>File size exceeds maximum allowed size of a valid metadata file.</value>
   </data>
+  <data name="NameCannotBeNull" xml:space="preserve">
+    <value>Name cannot be null.</value>
+  </data>
   <data name="NameCannotBeEmpty" xml:space="preserve">
     <value>Name cannot be empty.</value>
   </data>
@@ -318,8 +321,32 @@
   <data name="StreamMustSupportReadAndSeek" xml:space="preserve">
     <value>Stream must support read and seek operations.</value>
   </data>
+  <data name="StreamMustSupportRead" xml:space="preserve">
+    <value>Stream must be readable.</value>
+  </data>
   <data name="StreamMustSupportWrite" xml:space="preserve">
     <value>Stream must be writable.</value>
+  </data>
+  <data name="PdbStreamUnexpectedWhenEmbedding" xml:space="preserve">
+    <value>PDB stream should not be given when embedding PDB into the PE stream.</value>
+  </data>
+  <data name="PdbStreamUnexpectedWhenEmittingMetadataOnly" xml:space="preserve">
+    <value>PDB stream should not be given when emitting metadata only.</value>
+  </data>
+  <data name="MetadataPeStreamUnexpectedWhenEmittingMetadataOnly" xml:space="preserve">
+    <value>Metadata PE stream should not be given when emitting metadata only.</value>
+  </data>
+  <data name="IncludingPrivateMembersUnexpectedWhenEmittingToMetadataPeStream" xml:space="preserve">
+    <value>Including private members should not be used when emitting to the secondary assembly output.</value>
+  </data>
+  <data name="MustIncludePrivateMembersUnlessRefAssembly" xml:space="preserve">
+    <value>Must include private members unless emitting a ref assembly.</value>
+  </data>
+  <data name="EmbeddingPdbUnexpectedWhenEmittingMetadata" xml:space="preserve">
+    <value>Embedding PDB is not allowed when emitting metadata.</value>
+  </data>
+  <data name="CannotTargetNetModuleWhenEmittingRefAssembly" xml:space="preserve">
+    <value>Cannot target net module when emitting ref assembly.</value>
   </data>
   <data name="InvalidHash" xml:space="preserve">
     <value>Invalid hash.</value>
@@ -413,6 +440,9 @@
   <data name="ArgumentElementCannotBeNull" xml:space="preserve">
     <value>Argument cannot have a null element.</value>
   </data>
+  <data name="AsyncAnalyzerActionCannotBeRegistered" xml:space="preserve">
+    <value>Analyzer attempted to register an 'async' action, which is not supported.</value>
+  </data>
   <data name="UnsupportedDiagnosticReported" xml:space="preserve">
     <value>Reported diagnostic with ID '{0}' is not supported by the analyzer.</value>
   </data>
@@ -422,14 +452,14 @@
   <data name="InvalidDiagnosticLocationReported" xml:space="preserve">
     <value>Reported diagnostic '{0}' has a source location in file '{1}', which is not part of the compilation being analyzed.</value>
   </data>
-  <data name="NoBinderException" xml:space="preserve">
-    <value>Cannot deserialize type '{0}', no binder supplied.</value>
+  <data name="The_type_0_is_not_understood_by_the_serialization_binder" xml:space="preserve">
+    <value>The type '{0}' is not understood by the serialization binder.</value>
   </data>
-  <data name="NoReaderException" xml:space="preserve">
-    <value>Cannot deserialize type '{0}', it has no deserialization reader.</value>
+  <data name="Cannot_deserialize_type_0" xml:space="preserve">
+    <value>Cannot deserialize type '{0}'.</value>
   </data>
-  <data name="NotWritableException" xml:space="preserve">
-    <value>The type '{0}' cannot be written, it does not implement IObjectWritable</value>
+  <data name="Cannot_serialize_type_0" xml:space="preserve">
+    <value>Cannot serialize type '{0}'.</value>
   </data>
   <data name="InvalidNodeToTrack" xml:space="preserve">
     <value>Node to track is not a descendant of the root.</value>
@@ -453,10 +483,13 @@
     <value>Invalid data at offset {0}: {1}{2}*{3}{4}</value>
   </data>
   <data name="SymWriterNotDeterministic" xml:space="preserve">
-    <value>Windows PDB writer doesn't support deterministic compilation -- could not find Microsoft.DiaSymReader.Native.{0}.dll</value>
+    <value>Windows PDB writer doesn't support deterministic compilation: '{0}'</value>
   </data>
-  <data name="SymWriterNotAvailable" xml:space="preserve">
-    <value>Windows PDB writer is not available -- could not find Microsoft.DiaSymReader.Native.{0}.dll</value>
+  <data name="SymWriterOlderVersionThanRequired" xml:space="preserve">
+    <value>The version of Windows PDB writer is older than required: '{0}'</value>
+  </data>
+  <data name="SymWriterDoesNotSupportSourceLink" xml:space="preserve">
+    <value>Windows PDB writer doesn't support SourceLink feature: '{0}'</value>
   </data>
   <data name="RuleSetBadAttributeValue" xml:space="preserve">
     <value>The attribute {0} has an invalid value of {1}.</value>
@@ -513,16 +546,73 @@
     <value>Exception occurred with following context:
 {0}</value>
   </data>
-  <data name="TupleNamesAllOrNone" xml:space="preserve">
-    <value>If names are used in a tuple type, then there must be the same number of names and elements.</value>
+  <data name="AnonymousTypeMemberAndNamesCountMismatch2" xml:space="preserve">
+    <value>{0} and {1} must have the same length.</value>
+  </data>
+  <data name="AnonymousTypeArgumentCountMismatch2" xml:space="preserve">
+    <value>{0} must either be 'default' or have the same length as {1}.</value>
+  </data>
+  <data name="InconsistentSyntaxTreeFeature" xml:space="preserve">
+    <value>Inconsistent syntax tree features</value>
+  </data>
+  <data name="ReferenceOfTypeIsInvalid1" xml:space="preserve">
+    <value>Reference of type '{0}' is not valid for this compilation.</value>
+  </data>
+  <data name="MetadataRefNotFoundToRemove1" xml:space="preserve">
+    <value>MetadataReference '{0}' not found to remove.</value>
+  </data>
+  <data name="TupleElementNameCountMismatch" xml:space="preserve">
+    <value>If tuple element names are specified, the number of element names must match the cardinality of the tuple.</value>
+  </data>
+  <data name="TupleElementNameEmpty" xml:space="preserve">
+    <value>Tuple element name cannot be an empty string.</value>
+  </data>
+  <data name="TupleElementLocationCountMismatch" xml:space="preserve">
+    <value>If tuple element locations are specified, the number of locations must match the cardinality of the tuple.</value>
   </data>
   <data name="TuplesNeedAtLeastTwoElements" xml:space="preserve">
     <value>Tuples must have at least two elements.</value>
   </data>
   <data name="CompilationReferencesAssembliesWithDifferentAutoGeneratedVersion" xml:space="preserve">
-     <value>The compilation references multiple assemblies whose versions only differ in auto-generated build and/or revision numbers.</value>
+    <value>The compilation references multiple assemblies whose versions only differ in auto-generated build and/or revision numbers.</value>
   </data>
   <data name="TupleUnderlyingTypeMustBeTupleCompatible" xml:space="preserve">
     <value>The underlying type for a tuple must be tuple-compatible.</value>
+  </data>
+  <data name="IOperationFeatureDisabled" xml:space="preserve">
+    <value>Feature 'IOperation' is disabled.</value>
+  </data>
+  <data name="UnrecognizedResourceFileFormat" xml:space="preserve">
+    <value>Unrecognized resource file format.</value>
+  </data>
+  <data name="SourceTextCannotBeEmbedded" xml:space="preserve">
+    <value>SourceText cannot be embedded. Provide encoding or canBeEmbedded=true at construction.</value>
+  </data>
+  <data name="StreamIsTooLong" xml:space="preserve">
+    <value>Stream is too long.</value>
+  </data>
+  <data name="EmbeddedTextsRequirePdb" xml:space="preserve">
+    <value>Embedded texts are only supported when emitting a PDB.</value>
+  </data>
+  <data name="TheStreamCannotBeWrittenTo" xml:space="preserve">
+    <value>The stream cannot be written to.</value>
+  </data>
+  <data name="ElementIsExpected" xml:space="preserve">
+    <value>element is expected</value>
+  </data>
+  <data name="SeparatorIsExpected" xml:space="preserve">
+    <value>separator is expected</value>
+  </data>
+  <data name="TheStreamCannotBeReadFrom" xml:space="preserve">
+    <value>The stream cannot be read from.</value>
+  </data>
+  <data name="Deserialization_reader_for_0_read_incorrect_number_of_values" xml:space="preserve">
+    <value>Deserialization reader for '{0}' read incorrect number of values.</value>
+  </data>
+  <data name="Stream_contains_invalid_data" xml:space="preserve">
+    <value>Stream contains invalid data</value>
+  </data>
+  <data name="InvalidDiagnosticSpanReported" xml:space="preserve">
+    <value>Reported diagnostic '{0}' has a source location '{1}' in file '{2}', which is outside of the given file.</value>
   </data>
 </root>

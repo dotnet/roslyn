@@ -8,10 +8,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using CommonAssemblyWellKnownAttributeData = Microsoft.CodeAnalysis.CommonAssemblyWellKnownAttributeData<Microsoft.CodeAnalysis.CSharp.Symbols.NamedTypeSymbol>;
 
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents an assembly built by compiler.
     /// </summary>
-    internal sealed class SourceAssemblySymbol : MetadataOrSourceAssemblySymbol, ISourceAssemblySymbol, IAttributeTargetSymbol
+    internal sealed partial class SourceAssemblySymbol : MetadataOrSourceAssemblySymbol, ISourceAssemblySymbolInternal, IAttributeTargetSymbol
     {
         /// <summary>
         /// A Compilation the assembly is created for.
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<PEModule> netModules)
         {
             Debug.Assert(compilation != null);
-            Debug.Assert(!String.IsNullOrWhiteSpace(assemblySimpleName));
+            Debug.Assert(assemblySimpleName != null);
             Debug.Assert(!String.IsNullOrWhiteSpace(moduleName));
             Debug.Assert(!netModules.IsDefault);
 
@@ -343,12 +343,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal string SignatureKey
+        public string SignatureKey
         {
             get
             {
-                string key = GetWellKnownAttributeDataStringField(data => data.AssemblySignatureKeyAttributeSetting);
-                return key;
+                return GetWellKnownAttributeDataStringField(data => data.AssemblySignatureKeyAttributeSetting);
             }
         }
 
@@ -387,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
          
-        internal AssemblyHashAlgorithm AssemblyHashAlgorithm
+        public AssemblyHashAlgorithm HashAlgorithm
         {
             get
             {
@@ -424,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// This represents what the user claimed in source through the AssemblyFlagsAttribute.
         /// It may be modified as emitted due to presence or absence of the public key.
         /// </summary>
-        internal AssemblyFlags Flags
+        public AssemblyFlags AssemblyFlags
         {
             get
             {
@@ -574,9 +573,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.WRN_DelaySignButNoKey, NoLocation.Singleton);
             }
 
-            if (DeclaringCompilation.Options.PublicSign && !Identity.HasPublicKey)
+            if (DeclaringCompilation.Options.PublicSign)
             {
-                diagnostics.Add(ErrorCode.ERR_PublicSignButNoKey, NoLocation.Singleton);
+                if (_compilation.Options.OutputKind.IsNetModule())
+                {
+                    diagnostics.Add(ErrorCode.ERR_PublicSignNetModule, NoLocation.Singleton);
+                }
+                else if (!Identity.HasPublicKey)
+                {
+                    diagnostics.Add(ErrorCode.ERR_PublicSignButNoKey, NoLocation.Singleton);
+                }
             }
 
             // If the options and attributes applied on the compilation imply real signing,
@@ -724,7 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Forces binding and decoding of attributes.
         /// This property shouldn't be accessed during binding as it can lead to attribute binding cycle.
         /// </remarks>
-        private bool InternalsAreVisible
+        public bool InternalsAreVisible
         {
             get
             {
@@ -791,7 +797,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (_compilation.Options.PublicSign && (object)this.AssemblyKeyContainerAttributeSetting != (object)CommonAssemblyWellKnownAttributeData.StringMissingValue)
+            if (_compilation.Options.PublicSign && 
+                !_compilation.Options.OutputKind.IsNetModule() &&
+                (object)this.AssemblyKeyContainerAttributeSetting != (object)CommonAssemblyWellKnownAttributeData.StringMissingValue)
             {
                 diagnostics.Add(ErrorCode.WRN_AttributeIgnoredWhenPublicSigning, NoLocation.Singleton, AttributeDescription.AssemblyKeyNameAttribute.FullName);
             }
@@ -826,7 +834,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (_compilation.Options.PublicSign && (object)this.AssemblyKeyFileAttributeSetting != (object)CommonAssemblyWellKnownAttributeData.StringMissingValue)
+            if (_compilation.Options.PublicSign &&
+                !_compilation.Options.OutputKind.IsNetModule() &&
+                (object)this.AssemblyKeyFileAttributeSetting != (object)CommonAssemblyWellKnownAttributeData.StringMissingValue)
             {
                 diagnostics.Add(ErrorCode.WRN_AttributeIgnoredWhenPublicSigning, NoLocation.Singleton, AttributeDescription.AssemblyKeyFileAttribute.FullName);
             }
@@ -1686,6 +1696,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        private bool HasReferenceAssemblyAttribute
+        {
+            get
+            {
+                CommonAssemblyWellKnownAttributeData assemblyData = this.GetSourceDecodedWellKnownAttributeData();
+                return assemblyData != null && assemblyData.HasReferenceAssemblyAttribute;
+            }
+        }
+
         internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(compilationState, ref attributes);
@@ -2254,6 +2273,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().HasCompilationRelaxationsAttribute = true;
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.ReferenceAssemblyAttribute))
+            {
+                arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().HasReferenceAssemblyAttribute = true;
+            }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.RuntimeCompatibilityAttribute))
             {
                 bool wrapNonExceptionThrows = true;
@@ -2573,18 +2596,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var peModuleSymbol = (Metadata.PE.PEModuleSymbol)_modules[i];
 
-                    var forwardedToAssembly = peModuleSymbol.GetAssemblyForForwardedType(ref emittedName);
-                    if ((object)forwardedToAssembly != null)
+                    (AssemblySymbol firstSymbol, AssemblySymbol secondSymbol) = peModuleSymbol.GetAssembliesForForwardedType(ref emittedName);
+
+                    if ((object)firstSymbol != null)
                     {
+                        if ((object)secondSymbol != null)
+                        {
+                            return CreateMultipleForwardingErrorTypeSymbol(ref emittedName, peModuleSymbol, firstSymbol, secondSymbol);
+                        }
+
                         // Don't bother to check the forwarded-to assembly if we've already seen it.
-                        if (visitedAssemblies != null && visitedAssemblies.Contains(forwardedToAssembly))
+                        if (visitedAssemblies != null && visitedAssemblies.Contains(firstSymbol))
                         {
                             return CreateCycleInTypeForwarderErrorTypeSymbol(ref emittedName);
                         }
                         else
                         {
                             visitedAssemblies = new ConsList<AssemblySymbol>(this, visitedAssemblies ?? ConsList<AssemblySymbol>.Empty);
-                            return forwardedToAssembly.LookupTopLevelMetadataTypeWithCycleDetection(ref emittedName, visitedAssemblies, digThroughForwardedTypes: true);
+                            return firstSymbol.LookupTopLevelMetadataTypeWithCycleDetection(ref emittedName, visitedAssemblies, digThroughForwardedTypes: true);
                         }
                     }
                 }
@@ -2595,9 +2624,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override AssemblyMetadata GetMetadata() => null;
 
-        Compilation ISourceAssemblySymbol.Compilation
-        {
-            get { return _compilation; }
-        }
+        Compilation ISourceAssemblySymbol.Compilation => _compilation;
     }
 }

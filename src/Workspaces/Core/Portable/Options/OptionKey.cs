@@ -12,32 +12,23 @@ namespace Microsoft.CodeAnalysis.Options
 
         public OptionKey(IOption option, string language = null)
         {
-            if (option == null)
-            {
-                throw new ArgumentNullException(nameof(option));
-            }
-
             if (language != null && !option.IsPerLanguage)
             {
-                throw new ArgumentException(WorkspacesResources.InvalidLanguageNameOption);
+                throw new ArgumentException(WorkspacesResources.A_language_name_cannot_be_specified_for_this_option);
             }
             else if (language == null && option.IsPerLanguage)
             {
-                throw new ArgumentNullException(WorkspacesResources.InvalidLanguageNameOption2);
+                throw new ArgumentNullException(WorkspacesResources.A_language_name_must_be_specified_for_this_option);
             }
 
-            this.Option = option;
+            this.Option = option ?? throw new ArgumentNullException(nameof(option));
             this.Language = language;
         }
 
         public override bool Equals(object obj)
         {
-            if (obj is OptionKey)
-            {
-                return Equals((OptionKey)obj);
-            }
-
-            return false;
+            return obj is OptionKey key &&
+                   Equals(key);
         }
 
         public bool Equals(OptionKey other)

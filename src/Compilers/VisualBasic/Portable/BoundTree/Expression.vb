@@ -1,14 +1,26 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Semantics
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Friend Partial Class BoundExpression
-        Implements IOperation
+        Protected Overrides ReadOnly Property OperationKind As OperationKind
+            Get
+                Return Me.ExpressionKind
+            End Get
+        End Property
 
-        Private ReadOnly Property IOperation_ConstantValue As [Optional](Of Object) Implements IOperation.ConstantValue
+        Protected Overrides ReadOnly Property OperationType As ITypeSymbol
+            Get
+                Return Me.Type
+            End Get
+        End Property
+
+        Protected Overrides ReadOnly Property OperationConstantValue As [Optional](Of Object)
             Get
                 Dim value As ConstantValue = Me.ConstantValueOpt
                 If value Is Nothing Then
@@ -19,35 +31,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IOperation_Kind As OperationKind Implements IOperation.Kind
-            Get
-                Return Me.ExpressionKind()
-            End Get
-        End Property
-
-        Private ReadOnly Property IOperation_IsInvalid As Boolean Implements IOperation.IsInvalid
-            Get
-                Return Me.HasErrors
-            End Get
-        End Property
-
-        Private ReadOnly Property IOperation_Type As ITypeSymbol Implements IOperation.Type
-            Get
-                Return Me.Type
-            End Get
-        End Property
-
-        Private ReadOnly Property IOperation_Syntax As SyntaxNode Implements IOperation.Syntax
-            Get
-                Return Me.Syntax
-            End Get
-        End Property
-
         Protected MustOverride Function ExpressionKind() As OperationKind
 
-        Public MustOverride Overloads Sub Accept(visitor As OperationVisitor) Implements IOperation.Accept
+        Public MustOverride Overloads Overrides Sub Accept(visitor As OperationVisitor)
 
-        Public MustOverride Overloads Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult Implements IOperation.Accept
+        Public MustOverride Overloads Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
 
         Protected Shared Function GetChildOfBadExpression(parent As BoundNode, index As Integer) As IOperation
             Dim badParent As BoundBadExpression = TryCast(parent, BoundBadExpression)
@@ -58,12 +46,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            Return New InvalidExpression(parent.Syntax)
+            Return New InvalidExpression(parent.Syntax, ImmutableArray(Of IOperation).Empty)
         End Function
-
     End Class
 
-    Partial Friend Class BoundAssignmentOperator
+    Friend Partial Class BoundAssignmentOperator
         Implements IAssignmentExpression
         Implements ICompoundAssignmentExpression
 
@@ -152,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundMeReference
+    Friend Partial Class BoundMeReference
         Implements IInstanceReferenceExpression
 
         Private ReadOnly Property IInstanceReferenceExpression_InstanceReferenceKind As InstanceReferenceKind Implements IInstanceReferenceExpression.InstanceReferenceKind
@@ -174,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundMyBaseReference
+    Friend Partial Class BoundMyBaseReference
         Implements IInstanceReferenceExpression
 
         Private ReadOnly Property IInstanceReferenceExpression_InstanceReferenceKind As InstanceReferenceKind Implements IInstanceReferenceExpression.InstanceReferenceKind
@@ -196,7 +183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundMyClassReference
+    Friend Partial Class BoundMyClassReference
         Implements IInstanceReferenceExpression
 
         Private ReadOnly Property IInstanceReferenceExpression_InstanceReferenceKind As InstanceReferenceKind Implements IInstanceReferenceExpression.InstanceReferenceKind
@@ -218,7 +205,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundLiteral
+    Friend Partial Class BoundLiteral
         Implements ILiteralExpression
 
         Private ReadOnly Property ILiteralExpression_Text As String Implements ILiteralExpression.Text
@@ -240,7 +227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundAwaitOperator
+    Friend Partial Class BoundAwaitOperator
         Implements IAwaitExpression
 
         Private ReadOnly Property IAwaitExpression_AwaitedValue As IOperation Implements IAwaitExpression.AwaitedValue
@@ -262,7 +249,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundLambda
+    Friend Partial Class BoundLambda
         Implements ILambdaExpression
 
         Private ReadOnly Property ILambdaExpression_Body As IBlockStatement Implements ILambdaExpression.Body
@@ -290,20 +277,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundCall
+    Friend Partial Class BoundCall
         Implements IInvocationExpression
 
-        Private Function IHasArgumentsExpression_GetArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IHasArgumentsExpression.GetArgumentMatchingParameter
-            Return ArgumentMatchingParameter(Me.Arguments, parameter, Me.Method.Parameters)
-        End Function
-
-        Private ReadOnly Property IInvocationExpression_ArgumentsInSourceOrder As ImmutableArray(Of IArgument) Implements IInvocationExpression.ArgumentsInSourceOrder
-            Get
-                Return DeriveArguments(Me.Arguments, Me.Method.Parameters)
-            End Get
-        End Property
-
-        Private ReadOnly Property IHasArgumentsExpression_ArgumentsInParameterOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInParameterOrder
+        Private ReadOnly Property IHasArgumentsExpression_ArgumentsInEvaluationOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInEvaluationOrder
             Get
                 Return DeriveArguments(Me.Arguments, Me.Method.Parameters)
             End Get
@@ -346,23 +323,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return visitor.VisitInvocationExpression(Me, argument)
         End Function
 
-        Friend Shared Function ArgumentMatchingParameter(arguments As ImmutableArray(Of BoundExpression), parameter As IParameterSymbol, parameters As ImmutableArray(Of Symbols.ParameterSymbol)) As IArgument
-            Dim index As Integer = parameter.Ordinal
-            If index <= arguments.Length Then
-                Return DeriveArgument(index, arguments(index), parameters)
-            End If
-
-            Return Nothing
-        End Function
-
         Friend Shared Function DeriveArguments(boundArguments As ImmutableArray(Of BoundExpression), parameters As ImmutableArray(Of Symbols.ParameterSymbol)) As ImmutableArray(Of IArgument)
             Dim argumentsLength As Integer = boundArguments.Length
-            Dim arguments As ImmutableArray(Of IArgument).Builder = ImmutableArray.CreateBuilder(Of IArgument)(argumentsLength)
+            Debug.Assert(argumentsLength = parameters.Length)
+
+            Dim arguments As ArrayBuilder(Of IArgument) = ArrayBuilder(Of IArgument).GetInstance(argumentsLength)
             For index As Integer = 0 To argumentsLength - 1 Step 1
                 arguments.Add(DeriveArgument(index, boundArguments(index), parameters))
             Next
 
-            Return arguments.ToImmutable()
+            Return arguments.ToImmutableAndFree()
         End Function
 
         Private Shared ReadOnly s_argumentMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundExpression, IArgument)
@@ -372,19 +342,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case BoundKind.ByRefArgumentWithCopyBack
                     Return s_argumentMappings.GetValue(
                         argument,
-                        Function(argumentValue) New ByRefArgument(If(CUInt(index) < CUInt(parameters.Length), parameters(index), Nothing), DirectCast(argumentValue, BoundByRefArgumentWithCopyBack)))
+                        Function(argumentValue) New ByRefArgument(parameters(index), DirectCast(argumentValue, BoundByRefArgumentWithCopyBack)))
                 Case Else
-                    ' Apparently the VB bound trees don't encode named arguments, which seems unnecesarily lossy.
                     Return s_argumentMappings.GetValue(
                         argument,
                         Function(argumentValue)
-                            If index >= parameters.Length - 1 AndAlso parameters.Length > 0 AndAlso parameters(parameters.Length - 1).IsParamArray Then
-                                Return New Argument(ArgumentKind.ParamArray, parameters(parameters.Length - 1), argumentValue)
+                            Dim lastParameterIndex = parameters.Length - 1
+                            If index = lastParameterIndex AndAlso ParameterIsParamArray(parameters(lastParameterIndex)) Then
+                                ' TODO: figure out if this is true:
+                                '       a compiler generated argument for a ParamArray parameter is created iff 
+                                '       a list of arguments (including 0 argument) is provided for ParamArray parameter in source
+                                '       https://github.com/dotnet/roslyn/issues/18550
+                                Dim kind = If(argument.WasCompilerGenerated AndAlso argument.Kind = BoundKind.ArrayCreation, ArgumentKind.ParamArray, ArgumentKind.Explicit)
+                                Return New Argument(kind, parameters(lastParameterIndex), argumentValue)
                             Else
-                                Return New Argument(ArgumentKind.Positional, If(CUInt(index) < CUInt(parameters.Length), parameters(index), Nothing), argumentValue)
+                                ' TODO: figure our if this is true:
+                                '       a compiler generated argument for an Optional parameter is created iff
+                                '       the argument is omitted from the source
+                                '       https://github.com/dotnet/roslyn/issues/18550
+                                Dim kind = If(argument.WasCompilerGenerated, ArgumentKind.DefaultValue, ArgumentKind.Explicit)
+                                Dim parameter = parameters(index)
+                                Return New Argument(kind, parameter, argumentValue)
                             End If
                         End Function)
             End Select
+        End Function
+
+        Private Shared Function ParameterIsParamArray(parameter As ParameterSymbol) As Boolean
+            Return If(parameter.IsParamArray AndAlso parameter.Type.Kind = SymbolKind.ArrayType, DirectCast(parameter.Type, ArrayTypeSymbol).IsSZArray, False)
         End Function
 
         Private MustInherit Class ArgumentBase
@@ -495,8 +480,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Overrides ReadOnly Property ArgumentKind As ArgumentKind
                 Get
-                    ' Do the VB bound trees encode named arguments?
-                    Return ArgumentKind.Positional
+                    Return ArgumentKind.Explicit
                 End Get
             End Property
 
@@ -520,7 +504,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Class
     End Class
 
-    Partial Friend Class BoundOmittedArgument
+    Friend Partial Class BoundOmittedArgument
         Implements IOmittedArgumentExpression
 
         Protected Overrides Function ExpressionKind() As OperationKind
@@ -536,7 +520,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundParenthesized
+    Friend Partial Class BoundParenthesized
         Implements IParenthesizedExpression
 
         Private ReadOnly Property IParenthesizedExpression_Operand As IOperation Implements IParenthesizedExpression.Operand
@@ -558,7 +542,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundArrayAccess
+    Friend Partial Class BoundArrayAccess
         Implements IArrayElementReferenceExpression
 
         Private ReadOnly Property IArrayElementReferenceExpression_ArrayReference As IOperation Implements IArrayElementReferenceExpression.ArrayReference
@@ -586,7 +570,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundUnaryOperator
+    Friend Partial Class BoundUnaryOperator
         Implements IUnaryOperatorExpression
 
         Private ReadOnly Property IHasOperatorMethodExpression_OperatorMethod As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
@@ -626,7 +610,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundUserDefinedUnaryOperator
+    Friend Partial Class BoundUserDefinedUnaryOperator
         Implements IUnaryOperatorExpression
 
         Private ReadOnly Property IHasOperatorMethodExpression_OperatorMethod As IMethodSymbol Implements IHasOperatorMethodExpression.OperatorMethod
@@ -683,7 +667,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundBinaryOperator
+    Friend Partial Class BoundBinaryOperator
         Implements IBinaryOperatorExpression
 
         Private ReadOnly Property IBinaryOperatorExpression_LeftOperand As IOperation Implements IBinaryOperatorExpression.LeftOperand
@@ -729,7 +713,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundUserDefinedBinaryOperator
+    Friend Partial Class BoundUserDefinedBinaryOperator
         Implements IBinaryOperatorExpression
 
         Private ReadOnly Property IBinaryOperatorExpression_LeftOperand As IOperation Implements IBinaryOperatorExpression.LeftOperand
@@ -827,7 +811,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundBinaryConditionalExpression
+    Friend Partial Class BoundBinaryConditionalExpression
         Implements INullCoalescingExpression
 
         Private ReadOnly Property INullCoalescingExpression_PrimaryOperand As IOperation Implements INullCoalescingExpression.PrimaryOperand
@@ -855,7 +839,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundUserDefinedShortCircuitingOperator
+    Friend Partial Class BoundUserDefinedShortCircuitingOperator
         Implements IBinaryOperatorExpression
 
         Private ReadOnly Property IBinaryOperatorExpression_LeftOperand As IOperation Implements IBinaryOperatorExpression.LeftOperand
@@ -901,8 +885,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundBadExpression
+    Friend Partial Class BoundBadExpression
         Implements IInvalidExpression
+
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation) Implements IInvalidExpression.Children
+            Get
+                Return StaticCast(Of IOperation).From(Me.ChildBoundNodes)
+            End Get
+        End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.InvalidExpression
@@ -1166,50 +1156,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundObjectCreationExpression
         Implements IObjectCreationExpression
 
-        Private Shared ReadOnly s_memberInitializersMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundObjectCreationExpression, Object)
-
-        Private Function IHasArgumentExpression_GetArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IHasArgumentsExpression.GetArgumentMatchingParameter
-            Return BoundCall.ArgumentMatchingParameter(Me.Arguments, parameter, Me.ConstructorOpt.Parameters)
-        End Function
-
         Private ReadOnly Property IObjectCreationExpression_Constructor As IMethodSymbol Implements IObjectCreationExpression.Constructor
             Get
                 Return Me.ConstructorOpt
             End Get
         End Property
 
-        Private ReadOnly Property IHasArgumentsExpression_ArgumentsInParameterOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInParameterOrder
+        Private ReadOnly Property IHasArgumentsExpression_ArgumentsInEvaluationOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInEvaluationOrder
             Get
                 Debug.Assert(Me.ConstructorOpt IsNot Nothing OrElse Me.Arguments.IsEmpty())
                 Return If(Me.ConstructorOpt Is Nothing, ImmutableArray(Of IArgument).Empty, BoundCall.DeriveArguments(Me.Arguments, Me.ConstructorOpt.Parameters))
             End Get
         End Property
 
-        Private ReadOnly Property IObjectCreationExpression_MemberInitializers As ImmutableArray(Of ISymbolInitializer) Implements IObjectCreationExpression.MemberInitializers
+        Private ReadOnly Property IObjectCreationExpression_Initializers As ImmutableArray(Of IOperation) Implements IObjectCreationExpression.Initializers
             Get
-                Dim initializer = s_memberInitializersMappings.GetValue(Me, Function(objectCreationStatement)
-                                                                                Dim objectInitializerExpression As BoundObjectInitializerExpressionBase = Me.InitializerOpt
-                                                                                If objectInitializerExpression IsNot Nothing Then
-                                                                                    Dim builder = ArrayBuilder(Of ISymbolInitializer).GetInstance(objectInitializerExpression.Initializers.Length)
-                                                                                    For Each memberAssignment In objectInitializerExpression.Initializers
-                                                                                        Dim assignment = TryCast(memberAssignment, BoundAssignmentOperator)
-                                                                                        Dim left = assignment?.Left
-                                                                                        If left IsNot Nothing Then
-                                                                                            Select Case left.Kind
-                                                                                                Case BoundKind.FieldAccess
-                                                                                                    builder.Add(New FieldInitializer(assignment.Syntax, DirectCast(left, BoundFieldAccess).FieldSymbol, assignment.Right))
-                                                                                                Case BoundKind.PropertyAccess
-                                                                                                    builder.Add(New PropertyInitializer(assignment.Syntax, DirectCast(left, BoundPropertyAccess).PropertySymbol, assignment.Right))
-                                                                                            End Select
-                                                                                        End If
-                                                                                    Next
-                                                                                    Return builder.ToImmutableAndFree()
-                                                                                End If
-
-                                                                                Return ImmutableArray(Of ISymbolInitializer).Empty
-                                                                            End Function)
-
-                Return DirectCast(initializer, ImmutableArray(Of ISymbolInitializer))
+                Return If(Me.InitializerOpt IsNot Nothing, Me.InitializerOpt.Initializers.As(Of IOperation), ImmutableArray(Of IOperation).Empty)
             End Get
         End Property
 
@@ -1355,7 +1317,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     End Class
 
-    Partial Friend Class BoundNewT
+    Friend Partial Class BoundNewT
         Implements ITypeParameterObjectCreationExpression
 
         Protected Overrides Function ExpressionKind() As OperationKind
@@ -1457,15 +1419,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IHasArgumentsExpression_ArgumentsInParameterOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInParameterOrder
+        Private ReadOnly Property IHasArgumentsExpression_ArgumentsInEvaluationOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInEvaluationOrder
             Get
                 Return BoundCall.DeriveArguments(Me.Arguments, Me.PropertySymbol.Parameters)
             End Get
         End Property
-
-        Private Function IHasArgumentsExpression_GetArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IHasArgumentsExpression.GetArgumentMatchingParameter
-            Return BoundCall.ArgumentMatchingParameter(Me.Arguments, parameter, Me.PropertySymbol.Parameters)
-        End Function
 
         Protected Overrides Function ExpressionKind() As OperationKind
             Return If(Me.Arguments.Length > 0, OperationKind.IndexedPropertyReferenceExpression, OperationKind.PropertyReferenceExpression)
@@ -1519,46 +1477,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Friend Partial Class BoundDelegateCreationExpression
-        Implements IMethodBindingExpression
-
-        Private ReadOnly Property IMemberReferenceExpression_Instance As IOperation Implements IMemberReferenceExpression.Instance
-            Get
-                If Me.Method.IsShared Then
-                    Return Nothing
-                Else
-                    Return Me.ReceiverOpt
-                End If
-            End Get
-        End Property
-
-        Private ReadOnly Property IMethodBindingExpression_IsVirtual As Boolean Implements IMethodBindingExpression.IsVirtual
-            Get
-                Return Me.Method IsNot Nothing AndAlso (Me.Method.IsOverridable OrElse Me.Method.IsOverrides OrElse Me.Method.IsMustOverride) AndAlso Not Me.SuppressVirtualCalls
-            End Get
-        End Property
-
-        Private ReadOnly Property IMemberReferenceExpression_Member As ISymbol Implements IMemberReferenceExpression.Member
-            Get
-                Return Me.Method
-            End Get
-        End Property
-
-        Private ReadOnly Property IMethodBindingExpression_Method As IMethodSymbol Implements IMethodBindingExpression.Method
-            Get
-                Return Me.Method
-            End Get
-        End Property
 
         Protected Overrides Function ExpressionKind() As OperationKind
-            Return OperationKind.MethodBindingExpression
+            Return OperationKind.None
         End Function
 
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return ImmutableArray.Create(Of IOperation)(Me.ReceiverOpt)
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitMethodBindingExpression(Me)
+            visitor.VisitNoneOperation(Me)
         End Sub
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitMethodBindingExpression(Me, argument)
+            Return visitor.VisitNoneOperation(Me, argument)
         End Function
     End Class
 
@@ -1628,7 +1563,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundConditionalAccessReceiverPlaceholder
+    Friend Partial Class BoundConditionalAccessReceiverPlaceholder
         Implements IConditionalAccessInstanceExpression
 
         Protected Overrides Function ExpressionKind() As OperationKind
@@ -1840,7 +1775,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundLValueToRValueWrapper
+    Partial Friend Class BoundLValueToRValueWrapper
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1882,7 +1817,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Partial Friend Class BoundRValuePlaceholder
+    Friend Partial Class BoundRValuePlaceholder
         Implements IPlaceholderExpression
 
         Protected Overrides Function ExpressionKind() As OperationKind
@@ -2043,6 +1978,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return OperationKind.None
         End Function
 
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return ImmutableArray.Create(Of IOperation)(Me.Operand)
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
         End Sub
@@ -2141,6 +2082,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return OperationKind.None
         End Function
 
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return Me.ConstructorArguments.AddRange(Me.NamedArguments).As(Of IOperation)()
+            End Get
+        End Property
+
+        Public Overrides Sub Accept(visitor As OperationVisitor)
+            visitor.VisitNoneOperation(Me)
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitNoneOperation(Me, argument)
+        End Function
+    End Class
+
+    Friend Partial MustInherit Class BoundTupleExpression
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.None
+        End Function
+
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return Me.Arguments.As(Of IOperation)
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
         End Sub
@@ -2154,6 +2121,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
+
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return Me.ArgumentsOpt.Insert(0, Me.Member).As(Of IOperation)
+            End Get
+        End Property
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
@@ -2169,6 +2142,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return OperationKind.None
         End Function
 
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return ImmutableArray.Create(Of IOperation)(Me.MemberAccess)
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
         End Sub
@@ -2183,6 +2162,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return OperationKind.None
         End Function
 
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return If(InitializerOpt IsNot Nothing, InitializerOpt.Initializers.As(Of IOperation), ImmutableArray(Of IOperation).Empty)
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
         End Sub
@@ -2196,6 +2181,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
+
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return Me.Arguments.As(Of IOperation)
+            End Get
+        End Property
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
@@ -2225,6 +2216,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return OperationKind.None
         End Function
 
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return ImmutableArray.Create(Of IOperation)(Me.Value)
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
         End Sub
@@ -2238,6 +2235,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
+
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return Me.Initializers.As(Of IOperation)
+            End Get
+        End Property
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
@@ -2253,6 +2256,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return OperationKind.None
         End Function
 
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return Me.Initializers.As(Of IOperation)
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
         End Sub
@@ -2266,6 +2275,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
+
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return Me.Bounds.Add(Me.Initializer).As(Of IOperation)
+            End Get
+        End Property
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
@@ -2421,6 +2436,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return OperationKind.None
         End Function
 
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return ImmutableArray.Create(Of IOperation)(Me.LastOperator)
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
         End Sub
@@ -2430,10 +2451,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    Friend Partial Class BoundQueryPart
+        Protected MustOverride Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+    End Class
+
     Friend Partial Class BoundQuerySource
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
+
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return ImmutableArray.Create(Of IOperation)(Me.Expression)
+            End Get
+        End Property
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
@@ -2449,6 +2480,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return OperationKind.None
         End Function
 
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return ImmutableArray.Create(Of IOperation)(Me.ConversionCall)
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
         End Sub
@@ -2462,6 +2499,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
+
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return ImmutableArray.Create(Of IOperation)(Me.Source)
+            End Get
+        End Property
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
@@ -2477,6 +2520,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return OperationKind.None
         End Function
 
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return ImmutableArray.Create(Of IOperation)(Me.UnderlyingExpression)
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
         End Sub
@@ -2490,6 +2539,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
+
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return ImmutableArray.Create(Of IOperation)(Me.UnderlyingExpression)
+            End Get
+        End Property
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
@@ -2505,6 +2560,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return OperationKind.None
         End Function
 
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return ImmutableArray.Create(Of IOperation)(Me.Expression)
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
         End Sub
@@ -2518,6 +2579,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
+
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return ImmutableArray.Create(Of IOperation)(Me.Value)
+            End Get
+        End Property
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
@@ -2547,6 +2614,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return OperationKind.None
         End Function
 
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return ImmutableArray.Create(Of IOperation)(Me.CapturedGroupOpt, Me.UnderlyingExpression)
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
         End Sub
@@ -2560,6 +2633,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
+
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return ImmutableArray.Create(Of IOperation)(Me.Group)
+            End Get
+        End Property
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
@@ -2771,6 +2850,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return OperationKind.None
         End Function
 
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return ImmutableArray.Create(Of IOperation)(Me.Original, Me.Start, Me.LengthOpt, Me.Source)
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
         End Sub
@@ -2813,6 +2898,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return OperationKind.None
         End Function
 
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return ImmutableArray.Create(Of IOperation)(Me.Argument)
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
         End Sub
@@ -2837,6 +2928,104 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Friend Partial Class BoundInterpolatedStringExpression
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.None
+        End Function
+
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return Me.Contents.As(Of IOperation)
+            End Get
+        End Property
+
+        Public Overrides Sub Accept(visitor As OperationVisitor)
+            visitor.VisitNoneOperation(Me)
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitNoneOperation(Me, argument)
+        End Function
+    End Class
+
+    Friend Partial Class BoundInterpolation
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return ImmutableArray.Create(Of IOperation)(Me.Expression, Me.AlignmentOpt, Me.FormatStringOpt)
+            End Get
+        End Property
+    End Class
+
+    Friend Partial Class BoundModuleVersionId
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.None
+        End Function
+
+        Public Overrides Sub Accept(visitor As OperationVisitor)
+            visitor.VisitNoneOperation(Me)
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitNoneOperation(Me, argument)
+        End Function
+    End Class
+
+    Friend Partial Class BoundModuleVersionIdString
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.None
+        End Function
+
+        Public Overrides Sub Accept(visitor As OperationVisitor)
+            visitor.VisitNoneOperation(Me)
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitNoneOperation(Me, argument)
+        End Function
+    End Class
+
+    Friend Partial Class BoundMethodDefIndex
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.None
+        End Function
+
+        Public Overrides Sub Accept(visitor As OperationVisitor)
+            visitor.VisitNoneOperation(Me)
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitNoneOperation(Me, argument)
+        End Function
+    End Class
+
+    Friend Partial Class BoundMaximumMethodDefIndex
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.None
+        End Function
+
+        Public Overrides Sub Accept(visitor As OperationVisitor)
+            visitor.VisitNoneOperation(Me)
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitNoneOperation(Me, argument)
+        End Function
+    End Class
+
+    Friend Partial Class BoundInstrumentationPayloadRoot
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.None
+        End Function
+
+        Public Overrides Sub Accept(visitor As OperationVisitor)
+            visitor.VisitNoneOperation(Me)
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitNoneOperation(Me, argument)
+        End Function
+    End Class
+
+    Friend Partial Class BoundSourceDocumentIndex
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function

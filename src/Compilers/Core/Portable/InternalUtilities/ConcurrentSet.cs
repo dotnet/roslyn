@@ -53,18 +53,12 @@ namespace Roslyn.Utilities
         /// Obtain the number of elements in the set.
         /// </summary>
         /// <returns>The number of elements in the set.</returns>
-        public int Count
-        {
-            get { return _dictionary.Count; }
-        }
+        public int Count => _dictionary.Count;
 
         /// <summary>
         /// Determine whether the set is empty.</summary>
         /// <returns>true if the set is empty; otherwise, false.</returns>
-        public bool IsEmpty
-        {
-            get { return _dictionary.IsEmpty; }
-        }
+        public bool IsEmpty => _dictionary.IsEmpty;
 
         public bool IsReadOnly => false;
 
@@ -106,8 +100,7 @@ namespace Roslyn.Utilities
         /// <returns>true if the value was removed successfully; otherwise false.</returns>
         public bool Remove(T value)
         {
-            byte b;
-            return _dictionary.TryRemove(value, out b);
+            return _dictionary.TryRemove(value, out var b);
         }
 
         /// <summary>
@@ -127,10 +120,7 @@ namespace Roslyn.Utilities
                 _kvpEnumerator = data.GetEnumerator();
             }
 
-            public T Current
-            {
-                get { return _kvpEnumerator.Current.Key; }
-            }
+            public T Current => _kvpEnumerator.Current.Key;
 
             public bool MoveNext()
             {

@@ -2,15 +2,13 @@
 
 using System;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
-using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Emit;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
-    public class LineEditTests : RudeEditTestBase
+    public class LineEditTests : EditingTestBase
     {
         #region Methods
 
@@ -20,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             string src1 = @"
 class C
 {
-    static void Foo()
+    static void Goo()
     {
         Console.ReadLine(1);
     }
@@ -39,7 +37,7 @@ class C
         Console.ReadLine(2);
     }
 
-    static void Foo()
+    static void Goo()
     {
         Console.ReadLine(1);
     }
@@ -58,11 +56,11 @@ class Program
 {
     static void Main()
     {
-        Foo();
+        Goo();
         Bar();
     }
 
-    static int Foo()
+    static int Goo()
     {
         return 1;
     }
@@ -75,14 +73,14 @@ class Program
             string src2 = @"
 class Program
 {
-    static int Foo()
+    static int Goo()
     {
         return 1;
     }
 
     static void Main()
     {
-        Foo();
+        Goo();
         Bar();
     }
 
@@ -339,7 +337,7 @@ class C<T>
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
                 new string[] { "static void Bar()" },
-                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "\r\n        ", FeaturesResources.Method));
+                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "\r\n        ", FeaturesResources.method));
         }
 
         [Fact]
@@ -367,7 +365,7 @@ class C<T>
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
                 new string[] { "static void Bar()" },
-                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "\r\n        /*edit*/", FeaturesResources.Method));
+                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "\r\n        /*edit*/", FeaturesResources.method));
         }
 
         [Fact]
@@ -395,7 +393,7 @@ class C
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
                 new string[] { "static void Bar<T>()" },
-                Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, "\r\n        ", FeaturesResources.Method));
+                Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, "\r\n        ", FeaturesResources.method));
         }
 
         [Fact]
@@ -491,6 +489,160 @@ class C
         }
 
         [Fact]
+        public void Constructor_ExpressionBodied_LineChange1()
+        {
+            string src1 = @"
+class C
+{
+    int _a;
+    public C(int a) => 
+      _a = a;
+}
+";
+            string src2 = @"
+class C
+{
+    int _a;
+    public C(int a) =>
+
+      _a = a;
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                new[] { new LineChange(5, 6) },
+                Array.Empty<string>());
+        }
+
+        [Fact]
+        public void Constructor_ExpressionBodied_LineChange2()
+        {
+            string src1 = @"
+class C
+{
+    int _a;
+    public C(int a) 
+      => _a = a;
+}
+";
+            string src2 = @"
+class C
+{
+    int _a;
+    public C(int a)
+
+      => _a = a;
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                new[] { new LineChange(5, 6) },
+                Array.Empty<string>());
+        }
+
+        [Fact]
+        public void Constructor_ExpressionBodied_LineChange3()
+        {
+            string src1 = @"
+class C
+{
+    int _a;
+    public C(int a) => 
+      _a = a;
+}
+";
+            string src2 = @"
+class C
+{
+    int _a;
+    public C(int a) => 
+
+      _a = a;
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                new[] { new LineChange(5, 6) },
+                Array.Empty<string>());
+        }
+
+        [Fact]
+        public void Constructor_ExpressionBodied_LineChange4()
+        {
+            string src1 = @"
+class C
+{
+    int _a;
+    public C(int a) 
+      => 
+      _a = a;
+}
+";
+            string src2 = @"
+class C
+{
+    int _a;
+    public C(int a) 
+      
+      => 
+
+      _a = a;
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                new[] { new LineChange(6, 8) },
+                Array.Empty<string>());
+        }
+
+        [Fact]
+        public void Constructor_ExpressionBodiedWithBase_LineChange1()
+        {
+            string src1 = @"
+class C
+{
+    int _a;
+    public C(int a)
+      : base() => _a = a;
+}
+";
+            string src2 = @"
+class C
+{
+    int _a;
+    public C(int a)
+
+      : base() => _a = a;
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                new[] { new LineChange(5, 6) },
+                Array.Empty<string>());
+        }
+
+        [Fact]
+        public void Constructor_ExpressionBodiedWithBase_Recompile1()
+        {
+            string src1 = @"
+class C
+{
+    int _a;
+    public C(int a)
+      : base() => 
+                  _a = a;
+}
+";
+            string src2 = @"
+class C
+{
+    int _a;
+    public C(int a)
+
+      : base() => _a = a;
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                Array.Empty<LineChange>(),
+                new string[] { "public C(int a)" });
+        }
+
+        [Fact]
         public void Constructor_Recompile1()
         {
             string src1 = @"
@@ -567,7 +719,78 @@ class C<T>
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
                 new string[] { "public C(int a)" },
-                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "          ", FeaturesResources.Constructor));
+                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "          ", FeaturesResources.constructor));
+        }
+
+        #endregion
+
+        #region Destructors
+
+        [Fact]
+        public void Destructor_LineChange1()
+        {
+            string src1 = @"
+class C
+{
+    ~C()
+
+    {
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    ~C()
+    {
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                new[] { new LineChange(5, 4) },
+                Array.Empty<string>());
+        }
+
+        [Fact]
+        public void Destructor_ExpressionBodied_LineChange1()
+        {
+            string src1 = @"
+class C
+{
+    ~C() => F();
+}
+";
+            string src2 = @"
+class C
+{
+    ~C() => 
+            F();
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                new[] { new LineChange(3, 4) },
+                Array.Empty<string>());
+        }
+
+        [Fact]
+        public void Destructor_ExpressionBodied_LineChange2()
+        {
+            string src1 = @"
+class C
+{
+    ~C() => F();
+}
+";
+            string src2 = @"
+class C
+{
+    ~C() 
+         => F();
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                new[] { new LineChange(3, 4) },
+                Array.Empty<string>());
         }
 
         #endregion
@@ -580,13 +803,13 @@ class C<T>
             string src1 = @"
 class C
 {
-    const int Foo = 1;
+    const int Goo = 1;
 }
 ";
             string src2 = @"
 class C
 {
-    const int Foo = 
+    const int Goo = 
                     1;
 }";
             var edits = GetTopEdits(src1, src2);
@@ -601,14 +824,14 @@ class C
             string src1 = @"
 class C
 {
-    int Foo;
+    int Goo;
 }
 ";
             string src2 = @"
 class C
 {
     int 
-        Foo;
+        Goo;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
@@ -622,7 +845,7 @@ class C
             string src1 = @"
 class C
 {
-    static int Foo = 1;
+    static int Goo = 1;
     static int Bar = 2;
 }
 ";
@@ -630,7 +853,7 @@ class C
 class C
 {
     static int Bar = 2;
-    static int Foo = 1;
+    static int Goo = 1;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
@@ -644,7 +867,7 @@ class C
             string src1 = @"
 class C
 {
-    static int Foo = 1;
+    static int Goo = 1;
 }
 ";
             string src2 = @"
@@ -653,7 +876,7 @@ class C
 
 
 
-    static int Foo = 1;
+    static int Goo = 1;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
@@ -667,13 +890,13 @@ class C
             string src1 = @"
 class C
 {
-    int Foo = 1, Bar = 2;
+    int Goo = 1, Bar = 2;
 }
 ";
             string src2 = @"
 class C
 {
-    int Foo = 1,
+    int Goo = 1,
                  Bar = 2;
 }";
             var edits = GetTopEdits(src1, src2);
@@ -688,14 +911,14 @@ class C
             string src1 = @"
 class C
 {
-    [A]static int Foo = 1, Bar = 2;
+    [A]static int Goo = 1, Bar = 2;
 }
 ";
             string src2 = @"
 class C
 {
     [A]
-       static int Foo = 1, Bar = 2;
+       static int Goo = 1, Bar = 2;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
@@ -709,19 +932,19 @@ class C
             string src1 = @"
 class C
 {
-    static int Foo = 1;
+    static int Goo = 1;
 }
 ";
             string src2 = @"
 class C
 {
-    static int Foo = 
+    static int Goo = 
                      1;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
-                new string[] { "Foo = " });
+                new string[] { "Goo = " });
         }
 
         [Fact]
@@ -730,19 +953,19 @@ class C
             string src1 = @"
 class C
 {
-    static int Foo = 1;
+    static int Goo = 1;
 }
 ";
             string src2 = @"
 class C
 {
-    static int Foo 
+    static int Goo 
                    = 1;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
-                new string[] { "Foo " });
+                new string[] { "Goo " });
         }
 
         [Fact]
@@ -751,19 +974,19 @@ class C
             string src1 = @"
 class C
 {
-    static int Foo = 1;
+    static int Goo = 1;
 }
 ";
             string src2 = @"
 class C
 {
     static int 
-               Foo = 1;
+               Goo = 1;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
-                new string[] { "Foo = 1" });
+                new string[] { "Goo = 1" });
         }
 
         [Fact]
@@ -772,19 +995,19 @@ class C
             string src1 = @"
 class C
 {
-    static int Foo = 1;
+    static int Goo = 1;
 }
 ";
             string src2 = @"
 class C
 {
     static 
-           int Foo = 1;
+           int Goo = 1;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
-                new string[] { "Foo = 1" });
+                new string[] { "Goo = 1" });
         }
 
         [Fact]
@@ -793,19 +1016,19 @@ class C
             string src1 = @"
 class C
 {
-    static int Foo = 1;
+    static int Goo = 1;
 }
 ";
             string src2 = @"
 class C
 {
-    static int Foo = 1
+    static int Goo = 1
                       ;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
-                new string[] { "Foo = 1" });
+                new string[] { "Goo = 1" });
         }
 
         [Fact]
@@ -814,18 +1037,18 @@ class C
             string src1 = @"
 class C
 {
-    static int Foo = 1 + 1;
+    static int Goo = 1 + 1;
 }
 ";
             string src2 = @"
 class C
 {
-    static int Foo = 1 +  1;
+    static int Goo = 1 +  1;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
-                new string[] { "Foo = 1 +  1" });
+                new string[] { "Goo = 1 +  1" });
         }
 
         [Fact]
@@ -834,19 +1057,19 @@ class C
             string src1 = @"
 class C<T>
 {
-    static int Foo = 1 + 1;
+    static int Goo = 1 + 1;
 }
 ";
             string src2 = @"
 class C<T>
 {
-    static int Foo = 1 +  1;
+    static int Goo = 1 +  1;
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
-                new string[] { "Foo = 1 +  1" },
-                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "  ", FeaturesResources.Field));
+                new string[] { "Goo = 1 +  1" },
+                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "  ", FeaturesResources.field));
         }
 
         #endregion
@@ -938,6 +1161,48 @@ class C
         }
 
         [Fact]
+        public void Property_GetterExpressionBody1()
+        {
+            string src1 = @"
+class C
+{
+    int P { get => 1; }
+}
+";
+            string src2 = @"
+class C
+{
+    int P { get => 
+                   1; }
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                new[] { new LineChange(3, 4) },
+                Array.Empty<string>());
+        }
+
+        [Fact]
+        public void Property_SetterExpressionBody1()
+        {
+            string src1 = @"
+class C
+{
+    int P { set => F(); }
+}
+";
+            string src2 = @"
+class C
+{
+    int P { set => 
+                   F(); }
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                new[] { new LineChange(3, 4) },
+                Array.Empty<string>());
+        }
+
+        [Fact]
         public void Property_Initializer1()
         {
             string src1 = @"
@@ -997,6 +1262,159 @@ class C
             edits.VerifyLineEdits(
                 Array.Empty<LineChange>(),
                 new string[] { "int P { get; } =  1;" });
+        }
+
+        #endregion
+
+        #region Events
+
+        [Fact]
+        public void Event_LineChange1()
+        {
+            string src1 = @"
+class C
+{
+    event Action E { add { } remove { } }
+}
+";
+            string src2 = @"
+class C
+{
+
+    event Action E { add { } remove { } }
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                new[] { new LineChange(3, 4), new LineChange(3, 4) },
+                Array.Empty<string>());
+        }
+
+        [Fact]
+        public void EventAdder_LineChangeAndRecompile1()
+        {
+            string src1 = @"
+class C
+{
+    event Action E { add {
+                           } remove { } }
+}
+";
+            string src2 = @"
+class C
+{
+    event Action E { add { } remove { } }
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                new[] { new LineChange(4, 3) },
+                new string[] { "add { }" });
+        }
+
+        [Fact]
+        public void EventRemover_Recompile1()
+        {
+            string src1 = @"
+class C
+{
+    event Action E { add { } remove {
+                                      } }
+}
+";
+            string src2 = @"
+class C
+{
+    event Action E { add { } remove { } }
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                Array.Empty<LineChange>(),
+                new string[] { "remove { }" });
+        }
+
+        [Fact]
+        public void EventAdder_LineChange1()
+        {
+            string src1 = @"
+class C
+{
+    event Action E { add 
+                         { } remove { } }
+}
+";
+            string src2 = @"
+class C
+{
+    event Action E { add { } remove { } }
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                new[] { new LineChange(4, 3), new LineChange(4, 3) },
+                Array.Empty<string>());
+        }
+
+        [Fact]
+        public void EventRemover_LineChange1()
+        {
+            string src1 = @"
+class C
+{
+    event Action E { add { } remove { } }
+}
+";
+            string src2 = @"
+class C
+{
+    event Action E { add { } remove 
+                                    { } }
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                new[] { new LineChange(3, 4) },
+                Array.Empty<string>());
+        }
+
+        [Fact]
+        public void Event_ExpressionBody1()
+        {
+            string src1 = @"
+class C
+{
+    event Action E { add => F(); remove => F(); }
+}
+";
+            string src2 = @"
+class C
+{
+    event Action E { add => 
+                            F(); remove => 
+                                           F(); }
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                new[] { new LineChange(3, 4), new LineChange(3, 5) },
+                Array.Empty<string>());
+        }
+
+        [Fact]
+        public void Event_ExpressionBody2()
+        {
+            string src1 = @"
+class C
+{
+    event Action E { add 
+                         => F(); remove 
+                                        => F(); }
+}
+";
+            string src2 = @"
+class C
+{
+    event Action E { add => F(); remove => F(); }
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                new[] { new LineChange(4, 3), new LineChange(5, 3) },
+                Array.Empty<string>());
         }
 
         #endregion

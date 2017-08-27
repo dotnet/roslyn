@@ -61,12 +61,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
+        public override ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
         {
-            get
-            {
-                return ImmutableArray<ImmutableArray<CustomModifier>>.Empty;
-            }
+            return GetEmptyTypeArgumentCustomModifiers(ordinal);
         }
 
         public override NamedTypeSymbol ConstructedFrom

@@ -1,23 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <NonShipping>True</NonShipping>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{1553DE60-A2B0-4FAF-B1B8-C0A7313781CC}</ProjectGuid>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Exe</OutputType>
-    <RootNamespace>ProcessWatchdog</RootNamespace>
-    <AssemblyName>ProcessWatchdog</AssemblyName>
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <SignAssembly>false</SignAssembly>
-    <OutDir>$(OutDir)ProcessWatchdog\</OutDir>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -27,42 +23,22 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Xml" />
+    <PackageReference Include="CommandLineParser" Version="$(CommandLineParserVersion)" />
+    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+    <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConsoleUtils.cs" />
-    <Compile Include="ErrorCode.cs" />
-    <Compile Include="ProcDump.cs" />
-    <Compile Include="Options.cs" />
-    <Compile Include="ProcessTracker.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="Resources.Designer.cs">
+    <Compile Update="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="ScreenshotSaver.cs" />
-    <Compile Include="UniqueProcess.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources.resx">
+    <EmbeddedResource Update="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Dependencies\Immutable\Immutable.csproj">
-      <Project>{DCDA908D-EF5E-494B-ADDC-C26F5FD610CA}</Project>
-      <Name>Immutable</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Dependencies\Metadata\Metadata.csproj">
-      <Project>{E6796B97-D5C6-45B2-AE46-351D15DCFC71}</Project>
-      <Name>Metadata</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

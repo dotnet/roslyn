@@ -21,7 +21,7 @@ Scenarios
 General
 -------
 Source generators are implementations of `Microsoft.CodeAnalysis.SourceGenerator`.
-```
+```csharp
     public abstract class SourceGenerator
     {
         public abstract void Execute(SourceGeneratorContext context);
@@ -42,7 +42,7 @@ the assembly in which it is defined.
 `SourceGenerator` has a single `Execute` method that is called by the host -- either the IDE
 or the command-line compiler. `Execute` provides
 access to the `Compilation` and allows adding source and reporting diagnostics.
-```
+```csharp
     public abstract class SourceGeneratorContext
     {
         public abstract Compilation Compilation { get; }
@@ -74,7 +74,7 @@ Source generators are executed by the command-line compilers and the IDE. The ge
 are obtained from the `AnalyzerReference.GetSourceGenerators` for each analyzer reference
 specified on the command-line or in the project. `GetSourceGenerators` uses reflection to find types that
 inherit from `SourceGenerator` and instantiates those types.
-```
+```csharp
     public abstract class AnalyzerReference
     {
         ...
@@ -87,7 +87,7 @@ and returns the collection of `SyntaxTrees` and `Diagnostics`.
 (`GenerateSource` is called by the command-line compilers and IDE.)
 If `writeToDisk` is true, the generated source is persisted to `outputPath`. Regardless of whether the tree is persisted
 to disk, `SyntaxTree.FilePath` is set.
-```
+```csharp
     public static class SourceGeneratorExtensions
     {
         public static ImmutableArray<SyntaxTree> GenerateSource(
@@ -121,8 +121,8 @@ To redefine members in generated source, there are new language keywords: `repla
 
 `replace` and `original` are contextual keywords: `replace` is a keyword only when used as a member modifier;
 `original` is a keyword only when used within a `replace` method (similar to parser handling of `async` and `await`).
-```
-original.cs:
+```csharp
+// original.cs:
     partial class C
     {
         void F() { }
@@ -131,7 +131,7 @@ original.cs:
         event EventHandler E;
     }
 
-replace.cs:    
+// replace.cs:    
     partial class C
     {
         replace void F() { original(); }
@@ -152,6 +152,7 @@ replace.cs:
     }
 ```
 The following `class` and `struct` members can be replaced:
+
 1. Static and instance methods, properties, and events
 1. Explicit interface implementations of members
 1. User defined operators
@@ -163,6 +164,7 @@ The following `class` and `struct` members can be replaced:
 The default constructor can be added by a generator but not replaced.
 
 The following must match when replacing a member:
+
 1. Signature: name, accessibility, arity, return type, parameter number, parameter types and ref-ness
 1. Parameter names and default values (to prevent changing the interpretation of call-sites)
 1. Type parameters and constraints

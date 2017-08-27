@@ -4,13 +4,14 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
     /// A base method symbol used as a base class for lambda method symbol and base method wrapper symbol.
     /// </summary>
-    internal abstract class SynthesizedMethodBaseSymbol : SourceMethodSymbol
+    internal abstract class SynthesizedMethodBaseSymbol : SourceMemberMethodSymbol
     {
         protected readonly MethodSymbol BaseMethod;
         internal TypeMap TypeMap { get; private set; }
@@ -79,6 +80,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _typeParameters; }
         }
 
+        public sealed override ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraintClauses
+            => ImmutableArray<TypeParameterConstraintClause>.Empty;
+
         internal override int ParameterCount
         {
             get { return this.Parameters.Length; }
@@ -113,14 +117,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var parameters = this.BaseMethodParameters;
             foreach (var p in parameters)
             {
-                builder.Add(new SynthesizedParameterSymbol(this, this.TypeMap.SubstituteType(p.OriginalDefinition.Type).Type, ordinal++, p.RefKind, p.Name));
+                builder.Add(SynthesizedParameterSymbol.Create(this, this.TypeMap.SubstituteType(p.OriginalDefinition.Type).Type, ordinal++, p.RefKind, p.Name));
             }
             var extraSynthed = ExtraSynthesizedRefParameters;
             if (!extraSynthed.IsDefaultOrEmpty)
             {
                 foreach (var extra in extraSynthed)
                 {
-                    builder.Add(new SynthesizedParameterSymbol(this, this.TypeMap.SubstituteType(extra).Type, ordinal++, RefKind.Ref));
+                    builder.Add(SynthesizedParameterSymbol.Create(this, this.TypeMap.SubstituteType(extra).Type, ordinal++, RefKind.Ref));
                 }
             }
             return builder.ToImmutableAndFree();

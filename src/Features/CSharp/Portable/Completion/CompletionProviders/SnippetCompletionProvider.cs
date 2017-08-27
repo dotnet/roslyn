@@ -1,7 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -56,14 +57,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 var snippetCompletionItems = await document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(
                     UnionCompletionItemComparer.Instance,
-                    (d, c) => GetSnippetsForDocumentAsync(d, position, context.DefaultItemSpan, workspace, c),
+                    (d, c) => GetSnippetsForDocumentAsync(d, position, workspace, c),
                     cancellationToken).ConfigureAwait(false);
 
                 context.AddItems(snippetCompletionItems);
             }
         }
 
-        private async Task<IEnumerable<CompletionItem>> GetSnippetsForDocumentAsync(Document document, int position, TextSpan itemSpan, Workspace workspace, CancellationToken cancellationToken)
+        private async Task<IEnumerable<CompletionItem>> GetSnippetsForDocumentAsync(
+            Document document, int position, Workspace workspace, CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -78,6 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             var span = new TextSpan(position, 0);
             var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
+            var isPossibleTupleContext = syntaxFacts.IsPossibleTupleContext(syntaxTree, position, cancellationToken);
+
             if (semanticFacts.IsPreProcessorDirectiveContext(semanticModel, position, cancellationToken))
             {
                 var directive = syntaxTree.GetRoot(cancellationToken).FindTokenOnLeftOfPosition(position, includeDirectives: true).GetAncestor<DirectiveTriviaSyntax>();
@@ -97,7 +101,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return SpecializedCollections.EmptyEnumerable<CompletionItem>();
                 }
 
-                return await GetSnippetCompletionItemsAsync(workspace, semanticModel, itemSpan, isPreProcessorContext: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                return await GetSnippetCompletionItemsAsync(workspace, semanticModel, isPreProcessorContext: true,
+                        isTupleContext: isPossibleTupleContext, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
 
             if (semanticFacts.IsGlobalStatementContext(semanticModel, position, cancellationToken) ||
@@ -110,13 +115,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 semanticFacts.IsMemberDeclarationContext(semanticModel, position, cancellationToken) ||
                 semanticFacts.IsLabelContext(semanticModel, position, cancellationToken))
             {
-                return await GetSnippetCompletionItemsAsync(workspace, semanticModel, itemSpan, isPreProcessorContext: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                return await GetSnippetCompletionItemsAsync(workspace, semanticModel, isPreProcessorContext: false,
+                    isTupleContext: isPossibleTupleContext, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
 
             return SpecializedCollections.EmptyEnumerable<CompletionItem>();
         }
 
-        private async Task<IEnumerable<CompletionItem>> GetSnippetCompletionItemsAsync(Workspace workspace, SemanticModel semanticModel, TextSpan itemSpan, bool isPreProcessorContext, CancellationToken cancellationToken)
+        private static readonly CompletionItemRules s_tupleRules = CompletionItemRules.Default.
+          WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));
+
+        private async Task<IEnumerable<CompletionItem>> GetSnippetCompletionItemsAsync(
+            Workspace workspace, SemanticModel semanticModel, bool isPreProcessorContext, bool isTupleContext, CancellationToken cancellationToken)
         {
             var service = _snippetInfoService ?? workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISnippetInfoService>();
             if (service == null)
@@ -129,15 +139,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 snippets = snippets.Where(snippet => snippet.Shortcut.StartsWith("#", StringComparison.Ordinal));
             }
-
             var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return snippets.Select(snippet => CommonCompletionItem.Create(
-                displayText: isPreProcessorContext ? snippet.Shortcut.Substring(1) : snippet.Shortcut,
-                sortText: isPreProcessorContext ? snippet.Shortcut.Substring(1) : snippet.Shortcut,
-                description: (snippet.Title + Environment.NewLine + snippet.Description).ToSymbolDisplayParts(),
-                span: itemSpan,
-                glyph: Glyph.Snippet,
-                shouldFormatOnCommit: service.ShouldFormatSnippet(snippet))).ToList();
+
+            return snippets.Select(snippet =>
+            {
+                var rules = isTupleContext ? s_tupleRules : CompletionItemRules.Default;
+                rules = rules.WithFormatOnCommit(service.ShouldFormatSnippet(snippet));
+
+                return CommonCompletionItem.Create(
+                                displayText: isPreProcessorContext ? snippet.Shortcut.Substring(1) : snippet.Shortcut,
+                                sortText: isPreProcessorContext ? snippet.Shortcut.Substring(1) : snippet.Shortcut,
+                                description: (snippet.Title + Environment.NewLine + snippet.Description).ToSymbolDisplayParts(),
+                                glyph: Glyph.Snippet,
+                                rules: rules);
+            }).ToImmutableArray();
         }
     }
 }

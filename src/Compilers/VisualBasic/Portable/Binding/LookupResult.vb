@@ -3,6 +3,7 @@
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -219,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     '''    
     '''    Dim result = LookupResult.GetInstance()
     '''  
-    '''    scope.Lookup(result, "foo")
+    '''    scope.Lookup(result, "goo")
     '''    ... use result ...
     '''         
     '''    result.Clear()
@@ -876,7 +877,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return SymbolLocation.FromSourceModule
             End If
 
-            If (options And LookupOptions.IgnoreCorLibraryDuplicatedTypes) <> 0 Then
+            If sourceModule.DeclaringCompilation.Options.IgnoreCorLibraryDuplicatedTypes Then
                 ' Ignore duplicate types from the cor library if necessary.
                 ' (Specifically the framework assemblies loaded at runtime in
                 ' the EE may contain types also available from mscorlib.dll.)

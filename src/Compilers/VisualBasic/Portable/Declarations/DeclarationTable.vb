@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -74,6 +75,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' and don't reuse the cache.
                 Return New DeclarationTable(_allOlderRootDeclarations.Add(_latestLazyRootDeclaration), lazyRootDeclaration, cache:=Nothing)
             End If
+        End Function
+
+        Public Function Contains(rootDeclaration As DeclarationTableEntry) As Boolean
+            Return rootDeclaration IsNot Nothing AndAlso
+                 (_allOlderRootDeclarations.Contains(rootDeclaration) OrElse _latestLazyRootDeclaration Is rootDeclaration)
         End Function
 
         Public Function RemoveRootDeclaration(lazyRootDeclaration As DeclarationTableEntry) As DeclarationTable

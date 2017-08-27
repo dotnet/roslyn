@@ -2,6 +2,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -160,7 +161,7 @@ namespace Microsoft.CodeAnalysis
         /// An event that is fired when the active context document associated with a buffer 
         /// changes.
         /// </summary>
-        internal event EventHandler<DocumentEventArgs> DocumentActiveContextChanged
+        public event EventHandler<DocumentActiveContextChangedEventArgs> DocumentActiveContextChanged
         {
             add
             {
@@ -173,14 +174,23 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        [Obsolete("This member is obsolete. Use the RaiseDocumentActiveContextChangedEventAsync(SourceTextContainer, DocumentId, DocumentId) overload instead.", error: true)]
         protected Task RaiseDocumentActiveContextChangedEventAsync(Document document)
         {
-            var ev = _eventMap.GetEventHandlers<EventHandler<DocumentEventArgs>>(DocumentActiveContextChangedName);
-            if (ev.HasHandlers && document != null)
+            throw new NotImplementedException();
+        }
+
+        protected Task RaiseDocumentActiveContextChangedEventAsync(SourceTextContainer sourceTextContainer, DocumentId oldActiveContextDocumentId, DocumentId newActiveContextDocumentId)
+        {
+            var ev = _eventMap.GetEventHandlers<EventHandler<DocumentActiveContextChangedEventArgs>>(DocumentActiveContextChangedName);
+            if (ev.HasHandlers && sourceTextContainer != null && oldActiveContextDocumentId != null && newActiveContextDocumentId != null)
             {
+                // Capture the current solution snapshot (inside the _serializationLock of OnDocumentContextUpdated)
+                var currentSolution = this.CurrentSolution;
+
                 return this.ScheduleTask(() =>
                 {
-                    var args = new DocumentEventArgs(document);
+                    var args = new DocumentActiveContextChangedEventArgs(currentSolution, sourceTextContainer, oldActiveContextDocumentId, newActiveContextDocumentId);
                     ev.RaiseEvent(handler => handler(this, args));
                 }, "Workspace.WorkspaceChanged");
             }

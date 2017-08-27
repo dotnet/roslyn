@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -64,8 +63,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 // Start token: Insert the #pragma disable directive just **before** the first end of line trivia prior to diagnostic location.
                 // End token: Insert the #pragma disable directive just **after** the first end of line trivia after diagnostic location.
 
-                Func<int, int> getNextIndex = cur => isStartToken ? cur - 1 : cur + 1;
-                Func<SyntaxTrivia, bool> shouldConsiderTrivia = trivia =>
+                int getNextIndex(int cur) => isStartToken ? cur - 1 : cur + 1;
+                bool shouldConsiderTrivia(SyntaxTrivia trivia) =>
                     isStartToken ?
                     trivia.FullSpan.End <= currentDiagnosticSpan.Start :
                     trivia.FullSpan.Start >= currentDiagnosticSpan.End;
@@ -91,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                 triviaAtIndex = index >= 0 && index < triviaList.Length ?
                     triviaList[index] :
-                    default(SyntaxTrivia);
+                    default;
 
                 return index;
             }
@@ -105,8 +104,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 bool isRemoveSuppression = false)
             {
                 var trivia = startToken.LeadingTrivia.ToImmutableArray();
-                SyntaxTrivia insertAfterTrivia;
-                var index = GetPositionForPragmaInsertion(trivia, currentDiagnosticSpan, fixer, isStartToken: true, triviaAtIndex: out insertAfterTrivia);
+                var index = GetPositionForPragmaInsertion(trivia, currentDiagnosticSpan, fixer, isStartToken: true, triviaAtIndex: out var insertAfterTrivia);
                 index++;
 
                 bool needsLeadingEOL;
@@ -167,8 +165,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     trivia = endToken.TrailingTrivia.ToImmutableArray();
                 }
 
-                SyntaxTrivia insertBeforeTrivia;
-                var index = GetPositionForPragmaInsertion(trivia, currentDiagnosticSpan, fixer, isStartToken: false, triviaAtIndex: out insertBeforeTrivia);
+                var index = GetPositionForPragmaInsertion(trivia, currentDiagnosticSpan, fixer, isStartToken: false, triviaAtIndex: out var insertBeforeTrivia);
 
                 bool needsTrailingEOL;
                 if (index < trivia.Length)
@@ -210,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 var isEndTokenEOF = fixer.IsEndOfFileToken(endToken);
 
                 var previousOfStart = startToken.GetPreviousToken(includeZeroWidth: true);
-                var nextOfEnd = !isEndTokenEOF ? endToken.GetNextToken(includeZeroWidth: true) : default(SyntaxToken);
+                var nextOfEnd = !isEndTokenEOF ? endToken.GetNextToken(includeZeroWidth: true) : default;
                 if (!previousOfStart.HasTrailingTrivia && !nextOfEnd.HasLeadingTrivia)
                 {
                     return;

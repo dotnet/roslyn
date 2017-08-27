@@ -40,7 +40,13 @@ namespace RunTests.Cache
             public string AssemblyName { get; set; }
             public string Source { get; set; }
             public bool IsJenkins { get; set; }
-        }
+            public string CommitSha { get; set; }
+            public string MergeCommitSha { get; set; }
+            public string Repository { get; set; }
+            public bool IsPullRequest { get; set; }
+            public int PullRequestId { get; set; }
+            public string PullRequestUserName { get; set; }
+       } 
 
         internal sealed class TestCacheData
         {

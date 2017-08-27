@@ -1,13 +1,11 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
-Imports System.Text.RegularExpressions
-Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -16,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class Binder
 
         Private Function CreateBoundMethodGroup(
-            node As VisualBasicSyntaxNode,
+            node As SyntaxNode,
             lookupResult As LookupResult,
             lookupOptionsUsed As LookupOptions,
             receiver As BoundExpression,
@@ -44,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 lookupResult.Kind,
                 receiver,
                 qualKind,
-                HasErrors:=hasError)
+                hasErrors:=hasError)
         End Function
 
         ''' <summary>
@@ -140,7 +138,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If expr.Kind = BoundKind.Call Then
                     ' Set HasErrors to prevent cascading errors.
                     Dim callExpr = DirectCast(expr, BoundCall)
-                    expr = New BoundCall(callExpr.Syntax, callExpr.Method, callExpr.MethodGroupOpt, callExpr.ReceiverOpt, callExpr.Arguments, callExpr.ConstantValueOpt, False, callExpr.Type, hasErrors:=True)
+                    expr = New BoundCall(
+                        callExpr.Syntax,
+                        callExpr.Method,
+                        callExpr.MethodGroupOpt,
+                        callExpr.ReceiverOpt,
+                        callExpr.Arguments,
+                        callExpr.ConstantValueOpt,
+                        isLValue:=False,
+                        suppressObjectClone:=False,
+                        type:=callExpr.Type,
+                        hasErrors:=True)
                 End If
 
                 Return expr
@@ -310,7 +318,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             callerInfoOpt:=node,
                             representCandidateInDiagnosticsOpt:=targetType)
                     Else
-                        Dim badExpressionChildren = ArrayBuilder(Of BoundNode).GetInstance()
+                        Dim badExpressionChildren = ArrayBuilder(Of BoundExpression).GetInstance()
                         badExpressionChildren.Add(target)
                         badExpressionChildren.AddRange(boundArguments)
                         Return BadExpression(node, badExpressionChildren.ToImmutableAndFree(), ErrorTypeSymbol.UnknownResultType)
@@ -699,14 +707,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function BindInvocationExpression(
-            node As VisualBasicSyntaxNode,
-            target As VisualBasicSyntaxNode,
+            node As SyntaxNode,
+            target As SyntaxNode,
             typeChar As TypeCharacter,
             group As BoundMethodOrPropertyGroup,
             boundArguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
             diagnostics As DiagnosticBag,
-            callerInfoOpt As VisualBasicSyntaxNode,
+            callerInfoOpt As SyntaxNode,
             Optional allowConstructorCall As Boolean = False,
             Optional suppressAbstractCallDiagnostics As Boolean = False,
             Optional isDefaultMemberAccess As Boolean = False,
@@ -757,7 +765,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If haveAnExtensionMethod Then
                             ReportDiagnostic(diagnostics, GetLocationForOverloadResolutionDiagnostic(node, group), ERRID.ERR_ExtensionMethodCannotBeLateBound)
 
-                            Dim builder = ArrayBuilder(Of BoundNode).GetInstance()
+                            Dim builder = ArrayBuilder(Of BoundExpression).GetInstance()
 
                             builder.Add(group)
 
@@ -798,8 +806,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function CreateBoundCallOrPropertyAccess(
-            node As VisualBasicSyntaxNode,
-            target As VisualBasicSyntaxNode,
+            node As SyntaxNode,
+            target As SyntaxNode,
             typeChar As TypeCharacter,
             group As BoundMethodOrPropertyGroup,
             boundArguments As ImmutableArray(Of BoundExpression),
@@ -862,7 +870,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If Not asyncLambdaSubToFunctionMismatch.IsEmpty Then
                 For Each lambda In asyncLambdaSubToFunctionMismatch
-                    Dim errorLocation As VisualBasicSyntaxNode = lambda.Syntax
+                    Dim errorLocation As SyntaxNode = lambda.Syntax
                     Dim lambdaNode = TryCast(errorLocation, LambdaExpressionSyntax)
 
                     If lambdaNode IsNot Nothing Then
@@ -921,8 +929,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     receiver,
                     boundArguments,
                     constantValue,
-                    False,
                     returnType,
+                    suppressObjectClone:=False,
                     hasErrors:=hasErrors)
 
             Else
@@ -1024,8 +1032,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 diagnostics.Add(receiver, useSiteDiagnostics)
 
-                If oldReceiver.WasCompilerGenerated AndAlso receiver IsNot oldReceiver AndAlso oldReceiver.Kind = BoundKind.MeReference Then
-                    receiver.SetWasCompilerGenerated()
+                If oldReceiver.WasCompilerGenerated AndAlso receiver IsNot oldReceiver Then
+                    Select Case oldReceiver.Kind
+                        Case BoundKind.MeReference,
+                             BoundKind.WithLValueExpressionPlaceholder,
+                             BoundKind.WithRValueExpressionPlaceholder
+                            receiver.SetWasCompilerGenerated()
+                    End Select
                 End If
             End If
 
@@ -1053,7 +1066,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function OptimizeLibraryCall(
             method As MethodSymbol,
             arguments As ImmutableArray(Of BoundExpression),
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             ByRef hasErrors As Boolean,
             diagnostics As DiagnosticBag
         ) As ConstantValue
@@ -1158,13 +1171,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function ReportOverloadResolutionFailureAndProduceBoundNode(
-            node As VisualBasicSyntaxNode,
+            node As SyntaxNode,
             group As BoundMethodOrPropertyGroup,
             boundArguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
             <[In]> ByRef results As OverloadResolution.OverloadResolutionResult,
             diagnostics As DiagnosticBag,
-            callerInfoOpt As VisualBasicSyntaxNode,
+            callerInfoOpt As SyntaxNode,
             Optional overrideCommonReturnType As TypeSymbol = Nothing,
             Optional queryMode As Boolean = False,
             Optional boundTypeExpression As BoundTypeExpression = Nothing,
@@ -1188,13 +1201,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function ReportOverloadResolutionFailureAndProduceBoundNode(
-            node As VisualBasicSyntaxNode,
+            node As SyntaxNode,
             lookupResult As LookupResultKind,
             boundArguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
             <[In]> ByRef results As OverloadResolution.OverloadResolutionResult,
             diagnostics As DiagnosticBag,
-            callerInfoOpt As VisualBasicSyntaxNode,
+            callerInfoOpt As SyntaxNode,
             Optional groupOpt As BoundMethodOrPropertyGroup = Nothing,
             Optional overrideCommonReturnType As TypeSymbol = Nothing,
             Optional queryMode As Boolean = False,
@@ -1235,7 +1248,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function ReportOverloadResolutionFailureAndProduceBoundNode(
-            node As VisualBasicSyntaxNode,
+            node As SyntaxNode,
             group As BoundMethodOrPropertyGroup,
             bestCandidates As ArrayBuilder(Of OverloadResolution.CandidateAnalysisResult),
             bestSymbols As ImmutableArray(Of Symbol),
@@ -1243,7 +1256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             boundArguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
             diagnostics As DiagnosticBag,
-            callerInfoOpt As VisualBasicSyntaxNode,
+            callerInfoOpt As SyntaxNode,
             Optional delegateSymbol As Symbol = Nothing,
             Optional queryMode As Boolean = False,
             Optional boundTypeExpression As BoundTypeExpression = Nothing,
@@ -1266,8 +1279,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        representCandidateInDiagnosticsOpt)
         End Function
 
-        Public Shared Function GetLocationForOverloadResolutionDiagnostic(node As VisualBasicSyntaxNode, Optional groupOpt As BoundMethodOrPropertyGroup = Nothing) As Location
-            Dim result As VisualBasicSyntaxNode
+        Public Shared Function GetLocationForOverloadResolutionDiagnostic(node As SyntaxNode, Optional groupOpt As BoundMethodOrPropertyGroup = Nothing) As Location
+            Dim result As SyntaxNode
 
             If groupOpt IsNot Nothing Then
                 If node.SyntaxTree Is groupOpt.Syntax.SyntaxTree AndAlso node.Span.Contains(groupOpt.Syntax.Span) Then
@@ -1310,7 +1323,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function ReportOverloadResolutionFailureAndProduceBoundNode(
-            node As VisualBasicSyntaxNode,
+            node As SyntaxNode,
             lookupResult As LookupResultKind,
             bestCandidates As ArrayBuilder(Of OverloadResolution.CandidateAnalysisResult),
             bestSymbols As ImmutableArray(Of Symbol),
@@ -1318,7 +1331,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             boundArguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
             diagnostics As DiagnosticBag,
-            callerInfoOpt As VisualBasicSyntaxNode,
+            callerInfoOpt As SyntaxNode,
             Optional groupOpt As BoundMethodOrPropertyGroup = Nothing,
             Optional delegateSymbol As Symbol = Nothing,
             Optional queryMode As Boolean = False,
@@ -1591,16 +1604,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
 
 ProduceBoundNode:
-            Dim childBoundNodes As ImmutableArray(Of BoundNode)
+            Dim childBoundNodes As ImmutableArray(Of BoundExpression)
 
             If boundArguments.IsEmpty AndAlso boundTypeExpression Is Nothing Then
                 If groupOpt Is Nothing Then
-                    childBoundNodes = ImmutableArray(Of BoundNode).Empty
+                    childBoundNodes = ImmutableArray(Of BoundExpression).Empty
                 Else
-                    childBoundNodes = ImmutableArray.Create(Of BoundNode)(groupOpt)
+                    childBoundNodes = ImmutableArray.Create(Of BoundExpression)(groupOpt)
                 End If
             Else
-                Dim builder = ArrayBuilder(Of BoundNode).GetInstance()
+                Dim builder = ArrayBuilder(Of BoundExpression).GetInstance()
 
                 If groupOpt IsNot Nothing Then
                     builder.Add(groupOpt)
@@ -1628,8 +1641,8 @@ ProduceBoundNode:
         ''' <summary>
         '''Figure out the set of best candidates in the following preference order:
         '''  1) Applicable
-        '''  2) TypeInferenceFailed
-        '''  3) ArgumentMismatch, GenericConstraintsViolated
+        '''  2) ArgumentMismatch, GenericConstraintsViolated
+        '''  3) TypeInferenceFailed
         '''  4) ArgumentCountMismatch
         '''  5) BadGenericArity
         '''  6) Ambiguous
@@ -1659,9 +1672,9 @@ ProduceBoundNode:
             Dim preference(OverloadResolution.CandidateAnalysisResultState.Count - 1) As Integer
 
             preference(Applicable) = 1
-            preference(TypeInferenceFailed) = 2
-            preference(ArgumentMismatch) = 3
-            preference(GenericConstraintsViolated) = 3
+            preference(ArgumentMismatch) = 2
+            preference(GenericConstraintsViolated) = 2
+            preference(TypeInferenceFailed) = 3
             preference(ArgumentCountMismatch) = 4
             preference(BadGenericArity) = 5
             preference(Ambiguous) = 6
@@ -1721,7 +1734,7 @@ ProduceBoundNode:
                             commonReturnType = returnType
 
                         ElseIf commonReturnType IsNot ErrorTypeSymbol.UnknownResultType AndAlso
-                            Not commonReturnType.IsSameTypeIgnoringCustomModifiers(returnType) Then
+                            Not commonReturnType.IsSameTypeIgnoringAll(returnType) Then
                             commonReturnType = ErrorTypeSymbol.UnknownResultType
                         End If
                     End If
@@ -1757,14 +1770,14 @@ ProduceBoundNode:
             For i As Integer = 0 To bestSymbols.Length - 1 Step 1
 
                 ' in delegate context we just output for each candidates
-                ' BC30794: No accessible 'foo' is most specific: 
-                '     Public Sub foo(p As Integer)
-                '     Public Sub foo(p As Integer)
+                ' BC30794: No accessible 'goo' is most specific: 
+                '     Public Sub goo(p As Integer)
+                '     Public Sub goo(p As Integer)
                 '
                 ' in other contexts we give more information, e.g.
-                ' BC30794: No accessible 'foo' is most specific: 
-                '     Public Sub foo(p As Integer): <reason>
-                '     Public Sub foo(p As Integer): <reason>
+                ' BC30794: No accessible 'goo' is most specific: 
+                '     Public Sub goo(p As Integer): <reason>
+                '     Public Sub goo(p As Integer): <reason>
                 Dim bestSymbol As Symbol = bestSymbols(i)
                 Dim bestSymbolIsExtension As Boolean = bestSymbol.IsReducedExtensionMethod
 
@@ -1797,7 +1810,7 @@ ProduceBoundNode:
 
 
         Private Sub ReportOverloadResolutionFailureForASetOfCandidates(
-            node As VisualBasicSyntaxNode,
+            node As SyntaxNode,
             diagnosticLocation As Location,
             lookupResult As LookupResultKind,
             errorNo As ERRID,
@@ -1807,7 +1820,7 @@ ProduceBoundNode:
             diagnostics As DiagnosticBag,
             delegateSymbol As Symbol,
             queryMode As Boolean,
-            callerInfoOpt As VisualBasicSyntaxNode
+            callerInfoOpt As SyntaxNode
         )
             Dim diagnosticPerSymbol = ArrayBuilder(Of KeyValuePair(Of Symbol, ImmutableArray(Of Diagnostic))).GetInstance(candidates.Count)
 
@@ -1862,9 +1875,9 @@ ProduceBoundNode:
                     ' When reporting errors for an AddressOf, Dev 10 shows different error messages depending on how many
                     ' errors there are per candidate.
                     ' One narrowing error will be shown like:
-                    '     'Public Sub foo6(p As Integer, p2 As Byte)': Option Strict On disallows implicit conversions from 'Integer' to 'Byte'.
+                    '     'Public Sub goo6(p As Integer, p2 As Byte)': Option Strict On disallows implicit conversions from 'Integer' to 'Byte'.
                     ' More than one narrowing issues in the parameters are abbreviated with:
-                    '     'Public Sub foo6(p As Byte, p2 As Byte)': Method does not have a signature compatible with the delegate.
+                    '     'Public Sub goo6(p As Byte, p2 As Byte)': Method does not have a signature compatible with the delegate.
 
                     If delegateSymbol Is Nothing OrElse Not sealedCandidateDiagnostics.Skip(1).Any() Then
                         If isExtension Then
@@ -1951,7 +1964,7 @@ ProduceBoundNode:
         ''' this function as well. 
         ''' </summary>
         Private Sub ReportOverloadResolutionFailureForASingleCandidate(
-            node As VisualBasicSyntaxNode,
+            node As SyntaxNode,
             diagnosticLocation As Location,
             lookupResult As LookupResultKind,
             ByRef candidateAnalysisResult As OverloadResolution.CandidateAnalysisResult,
@@ -1964,7 +1977,7 @@ ProduceBoundNode:
             diagnostics As DiagnosticBag,
             delegateSymbol As Symbol,
             queryMode As Boolean,
-            callerInfoOpt As VisualBasicSyntaxNode,
+            callerInfoOpt As SyntaxNode,
             representCandidateInDiagnosticsOpt As Symbol
         )
             Dim candidate As OverloadResolution.Candidate = candidateAnalysisResult.Candidate
@@ -2436,7 +2449,7 @@ ProduceBoundNode:
             targetType As TypeSymbol,
             reportNarrowingConversions As Boolean,
             diagnostics As DiagnosticBag,
-            Optional diagnosticNode As VisualBasicSyntaxNode = Nothing,
+            Optional diagnosticNode As SyntaxNode = Nothing,
             Optional delegateSymbol As Symbol = Nothing
         )
 
@@ -2448,7 +2461,7 @@ ProduceBoundNode:
 
             If argument.IsSupportingAssignment() Then
 
-                If Not (argument.IsLValue() AndAlso targetType.IsSameTypeIgnoringCustomModifiers(argument.Type)) Then
+                If Not (argument.IsLValue() AndAlso targetType.IsSameTypeIgnoringAll(argument.Type)) Then
 
                     If Not ReportByValConversionErrors(param, argument, targetType, reportNarrowingConversions, diagnostics,
                                                        diagnosticNode:=diagnosticNode,
@@ -2506,7 +2519,7 @@ ProduceBoundNode:
             targetType As TypeSymbol,
             reportNarrowingConversions As Boolean,
             diagnostics As DiagnosticBag,
-            Optional diagnosticNode As VisualBasicSyntaxNode = Nothing,
+            Optional diagnosticNode As SyntaxNode = Nothing,
             Optional delegateSymbol As Symbol = Nothing
         ) As Boolean
 
@@ -2588,7 +2601,7 @@ ProduceBoundNode:
         ''' data this function operates on.
         ''' </summary>
         Private Function PassArguments(
-            node As VisualBasicSyntaxNode,
+            node As SyntaxNode,
             ByRef candidate As OverloadResolution.CandidateAnalysisResult,
             arguments As ImmutableArray(Of BoundExpression),
             diagnostics As DiagnosticBag
@@ -2792,6 +2805,10 @@ ProduceBoundNode:
             ' TODO: Fields of MarshalByRef object are passed via temp.
 
             Dim isLValue As Boolean = argument.IsLValue()
+
+            If isLValue AndAlso argument.Kind = BoundKind.PropertyAccess Then
+                argument = argument.SetAccessKind(PropertyAccessKind.Get)
+            End If
 
             If isLValue AndAlso Conversions.IsIdentityConversion(conversionTo.Key) Then
                 'Nothing to do
@@ -3022,7 +3039,7 @@ ProduceBoundNode:
 
         End Sub
 
-        Friend Function GetArgumentForParameterDefaultValue(param As ParameterSymbol, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag, callerInfoOpt As VisualBasicSyntaxNode) As BoundExpression
+        Friend Function GetArgumentForParameterDefaultValue(param As ParameterSymbol, syntax As SyntaxNode, diagnostics As DiagnosticBag, callerInfoOpt As SyntaxNode) As BoundExpression
             Dim defaultArgument As BoundExpression = Nothing
 
             ' See Section 3 of §11.8.2 Applicable Methods
@@ -3188,7 +3205,7 @@ ProduceBoundNode:
             Return defaultArgument
         End Function
 
-        Private Shared Function GetCallerLocation(syntax As VisualBasicSyntaxNode) As TextSpan
+        Private Shared Function GetCallerLocation(syntax As SyntaxNode) As TextSpan
             Select Case syntax.Kind
                 Case SyntaxKind.SimpleMemberAccessExpression
                     Return DirectCast(syntax, MemberAccessExpressionSyntax).Name.Span

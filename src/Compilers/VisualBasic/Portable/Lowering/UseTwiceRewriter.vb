@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -111,6 +112,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Select Case value.Kind
+                Case BoundKind.Call
+                    Return UseTwiceCall(containingMember, DirectCast(value, BoundCall), temporaries)
                 Case BoundKind.ArrayAccess
                     Return UseTwiceArrayAccess(containingMember, DirectCast(value, BoundArrayAccess), temporaries)
                 Case BoundKind.FieldAccess
@@ -194,6 +197,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Throw ExceptionUtilities.Unreachable
+        End Function
+
+        Private Shared Function UseTwiceCall(containingMember As Symbol, node As BoundCall, arg As ArrayBuilder(Of SynthesizedLocal)) As Result
+            Debug.Assert(node.IsLValue)
+            Return UseTwiceLValue(containingMember, node, arg)
         End Function
 
         Private Shared Function UseTwiceArrayAccess(containingMember As Symbol, node As BoundArrayAccess, arg As ArrayBuilder(Of SynthesizedLocal)) As Result
@@ -337,19 +345,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             propertySymbol,
                             node.PropertyGroupOpt,
                             node.AccessKind,
-                            node.IsWriteable,
-                            receiver.First,
-                            firstArgs,
-                            node.Type)
+                            isWriteable:=node.IsWriteable,
+                            isLValue:=node.IsLValue,
+                            receiverOpt:=receiver.First,
+                            arguments:=firstArgs,
+                            type:=node.Type)
 
             Dim second = node.Update(
                             propertySymbol,
                             node.PropertyGroupOpt,
                             node.AccessKind,
-                            node.IsWriteable,
-                            receiver.Second,
-                            secondArgs,
-                            node.Type)
+                            isWriteable:=node.IsWriteable,
+                            isLValue:=node.IsLValue,
+                            receiverOpt:=receiver.Second,
+                            arguments:=secondArgs,
+                            type:=node.Type)
 
             Return New Result(first, second)
         End Function

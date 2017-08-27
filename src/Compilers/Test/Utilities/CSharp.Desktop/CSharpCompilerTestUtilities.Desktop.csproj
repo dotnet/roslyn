@@ -1,107 +1,33 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.Test.Utilities</RootNamespace>
-    <ProjectGuid>{7A4B2176-7BFD-4B75-A61A-E25A1FDD0A1E}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Compilers.CSharp.Test.Utilities.Desktop</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <TargetFrameworkProfile />
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <TargetFramework>net46</TargetFramework>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
-      <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
-      <Name>TestUtilities.Desktop</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\CSharp\Portable\CSharpCodeAnalysis.csproj">
-      <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
-      <Name>CSharpCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
-      <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
-      <Name>BasicCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
-      <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
-      <Name>TestUtilities.FX45</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
-      <Project>{AFDE6BEA-5038-4A4A-A88E-DBD2E4088EED}</Project>
-      <Name>PdbUtilities</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj" />
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj" />
+    <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\CSharp\Portable\CSharpCodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
+    <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj" />
+    <ProjectReference Include="..\CSharp\CSharpCompilerTestUtilities.csproj" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM'">
-    <PlatformTarget>ARM</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|ARM'">
-    <PlatformTarget>ARM</PlatformTarget>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\CSharp\CompilingTestBase.cs">
-      <Link>CompilingTestBase.cs</Link>
-    </Compile>
-    <Compile Include="..\CSharp\CSharpTrackingDiagnosticAnalyzer.cs">
-      <Link>CSharpTrackingDiagnosticAnalyzer.cs</Link>
-    </Compile>
-    <Compile Include="..\CSharp\DiagnosticTestUtilities.cs">
-      <Link>DiagnosticTestUtilities.cs</Link>
-    </Compile>
-    <Compile Include="..\CSharp\ScriptTestFixtures.cs">
-      <Link>ScriptTestFixtures.cs</Link>
-    </Compile>
-    <Compile Include="..\CSharp\SemanticModelTestBase.cs">
-      <Link>SemanticModelTestBase.cs</Link>
-    </Compile>
-    <Compile Include="..\CSharp\SymbolUtilities.cs">
-      <Link>SymbolUtilities.cs</Link>
-    </Compile>
-    <Compile Include="..\CSharp\SyntaxTreeExtensions.cs">
-      <Link>SyntaxTreeExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\CSharp\TestOptions.cs">
-      <Link>TestOptions.cs</Link>
-    </Compile>
-    <Compile Include="..\CSharp\BasicCompilationUtils.cs">
-      <Link>BasicCompilationUtils.cs</Link>
-    </Compile>
-    <Compile Include="..\CSharp\CompilationTestUtils.cs">
-      <Link>CompilationTestUtils.cs</Link>
-    </Compile>
-    <Compile Include="CSharpTestBase.cs" />
-    <Compile Include="..\CSharp\DiagnosticExtensions.cs">
-      <Link>DiagnosticExtensions.cs</Link>
-    </Compile>
-    <Compile Include="Extensions.cs" />
-    <Compile Include="..\CSharp\LocalVariableDeclaratorsCollector.cs">
-      <Link>LocalVariableDeclaratorsCollector.cs</Link>
-    </Compile>
-    <Compile Include="..\CSharp\MetadataTestHelpers.cs">
-      <Link>MetadataTestHelpers.cs</Link>
-    </Compile>
-    <Compile Include="MockCSharpCompiler.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
@@ -112,15 +38,10 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Symbol.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Syntax.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.CSharp.ExpressionCompiler.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.FunctionResolver.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveHost.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="project.json" />
-  </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>

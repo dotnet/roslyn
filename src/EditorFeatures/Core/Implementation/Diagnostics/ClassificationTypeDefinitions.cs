@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         {
             private UnnecessaryCodeFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.FontAndColors_UnnecessaryCode;
+                this.DisplayName = EditorFeaturesResources.Unnecessary_Code;
                 this.ForegroundOpacity = 0.6;
             }
         }

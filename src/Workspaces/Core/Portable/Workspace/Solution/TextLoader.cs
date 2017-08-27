@@ -4,6 +4,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -16,6 +17,15 @@ namespace Microsoft.CodeAnalysis
         /// Load a text and a version of the document in the workspace.
         /// </summary>
         public abstract Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Load a text and a version of the document in the workspace.
+        /// </summary>
+        internal virtual TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+        {
+            // this implementation exists in case a custom derived type does not have access to internals
+            return LoadTextAndVersionAsync(workspace, documentId, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+        }
 
         /// <summary>
         /// Creates a new TextLoader from an already existing source text and version.
@@ -59,6 +69,11 @@ namespace Microsoft.CodeAnalysis
             {
                 return Task.FromResult(_textAndVersion);
             }
+
+            internal override TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+            {
+                return _textAndVersion;
+            }
         }
 
         private class TextContainerLoader : TextLoader
@@ -76,7 +91,12 @@ namespace Microsoft.CodeAnalysis
 
             public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
             {
-                return Task.FromResult(TextAndVersion.Create(_container.CurrentText, _version, _filePath));
+                return Task.FromResult(LoadTextAndVersionSynchronously(workspace, documentId, cancellationToken));
+            }
+
+            internal override TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+            {
+                return TextAndVersion.Create(_container.CurrentText, _version, _filePath);
             }
         }
     }

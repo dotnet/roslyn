@@ -1,113 +1,41 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B8DA3A90-A60C-42E3-9D8E-6C67B800C395}</ProjectGuid>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
-    <AuthenticodeCertificateName>WindowsPhone623</AuthenticodeCertificateName>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
-    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
-    <!-- Don't transitively copy output files, since everything builds to the same folder. -->
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <TargetFramework>netstandard1.3</TargetFramework>
+    <DefineConstants>$(DefineConstants);EXPRESSIONCOMPILER</DefineConstants>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\DateTimeUtilities.cs">
       <Link>Shared\DateTimeUtilities.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\SymUnmanagedReaderExtensions.cs">
-      <Link>Shared\SymUnmanagedReaderExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\CustomDebugInfoReader.cs">
-      <Link>Shared\CustomDebugInfoReader.cs</Link>
-    </Compile>
-    <Compile Include="AssemblyReaders.cs" />
-    <Compile Include="AssemblyReference.cs" />
-    <Compile Include="CustomTypeInfo.cs" />
-    <Compile Include="DebuggerDiagnosticFormatter.cs" />
-    <Compile Include="DynamicFlagsCustomTypeInfo.cs" />
-    <Compile Include="DynamicFlagsCustomTypeInfo_Factory.cs" />
-    <Compile Include="EESymbolProvider.cs" />
-    <Compile Include="ILSpan.cs" />
-    <Compile Include="PDB\MethodDebugInfo.Native.cs" />
-    <Compile Include="PDB\MethodDebugInfo.Portable.cs" />
-    <Compile Include="Placeholders.cs" />
-    <Compile Include="ImmutableArrayExtensions.cs" />
-    <Compile Include="CompileResult.cs" />
-    <Compile Include="FrameDecoder.cs" />
-    <Compile Include="InstructionDecoder.cs" />
-    <Compile Include="LanguageInstructionDecoder.cs" />
-    <Compile Include="PDB\InScopeHoistedLocals.cs" />
-    <Compile Include="PDB\HoisedLocalScopeRecord.cs" />
-    <Compile Include="PDB\ExternAliasRecord.cs" />
-    <Compile Include="PDB\MethodDebugInfo.cs" />
-    <Compile Include="PDB\ImportRecord.cs" />
-    <Compile Include="PDB\PdbHelpers.cs" />
-    <Compile Include="ResultProperties.cs" />
-    <Compile Include="ExpressionCompilerUtilities.cs" />
-    <Compile Include="ExpressionEvaluatorFatalError.cs" />
-    <Compile Include="EvaluationContextBase.cs" />
-    <Compile Include="ExpressionCompiler.cs" />
-    <Compile Include="ExpressionCompilerConstants.cs" />
-    <Compile Include="DkmUtilities.cs" />
-    <Compile Include="LocalAndMethod.cs" />
-    <Compile Include="MetadataBlock.cs" />
-    <Compile Include="MetadataUtilities.cs" />
-    <Compile Include="AbstractTypeParameterChecker.cs" />
-    <Compile Include="MethodContextReuseConstraints.cs" />
-    <Compile Include="PseudoVariableUtilities.cs" />
-  </ItemGroup>
-  <ItemGroup Label="File References">
-    <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Engine.dll" />
   </ItemGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Dependencies\DiaSymReader\DiaSymReader.csproj">
-      <Project>{27b7a354-80cc-4bac-abf5-d4081056cea9}</Project>
-      <Name>DiaSymReader</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Concord\Concord.csproj">
-      <Project>{5002636a-fe8d-40bf-8818-ab513a2194fa}</Project>
-      <Name>Concord</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DefineConstants>$(DefineConstants);EXPRESSIONCOMPILER</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DefineConstants>$(DefineConstants);EXPRESSIONCOMPILER</DefineConstants>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-  </ItemGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler" />
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.CSharp.ExpressionCompiler.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.VisualBasic.ExpressionCompiler.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.ExpressionCompiler.Test.Utilities" />
+    <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.ProductionBreakpoints.CodeAnalysis" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\WindowsProxy.winmd" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine" Version="$(MicrosoftVisualStudioDebuggerEngineVersion)" />
+    <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>

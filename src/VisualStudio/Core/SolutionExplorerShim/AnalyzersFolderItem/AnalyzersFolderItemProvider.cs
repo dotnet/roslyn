@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -67,10 +67,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private IAttachedCollectionSource CreateCollectionSourceCore(IVsHierarchyItem parentItem, IVsHierarchyItem item)
         {
             var hierarchyMapper = TryGetProjectMap();
-
-            ProjectId projectId;
             if (hierarchyMapper != null &&
-                hierarchyMapper.TryGetProjectId(parentItem, out projectId))
+                hierarchyMapper.TryGetProjectId(parentItem, targetFrameworkMoniker: null, projectId: out var projectId))
             {
                 var workspace = TryGetWorkspace();
                 return new AnalyzersFolderItemSource(workspace, projectId, item, _commandHandler);
@@ -81,8 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private static ImmutableArray<string> GetProjectCapabilities(IVsHierarchy hierarchy)
         {
-            object capabilitiesObj;
-            if (hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID5.VSHPROPID_ProjectCapabilities, out capabilitiesObj) == VSConstants.S_OK)
+            if (hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID5.VSHPROPID_ProjectCapabilities, out var capabilitiesObj) == VSConstants.S_OK)
             {
                 var capabilitiesString = (string)capabilitiesObj;
                 return ImmutableArray.Create(capabilitiesString.Split(' '));
@@ -95,8 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private static ImmutableArray<string> GetProjectTreeCapabilities(IVsHierarchy hierarchy, uint itemId)
         {
-            object capabilitiesObj;
-            if (hierarchy.GetProperty(itemId, (int)__VSHPROPID7.VSHPROPID_ProjectTreeCapabilities, out capabilitiesObj) == VSConstants.S_OK)
+            if (hierarchy.GetProperty(itemId, (int)__VSHPROPID7.VSHPROPID_ProjectTreeCapabilities, out var capabilitiesObj) == VSConstants.S_OK)
             {
                 var capabilitiesString = (string)capabilitiesObj;
                 return ImmutableArray.Create(capabilitiesString.Split(' '));

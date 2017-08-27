@@ -2,7 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
-using Microsoft.CodeAnalysis.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             LocalDebugId id,
             LocalVariableAttributes pdbAttributes,
             LocalSlotConstraints constraints,
-            bool isDynamic,
-            ImmutableArray<TypedConstant> dynamicTransformFlags);
+            ImmutableArray<bool> dynamicTransformFlags,
+            ImmutableArray<string> tupleElementNames);
 
         public abstract string PreviousStateMachineTypeName { get; }
 

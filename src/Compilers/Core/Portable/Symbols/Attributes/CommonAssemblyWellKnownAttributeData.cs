@@ -323,6 +323,24 @@ namespace Microsoft.CodeAnalysis
         }
         #endregion
 
+        #region ReferenceAssemblyeAttribute
+        private bool _hasReferenceAssemblyAttribute;
+        public bool HasReferenceAssemblyAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasReferenceAssemblyAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasReferenceAssemblyAttribute = value;
+                SetDataStored();
+            }
+        }
+        #endregion
+
         #region RuntimeCompatibilityAttribute
 
         private bool? _runtimeCompatibilityWrapNonExceptionThrows;

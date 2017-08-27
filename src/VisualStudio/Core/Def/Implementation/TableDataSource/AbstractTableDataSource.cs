@@ -131,12 +131,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             // adding it back
             bool newFactory = false;
             ImmutableArray<SubscriptionWithoutLock> snapshot;
-            TableEntriesFactory<TData> factory;
-
             lock (_gate)
             {
                 snapshot = _subscriptions;
-                GetOrCreateFactory_NoLock(data, out factory, out newFactory);
+                GetOrCreateFactory_NoLock(data, out var factory, out newFactory);
 
                 factory.OnDataAddedOrChanged(data);
 
@@ -162,8 +160,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private void OnDataRemoved_NoLock(object data)
         {
             ImmutableArray<SubscriptionWithoutLock> snapshot;
-            TableEntriesFactory<TData> factory;
-
             var key = TryGetAggregateKey(data);
             if (key == null)
             {
@@ -172,7 +168,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             snapshot = _subscriptions;
-            if (!_map.TryGetValue(key, out factory))
+            if (!_map.TryGetValue(key, out var factory))
             {
                 // never reported about this before
                 return;
@@ -248,9 +244,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         protected object TryGetAggregateKey(object data)
         {
-            object aggregateKey;
             var key = GetItemKey(data);
-            if (_aggregateKeyMap.TryGetValue(key, out aggregateKey))
+            if (_aggregateKeyMap.TryGetValue(key, out var aggregateKey))
             {
                 return aggregateKey;
             }

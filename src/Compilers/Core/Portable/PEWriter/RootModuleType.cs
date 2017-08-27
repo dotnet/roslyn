@@ -49,9 +49,9 @@ namespace Microsoft.Cci
             return null;
         }
 
-        public IEnumerable<IEventDefinition> Events
+        public IEnumerable<IEventDefinition> GetEvents(EmitContext context)
         {
-            get { return SpecializedCollections.EmptyEnumerable<IEventDefinition>(); }
+            return SpecializedCollections.EmptyEnumerable<IEventDefinition>();
         }
 
         public IEnumerable<MethodImplementation> GetExplicitImplementationOverrides(EmitContext context)
@@ -69,9 +69,9 @@ namespace Microsoft.Cci
             get { return false; }
         }
 
-        public IEnumerable<ITypeReference> Interfaces(EmitContext context)
+        public IEnumerable<Cci.TypeReferenceWithAttributes> Interfaces(EmitContext context)
         {
-            return SpecializedCollections.EmptyEnumerable<ITypeReference>();
+            return SpecializedCollections.EmptyEnumerable<Cci.TypeReferenceWithAttributes>();
         }
 
         public bool IsAbstract
@@ -202,9 +202,9 @@ namespace Microsoft.Cci
             return this;
         }
 
-        PrimitiveTypeCode ITypeReference.TypeCode(EmitContext context)
+        PrimitiveTypeCode ITypeReference.TypeCode
         {
-            throw ExceptionUtilities.Unreachable;
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         ushort INamedTypeReference.GenericParameterCount

@@ -16,7 +16,7 @@ namespace Roslyn.Utilities
 
             if (!PathUtilities.IsAbsolute(path))
             {
-                throw new ArgumentException(WorkspacesResources.AbsolutePathExpected, argumentName);
+                throw new ArgumentException(WorkspacesResources.Absolute_path_expected, argumentName);
             }
         }
     }

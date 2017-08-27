@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
@@ -25,15 +25,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             If methodDeclaration IsNot Nothing Then
                 If methodDeclaration.TypeParameterList IsNot Nothing Then
                     If targetToken = methodDeclaration.TypeParameterList.OpenParenToken Then
-                        Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Of", VBFeaturesResources.OfKeywordToolTip))
+                        Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Of", VBFeaturesResources.Identifies_a_type_parameter_on_a_generic_class_structure_interface_delegate_or_procedure))
                     End If
                 ElseIf methodDeclaration.ParameterList IsNot Nothing Then
                     ' If we don't have a TypeParametersOpt, then we might be in a place where it's ambiguous where we are.
-                    ' For example, typing Sub Foo(|, it's not clear if that's a TypeParameters block I'm in or a regular
+                    ' For example, typing Sub Goo(|, it's not clear if that's a TypeParameters block I'm in or a regular
                     ' block. The parser chooses the sane choice of calling that a regular parameters block until it knows
                     ' otherwise.
                     If targetToken = methodDeclaration.ParameterList.OpenParenToken Then
-                        Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Of", VBFeaturesResources.OfKeywordToolTip))
+                        Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Of", VBFeaturesResources.Identifies_a_type_parameter_on_a_generic_class_structure_interface_delegate_or_procedure))
                     End If
                 End If
             End If
@@ -41,14 +41,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             Dim implementsClause = targetToken.GetAncestor(Of ImplementsClauseSyntax)
             If implementsClause IsNot Nothing Then
                 If targetToken.IsKind(SyntaxKind.OpenParenToken) AndAlso targetToken.Parent.IsKind(SyntaxKind.TypeArgumentList) Then
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Of", VBFeaturesResources.OfKeywordToolTip))
+                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Of", VBFeaturesResources.Identifies_a_type_parameter_on_a_generic_class_structure_interface_delegate_or_procedure))
                 End If
             End If
 
             Dim inheritsStatement = targetToken.GetAncestor(Of InheritsStatementSyntax)
             If inheritsStatement IsNot Nothing Then
                 If targetToken.IsKind(SyntaxKind.OpenParenToken) AndAlso targetToken.Parent.IsKind(SyntaxKind.TypeArgumentList) Then
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Of", VBFeaturesResources.OfKeywordToolTip))
+                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Of", VBFeaturesResources.Identifies_a_type_parameter_on_a_generic_class_structure_interface_delegate_or_procedure))
                 End If
             End If
 
@@ -56,11 +56,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             If delegateDeclaration IsNot Nothing Then
                 If delegateDeclaration.TypeParameterList IsNot Nothing Then
                     If targetToken = delegateDeclaration.TypeParameterList.OpenParenToken Then
-                        Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Of", VBFeaturesResources.OfKeywordToolTip))
+                        Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Of", VBFeaturesResources.Identifies_a_type_parameter_on_a_generic_class_structure_interface_delegate_or_procedure))
                     End If
                 ElseIf delegateDeclaration.ParameterList IsNot Nothing Then
                     If targetToken = delegateDeclaration.ParameterList.OpenParenToken Then
-                        Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Of", VBFeaturesResources.OfKeywordToolTip))
+                        Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Of", VBFeaturesResources.Identifies_a_type_parameter_on_a_generic_class_structure_interface_delegate_or_procedure))
                     End If
                 End If
             End If
@@ -69,31 +69,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             If typeDeclaration IsNot Nothing AndAlso typeDeclaration.IsKind(SyntaxKind.ClassStatement, SyntaxKind.InterfaceStatement, SyntaxKind.StructureStatement) Then
                 If typeDeclaration.TypeParameterList IsNot Nothing Then
                     If targetToken = typeDeclaration.TypeParameterList.OpenParenToken Then
-                        Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Of", VBFeaturesResources.OfKeywordToolTip))
+                        Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Of", VBFeaturesResources.Identifies_a_type_parameter_on_a_generic_class_structure_interface_delegate_or_procedure))
                     End If
                 End If
             End If
 
             ' Cases:
-            '  Dim f As New Foo(|
-            '  Foo(|
+            '  Dim f As New Goo(|
+            '  Goo(|
             Dim argumentList = targetToken.GetAncestor(Of ArgumentListSyntax)()
             If argumentList IsNot Nothing Then
                 ' Ensure it's not "Dim F(|" unless creating a generic delegate
                 If Not argumentList.HasAncestor(Of ModifiedIdentifierSyntax)() AndAlso
                    targetToken = argumentList.OpenParenToken AndAlso
                    (Not context.IsDelegateCreationContext() OrElse IsGenericDelegateCreationExpression(targetToken, context.SemanticModel, cancellationToken)) Then
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Of", VBFeaturesResources.OfKeywordToolTip))
+                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Of", VBFeaturesResources.Identifies_a_type_parameter_on_a_generic_class_structure_interface_delegate_or_procedure))
                 End If
             End If
 
-            ' Case: Dim f As Foo(|
+            ' Case: Dim f As Goo(|
             Dim arrayRankSpecifier = targetToken.GetAncestor(Of ArrayRankSpecifierSyntax)()
             If arrayRankSpecifier IsNot Nothing Then
                 If targetToken = arrayRankSpecifier.OpenParenToken Then
                     Dim arrayType = TryCast(arrayRankSpecifier.Parent, ArrayTypeSyntax)
                     If arrayType IsNot Nothing AndAlso IsPartiallyTypedGenericName(arrayType.ElementType, context.SemanticModel) Then
-                        Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Of", VBFeaturesResources.OfKeywordToolTip))
+                        Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Of", VBFeaturesResources.Identifies_a_type_parameter_on_a_generic_class_structure_interface_delegate_or_procedure))
                     End If
                 End If
             End If

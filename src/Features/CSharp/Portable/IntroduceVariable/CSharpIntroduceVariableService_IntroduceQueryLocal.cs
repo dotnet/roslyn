@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
@@ -25,14 +24,17 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         protected override Task<Document> IntroduceQueryLocalAsync(
             SemanticDocument document, ExpressionSyntax expression, bool allOccurrences, CancellationToken cancellationToken)
         {
-            var newLocalNameToken = GenerateUniqueLocalName(document, expression, isConstant: false, cancellationToken: cancellationToken);
+            var oldOutermostQuery = expression.GetAncestorsOrThis<QueryExpressionSyntax>().LastOrDefault();
+
+            var newLocalNameToken = GenerateUniqueLocalName(
+                document, expression, isConstant: false, 
+                container: oldOutermostQuery, cancellationToken: cancellationToken);
             var newLocalName = SyntaxFactory.IdentifierName(newLocalNameToken);
 
             var letClause = SyntaxFactory.LetClause(
-                    newLocalNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()),
-                    expression).WithAdditionalAnnotations(Formatter.Annotation);
+                newLocalNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()),
+                expression).WithAdditionalAnnotations(Formatter.Annotation);
 
-            var oldOutermostQuery = expression.GetAncestorsOrThis<QueryExpressionSyntax>().LastOrDefault();
             var matches = FindMatches(document, expression, document, oldOutermostQuery, allOccurrences, cancellationToken);
             var innermostClauses = new HashSet<SyntaxNode>(
                 matches.Select(expr => expr.GetAncestorsOrThis<SyntaxNode>().First(IsAnyQueryClause)));

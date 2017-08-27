@@ -1,12 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editing
 {
@@ -18,14 +12,19 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         public static void SetModifiers(this SyntaxEditor editor, SyntaxNode declaration, DeclarationModifiers modifiers)
-        {
-            editor.ReplaceNode(declaration, (d, g) => g.WithModifiers(d, modifiers));
-        }
+            => editor.ReplaceNode(declaration, (d, g) => g.WithModifiers(d, modifiers));
+
+        internal static void RemoveAllAttributes(this SyntaxEditor editor, SyntaxNode declaration)
+            => editor.ReplaceNode(declaration, (d, g) => g.RemoveAllAttributes(d));
+
+        internal static void RemoveAllComments(this SyntaxEditor editor, SyntaxNode declaration)
+            => editor.ReplaceNode(declaration, (d, g) => g.RemoveAllComments(d));
+
+        internal static void RemoveAllTypeInheritance(this SyntaxEditor editor, SyntaxNode declaration)
+            => editor.ReplaceNode(declaration, (d, g) => g.RemoveAllTypeInheritance(d));
 
         public static void SetName(this SyntaxEditor editor, SyntaxNode declaration, string name)
-        {
-            editor.ReplaceNode(declaration, (d, g) => g.WithName(d, name));
-        }
+            => editor.ReplaceNode(declaration, (d, g) => g.WithName(d, name));
 
         public static void SetType(this SyntaxEditor editor, SyntaxNode declaration, SyntaxNode type)
         {
@@ -48,9 +47,7 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         public static void SetStatements(this SyntaxEditor editor, SyntaxNode declaration, IEnumerable<SyntaxNode> statements)
-        {
-            editor.ReplaceNode(declaration, (d, g) => g.WithStatements(d, statements));
-        }
+            => editor.ReplaceNode(declaration, (d, g) => g.WithStatements(d, statements));
 
         public static void SetGetAccessorStatements(this SyntaxEditor editor, SyntaxNode declaration, IEnumerable<SyntaxNode> statements)
         {
@@ -65,6 +62,11 @@ namespace Microsoft.CodeAnalysis.Editing
         public static void AddParameter(this SyntaxEditor editor, SyntaxNode declaration, SyntaxNode parameter)
         {
             editor.ReplaceNode(declaration, (d, g) => g.AddParameters(d, new[] { parameter }));
+        }
+
+        public static void InsertParameter(this SyntaxEditor editor, SyntaxNode declaration, int index, SyntaxNode parameter)
+        {
+            editor.ReplaceNode(declaration, (d, g) => g.InsertParameters(d, index, new[] { parameter }));
         }
 
         public static void AddAttribute(this SyntaxEditor editor, SyntaxNode declaration, SyntaxNode attribute)

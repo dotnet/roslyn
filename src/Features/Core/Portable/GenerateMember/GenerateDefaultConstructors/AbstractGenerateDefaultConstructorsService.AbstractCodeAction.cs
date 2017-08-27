@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,7 +9,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
 {
@@ -36,10 +36,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                 _title = title;
             }
 
-            public override string Title
-            {
-                get { return _title; }
-            }
+            public override string Title => _title;
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
@@ -58,15 +55,15 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                 var syntaxFactory = _document.GetLanguageService<SyntaxGenerator>();
                 var baseConstructorArguments = constructor.Parameters.Length != 0
                     ? syntaxFactory.CreateArguments(constructor.Parameters)
-                    : null;
+                    : default;
 
                 return CodeGenerationSymbolFactory.CreateConstructorSymbol(
-                    attributes: null,
+                    attributes: default,
                     accessibility: constructor.DeclaredAccessibility,
                     modifiers: new DeclarationModifiers(),
                     typeName: _state.ClassType.Name,
                     parameters: constructor.Parameters,
-                    statements: null,
+                    statements: default,
                     baseConstructorArguments: baseConstructorArguments);
             }
         }

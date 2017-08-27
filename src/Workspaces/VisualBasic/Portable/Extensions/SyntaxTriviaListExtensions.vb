@@ -17,8 +17,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function WithoutLeadingWhitespace(list As IEnumerable(Of SyntaxTrivia)) As SyntaxTriviaList
-            Return list.SkipWhile(Function(t) t.IsWhitespace()).ToSyntaxTriviaList()
+        Public Function WithoutLeadingWhitespaceOrEndOfLine(list As IEnumerable(Of SyntaxTrivia)) As SyntaxTriviaList
+            Return list.SkipWhile(Function(t) t.IsWhitespaceOrEndOfLine()).ToSyntaxTriviaList()
         End Function
     End Module
 End Namespace

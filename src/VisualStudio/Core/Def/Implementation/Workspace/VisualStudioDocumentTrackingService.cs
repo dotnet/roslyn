@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -6,19 +6,19 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
+using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     internal class VisualStudioDocumentTrackingService : IDocumentTrackingService, IVsSelectionEvents, IDisposable
     {
-        private readonly NonRoslynTextBufferTracker _tracker;
-
         private IVsMonitorSelection _monitorSelection;
         private uint _cookie;
         private ImmutableList<FrameListener> _visibleFrames;
@@ -26,8 +26,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public VisualStudioDocumentTrackingService(IServiceProvider serviceProvider)
         {
-            _tracker = new NonRoslynTextBufferTracker(this);
-
             _visibleFrames = ImmutableList<FrameListener>.Empty;
 
             _monitorSelection = (IVsMonitorSelection)serviceProvider.GetService(typeof(SVsShellMonitorSelection));
@@ -72,13 +70,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return ImmutableArray.Create<DocumentId>();
             }
 
-            ImmutableArray<DocumentId>.Builder ids = ImmutableArray.CreateBuilder<DocumentId>(snapshot.Count);
+            var ids = ArrayBuilder<DocumentId>.GetInstance(snapshot.Count);
             foreach (var frame in snapshot)
             {
                 ids.Add(frame.Id);
             }
 
-            return ids.ToImmutable();
+            return ids.ToImmutableAndFree();
         }
 
         /// <summary>
@@ -136,11 +134,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public event EventHandler<EventArgs> NonRoslynBufferTextChanged;
 
-        public void OnNonRoslynViewOpened(ITextView view)
+        public void OnNonRoslynBufferOpened(ITextBuffer buffer)
         {
-            _tracker.OnOpened(view);
+            buffer.PostChanged += OnNonRoslynBufferChanged;
         }
 
+        public void OnNonRoslynBufferClosed(ITextBuffer buffer)
+        {
+            buffer.PostChanged -= OnNonRoslynBufferChanged;
+        }
+
+        private void OnNonRoslynBufferChanged(object sender, EventArgs e)
+        {
+            this.NonRoslynBufferTextChanged?.Invoke(sender, e);
+        }
         public void Dispose()
         {
             if (_cookie != VSConstants.VSCOOKIE_NIL && _monitorSelection != null)
@@ -266,58 +273,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             internal string GetDebuggerDisplay()
             {
-                object caption;
-                Frame.GetProperty((int)__VSFPROPID.VSFPROPID_Caption, out caption);
+                Frame.GetProperty((int)__VSFPROPID.VSFPROPID_Caption, out var caption);
                 return caption.ToString();
-            }
-        }
-
-        /// <summary>
-        /// It tracks non roslyn text buffer text changes.
-        /// </summary>
-        private class NonRoslynTextBufferTracker : ForegroundThreadAffinitizedObject
-        {
-            private readonly VisualStudioDocumentTrackingService _owner;
-            private readonly HashSet<ITextView> _views;
-
-            public NonRoslynTextBufferTracker(VisualStudioDocumentTrackingService owner)
-            {
-                _owner = owner;
-                _views = new HashSet<ITextView>();
-            }
-
-            public void OnOpened(ITextView view)
-            {
-                AssertIsForeground();
-
-                if (!_views.Add(view))
-                {
-                    return;
-                }
-
-                view.TextBuffer.PostChanged += OnTextChanged;
-                view.Closed += OnClosed;
-            }
-
-            private void OnClosed(object sender, EventArgs e)
-            {
-                AssertIsForeground();
-
-                var view = sender as ITextView;
-                if (view == null || !_views.Contains(view))
-                {
-                    return;
-                }
-
-                view.TextBuffer.PostChanged -= OnTextChanged;
-                view.Closed -= OnClosed;
-
-                _views.Remove(view);
-            }
-
-            private void OnTextChanged(object sender, EventArgs e)
-            {
-                _owner.NonRoslynBufferTextChanged?.Invoke(sender, e);
             }
         }
     }

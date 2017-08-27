@@ -1,8 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis.DocumentationComments;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource
@@ -11,20 +12,20 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
     {
         internal class DocCommentFormatter
         {
-            private static readonly int s_indentSize = 2;
-            private static readonly int s_wrapLength = 80;
+            private const int s_indentSize = 2;
+            private const int s_wrapLength = 80;
 
-            private static readonly string s_summaryHeader = FeaturesResources.Summary;
-            private static readonly string s_paramHeader = FeaturesResources.Parameters;
-            private static readonly string s_labelFormat = "{0}:";
-            private static readonly string s_typeParameterHeader = FeaturesResources.TypeParameters;
-            private static readonly string s_returnsHeader = FeaturesResources.Returns;
-            private static readonly string s_exceptionsHeader = FeaturesResources.Exceptions;
-            private static readonly string s_remarksHeader = FeaturesResources.Remarks;
+            private static readonly string s_summaryHeader = FeaturesResources.Summary_colon;
+            private static readonly string s_paramHeader = FeaturesResources.Parameters_colon;
+            private const string s_labelFormat = "{0}:";
+            private static readonly string s_typeParameterHeader = FeaturesResources.Type_parameters_colon;
+            private static readonly string s_returnsHeader = FeaturesResources.Returns_colon;
+            private static readonly string s_exceptionsHeader = FeaturesResources.Exceptions_colon;
+            private static readonly string s_remarksHeader = FeaturesResources.Remarks_colon;
 
             internal static ImmutableArray<string> Format(IDocumentationCommentFormattingService docCommentFormattingService, DocumentationComment docComment)
             {
-                var formattedCommentLinesBuilder = ImmutableArray.CreateBuilder<string>();
+                var formattedCommentLinesBuilder = ArrayBuilder<string>.GetInstance();
                 var lineBuilder = new StringBuilder();
 
                 var formattedSummaryText = docCommentFormattingService.Format(docComment.SummaryText);
@@ -149,12 +150,12 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     formattedCommentLinesBuilder.RemoveAt(formattedCommentLinesBuilder.Count - 1);
                 }
 
-                return formattedCommentLinesBuilder.ToImmutable();
+                return formattedCommentLinesBuilder.ToImmutableAndFree();
             }
 
             private static ImmutableArray<string> CreateWrappedTextFromRawText(string rawText)
             {
-                var lines = ImmutableArray.CreateBuilder<string>();
+                var lines = ArrayBuilder<string>.GetInstance();
 
                 // First split the string into constituent lines.
                 var split = rawText.Split(new[] { "\r\n" }, System.StringSplitOptions.None);
@@ -165,10 +166,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     SplitRawLineIntoFormattedLines(item, lines);
                 }
 
-                return lines.ToImmutable();
+                return lines.ToImmutableAndFree();
             }
 
-            private static void SplitRawLineIntoFormattedLines(string line, ImmutableArray<string>.Builder lines)
+            private static void SplitRawLineIntoFormattedLines(
+                string line, ArrayBuilder<string> lines)
             {
                 var indent = new StringBuilder().Append(' ', s_indentSize * 2).ToString();
 

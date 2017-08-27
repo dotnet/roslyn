@@ -16,13 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         private class CodeActionHelpersService : ICodeRefactoringHelpersService
         {
-            public bool ActiveInlineRenameSession
-            {
-                get
-                {
-                    return false;
-                }
-            }
+            public bool ActiveInlineRenameSession => false;
         }
     }
 }

@@ -157,8 +157,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
                 {
                     foreach (var referencedProjectName in referencedProjectNames)
                     {
-                        List<string> bucket;
-                        if (!references.TryGetValue(projectName, out bucket))
+                        if (!references.TryGetValue(projectName, out var bucket))
                         {
                             bucket = new List<string>();
                             references.Add(projectName, bucket);

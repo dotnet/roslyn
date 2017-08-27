@@ -1,7 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 
 namespace Roslyn.Utilities
 {
@@ -12,25 +16,28 @@ namespace Roslyn.Utilities
     {
         // We consider '/' a directory separator on Unix like systems. 
         // On Windows both / and \ are equally accepted.
-        internal static readonly char DirectorySeparatorChar = IsUnixLikePlatform ? '/' : '\\';
-        internal static readonly char AltDirectorySeparatorChar = '/';
+        internal static readonly char DirectorySeparatorChar = PlatformInformation.IsUnix ? '/' : '\\';
+        internal const char AltDirectorySeparatorChar = '/';
+        internal const string ParentRelativeDirectory = "..";
+        internal const string ThisDirectory = ".";
         internal static readonly string DirectorySeparatorStr = new string(DirectorySeparatorChar, 1);
         internal const char VolumeSeparatorChar = ':';
+        internal static bool IsUnixLikePlatform => PlatformInformation.IsUnix;
 
-        internal static bool IsUnixLikePlatform
-        {
-            get
-            {
-                return PortableShim.Path.DirectorySeparatorChar == '/';
-            }
-        }
+        /// <summary>
+        /// True if the character is the platform directory separator character or the alternate directory separator.
+        /// </summary>
+        public static bool IsDirectorySeparator(char c) => c == DirectorySeparatorChar || c == AltDirectorySeparatorChar;
 
-        internal static bool IsDirectorySeparator(char c)
-        {
-            return c == DirectorySeparatorChar || c == AltDirectorySeparatorChar;
-        }
+        /// <summary>
+        /// True if the character is any recognized directory separator character.
+        /// </summary>
+        public static bool IsAnyDirectorySeparator(char c) => c == '\\' || c == '/';
 
-        internal static string TrimTrailingSeparators(string s)
+        /// <summary>
+        /// Removes trailing directory separator characters
+        /// </summary>
+        public static string TrimTrailingSeparators(string s)
         {
             int lastSeparator = s.Length;
             while (lastSeparator > 0 && IsDirectorySeparator(s[lastSeparator - 1]))
@@ -46,22 +53,22 @@ namespace Roslyn.Utilities
             return s;
         }
 
-        internal static string GetExtension(string path)
+        public static string GetExtension(string path)
         {
             return FileNameUtilities.GetExtension(path);
         }
 
-        internal static string ChangeExtension(string path, string extension)
+        public static string ChangeExtension(string path, string extension)
         {
             return FileNameUtilities.ChangeExtension(path, extension);
         }
 
-        internal static string RemoveExtension(string path)
+        public static string RemoveExtension(string path)
         {
             return FileNameUtilities.ChangeExtension(path, extension: null);
         }
 
-        internal static string GetFileName(string path, bool includeExtension = true)
+        public static string GetFileName(string path, bool includeExtension = true)
         {
             return FileNameUtilities.GetFileName(path, includeExtension);
         }
@@ -70,18 +77,15 @@ namespace Roslyn.Utilities
         /// Get directory name from path.
         /// </summary>
         /// <remarks>
-        /// Unlike <see cref="System.IO.Path.GetDirectoryName"/> it
-        ///     doesn't check for invalid path characters, 
+        /// Unlike <see cref="System.IO.Path.GetDirectoryName"/> it doesn't check for invalid path characters
         /// </remarks>
-        /// <returns>Prefix of path that represents a directory. </returns>
-        internal static string GetDirectoryName(string path)
+        /// <returns>Prefix of path that represents a directory</returns>
+        public static string GetDirectoryName(string path)
         {
             return GetDirectoryName(path, IsUnixLikePlatform);
         }
 
-        /// <summary>
-        /// Exposed for testing purposes only.
-        /// </summary>
+        // Exposed for testing purposes only.
         internal static string GetDirectoryName(string path, bool isUnixLike)
         {
             if (path != null)
@@ -111,6 +115,28 @@ namespace Roslyn.Utilities
             return null;
         }
 
+        internal static bool IsSameDirectoryOrChildOf(string child, string parent)
+        {
+            parent = RemoveTrailingDirectorySeparator(parent);
+
+            while (child != null)
+            {
+                child = RemoveTrailingDirectorySeparator(child);
+
+                if (child.Equals(parent, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
+                child = GetDirectoryName(child);
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Gets the root part of the path.
+        /// </summary>
         public static string GetPathRoot(string path)
         {
             return GetPathRoot(path, IsUnixLikePlatform);
@@ -216,7 +242,10 @@ namespace Roslyn.Utilities
                 : "";
         }
 
-        internal static PathKind GetPathKind(string path)
+        /// <summary>
+        /// Gets the specific kind of relative or absolute path.
+        /// </summary>
+        public static PathKind GetPathKind(string path)
         {
             if (string.IsNullOrWhiteSpace(path))
             {
@@ -254,13 +283,13 @@ namespace Roslyn.Utilities
             if (!IsUnixLikePlatform)
             {
                 // "\"
-                // "\foo"
+                // "\goo"
                 if (path.Length >= 1 && IsDirectorySeparator(path[0]))
                 {
                     return PathKind.RelativeToCurrentRoot;
                 }
 
-                // "C:foo"
+                // "C:goo"
 
                 if (path.Length >= 2 && path[1] == VolumeSeparatorChar && (path.Length <= 2 || !IsDirectorySeparator(path[2])))
                 {
@@ -268,11 +297,14 @@ namespace Roslyn.Utilities
                 }
             }
 
-            // "foo.dll"
+            // "goo.dll"
             return PathKind.Relative;
         }
 
-        internal static bool IsAbsolute(string path)
+        /// <summary>
+        /// True if the path is an absolute path (rooted to drive or network share)
+        /// </summary>
+        public static bool IsAbsolute(string path)
         {
             if (string.IsNullOrEmpty(path))
             {
@@ -292,7 +324,7 @@ namespace Roslyn.Utilities
             }
 
             // "\\machine\share"
-            // Including invalid/incomplete UNC paths (e.g. "\\foo")
+            // Including invalid/incomplete UNC paths (e.g. "\\goo")
             return path.Length >= 2 &&
                 IsDirectorySeparator(path[0]) &&
                 IsDirectorySeparator(path[1]);
@@ -319,7 +351,7 @@ namespace Roslyn.Utilities
         /// or relative to a drive directory (e.g. "C:abc\def").
         /// </returns>
         /// <seealso cref="CombinePossiblyRelativeAndRelativePaths"/>
-        internal static string CombineAbsoluteAndRelativePaths(string root, string relativePath)
+        public static string CombineAbsoluteAndRelativePaths(string root, string relativePath)
         {
             Debug.Assert(IsAbsolute(root));
 
@@ -333,7 +365,7 @@ namespace Roslyn.Utilities
         /// <param name="relativePath">Second path: relative and non-null.</param>
         /// <returns>null, if <paramref name="rootOpt"/> is null; a combined path, otherwise.</returns>
         /// <seealso cref="CombineAbsoluteAndRelativePaths"/>
-        internal static string CombinePossiblyRelativeAndRelativePaths(string rootOpt, string relativePath)
+        public static string CombinePossiblyRelativeAndRelativePaths(string rootOpt, string relativePath)
         {
             if (string.IsNullOrEmpty(rootOpt))
             {
@@ -354,7 +386,7 @@ namespace Roslyn.Utilities
             return CombinePathsUnchecked(rootOpt, relativePath);
         }
 
-        internal static string CombinePathsUnchecked(string root, string relativePath)
+        public static string CombinePathsUnchecked(string root, string relativePath)
         {
             Debug.Assert(!string.IsNullOrEmpty(root));
 
@@ -367,7 +399,7 @@ namespace Roslyn.Utilities
             return root + relativePath;
         }
 
-        internal static string RemoveTrailingDirectorySeparator(string path)
+        private static string RemoveTrailingDirectorySeparator(string path)
         {
             if (path.Length > 0 && IsDirectorySeparator(path[path.Length - 1]))
             {
@@ -383,7 +415,7 @@ namespace Roslyn.Utilities
         /// Determines whether an assembly reference is considered an assembly file path or an assembly name.
         /// used, for example, on values of /r and #r.
         /// </summary>
-        internal static bool IsFilePath(string assemblyDisplayNameOrPath)
+        public static bool IsFilePath(string assemblyDisplayNameOrPath)
         {
             Debug.Assert(assemblyDisplayNameOrPath != null);
 
@@ -396,16 +428,16 @@ namespace Roslyn.Utilities
 
         /// <summary>
         /// Determines if "path" contains 'component' within itself.
-        /// i.e. asking if the path "c:\foo\bar\baz" has component "bar" would return 'true'.
-        /// On the other hand, if you had "c:\foo\bar1\baz" then it would not have "bar" as a
+        /// i.e. asking if the path "c:\goo\bar\baz" has component "bar" would return 'true'.
+        /// On the other hand, if you had "c:\goo\bar1\baz" then it would not have "bar" as a
         /// component.
         /// 
         /// A path contains a component if any file name or directory name in the path
-        /// matches 'component'.  As such, if you had something like "\\foo" then that would
-        /// not have "foo" as a component. That's because here "foo" is the server name portion
+        /// matches 'component'.  As such, if you had something like "\\goo" then that would
+        /// not have "goo" as a component. That's because here "goo" is the server name portion
         /// of the UNC path, and not an actual directory or file name.
         /// </summary>
-        internal static bool ContainsPathComponent(string path, string component, bool ignoreCase)
+        public static bool ContainsPathComponent(string path, string component, bool ignoreCase)
         {
             var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
             if (path?.IndexOf(component, comparison) >= 0)
@@ -428,6 +460,222 @@ namespace Roslyn.Utilities
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Gets a path relative to a directory.
+        /// </summary>
+        public static string GetRelativePath(string directory, string fullPath)
+        {
+            string relativePath = string.Empty;
+
+            if (IsChildPath(directory, fullPath))
+            {
+                return GetRelativeChildPath(directory, fullPath);
+            }
+
+            var directoryPathParts = GetPathParts(directory);
+            var fullPathParts = GetPathParts(fullPath);
+
+            if (directoryPathParts.Length == 0 || fullPathParts.Length == 0)
+            {
+                return fullPath;
+            }
+
+            int index = 0;
+
+            // find index where full path diverges from base path
+            for (; index < directoryPathParts.Length; index++)
+            {
+                if (!PathsEqual(directoryPathParts[index], fullPathParts[index]))
+                {
+                    break;
+                }
+            }
+
+            // if the first part doesn't match, they don't even have the same volume
+            // so there can be no relative path.
+            if (index == 0)
+            {
+                return fullPath;
+            }
+
+            // add backup notation for remaining base path levels beyond the index
+            var remainingParts = directoryPathParts.Length - index;
+            if (remainingParts > 0)
+            {
+                for (int i = 0; i < remainingParts; i++)
+                {
+                    relativePath = relativePath + ParentRelativeDirectory + DirectorySeparatorStr;
+                }
+            }
+
+            // add the rest of the full path parts
+            for (int i = index; i < fullPathParts.Length; i++)
+            {
+                relativePath = CombinePathsUnchecked(relativePath, fullPathParts[i]);
+            }
+
+            return relativePath;
+        }
+
+        /// <summary>
+        /// True if the child path is a child of the parent path.
+        /// </summary>
+        public static bool IsChildPath(string parentPath, string childPath)
+        {
+            return parentPath.Length > 0
+                && childPath.Length > parentPath.Length
+                && PathsEqual(childPath, parentPath, parentPath.Length)
+                && (IsDirectorySeparator(parentPath[parentPath.Length - 1]) || IsDirectorySeparator(childPath[parentPath.Length]));
+        }
+
+        private static string GetRelativeChildPath(string parentPath, string childPath)
+        {
+            var relativePath = childPath.Substring(parentPath.Length);
+
+            // trim any leading separators left over after removing leading directory
+            int start = ConsumeDirectorySeparators(relativePath, relativePath.Length, 0);
+            if (start > 0)
+            {
+                relativePath = relativePath.Substring(start);
+            }
+
+            return relativePath;
+        }
+
+        private static readonly char[] s_pathChars = new char[] { VolumeSeparatorChar, DirectorySeparatorChar, AltDirectorySeparatorChar };
+
+        private static string[] GetPathParts(string path)
+        {
+            var pathParts = path.Split(s_pathChars);
+
+            // remove references to self directories ('.')
+            if (pathParts.Contains(ThisDirectory))
+            {
+                pathParts = pathParts.Where(s => s != ThisDirectory).ToArray();
+            }
+
+            return pathParts;
+        }
+
+        /// <summary>
+        /// True if the two paths are the same.
+        /// </summary>
+        public static bool PathsEqual(string path1, string path2)
+        {
+            return PathsEqual(path1, path2, Math.Max(path1.Length, path2.Length));
+        }
+
+        /// <summary>
+        /// True if the two paths are the same.  (but only up to the specified length)
+        /// </summary>
+        private static bool PathsEqual(string path1, string path2, int length)
+        {
+            if (path1.Length < length || path2.Length < length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < length; i++)
+            {
+                if (!PathCharEqual(path1[i], path2[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool PathCharEqual(char x, char y)
+        {
+            if (IsDirectorySeparator(x) && IsDirectorySeparator(y))
+            {
+                return true;
+            }
+
+            return IsUnixLikePlatform 
+                ? x == y 
+                : char.ToUpperInvariant(x) == char.ToUpperInvariant(y);
+        }
+
+        private static int PathHashCode(string path)
+        {
+            int hc = 0;
+
+            if (path != null)
+            {
+                foreach (var ch in path)
+                {
+                    if (!IsDirectorySeparator(ch))
+                    {
+                        hc = Hash.Combine((int)char.ToUpperInvariant(ch), hc);
+                    }
+                }
+            }
+
+            return hc;
+        }
+
+        public static string NormalizePathPrefix(string filePath, ImmutableArray<KeyValuePair<string, string>> pathMap)
+        {
+            if (pathMap.IsDefaultOrEmpty)
+            {
+                return filePath;
+            }
+
+            // find the first key in the path map that matches a prefix of the normalized path (followed by a path separator).
+            // Note that we expect the client to use consistent capitalization; we use ordinal (case-sensitive) comparisons.
+            foreach (var kv in pathMap)
+            {
+                var oldPrefix = kv.Key;
+                if (!(oldPrefix?.Length > 0)) continue;
+
+                if (filePath.StartsWith(oldPrefix, StringComparison.Ordinal) && filePath.Length > oldPrefix.Length && IsAnyDirectorySeparator(filePath[oldPrefix.Length]))
+                {
+                    var replacementPrefix = kv.Value;
+
+                    // Replace that prefix.
+                    var replacement = replacementPrefix + filePath.Substring(oldPrefix.Length);
+
+                    // Normalize the path separators if used uniformly in the replacement
+                    bool hasSlash = replacementPrefix.IndexOf('/') >= 0;
+                    bool hasBackslash = replacementPrefix.IndexOf('\\') >= 0;
+                    return
+                        (hasSlash && !hasBackslash) ? replacement.Replace('\\', '/') :
+                        (hasBackslash && !hasSlash) ? replacement.Replace('/', '\\') :
+                        replacement;
+                }
+            }
+
+            return filePath;
+        }
+
+
+        public static readonly IEqualityComparer<string> Comparer = new PathComparer();
+
+        private class PathComparer : IEqualityComparer<string>
+        {
+            public bool Equals(string x, string y)
+            {
+                if (x == null && y == null)
+                {
+                    return true;
+                }
+
+                if (x == null || y == null)
+                {
+                    return false;
+                }
+
+                return PathsEqual(x, y);
+            }
+
+            public int GetHashCode(string s)
+            {
+                return PathHashCode(s);
+            }
         }
     }
 }

@@ -28,6 +28,11 @@ namespace Microsoft.CodeAnalysis
             DefaultVisit(symbol);
         }
 
+        public virtual void VisitDiscard(IDiscardSymbol symbol)
+        {
+            DefaultVisit(symbol);
+        }
+
         public virtual void VisitDynamicType(IDynamicTypeSymbol symbol)
         {
             DefaultVisit(symbol);

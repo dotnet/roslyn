@@ -47,8 +47,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
             var result = false;
             _waitIndicator.Wait(
-                title: EditorFeaturesResources.FormatSelection,
-                message: EditorFeaturesResources.FormattingCurrentlySelected,
+                title: EditorFeaturesResources.Format_Selection,
+                message: EditorFeaturesResources.Formatting_currently_selected_text,
                 allowCancel: true,
                 action: waitContext =>
             {

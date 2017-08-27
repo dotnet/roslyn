@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectFunctionReturnTy
                 Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
                 Dim newRoot = root.ReplaceNode(node, rewrittenNode)
                 Dim newDocument = document.WithSyntaxRoot(newRoot)
-                Return {New MyCodeAction(VBFeaturesResources.FixIncorrectFunctionReturnType, newDocument)}
+                Return {New MyCodeAction(VBFeaturesResources.Fix_Incorrect_Function_Return_Type, newDocument)}
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of CodeAction)()

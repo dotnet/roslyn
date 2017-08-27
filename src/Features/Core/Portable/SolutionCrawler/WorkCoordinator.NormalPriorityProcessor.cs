@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -7,9 +7,9 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Versions;
@@ -23,16 +23,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             private sealed partial class IncrementalAnalyzerProcessor
             {
-                private sealed class NormalPriorityProcessor : GlobalOperationAwareIdleProcessor
+                private sealed class NormalPriorityProcessor : AbstractPriorityProcessor
                 {
                     private const int MaxHighPriorityQueueCache = 29;
 
                     private readonly AsyncDocumentWorkItemQueue _workItemQueue;
-
-                    private readonly Lazy<ImmutableArray<IIncrementalAnalyzer>> _lazyAnalyzers;
                     private readonly ConcurrentDictionary<DocumentId, IDisposable> _higherPriorityDocumentsNotProcessed;
-
-                    private readonly HashSet<ProjectId> _currentSnapshotVersionTrackingSet;
 
                     private ProjectId _currentProjectProcessing;
                     private Solution _processingSolution;
@@ -48,28 +44,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         IGlobalOperationNotificationService globalOperationNotificationService,
                         int backOffTimeSpanInMs,
                         CancellationToken shutdownToken) :
-                        base(listener, processor, globalOperationNotificationService, backOffTimeSpanInMs, shutdownToken)
+                        base(listener, processor, lazyAnalyzers, globalOperationNotificationService, backOffTimeSpanInMs, shutdownToken)
                     {
-                        _lazyAnalyzers = lazyAnalyzers;
-
                         _running = SpecializedTasks.EmptyTask;
                         _workItemQueue = new AsyncDocumentWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
                         _higherPriorityDocumentsNotProcessed = new ConcurrentDictionary<DocumentId, IDisposable>(concurrencyLevel: 2, capacity: 20);
 
-                        _currentProjectProcessing = default(ProjectId);
+                        _currentProjectProcessing = default;
                         _processingSolution = null;
 
-                        _currentSnapshotVersionTrackingSet = new HashSet<ProjectId>();
-
                         Start();
-                    }
-
-                    internal ImmutableArray<IIncrementalAnalyzer> Analyzers
-                    {
-                        get
-                        {
-                            return _lazyAnalyzers.Value;
-                        }
                     }
 
                     public void Enqueue(WorkItem item)
@@ -131,21 +115,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return _workItemQueue.WaitAsync(cancellationToken);
                     }
 
-                    public Task Running
-                    {
-                        get
-                        {
-                            return _running;
-                        }
-                    }
+                    public Task Running => _running;
 
-                    public bool HasAnyWork
-                    {
-                        get
-                        {
-                            return _workItemQueue.HasAnyWork;
-                        }
-                    }
+                    public bool HasAnyWork => _workItemQueue.HasAnyWork;
 
                     protected override async Task ExecuteAsync()
                     {
@@ -170,13 +142,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 // successfully processed a high priority document.
                                 return;
                             }
-
                             // process one of documents remaining
-                            var documentCancellation = default(CancellationTokenSource);
-                            WorkItem workItem;
                             if (!_workItemQueue.TryTakeAnyWork(
                                 _currentProjectProcessing, this.Processor.DependencyGraph, this.Processor.DiagnosticAnalyzerService,
-                                out workItem, out documentCancellation))
+                                out var workItem, out var documentCancellation))
                             {
                                 return;
                             }
@@ -222,6 +191,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     protected override void PauseOnGlobalOperation()
                     {
+                        base.PauseOnGlobalOperation();
+
                         _workItemQueue.RequestCancellationOnRunningTasks();
                     }
 
@@ -287,22 +258,19 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         try
                         {
-                            // this is a best effort algorithm with some shortcomings.
-                            //
-                            // the most obvious issue is if there is a new work item (without a solution change - but very unlikely) 
-                            // for a opened document we already processed, the work item will be treated as a regular one rather than higher priority one
-                            // (opened document)
-                            CancellationTokenSource documentCancellation;
                             foreach (var documentId in this.GetPrioritizedPendingDocuments())
                             {
                                 if (this.CancellationToken.IsCancellationRequested)
                                 {
                                     return true;
                                 }
-
+                                // this is a best effort algorithm with some shortcomings.
+                                //
+                                // the most obvious issue is if there is a new work item (without a solution change - but very unlikely) 
+                                // for a opened document we already processed, the work item will be treated as a regular one rather than higher priority one
+                                // (opened document)
                                 // see whether we have work item for the document
-                                WorkItem workItem;
-                                if (!_workItemQueue.TryTake(documentId, out workItem, out documentCancellation))
+                                if (!_workItemQueue.TryTake(documentId, out var workItem, out var documentCancellation))
                                 {
                                     RemoveHigherPriorityDocument(documentId);
                                     continue;
@@ -326,8 +294,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     private void RemoveHigherPriorityDocument(DocumentId documentId)
                     {
                         // remove opened document processed
-                        IDisposable projectCache;
-                        if (_higherPriorityDocumentsNotProcessed.TryRemove(documentId, out projectCache))
+                        if (_higherPriorityDocumentsNotProcessed.TryRemove(documentId, out var projectCache))
                         {
                             DisposeProjectCache(projectCache);
                         }
@@ -349,10 +316,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             {
                                 var cancellationToken = source.Token;
                                 var document = _processingSolution.GetDocument(documentId);
+
                                 if (document != null)
                                 {
-                                    await TrackSemanticVersionsAsync(document, workItem, cancellationToken).ConfigureAwait(false);
-
                                     // if we are called because a document is opened, we invalidate the document so that
                                     // it can be re-analyzed. otherwise, since newly opened document has same version as before
                                     // analyzer will simply return same data back
@@ -402,33 +368,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
-                    private async Task TrackSemanticVersionsAsync(Document document, WorkItem workItem, CancellationToken cancellationToken)
-                    {
-                        if (workItem.IsRetry ||
-                            workItem.InvocationReasons.Contains(PredefinedInvocationReasons.DocumentAdded) ||
-                            !workItem.InvocationReasons.Contains(PredefinedInvocationReasons.SyntaxChanged))
-                        {
-                            return;
-                        }
-
-                        var service = document.Project.Solution.Workspace.Services.GetService<ISemanticVersionTrackingService>();
-                        if (service == null)
-                        {
-                            return;
-                        }
-
-                        // we already reported about this project for same snapshot, don't need to do it again
-                        if (_currentSnapshotVersionTrackingSet.Contains(document.Project.Id))
-                        {
-                            return;
-                        }
-
-                        await service.RecordSemanticVersionsAsync(document.Project, cancellationToken).ConfigureAwait(false);
-
-                        // mark this project as already processed.
-                        _currentSnapshotVersionTrackingSet.Add(document.Project.Id);
-                    }
-
                     private async Task ProcessOpenDocumentIfNeeded(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, Document document, bool isOpen, CancellationToken cancellationToken)
                     {
                         if (!isOpen || !workItem.InvocationReasons.Contains(PredefinedInvocationReasons.DocumentOpened))
@@ -472,15 +411,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             await RunAnalyzersAsync(reanalyzers, document, (a, d, c) => a.DocumentResetAsync(d, c), cancellationToken).ConfigureAwait(false);
 
                             // no request to re-run syntax change analysis. run it here
-                            if (!workItem.InvocationReasons.Contains(PredefinedInvocationReasons.SyntaxChanged))
+                            var reasons = workItem.InvocationReasons;
+                            if (!reasons.Contains(PredefinedInvocationReasons.SyntaxChanged))
                             {
-                                await RunAnalyzersAsync(reanalyzers, document, (a, d, c) => a.AnalyzeSyntaxAsync(d, c), cancellationToken).ConfigureAwait(false);
+                                await RunAnalyzersAsync(reanalyzers, document, (a, d, c) => a.AnalyzeSyntaxAsync(d, reasons, c), cancellationToken).ConfigureAwait(false);
                             }
 
                             // no request to re-run semantic change analysis. run it here
                             if (!workItem.InvocationReasons.Contains(PredefinedInvocationReasons.SemanticChanged))
                             {
-                                await RunAnalyzersAsync(reanalyzers, document, (a, d, c) => a.AnalyzeDocumentAsync(d, null, c), cancellationToken).ConfigureAwait(false);
+                                await RunAnalyzersAsync(reanalyzers, document, (a, d, c) => a.AnalyzeDocumentAsync(d, null, reasons, c), cancellationToken).ConfigureAwait(false);
                             }
                         }
                         catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
@@ -522,24 +462,27 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         {
                             var currentSolution = this.Processor.CurrentSolution;
 
-                            if (currentSolution != _processingSolution)
+                            if (currentSolution == _processingSolution)
                             {
-                                ResetLogAggregatorIfNeeded(currentSolution);
-
-                                // clear version tracking set we already reported.
-                                _currentSnapshotVersionTrackingSet.Clear();
-
-                                _processingSolution = currentSolution;
-                                
-                                await RunAnalyzersAsync(this.Analyzers, currentSolution, (a, s, c) => a.NewSolutionSnapshotAsync(s, c), this.CancellationToken).ConfigureAwait(false);
-
-                                foreach (var id in this.Processor.GetOpenDocumentIds())
-                                {
-                                    AddHigherPriorityDocument(id);
-                                }
-
-                                SolutionCrawlerLogger.LogResetStates(this.Processor._logAggregator);
+                                return;
                             }
+
+                            // solution has changed
+                            ResetLogAggregatorIfNeeded(currentSolution);
+
+                            _processingSolution = currentSolution;
+
+                            // synchronize new solution to OOP
+                            await currentSolution.Workspace.SynchronizePrimaryWorkspaceAsync(currentSolution, this.CancellationToken).ConfigureAwait(false);
+
+                            await RunAnalyzersAsync(this.Analyzers, currentSolution, (a, s, c) => a.NewSolutionSnapshotAsync(s, c), this.CancellationToken).ConfigureAwait(false);
+
+                            foreach (var id in this.Processor.GetOpenDocumentIds())
+                            {
+                                AddHigherPriorityDocument(id);
+                            }
+
+                            SolutionCrawlerLogger.LogResetStates(this.Processor._logAggregator);
                         }
                         catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                         {

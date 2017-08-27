@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // For example, if were binding attributes on delegate type symbol for below code snippet:
         //      [A1]
         //      [return: A2]
-        //      public delegate void Foo();
+        //      public delegate void Goo();
         // attributesToBind will only contain first attribute syntax.
         internal static void BindAttributeTypes(ImmutableArray<Binder> binders, ImmutableArray<AttributeSyntax> attributesToBind, Symbol ownerSymbol, NamedTypeSymbol[] boundAttributeTypes, DiagnosticBag diagnostics)
         {
@@ -265,7 +266,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private AnalyzedAttributeArguments BindAttributeArguments(AttributeArgumentListSyntax attributeArgumentList, NamedTypeSymbol attributeType, DiagnosticBag diagnostics)
+        private AnalyzedAttributeArguments BindAttributeArguments(
+            AttributeArgumentListSyntax attributeArgumentList,
+            NamedTypeSymbol attributeType,
+            DiagnosticBag diagnostics)
         {
             var boundConstructorArguments = AnalyzedArguments.GetInstance();
             var boundNamedArguments = ImmutableArray<BoundExpression>.Empty;
@@ -279,10 +283,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // matching Dev10 compiler behavior.
                 bool hadError = false;
 
+                var shouldHaveName = false;
+
                 foreach (var argument in attributeArgumentList.Arguments)
                 {
                     if (argument.NameEquals == null)
                     {
+                        if (shouldHaveName)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_NamedArgumentExpected, argument.Expression.GetLocation());
+                        }
+
                         // Constructor argument
                         hadError |= this.BindArgumentAndName(
                             boundConstructorArguments,
@@ -302,6 +313,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
+                        shouldHaveName = true;
+
                         // Named argument
                         // TODO: use fully qualified identifier name for boundNamedArgumentsSet
                         string argumentName = argument.NameEquals.Name.Identifier.ValueText;
@@ -508,9 +521,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// if named constructor arguments are used.
         /// 
         /// For example:
-        ///     void Foo(int x, int y, int z, int w = 3);
+        ///     void Goo(int x, int y, int z, int w = 3);
         /// 
-        ///     Foo(0, z: 2, y: 1);
+        ///     Goo(0, z: 2, y: 1);
         ///     
         ///     Arguments returned: 0, 1, 2, 3
         /// </summary>
@@ -823,7 +836,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null; // ignoring, since already bound argument and parameter
-                Conversion conversion = conversions.ClassifyConversion(argumentType, parameter.Type, ref useSiteDiagnostics, builtinOnly: true);
+                Conversion conversion = conversions.ClassifyBuiltInConversion(argumentType, parameter.Type, ref useSiteDiagnostics);
 
                 // NOTE: Won't always succeed, even though we've performed overload resolution.
                 // For example, passing int[] to params object[] actually treats the int[] as an element of the object[].

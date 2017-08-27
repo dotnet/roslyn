@@ -1,8 +1,5 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.Text
-Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
     Partial Public Class ExtractMethodTests
@@ -108,7 +105,7 @@ End Class</text>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestSelectionTest14() As Task
                 Dim code = <text>Class A
-    &lt;{|b:Foo()|}&gt;
+    &lt;{|b:Goo()|}&gt;
     Function Method(a As A) As A
     End Function
 End Class</text>
@@ -118,7 +115,7 @@ End Class</text>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestSelectionTest15() As Task
                 Dim code = <text>Class A
-    &lt;Foo({|b:A|}:=1)&gt;
+    &lt;Goo({|b:A|}:=1)&gt;
     Function Method(a As A) As A
     End Function
 End Class</text>
@@ -128,7 +125,7 @@ End Class</text>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestSelectionTest16() As Task
                 Dim code = <text>Class A
-    &lt;Foo(A:={|b:1|})&gt;
+    &lt;Goo(A:={|b:1|})&gt;
     Function Method(a As A) As A
     End Function
 End Class</text>
@@ -768,7 +765,7 @@ End Class</text>
     Sub Main(args As String())
         Dim x As Integer
         x = 20
-{|b:Foo|}:
+{|b:Goo|}:
         x = 10
     End Sub
 End Module</text>
@@ -782,9 +779,9 @@ End Module</text>
     Sub Main(args As String())
         Dim x As Integer
         x = 20
-        GoTo Foo
+        GoTo Goo
         x = 24
-{|b:Foo:|}
+{|b:Goo:|}
         x = 10
     End Sub</text>
                 Await TestSelectionAsync(code, expectedFail:=True)
@@ -1155,7 +1152,7 @@ Imports System.Linq
 &gt;Attribute(Attribute(Attribute(
 Module Program
 Sub Main(args As String())
-    {|b:For Each (var I In foo)|}
+    {|b:For Each (var I In goo)|}
 
 End Sub
 End Module
@@ -1348,7 +1345,7 @@ End Namespace</text>
 Namespace N
     Class C
         Sub S()
-            Dim f = {|r:TypeOf foo Is N.{|b:C|}|}
+            Dim f = {|r:TypeOf goo Is N.{|b:C|}|}
         End Sub
     End Class
 End Namespace</text>
@@ -1375,7 +1372,7 @@ End Namespace</text>
 Namespace N
     Class C
         Sub S()
-            Dim f = {|r:CType(foo, N.{|b:C|})|}
+            Dim f = {|r:CType(goo, N.{|b:C|})|}
         End Sub
     End Class
 End Namespace</text>
@@ -1492,7 +1489,7 @@ End Class</text>
             Public Async Function TestWithBlock1() As Task
                 Dim code = <text>
         {|r:{|b:With|} New C
-            .Foo = 0
+            .Goo = 0
         End With|}
 </text>
                 Await TestInMethodAsync(code)
@@ -1595,8 +1592,8 @@ End Class</text>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestOnErrorGoto() As Task
                 Dim code = <text>
-{|r:        On Error {|b:GoTo|} foo|}
-foo:
+{|r:        On Error {|b:GoTo|} goo|}
+goo:
 </text>
                 Await TestInMethodAsync(code, expectedFail:=True)
             End Function
@@ -1620,7 +1617,7 @@ foo:
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestResumeStatement() As Task
                 Dim code = <text>
-        {|r:{|b:Resume|} foo|}
+        {|r:{|b:Resume|} goo|}
 </text>
                 Await TestInMethodAsync(code, expectedFail:=True)
             End Function
@@ -1628,7 +1625,7 @@ foo:
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestSelectStatement() As Task
                 Dim code = <text>
-        {|r:{|b:Select|} Case foo
+        {|r:{|b:Select|} Case goo
         End Select|}
 </text>
                 Await TestInMethodAsync(code)
@@ -1637,7 +1634,7 @@ foo:
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestCaseBlock() As Task
                 Dim code = <text>
-{|r:        Select Case foo
+{|r:        Select Case goo
             {|b:Case|} Nothing
         End Select|}
 </text>
@@ -1819,7 +1816,7 @@ End Module</text>
 Imports System
 
 Module S1
-    Public Function Foo(Of T)() As System.Func(Of System.Func(Of T))
+    Public Function Goo(Of T)() As System.Func(Of System.Func(Of T))
         Dim x2 = {|b:Function()
                      Return 5
                  End Function|}
@@ -1859,7 +1856,7 @@ End Class
             Public Async Function TestLambdaWithTrailingStatementTerminator() As Task
                 Dim code = <text>Imports System
 Module S1
-    Public Function Foo(Of T)() As System.Func(Of System.Func(Of T))
+    Public Function Goo(Of T)() As System.Func(Of System.Func(Of T))
         Dim x2 = {|b:Function()
                      Return
                  End Function

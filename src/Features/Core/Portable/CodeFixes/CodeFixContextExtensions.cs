@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -24,9 +24,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         internal static void RegisterFixes(this CodeFixContext context, IEnumerable<CodeAction> actions, ImmutableArray<Diagnostic> diagnostics)
         {
-            foreach (var action in actions)
+            if (actions != null)
             {
-                context.RegisterCodeFix(action, diagnostics);
+                foreach (var action in actions)
+                {
+                    context.RegisterCodeFix(action, diagnostics);
+                }
             }
         }
     }

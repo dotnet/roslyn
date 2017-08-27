@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -38,9 +40,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
             if (document != null)
             {
-                var options = document.Options;
-                _highlightMatchingPortions = options.GetOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems);
-                _showFilters = options.GetOption(CompletionOptions.ShowCompletionItemFilters);
+                var options = document.Project.Solution.Options;
+                _highlightMatchingPortions = options.GetOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, document.Project.Language);
+                _showFilters = options.GetOption(CompletionOptions.ShowCompletionItemFilters, document.Project.Language);
             }
         }
 
@@ -49,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             // If more than one filter was provided, then present it to the user.
             if (_showFilters && Filters == null && completionItemFilters.Length > 1)
             {
-                Filters = completionItemFilters.Select(f => new IntellisenseFilter2(this, f, GetLanguage()))
+                Filters = completionItemFilters.Select(f => new IntellisenseFilter2(this, f))
                                                .ToArray();
             }
         }
@@ -71,25 +73,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         public IReadOnlyList<Span> GetHighlightedSpansInDisplayText(string displayText)
         {
-            if (_highlightMatchingPortions && CompletionItemToFilterText != null)
+            if (SuggestionModeItem != null && SuggestionModeItem.DisplayText == displayText)
+            {
+                // Don't highlight the builder-completion-item.
+                return null;
+            }
+
+            var pattern = this.FilterText;
+            if (_highlightMatchingPortions && !string.IsNullOrWhiteSpace(pattern))
             {
                 var completionHelper = this.GetCompletionHelper();
                 if (completionHelper != null)
                 {
-                    var presentationItem = this.PresentationItemMap.Keys.FirstOrDefault(k => k.Item.DisplayText == displayText);
+                    var highlightedSpans = completionHelper.GetHighlightedSpans(
+                        displayText, pattern, CultureInfo.CurrentCulture);
 
-                    if (presentationItem != null && !presentationItem.IsSuggestionModeItem)
-                    {
-                        string filterText;
-                        if (CompletionItemToFilterText.TryGetValue(presentationItem.Item, out filterText))
-                        {
-                            var highlightedSpans = completionHelper.GetHighlightedSpans(presentationItem.Item, filterText);
-                            if (highlightedSpans != null)
-                            {
-                                return highlightedSpans.Select(s => s.ToSpan()).ToArray();
-                            }
-                        }
-                    }
+                    return highlightedSpans.SelectAsArray(s => s.ToSpan());
                 }
             }
 

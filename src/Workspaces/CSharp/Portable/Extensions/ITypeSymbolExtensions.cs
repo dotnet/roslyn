@@ -6,9 +6,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -40,6 +42,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             return symbol.Accept(TypeSyntaxGeneratorVisitor.Create(nameSyntax))
                          .WithAdditionalAnnotations(Simplifier.Annotation);
+        }
+
+        public static TypeSyntax GenerateRefTypeSyntax(
+            this INamespaceOrTypeSymbol symbol)
+        {
+            var underlyingType = GenerateTypeSyntax(symbol)
+                .WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker)
+                .WithAdditionalAnnotations(Simplifier.Annotation);
+            var refKeyword = SyntaxFactory.Token(SyntaxKind.RefKeyword);
+            return SyntaxFactory.RefType(refKeyword, underlyingType);
         }
 
         public static bool ContainingTypesOrSelfHasUnsafeKeyword(this ITypeSymbol containingType)
@@ -97,6 +109,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 ? ((CompilationUnitSyntax)root).Usings.Concat(namespaceUsings)
                 : namespaceUsings;
             return allUsings.Where(u => u.Alias != null);
+        }
+
+        public static bool IsIntrinsicType(this ITypeSymbol typeSymbol)
+        {
+            switch (typeSymbol.SpecialType)
+            {
+                case SpecialType.System_Boolean:
+                case SpecialType.System_Char:
+                case SpecialType.System_SByte:
+                case SpecialType.System_Int16:
+                case SpecialType.System_Int32:
+                case SpecialType.System_Int64:
+                case SpecialType.System_Byte:
+                case SpecialType.System_UInt16:
+                case SpecialType.System_UInt32:
+                case SpecialType.System_UInt64:
+                case SpecialType.System_Single:
+                case SpecialType.System_Double:
+                // NOTE: VB treats System.DateTime as an intrinsic, while C# does not, see "predeftype.h"
+                //case SpecialType.System_DateTime:
+                case SpecialType.System_Decimal:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        public static TypeSyntax GenerateTypeSyntaxOrVar(
+            this ITypeSymbol symbol, OptionSet options, bool typeIsApparent)
+        {
+            var useVar = IsVarDesired(symbol, options, typeIsApparent);
+
+            return useVar
+                ? SyntaxFactory.IdentifierName("var")
+                : symbol.GenerateTypeSyntax();
+        }
+
+        private static bool IsVarDesired(ITypeSymbol type, OptionSet options, bool typeIsApperant)
+        {
+            // If they want it for intrinsics, and this is an intrinsic, then use var.
+            if (type.IsSpecialType() == true)
+            {
+                return options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes).Value;
+            }
+
+            // If they want it only for apperant types, then only use "var" if the caller
+            // says the type was apperant.
+            if (typeIsApperant)
+            {
+                return options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent).Value;
+            }
+
+            // If they want "var" whenever possible, then use "var".
+            return  options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible).Value;
         }
     }
 }

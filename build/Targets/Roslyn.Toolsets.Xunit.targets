@@ -1,39 +1,41 @@
-<Project
-  xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <XUnitPath>$(NuGetPackageRoot)\xunit.runner.console\2.1.0\tools\xunit.console.x86.exe</XUnitPath>
+    <!-- xUnit.net Console Runner -->
+    <XUnitPath>$(NuGetPackageRoot)\xunit.runner.console\$(xunitrunnerconsoleVersion)\tools\xunit.console.x86.exe</XUnitPath>
     <XUnitTestResultsDirectory>$(OutDir)\xUnitResults</XUnitTestResultsDirectory>
     <XUnitArguments>"$(OutDir)\$(AssemblyName).dll" -html "$(XUnitTestResultsDirectory)\$(AssemblyName).html" -noshadow</XUnitArguments>
+    <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);AddDefaultTestAppConfig</PrepareForBuildDependsOn>
+
+    <!-- xUnit.net WPF Runner -->
+    <XUnitWpfPath>$(NuGetPackageRoot)\xunit.runner.wpf\$(xunitrunnerwpfVersion)\tools\xunit.runner.wpf.exe</XUnitWpfPath>
+    <XUnitWpfArguments>"$(OutDir)\$(AssemblyName).dll"</XUnitWpfArguments>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit.runner.wpf" Version="$(xunitrunnerwpfVersion)" PrivateAssets="all" />
+  </ItemGroup>
 
   <Target Name="Test" DependsOnTargets="Build">
     <MakeDir Directories="$(XUnitTestResultsDirectory)" />
     <Exec Command="&quot;$(XUnitPath)&quot; $(XUnitArguments)" />
   </Target>
 
-  <PropertyGroup>
-    <StartAction Condition="'$(StartActions)' == ''">Program</StartAction>
-    <StartProgram Condition="'$(StartProgram)' == ''">$(XUnitPath)</StartProgram>
-    <StartArguments Condition="'$(StartArguments)' == ''">$(XUnitArguments)</StartArguments>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);AddDefaultTestAppConfig</PrepareForBuildDependsOn>
-  </PropertyGroup>
-
   <!-- Add a default test app.config, if the project doesn't already have one-->
   <Target Name="AddDefaultTestAppConfig">
     <PropertyGroup>
       <_AlreadyHasAppConfig Condition="'%(None.Filename)%(None.Extension)' == 'app.config'">true</_AlreadyHasAppConfig>
+      <_DefaultAppConfigFile Condition="'$(TargetFramework)' == 'net46'">$(MSBuildThisFileDirectory)..\Defaults\Net460\app.config</_DefaultAppConfigFile>
+      <_DefaultAppConfigFile Condition="'$(TargetFramework)' == 'net462'">$(MSBuildThisFileDirectory)..\Defaults\Net462\app.config</_DefaultAppConfigFile>
+      <_DefaultAppConfigFile Condition="'$(TargetFramework)' == 'netcoreapp2.0'">$(MSBuildThisFileDirectory)..\Defaults\Portable\app.config</_DefaultAppConfigFile>
     </PropertyGroup>
 
     <ItemGroup Condition="'$(_AlreadyHasAppConfig)' != 'true'">
-      <None Include="$(MSBuildThisFileDirectory)..\Defaults\app.config">
+      <None Include="$(_DefaultAppConfigFile)">
         <Link>app.config</Link>
       </None>
     </ItemGroup>
-
   </Target>
-
 </Project>

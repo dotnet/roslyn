@@ -1,8 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
@@ -34,6 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             listview.PreviewKeyDown += Options_PreviewKeyDown;
             listview.SelectionChanged += Options_SelectionChanged;
             listview.SetBinding(ItemsControl.ItemsSourceProperty, new Binding { Path = new PropertyPath(nameof(ViewModel.Items)) });
+            AutomationProperties.SetName(listview, ServicesVSResources.Options);
 
             listViewContentControl.Content = listview;
 
@@ -44,20 +46,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private void Options_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var listView = (AutomationDelegatingListView)sender;
-            var checkbox = listView.SelectedItem as CheckBoxOptionViewModel;
-            if (checkbox != null)
+            if (listView.SelectedItem is CheckBoxOptionViewModel checkbox)
             {
                 ViewModel.UpdatePreview(checkbox.GetPreview());
             }
 
-            var radioButton = listView.SelectedItem as AbstractRadioButtonViewModel;
-            if (radioButton != null)
+            if (listView.SelectedItem is AbstractRadioButtonViewModel radioButton)
             {
                 ViewModel.UpdatePreview(radioButton.Preview);
             }
 
-            var checkBoxWithCombo = listView.SelectedItem as CheckBoxWithComboOptionViewModel;
-            if (checkBoxWithCombo != null)
+            if (listView.SelectedItem is CheckBoxWithComboOptionViewModel checkBoxWithCombo)
             {
                 ViewModel.UpdatePreview(checkBoxWithCombo.GetPreview());
             }
@@ -68,22 +67,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             if (e.Key == Key.Space && e.KeyboardDevice.Modifiers == ModifierKeys.None)
             {
                 var listView = (AutomationDelegatingListView)sender;
-                var checkBox = listView.SelectedItem as CheckBoxOptionViewModel;
-                if (checkBox != null)
+                if (listView.SelectedItem is CheckBoxOptionViewModel checkBox)
                 {
                     checkBox.IsChecked = !checkBox.IsChecked;
                     e.Handled = true;
                 }
 
-                var radioButton = listView.SelectedItem as AbstractRadioButtonViewModel;
-                if (radioButton != null)
+                if (listView.SelectedItem is AbstractRadioButtonViewModel radioButton)
                 {
                     radioButton.IsChecked = true;
                     e.Handled = true;
                 }
 
-                var checkBoxWithCombo = listView.SelectedItem as CheckBoxWithComboOptionViewModel;
-                if (checkBoxWithCombo != null)
+                if (listView.SelectedItem is CheckBoxWithComboOptionViewModel checkBoxWithCombo)
                 {
                     checkBoxWithCombo.IsChecked = !checkBoxWithCombo.IsChecked;
                     e.Handled = true;

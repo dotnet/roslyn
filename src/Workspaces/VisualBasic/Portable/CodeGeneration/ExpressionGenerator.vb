@@ -142,7 +142,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Function GenerateChrWExpression(c As Char) As InvocationExpressionSyntax
-            Dim factory = New VisualBasicSyntaxGenerator()
             Dim access = GenerateMemberAccessExpression("Microsoft", "VisualBasic", "Strings", "ChrW")
 
             Dim value = AscW(c)

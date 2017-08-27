@@ -7,6 +7,7 @@ Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -24,7 +25,7 @@ Public Class AssemblyAttributeTests
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyVersion("1.2.3.4")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -123,7 +124,7 @@ End Class
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyVersion("1.*")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -191,7 +192,7 @@ BC36976: The specified version string does not conform to the recommended format
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyFileVersion("1.2.3.4")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -208,7 +209,7 @@ End Class
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyFileVersion("65535.65535.65535.65535")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -225,7 +226,7 @@ End Class
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyFileVersion("1.2")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -242,7 +243,7 @@ End Class
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyFileVersion("1.2.*")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -263,7 +264,7 @@ BC42366: The specified version string does not conform to the recommended format
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyFileVersion("1.65536")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -284,7 +285,7 @@ BC42366: The specified version string does not conform to the recommended format
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyTitle("One Hundred Years Of Solitude")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -302,7 +303,7 @@ End Class
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyTitle(Nothing)>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -319,7 +320,7 @@ End Class
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyDescription("A classic of magical realist literature")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -655,7 +656,7 @@ BC42371: Referenced assembly 'en_UK, Version=0.0.0.0, Culture=en-UK, PublicKeyTo
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyCompany("MossBrain")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -681,7 +682,7 @@ End Class
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyProduct("Sound Cannon")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -713,7 +714,7 @@ End Structure
 <compilation>
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyTrademark("circle r")>
-Interface IFoo
+Interface IGoo
 
 End Interface
 ]]>
@@ -730,7 +731,7 @@ End Interface
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyInformationalVersion("1.2.3garbage")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -1222,7 +1223,10 @@ End Class
         ' We should get only unique netmodule/assembly attributes here, duplicate ones should not be emitted.
         Dim expectedEmittedAttrsCount As Integer = expectedSrcAttrCount - expectedDuplicateAttrCount
 
-        Dim allEmittedAttrs = assembly.GetCustomAttributesToEmit(New ModuleCompilationState).Cast(Of VisualBasicAttributeData)()
+        Dim allEmittedAttrs = DirectCast(assembly, SourceAssemblySymbol).
+            GetAssemblyCustomAttributesToEmit(New ModuleCompilationState, emittingRefAssembly:=False, emittingAssemblyAttributesInNetModule:=False).
+            Cast(Of VisualBasicAttributeData)()
+
         Dim emittedAttrs = allEmittedAttrs.Where(Function(a) a.AttributeClass.Name.Equals(attrTypeName)).AsImmutable()
 
         Assert.Equal(expectedEmittedAttrsCount, emittedAttrs.Length)
@@ -1261,6 +1265,8 @@ End Class
         Assert.False(token.IsNil)   'could the type ref be located? If not then the attribute's not there.
 
         Dim consoleappCompilation = CreateCompilationWithMscorlibAndReferences(consoleappSource, {netModuleWithAssemblyAttributes.GetReference()})
+        Assert.NotNull(consoleappCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHere"))
+        Assert.NotNull(consoleappCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHereM"))
         Dim diagnostics = consoleappCompilation.GetDiagnostics()
 
         Dim attrs = consoleappCompilation.Assembly.GetAttributes()
@@ -1310,6 +1316,117 @@ End Class
         Assert.Equal(0, metadataReader.DeclarativeSecurityAttributes.Count)
 
         token = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM")
+        Assert.True(token.IsNil)   'could the type ref be located? If not then the attribute's not there.
+    End Sub
+
+    <Fact()>
+    <WorkItem(10550, "https://github.com/dotnet/roslyn/issues/10550")>
+    Public Sub AssemblyAttributesFromNetModule_WithoutAssemblyAttributesGoHereTypes()
+
+        Dim netmoduleSource =
+            <compilation>
+                <file name="a.vb">
+                    <![CDATA[
+Imports System
+
+<Assembly: UserDefinedAssemblyAttrNoAllowMultiple("UserDefinedAssemblyAttrNoAllowMultiple")>
+<Assembly: UserDefinedAssemblyAttrAllowMultiple("UserDefinedAssemblyAttrAllowMultiple")>
+
+Public Class NetModuleClass
+End Class
+
+<AttributeUsage(AttributeTargets.Assembly, AllowMultiple := False)>
+Public Class UserDefinedAssemblyAttrNoAllowMultipleAttribute
+	Inherits Attribute
+	Public Sub New(text1 As String)
+	End Sub
+End Class
+
+<AttributeUsage(AttributeTargets.Assembly, AllowMultiple := True)>
+Public Class UserDefinedAssemblyAttrAllowMultipleAttribute
+	Inherits Attribute
+	Public Sub New(text1 As String)
+	End Sub
+End Class
+]]>
+                </file>
+            </compilation>
+
+        Dim consoleappSource =
+            <compilation>
+                        <file name="a.vb">
+                            <![CDATA[
+Class Program
+	Private Shared Sub Main(args As String())
+	End Sub
+End Class
+                    ]]>
+                        </file>
+                    </compilation>
+
+        Dim netmoduleCompilation = CreateCompilationWithReferences(netmoduleSource, references:={MinCorlibRef}, options:=TestOptions.ReleaseModule)
+        Assert.Null(netmoduleCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHere"))
+        Assert.Null(netmoduleCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHereM"))
+        Dim bytes = netmoduleCompilation.EmitToArray()
+
+        Dim netModuleWithAssemblyAttributes = ModuleMetadata.CreateFromImage(bytes)
+
+        Dim metadata As PEModule = netModuleWithAssemblyAttributes.Module
+        Dim metadataReader = metadata.GetMetadataReader()
+
+        Assert.Equal(0, metadataReader.GetTableRowCount(TableIndex.ExportedType))
+        Assert.Equal(4, metadataReader.CustomAttributes.Count)
+        Assert.Equal(0, metadataReader.DeclarativeSecurityAttributes.Count)
+
+        Dim token As EntityHandle = metadata.GetTypeRef(metadata.GetAssemblyRef("mincorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM")
+        Assert.False(token.IsNil)   'could the type ref be located? If not then the attribute's not there.
+
+        Dim consoleappCompilation = CreateCompilationWithReferences(consoleappSource, {MinCorlibRef, netModuleWithAssemblyAttributes.GetReference()})
+        Assert.Null(consoleappCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHere"))
+        Assert.Null(consoleappCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHereM"))
+        consoleappCompilation.GetDiagnostics().Verify()
+
+        Dim attrs = consoleappCompilation.Assembly.GetAttributes()
+        Assert.Equal(2, attrs.Length)
+        For Each a In attrs
+            Select Case a.AttributeClass.Name
+                Case "UserDefinedAssemblyAttrNoAllowMultipleAttribute"
+                    Assert.Equal("UserDefinedAssemblyAttrNoAllowMultipleAttribute(""UserDefinedAssemblyAttrNoAllowMultiple"")", a.ToString())
+                    Exit Select
+                Case "UserDefinedAssemblyAttrAllowMultipleAttribute"
+                    Assert.Equal("UserDefinedAssemblyAttrAllowMultipleAttribute(""UserDefinedAssemblyAttrAllowMultiple"")", a.ToString())
+                    Exit Select
+                Case Else
+                    Assert.Equal("Unexpected Attr", a.AttributeClass.Name)
+                    Exit Select
+            End Select
+        Next
+
+        metadata = AssemblyMetadata.CreateFromImage(consoleappCompilation.EmitToArray()).GetAssembly.ManifestModule
+        metadataReader = metadata.GetMetadataReader()
+
+        Assert.Equal(1, metadataReader.GetTableRowCount(TableIndex.ModuleRef))
+        Assert.Equal(3, metadataReader.GetTableRowCount(TableIndex.ExportedType))
+        Assert.Equal(2, metadataReader.CustomAttributes.Count)
+        Assert.Equal(0, metadataReader.DeclarativeSecurityAttributes.Count)
+
+        token = metadata.GetTypeRef(metadata.GetAssemblyRef("mincorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM")
+        Assert.True(token.IsNil)   'could the type ref be located? If not then the attribute's not there.
+
+        consoleappCompilation = CreateCompilationWithReferences(consoleappSource, {MinCorlibRef, netModuleWithAssemblyAttributes.GetReference()}, TestOptions.ReleaseModule)
+        Assert.Equal(0, consoleappCompilation.Assembly.GetAttributes().Length)
+
+        Dim modRef = DirectCast(consoleappCompilation.EmitToImageReference(), MetadataImageReference)
+
+        metadata = ModuleMetadata.CreateFromImage(consoleappCompilation.EmitToArray()).Module
+        metadataReader = metadata.GetMetadataReader()
+
+        Assert.Equal(0, metadataReader.GetTableRowCount(TableIndex.ModuleRef))
+        Assert.Equal(0, metadataReader.GetTableRowCount(TableIndex.ExportedType))
+        Assert.Equal(0, metadataReader.CustomAttributes.Count)
+        Assert.Equal(0, metadataReader.DeclarativeSecurityAttributes.Count)
+
+        token = metadata.GetTypeRef(metadata.GetAssemblyRef("mincorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM")
         Assert.True(token.IsNil)   'could the type ref be located? If not then the attribute's not there.
     End Sub
 
@@ -1391,7 +1508,10 @@ End Class
             expectedDuplicateAttrCount:=1,
             attrTypeName:="AssemblyTitleAttribute")
 
-        Dim attrs = consoleappCompilation.Assembly.GetCustomAttributesToEmit(New ModuleCompilationState).Cast(Of VisualBasicAttributeData)()
+        Dim attrs = DirectCast(consoleappCompilation.Assembly, SourceAssemblySymbol).
+            GetAssemblyCustomAttributesToEmit(New ModuleCompilationState, emittingRefAssembly:=False, emittingAssemblyAttributesInNetModule:=False).
+            Cast(Of VisualBasicAttributeData)()
+
         For Each a In attrs
             Select Case a.AttributeClass.Name
                 Case "AssemblyTitleAttribute"

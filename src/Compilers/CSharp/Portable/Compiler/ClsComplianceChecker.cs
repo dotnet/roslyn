@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (DoNotVisit(symbol)) return;
 
-            System.Diagnostics.Debug.Assert(!symbol.IsImplicitClass);
+            Debug.Assert(!symbol.IsImplicitClass);
 
             Compliance compliance = GetDeclaredOrInheritedCompliance(symbol);
 
@@ -988,6 +988,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!IsTrue(GetDeclaredOrInheritedCompliance(type.OriginalDefinition)))
             {
                 return false;
+            }
+
+            if (type.IsTupleType)
+            {
+                return IsCompliantType(type.TupleUnderlyingType, context);
             }
 
             foreach (TypeSymbol typeArg in type.TypeArgumentsNoUseSiteDiagnostics)

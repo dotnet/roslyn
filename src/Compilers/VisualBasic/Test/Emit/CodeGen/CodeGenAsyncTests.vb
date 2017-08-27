@@ -24,10 +24,10 @@ Imports System.Threading.Tasks
 Module Module1
 
     Sub Main()
-        Foo(123).Wait()
+        Goo(123).Wait()
     End Sub
 
-    Public Async Function Foo(a As Integer) As Task
+    Public Async Function Goo(a As Integer) As Task
         Await Task.Factory.StartNew(Sub() System.Console.WriteLine(a))
     End Function
 
@@ -44,7 +44,7 @@ End Module
             CompileAndVerify(compilation.WithOptions(options),
                              expectedOutput:="123",
                              symbolValidator:=Sub(m As ModuleSymbol)
-                                                  Dim stateMachine = m.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Module1").GetMember(Of NamedTypeSymbol)("VB$StateMachine_1_Foo")
+                                                  Dim stateMachine = m.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Module1").GetMember(Of NamedTypeSymbol)("VB$StateMachine_1_Goo")
                                                   Assert.Equal(TypeKind.Structure, stateMachine.TypeKind)
                                               End Sub)
 
@@ -54,7 +54,7 @@ End Module
             CompileAndVerify(compilation.WithOptions(options),
                              expectedOutput:="123",
                              symbolValidator:=Sub(m As ModuleSymbol)
-                                                  Dim stateMachine = m.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Module1").GetMember(Of NamedTypeSymbol)("VB$StateMachine_1_Foo")
+                                                  Dim stateMachine = m.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Module1").GetMember(Of NamedTypeSymbol)("VB$StateMachine_1_Goo")
                                                   Assert.Equal(TypeKind.Class, stateMachine.TypeKind)
                                               End Sub)
         End Sub
@@ -241,6 +241,132 @@ Module Form1
 End Module
     </file>
 </compilation>, useLatestFramework:=True, expectedOutput:="2")
+        End Sub
+
+        <Fact()>
+        <WorkItem(13867, "https://github.com/dotnet/roslyn/issues/13867")>
+        Public Sub Simple_Test_ManyLocals()
+            Dim c = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Threading
+Imports System.Threading.Tasks
+
+Module Module1
+    Sub Main()
+        DoItAsync().Wait()
+    End Sub
+
+    public async Function DoItAsync() as Task
+        Dim var1 = 0
+        Dim var2 = 0
+        Dim var3 = 0
+        Dim var4 = 0
+        Dim var5 = 0
+        Dim var6 = 0
+        Dim var7 = 0
+        Dim var8 = 0
+        Dim var9 = 0
+        Dim var10 = 0
+        Dim var11 = 0
+        Dim var12 = 0
+        Dim var13 = 0
+        Dim var14 = 0
+        Dim var15 = 0
+        Dim var16 = 0
+        Dim var17 = 0
+        Dim var18 = 0
+        Dim var19 = 0
+        Dim var20 = 0
+        Dim var21 = 0
+        Dim var22 = 0
+        Dim var23 = 0
+        Dim var24 = 0
+        Dim var25 = 0
+        Dim var26 = 0
+        Dim var27 = 0
+        Dim var28 = 0
+        Dim var29 = 0
+        Dim var30 = 0
+        Dim var31 = 0
+
+        Dim s as string
+        if true
+            s = "a"
+            await Task.Yield()
+        else
+            s = "b"
+        end if
+
+        Console.WriteLine(if(s , "null"))  ' should be "a" always, somehow is "null"
+    end Function 
+End Module
+    </file>
+</compilation>, useLatestFramework:=True, options:=TestOptions.DebugExe, expectedOutput:="a")
+        End Sub
+
+        <Fact()>
+        <WorkItem(13867, "https://github.com/dotnet/roslyn/issues/13867")>
+        Public Sub Simple_Test_ManyLocals_Rel()
+            Dim c = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Threading
+Imports System.Threading.Tasks
+
+Module Module1
+    Sub Main()
+        DoItAsync().Wait()
+    End Sub
+
+    public async Function DoItAsync() as Task
+        Dim var1 = 0
+        Dim var2 = 0
+        Dim var3 = 0
+        Dim var4 = 0
+        Dim var5 = 0
+        Dim var6 = 0
+        Dim var7 = 0
+        Dim var8 = 0
+        Dim var9 = 0
+        Dim var10 = 0
+        Dim var11 = 0
+        Dim var12 = 0
+        Dim var13 = 0
+        Dim var14 = 0
+        Dim var15 = 0
+        Dim var16 = 0
+        Dim var17 = 0
+        Dim var18 = 0
+        Dim var19 = 0
+        Dim var20 = 0
+        Dim var21 = 0
+        Dim var22 = 0
+        Dim var23 = 0
+        Dim var24 = 0
+        Dim var25 = 0
+        Dim var26 = 0
+        Dim var27 = 0
+        Dim var28 = 0
+        Dim var29 = 0
+        Dim var30 = 0
+        Dim var31 = 0
+
+        Dim s as string
+        if true
+            s = "a"
+            await Task.Yield()
+        else
+            s = "b"
+        end if
+
+        Console.WriteLine(if(s , "null"))  ' should be "a" always, somehow is "null"
+    end Function 
+End Module
+    </file>
+</compilation>, useLatestFramework:=True, options:=TestOptions.ReleaseExe, expectedOutput:="a")
         End Sub
 
         <Fact()>
@@ -1499,7 +1625,7 @@ End Module
 
             c.VerifyIL("Form1.VB$StateMachine_1_f.MoveNext", <![CDATA[
 {
-  // Code size      236 (0xec)
+  // Code size      233 (0xe9)
   .maxstack  3
   .locals init (Integer V_0,
                 Integer V_1,
@@ -1512,105 +1638,103 @@ End Module
   .try
   {
     IL_0007:  ldloc.1
-    IL_0008:  brfalse.s  IL_000e
-    IL_000a:  ldloc.1
-    IL_000b:  ldc.i4.1
-    IL_000c:  pop
-    IL_000d:  pop
-    IL_000e:  nop
+    IL_0008:  ldc.i4.1
+    IL_0009:  pop
+    IL_000a:  pop
+    IL_000b:  nop
     .try
     {
+      IL_000c:  ldloc.1
+      IL_000d:  brfalse.s  IL_0065
       IL_000f:  ldloc.1
-      IL_0010:  brfalse.s  IL_0068
-      IL_0012:  ldloc.1
-      IL_0013:  ldc.i4.1
-      IL_0014:  bne.un.s   IL_0024
-      IL_0016:  ldarg.0
-      IL_0017:  ldc.i4.m1
-      IL_0018:  dup
-      IL_0019:  stloc.1
-      IL_001a:  stfld      "Form1.VB$StateMachine_1_f.$State As Integer"
-      IL_001f:  leave      IL_00eb
-      IL_0024:  ldstr      "2 "
-      IL_0029:  call       "Sub System.Console.Write(String)"
-      IL_002e:  call       "Function System.Threading.Tasks.Task.Yield() As System.Runtime.CompilerServices.YieldAwaitable"
-      IL_0033:  stloc.3
-      IL_0034:  ldloca.s   V_3
-      IL_0036:  call       "Function System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter() As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
-      IL_003b:  stloc.2
-      IL_003c:  ldloca.s   V_2
-      IL_003e:  call       "Function System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.get_IsCompleted() As Boolean"
-      IL_0043:  brtrue.s   IL_0084
-      IL_0045:  ldarg.0
-      IL_0046:  ldc.i4.0
-      IL_0047:  dup
-      IL_0048:  stloc.1
-      IL_0049:  stfld      "Form1.VB$StateMachine_1_f.$State As Integer"
-      IL_004e:  ldarg.0
-      IL_004f:  ldloc.2
-      IL_0050:  stfld      "Form1.VB$StateMachine_1_f.$A0 As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
-      IL_0055:  ldarg.0
-      IL_0056:  ldflda     "Form1.VB$StateMachine_1_f.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
-      IL_005b:  ldloca.s   V_2
-      IL_005d:  ldarg.0
-      IL_005e:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, Form1.VB$StateMachine_1_f)(ByRef System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ByRef Form1.VB$StateMachine_1_f)"
-      IL_0063:  leave      IL_00eb
-      IL_0068:  ldarg.0
-      IL_0069:  ldc.i4.m1
-      IL_006a:  dup
-      IL_006b:  stloc.1
-      IL_006c:  stfld      "Form1.VB$StateMachine_1_f.$State As Integer"
-      IL_0071:  ldarg.0
-      IL_0072:  ldfld      "Form1.VB$StateMachine_1_f.$A0 As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
-      IL_0077:  stloc.2
-      IL_0078:  ldarg.0
-      IL_0079:  ldflda     "Form1.VB$StateMachine_1_f.$A0 As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
-      IL_007e:  initobj    "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
-      IL_0084:  ldloca.s   V_2
-      IL_0086:  call       "Sub System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
-      IL_008b:  ldloca.s   V_2
-      IL_008d:  initobj    "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
-      IL_0093:  ldstr      "3 "
-      IL_0098:  call       "Sub System.Console.Write(String)"
-      IL_009d:  ldc.i4.s   123
-      IL_009f:  stloc.0
-      IL_00a0:  leave.s    IL_00d5
+      IL_0010:  ldc.i4.1
+      IL_0011:  bne.un.s   IL_0021
+      IL_0013:  ldarg.0
+      IL_0014:  ldc.i4.m1
+      IL_0015:  dup
+      IL_0016:  stloc.1
+      IL_0017:  stfld      "Form1.VB$StateMachine_1_f.$State As Integer"
+      IL_001c:  leave      IL_00e8
+      IL_0021:  ldstr      "2 "
+      IL_0026:  call       "Sub System.Console.Write(String)"
+      IL_002b:  call       "Function System.Threading.Tasks.Task.Yield() As System.Runtime.CompilerServices.YieldAwaitable"
+      IL_0030:  stloc.3
+      IL_0031:  ldloca.s   V_3
+      IL_0033:  call       "Function System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter() As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+      IL_0038:  stloc.2
+      IL_0039:  ldloca.s   V_2
+      IL_003b:  call       "Function System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.get_IsCompleted() As Boolean"
+      IL_0040:  brtrue.s   IL_0081
+      IL_0042:  ldarg.0
+      IL_0043:  ldc.i4.0
+      IL_0044:  dup
+      IL_0045:  stloc.1
+      IL_0046:  stfld      "Form1.VB$StateMachine_1_f.$State As Integer"
+      IL_004b:  ldarg.0
+      IL_004c:  ldloc.2
+      IL_004d:  stfld      "Form1.VB$StateMachine_1_f.$A0 As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+      IL_0052:  ldarg.0
+      IL_0053:  ldflda     "Form1.VB$StateMachine_1_f.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
+      IL_0058:  ldloca.s   V_2
+      IL_005a:  ldarg.0
+      IL_005b:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, Form1.VB$StateMachine_1_f)(ByRef System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ByRef Form1.VB$StateMachine_1_f)"
+      IL_0060:  leave      IL_00e8
+      IL_0065:  ldarg.0
+      IL_0066:  ldc.i4.m1
+      IL_0067:  dup
+      IL_0068:  stloc.1
+      IL_0069:  stfld      "Form1.VB$StateMachine_1_f.$State As Integer"
+      IL_006e:  ldarg.0
+      IL_006f:  ldfld      "Form1.VB$StateMachine_1_f.$A0 As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+      IL_0074:  stloc.2
+      IL_0075:  ldarg.0
+      IL_0076:  ldflda     "Form1.VB$StateMachine_1_f.$A0 As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+      IL_007b:  initobj    "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+      IL_0081:  ldloca.s   V_2
+      IL_0083:  call       "Sub System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+      IL_0088:  ldloca.s   V_2
+      IL_008a:  initobj    "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+      IL_0090:  ldstr      "3 "
+      IL_0095:  call       "Sub System.Console.Write(String)"
+      IL_009a:  ldc.i4.s   123
+      IL_009c:  stloc.0
+      IL_009d:  leave.s    IL_00d2
     }
     finally
     {
-      IL_00a2:  ldloc.1
-      IL_00a3:  ldc.i4.0
-      IL_00a4:  bge.s      IL_00b0
-      IL_00a6:  ldstr      "4 "
-      IL_00ab:  call       "Sub System.Console.Write(String)"
-      IL_00b0:  endfinally
+      IL_009f:  ldloc.1
+      IL_00a0:  ldc.i4.0
+      IL_00a1:  bge.s      IL_00ad
+      IL_00a3:  ldstr      "4 "
+      IL_00a8:  call       "Sub System.Console.Write(String)"
+      IL_00ad:  endfinally
     }
   }
   catch System.Exception
   {
-    IL_00b1:  dup
-    IL_00b2:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-    IL_00b7:  stloc.s    V_4
-    IL_00b9:  ldarg.0
-    IL_00ba:  ldc.i4.s   -2
-    IL_00bc:  stfld      "Form1.VB$StateMachine_1_f.$State As Integer"
-    IL_00c1:  ldarg.0
-    IL_00c2:  ldflda     "Form1.VB$StateMachine_1_f.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
-    IL_00c7:  ldloc.s    V_4
-    IL_00c9:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)"
-    IL_00ce:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-    IL_00d3:  leave.s    IL_00eb
+    IL_00ae:  dup
+    IL_00af:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00b4:  stloc.s    V_4
+    IL_00b6:  ldarg.0
+    IL_00b7:  ldc.i4.s   -2
+    IL_00b9:  stfld      "Form1.VB$StateMachine_1_f.$State As Integer"
+    IL_00be:  ldarg.0
+    IL_00bf:  ldflda     "Form1.VB$StateMachine_1_f.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
+    IL_00c4:  ldloc.s    V_4
+    IL_00c6:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)"
+    IL_00cb:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_00d0:  leave.s    IL_00e8
   }
-  IL_00d5:  ldarg.0
-  IL_00d6:  ldc.i4.s   -2
-  IL_00d8:  dup
-  IL_00d9:  stloc.1
-  IL_00da:  stfld      "Form1.VB$StateMachine_1_f.$State As Integer"
-  IL_00df:  ldarg.0
-  IL_00e0:  ldflda     "Form1.VB$StateMachine_1_f.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
-  IL_00e5:  ldloc.0
-  IL_00e6:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)"
-  IL_00eb:  ret
+  IL_00d2:  ldarg.0
+  IL_00d3:  ldc.i4.s   -2
+  IL_00d5:  dup
+  IL_00d6:  stloc.1
+  IL_00d7:  stfld      "Form1.VB$StateMachine_1_f.$State As Integer"
+  IL_00dc:  ldarg.0
+  IL_00dd:  ldflda     "Form1.VB$StateMachine_1_f.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
+  IL_00e2:  ldloc.0
+  IL_00e3:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)"
+  IL_00e8:  ret
 }
 ]]>)
         End Sub
@@ -4255,7 +4379,7 @@ Imports System.Threading.Tasks
 Class TestCase
     Public Shared Count = 0
 
-    Public Shared Function Foo(Of T)(tt As T) As T
+    Public Shared Function Goo(Of T)(tt As T) As T
         Return tt
     End Function
 
@@ -4265,9 +4389,9 @@ Class TestCase
     End Function
 
     Public Shared Async Function Run() As Task
-        Dim x1 = Foo(Await Bar(4))
+        Dim x1 = Goo(Await Bar(4))
         Dim t = Bar(5)
-        Dim x2 = Foo(Await t)
+        Dim x2 = Goo(Await t)
         If x1 &lt;&gt; 4 Then
             Count += 1
         End If
@@ -4812,11 +4936,11 @@ End Structure
 Structure TestCase
     Public Async Function Run() As Task
         Dim ms As New MyStruct(Of Integer)()
-        Dim x = ms(index:=Await Foo())
+        Dim x = ms(index:=Await Goo())
         Console.Write(x + 100)
     End Function
 
-    Public Async Function Foo() As Task(Of Integer)
+    Public Async Function Goo() As Task(Of Integer)
         Await Task.Yield
         Return 10
     End Function
@@ -4867,10 +4991,10 @@ Imports System.Threading.Tasks
 
 Class TestCase
     Public Async Function Run() As Task(Of Integer)
-        Return Await Foo()
+        Return Await Goo()
     End Function
 
-    Public Async Function Foo() As Task(Of Integer)
+    Public Async Function Goo() As Task(Of Integer)
         Return Await Task.Factory.StartNew(Function() 42)
     End Function
 End Class
@@ -5085,7 +5209,7 @@ Class TestCase
         Dim arr2()() As Integer =
             New Integer()() {
                 New Integer() {Await GetVal(2), Await GetVal(3)},
-                Await Foo()
+                Await Goo()
             }
         If arr2(0)(1) = 3 AndAlso arr2(1)(1) = 2 Then
             Count += 1
@@ -5094,7 +5218,7 @@ Class TestCase
         Result = Count - tests
     End Function
 
-    Public Async Function Foo() As Task(Of Integer())
+    Public Async Function Goo() As Task(Of Integer())
         Await Task.Yield
         Return {1, 2, 3}
     End Function
@@ -5154,7 +5278,7 @@ Class TestCase
         Result = Count - tests
     End Function
 
-    Public Async Function Foo() As Task(Of Integer())
+    Public Async Function Goo() As Task(Of Integer())
         Await Task.Yield
         Return {1, 2, 3}
     End Function
@@ -5211,7 +5335,7 @@ Class TestCase
         Dim arr2()() As Integer =
             New Integer()() {
                 New Integer() {Await GetVal(2), 3},
-                Await Foo()
+                Await Goo()
             }
         If arr2(0)(1) = 3 AndAlso arr2(1)(1) = 2 Then
             Count += 1
@@ -5220,7 +5344,7 @@ Class TestCase
         Result = Count - tests
     End Function
 
-    Public Async Function Foo() As Task(Of Integer())
+    Public Async Function Goo() As Task(Of Integer())
         Await Task.Yield
         Return {1, 2, 3}
     End Function
@@ -5584,7 +5708,7 @@ Imports System.Threading
 Imports System.Threading.Tasks
 
 Class BaseTestCase
-    Public Sub FooRef(ByRef d As Decimal, x As Integer, ByRef od As Decimal)
+    Public Sub GooRef(ByRef d As Decimal, x As Integer, ByRef od As Decimal)
         od = d
         d += 1
     End Sub
@@ -5603,7 +5727,7 @@ Class TestCase : Inherits BaseTestCase
         Dim od As Decimal
 
         tests += 1
-        MyBase.FooRef(d, Await MyBase.GetVal(4), od)
+        MyBase.GooRef(d, Await MyBase.GetVal(4), od)
         If d = 2 AndAlso od = 1 Then
             count += 1
         End If
@@ -5945,7 +6069,7 @@ Imports System.Threading
 Imports System.Threading.Tasks
 
 Structure Test
-    Public ReadOnly Property Foo As Task(Of String)
+    Public ReadOnly Property Goo As Task(Of String)
         Get
             Return Task.Run(Of String)(Async Function()
                                            Await Task.Yield
@@ -5969,13 +6093,13 @@ Class TestCase(Of U)
         Dim t As New Test()
 
         Tests += 1
-        Dim x1 = Await TestCase(Of String).GetVal(Await t.Foo)
+        Dim x1 = Await TestCase(Of String).GetVal(Await t.Goo)
         If x1 = "abc" Then
             Count += 1
         End If
 
         Tests += 1
-        Dim x2 = Await TestCase(Of String).GetVal1(t.Foo)
+        Dim x2 = Await TestCase(Of String).GetVal1(t.Goo)
         If x2 = "abc" Then
             Count += 1
         End If
@@ -6008,22 +6132,22 @@ Imports System.Threading
 Imports System.Threading.Tasks
 
 Class TestCase(Of U)
-    Public Async Function Foo1() As Task(Of Integer)
+    Public Async Function Goo1() As Task(Of Integer)
         Await Task.Yield
         Count += 1
         Dim i = 42
         Return i
     End Function
 
-    Public Async Function Foo2() As Task(Of Object)
+    Public Async Function Goo2() As Task(Of Object)
         Await Task.Yield
         Count += 1
         Return "string"
     End Function
 
     Public Async Function Run() As Task
-        Dim x1 = TryCast(Await Foo1(), Object)
-        Dim x2 = TypeOf (Await Foo2()) Is String
+        Dim x1 = TryCast(Await Goo1(), Object)
+        Dim x2 = TypeOf (Await Goo2()) Is String
         If x1.Equals(42) Then
             Tests += 1
         End If
@@ -6255,7 +6379,7 @@ Imports System.Threading
 Imports System.Threading.Tasks
 
 Structure DynamicClass
-    Public Async Function Foo(Of T)(tt As T) As Task(Of Object)
+    Public Async Function Goo(Of T)(tt As T) As Task(Of Object)
         Await Task.Yield
         Return tt
     End Function
@@ -6275,7 +6399,7 @@ Class TestCase
         Dim d As Object = 123
 
         Tests += 1
-        Dim x1 = Await dc.Foo("")
+        Dim x1 = Await dc.Goo("")
         If x1 = "" Then
             Count += 1
         End If
@@ -6287,7 +6411,7 @@ Class TestCase
         End If
 
         Tests += 1
-        Dim x3 = Await Await dc.Bar(Await dc.Foo(234))
+        Dim x3 = Await Await dc.Bar(Await dc.Goo(234))
         If x3 = 234 Then
             Count += 1
         End If
@@ -6515,7 +6639,7 @@ Structure MyClazz(Of T As Task(Of Func(Of Integer)))
 End Structure
 
 Class TestCase
-    Public Shared Async Function Foo(d As Task(Of Func(Of Integer))) As Task(Of Task(Of Func(Of Integer)))
+    Public Shared Async Function Goo(d As Task(Of Func(Of Integer))) As Task(Of Task(Of Func(Of Integer)))
         Await Task.Yield
         Interlocked.Increment(Count)
         Return d
@@ -6532,7 +6656,7 @@ Class TestCase
                                                                       End Function
                                                            End Function)
         Tests += 1
-        Dim x = Await ms(index:=Await Foo(Nothing))
+        Dim x = Await ms(index:=Await Goo(Nothing))
         If x IsNot Nothing AndAlso x() = 123 Then
             Tests += 1
         End If
@@ -6579,7 +6703,7 @@ Class MyClazz(Of T As Task(Of Func(Of Integer)))
 End Class
 
 Class TestCase
-    Public Shared Async Function Foo(d As Task(Of Func(Of Integer))) As Task(Of Task(Of Func(Of Integer)))
+    Public Shared Async Function Goo(d As Task(Of Func(Of Integer))) As Task(Of Task(Of Func(Of Integer)))
         Await Task.Yield
         Interlocked.Increment(Count)
         Return d
@@ -6596,7 +6720,7 @@ Class TestCase
                                                                       End Function
                                                            End Function)
         Tests += 1
-        Dim x = Await ms(index:=Await Foo(Nothing))
+        Dim x = Await ms(index:=Await Goo(Nothing))
         If x IsNot Nothing AndAlso x() = 123 Then
             Tests += 1
         End If
@@ -6629,16 +6753,16 @@ Imports System.Threading
 Imports System.Threading.Tasks
 
 Public Class MyClazz(Of T)
-    Public Async Function Foo(Of V)(tt As T, vv As V) As Task(Of Object)
+    Public Async Function Goo(Of V)(tt As T, vv As V) As Task(Of Object)
         Await Task.Yield
         Return vv
     End Function
 End Class
 
 Class TestCase
-    Public Shared Async Function Foo() As Task(Of Integer)
+    Public Shared Async Function Goo() As Task(Of Integer)
         Dim mc As Object = New MyClazz(Of String)()
-        Dim rez = Await mc.Foo(Of String)(Nothing, Await (Async Function() As Task(Of String)
+        Dim rez = Await mc.Goo(Of String)(Nothing, Await (Async Function() As Task(Of String)
                                                               Await Task.Yield
                                                               Return "Test"
                                                           End Function)())
@@ -6651,7 +6775,7 @@ End Class
 
 Module Form1
     Sub Main()
-        Console.Write(TestCase.Foo().Result)
+        Console.Write(TestCase.Goo().Result)
     End Sub
 End Module
     </file>
@@ -6886,7 +7010,7 @@ Class MyClazz
 End Class
 
 Public Class MyTask
-    Public Shared Function Foo(ByRef x As Integer, y As Integer) As Integer
+    Public Shared Function Goo(ByRef x As Integer, y As Integer) As Integer
         Return x + y
     End Function
 
@@ -6896,7 +7020,7 @@ Public Class MyTask
     End Function
 
     Public Shared Async Function Run() As Task(Of Integer)
-        Return Foo((New MyClazz() With {.Field = 21}.Field), Await Task.Factory.StartNew(Function() 21))
+        Return Goo((New MyClazz() With {.Field = 21}.Field), Await Task.Factory.StartNew(Function() 21))
     End Function
 End Class
 
@@ -7044,11 +7168,11 @@ Imports System.Threading.Tasks
 Structure S1
     Public X As Integer
 
-    Public Async Sub Foo1()
+    Public Async Sub Goo1()
         Bar(Me, Await Task(Of Integer).FromResult(42))
     End Sub
 
-    Public Sub Foo2()
+    Public Sub Goo2()
         Bar(Me, 42)
     End Sub
 
@@ -7060,11 +7184,11 @@ End Structure
 Class C1
     Public X As Integer
 
-    Public Async Sub Foo1()
+    Public Async Sub Goo1()
         Bar(Me, Await Task(Of Integer).FromResult(42))
     End Sub
 
-    Public Sub Foo2()
+    Public Sub Goo2()
         Bar(Me, 42)
     End Sub
 
@@ -7082,14 +7206,14 @@ Module Form1
         If True Then
             Dim s As S1
             s.X = -1
-            s.Foo1()
+            s.Goo1()
             Console.Write(s.X)
             Console.Write(" ")
         End If
         If True Then
             Dim s As S1
             s.X = -1
-            s.Foo2()
+            s.Goo2()
             Console.Write(s.X)
             Console.Write(" ")
         End If
@@ -7103,14 +7227,14 @@ Module Form1
         If True Then
             Dim s As New C1
             s.X = -1
-            s.Foo1()
+            s.Goo1()
             Console.Write(s.X)
             Console.Write(" ")
         End If
         If True Then
             Dim s As New C1
             s.X = -1
-            s.Foo2()
+            s.Goo2()
             Console.Write(s.X)
             Console.Write(" ")
         End If
@@ -8405,27 +8529,26 @@ End Class
 
         <WorkItem(840843, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/840843")>
         <Fact>
-        Public Sub MissingAsyncMethodBuilder()
-            Dim source = <compilation name="Async">
-                             <file name="a.vb">
+        Public Sub MissingAsyncVoidMethodBuilder()
+            Dim source =
+<compilation name="AsyncVoid">
+    <file name="a.vb">
 Public Class TestCase
     Async Sub M()
     End Sub
 End Class
     </file>
-                         </compilation>
-
+</compilation>
             Dim comp = CreateCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
-
-            Using stream As New MemoryStream()
-                AssertTheseDiagnostics(comp.Emit(stream).Diagnostics, <errors>
-BC31091: Import of type 'AsyncVoidMethodBuilder' from assembly or module 'Async.dll' failed.
+            comp.AssertTheseEmitDiagnostics(
+ <errors>
+BC31091: Import of type 'AsyncVoidMethodBuilder' from assembly or module 'AsyncVoid.dll' failed.
     Async Sub M()
     ~~~~~~~~~~~~~~
-BC31091: Import of type 'AsyncVoidMethodBuilder' from assembly or module 'Async.dll' failed.
+BC31091: Import of type 'AsyncVoidMethodBuilder' from assembly or module 'AsyncVoid.dll' failed.
     Async Sub M()
     ~~~~~~~~~~~~~~
-BC31091: Import of type 'IAsyncStateMachine' from assembly or module 'Async.dll' failed.
+BC31091: Import of type 'IAsyncStateMachine' from assembly or module 'AsyncVoid.dll' failed.
     Async Sub M()
     ~~~~~~~~~~~~~~
 BC35000: Requested operation is not available because the runtime library function 'System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext' is not defined.
@@ -8437,8 +8560,80 @@ BC35000: Requested operation is not available because the runtime library functi
 BC42356: This async method lacks 'Await' operators and so will run synchronously. Consider using the 'Await' operator to await non-blocking API calls, or 'Await Task.Run(...)' to do CPU-bound work on a background thread.
     Async Sub M()
               ~
-                    </errors>)
-            End Using
+</errors>)
+        End Sub
+
+        <Fact>
+        Public Sub MissingAsyncTaskMethodBuilder()
+            Dim source =
+<compilation name="AsyncTask">
+    <file name="a.vb">
+Imports System.Threading.Tasks
+Public Class TestCase
+    Async Function M() As Task
+    End Function
+End Class
+    </file>
+</compilation>
+            Dim comp = CreateCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
+            comp.AssertTheseEmitDiagnostics(
+ <errors>
+BC31091: Import of type 'AsyncTaskMethodBuilder' from assembly or module 'AsyncTask.dll' failed.
+    Async Function M() As Task
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'AsyncTaskMethodBuilder' from assembly or module 'AsyncTask.dll' failed.
+    Async Function M() As Task
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'IAsyncStateMachine' from assembly or module 'AsyncTask.dll' failed.
+    Async Function M() As Task
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext' is not defined.
+    Async Function M() As Task
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine' is not defined.
+    Async Function M() As Task
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC42356: This async method lacks 'Await' operators and so will run synchronously. Consider using the 'Await' operator to await non-blocking API calls, or 'Await Task.Run(...)' to do CPU-bound work on a background thread.
+    Async Function M() As Task
+                   ~
+</errors>)
+        End Sub
+
+        <Fact>
+        Public Sub MissingAsyncTaskMethodBuilder_T()
+            Dim source =
+<compilation name="AsyncTask_T">
+    <file name="a.vb">
+Imports System.Threading.Tasks
+Public Class TestCase
+    Async Function M() As Task(Of Integer)
+        Return 3
+    End Function
+End Class
+    </file>
+</compilation>
+            Dim comp = CreateCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
+            comp.AssertTheseEmitDiagnostics(
+ <errors>
+BC31091: Import of type 'AsyncTaskMethodBuilder(Of )' from assembly or module 'AsyncTask_T.dll' failed.
+    Async Function M() As Task(Of Integer)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'AsyncTaskMethodBuilder(Of )' from assembly or module 'AsyncTask_T.dll' failed.
+    Async Function M() As Task(Of Integer)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31091: Import of type 'IAsyncStateMachine' from assembly or module 'AsyncTask_T.dll' failed.
+    Async Function M() As Task(Of Integer)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext' is not defined.
+    Async Function M() As Task(Of Integer)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine' is not defined.
+    Async Function M() As Task(Of Integer)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC42356: This async method lacks 'Await' operators and so will run synchronously. Consider using the 'Await' operator to await non-blocking API calls, or 'Await Task.Run(...)' to do CPU-bound work on a background thread.
+    Async Function M() As Task(Of Integer)
+                   ~
+</errors>)
         End Sub
 
         <WorkItem(863, "https://github.com/dotnet/roslyn/issues/863")>
@@ -8877,6 +9072,79 @@ BC30456: 'AwaitOnCompleted' is not a member of 'AsyncVoidMethodBuilder'.
                 </expected>)
         End Sub
 
+
+        <Fact, WorkItem(13734, "https://github.com/dotnet/roslyn/issues/13734")>
+        Public Sub MethodGroupWithConversionNoSpill()
+
+            Dim source = <compilation name="Async">
+                             <file name="a.vb">
+Imports System
+Imports System.Threading.Tasks
+
+Public Class AsyncBug
+    Public Shared Sub Main()
+        AsyncBug.Boom().GetAwaiter().GetResult()
+    End Sub
+
+    Public Async Shared Function Boom() As Task
+        Dim func As Func(Of Type) = Addressof (Await Task.FromResult(1)).GetType
+        Console.WriteLine(func())
+    End Function
+End Class
+                             </file>
+                         </compilation>
+
+            Dim expectedOutput = <![CDATA[System.Int32]]>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
+            CompileAndVerify(compilation, expectedOutput:=expectedOutput)
+            CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
+        End Sub
+
+        <Fact, WorkItem(13734, "https://github.com/dotnet/roslyn/issues/13734")>
+        Public Sub MethodGroupConversionWithSpill()
+            Dim source = <compilation name="Async">
+                             <file name="a.vb">
+imports System.Threading.Tasks
+imports System
+imports System.Linq
+imports System.Collections.Generic
+
+class Program
+    class SomeClass
+        Public Function Method(value as Integer) as Boolean
+            Return value Mod 2 = 0
+        End Function
+    End Class
+
+    private Async Function Danger() as Task(Of SomeClass)
+        await Task.Yield()
+        return new SomeClass()
+    End Function
+
+    Async function Killer() as Task(Of IEnumerable(Of Boolean))
+        Return {1, 2, 3, 4, 5}.Select(AddressOf (Await Danger()).Method)
+    End Function
+
+    Shared Sub Main(args As String())
+        For Each b in new Program().Killer().GetAwaiter().GetResult() 
+            Console.WriteLine(b)
+        Next
+    End Sub
+End Class
+                             </file>
+                         </compilation>
+
+            Dim expectedOutput = <![CDATA[False
+True
+False
+True
+False
+]]>
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
+            CompileAndVerify(compilation, expectedOutput:=expectedOutput)
+            CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
+        End Sub
     End Class
 End Namespace
 

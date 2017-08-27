@@ -1,7 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -19,10 +20,12 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             public SemanticModel Model { get; }
 
             // The members that are not implemented at all.
-            public IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> UnimplementedMembers { get; private set; }
+            public ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> UnimplementedMembers { get; private set; }
+                = ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)>.Empty;
 
             // The members that have no explicit implementation.
-            public IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> UnimplementedExplicitMembers { get; private set; }
+            public ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> UnimplementedExplicitMembers { get; private set; }
+                = ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)>.Empty;
 
             public State(SyntaxNode interfaceNode, SyntaxNode classOrStructDecl, INamedTypeSymbol classOrStructType, IEnumerable<INamedTypeSymbol> interfaceTypes, SemanticModel model)
             {
@@ -40,11 +43,8 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 SyntaxNode interfaceNode,
                 CancellationToken cancellationToken)
             {
-                SyntaxNode classOrStructDecl;
-                INamedTypeSymbol classOrStructType;
-                IEnumerable<INamedTypeSymbol> interfaceTypes;
                 if (!service.TryInitializeState(document, model, interfaceNode, cancellationToken,
-                    out classOrStructDecl, out classOrStructType, out interfaceTypes))
+                    out var classOrStructDecl, out var classOrStructType, out var interfaceTypes))
                 {
                     return null;
                 }
@@ -64,8 +64,8 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     state.UnimplementedExplicitMembers = state.ClassOrStructType.GetAllUnimplementedExplicitMembers(
                         interfaceTypes, cancellationToken);
 
-                    var allMembersImplemented = state.UnimplementedMembers == null || state.UnimplementedMembers.Count == 0;
-                    var allMembersImplementedExplicitly = state.UnimplementedExplicitMembers == null || state.UnimplementedExplicitMembers.Count == 0;
+                    var allMembersImplemented = state.UnimplementedMembers.Length == 0;
+                    var allMembersImplementedExplicitly = state.UnimplementedExplicitMembers.Length == 0;
 
                     return !allMembersImplementedExplicitly && !allMembersImplemented ? state : null;
                 }
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     state.UnimplementedMembers = state.ClassOrStructType.GetAllUnimplementedExplicitMembers(
                         interfaceTypes, cancellationToken);
 
-                    var allMembersImplemented = state.UnimplementedMembers == null || state.UnimplementedMembers.Count == 0;
+                    var allMembersImplemented = state.UnimplementedMembers.Length == 0;
                     return !allMembersImplemented ? state : null;
                 }
             }

@@ -3,24 +3,24 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Packaging
 {
     internal interface IPackageInstallerService : IWorkspaceService
     {
-        bool IsEnabled { get; }
+        bool IsEnabled(ProjectId projectId);
 
         bool IsInstalled(Workspace workspace, ProjectId projectId, string packageName);
 
-        bool TryInstallPackage(Workspace workspace, DocumentId documentId, string source, string packageName, string versionOpt, CancellationToken cancellationToken);
+        bool TryInstallPackage(Workspace workspace, DocumentId documentId,
+            string source, string packageName, 
+            string versionOpt, bool includePrerelease,
+            CancellationToken cancellationToken);
 
-        IEnumerable<string> GetInstalledVersions(string packageName);
+        ImmutableArray<string> GetInstalledVersions(string packageName);
 
         IEnumerable<Project> GetProjectsWithInstalledPackage(Solution solution, string packageName, string version);
 
@@ -30,15 +30,24 @@ namespace Microsoft.CodeAnalysis.Packaging
         event EventHandler PackageSourcesChanged;
     }
 
-    internal struct PackageSource
+    internal struct PackageSource : IEquatable<PackageSource>
     {
         public readonly string Name;
         public readonly string Source;
 
         public PackageSource(string name, string source)
         {
-            this.Name = name;
-            this.Source = source;
+            Name = name;
+            Source = source;
         }
+
+        public override bool Equals(object obj)
+            => Equals((PackageSource)obj);
+
+        public bool Equals(PackageSource other)
+            => Name == other.Name && Source == other.Source;
+
+        public override int GetHashCode()
+            => Hash.Combine(Name, Source.GetHashCode());
     }
 }

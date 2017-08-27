@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                 Dim modifiers = context.ModifierCollectionFacts
                 If modifiers.CouldApplyToOneOf(PossibleDeclarationTypes.ExternalMethod) Then
                     Return SpecializedCollections.SingletonEnumerable(
-                                New RecommendedKeyword("Declare", VBFeaturesResources.DeclareKeywordToolTip))
+                                New RecommendedKeyword("Declare", VBFeaturesResources.Declares_a_reference_to_a_procedure_implemented_in_an_external_file))
                 End If
             End If
 

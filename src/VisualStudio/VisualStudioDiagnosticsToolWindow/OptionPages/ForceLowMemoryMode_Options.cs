@@ -10,22 +10,10 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 {
     internal sealed partial class ForceLowMemoryMode
     {
-        public const string OptionName = nameof(ForceLowMemoryMode);
-        public static readonly Option<bool> Enabled = new Option<bool>(OptionName, nameof(Enabled), defaultValue: false);
-        public static readonly Option<int> SizeInMegabytes = new Option<int>(OptionName, nameof(SizeInMegabytes), defaultValue: 500);
-    }
+        public static readonly Option<bool> Enabled = new Option<bool>(nameof(ForceLowMemoryMode), nameof(Enabled), defaultValue: false,
+            storageLocations: new LocalUserProfileStorageLocation(@"Roslyn\ForceLowMemoryMode\Enabled"));
 
-    [ExportOptionSerializer(ForceLowMemoryMode.OptionName), Shared]
-    internal sealed class ForceLowMemoryModeSerializer : AbstractLocalUserRegistryOptionSerializer
-    {
-        [ImportingConstructor]
-        public ForceLowMemoryModeSerializer(SVsServiceProvider serviceProvider) : base(serviceProvider)
-        {
-        }
-
-        protected override string GetCollectionPathForOption(OptionKey key)
-        {
-            return @"Roslyn\ForceLowMemoryMode";
-        }
+        public static readonly Option<int> SizeInMegabytes = new Option<int>(nameof(ForceLowMemoryMode), nameof(SizeInMegabytes), defaultValue: 500,
+            storageLocations: new LocalUserProfileStorageLocation(@"Roslyn\ForceLowMemoryMode\SizeInMegabytes"));
     }
 }

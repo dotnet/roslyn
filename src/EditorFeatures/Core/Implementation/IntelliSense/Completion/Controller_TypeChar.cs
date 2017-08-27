@@ -10,8 +10,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
-using System.Threading;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
@@ -27,21 +25,41 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         void ICommandHandler<TypeCharCommandArgs>.ExecuteCommand(TypeCharCommandArgs args, Action nextHandler)
         {
-            Trace.WriteLine("Entered completion command handler for typechar.");
-
             AssertIsForeground();
-
-            var initialCaretPosition = GetCaretPointInViewBuffer();
 
             // When a character is typed it is *always* sent through to the editor.  This way the
             // editor always represents what would have been typed had completion not been involved
-            // at this point.  After we send the character into the buffer we then decide what to do
-            // with the completion set.  If we decide to commit it then we will replace the
-            // appropriate span (which will include the character just sent to the buffer) with the
-            // appropriate insertion text *and* the character typed.  This way, after we commit, the
-            // editor has the insertion text of the selected item, and the character typed.  It
-            // also means that if we then undo that we'll see the text that would have been typed
-            // had no completion been active.
+            // at this point.  That means that if we decide to commit, then undo'ing the commit will
+            // return you to the code that you would have typed if completion was not up.
+            //
+            // The steps we follow for commit are as follows:
+            //
+            //      1) send the commit character through to the buffer.
+            //      2) open a transaction.
+            //          2a) roll back the text to before the text was sent through
+            //          2b) commit the item.
+            //          2c) send the commit character through again.*
+            //          2d) commit the transaction.
+            //
+            // 2c is very important.  it makes sure that post our commit all our normal features
+            // run depending on what got typed.  For example if the commit character was (
+            // then brace completion may run.  If it was ; then formatting may run.  But, importantly
+            // this code doesn't need to know anything about that.  Furthermore, because that code
+            // runs within this transaction, then the user can always undo and get to what the code
+            // would have been if completion was not involved.
+            //
+            // 2c*: note sending the commit character through to the buffer again can be controlled
+            // by the completion item.  For example, completion items that want to totally handle
+            // what gets output into the buffer can ask for this not to happen.  An example of this
+            // is override completion.  If the user types "override Method(" then we'll want to 
+            // spit out the entire method and *not* also spit out "(" again.
+
+            // In order to support 2a (rolling back), we capture hte state of the buffer before
+            // we send the character through.  We then just apply the edits in reverse order to
+            // roll us back.
+            var initialTextSnapshot = this.SubjectBuffer.CurrentSnapshot;
+
+            var initialCaretPosition = GetCaretPointInViewBuffer();
 
             // Note: while we're doing this, we don't want to hear about buffer changes (since we
             // know they're going to happen).  So we disconnect and reconnect to the event
@@ -73,40 +91,36 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // to proceed. 
             if (this.TextView.TypeCharWasHandledStrangely(this.SubjectBuffer, args.TypedChar))
             {
-                Trace.WriteLine("typechar was handled by someone else, cannot have a completion session.");
-
                 if (sessionOpt != null)
                 {
                     // If we're on a seam (razor) with a computation, and the user types a character 
                     // that goes into the other side of the seam, the character may be a commit character.
                     // If it's a commit character, just commit without trying to check caret position,
                     // since the caret is no longer in our buffer.
-                    if (isOnSeam && this.IsCommitCharacter(args.TypedChar))
+                    if (isOnSeam)
                     {
-                        Trace.WriteLine("typechar was on seam and a commit char, cannot have a completion session.");
-
-                        this.CommitOnTypeChar(args.TypedChar);
-                        return;
+                        var model = this.WaitForModel();
+                        if (this.CommitIfCommitCharacter(args.TypedChar, model, initialTextSnapshot, nextHandler))
+                        {
+                            return;
+                        }
                     }
-                    else if (_autoBraceCompletionChars.Contains(args.TypedChar) &&
-                             this.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.AutomaticPairCompletion) &&
-                             this.IsCommitCharacter(args.TypedChar))
+
+                    if (_autoBraceCompletionChars.Contains(args.TypedChar) &&
+                        this.SubjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.AutomaticPairCompletion))
                     {
-                        Trace.WriteLine("typechar was brace completion char and a commit char, cannot have a completion session.");
-
-                        // I don't think there is any better way than this. if typed char is one of auto brace completion char,
-                        // we don't do multiple buffer change check
-                        this.CommitOnTypeChar(args.TypedChar);
-                        return;
+                        var model = this.WaitForModel();
+                        if (this.CommitIfCommitCharacter(args.TypedChar, model, initialTextSnapshot, nextHandler))
+                        {
+                            // I don't think there is any better way than this. if typed char is one of auto brace completion char,
+                            // we don't do multiple buffer change check
+                            return;
+                        }
                     }
-                    else
-                    {
-                        Trace.WriteLine("we stop model computation, cannot have a completion session.");
 
-                        // If we were computing anything, we stop.  We only want to process a typechar
-                        // if it was a normal character.
-                        this.StopModelComputation();
-                    }
+                    // If we were computing anything, we stop.  We only want to process a typechar
+                    // if it was a normal character.
+                    this.DismissSessionIfActive();
                 }
 
                 return;
@@ -115,8 +129,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var completionService = this.GetCompletionService();
             if (completionService == null)
             {
-                Trace.WriteLine("handling typechar, completion service is null, cannot have a completion session.");
-
                 return;
             }
 
@@ -134,25 +146,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // computation and start computing the model in the background.
                 if (isTextuallyTriggered)
                 {
-                    Trace.WriteLine("no completion session yet and this is a trigger char, starting model computation.");
-
                     // First create the session that represents that we now have a potential
                     // completion list.  Then tell it to start computing.
-                    StartNewModelComputation(completionService, trigger, filterItems: true);
+                    StartNewModelComputation(completionService, trigger);
                     return;
                 }
                 else
                 {
-                    Trace.WriteLine("no completion session yet and this is NOT a trigger char, we won't have completion.");
-
                     // No need to do anything.  Just stay in the state where we have no session.
                     return;
                 }
             }
             else
             {
-                Trace.WriteLine("we have a completion session.");
-
                 sessionOpt.UpdateModelTrackingSpan(initialCaretPosition);
 
                 // If the session is up, it may be in one of many states.  It may know nothing
@@ -165,8 +171,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 {
                     if (isTextuallyTriggered)
                     {
-                        Trace.WriteLine("computing completion again and filtering...");
-
                         // The character typed was something like "a".  It can both filter a list if
                         // we have computed one, or it can trigger a new list.  Ask the computation
                         // to compute again. If nothing has been computed, then it will try to
@@ -175,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     }
 
                     // Now filter whatever result we have.
-                    sessionOpt.FilterModel(CompletionFilterReason.TypeChar);
+                    sessionOpt.FilterModel(CompletionFilterReason.Insertion, filterState: null);
                 }
                 else
                 {
@@ -184,8 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     // what's being typed. This means waiting on the session and will effectively
                     // block the user.
 
-                    // Again, from this point on we must block on the computation to decide what to
-                    // do.
+                    var model = WaitForModel();
 
                     // What they type may end up filtering, committing, or else will dismiss.
                     //
@@ -195,13 +198,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     // "Color", "Color.Red", "Color.Blue", etc.  When we process the 'dot', we
                     // actually want to filter some more.  But we can't know that ahead of time until
                     // we have computed the list of completions.
-                    if (this.IsFilterCharacter(args.TypedChar))
+                    if (this.IsFilterCharacter(args.TypedChar, model))
                     {
-                        Trace.WriteLine("filtering the session...");
-
                         // Known to be a filter character for the currently selected item.  So just 
                         // filter the session.
-                        sessionOpt.FilterModel(CompletionFilterReason.TypeChar);
+
+                        sessionOpt.FilterModel(CompletionFilterReason.Insertion, filterState: null);
                         return;
                     }
 
@@ -210,32 +212,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     // buffer.
 
                     // Now, commit if it was a commit character.
-                    if (this.IsCommitCharacter(args.TypedChar))
-                    {
-                        Trace.WriteLine("committing the session...");
+                    this.CommitIfCommitCharacter(args.TypedChar, model, initialTextSnapshot, nextHandler);
 
-                        // Known to be a commit character for the currently selected item.  So just
-                        // commit the session.
-                        this.CommitOnTypeChar(args.TypedChar);
-                    }
-                    else
-                    {
-                        Trace.WriteLine("dismissing the session...");
-
-                        // Now dismiss the session.
-                        this.StopModelComputation();
-                    }
+                    // At this point we don't want a session anymore (either because we committed, or 
+                    // because we got a character we don't know how to handle).  Unilaterally dismiss
+                    // the session.
+                    DismissSessionIfActive();
 
                     // The character may commit/dismiss and then trigger completion again. So check
                     // for that here.
-
                     if (isTextuallyTriggered)
                     {
-                        Trace.WriteLine("the char commit/dismiss -ed a session and is trigerring completion again. starting model computation.");
-
-                        // First create the session that represents that we now have a potential
-                        // completion list.
-                        StartNewModelComputation(completionService, trigger, filterItems: true);
+                        StartNewModelComputation(
+                            completionService, trigger);
                         return;
                     }
                 }
@@ -267,15 +256,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 || args.TypedChar == '_';
         }
 
-        private CompletionHelper GetCompletionHelper()
+        private Document GetDocument()
         {
-            var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document != null)
-            {
-                return CompletionHelper.GetHelper(document);
-            }
+            // Documents can be closed while we are computing in the background.
+            // This can only be called from the foreground.
+            AssertIsForeground();
 
-            return null;
+            // Crash if we don't find a document, we're already in a bad state.
+            var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            Contract.ThrowIfNull(document, nameof(document));
+            return document;
+        }
+
+        private CompletionHelper GetCompletionHelper(Document document)
+        {
+            return CompletionHelper.GetHelper(document);
         }
 
         private bool IsTextualTriggerCharacter(CompletionService completionService, char ch, OptionSet options)
@@ -294,40 +289,38 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return completionService.ShouldTriggerCompletion(previousPosition.Snapshot.AsText(), caretPosition, trigger, _roles, options);
         }
 
-        private bool IsCommitCharacter(char ch)
+        private bool IsCommitCharacter(char ch, Model model)
         {
             AssertIsForeground();
 
-            // TODO(cyrusn): Find a way to allow the user to cancel out of this.
-            var model = sessionOpt.WaitForModel();
-            if (model == null || model.IsSoftSelection)
+            if (model == null || model.IsSoftSelection || model.SelectedItemOpt == null)
             {
                 return false;
             }
 
-            if (model.SelectedItem.IsSuggestionModeItem)
+            if (model.SelectedItemOpt == model.SuggestionModeItem)
             {
                 return char.IsLetterOrDigit(ch);
             }
 
             var completionService = GetCompletionService();
-            var filterText = GetCurrentFilterText(model, model.SelectedItem.Item);
+            if (completionService == null)
+            {
+                return false;
+            }
+
+            var textTypedSoFar = GetTextTypedSoFar(model, model.SelectedItemOpt);
             return IsCommitCharacter(
-                completionService.GetRules(), model.SelectedItem.Item, ch, filterText);
+                completionService.GetRules(), model.SelectedItemOpt, ch, textTypedSoFar);
         }
 
         /// <summary>
         /// Internal for testing purposes only.
         /// </summary>
         internal static bool IsCommitCharacter(
-            CompletionRules completionRules, CompletionItem item, char ch, string filterText)
+            CompletionRules completionRules, CompletionItem item, char ch, string textTypedSoFar)
         {
-            // general rule: if the filtering text exactly matches the start of the item then it must be a filter character
-            if (TextTypedSoFarMatchesItem(item, ch, textTypedSoFar: filterText))
-            {
-                return false;
-            }
-
+            // First see if the item has any specifc commit rules it wants followed.
             foreach (var rule in item.Rules.CommitCharacterRules)
             {
                 switch (rule.Kind)
@@ -351,48 +344,53 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
             }
 
+            // general rule: if the filtering text exactly matches the start of the item then it must be a filter character
+            if (TextTypedSoFarMatchesItem(item, ch, textTypedSoFar))
+            {
+                return false;
+            }
+
             // Fall back to the default rules for this language's completion service.
             return completionRules.DefaultCommitCharacters.IndexOf(ch) >= 0;
         }
 
-        private bool IsFilterCharacter(char ch)
+        private bool IsFilterCharacter(char ch, Model model)
         {
             AssertIsForeground();
 
-            // TODO(cyrusn): Find a way to allow the user to cancel out of this.
-            var model = sessionOpt.WaitForModel();
             if (model == null)
             {
                 return false;
             }
 
-            if (model.SelectedItem.IsSuggestionModeItem)
-            {
-                return char.IsLetterOrDigit(ch);
-            }
-
-            var filterText = GetCurrentFilterText(model, model.SelectedItem.Item);
-            return IsFilterCharacter(model.SelectedItem.Item, ch, filterText);
-        }
-
-        private static bool TextTypedSoFarMatchesItem(CompletionItem item, char ch, string textTypedSoFar)
-        {
-            var textTypedWithChar = textTypedSoFar + ch;
-            return item.DisplayText.StartsWith(textTypedWithChar, StringComparison.CurrentCultureIgnoreCase) ||
-                item.FilterText.StartsWith(textTypedWithChar, StringComparison.CurrentCultureIgnoreCase);
-        }
-
-        /// <summary>
-        /// Internal for testing purposes only.
-        /// </summary>
-        internal static bool IsFilterCharacter(CompletionItem item, char ch, string filterText)
-        {
-            // general rule: if the filtering text exactly matches the start of the item then it must be a filter character
-            if (TextTypedSoFarMatchesItem(item, ch, textTypedSoFar: filterText))
+            if (model.SelectedItemOpt == null)
             {
                 return false;
             }
 
+            if (model.SelectedItemOpt == model.SuggestionModeItem)
+            {
+                return char.IsLetterOrDigit(ch);
+            }
+
+            var textTypedSoFar = GetTextTypedSoFar(model, model.SelectedItemOpt);
+            return IsFilterCharacter(model.SelectedItemOpt, ch, textTypedSoFar);
+        }
+
+        private static bool TextTypedSoFarMatchesItem(CompletionItem item, char ch, string textTypedSoFar)
+        {
+            if (textTypedSoFar.Length > 0)
+            {
+                return item.DisplayText.StartsWith(textTypedSoFar, StringComparison.CurrentCultureIgnoreCase) ||
+                       item.FilterText.StartsWith(textTypedSoFar, StringComparison.CurrentCultureIgnoreCase);
+            }
+
+            return false;
+        }
+
+        private static bool IsFilterCharacter(CompletionItem item, char ch, string textTypedSoFar)
+        {
+            // First see if the item has any specific filter rules it wants followed.
             foreach (var rule in item.Rules.FilterCharacterRules)
             {
                 switch (rule.Kind)
@@ -416,10 +414,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
             }
 
+            // general rule: if the filtering text exactly matches the start of the item then it must be a filter character
+            if (TextTypedSoFarMatchesItem(item, ch, textTypedSoFar))
+            {
+                return true;
+            }
+
             return false;
         }
 
-        private string GetCurrentFilterText(Model model, CompletionItem selectedItem)
+        private string GetTextTypedSoFar(Model model, CompletionItem selectedItem)
         {
             var textSnapshot = this.TextView.TextSnapshot;
             var viewSpan = model.GetViewBufferSpan(selectedItem.Span);
@@ -428,19 +432,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return filterText;
         }
 
-        private void CommitOnTypeChar(char ch)
+        private bool CommitIfCommitCharacter(
+            char ch, Model model, ITextSnapshot initialTextSnapshot, Action nextHandler)
         {
             AssertIsForeground();
 
             // Note: this function is called after the character has already been inserted into the
             // buffer.
-            var model = sessionOpt.WaitForModel();
+
+            if (!IsCommitCharacter(ch, model))
+            {
+                return false;
+            }
 
             // We only call CommitOnTypeChar if ch was a commit character.  And we only know if ch
             // was commit character if we had a selected item.
             Contract.ThrowIfNull(model);
 
-            this.Commit(model.SelectedItem, model, ch);
+            this.Commit(
+                model.SelectedItemOpt, model, ch,
+                initialTextSnapshot, nextHandler);
+            return true;
         }
     }
 }

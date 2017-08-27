@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 using (var pipeStream = new NamedPipeClientStream(".", _pipeName, PipeDirection.InOut, PipeOptions.Asynchronous))
                 {
-                    return TryConnectToNamedPipeWithSpinWait(pipeStream, timeoutMs, cancellationToken);
+                    return BuildServerConnection.TryConnectToNamedPipeWithSpinWait(pipeStream, timeoutMs, cancellationToken);
                 }
             }
         }
@@ -70,7 +70,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public sealed class ServerTests : DesktopBuildClientTests
         {
             private readonly string _pipeName = Guid.NewGuid().ToString("N");
-            private readonly TempDirectory _tempDirectory;
             private readonly BuildPaths _buildPaths;
             private readonly List<ServerData> _serverDataList = new List<ServerData>();
             private bool _allowServer = true;
@@ -78,8 +77,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             public ServerTests()
             {
-                _tempDirectory = Temp.CreateDirectory();
-                _buildPaths = ServerUtil.CreateBuildPaths(workingDir: _tempDirectory.Path);
+                _buildPaths = ServerUtil.CreateBuildPaths(
+                    workingDir: Temp.CreateDirectory().Path,
+                    tempDir: Temp.CreateDirectory().Path);
             }
 
             public override void Dispose()
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 // compilation.
                 bool holdsMutex;
                 using (var serverMutex = new Mutex(initiallyOwned: true,
-                                                   name: DesktopBuildClient.GetServerMutexName(_pipeName),
+                                                   name: BuildServerConnection.GetServerMutexName(_pipeName),
                                                    createdNew: out holdsMutex))
                 {
                     Assert.True(holdsMutex);
@@ -371,10 +371,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             public void GetBasePipeNameSlashes()
             {
                 var path = string.Format(@"q:{0}the{0}path", Path.DirectorySeparatorChar);
-                var name = DesktopBuildClient.GetBasePipeName(path);
-                Assert.Equal(name, DesktopBuildClient.GetBasePipeName(path));
-                Assert.Equal(name, DesktopBuildClient.GetBasePipeName(path + Path.DirectorySeparatorChar));
-                Assert.Equal(name, DesktopBuildClient.GetBasePipeName(path + Path.DirectorySeparatorChar + Path.DirectorySeparatorChar));
+                var name = BuildServerConnection.GetBasePipeName(path);
+                Assert.Equal(name, BuildServerConnection.GetBasePipeName(path));
+                Assert.Equal(name, BuildServerConnection.GetBasePipeName(path + Path.DirectorySeparatorChar));
+                Assert.Equal(name, BuildServerConnection.GetBasePipeName(path + Path.DirectorySeparatorChar + Path.DirectorySeparatorChar));
             }
         }
     }

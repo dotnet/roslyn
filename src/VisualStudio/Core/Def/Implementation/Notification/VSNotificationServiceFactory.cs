@@ -70,7 +70,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Notification
                     try
                     {
                         var icon = SeverityToIcon(severity);
-                        int dialogResult;
                         _uiShellService.ShowMessageBox(
                             dwCompRole: 0, // unused, as per MSDN documentation
                             rclsidComp: Guid.Empty, // unused
@@ -82,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Notification
                             msgdefbtn: OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST,
                             msgicon: icon,
                             fSysAlert: 0, // Not system modal
-                            pnResult: out dialogResult);
+                            pnResult: out var dialogResult);
                     }
                     finally
                     {
@@ -98,7 +97,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Notification
                 try
                 {
                     var icon = SeverityToIcon(severity);
-                    int dialogResult;
                     _uiShellService.ShowMessageBox(
                         dwCompRole: 0, // unused, as per MSDN documentation
                         rclsidComp: Guid.Empty, // unused
@@ -110,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Notification
                         msgdefbtn: OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST,
                         msgicon: icon,
                         fSysAlert: 0, // Not system modal
-                        pnResult: out dialogResult);
+                        pnResult: out var dialogResult);
 
                     // The dialogResult is 6 when the Yes button is clicked.
                     return dialogResult == 6;

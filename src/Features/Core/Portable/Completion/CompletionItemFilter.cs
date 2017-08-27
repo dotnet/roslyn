@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
@@ -38,6 +33,34 @@ namespace Microsoft.CodeAnalysis.Completion
             return false;
         }
 
+        public static bool ShouldBeFilteredOutOfCompletionList(
+            CompletionItem item,
+            ImmutableDictionary<CompletionItemFilter, bool> filterState)
+        {
+            if (filterState == null)
+            {
+                // No filtering.  The item is not filtered out.
+                return false;
+            }
+
+            foreach (var filter in AllFilters)
+            {
+                // only consider filters that match the item
+                var matches = filter.Matches(item);
+                if (matches)
+                {
+                    // if the specific filter is enabled then it is not filtered out
+                    if (filterState.TryGetValue(filter, out var enabled) && enabled)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            // The item was filtered out.
+            return true;
+        }
+
         public static readonly CompletionItemFilter NamespaceFilter = new CompletionItemFilter(FeaturesResources.Namespaces, CompletionTags.Namespace, 'n');
         public static readonly CompletionItemFilter ClassFilter = new CompletionItemFilter(FeaturesResources.Classes, CompletionTags.Class, 'c');
         public static readonly CompletionItemFilter ModuleFilter = new CompletionItemFilter(FeaturesResources.Modules, CompletionTags.Module, 'u');
@@ -52,6 +75,8 @@ namespace Microsoft.CodeAnalysis.Completion
         public static readonly CompletionItemFilter MethodFilter = new CompletionItemFilter(FeaturesResources.Methods, CompletionTags.Method, 'm');
         public static readonly CompletionItemFilter ExtensionMethodFilter = new CompletionItemFilter(FeaturesResources.Extension_methods, CompletionTags.ExtensionMethod, 'x');
         public static readonly CompletionItemFilter LocalAndParameterFilter = new CompletionItemFilter(FeaturesResources.Locals_and_parameters, ImmutableArray.Create(CompletionTags.Local, CompletionTags.Parameter), 'l');
+        public static readonly CompletionItemFilter KeywordFilter = new CompletionItemFilter(FeaturesResources.Keywords, ImmutableArray.Create(CompletionTags.Keyword), 'k');
+        public static readonly CompletionItemFilter SnippetFilter = new CompletionItemFilter(FeaturesResources.Snippets, ImmutableArray.Create(CompletionTags.Snippet), 't');
 
         public static readonly ImmutableArray<CompletionItemFilter> NamespaceFilters = ImmutableArray.Create(NamespaceFilter);
         public static readonly ImmutableArray<CompletionItemFilter> ClassFilters = ImmutableArray.Create(ClassFilter);
@@ -67,6 +92,8 @@ namespace Microsoft.CodeAnalysis.Completion
         public static readonly ImmutableArray<CompletionItemFilter> MethodFilters = ImmutableArray.Create(MethodFilter);
         public static readonly ImmutableArray<CompletionItemFilter> ExtensionMethodFilters = ImmutableArray.Create(ExtensionMethodFilter);
         public static readonly ImmutableArray<CompletionItemFilter> LocalAndParameterFilters = ImmutableArray.Create(LocalAndParameterFilter);
+        public static readonly ImmutableArray<CompletionItemFilter> KeywordFilters = ImmutableArray.Create(KeywordFilter);
+        public static readonly ImmutableArray<CompletionItemFilter> SnippetFilters = ImmutableArray.Create(SnippetFilter);
 
         public static ImmutableArray<CompletionItemFilter> AllFilters { get; } =
             ImmutableArray.Create(
@@ -83,6 +110,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 StructureFilter,
                 EnumFilter,
                 DelegateFilter,
-                NamespaceFilter);
+                NamespaceFilter,
+                KeywordFilter,
+                SnippetFilter);
     }
 }

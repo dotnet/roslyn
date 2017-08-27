@@ -2,6 +2,7 @@
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (TNode)node.Green.SetAnnotations(annotations).CreateRed();
         }
 
-        public static bool IsAnonymousFunction(this CSharpSyntaxNode syntax)
+        public static bool IsAnonymousFunction(this SyntaxNode syntax)
         {
             Debug.Assert(syntax != null);
             switch (syntax.Kind())
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public static bool IsQuery(this CSharpSyntaxNode syntax)
+        public static bool IsQuery(this SyntaxNode syntax)
         {
             Debug.Assert(syntax != null);
             switch (syntax.Kind())
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// default behaviors (e.g. FieldInitializerBinders).  Local binders are
         /// created by LocalBinderFactory.
         /// </summary>
-        internal static bool CanHaveAssociatedLocalBinder(this CSharpSyntaxNode syntax)
+        internal static bool CanHaveAssociatedLocalBinder(this SyntaxNode syntax)
         {
             SyntaxKind kind;
             return syntax.IsAnonymousFunction() ||
@@ -70,17 +71,54 @@ namespace Microsoft.CodeAnalysis.CSharp
                 kind == SyntaxKind.Attribute ||
                 kind == SyntaxKind.ArgumentList ||
                 kind == SyntaxKind.ArrowExpressionClause ||
-                (syntax is ExpressionSyntax && 
-                    // All these nodes are valid scope designators due to the pattern matching feature.
-                    ((syntax.Parent as LambdaExpressionSyntax)?.Body == syntax ||
-                     (syntax.Parent as SwitchStatementSyntax)?.Expression == syntax ||
-                     (syntax.Parent as ForEachStatementSyntax)?.Expression == syntax ||
-                     (syntax.Parent as IfStatementSyntax)?.Condition == syntax));
+                IsValidScopeDesignator(syntax as ExpressionSyntax);
+        }
+
+        internal static bool IsValidScopeDesignator(this ExpressionSyntax expression)
+        {
+            // All these nodes are valid scope designators due to the pattern matching and out vars features.
+            CSharpSyntaxNode parent = expression?.Parent;
+            switch (parent?.Kind())
+            {
+                case SyntaxKind.SimpleLambdaExpression:
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                    return ((LambdaExpressionSyntax)parent).Body == expression;
+
+                case SyntaxKind.SwitchStatement:
+                    return ((SwitchStatementSyntax)parent).Expression == expression;
+
+                case SyntaxKind.ForStatement:
+                    var forStmt = (ForStatementSyntax)parent;
+                    return forStmt.Condition == expression || forStmt.Incrementors.FirstOrDefault() == expression;
+
+                case SyntaxKind.ForEachStatement:
+                case SyntaxKind.ForEachVariableStatement:
+                    return ((CommonForEachStatementSyntax)parent).Expression == expression;
+
+                default:
+                    return false;
+            }
+        }
+
+        internal static CSharpSyntaxNode AnonymousFunctionBody(this SyntaxNode lambda)
+        {
+            switch (lambda.Kind())
+            {
+                case SyntaxKind.SimpleLambdaExpression:
+                    return ((SimpleLambdaExpressionSyntax)lambda).Body;
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                    return ((ParenthesizedLambdaExpressionSyntax)lambda).Body;
+                case SyntaxKind.AnonymousMethodExpression:
+                    return ((AnonymousMethodExpressionSyntax)lambda).Block;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(lambda.Kind());
+            }
         }
 
         /// <summary>
-        /// Given an initializer expression infer the name of anonymous property.
-        /// Returns default(SyntaxToken) if unsuccessful
+        /// Given an initializer expression infer the name of anonymous property or tuple element.
+        /// Returns default if unsuccessful
         /// </summary>
         internal static SyntaxToken ExtractAnonymousTypeMemberName(this ExpressionSyntax input)
         {
@@ -108,6 +146,65 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return default(SyntaxToken);
                 }
             }
+        }
+
+        internal static TypeSyntax SkipRef(this TypeSyntax syntax, out RefKind refKind)
+        {
+            refKind = RefKind.None;
+            if (syntax.Kind() == SyntaxKind.RefType)
+            {
+                refKind = RefKind.Ref;
+                syntax = ((RefTypeSyntax)syntax).Type;
+            }
+
+            return syntax;
+        }
+
+        internal static ExpressionSyntax CheckAndUnwrapRefExpression(
+            this ExpressionSyntax syntax,
+            DiagnosticBag diagnostics,
+            out RefKind refKind)
+        {
+            refKind = RefKind.None;
+            if (syntax?.Kind() == SyntaxKind.RefExpression)
+            {
+                refKind = RefKind.Ref;
+                syntax = ((RefExpressionSyntax)syntax).Expression;
+
+                syntax.CheckDeconstructionCompatibleArgument(diagnostics);
+            }
+
+            return syntax;
+        }
+
+        internal static void CheckDeconstructionCompatibleArgument(this ExpressionSyntax expression, DiagnosticBag diagnostics)
+        {
+            if (IsDeconstructionCompatibleArgument(expression))
+            {
+                diagnostics.Add(ErrorCode.ERR_VarInvocationLvalueReserved, expression.GetLocation());
+            }
+        }
+
+        /// <summary>
+        /// See if the expression is an invocation of a method named 'var',
+        /// I.e. something like "var(x, y)" or "var(x, (y, z))" or "var(1)".
+        /// We report an error when such an invocation is used in a certain syntactic contexts that
+        /// will require an lvalue because we may elect to support deconstruction
+        /// in the future. We need to ensure that we do not successfully interpret this as an invocation of a
+        /// ref-returning method named var.
+        /// </summary>
+        private static bool IsDeconstructionCompatibleArgument(ExpressionSyntax expression)
+        {
+            if (expression.Kind() == SyntaxKind.InvocationExpression)
+            {
+                var invocation = (InvocationExpressionSyntax)expression;
+                var invocationTarget = invocation.Expression;
+
+                return invocationTarget.Kind() == SyntaxKind.IdentifierName &&
+                    ((IdentifierNameSyntax)invocationTarget).IsVar;
+            }
+
+            return false;
         }
     }
 }

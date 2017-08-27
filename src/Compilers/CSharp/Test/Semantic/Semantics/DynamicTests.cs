@@ -40,10 +40,10 @@ public unsafe class C
         [Fact]
         public void ConversionClassification()
         {
-            var c = CreateCompilationWithMscorlib("", new[] { CSharpRef, SystemCoreRef });
+            var c = CreateStandardCompilation("", new[] { CSharpRef, SystemCoreRef });
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var dynamicToObject = c.Conversions.ClassifyConversion(DynamicTypeSymbol.Instance, c.GetSpecialType(SpecialType.System_Object), ref useSiteDiagnostics);
-            var objectToDynamic = c.Conversions.ClassifyConversion(c.GetSpecialType(SpecialType.System_Object), DynamicTypeSymbol.Instance, ref useSiteDiagnostics);
+            var dynamicToObject = c.Conversions.ClassifyConversionFromType(DynamicTypeSymbol.Instance, c.GetSpecialType(SpecialType.System_Object), ref useSiteDiagnostics);
+            var objectToDynamic = c.Conversions.ClassifyConversionFromType(c.GetSpecialType(SpecialType.System_Object), DynamicTypeSymbol.Instance, ref useSiteDiagnostics);
 
             Assert.Equal(ConversionKind.Identity, dynamicToObject.Kind);
             Assert.Equal(ConversionKind.Identity, objectToDynamic.Kind);
@@ -167,14 +167,14 @@ class C
             string source = @"
 class C 
 {
-  void Foo(__arglist)
+  void Goo(__arglist)
   {
   }
 
   void Main()
   {
     dynamic d = 1;
-    Foo(d);
+    Goo(d);
   }
 }";
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
@@ -188,13 +188,13 @@ class C
             string source = @"
 class C 
 {
-  void Foo(__arglist) { }
-  void Foo(bool a) { }
+  void Goo(__arglist) { }
+  void Goo(bool a) { }
 
   void Main()
   {
     dynamic d = 1;
-    Foo(d);
+    Goo(d);
   }
 }";
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
@@ -235,7 +235,7 @@ class C : B
     public override event Action<object> E { add { } remove { } }
 }
 ";
-            CreateCompilationWithMscorlib(source, new[] { CSharpRef, SystemCoreRef }).VerifyDiagnostics();
+            CreateStandardCompilation(source, new[] { CSharpRef, SystemCoreRef }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -258,7 +258,7 @@ class B : A
     public void I(ref object a) { }
 }
 ";
-            CreateCompilationWithMscorlib(source, new[] { CSharpRef, SystemCoreRef }).VerifyDiagnostics(
+            CreateStandardCompilation(source, new[] { CSharpRef, SystemCoreRef }).VerifyDiagnostics(
                 // (13,17): warning CS0108: 'B.G(object)' hides inherited member 'A.G(dynamic)'. Use the new keyword if hiding was intended.
                 Diagnostic(ErrorCode.WRN_NewRequired, "G").WithArguments("B.G(object)", "A.G(dynamic)"),
                 // (14,17): warning CS0108: 'B.H(dynamic[])' hides inherited member 'A.H(params object[])'. Use the new keyword if hiding was intended.
@@ -346,12 +346,12 @@ using System;
  
 class C
 {
-    public virtual void Foo(Action<dynamic> a) { }
+    public virtual void Goo(Action<dynamic> a) { }
 }
  
 class D : C
 {
-    public override void Foo(Action<object> b) { }
+    public override void Goo(Action<object> b) { }
 }
  
 class Program
@@ -359,8 +359,8 @@ class Program
     static void Main()
     {
         var d = new D();
-        d.Foo(x => x.Bar());
-        d.Foo(b: x => x.Bar());
+        d.Goo(x => x.Bar());
+        d.Goo(b: x => x.Bar());
     }
 }
 ";
@@ -375,14 +375,14 @@ using System;
  
 class C
 {
-    public virtual void Foo<T>(T t, Action<dynamic> a) where T : struct
+    public virtual void Goo<T>(T t, Action<dynamic> a) where T : struct
     {
     }
 }
  
 class D : C
 {
-    public override void Foo<T>(T t, Action<object> a) { }
+    public override void Goo<T>(T t, Action<object> a) { }
 }
  
 class Program
@@ -390,7 +390,7 @@ class Program
     static void Main()
     {
         var d = new D();
-        d.Foo(1, x => x.Bar());
+        d.Goo(1, x => x.Bar());
     }
 }
 ";
@@ -588,7 +588,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (9,30): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "&d").WithArguments("dynamic"),
                 // (10,15): error CS0193: The * or -> operator must be applied to a pointer
@@ -1137,25 +1137,28 @@ public unsafe class C
 
     static void M()
     {
-        var x = s1 ? d1 : s2;  
-        var y = s1 ? d2 : M;  
-        var z = s1 ? M : d2;  
-        var v = s1 ? ptr : d2;  
-        var w = s1 ? d2 : ptr;  
+        var x = s1 ? d1 : s2; // ok
+        var y = s1 ? d2 : M;
+        var z = s1 ? M : d2;
+        var v = s1 ? ptr : d2;
+        var w = s1 ? d2 : ptr;
     }
 }
 ";
             CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (11,17): error CS0172: Type of conditional expression cannot be determined because 'dynamic[]' and 'object[]' implicitly convert to one another
-                Diagnostic(ErrorCode.ERR_AmbigQM, "s1 ? d1 : s2").WithArguments("dynamic[]", "object[]"),
-                // (12,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'dynamic' and 'method group'
-                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? d2 : M").WithArguments("dynamic", "method group"),
-                // (13,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'method group' and 'dynamic'
-                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? M : d2").WithArguments("method group", "dynamic"),
-                // (16,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'void*' and 'dynamic'
-                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? ptr : d2").WithArguments("void*", "dynamic"),
+                // (13,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'dynamic' and 'method group'
+                //         var y = s1 ? d2 : M;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? d2 : M").WithArguments("dynamic", "method group").WithLocation(13, 17),
+                // (14,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'method group' and 'dynamic'
+                //         var z = s1 ? M : d2;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? M : d2").WithArguments("method group", "dynamic").WithLocation(14, 17),
+                // (15,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'void*' and 'dynamic'
+                //         var v = s1 ? ptr : d2;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? ptr : d2").WithArguments("void*", "dynamic").WithLocation(15, 17),
                 // (16,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'dynamic' and 'void*'
-                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? d2 : ptr").WithArguments("dynamic", "void*"));
+                //         var w = s1 ? d2 : ptr;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "s1 ? d2 : ptr").WithArguments("dynamic", "void*").WithLocation(16, 17)
+                );
         }
 
         #endregion
@@ -1180,7 +1183,7 @@ class C
     static void Main() {}
 }";
 
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (8,23): error CS0307: The property 'N' cannot be used with type arguments
                 //         object x = d1.N<int>; 
@@ -1222,25 +1225,25 @@ class C
     static void M(dynamic d)
     {
         int z;
-        d.Foo(__arglist(123, 456));
-        d.Foo(x: 123, y: 456, 789);
-        d.Foo(ref z);
-        d.Foo(System.Console.WriteLine());
+        d.Goo(__arglist(123, 456));
+        d.Goo(x: 123, y: 456, 789);
+        d.Goo(ref z);
+        d.Goo(System.Console.WriteLine());
     }
 }";
             var comp = CreateCompilationWithMscorlibAndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (7,15): error CS1978: Cannot use an expression of type '__arglist' as an argument to a dynamically dispatched operation.
-                //         d.Foo(__arglist(123, 456));
+                //         d.Goo(__arglist(123, 456));
                 Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "__arglist(123, 456)").WithArguments("__arglist"),
                 // (8,31): error CS1738: Named argument specifications must appear after all fixed arguments have been specified
-                //         d.Foo(x: 123, y: 456, 789);
+                //         d.Goo(x: 123, y: 456, 789);
                 Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "789"),
                 // (9,19): error CS0165: Use of unassigned local variable 'z'
-                //         d.Foo(ref z);
+                //         d.Goo(ref z);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "z").WithArguments("z"),
                 // (10,15): error CS1978: Cannot use an expression of type 'void' as an argument to a dynamically dispatched operation.
-                //         d.Foo(System.Console.WriteLine());
+                //         d.Goo(System.Console.WriteLine());
                 Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "System.Console.WriteLine()").WithArguments("void"));
         }
 
@@ -1250,19 +1253,19 @@ class C
             string source = @"
 class C
 {
-    public void Foo() {}
-    public void Foo(int x, int y) {}
+    public void Goo() {}
+    public void Goo(int x, int y) {}
     public void M(dynamic d, C c)
     {
         // We know that this cannot possibly succeed when dynamically bound, so we give an error at compile time.
-        c.Foo(d);
+        c.Goo(d);
     }
 }";
             var comp = CreateCompilationWithMscorlibAndSystemCore(source);
             comp.VerifyDiagnostics(
-    // (9,11): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.Foo(int, int)'
-    //         c.Foo(d);
-    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Foo").WithArguments("y", "C.Foo(int, int)").WithLocation(9, 11)
+    // (9,11): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.Goo(int, int)'
+    //         c.Goo(d);
+    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Goo").WithArguments("y", "C.Goo(int, int)").WithLocation(9, 11)
                 );
         }
 
@@ -1272,28 +1275,28 @@ class C
             string source = @"
 class C
 {
-    public void Foo() {}
-    public void Foo(int x) {}
-    public void Foo(string x) {}
-    public void Foo<T>(int x, int y) where T : class {}
-    public void Foo<T>(string x, string y) where T : class {}
+    public void Goo() {}
+    public void Goo(int x) {}
+    public void Goo(string x) {}
+    public void Goo<T>(int x, int y) where T : class {}
+    public void Goo<T>(string x, string y) where T : class {}
 
     static void M(dynamic d, C c)
     {
         // This could be either of the one-parameter overloads so we allow it.
-        c.Foo(d);
+        c.Goo(d);
 
         // Doesn't constraints of generic overloads.
-        c.Foo<short>(d, d);
+        c.Goo<short>(d, d);
     }
 }";
             // Dev11: doesn't report an error
 
             var comp = CreateCompilationWithMscorlibAndSystemCore(source);
             comp.VerifyDiagnostics(
-                // (16,9): error CS0452: The type 'short' must be a reference type in order to use it as parameter 'T' in the generic type or method 'C.Foo<T>(int, int)'
-                //         c.Foo<short>(d, d);
-                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "c.Foo<short>(d, d)").WithArguments("C.Foo<T>(int, int)", "T", "short"));
+                // (16,9): error CS0452: The type 'short' must be a reference type in order to use it as parameter 'T' in the generic type or method 'C.Goo<T>(int, int)'
+                //         c.Goo<short>(d, d);
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "c.Goo<short>(d, d)").WithArguments("C.Goo<T>(int, int)", "T", "short"));
         }
 
         [Fact]
@@ -1310,7 +1313,7 @@ public class A
   
     public class B
     {
-        public void Foo()
+        public void Goo()
         {
             dynamic d = null;
             F(d);
@@ -1365,7 +1368,7 @@ class C
     static void Bar<T>(dynamic d, T a) { }
     static void Bar<T>(dynamic d, int a) { }
 
-    static void Foo()
+    static void Goo()
     {
         Bar<int>(1, 2);
     }
@@ -1510,10 +1513,10 @@ class C
     static void Main()
     {
         dynamic x = """";
-        Foo(x, """");
+        Goo(x, """");
     }
  
-    static void Foo<T, S>(T x, S y) where S : IComparable<T>
+    static void Goo<T, S>(T x, S y) where S : IComparable<T>
     {
     }
 }
@@ -1531,16 +1534,16 @@ class Program
 {
     static void Main()
     {
-        Foo((dynamic)1, 1);
+        Goo((dynamic)1, 1);
     }
  
-    static void Foo<T>(int x, T y) where T : IEnumerable
+    static void Goo<T>(int x, T y) where T : IEnumerable
     {
     }
 }
 ";
             // Dev11 reports error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method
-            // 'Program.Foo<T>(int, T)'. There is no boxing conversion from 'int' to 'System.Collections.IEnumerable'.
+            // 'Program.Goo<T>(int, T)'. There is no boxing conversion from 'int' to 'System.Collections.IEnumerable'.
 
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
         }
@@ -1555,18 +1558,18 @@ class Program
 {
     static void Main()
     {
-        Foo<int>((dynamic)1, 1);
+        Goo<int>((dynamic)1, 1);
     }
  
-    static void Foo<T>(int x, T y) where T : IEnumerable
+    static void Goo<T>(int x, T y) where T : IEnumerable
     {
     }
 }
 ";
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
-                // (8,9): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'Program.Foo<T>(int, T)'. 
+                // (8,9): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'Program.Goo<T>(int, T)'. 
                 // There is no boxing conversion from 'int' to 'System.Collections.IEnumerable'.
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "Foo<int>((dynamic)1, 1)").WithArguments("Program.Foo<T>(int, T)", "System.Collections.IEnumerable", "T", "int"));
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "Goo<int>((dynamic)1, 1)").WithArguments("Program.Goo<T>(int, T)", "System.Collections.IEnumerable", "T", "int"));
         }
 
         [Fact]
@@ -1860,12 +1863,12 @@ using System.Linq;
  
 abstract class A<T>
 {
-    public abstract void Foo<S>(S x) where S : List<T>, IList<T>;
+    public abstract void Goo<S>(S x) where S : List<T>, IList<T>;
 }
  
 class B : A<dynamic>
 {
-    public override void Foo<S>(S x)
+    public override void Goo<S>(S x)
     {
         x.First();
     }
@@ -1882,12 +1885,12 @@ using System;
 
 abstract class A<T>
 {
-    public abstract void Foo<S>(S x) where S : T;
+    public abstract void Goo<S>(S x) where S : T;
 }
 
 class B : A<Func<int, dynamic>>
 {
-    public override void Foo<S>(S x)
+    public override void Goo<S>(S x)
     {
         x.Invoke(1).Bar();
     }
@@ -1907,12 +1910,12 @@ using System;
 
 abstract class A<T>
 {
-    public abstract void Foo<S>(S x) where S : T;
+    public abstract void Goo<S>(S x) where S : T;
 }
 
 unsafe class B : A<Func<Action<D<dynamic>.E*[]>, int>>
 {
-    public override void Foo<S>(S x)
+    public override void Goo<S>(S x)
     {
         x.Invoke(1);
     }
@@ -2494,7 +2497,7 @@ class C : List<int>
         Expression<Func<C>> e1 = () => new C { D = 1 };  // ok
         Expression<Func<C>> e2 = () => new C { D = { X = { Y = 1 }, Z = 1 } };
 		Expression<Func<C>> e3 = () => new C() { { d }, { d, d, d } };
-        Expression<Func<dynamic, dynamic>> e4 = x => x.foo();
+        Expression<Func<dynamic, dynamic>> e4 = x => x.goo();
         Expression<Func<dynamic, dynamic>> e5 = x => x[1];
         Expression<Func<dynamic, dynamic>> e6 = x => x.y.z;
         Expression<Func<dynamic, dynamic>> e7 = x => x + 1;
@@ -2544,11 +2547,11 @@ class C : List<int>
                 //         Expression<Func<C>> e3 = () => new C() { { d }, { d, d, d } };
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "{ d, d, d }"),
                 // (29,54): error CS1963: An expression tree may not contain a dynamic operation
-                //         Expression<Func<dynamic, dynamic>> e4 = x => x.foo();
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "x.foo()"),
+                //         Expression<Func<dynamic, dynamic>> e4 = x => x.goo();
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "x.goo()"),
                 // (29,54): error CS1963: An expression tree may not contain a dynamic operation
-                //         Expression<Func<dynamic, dynamic>> e4 = x => x.foo();
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "x.foo"),
+                //         Expression<Func<dynamic, dynamic>> e4 = x => x.goo();
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "x.goo"),
                 // (30,54): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<dynamic, dynamic>> e5 = x => x[1];
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "x[1]"),
@@ -2598,10 +2601,10 @@ class Program
 {
     static void Main()
     {
-        Expression<Action<dynamic>> e = x => Foo(ref x);
+        Expression<Action<dynamic>> e = x => Goo(ref x);
     }
  
-    static void Foo<T>(ref T x) { }
+    static void Goo<T>(ref T x) { }
 }
 ";
             CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef });
@@ -2646,6 +2649,29 @@ class C : List<int>
                 // (16,55): error CS1989: Async lambda expressions cannot be converted to expression trees
                 //         Expression<Func<dynamic, Task<dynamic>>> e4 = async (x) => { return await d; };
                 Diagnostic(ErrorCode.ERR_BadAsyncExpressionTree, "async (x) => { return await d; }"));
+        }
+
+        [Fact]
+        [WorkItem(18320, "https://github.com/dotnet/roslyn/issues/18320")]
+        public void TestMissingMicrosoftCSharpDllReference()
+        {
+            string source = @"
+public class Class1
+{
+    public dynamic GetResponse()
+    {
+        return null;
+    }
+    public async void GetResponseTest()
+    {
+        var result = await GetResponse();
+    }
+}";
+            CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugDll).VerifyEmitDiagnostics(
+                // (10,28): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create'
+                //         var result = await GetResponse();
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "GetResponse()").WithArguments("Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo", "Create").WithLocation(10, 28)
+                );
         }
 
         #endregion
@@ -2718,7 +2744,7 @@ class C
     {
         var x = from a in new Q<int>()
                 select a;
-        x.foo();
+        x.goo();
     }
 }
 ";
@@ -3133,7 +3159,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -3186,7 +3212,6 @@ class C
                                     //-thisReference: C
                                     //-fieldAccess: dynamic
                                     //-unaryOperator: bool
-                                    //-sequencePointExpression: bool
         {
         }
     }
@@ -3234,10 +3259,10 @@ class Test
         IEnumerable<object> objectSource = null;
         Action<dynamic> dynamicAction = null;
         // Fails under Roslyn, compiles under C# 5 compiler
-        Foo(objectSource, dynamicAction);
+        Goo(objectSource, dynamicAction);
     }
 
-    static void Foo<T>(IEnumerable<T> source, Action<T> action)
+    static void Goo<T>(IEnumerable<T> source, Action<T> action)
     {
         System.Console.WriteLine(typeof(T));
     }
@@ -3247,8 +3272,8 @@ class Test
             var tree = verifier.Compilation.SyntaxTrees.Single();
             var model = verifier.Compilation.GetSemanticModel(tree);
 
-            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Foo").Single();
-            Assert.Equal("void Test.Foo<dynamic>(System.Collections.Generic.IEnumerable<dynamic> source, System.Action<dynamic> action)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Goo").Single();
+            Assert.Equal("void Test.Goo<dynamic>(System.Collections.Generic.IEnumerable<dynamic> source, System.Action<dynamic> action)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
         [Fact, WorkItem(922611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/922611"), WorkItem(56, "CodePlex")]
@@ -3265,10 +3290,10 @@ class Test
         IEnumerable<object> objectSource = null;
         Action<dynamic> dynamicAction = null;
         // Fails under Roslyn, compiles under C# 5 compiler
-        Foo(dynamicAction, objectSource);
+        Goo(dynamicAction, objectSource);
     }
 
-    static void Foo<T>(Action<T> action, IEnumerable<T> source)
+    static void Goo<T>(Action<T> action, IEnumerable<T> source)
     {
         System.Console.WriteLine(typeof(T));
     }
@@ -3280,8 +3305,8 @@ class Test
             var tree = verifier.Compilation.SyntaxTrees.Single();
             var model = verifier.Compilation.GetSemanticModel(tree);
 
-            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Foo").Single();
-            Assert.Equal("void Test.Foo<dynamic>(System.Action<dynamic> action, System.Collections.Generic.IEnumerable<dynamic> source)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Goo").Single();
+            Assert.Equal("void Test.Goo<dynamic>(System.Action<dynamic> action, System.Collections.Generic.IEnumerable<dynamic> source)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
         [Fact, WorkItem(875140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875140")]
@@ -3296,10 +3321,10 @@ class Program
     unsafe static void Main()
     {
         Action<dynamic, object> action = delegate { };
-        void* p = Pointer.Unbox(Foo(action));
+        void* p = Pointer.Unbox(Goo(action));
     }
  
-    static T Foo<T>(Action<T, T> x) { throw null; }
+    static T Goo<T>(Action<T, T> x) { throw null; }
 }
 ";
             var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true)).VerifyDiagnostics();
@@ -3307,8 +3332,8 @@ class Program
             var tree = verifier.Compilation.SyntaxTrees.Single();
             var model = verifier.Compilation.GetSemanticModel(tree);
 
-            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Foo").Single();
-            Assert.Equal("System.Object Program.Foo<System.Object>(System.Action<System.Object, System.Object> x)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Goo").Single();
+            Assert.Equal("System.Object Program.Goo<System.Object>(System.Action<System.Object, System.Object> x)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
         [Fact, WorkItem(875140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875140")]
@@ -3323,10 +3348,10 @@ class Program
     unsafe static void Main()
     {
         Action<object, dynamic> action = delegate { };
-        void* p = Pointer.Unbox(Foo(action));
+        void* p = Pointer.Unbox(Goo(action));
     }
  
-    static T Foo<T>(Action<T, T> x) { throw null; }
+    static T Goo<T>(Action<T, T> x) { throw null; }
 }
 ";
             var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true)).VerifyDiagnostics();
@@ -3334,8 +3359,8 @@ class Program
             var tree = verifier.Compilation.SyntaxTrees.Single();
             var model = verifier.Compilation.GetSemanticModel(tree);
 
-            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Foo").Single();
-            Assert.Equal("System.Object Program.Foo<System.Object>(System.Action<System.Object, System.Object> x)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Goo").Single();
+            Assert.Equal("System.Object Program.Goo<System.Object>(System.Action<System.Object, System.Object> x)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
         [Fact, WorkItem(875140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875140")]
@@ -3350,16 +3375,16 @@ class Program
     unsafe static void Main()
     {
         Func<object, dynamic> action = null;
-        void* p = Pointer.Unbox(Foo(action));
+        void* p = Pointer.Unbox(Goo(action));
     }
  
-    static T Foo<T>(Func<T, T> x) { throw null; }
+    static T Goo<T>(Func<T, T> x) { throw null; }
 }
 ";
-            CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll.WithAllowUnsafe(true)).VerifyDiagnostics(
-    // (10,33): error CS0411: The type arguments for method 'Program.Foo<T>(Func<T, T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-    //         void* p = Pointer.Unbox(Foo(action));
-    Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Foo").WithArguments("Program.Foo<T>(System.Func<T, T>)").WithLocation(10, 33)
+            CreateStandardCompilation(source, options: TestOptions.DebugDll.WithAllowUnsafe(true)).VerifyDiagnostics(
+    // (10,33): error CS0411: The type arguments for method 'Program.Goo<T>(Func<T, T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+    //         void* p = Pointer.Unbox(Goo(action));
+    Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Goo").WithArguments("Program.Goo<T>(System.Func<T, T>)").WithLocation(10, 33)
                 );
         }
 
@@ -3374,10 +3399,10 @@ class Program
     static void Main()
     {
         Func<dynamic, object> action = null;
-        Foo(action).M1();
+        Goo(action).M1();
     }
  
-    static T Foo<T>(Func<T, T> x) { throw null; }
+    static T Goo<T>(Func<T, T> x) { throw null; }
 }
 ";
             var verifier = CompileAndVerify(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll).VerifyDiagnostics();
@@ -3385,8 +3410,8 @@ class Program
             var tree = verifier.Compilation.SyntaxTrees.Single();
             var model = verifier.Compilation.GetSemanticModel(tree);
 
-            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Foo").Single();
-            Assert.Equal("dynamic Program.Foo<dynamic>(System.Func<dynamic, dynamic> x)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Goo").Single();
+            Assert.Equal("dynamic Program.Goo<dynamic>(System.Func<dynamic, dynamic> x)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
         [Fact, WorkItem(1149588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1149588")]
@@ -3429,7 +3454,7 @@ class Test
 }
 ";
 
-            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { reference.WithEmbedInteropTypes(true), CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
+            var compilation2 = CreateStandardCompilation(source2, new[] { reference.WithEmbedInteropTypes(true), CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation2, expectedOutput: @"4");
         }
@@ -3452,7 +3477,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll);
+            var compilation = CreateStandardCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll);
             // crash happens during emit if not detected, so VerifyDiagnostics (no Emit) doesn't catch the crash.
             compilation.VerifyEmitDiagnostics(
                 // (7,25): error CS0154: The property or indexer 'Program.I.d' cannot be used in this context because it lacks the get accessor
@@ -3479,7 +3504,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll);
+            var compilation = CreateStandardCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll);
             compilation.VerifyEmitDiagnostics(
                 // (7,25): error CS0154: The property or indexer 'Program.I.this[string]' cannot be used in this context because it lacks the get accessor
                 //         System.Type t = i[null].GetType();
@@ -3639,7 +3664,7 @@ class Program
 }
 ";
 
-            MetadataReference reference = CompileIL(iLSource, appendDefaultHeader: false, embedInteropTypes: false);
+            MetadataReference reference = CompileIL(iLSource, prependDefaultHeader: false, embedInteropTypes: false);
 
             string consumer1 = @"
 using Microsoft.Office.Interop.Excel;
@@ -3656,7 +3681,7 @@ class Test
 }
 ";
 
-            var compilation1 = CreateCompilationWithMscorlib(consumer1, options: TestOptions.ReleaseExe,
+            var compilation1 = CreateStandardCompilation(consumer1, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { reference, CSharpRef, SystemCoreRef });
 
             compilation1.VerifyDiagnostics(
@@ -3679,7 +3704,7 @@ class Test
 }
 ";
 
-            var compilation2 = CreateCompilationWithMscorlib(consumer2, options: TestOptions.ReleaseExe,
+            var compilation2 = CreateStandardCompilation(consumer2, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { reference, CSharpRef, SystemCoreRef });
 
             compilation2.VerifyDiagnostics(
@@ -3767,7 +3792,7 @@ class Test
 } // end of class WithIndexer
 ";
 
-            MetadataReference reference = CompileIL(iLSource, appendDefaultHeader: true, embedInteropTypes: false);
+            MetadataReference reference = CompileIL(iLSource, prependDefaultHeader: true, embedInteropTypes: false);
 
             string consumer1 = @"
 class Test
@@ -3780,7 +3805,7 @@ class Test
     }
 }";
 
-            var compilation1 = CreateCompilationWithMscorlib(consumer1, options: TestOptions.ReleaseExe,
+            var compilation1 = CreateStandardCompilation(consumer1, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { reference, CSharpRef, SystemCoreRef });
 
             CompileAndVerify(compilation1, expectedOutput: "MIndexer").VerifyDiagnostics();
@@ -3796,7 +3821,7 @@ class Test
     }
 }";
 
-            var compilation2 = CreateCompilationWithMscorlib(consumer2, options: TestOptions.ReleaseExe,
+            var compilation2 = CreateStandardCompilation(consumer2, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { reference, CSharpRef, SystemCoreRef });
 
             compilation2.VerifyDiagnostics(

@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -182,7 +183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             collectionExpression As BoundExpression
         )
 
-            Dim syntaxNode = DirectCast(node.Syntax, ForOrForEachBlockSyntax)
+            Dim syntaxNode = DirectCast(node.Syntax, ForEachBlockSyntax)
 
             Dim generateUnstructuredExceptionHandlingResumeCode As Boolean = ShouldGenerateUnstructuredExceptionHandlingResumeCode(node)
 
@@ -217,7 +218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Dim collectionCopy As C = c
             Dim boundCollectionLocal As BoundLocal = Nothing
-            Dim boundCollectionAssignment = CreateLocalAndAssignment(syntaxNode.ForOrForEachStatement,
+            Dim boundCollectionAssignment = CreateLocalAndAssignment(syntaxNode.ForEachStatement,
                                                                      collectionExpression.MakeRValue(),
                                                                      boundCollectionLocal,
                                                                      locals,
@@ -227,9 +228,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 boundCollectionAssignment = New BoundStatementList(boundCollectionAssignment.Syntax, loopResumeTarget.Add(boundCollectionAssignment))
             End If
 
-            If GenerateDebugInfo Then
+            If Instrument(node) Then
                 ' first sequence point to highlight the for each statement
-                boundCollectionAssignment = New BoundSequencePoint(DirectCast(node.Syntax, ForOrForEachBlockSyntax).ForOrForEachStatement, boundCollectionAssignment)
+                boundCollectionAssignment = _instrumenterOpt.InstrumentForEachLoopInitialization(node, boundCollectionAssignment)
             End If
 
             statements.Add(boundCollectionAssignment)
@@ -237,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Dim collectionIndex As Integer = 0
             Dim boundIndex As BoundLocal = Nothing
             Dim integerType = GetSpecialTypeWithUseSiteDiagnostics(SpecialType.System_Int32, syntaxNode)
-            Dim boundIndexInitialization = CreateLocalAndAssignment(syntaxNode.ForOrForEachStatement,
+            Dim boundIndexInitialization = CreateLocalAndAssignment(syntaxNode.ForEachStatement,
                                                                     New BoundLiteral(syntaxNode,
                                                                                      ConstantValue.Default(SpecialType.System_Int32),
                                                                                      integerType),
@@ -296,7 +297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                              type:=elementType)
                 Else
                     boundCurrent = New BoundBadExpression(syntaxNode, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty,
-                                                          ImmutableArray.Create(Of BoundNode)(boundIndex.MakeRValue()), elementType, hasErrors:=True)
+                                                          ImmutableArray.Create(Of BoundExpression)(boundIndex.MakeRValue()), elementType, hasErrors:=True)
                 End If
             End If
             ' now we know the bound node for the current value; add it to the replacement map to get inserted into the
@@ -400,9 +401,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             boundIncrementAssignment = DirectCast(Visit(boundIncrementAssignment), BoundStatement)
 
-            If GenerateDebugInfo Then
+            If Instrument Then
                 ' create a hidden sequence point for the index increment to not stop on it while debugging
-                boundIncrementAssignment = New BoundSequencePoint(Nothing, boundIncrementAssignment)
+                boundIncrementAssignment = SyntheticBoundNodeFactory.HiddenSequencePoint(boundIncrementAssignment)
             End If
 
             Return boundIncrementAssignment
@@ -428,20 +429,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim body = DirectCast(Visit(forEachStatement.Body), BoundStatement)
             Dim statementSyntax = forEachStatement.Syntax
-            Dim endSyntax = DirectCast(statementSyntax, ForEachBlockSyntax).NextStatement
+            Dim epilogue As BoundStatement = Nothing
 
             If generateUnstructuredExceptionHandlingResumeCode Then
-                If GenerateDebugInfo AndAlso endSyntax IsNot Nothing Then
-                    incrementAssignment = Concat(New BoundSequencePoint(endSyntax,
-                                                                        New BoundStatementList(statementSyntax, RegisterUnstructuredExceptionHandlingResumeTarget(statementSyntax, canThrow:=True))),
-                                                 incrementAssignment)
-                Else
-                    incrementAssignment = New BoundStatementList(statementSyntax,
-                                                                 RegisterUnstructuredExceptionHandlingResumeTarget(statementSyntax, canThrow:=True).Add(incrementAssignment))
-                End If
-            ElseIf GenerateDebugInfo AndAlso endSyntax IsNot Nothing Then
-                incrementAssignment = Concat(New BoundSequencePoint(endSyntax, Nothing),
-                                             incrementAssignment)
+                epilogue = New BoundStatementList(statementSyntax, RegisterUnstructuredExceptionHandlingResumeTarget(statementSyntax, canThrow:=True))
+            End If
+
+            If Instrument(forEachStatement) Then
+                epilogue = _instrumenterOpt.InstrumentForEachLoopEpilogue(forEachStatement, epilogue)
+            End If
+
+            If epilogue IsNot Nothing Then
+                incrementAssignment = New BoundStatementList(statementSyntax, ImmutableArray.Create(epilogue, incrementAssignment))
             End If
 
             ' Note: we're moving the continue label before the increment of the array index to not create an infinite loop
@@ -475,8 +474,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' beginning of the loop to the condition to check it for the first time.
             ' Also: see while body creation above
             Dim boundWhileStatement = RewriteWhileStatement(forEachStatement,
-                                                            Nothing,
-                                                            Nothing,
                                                             VisitExpressionNode(boundCondition),
                                                             rewrittenBodyBlock,
                                                             New GeneratedLabelSymbol("postIncrement"),
@@ -539,7 +536,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             statements As ArrayBuilder(Of BoundStatement),
             locals As ArrayBuilder(Of LocalSymbol)
         )
-            Dim syntaxNode = DirectCast(node.Syntax, ForOrForEachBlockSyntax)
+            Dim syntaxNode = DirectCast(node.Syntax, ForEachBlockSyntax)
             Dim enumeratorInfo = node.EnumeratorInfo
 
             ' We don't wrap the loop with a Try block if On Error is present.
@@ -569,7 +566,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Get Enumerator and store it in a temporary
             ' FYI: The GetEnumerator call accesses the collection and does not contain a placeholder.
             Dim boundEnumeratorLocal As BoundLocal = Nothing
-            Dim boundEnumeratorAssignment = CreateLocalAndAssignment(syntaxNode.ForOrForEachStatement,
+            Dim boundEnumeratorAssignment = CreateLocalAndAssignment(syntaxNode.ForEachStatement,
                                                                      enumeratorInfo.GetEnumerator,
                                                                      boundEnumeratorLocal,
                                                                      locals,
@@ -579,9 +576,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 boundEnumeratorAssignment = New BoundStatementList(boundEnumeratorAssignment.Syntax, loopResumeTarget.Add(boundEnumeratorAssignment))
             End If
 
-            If GenerateDebugInfo Then
+            If Instrument(node) Then
                 ' first sequence point; highlight for each statement
-                boundEnumeratorAssignment = New BoundSequencePoint(DirectCast(node.Syntax, ForOrForEachBlockSyntax).ForOrForEachStatement, boundEnumeratorAssignment)
+                boundEnumeratorAssignment = _instrumenterOpt.InstrumentForEachLoopInitialization(node, boundEnumeratorAssignment)
             End If
 
             Debug.Assert(enumeratorInfo.EnumeratorPlaceholder IsNot Nothing)
@@ -617,19 +614,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 bodyEpilogue = Concat(bodyEpilogue, New BoundStatementList(syntaxNode, RegisterUnstructuredExceptionHandlingResumeTarget(syntaxNode, canThrow:=True)))
             End If
 
-            If GenerateDebugInfo Then
-                Dim statementEndSyntax = DirectCast(syntaxNode, ForEachBlockSyntax).NextStatement
-                If statementEndSyntax IsNot Nothing Then
-                    bodyEpilogue = New BoundSequencePoint(statementEndSyntax, bodyEpilogue)
-                End If
+            If Instrument(node) Then
+                bodyEpilogue = _instrumenterOpt.InstrumentForEachLoopEpilogue(node, bodyEpilogue)
             End If
 
             rewrittenBodyBlock = AppendToBlock(rewrittenBodyBlock, bodyEpilogue)
 
             ' now build while loop
             Dim boundWhileStatement = RewriteWhileStatement(node,
-                                                            Nothing,
-                                                            Nothing,
                                                             VisitExpressionNode(enumeratorInfo.MoveNext),
                                                             rewrittenBodyBlock,
                                                             New GeneratedLabelSymbol("MoveNextLabel"),
@@ -712,7 +704,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' inherits or implements IDisposable or not.</param>
         ''' <param name="rewrittenDisposeConversion">Conversion from the local type to IDisposable</param>
         Public Function GenerateDisposeCallForForeachAndUsing(
-            syntaxNode As VisualBasicSyntaxNode,
+            syntaxNode As SyntaxNode,
             rewrittenBoundLocal As BoundLocal,
             rewrittenCondition As BoundExpression,
             IsOrInheritsFromOrImplementsIDisposable As Boolean,
@@ -722,8 +714,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not TryGetSpecialMember(disposeMethod, SpecialMember.System_IDisposable__Dispose, syntaxNode) Then
                 Return New BoundBadExpression(syntaxNode, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty,
                                               If(rewrittenCondition IsNot Nothing,
-                                                 ImmutableArray.Create(Of BoundNode)(rewrittenBoundLocal, rewrittenCondition),
-                                                 ImmutableArray.Create(Of BoundNode)(rewrittenBoundLocal)),
+                                                 ImmutableArray.Create(rewrittenBoundLocal, rewrittenCondition),
+                                                 ImmutableArray.Create(Of BoundExpression)(rewrittenBoundLocal)),
                                               ErrorTypeSymbol.UnknownResultType, hasErrors:=True).ToStatement()
             End If
 
@@ -772,7 +764,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' if statement (either the condition is "e IsNot nothing" or "TryCast(e, IDisposable) IsNot Nothing", see comment above)
-            Return RewriteIfStatement(syntaxNode, rewrittenCondition.Syntax, rewrittenCondition, boundCall, Nothing, generateDebugInfo:=False)
+            Return RewriteIfStatement(syntaxNode, rewrittenCondition, boundCall, Nothing, instrumentationTargetOpt:=Nothing)
         End Function
 
         ''' <summary>

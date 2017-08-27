@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
-    internal class StringKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    internal class StringKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
     {
         public StringKeywordRecommender()
             : base(SyntaxKind.StringKeyword)
@@ -37,11 +37,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 syntaxTree.IsAfterKeyword(position, SyntaxKind.ConstKeyword, cancellationToken) ||
                 context.IsDelegateReturnTypeContext ||
                 syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
+                context.IsPossibleTupleContext ||
                 context.IsMemberDeclarationContext(
                     validModifiers: SyntaxKindSet.AllMemberModifiers,
                     validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
                     canBePartial: false,
                     cancellationToken: cancellationToken);
         }
+
+        protected override SpecialType SpecialType => SpecialType.System_String;
     }
 }

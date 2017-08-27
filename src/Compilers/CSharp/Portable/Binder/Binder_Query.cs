@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -200,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // there should have been a syntax error if we get here.
                         return new BoundBadExpression(
                             state.selectOrGroup, LookupResultKind.OverloadResolutionFailure, ImmutableArray<Symbol>.Empty,
-                            ImmutableArray.Create<BoundNode>(state.fromExpression), state.fromExpression.Type);
+                            ImmutableArray.Create(state.fromExpression), state.fromExpression.Type);
                     }
             }
         }
@@ -224,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result.Update(
                 result.ReceiverOpt, result.Method, arguments.ToImmutableAndFree(), default(ImmutableArray<string>),
                 default(ImmutableArray<RefKind>), result.IsDelegateCall, result.Expanded, result.InvokedAsExtensionMethod,
-                argsToParams.ToImmutableAndFree(), result.ResultKind, result.Type);
+                argsToParams.ToImmutableAndFree(), result.ResultKind, result.BinderOpt, result.Type);
         }
 
         private void ReduceQuery(QueryTranslationState state, DiagnosticBag diagnostics)
@@ -297,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (state.clauses.IsEmpty() && state.selectOrGroup.Kind() == SyntaxKind.SelectClause)
             {
-                var select = state.selectOrGroup as SelectClauseSyntax;
+                var select = (SelectClauseSyntax)state.selectOrGroup;
                 BoundCall invocation;
                 if (join.Into == null)
                 {
@@ -570,19 +571,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!yExpression.HasAnyErrors && !yExpression.HasExpressionType())
                 {
                     Error(d, ErrorCode.ERR_QueryRangeVariableAssignedBadValue, errorLocation, yExpression.Display);
-                    yExpression = new BoundBadExpression(yExpression.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(yExpression), CreateErrorType());
+                    yExpression = new BoundBadExpression(yExpression.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(yExpression), CreateErrorType());
                 }
                 else if (!yExpression.HasAnyErrors && yExpression.Type.SpecialType == SpecialType.System_Void)
                 {
                     Error(d, ErrorCode.ERR_QueryRangeVariableAssignedBadValue, errorLocation, yExpression.Type);
-                    yExpression = new BoundBadExpression(yExpression.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(yExpression), yExpression.Type);
+                    yExpression = new BoundBadExpression(yExpression.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(yExpression), yExpression.Type);
                 }
 
                 var construction = MakePair(let, x.Name, xExpression, let.Identifier.ValueText, yExpression, state, d);
 
                 // The bound block represents a closure scope for transparent identifiers captured in the let clause.
                 // Such closures shall be associated with the lambda body expression.
-                return lambdaBodyBinder.CreateBlockFromExpression(let.Expression, lambdaBodyBinder.GetDeclaredLocalsForScope(let.Expression), RefKind.None, construction, null, d);
+                return lambdaBodyBinder.CreateLambdaBlockForQueryClause(let.Expression, construction, d);
             };
 
             var lambda = MakeQueryUnboundLambda(state.RangeVariableMap(), ImmutableArray.Create(x), let.Expression, bodyFactory);
@@ -592,6 +593,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             state.allRangeVariables[y].Add(let.Identifier.ValueText);
             var invocation = MakeQueryInvocation(let, state.fromExpression, "Select", lambda, diagnostics);
             state.fromExpression = MakeQueryClause(let, invocation, y, invocation);
+        }
+
+        private BoundBlock CreateLambdaBlockForQueryClause(ExpressionSyntax expression, BoundExpression result, DiagnosticBag diagnostics)
+        {
+            var locals = this.GetDeclaredLocalsForScope(expression);
+            if (locals.Any())
+            {
+                diagnostics.Add(ErrorCode.ERR_ExpressionVariableInQueryClause, locals[0].Locations[0]);
+            }
+
+            return this.CreateBlockFromExpression(expression, locals, RefKind.None, result, expression, diagnostics);
         }
 
         private BoundQueryClause MakeQueryClause(
@@ -618,7 +630,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // we will generate a diagnostic elsewhere
                 field2Name = state.TransparentRangeVariableName();
-                field2Value = new BoundBadExpression(field2Value.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(field2Value), field2Value.Type, true);
+                field2Value = new BoundBadExpression(field2Value.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(field2Value), field2Value.Type, true);
             }
 
             AnonymousTypeDescriptor typeDescriptor = new AnonymousTypeDescriptor(
@@ -648,7 +660,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return MakeQueryUnboundLambda(expression, new QueryUnboundLambdaState(this, qvm, parameters, (LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, DiagnosticBag diagnostics) =>
             {
-                return lambdaBodyBinder.BindLambdaExpressionAsBlock(RefKind.None, expression, diagnostics);
+                lambdaBodyBinder = lambdaBodyBinder.GetBinder(expression);
+                Debug.Assert(lambdaSymbol != null);
+                BoundExpression boundExpression = lambdaBodyBinder.BindValue(expression, diagnostics, BindValueKind.RValue);
+                return lambdaBodyBinder.CreateLambdaBlockForQueryClause(expression, boundExpression, diagnostics);
             }));
         }
 
@@ -658,13 +673,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 lambdaBodyBinder = lambdaBodyBinder.GetBinder(expression);
                 Debug.Assert(lambdaBodyBinder != null);
-
                 BoundExpression boundExpression = lambdaBodyBinder.BindValue(expression, diagnostics, BindValueKind.RValue);
 
                 // We transform the expression from "expr" to "expr.Cast<castTypeOpt>()".
                 boundExpression = lambdaBodyBinder.MakeQueryInvocation(expression, boundExpression, "Cast", castTypeSyntax, castType, diagnostics);
 
-                return lambdaBodyBinder.CreateBlockFromExpression(expression, lambdaBodyBinder.GetDeclaredLocalsForScope(expression), RefKind.None, boundExpression, expression, diagnostics);
+                return lambdaBodyBinder.CreateLambdaBlockForQueryClause(expression, boundExpression, diagnostics);
             }));
         }
 
@@ -711,6 +725,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     diagnostics.Add(ErrorCode.ERR_NullNotValid, node.Location);
                 }
+                else if (ultimateReceiver.IsLiteralDefault())
+                {
+                    diagnostics.Add(ErrorCode.ERR_DefaultLiteralNotValid, node.Location);
+                }
+                else if (ultimateReceiver.Kind == BoundKind.NamespaceExpression)
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadSKunknown, ultimateReceiver.Syntax.Location, ultimateReceiver.Syntax, MessageID.IDS_SK_NAMESPACE.Localize());
+                }
                 else if (ultimateReceiver.Kind == BoundKind.Lambda || ultimateReceiver.Kind == BoundKind.UnboundLambda)
                 {
                     // Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.
@@ -735,7 +757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resolution.Free();
                 }
 
-                receiver = new BoundBadExpression(receiver.Syntax, LookupResultKind.NotAValue, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(receiver), CreateErrorType());
+                receiver = new BoundBadExpression(receiver.Syntax, LookupResultKind.NotAValue, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(receiver), CreateErrorType());
             }
             else if (receiver.Type.SpecialType == SpecialType.System_Void)
             {
@@ -744,7 +766,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_QueryNoProvider, node.Location, "void", methodName);
                 }
 
-                receiver = new BoundBadExpression(receiver.Syntax, LookupResultKind.NotAValue, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(receiver), CreateErrorType());
+                receiver = new BoundBadExpression(receiver.Syntax, LookupResultKind.NotAValue, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(receiver), CreateErrorType());
             }
 
             return (BoundCall)MakeInvocationExpression(

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -415,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var memberSymbol = rewrittenLeft.MemberSymbol;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            Debug.Assert(memberSymbol != null && _compilation.Conversions.ClassifyConversion(rewrittenReceiver.Type, memberSymbol.ContainingType, ref useSiteDiagnostics).IsImplicit);
+            Debug.Assert(memberSymbol != null && _compilation.Conversions.ClassifyConversionFromType(rewrittenReceiver.Type, memberSymbol.ContainingType, ref useSiteDiagnostics).IsImplicit);
             // It is possible there are use site diagnostics from the above, but none that we need report as we aren't generating code for the conversion
 
             switch (memberSymbol.Kind)

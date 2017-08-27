@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Threading.Tasks;
@@ -12,28 +12,28 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
     public class FileCodeVariableManipulationTests : AbstractFileCodeElementTests
     {
         public FileCodeVariableManipulationTests()
-            : base(@"class Foo
+            : base(@"class Goo
 {
     private int bar;
 }")
         {
         }
 
-        private async Task<CodeVariable> GetCodeVariableAsync(params object[] path)
+        private CodeVariable GetCodeVariable(params object[] path)
         {
-            return (CodeVariable)await GetCodeElementAsync(path);
+            return (CodeVariable)GetCodeElement(path);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public async Task DeleteField()
+        public void DeleteField()
         {
-            CodeClass c = (CodeClass)await GetCodeElementAsync("Foo");
+            CodeClass c = (CodeClass)GetCodeElement("Goo");
             c.RemoveMember(c.Members.Item("bar"));
 
-            Assert.Equal(@"class Foo
+            Assert.Equal(@"class Goo
 {
-}", await GetFileTextAsync());
+}", GetFileText());
         }
     }
 }

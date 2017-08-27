@@ -39,6 +39,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public NotOverridable Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+            Get
+                Return ImmutableArray(Of CustomModifier).Empty
+            End Get
+        End Property
+
+        Public NotOverridable Overrides ReadOnly Property ReturnsByRef As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         Friend Overrides ReadOnly Property HasSpecialName As Boolean
             Get
                 Return False

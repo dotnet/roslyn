@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
@@ -43,7 +43,7 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -57,14 +57,14 @@ $$");
         public async Task TestAfterExpr()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var q = foo $$"));
+@"var q = goo $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterDottedName()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var q = foo.Current $$"));
+@"var q = goo.Current $$"));
         }
 
         [WorkItem(543041, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543041")]

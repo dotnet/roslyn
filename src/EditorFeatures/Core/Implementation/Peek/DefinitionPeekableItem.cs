@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                 var symbol = _peekableItem._symbolKey.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken: cancellationToken).Symbol;
                 if (symbol == null)
                 {
-                    callback.ReportFailure(new Exception(EditorFeaturesResources.NoInformationFound));
+                    callback.ReportFailure(new Exception(EditorFeaturesResources.No_information_found));
                     return;
                 }
 

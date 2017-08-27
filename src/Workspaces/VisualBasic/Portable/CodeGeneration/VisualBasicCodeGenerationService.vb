@@ -15,7 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Inherits AbstractCodeGenerationService
 
         Public Sub New(provider As HostLanguageServices)
-            MyBase.New(provider.GetService(Of ISymbolDeclarationService)())
+            MyBase.New(provider.GetService(Of ISymbolDeclarationService)(),
+                       provider.WorkspaceServices.Workspace)
         End Sub
 
         Public Overloads Overrides Function GetDestination(containerNode As SyntaxNode) As CodeGenerationDestination
@@ -27,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Protected Overrides Function GetMemberComparer() As IComparer(Of SyntaxNode)
-            Return VisualBasicDeclarationComparer.Instance
+            Return VisualBasicDeclarationComparer.WithoutNamesInstance
         End Function
 
         Protected Overrides Function GetAvailableInsertionIndices(destination As SyntaxNode, cancellationToken As CancellationToken) As IList(Of Boolean)
@@ -79,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 options As CodeGenerationOptions,
                 availableIndices As IList(Of Boolean)) As TDeclarationNode
             CheckDeclarationNode(Of TypeBlockSyntax)(destinationType)
-            Return Cast(Of TDeclarationNode)(EventGenerator.AddEventTo(Cast(Of TypeBlockSyntax)(destinationType), [event], options, availableIndices))
+            Return Cast(Of TDeclarationNode)(AddEventTo(Cast(Of TypeBlockSyntax)(destinationType), [event], options, availableIndices))
         End Function
 
         Protected Overrides Function AddField(Of TDeclarationNode As SyntaxNode)(
@@ -482,8 +483,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim statementArray = statements.OfType(Of StatementSyntax).ToArray()
             Dim newBlock As SyntaxNode
             If options.BeforeThisLocation IsNot Nothing Then
-                Dim strippedTrivia As IEnumerable(Of SyntaxTrivia) = Nothing
-                Dim newStatement = oldStatement.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(strippedTrivia)
+                Dim strippedTrivia As ImmutableArray(Of SyntaxTrivia) = Nothing
+                Dim newStatement = VisualBasicSyntaxFactsService.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(
+                    oldStatement, strippedTrivia)
 
                 statementArray(0) = statementArray(0).WithLeadingTrivia(strippedTrivia)
 

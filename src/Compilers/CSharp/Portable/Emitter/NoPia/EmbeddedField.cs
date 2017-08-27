@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CodeGen;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 {
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             return UnderlyingField.GetCustomAttributesToEmit(compilationState);
         }
 
-        protected override Cci.IMetadataConstant GetCompileTimeValue(EmitContext context)
+        protected override MetadataConstant GetCompileTimeValue(EmitContext context)
         {
             return UnderlyingField.GetMetadataConstantValue(context);
         }

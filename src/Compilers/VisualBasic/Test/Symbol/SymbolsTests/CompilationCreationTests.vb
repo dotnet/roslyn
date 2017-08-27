@@ -125,6 +125,20 @@ End Namespace
             Assert.False(root.IsGlobalNamespace)
         End Sub
 
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/16885")>
+        <WorkItem(16885, "https://github.com/dotnet/roslyn/issues/16885")>
+        Public Sub RootNamespace_NoTrees_SuppressEmbeddedDeclarations()
+
+            Dim c1 = VisualBasicCompilation.Create("Test", {}, options:=TestOptions.ReleaseDll.WithRootNamespace("A.B.C").WithSuppressEmbeddedDeclarations(True))
+
+            Dim root As NamespaceSymbol = c1.RootNamespace
+            Assert.NotNull(root)
+            Assert.Equal("C", root.Name)
+            Assert.Equal("B", root.ContainingNamespace.Name)
+            Assert.Equal("A", root.ContainingNamespace.ContainingNamespace.Name)
+            Assert.False(root.IsGlobalNamespace)
+        End Sub
+
         <Fact()>
         Public Sub RootNamespace_WithFiles_UpdateCompilation()
             Dim sourceTree = ParserTestUtilities.Parse(

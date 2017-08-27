@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -13,33 +12,33 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal class CodeGenerationNamedTypeSymbol : CodeGenerationAbstractNamedTypeSymbol
     {
         private readonly TypeKind _typeKind;
-        private readonly IList<ITypeParameterSymbol> _typeParameters;
+        private readonly ImmutableArray<ITypeParameterSymbol> _typeParameters;
         private readonly INamedTypeSymbol _baseType;
-        private readonly IList<INamedTypeSymbol> _interfaces;
-        private readonly IList<ISymbol> _members;
+        private readonly ImmutableArray<INamedTypeSymbol> _interfaces;
+        private readonly ImmutableArray<ISymbol> _members;
         private readonly INamedTypeSymbol _enumUnderlyingType;
 
         public CodeGenerationNamedTypeSymbol(
             INamedTypeSymbol containingType,
-            IList<AttributeData> attributes,
+            ImmutableArray<AttributeData> attributes,
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             TypeKind typeKind,
             string name,
-            IList<ITypeParameterSymbol> typeParameters,
+            ImmutableArray<ITypeParameterSymbol> typeParameters,
             INamedTypeSymbol baseType,
-            IList<INamedTypeSymbol> interfaces,
+            ImmutableArray<INamedTypeSymbol> interfaces,
             SpecialType specialType,
-            IList<ISymbol> members,
-            IList<CodeGenerationAbstractNamedTypeSymbol> typeMembers,
+            ImmutableArray<ISymbol> members,
+            ImmutableArray<CodeGenerationAbstractNamedTypeSymbol> typeMembers,
             INamedTypeSymbol enumUnderlyingType)
             : base(containingType, attributes, declaredAccessibility, modifiers, name, specialType, typeMembers)
         {
             _typeKind = typeKind;
-            _typeParameters = typeParameters ?? SpecializedCollections.EmptyList<ITypeParameterSymbol>();
+            _typeParameters = typeParameters.NullToEmpty();
             _baseType = baseType;
-            _interfaces = interfaces ?? SpecializedCollections.EmptyList<INamedTypeSymbol>();
-            _members = members ?? SpecializedCollections.EmptyList<ISymbol>();
+            _interfaces = interfaces.NullToEmpty();
+            _members = members.NullToEmpty();
             _enumUnderlyingType = enumUnderlyingType;
 
             this.OriginalDefinition = this;
@@ -54,21 +53,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 this.EnumUnderlyingType);
         }
 
-        public override TypeKind TypeKind
-        {
-            get
-            {
-                return _typeKind;
-            }
-        }
+        public override TypeKind TypeKind => _typeKind;
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.NamedType;
-            }
-        }
+        public override SymbolKind Kind => SymbolKind.NamedType;
 
         public override int Arity
         {
@@ -86,29 +73,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public override bool IsUnboundGenericType
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public override bool IsUnboundGenericType => false;
 
-        public override bool IsScriptClass
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public override bool IsScriptClass => false;
 
-        public override bool IsImplicitClass
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public override bool IsImplicitClass => false;
 
         public override IEnumerable<string> MemberNames
         {
@@ -128,13 +97,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public override INamedTypeSymbol EnumUnderlyingType
-        {
-            get
-            {
-                return _enumUnderlyingType;
-            }
-        }
+        public override INamedTypeSymbol EnumUnderlyingType => _enumUnderlyingType;
 
         public override INamedTypeSymbol ConstructedFrom
         {
@@ -173,13 +136,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public override INamedTypeSymbol BaseType
-        {
-            get
-            {
-                return _baseType;
-            }
-        }
+        public override INamedTypeSymbol BaseType => _baseType;
 
         public override ImmutableArray<INamedTypeSymbol> Interfaces
         {

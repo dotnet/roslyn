@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 "[thiscall]"
             };
 
-            private static readonly ParameterInfo[] s_noParameters = SpecializedCollections.EmptyArray<ParameterInfo>();
+            private static readonly ParameterInfo[] s_noParameters = Array.Empty<ParameterInfo>();
 
             private readonly Compilation _compilation;
             private readonly TargetScope _scope;

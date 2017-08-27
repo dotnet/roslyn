@@ -48,6 +48,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _getter.ReturnTypeCustomModifiers; }
         }
 
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get { return _getter.RefCustomModifiers; }
+        }
+
         public override ImmutableArray<ParameterSymbol> Parameters
         {
             get { return _getter.Parameters; }

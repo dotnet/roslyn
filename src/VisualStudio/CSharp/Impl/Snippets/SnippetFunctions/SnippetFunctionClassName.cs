@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctio
         protected override int GetContainingClassName(Document document, SnapshotSpan fieldSpan, CancellationToken cancellationToken, ref string value, ref int hasDefaultValue)
         {
             // Find the nearest enclosing type declaration and use its name
-            var syntaxTree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
             var type = syntaxTree.FindTokenOnLeftOfPosition(fieldSpan.Start.Position, cancellationToken).GetAncestor<TypeDeclarationSyntax>();
 
             if (type != null)

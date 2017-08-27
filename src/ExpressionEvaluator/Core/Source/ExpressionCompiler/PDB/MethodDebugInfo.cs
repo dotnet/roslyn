@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -10,38 +11,39 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         where TTypeSymbol : class, ITypeSymbol
         where TLocalSymbol : class
     {
-        public static readonly MethodDebugInfo<TTypeSymbol, TLocalSymbol> None = new MethodDebugInfo<TTypeSymbol, TLocalSymbol>();
+        public static readonly MethodDebugInfo<TTypeSymbol, TLocalSymbol> None = new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(
+            ImmutableArray<HoistedLocalScopeRecord>.Empty,
+            ImmutableArray<ImmutableArray<ImportRecord>>.Empty,
+            ImmutableArray<ExternAliasRecord>.Empty,
+            null,
+            null,
+            "",
+            ImmutableArray<string>.Empty,
+            ImmutableArray<TLocalSymbol>.Empty,
+            ILSpan.MaxValue);
 
+        /// <summary>
+        /// Hoisted local variable scopes.
+        /// Null if the information should be decoded from local variable debug info (VB Windows PDBs).
+        /// Empty if there are no hoisted user defined local variables.
+        /// </summary>
         public readonly ImmutableArray<HoistedLocalScopeRecord> HoistedLocalScopeRecords;
-        public readonly ImmutableArray<ImmutableArray<ImportRecord>> ImportRecordGroups;
 
+        public readonly ImmutableArray<ImmutableArray<ImportRecord>> ImportRecordGroups;
         public readonly ImmutableArray<ExternAliasRecord> ExternAliasRecords; // C# only.
         public readonly ImmutableDictionary<int, ImmutableArray<bool>> DynamicLocalMap; // C# only.
-
+        public readonly ImmutableDictionary<int, ImmutableArray<string>> TupleLocalMap;
         public readonly string DefaultNamespaceName; // VB only.
-
-        // TODO: readonly
-        public ImmutableArray<string> LocalVariableNames { get; private set; }
-        public ImmutableArray<TLocalSymbol> LocalConstants { get; private set; }
-        public ILSpan ReuseSpan;
-
-        private MethodDebugInfo()
-            : this(ImmutableArray<HoistedLocalScopeRecord>.Empty,
-                   ImmutableArray<ImmutableArray<ImportRecord>>.Empty,
-                   ImmutableArray<ExternAliasRecord>.Empty,
-                   null,
-                   "",
-                   ImmutableArray<string>.Empty,
-                   ImmutableArray<TLocalSymbol>.Empty,
-                   ILSpan.MaxValue)
-        {
-        }
+        public readonly ImmutableArray<string> LocalVariableNames;
+        public readonly ImmutableArray<TLocalSymbol> LocalConstants;
+        public readonly ILSpan ReuseSpan;
 
         public MethodDebugInfo(
             ImmutableArray<HoistedLocalScopeRecord> hoistedLocalScopeRecords,
             ImmutableArray<ImmutableArray<ImportRecord>> importRecordGroups,
             ImmutableArray<ExternAliasRecord> externAliasRecords,
             ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocalMap,
+            ImmutableDictionary<int, ImmutableArray<string>> tupleLocalMap,
             string defaultNamespaceName,
             ImmutableArray<string> localVariableNames,
             ImmutableArray<TLocalSymbol> localConstants,
@@ -50,13 +52,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Debug.Assert(!importRecordGroups.IsDefault);
             Debug.Assert(!externAliasRecords.IsDefault);
             Debug.Assert(defaultNamespaceName != null);
-            Debug.Assert(!hoistedLocalScopeRecords.IsDefault);
 
             HoistedLocalScopeRecords = hoistedLocalScopeRecords;
             ImportRecordGroups = importRecordGroups;
 
             ExternAliasRecords = externAliasRecords;
             DynamicLocalMap = dynamicLocalMap;
+            TupleLocalMap = tupleLocalMap;
 
             DefaultNamespaceName = defaultNamespaceName;
 
@@ -67,7 +69,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public ImmutableSortedSet<int> GetInScopeHoistedLocalIndices(int ilOffset, ref ILSpan methodContextReuseSpan)
         {
-            if (this.HoistedLocalScopeRecords.IsDefault)
+            if (HoistedLocalScopeRecords.IsDefaultOrEmpty)
             {
                 return ImmutableSortedSet<int>.Empty;
             }
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             var scopesBuilder = ArrayBuilder<int>.GetInstance();
             int i = 0;
-            foreach (var record in this.HoistedLocalScopeRecords)
+            foreach (var record in HoistedLocalScopeRecords)
             {
                 var delta = ilOffset - record.StartOffset;
                 if (0 <= delta && delta < record.Length)

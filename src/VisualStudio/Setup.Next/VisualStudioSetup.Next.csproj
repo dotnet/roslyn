@@ -1,59 +1,107 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectTypeGuids>{82b43b9b-a64c-4715-b499-d71e9ca2bd60};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <ProjectGuid>{143FE684-6E1C-41DF-9C60-84C7772DC49C}</ProjectGuid>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.Setup.Next</RootNamespace>
     <AssemblyName>Roslyn.VisualStudio.Setup.Next</AssemblyName>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
-    <UseCodebase>true</UseCodebase>
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
-    <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
-    <ImportVSSDKTargets>true</ImportVSSDKTargets>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <CopyNuGetImplementations>true</CopyNuGetImplementations>
+    <!-- This VSIX must be compiled with the Dev15 SDK due to the specific
+         set of references it uses.  Yet when doing so it can't link in all
+         of the Dev14 VSIX that we are creating.  Hence when building specifically
+         for Dev14 do not build this as a VSIX.  -->
+    <ImportVSSDKTargets Condition="'$(IsDev14VsiBuild)' != 'true'">true</ImportVSSDKTargets>
+    <TargetFramework>net46</TargetFramework>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <DeployExtension Condition="'$(VisualStudioVersion)' == '14.0'">false</DeployExtension>
+    <RoslynProjectType>Vsix</RoslynProjectType>
+    <IsProductComponent>true</IsProductComponent>
+    <ExtensionInstallationRoot>CommonExtensions</ExtensionInstallationRoot>
+    <ExtensionInstallationFolder>Microsoft\ManagedLanguages\VBCSharp\LanguageServicesNext</ExtensionInstallationFolder>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Dependencies\VisualStudio\VisualStudio.csproj">
-      <Project>{8da861d8-0cce-4334-b6c0-01a846c881ec}</Project>
-      <Name>VisualStudio</Name>
-      <Private>False</Private>
-    </ProjectReference>
     <ProjectReference Include="..\..\EditorFeatures\Next\EditorFeatures.Next.csproj">
-      <Project>{366BBCDC-B05F-4677-9B5B-78BA816A1484}</Project>
       <Name>EditorFeatures.Next</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+      <Ngen>true</Ngen>
+      <NgenArchitecture>All</NgenArchitecture>
+      <NgenPriority>3</NgenPriority>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Remote\Core\RemoteWorkspaces.csproj">
+      <Name>RemoteWorkspaces</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Remote\Razor\RazorServiceHub.csproj">
+      <Name>RazorServiceHub</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\ServiceHub.csproj">
+      <Name>ServiceHub</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\Core\Next\ServicesVisualStudio.Next.csproj">
+      <Name>ServicesVisualStudio.Next</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <Ngen>true</Ngen>
+      <NgenArchitecture>All</NgenArchitecture>
+      <NgenPriority>3</NgenPriority>
+    </ProjectReference>
+    <ProjectReference Include="..\Razor\RazorVisualStudio.csproj">
+      <Name>RazorVisualStudio</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <Ngen>true</Ngen>
+      <NgenArchitecture>All</NgenArchitecture>
+      <NgenPriority>3</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\Setup\VisualStudioSetup.csproj">
       <Name>VisualStudioSetup</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\Xaml\Impl\XamlVisualStudio.csproj">
+      <Name>XamlVisualStudio</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <Ngen>true</Ngen>
+      <NgenArchitecture>All</NgenArchitecture>
+      <NgenPriority>3</NgenPriority>
+    </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup>
-    <StartAction>Program</StartAction>
-    <StartProgram>$(DevEnvDir)devenv.exe</StartProgram>
-    <StartArguments>/rootsuffix RoslynDev /log</StartArguments>
-  </PropertyGroup>
   <ItemGroup>
-    <None Include="project.json" />
+    <!-- Visual Studio ships with some, but not all, of the assemblies in System.Composition, but we need them all -->
+    <NuGetPackageToIncludeInVsix Include="System.Composition" />
+  </ItemGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
+  <ItemGroup>
+    <Content Include="snapshotService.servicehub.service.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="codeAnalysisService.servicehub.service.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="remoteHostService.servicehub.service.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="remoteSymbolSearchUpdateEngine.servicehub.service.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
@@ -62,9 +110,15 @@
     <Compile Include="..\Setup\ProvideRoslynBindingRedirection.cs">
       <Link>ProvideRoslynBindingRedirection.cs</Link>
     </Compile>
-    <Compile Include="AssemblyRedirects.cs" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Immutable.10.0" Version="$(MicrosoftVisualStudioShellImmutable100Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Immutable.11.0" Version="$(MicrosoftVisualStudioShellImmutable110Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.CallHierarchy.Package.Definitions" Version="$(MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider" Version="$(MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion)" />
+    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
+  </ItemGroup>
+  <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

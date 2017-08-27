@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 return;
             }
 
-            var hostContext = workspace.Services.GetService<IHostContextService>();
+            var projectTypeLookup = workspace.Services.GetService<IProjectTypeLookupService>();
 
-            projectType = hostContext.GetProjectType(workspace, projectId);
+            projectType = projectTypeLookup.GetProjectType(workspace, projectId);
 
             // if projectId doesn't exist, not much we need to do.
             if (projectId == null)

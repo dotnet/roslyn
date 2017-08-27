@@ -28,8 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitTupleLiteral:
                 case ConversionKind.ImplicitTuple:
                 case ConversionKind.ImplicitEnumeration:
+                case ConversionKind.ImplicitThrow:
                 case ConversionKind.ImplicitNullable:
-                case ConversionKind.NullLiteral:
+                case ConversionKind.DefaultOrNullLiteral:
                 case ConversionKind.ImplicitReference:
                 case ConversionKind.Boxing:
                 case ConversionKind.ImplicitDynamic:
@@ -40,10 +41,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.PointerToVoid:
                 case ConversionKind.NullToPointer:
                 case ConversionKind.InterpolatedString:
+                case ConversionKind.Deconstruction:
                     return true;
 
                 case ConversionKind.ExplicitNumeric:
                 case ConversionKind.ExplicitTuple:
+                case ConversionKind.ExplicitTupleLiteral:
                 case ConversionKind.ExplicitEnumeration:
                 case ConversionKind.ExplicitNullable:
                 case ConversionKind.ExplicitReference:

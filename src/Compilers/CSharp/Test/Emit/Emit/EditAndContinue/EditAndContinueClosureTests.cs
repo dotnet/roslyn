@@ -36,7 +36,7 @@ class C
         return ((D)(() => o))();
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
             var bytes0 = compilation0.EmitToArray();
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
@@ -90,7 +90,7 @@ class C
         Func<int> x = <N:0>() => 2</N:0>;
     }
 }");
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             var v0 = CompileAndVerify(compilation0);
@@ -143,7 +143,7 @@ class C
         Func<T> x = <N:0>() => default(T)</N:0>;
     }
 }");
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             var v0 = CompileAndVerify(compilation0);
@@ -199,7 +199,7 @@ class C
         return 2;
     }
 }");
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             var v0 = CompileAndVerify(compilation0);
@@ -254,7 +254,7 @@ class C
         return 2;
     }
 }");
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             var v0 = CompileAndVerify(compilation0);
@@ -271,8 +271,8 @@ class C
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
-                "C: {<>c__DisplayClass0_0}",
-                "C.<>c__DisplayClass0_0: {a, <>4__this, <F>b__0}");
+                "C.<>c__DisplayClass0_0: {<>4__this, a, <F>b__0}",
+                "C: {<>c__DisplayClass0_0}");
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -327,7 +327,7 @@ class C : D
         Func<int> f6 = <N:7>() => b * 10 + c</N:7>;
     }
 }");
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             var v0 = CompileAndVerify(compilation0);
@@ -392,7 +392,7 @@ partial class C
 {
     Func<int> m2 = <N:1>() => 10</N:1>;
 }");
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             var v0 = CompileAndVerify(compilation0);
@@ -451,7 +451,7 @@ class C
                      <N:3>select d.Key</N:3>;
     }
 }");
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation0 = CreateStandardCompilation(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             var v0 = CompileAndVerify(compilation0);
@@ -532,7 +532,7 @@ class C
 		                   <N:4>select a</N:4></N:10>;
     }
 }");
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation0 = CreateStandardCompilation(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             var v0 = CompileAndVerify(compilation0);
@@ -549,10 +549,10 @@ class C
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
-                "C: {<F>b__1_2, <F>b__1_4, <>c__DisplayClass1_0, <>c__DisplayClass1_1, <>c}",
-                "C.<>c: {<>9__1_0, <>9__1_1, <>9__1_6, <F>b__1_0, <F>b__1_1, <F>b__1_6}",
-                "C.<>c__DisplayClass1_0: {<>h__TransparentIdentifier0, <F>b__3}",
-                "C.<>c__DisplayClass1_1: {<>h__TransparentIdentifier0, <F>b__5}",
+                "C.<>c__DisplayClass1_1: {<>h__TransparentIdentifier0, <F>b__6}",
+                "C.<>c__DisplayClass1_0: {<>h__TransparentIdentifier0, <F>b__5}",
+                "C.<>c: {<>9__1_0, <>9__1_1, <>9__1_4, <F>b__1_0, <F>b__1_1, <F>b__1_4}",
+                "C: {<F>b__1_2, <F>b__1_3, <>c__DisplayClass1_0, <>c__DisplayClass1_1, <>c}",
                 "<>f__AnonymousType0<<a>j__TPar, <b>j__TPar>: {Equals, GetHashCode, ToString}");
 
             var md1 = diff1.GetMetadata();
@@ -615,7 +615,7 @@ class C
 		             <N:4>select <N:5>a + b</N:5></N:4>;
     }
 }");
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation0 = CreateStandardCompilation(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             var v0 = CompileAndVerify(compilation0);
@@ -632,10 +632,10 @@ class C
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
-                "C: {<F>b__1_0, <>c__DisplayClass1_0, <>c}",
-                "C.<>c: {<>9__1_2, <F>b__1_2}",
-                "C.<>c__DisplayClass1_0: {a, <F>b__1}",
-                "<>f__AnonymousType0<<a>j__TPar, <b>j__TPar>: {Equals, GetHashCode, ToString}");
+                "C.<>c: {<>9__1_1, <F>b__1_1}",
+                "<>f__AnonymousType0<<a>j__TPar, <b>j__TPar>: {Equals, GetHashCode, ToString}",
+                "C.<>c__DisplayClass1_0: {a, <F>b__2}",
+                "C: {<F>b__1_0, <>c__DisplayClass1_0, <>c}");
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -697,7 +697,7 @@ class C
                      <N:9>select <N:10>Z(<N:11>() => <N:12>a - b</N:12></N:11>)</N:10></N:9>;
     }
 }");
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation0 = CreateStandardCompilation(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             var v0 = CompileAndVerify(compilation0);
@@ -714,10 +714,10 @@ class C
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
-                "C.<>c__DisplayClass1_0: {a, <F>b__1}",
-                "C.<>c__DisplayClass1_1: {b, <F>b__3}",
+                "C.<>c__DisplayClass1_1: {b, <F>b__4}",
                 "C.<>c__DisplayClass1_2: {a, b, <F>b__5}",
-                "C: {<F>b__1_0, <F>b__1_2, <F>b__1_4, <>c__DisplayClass1_0, <>c__DisplayClass1_1, <>c__DisplayClass1_2}");
+                "C.<>c__DisplayClass1_0: {a, <F>b__3}",
+                "C: {<F>b__1_0, <F>b__1_1, <F>b__1_2, <>c__DisplayClass1_0, <>c__DisplayClass1_1, <>c__DisplayClass1_2}");
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -784,7 +784,7 @@ class C
                      <N:5>select <N:6>Z(<N:7>() => <N:8>g.Last()</N:8></N:7>)</N:6></N:5>;
     }
 }");
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation0 = CreateStandardCompilation(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             var v0 = CompileAndVerify(compilation0);
@@ -862,7 +862,7 @@ class C
                      <N:5>select <N:6>Z(<N:7>() => <N:8>g.Last()</N:8></N:7>)</N:6></N:5></N:4>;
     }
 }");
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation0 = CreateStandardCompilation(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             var v0 = CompileAndVerify(compilation0);
@@ -937,7 +937,7 @@ class C
     }
 }");
 
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source2.Tree);
             var v0 = CompileAndVerify(compilation0);
@@ -1046,7 +1046,7 @@ class C
     }
 }");
 
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source2.Tree);
             var compilation3 = compilation2.WithSource(source3.Tree);
@@ -1262,7 +1262,7 @@ class C
     }
 }");
 
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation0 = CreateStandardCompilation(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source2.Tree);
             var v0 = CompileAndVerify(compilation0);
@@ -1408,8 +1408,8 @@ public class C
 
             var reader0 = md0.MetadataReader;
             CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C", "<>c__DisplayClass0_0", "<>c");
-            CheckNames(reader0, reader0.GetMethodDefNames(), "F", ".ctor", "<F>b__0_1", ".ctor", "<F>b__2", ".cctor", ".ctor", "<F>b__0_0");
-            CheckNames(reader0, reader0.GetFieldDefNames(), "a", "<>9", "<>9__0_0");
+            CheckNames(reader0, reader0.GetMethodDefNames(), "F", ".ctor", ".ctor", "<F>b__1", "<F>b__2", ".cctor", ".ctor", "<F>b__0_0");
+            CheckNames(reader0, reader0.GetFieldDefNames(), "<>4__this", "a", "<>9", "<>9__0_0");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
             var diff1 = compilation1.EmitDifference(
@@ -1420,13 +1420,13 @@ public class C
             var reader1 = diff1.GetMetadata().Reader;
 
             CheckNames(new[] { reader0, reader1 }, reader1.GetTypeDefNames(), "<>c__DisplayClass0#1_0#1");
-            CheckNames(new[] { reader0, reader1 }, reader1.GetMethodDefNames(), ".ctor", "F", "<F>b__0#1_1#1", ".ctor", "<F>b__2#1", "<F>b__0#1_0#1");
-            CheckNames(new[] { reader0, reader1 }, reader1.GetFieldDefNames(), "a", "<>9__0#1_0#1");
+            CheckNames(new[] { reader0, reader1 }, reader1.GetMethodDefNames(), ".ctor", "F", ".ctor", "<F>b__1#1", "<F>b__2#1", "<F>b__0#1_0#1");
+            CheckNames(new[] { reader0, reader1 }, reader1.GetFieldDefNames(), "<>4__this", "a", "<>9__0#1_0#1");
 
             diff1.VerifySynthesizedMembers(
-                "C: {<F>b__0#1_1#1, <>c__DisplayClass0#1_0#1, <>c}",
-                "C.<>c: {<>9__0#1_0#1, <F>b__0#1_0#1}",
-                "C.<>c__DisplayClass0#1_0#1: {a, <F>b__2#1}");
+                "C: {<>c__DisplayClass0#1_0#1, <>c}",
+                "C.<>c__DisplayClass0#1_0#1: {<>4__this, a, <F>b__1#1, <F>b__2#1}",
+                "C.<>c: {<>9__0#1_0#1, <F>b__0#1_0#1}");
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -1436,8 +1436,8 @@ public class C
             var reader2 = diff2.GetMetadata().Reader;
 
             CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetTypeDefNames(), "<>c__DisplayClass1#2_0#2");
-            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetMethodDefNames(), ".ctor", "F", "<F>b__1#2_1#2", ".ctor", "<F>b__2#2", "<F>b__1#2_0#2");
-            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetFieldDefNames(), "a", "<>9__1#2_0#2");
+            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetMethodDefNames(), ".ctor", "F", ".ctor", "<F>b__1#2", "<F>b__2#2", "<F>b__1#2_0#2");
+            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetFieldDefNames(), "<>4__this", "a", "<>9__1#2_0#2");
         }
 
         [Fact]
@@ -1525,8 +1525,8 @@ public class C
 
             var reader0 = md0.MetadataReader;
             CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C", "<>c__DisplayClass0_0`1", "<>c__0`1");
-            CheckNames(reader0, reader0.GetMethodDefNames(), "F", ".ctor", "<F>b__0_1", ".ctor", "<F>b__2", ".cctor", ".ctor", "<F>b__0_0");
-            CheckNames(reader0, reader0.GetFieldDefNames(), "a", "<>9", "<>9__0_0");
+            CheckNames(reader0, reader0.GetMethodDefNames(), "F", ".ctor", ".ctor", "<F>b__1", "<F>b__2", ".cctor", ".ctor", "<F>b__0_0");
+            CheckNames(reader0, reader0.GetFieldDefNames(), "<>4__this", "a", "<>9", "<>9__0_0");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
             var diff1 = compilation1.EmitDifference(
@@ -1537,13 +1537,13 @@ public class C
             var reader1 = diff1.GetMetadata().Reader;
 
             CheckNames(new[] { reader0, reader1 }, reader1.GetTypeDefNames(), "<>c__DisplayClass0#1_0#1`1", "<>c__0#1`1");
-            CheckNames(new[] { reader0, reader1 }, reader1.GetMethodDefNames(), "F", "<F>b__0#1_1#1", ".ctor", "<F>b__2#1", ".cctor", ".ctor", "<F>b__0#1_0#1");
-            CheckNames(new[] { reader0, reader1 }, reader1.GetFieldDefNames(), "a", "<>9", "<>9__0#1_0#1");
+            CheckNames(new[] { reader0, reader1 }, reader1.GetMethodDefNames(), "F", ".ctor", "<F>b__1#1", "<F>b__2#1", ".cctor", ".ctor", "<F>b__0#1_0#1");
+            CheckNames(new[] { reader0, reader1 }, reader1.GetFieldDefNames(), "<>4__this", "a", "<>9", "<>9__0#1_0#1");
 
             diff1.VerifySynthesizedMembers(
-                "C: {<F>b__0#1_1#1, <>c__DisplayClass0#1_0#1, <>c__0#1}",
                 "C.<>c__0#1<T>: {<>9__0#1_0#1, <F>b__0#1_0#1}",
-                "C.<>c__DisplayClass0#1_0#1<T>: {a, <F>b__2#1}");
+                "C: {<>c__DisplayClass0#1_0#1, <>c__0#1}",
+                "C.<>c__DisplayClass0#1_0#1<T>: {<>4__this, a, <F>b__1#1, <F>b__2#1}");
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -1553,8 +1553,8 @@ public class C
             var reader2 = diff2.GetMetadata().Reader;
 
             CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetTypeDefNames(), "<>c__DisplayClass1#2_0#2`1", "<>c__1#2`1");
-            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetMethodDefNames(), "F", "<F>b__1#2_1#2", ".ctor", "<F>b__2#2", ".cctor", ".ctor", "<F>b__1#2_0#2");
-            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetFieldDefNames(), "a", "<>9", "<>9__1#2_0#2");
+            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetMethodDefNames(), "F", ".ctor", "<F>b__1#2", "<F>b__2#2", ".cctor", ".ctor", "<F>b__1#2_0#2");
+            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetFieldDefNames(), "<>4__this", "a", "<>9", "<>9__1#2_0#2");
         }
 
         [Fact]
@@ -1669,9 +1669,9 @@ public class C
                     new SemanticEdit(SemanticEditKind.Update, main0, main1, preserveLocalVariables: true)));
 
             diff1.VerifySynthesizedMembers(
-                "C: {<F>b__1#1_1#1, <>c__DisplayClass1#1_0#1, <>c}",
                 "C.<>c: {<>9__1#1_0#1, <F>b__1#1_0#1}",
-                "C.<>c__DisplayClass1#1_0#1: {a, <F>b__2#1}");
+                "C.<>c__DisplayClass1#1_0#1: {<>4__this, a, <F>b__1#1, <F>b__2#1}",
+                "C: {<>c__DisplayClass1#1_0#1, <>c}");
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -1680,10 +1680,10 @@ public class C
                     new SemanticEdit(SemanticEditKind.Update, main1, main2, preserveLocalVariables: true)));
 
             diff2.VerifySynthesizedMembers(
-                "C: {<F>b__1#2_1#2, <>c__DisplayClass1#2_0#2, <>c, <F>b__1#1_1#1, <>c__DisplayClass1#1_0#1}",
+                "C.<>c__DisplayClass1#2_0#2: {<>4__this, a, <F>b__1#2, <F>b__2#2}",
+                "C: {<>c__DisplayClass1#2_0#2, <>c, <>c__DisplayClass1#1_0#1}",
                 "C.<>c: {<>9__1#2_0#2, <F>b__1#2_0#2, <>9__1#1_0#1, <F>b__1#1_0#1}",
-                "C.<>c__DisplayClass1#1_0#1: {a, <F>b__2#1}",
-                "C.<>c__DisplayClass1#2_0#2: {a, <F>b__2#2}");
+                "C.<>c__DisplayClass1#1_0#1: {<>4__this, a, <F>b__1#1, <F>b__2#1}");
 
             var diff3 = compilation3.EmitDifference(
                 diff2.NextGeneration,
@@ -1691,10 +1691,10 @@ public class C
                     new SemanticEdit(SemanticEditKind.Update, main2, main3, preserveLocalVariables: true)));
 
             diff3.VerifySynthesizedMembers(
-                "C: {<F>b__1#2_1#2, <>c__DisplayClass1#2_0#2, <>c, <F>b__1#1_1#1, <>c__DisplayClass1#1_0#1}",
+                "C.<>c__DisplayClass1#1_0#1: {<>4__this, a, <F>b__1#1, <F>b__2#1}",
                 "C.<>c: {<>9__1#2_0#2, <F>b__1#2_0#2, <>9__1#1_0#1, <F>b__1#1_0#1}",
-                "C.<>c__DisplayClass1#1_0#1: {a, <F>b__2#1}",
-                "C.<>c__DisplayClass1#2_0#2: {a, <F>b__2#2}");
+                "C.<>c__DisplayClass1#2_0#2: {<>4__this, a, <F>b__1#2, <F>b__2#2}",
+                "C: {<>c__DisplayClass1#2_0#2, <>c, <>c__DisplayClass1#1_0#1}");
         }
 
         [Fact]
@@ -1724,7 +1724,7 @@ class C
         return G(<N:0>a => a + G(<N:1>b => 2</N:1>)</N:0>);
     }
 }");
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll);
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
@@ -1792,7 +1792,7 @@ class C
         G(<N:3>a => a - 4</N:3>);
     }
 }");
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll);
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
@@ -1898,7 +1898,7 @@ class C
         G(<N:3>a => { int <N:7>v4 = 10</N:7>; return 4; }</N:3>);
     }
 }");
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll);
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
@@ -2018,7 +2018,7 @@ class C
         F(c => c + 1);
     }
 }");
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll);
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
@@ -2114,7 +2114,7 @@ class C
         F(c => c + 1);
     }
 }");
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll);
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
@@ -2175,7 +2175,7 @@ class C
     int[] array = null;
 }
 ");
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll);
+            var compilation0 = CreateStandardCompilation(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
@@ -2303,7 +2303,7 @@ class C
     int[] array = null;
 }
 ");
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll);
+            var compilation0 = CreateStandardCompilation(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
@@ -2419,7 +2419,7 @@ class C
     int[] array = null;
 }
 ");
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll);
+            var compilation0 = CreateStandardCompilation(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
@@ -2544,7 +2544,7 @@ class C
     int[] array = null;
 }
 ");
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll);
+            var compilation0 = CreateStandardCompilation(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
@@ -2666,7 +2666,7 @@ class C
     }</N:0>
 }
 ");
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll);
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source2.Tree);
 
@@ -2787,7 +2787,7 @@ class C
             var source1 = MarkedSource(template.Replace("<<VALUE>>", "1"));
             var source2 = MarkedSource(template.Replace("<<VALUE>>", "2"));
 
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll);
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source2.Tree);
 
@@ -2867,7 +2867,7 @@ class C
             var source1 = MarkedSource(template.Replace("<<CALL>>", "d.F(out x, new { y })"));
             var source2 = MarkedSource(template.Replace("<<CALL>>", "d.F(new { y }, out x)"));
 
-            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll, references: new[] { SystemCoreRef, CSharpRef });
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll, references: new[] { SystemCoreRef, CSharpRef });
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source2.Tree);
 

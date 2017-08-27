@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -23,22 +22,90 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
     [ExportLanguageService(typeof(AbstractChangeSignatureService), LanguageNames.CSharp), Shared]
     internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureService
     {
+        private static readonly ImmutableArray<SyntaxKind> _declarationKinds = ImmutableArray.Create(
+            SyntaxKind.MethodDeclaration,
+            SyntaxKind.ConstructorDeclaration,
+            SyntaxKind.IndexerDeclaration,
+            SyntaxKind.DelegateDeclaration,
+            SyntaxKind.SimpleLambdaExpression,
+            SyntaxKind.ParenthesizedLambdaExpression);
+
+        private static readonly ImmutableArray<SyntaxKind> _declarationAndInvocableKinds =
+            _declarationKinds.Concat(ImmutableArray.Create(
+                SyntaxKind.InvocationExpression,
+                SyntaxKind.ElementAccessExpression,
+                SyntaxKind.ThisConstructorInitializer,
+                SyntaxKind.BaseConstructorInitializer,
+                SyntaxKind.ObjectCreationExpression,
+                SyntaxKind.Attribute,
+                SyntaxKind.NameMemberCref));
+
+        private static readonly ImmutableArray<SyntaxKind> _updatableAncestorKinds = ImmutableArray.Create(
+            SyntaxKind.ConstructorDeclaration,
+            SyntaxKind.IndexerDeclaration,
+            SyntaxKind.InvocationExpression,
+            SyntaxKind.ElementAccessExpression,
+            SyntaxKind.ThisConstructorInitializer,
+            SyntaxKind.BaseConstructorInitializer,
+            SyntaxKind.ObjectCreationExpression,
+            SyntaxKind.Attribute,
+            SyntaxKind.DelegateDeclaration,
+            SyntaxKind.SimpleLambdaExpression,
+            SyntaxKind.ParenthesizedLambdaExpression,
+            SyntaxKind.NameMemberCref);
+
+        private static readonly ImmutableArray<SyntaxKind> _updatableNodeKinds = ImmutableArray.Create(
+            SyntaxKind.MethodDeclaration,
+            SyntaxKind.ConstructorDeclaration,
+            SyntaxKind.IndexerDeclaration,
+            SyntaxKind.InvocationExpression,
+            SyntaxKind.ElementAccessExpression,
+            SyntaxKind.ThisConstructorInitializer,
+            SyntaxKind.BaseConstructorInitializer,
+            SyntaxKind.ObjectCreationExpression,
+            SyntaxKind.Attribute,
+            SyntaxKind.DelegateDeclaration,
+            SyntaxKind.NameMemberCref,
+            SyntaxKind.AnonymousMethodExpression,
+            SyntaxKind.ParenthesizedLambdaExpression,
+            SyntaxKind.SimpleLambdaExpression);
+
         public override async Task<ISymbol> GetInvocationSymbolAsync(
             Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
         {
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var token = tree.GetRoot(cancellationToken).FindToken(position != tree.Length ? position : Math.Max(0, position - 1));
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var ancestorDeclarationKinds = restrictToDeclarations ? _invokableAncestorKinds.Add(SyntaxKind.Block) : _invokableAncestorKinds;
-            SyntaxNode matchingNode = token.Parent.AncestorsAndSelf().FirstOrDefault(n => ancestorDeclarationKinds.Contains(n.Kind()));
-            if (matchingNode == null || matchingNode.IsKind(SyntaxKind.Block))
+            var token = root.FindToken(position != tree.Length ? position : Math.Max(0, position - 1));
+
+            // Allow the user to invoke Change-Sig if they've written:   Goo(a, b, c);$$ 
+            if (token.Kind() == SyntaxKind.SemicolonToken && token.Parent is StatementSyntax)
+            {
+                token = token.GetPreviousToken();
+                position = token.Span.End;
+            }
+
+            var matchingNode = GetMatchingNode(token.Parent, restrictToDeclarations);
+            if (matchingNode == null)
             {
                 return null;
             }
 
-            ISymbol symbol;
-            var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            symbol = semanticModel.GetDeclaredSymbol(matchingNode, cancellationToken);
+            // Don't show change-signature in the random whitespace/trivia for code.
+            if (!matchingNode.Span.IntersectsWith(position))
+            {
+                return null;
+            }
+
+            // If we're actually on the declaration of some symbol, ensure that we're
+            // in a good location for that symbol (i.e. not in the attributes/constraints).
+            if (!InSymbolHeader(matchingNode, position))
+            {
+                return null;
+            }
+
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var symbol = semanticModel.GetDeclaredSymbol(matchingNode, cancellationToken);
             if (symbol != null)
             {
                 return symbol;
@@ -62,56 +129,51 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.FirstOrDefault();
         }
 
-        private ImmutableArray<SyntaxKind> _invokableAncestorKinds = new[]
-            {
-                SyntaxKind.MethodDeclaration,
-                SyntaxKind.ConstructorDeclaration,
-                SyntaxKind.IndexerDeclaration,
-                SyntaxKind.InvocationExpression,
-                SyntaxKind.ElementAccessExpression,
-                SyntaxKind.ThisConstructorInitializer,
-                SyntaxKind.BaseConstructorInitializer,
-                SyntaxKind.ObjectCreationExpression,
-                SyntaxKind.Attribute,
-                SyntaxKind.NameMemberCref,
-                SyntaxKind.SimpleLambdaExpression,
-                SyntaxKind.ParenthesizedLambdaExpression,
-                SyntaxKind.DelegateDeclaration
-            }.ToImmutableArray();
+        private SyntaxNode GetMatchingNode(SyntaxNode node, bool restrictToDeclarations)
+        {
+            var matchKinds = restrictToDeclarations
+                ? _declarationKinds
+                : _declarationAndInvocableKinds;
 
-        private ImmutableArray<SyntaxKind> _updatableAncestorKinds = new[]
+            for (var current = node; current != null; current = current.Parent)
             {
-                SyntaxKind.ConstructorDeclaration,
-                SyntaxKind.IndexerDeclaration,
-                SyntaxKind.InvocationExpression,
-                SyntaxKind.ElementAccessExpression,
-                SyntaxKind.ThisConstructorInitializer,
-                SyntaxKind.BaseConstructorInitializer,
-                SyntaxKind.ObjectCreationExpression,
-                SyntaxKind.Attribute,
-                SyntaxKind.DelegateDeclaration,
-                SyntaxKind.SimpleLambdaExpression,
-                SyntaxKind.ParenthesizedLambdaExpression,
-                SyntaxKind.NameMemberCref
-            }.ToImmutableArray();
+                if (restrictToDeclarations &&
+                    current.Kind() == SyntaxKind.Block || current.Kind() == SyntaxKind.ArrowExpressionClause)
+                {
+                    return null;
+                }
 
-        private ImmutableArray<SyntaxKind> _updatableNodeKinds = new[]
+                if (matchKinds.Contains(current.Kind()))
+                {
+                    return current;
+                }
+            }
+
+            return null;
+        }
+
+        private bool InSymbolHeader(SyntaxNode matchingNode, int position)
+        {
+            // Caret has to be after the attributes if the symbol has any.
+            var lastAttributes = matchingNode.ChildNodes().LastOrDefault(n => n is AttributeListSyntax);
+            var start = lastAttributes?.GetLastToken().GetNextToken().SpanStart ??
+                        matchingNode.SpanStart;
+
+            if (position < start)
             {
-                SyntaxKind.MethodDeclaration,
-                SyntaxKind.ConstructorDeclaration,
-                SyntaxKind.IndexerDeclaration,
-                SyntaxKind.InvocationExpression,
-                SyntaxKind.ElementAccessExpression,
-                SyntaxKind.ThisConstructorInitializer,
-                SyntaxKind.BaseConstructorInitializer,
-                SyntaxKind.ObjectCreationExpression,
-                SyntaxKind.Attribute,
-                SyntaxKind.DelegateDeclaration,
-                SyntaxKind.NameMemberCref,
-                SyntaxKind.AnonymousMethodExpression,
-                SyntaxKind.ParenthesizedLambdaExpression,
-                SyntaxKind.SimpleLambdaExpression
-            }.ToImmutableArray();
+                return false;
+            }
+
+            // If the symbol has a parameter list, then the caret shouldn't be past the end of it.
+            var parameterList = matchingNode.ChildNodes().LastOrDefault(n => n is ParameterListSyntax);
+            if (parameterList != null)
+            {
+                return position <= parameterList.FullSpan.End;
+            }
+
+            // Case we haven't handled yet.  Just assume we're in the header.
+            return true;
+        }
 
         public override SyntaxNode FindNodeToUpdate(Document document, SyntaxNode node)
         {
@@ -247,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                         .WithLeadingTrivia(lambda.Parameter.GetLeadingTrivia())
                         .WithTrailingTrivia(lambda.Parameter.GetTrailingTrivia());
 
-                    return SyntaxFactory.ParenthesizedLambdaExpression(lambda.AsyncKeyword, emptyParameterList, lambda.ArrowToken, lambda.RefKeyword, lambda.Body);
+                    return SyntaxFactory.ParenthesizedLambdaExpression(lambda.AsyncKeyword, emptyParameterList, lambda.ArrowToken, lambda.Body);
                 }
             }
 
@@ -506,14 +568,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return separators;
         }
 
-        public override async Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsFromDelegateInvoke(IMethodSymbol symbol, Document document, CancellationToken cancellationToken)
+        public override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvoke(
+            SymbolAndProjectId<IMethodSymbol> symbolAndProjectId, 
+            Document document, 
+            CancellationToken cancellationToken)
         {
+            var symbol = symbolAndProjectId.Symbol;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var nodes = root.DescendantNodes();
+            var nodes = root.DescendantNodes().ToImmutableArray();
             var convertedMethodGroups = nodes
-                .Where(
+                .WhereAsArray(
                     n =>
                         {
                             if (!n.IsKind(SyntaxKind.IdentifierName) ||
@@ -536,9 +602,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
                             return convertedType == symbol.ContainingType;
                         })
-                .Select(n => semanticModel.GetSymbolInfo(n, cancellationToken).Symbol);
+                .SelectAsArray(n => semanticModel.GetSymbolInfo(n, cancellationToken).Symbol);
 
-            return convertedMethodGroups;
+            return convertedMethodGroups.SelectAsArray(symbolAndProjectId.WithSymbol);
         }
 
         protected override IEnumerable<IFormattingRule> GetFormattingRules(Document document)

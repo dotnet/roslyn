@@ -34,7 +34,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             End Get
         End Property
 
-        Private Shared s_CSharpCompilerExecutable As String = Path.Combine(MSBuildDirectory, "csc.exe")
+        Private Shared s_CSharpCompilerExecutable As String = If(MSBuildDirectory IsNot Nothing, Path.Combine(MSBuildDirectory, "csc.exe"), Nothing)
         Private Shared s_mscorlibDisplayName As String = "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"
 
         Private Shared Function GetIgnorableAssemblyLists() As IEnumerable(Of IIgnorableAssemblyList)
@@ -44,7 +44,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             Return {New IgnorableAssemblyIdentityList({mscorlib})}
         End Function
 
-        <Fact, WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
+        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
+        <WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest1()
             ' Dependency Graph:
             '   A
@@ -60,7 +61,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
 
         End Sub
 
-        <Fact, WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
+        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
+        <WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest2()
             ' Dependency graph:
             '   A --> B
@@ -87,7 +89,8 @@ public class A
             End Using
         End Sub
 
-        <Fact, WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
+        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
+        <WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest3()
             ' Dependency graph:
             '   A --> B
@@ -121,7 +124,8 @@ public class A
 
         End Sub
 
-        <Fact, WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
+        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
+        <WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest4()
             ' Dependency graph:
             '   A --> B
@@ -161,7 +165,8 @@ public class C
             End Using
         End Sub
 
-        <Fact, WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
+        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
+        <WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest5()
             ' Dependency graph:
             '   Directory 1:
@@ -203,7 +208,8 @@ public class C
             End Using
         End Sub
 
-        <Fact, WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
+        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
+        <WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest6()
             ' Dependency graph:
             ' A -
@@ -244,7 +250,8 @@ public class B
             End Using
         End Sub
 
-        <Fact, WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
+        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
+        <WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest7()
             ' Dependency graph:
             '   Directory 1:
@@ -285,7 +292,8 @@ public class B
             End Using
         End Sub
 
-        <Fact, WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
+        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
+        <WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest8()
             ' Dependency graph:
             '   Directory 1:
@@ -345,7 +353,8 @@ public class C
             End Using
         End Sub
 
-        <Fact, WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
+        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
+        <WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest9()
             ' Dependency graph:
             '   Directory 1:
@@ -415,7 +424,8 @@ public class D
             End Using
         End Sub
 
-        <Fact, WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
+        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
+        <WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest10()
             ' Dependency graph:
             '   Directory 1:
@@ -495,7 +505,8 @@ public class E
             End Using
         End Sub
 
-        <Fact, WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
+        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
+        <WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest11()
             ' Dependency graph:
             '   Directory 1:
@@ -546,7 +557,8 @@ public class B
             End Using
         End Sub
 
-        <Fact, WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
+        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
+        <WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest12()
             ' Dependency graph:
             '   Directory 1:
@@ -603,7 +615,8 @@ public class B
             End Using
         End Sub
 
-        <Fact, WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
+        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
+        <WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest13()
             ' Dependency graph:
             '   Directory 1:
@@ -661,7 +674,8 @@ public class B
             End Using
         End Sub
 
-        <Fact, WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
+        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
+        <WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest14()
             ' Dependency graph:
             '   Directory 1:
@@ -732,8 +746,8 @@ public class D
                 Assert.Equal(expected:=3, actual:=results.Conflicts.Length)
             End Using
         End Sub
-
-        <Fact>
+ 
+        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
         Public Sub MissingTest1()
             ' Dependency Graph:
             '   A
@@ -748,7 +762,7 @@ public class D
             End Using
         End Sub
 
-        <Fact>
+        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
         Public Sub MissingTest2()
             ' Dependency graph:
             '   A --> B*

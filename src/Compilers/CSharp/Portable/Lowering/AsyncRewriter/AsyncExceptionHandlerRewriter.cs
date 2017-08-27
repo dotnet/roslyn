@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -136,7 +137,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(
                 tryStatementSyntax.IsKind(SyntaxKind.TryStatement) ||
                 tryStatementSyntax.IsKind(SyntaxKind.UsingStatement) ||
-                tryStatementSyntax.IsKind(SyntaxKind.ForEachStatement));
+                tryStatementSyntax.IsKind(SyntaxKind.ForEachStatement) ||
+                tryStatementSyntax.IsKind(SyntaxKind.ForEachVariableStatement));
 
             BoundStatement finalizedRegion;
             BoundBlock rewrittenFinally;
@@ -571,10 +573,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var sourceOpt = node.ExceptionSourceOpt;
                 var rewrittenFilter = (BoundExpression)this.Visit(filterOpt);
                 var newFilter = sourceOpt == null ?
-                                _F.Sequence(
+                                _F.MakeSequence(
                                     storePending,
                                     rewrittenFilter) :
-                                _F.Sequence(
+                                _F.MakeSequence(
                                     storePending,
                                     AssignCatchSource((BoundExpression)this.Visit(sourceOpt), currentAwaitCatchFrame),
                                     rewrittenFilter);

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -155,8 +155,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 protected void Cancel_NoLock(object key)
                 {
-                    CancellationTokenSource source;
-                    if (_cancellationMap.TryGetValue(key, out source))
+                    if (_cancellationMap.TryGetValue(key, out var source))
                     {
                         source.Cancel();
                         _cancellationMap.Remove(key);

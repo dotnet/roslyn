@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
 
@@ -50,21 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override abstract ImmutableArray<TypeParameterSymbol> TypeParameters
-        {
-            get;
-        }
-
-        public override abstract ImmutableArray<TypeSymbol> TypeArguments
-        {
-            get;
-        }
-
-        public override abstract bool ReturnsVoid
-        {
-            get;
-        }
-
         internal override RefKind RefKind
         {
             get
@@ -73,29 +57,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override abstract TypeSymbol ReturnType
-        {
-            get;
-        }
-
-        public override abstract ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get;
-        }
-
         internal override int ParameterCount
         {
             get { return UnderlyingMethod.ParameterCount; }
-        }
-
-        public override abstract ImmutableArray<ParameterSymbol> Parameters
-        {
-            get;
-        }
-
-        public override abstract Symbol AssociatedSymbol
-        {
-            get;
         }
 
         public override bool IsExtensionMethod
@@ -112,11 +76,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return UnderlyingMethod.HidesBaseMethodsByName;
             }
-        }
-
-        public override abstract Symbol ContainingSymbol
-        {
-            get;
         }
 
         public override ImmutableArray<Location> Locations
@@ -261,11 +220,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return UnderlyingMethod.GetAppliedConditionalSymbols();
         }
 
-        public override abstract ImmutableArray<CSharpAttributeData> GetAttributes();
-
-        // Get return type attributes
-        public override abstract ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes();
-
         internal override ObsoleteAttributeData ObsoleteAttributeData
         {
             get
@@ -319,16 +273,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override abstract bool IsExplicitInterfaceImplementation
-        {
-            get;
-        }
-
-        public override abstract ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
-        {
-            get;
-        }
-
         internal override bool IsAccessCheckedOnOverride
         {
             get
@@ -376,7 +320,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return UnderlyingMethod.GenerateDebugInfo;
             }
         }
-
-        internal override abstract int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree);
     }
 }

@@ -1,23 +1,20 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
-using Moq;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -34,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
         [WorkItem(530368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530368")]
         public async Task LargeNumberOfSpans()
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(@"class Program
+            using (var workspace = TestWorkspace.CreateCSharp(@"class Program
 {
     void M()
     {
@@ -52,10 +49,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
     }
 }"))
             {
-                Callback tagProducer = (span, cancellationToken) =>
-                    {
-                        return new List<ITagSpan<TestTag>>() { new TagSpan<TestTag>(span, new TestTag()) };
-                    };
+                List<ITagSpan<TestTag>> tagProducer(SnapshotSpan span, CancellationToken cancellationToken)
+                {
+                    return new List<ITagSpan<TestTag>>() { new TagSpan<TestTag>(span, new TestTag()) };
+                }
                 var asyncListener = new TaggerOperationListener();
 
                 WpfTestCase.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(LargeNumberOfSpans)} creates asynchronous taggers");
@@ -92,13 +89,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
         }
 
         [WpfFact]
-        public async Task TestSynchronousOutlining()
+        public void TestSynchronousOutlining()
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync("class Program {\r\n\r\n}"))
+            using (var workspace = TestWorkspace.CreateCSharp("class Program {\r\n\r\n}"))
             {
                 WpfTestCase.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(TestSynchronousOutlining)} creates asynchronous taggers");
 
-                var tagProvider = new OutliningTaggerProvider(
+                var tagProvider = new VisualStudio14StructureTaggerProvider(
                     workspace.GetService<IForegroundNotificationService>(),
                     workspace.GetService<ITextEditorFactoryService>(),
                     workspace.GetService<IEditorOptionsFactoryService>(),

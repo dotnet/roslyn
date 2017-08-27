@@ -21,16 +21,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             switch (type)
             {
                 case RenameSpanKind.Reference:
-                    tagKind = ValidTag.Instance;
+                    tagKind = RenameFieldBackgroundAndBorderTag.Instance;
                     break;
                 case RenameSpanKind.UnresolvedConflict:
-                    tagKind = ConflictTag.Instance;
+                    tagKind = RenameConflictTag.Instance;
                     break;
                 case RenameSpanKind.Complexified:
-                    tagKind = FixupTag.Instance;
+                    tagKind = RenameFixupTag.Instance;
                     break;
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(type);
             }
 
             tagSpan = new TagSpan<ITextMarkerTag>(span, tagKind);

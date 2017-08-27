@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' Contains variables that are captured but can't be hoisted since their type can't be allocated on heap.
         ' The value is a list of all usage of each such variable.
-        Private _lazyDisallowedCaptures As MultiDictionary(Of Symbol, VisualBasicSyntaxNode)
+        Private _lazyDisallowedCaptures As MultiDictionary(Of Symbol, SyntaxNode)
 
         Public Structure Result
             Public ReadOnly CapturedLocals As OrderedSet(Of Symbol)
@@ -126,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return MyBase.Scan()
         End Function
 
-        Private Sub CaptureVariable(variable As Symbol, syntax As VisualBasicSyntaxNode)
+        Private Sub CaptureVariable(variable As Symbol, syntax As SyntaxNode)
             Dim type As TypeSymbol = If(variable.Kind = SymbolKind.Local, TryCast(variable, LocalSymbol).Type, TryCast(variable, ParameterSymbol).Type)
             If type.IsRestrictedType() Then
                 ' Error has already been reported:
@@ -135,12 +135,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If _lazyDisallowedCaptures Is Nothing Then
-                    _lazyDisallowedCaptures = New MultiDictionary(Of Symbol, VisualBasicSyntaxNode)()
+                    _lazyDisallowedCaptures = New MultiDictionary(Of Symbol, SyntaxNode)()
                 End If
 
                 _lazyDisallowedCaptures.Add(variable, syntax)
 
-            ElseIf compilation.Options.OptimizationLevel = OptimizationLevel.Release
+            ElseIf compilation.Options.OptimizationLevel = OptimizationLevel.Release Then
                 ' In debug build we hoist all locals and parameters after walk:
                 Me._variablesToHoist.Add(variable)
             End If
@@ -150,14 +150,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Sub EnterParameter(parameter As ParameterSymbol)
             ' parameters are NOT initially assigned here - if that is a problem, then
             ' the parameters must be captured.
-            MakeSlot(parameter)
+            GetOrCreateSlot(parameter)
 
             ' Instead of analyzing which parameters are actually being referenced
             ' we add all of them; this might need to be revised later
             CaptureVariable(parameter, Nothing)
         End Sub
 
-        Protected Overrides Sub ReportUnassigned(symbol As Symbol, node As VisualBasicSyntaxNode, rwContext As ReadWriteContext, Optional slot As Integer = -1, Optional boundFieldAccess As BoundFieldAccess = Nothing)
+        Protected Overrides Sub ReportUnassigned(symbol As Symbol, node As SyntaxNode, rwContext As ReadWriteContext, Optional slot As Integer = -1, Optional boundFieldAccess As BoundFieldAccess = Nothing)
             If symbol.Kind = SymbolKind.Field Then
                 Dim sym As Symbol = GetNodeSymbol(boundFieldAccess)
 
@@ -220,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim result As BoundNode = Nothing
 
             For Each local In node.Locals
-                SetSlotState(MakeSlot(local), True)
+                SetSlotState(GetOrCreateSlot(local), True)
             Next
             result = MyBase.VisitSequence(node)
             For Each local In node.Locals

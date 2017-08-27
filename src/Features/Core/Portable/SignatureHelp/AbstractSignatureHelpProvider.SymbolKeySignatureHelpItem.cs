@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -15,12 +15,13 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             public SymbolKeySignatureHelpItem(
                 ISymbol symbol,
                 bool isVariadic,
-                Func<CancellationToken, IEnumerable<SymbolDisplayPart>> documentationFactory,
-                IEnumerable<SymbolDisplayPart> prefixParts,
-                IEnumerable<SymbolDisplayPart> separatorParts,
-                IEnumerable<SymbolDisplayPart> suffixParts,
+                Func<CancellationToken, IEnumerable<TaggedText>> documentationFactory,
+                IEnumerable<TaggedText> prefixParts,
+                IEnumerable<TaggedText> separatorParts,
+                IEnumerable<TaggedText> suffixParts,
                 IEnumerable<SignatureHelpParameter> parameters,
-                IEnumerable<SymbolDisplayPart> descriptionParts) : base(isVariadic, documentationFactory, prefixParts, separatorParts, suffixParts, parameters, descriptionParts)
+                IEnumerable<TaggedText> descriptionParts) : 
+                base(isVariadic, documentationFactory, prefixParts, separatorParts, suffixParts, parameters, descriptionParts)
             {
                 this.SymbolKey = symbol?.GetSymbolKey();
             }

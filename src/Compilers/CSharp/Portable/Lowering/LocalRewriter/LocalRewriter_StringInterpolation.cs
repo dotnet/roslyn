@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var value = fillin.Value;
                     if (value.Type?.TypeKind == TypeKind.Dynamic)
                     {
-                        value = MakeConversion(value, _compilation.ObjectType, @checked: false);
+                        value = MakeConversionNode(value, _compilation.ObjectType, @checked: false);
                     }
 
                     expressions.Add(value); // NOTE: must still be lowered

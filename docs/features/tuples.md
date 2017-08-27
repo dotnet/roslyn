@@ -1,14 +1,59 @@
 
-A lot of details and motivation for the feature is given in 
-[https://github.com/dotnet/roslyn/issues/347](https://github.com/dotnet/roslyn/issues/347)
+Quickstart guide for tuples (C# 7.0 and Visual Basic 15)
+------------------------------------
+1. Install VS2017
+2. Start a C# or VB project
+3. Add a reference to the `System.ValueTuple` package from NuGet
+![Install the ValueTuple package](img/install-valuetuple.png)
+4. Use tuples in C#:
 
-Current design notes:
-https://github.com/dotnet/roslyn/issues/10429
+```C#
+public class C
+{
+        public static (int code, string message) Method((int, string) x) 
+        { 
+                return x;
+        }
 
-NOTE: The goal of this document is capture what is being implemented. As design evolves, the document will undergo adjustments. 
+        public static void Main()
+        {
+                var pair1 = (42, "hello");
+                System.Console.Write(Method(pair1).message);
+        
+                var pair2 = (code: 43, message: "world");
+                System.Console.Write(pair2.message);
+        }
+}
+```
+    
+5. Or use tuples in VB:
+
+```VB
+Public Class C
+        Public Shared Function Method(x As (Integer, String)) As (code As Integer, message As String)
+                Return x
+        End Function
+
+        Public Shared Sub Main()
+                Dim x = (42, "hello")
+                System.Console.Write(C.Method(x).message)
+        
+                Dim pair2 = (code:=43, message:="world")
+                System.Console.Write(pair2.message)
+        End Sub
+End Class
+```
+
+6. Use deconstructions (C# only): see the [deconstruction page](deconstruction.md)
+
+Without the `System.ValueTuple` package from NuGet, the compiler will produce an error:
+``error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported``
+
+Design
+------
+The goal of this document is capture what is being implemented. As design evolves, the document will undergo adjustments. 
 Changes in design will be applied to this document as the changes are implemented.
 
------------------------------------
 
 Tuple types
 -----------
@@ -75,10 +120,10 @@ In all scenarios tuple types behave exactly like underlying types with only addi
 ```C#
 var t = (sum: 0, count: 1);	
 t.sum   = 1;				// sum   is the name for the field #1 
-t.Item1 = 1;				// Item1 is the name of underlying field #1 and is also avaialable
+t.Item1 = 1;				// Item1 is the name of underlying field #1 and is also available
 
 var t1 = (0, 1);			// tuple omits the field names.
-t.Item1 = 1;				// underlying field name is still avaialable 
+t.Item1 = 1;				// underlying field name is still available 
 
 t.ToString()				// ToString on the underlying tuple type is called.
 
@@ -182,7 +227,7 @@ var t = (null, 5);    						//   Error: tuple expression doesn't have a type bec
 ((1,2, null), 5).ToString();    	    	//   Error: tuple expression doesn't have a type
 
 ImmutableArray.Create((()=>1, 1));        	//   Error: tuple expression doesn't have a type because lambda does not have a type
-ImmutableArray.Create((Func<int>)()=>1, 1); //   ok
+ImmutableArray.Create(((Func<int>)(()=>1), 1)); //   ok
 ```
 
 A tuple literal may include names, in which case they become part of the natural type:
@@ -229,6 +274,16 @@ void M1((int x, Func<(int, byte)>) arg){...};
 M1((1, ()=>(2, 3)));         // the first overload is used due to "exact match" rule
 
 ``` 
+
+Conversions
+--------------
+
+Tuple types and expressions support a variety of conversions by "lifting" conversions of the elements into overal _tuple conversion_.
+For the classification purpose, all element conversions are considered recursively. For example: To have an implicit conversion, all element expressions/types must have implicit conversions to the corresponding element types.
+
+Typele conversions are *Standard Conversions* and therefore can stack with user-defined operators to form user-defined conversions.
+
+A tuple conversion can be classified as a valid instance conversion for an extension method invocation as long as all element conversions are applicable as instance conversions.
 
 Language grammar changes
 ---------------------
@@ -293,3 +348,13 @@ Open issues:
 - [ ] Provide more details on semantics of tuple type declarations, both static (Type rules, constraints, all-or-none names, can't be used on right-hand-side of a 'is', ...) and dynamic (what does it do at runtime?).
 - [ ] Provide more details on semantics of tuple literals, both static (new kind of conversion from expression, new kind of conversion from type, all-or-none, scrambled names, underlying types, underlying names, listing the members of this type, what it means to access, ) and dynamic (what happens when you do this conversion?).
 - [ ] Exactly matching expression
+
+References:
+-----------
+
+A lot of details and motivation for the feature is given in 
+[Proposal: Language support for Tuples](https://github.com/dotnet/roslyn/issues/347)
+
+[C# Design Notes for Apr 6, 2016](https://github.com/dotnet/roslyn/issues/10429)
+
+

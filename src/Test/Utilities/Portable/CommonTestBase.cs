@@ -12,6 +12,7 @@ using System.Reflection.Emit;
 using System.Reflection.PortableExecutable;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -22,8 +23,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     /// </summary>
     public abstract partial class CommonTestBase : TestBase
     {
-        internal abstract IEnumerable<IModuleSymbol> ReferencesToModuleSymbols(IEnumerable<MetadataReference> references, MetadataImportOptions importOptions = MetadataImportOptions.Public);
-
         #region Emit
 
         protected abstract Compilation GetCompilationForEmit(
@@ -34,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         protected abstract CompilationOptions CompilationOptionsReleaseDll { get; }
 
-        internal ICompilationVerifier CompileAndVerify(
+        internal CompilationVerifier CompileAndVerify(
             string source,
             IEnumerable<MetadataReference> additionalRefs = null,
             IEnumerable<ModuleData> dependencies = null,
@@ -45,6 +44,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string expectedOutput = null,
             CompilationOptions options = null,
             ParseOptions parseOptions = null,
+            EmitOptions emitOptions = null,
             bool verify = true)
         {
             return CompileAndVerify(
@@ -58,11 +58,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 expectedOutput: expectedOutput,
                 options: options,
                 parseOptions: parseOptions,
+                emitOptions: emitOptions,
                 verify: verify);
         }
 
-        internal ICompilationVerifier CompileAndVerify(
-            string[] sources,
+        internal CompilationVerifier CompileAndVerify(
+            IEnumerable<string> sources,
             IEnumerable<MetadataReference> additionalRefs = null,
             IEnumerable<ModuleData> dependencies = null,
             Action<IModuleSymbol> sourceSymbolValidator = null,
@@ -70,8 +71,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Action<IModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
+            int? expectedReturnCode = null,
+            string[] args = null,
             CompilationOptions options = null,
             ParseOptions parseOptions = null,
+            EmitOptions emitOptions = null,
             bool verify = true)
         {
             if (options == null)
@@ -90,10 +94,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 symbolValidator,
                 expectedSignatures,
                 expectedOutput,
+                expectedReturnCode,
+                args,
+                emitOptions,
                 verify);
         }
 
-        internal ICompilationVerifier CompileAndVerify(
+        internal CompilationVerifier CompileAndVerify(
             Compilation compilation,
             IEnumerable<ResourceDescription> manifestResources = null,
             IEnumerable<ModuleData> dependencies = null,
@@ -102,6 +109,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Action<IModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
+            int? expectedReturnCode = null,
+            string[] args = null,
+            EmitOptions emitOptions = null,
             bool verify = true)
         {
             Assert.NotNull(compilation);
@@ -123,15 +133,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 sourceSymbolValidator(module);
             }
 
-            ICompilationVerifier result = null;
+            CompilationVerifier result = null;
 
             var verifier = Emit(compilation,
                                 dependencies,
                                 manifestResources,
                                 expectedSignatures,
                                 expectedOutput,
+                                expectedReturnCode,
+                                args ?? Array.Empty<string>(),
                                 assemblyValidator,
                                 symbolValidator,
+                                emitOptions,
                                 verify);
 
             if (result == null)
@@ -151,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return result;
         }
 
-        internal ICompilationVerifier CompileAndVerifyFieldMarshal(string source, Dictionary<string, byte[]> expectedBlobs, bool isField = true)
+        internal CompilationVerifier CompileAndVerifyFieldMarshal(string source, Dictionary<string, byte[]> expectedBlobs, bool isField = true)
         {
             return CompileAndVerifyFieldMarshal(
                 source,
@@ -163,12 +176,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 isField);
         }
 
-        internal ICompilationVerifier CompileAndVerifyFieldMarshal(string source, Func<string, PEAssembly, byte[]> getExpectedBlob, bool isField = true)
+        internal CompilationVerifier CompileAndVerifyFieldMarshal(string source, Func<string, PEAssembly, byte[]> getExpectedBlob, bool isField = true)
         {
             return CompileAndVerify(source, options: CompilationOptionsReleaseDll, assemblyValidator: (assembly) => MetadataValidation.MarshalAsMetadataValidator(assembly, getExpectedBlob, isField));
         }
 
-        static internal void RunValidators(ICompilationVerifier verifier, Action<PEAssembly> assemblyValidator, Action<IModuleSymbol> symbolValidator)
+        static internal void RunValidators(CompilationVerifier verifier, Action<PEAssembly> assemblyValidator, Action<IModuleSymbol> symbolValidator)
         {
             if (assemblyValidator != null)
             {
@@ -186,17 +199,28 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        internal ICompilationVerifier Emit(
+        internal CompilationVerifier Emit(
             Compilation compilation,
             IEnumerable<ModuleData> dependencies,
             IEnumerable<ResourceDescription> manifestResources,
             SignatureDescription[] expectedSignatures,
             string expectedOutput,
+            int? expectedReturnCode,
+            string[] args,
             Action<PEAssembly> assemblyValidator,
             Action<IModuleSymbol> symbolValidator,
+            EmitOptions emitOptions,
             bool verify)
         {
-            return null;
+            var verifier = new CompilationVerifier(compilation, VisualizeRealIL, dependencies);
+
+            verifier.Emit(expectedOutput, expectedReturnCode, args, manifestResources, emitOptions, verify, expectedSignatures);
+
+            // We're dual-purposing emitters here.  In this context, it
+            // tells the validator the version of Emit that is calling it. 
+            RunValidators(verifier, assemblyValidator, symbolValidator);
+
+            return verifier;
         }
 
         /// <summary>
@@ -216,17 +240,39 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             out ImmutableArray<byte> assemblyBytes,
             out ImmutableArray<byte> pdbBytes)
         {
-            // TODO: Port IL writer to portable
-            assemblyBytes = default(ImmutableArray<byte>);
-            pdbBytes = default(ImmutableArray<byte>);
+            IlasmUtilities.IlasmTempAssembly(ilSource, appendDefaultHeader, includePdb, out var assemblyPath, out var pdbPath);
+
+            Assert.NotNull(assemblyPath);
+            Assert.Equal(pdbPath != null, includePdb);
+
+            using (new DisposableFile(assemblyPath))
+            {
+                assemblyBytes = ReadFromFile(assemblyPath);
+            }
+
+            if (pdbPath != null)
+            {
+                using (new DisposableFile(pdbPath))
+                {
+                    pdbBytes = ReadFromFile(pdbPath);
+                }
+            }
+            else
+            {
+                pdbBytes = default(ImmutableArray<byte>);
+            }
         }
 
-        internal static MetadataReference CompileIL(string ilSource, bool appendDefaultHeader = true, bool embedInteropTypes = false)
+        internal static MetadataReference CompileIL(string ilSource, bool prependDefaultHeader = true, bool embedInteropTypes = false)
         {
-            ImmutableArray<byte> assemblyBytes;
-            ImmutableArray<byte> pdbBytes;
-            EmitILToArray(ilSource, appendDefaultHeader, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            EmitILToArray(ilSource, prependDefaultHeader, includePdb: false, assemblyBytes: out var assemblyBytes, pdbBytes: out var pdbBytes);
             return AssemblyMetadata.CreateFromImage(assemblyBytes).GetReference(embedInteropTypes: embedInteropTypes);
+        }
+
+        internal static MetadataReference GetILModuleReference(string ilSource, bool prependDefaultHeader = true)
+        {
+            EmitILToArray(ilSource, prependDefaultHeader, includePdb: false, assemblyBytes: out var assemblyBytes, pdbBytes: out var pdbBytes);
+            return ModuleMetadata.CreateFromImage(assemblyBytes).GetReference();
         }
 
         #endregion
@@ -406,27 +452,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     references.Add(referencedCompilation.EmitToImageReference());
                 }
             }
-        }
-
-        /// <summary>
-        /// Creates a reference to a single-module assembly or a standalone module stored in memory
-        /// from a hex-encoded byte stream representing a gzipped assembly image.
-        /// </summary>
-        /// <param name="image">
-        /// A string containing a hex-encoded byte stream representing a gzipped assembly image. 
-        /// Hex digits are case-insensitive and can be separated by spaces or newlines.
-        /// Cannot be null.
-        /// </param>
-        /// <param name="properties">Reference properties (extern aliases, type embedding, <see cref="MetadataImageKind"/>).</param>
-        /// <param name="documentation">Provides XML documentation for symbol found in the reference.</param>
-        /// <param name="filePath">Optional path that describes the location of the metadata. The file doesn't need to exist on disk. The path is opaque to the compiler.</param>
-        protected internal PortableExecutableReference CreateMetadataReferenceFromHexGZipImage(
-            string image,
-            MetadataReferenceProperties properties = default(MetadataReferenceProperties),
-            DocumentationProvider documentation = null,
-            string filePath = null)
-        {
-            return null;
         }
 
         #endregion

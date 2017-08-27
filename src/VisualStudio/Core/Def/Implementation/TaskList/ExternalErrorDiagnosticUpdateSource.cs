@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -28,7 +28,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private readonly SimpleTaskQueue _taskQueue;
         private readonly IAsynchronousOperationListener _listener;
 
-        private InprogressState _state = null;
+        private readonly object _gate;
+        private InprogressState _stateDoNotAccessDirectly = null;
         private ImmutableArray<DiagnosticData> _lastBuiltResult = ImmutableArray<DiagnosticData>.Empty;
 
         [ImportingConstructor]
@@ -63,13 +64,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             _notificationService = _workspace.Services.GetService<IGlobalOperationNotificationService>();
 
+            _gate = new object();
+
             registrationService.Register(this);
         }
 
         public event EventHandler<bool> BuildStarted;
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
 
-        public bool IsInProgress => _state != null;
+        public bool IsInProgress => BuildInprogressState != null;
 
         public ImmutableArray<DiagnosticData> GetBuildErrors()
         {
@@ -78,13 +81,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         public bool SupportedDiagnosticId(ProjectId projectId, string id)
         {
-            return _state?.SupportedDiagnosticId(projectId, id) ?? false;
+            return BuildInprogressState?.SupportedDiagnosticId(projectId, id) ?? false;
         }
 
         public void ClearErrors(ProjectId projectId)
         {
             // capture state if it exists
-            var state = _state;
+            var state = BuildInprogressState;
 
             var asyncToken = _listener.BeginAsyncOperation("ClearErrors");
             _taskQueue.ScheduleTask(() =>
@@ -152,11 +155,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 return;
             }
 
-            // get local copy of inprogress state
-            var inprogressState = _state;
-
-            // building is done. reset the state.
-            Interlocked.CompareExchange(ref _state, null, inprogressState);
+            // building is done. reset the state
+            // and get local copy of inprogress state
+            var inprogressState = ClearInprogressState();
 
             // enqueue build/live sync in the queue.
             var asyncToken = _listener.BeginAsyncOperation("OnSolutionBuild");
@@ -174,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 // pause live analyzer
                 using (var operation = _notificationService.Start("BuildDone"))
                 {
-                    Func<DiagnosticData, bool> liveDiagnosticChecker = d =>
+                    bool liveDiagnosticChecker(DiagnosticData d)
                     {
                         // REVIEW: we probably need a better design on de-duplicating live and build errors. or don't de-dup at all.
                         //         for now, we are special casing compiler error case.
@@ -200,36 +201,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                         }
 
                         return false;
-                    };
+                    }
 
-                    var diagnosticService = _diagnosticService as DiagnosticAnalyzerService;
-                    if (diagnosticService != null)
+                    if (_diagnosticService is DiagnosticAnalyzerService diagnosticService)
                     {
-                        await CleanupAllLiveErrorsIfNeededAsync(diagnosticService, inprogressState.Solution, inprogressState).ConfigureAwait(false);
+                        await CleanupAllLiveErrors(diagnosticService, inprogressState.GetProjectsWithoutErrors(inprogressState.Solution)).ConfigureAwait(false);
                         await SyncBuildErrorsAndReportAsync(diagnosticService, inprogressState.Solution, inprogressState.GetLiveDiagnosticsPerProject(liveDiagnosticChecker)).ConfigureAwait(false);
                     }
 
                     inprogressState.Done();
                 }
             }).CompletesAsyncOperation(asyncToken);
-        }
-
-        private async System.Threading.Tasks.Task CleanupAllLiveErrorsIfNeededAsync(DiagnosticAnalyzerService diagnosticService, Solution solution, InprogressState state)
-        {
-            if (_workspace.Options.GetOption(InternalDiagnosticsOptions.BuildErrorIsTheGod))
-            {
-                await CleanupAllLiveErrors(diagnosticService, solution.ProjectIds).ConfigureAwait(false);
-                return;
-            }
-
-            if (_workspace.Options.GetOption(InternalDiagnosticsOptions.ClearLiveErrorsForProjectBuilt))
-            {
-                await CleanupAllLiveErrors(diagnosticService, state.GetProjectsBuilt(solution)).ConfigureAwait(false);
-                return;
-            }
-
-            await CleanupAllLiveErrors(diagnosticService, state.GetProjectsWithoutErrors(solution)).ConfigureAwait(false);
-            return;
         }
 
         private System.Threading.Tasks.Task CleanupAllLiveErrors(DiagnosticAnalyzerService diagnosticService, IEnumerable<ProjectId> projects)
@@ -265,8 +247,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private void ReportBuildErrors<T>(T item, Solution solution, ImmutableArray<DiagnosticData> buildErrors)
         {
-            var projectId = item as ProjectId;
-            if (projectId != null)
+            if (item is ProjectId projectId)
             {
                 RaiseDiagnosticsCreated(projectId, solution, projectId, null, buildErrors);
                 return;
@@ -342,17 +323,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }).CompletesAsyncOperation(asyncToken);
         }
 
+        private InprogressState BuildInprogressState
+        {
+            get
+            {
+                lock (_gate)
+                {
+                    return _stateDoNotAccessDirectly;
+                }
+            }
+        }
+
+        private InprogressState ClearInprogressState()
+        {
+            lock (_gate)
+            {
+                var state = _stateDoNotAccessDirectly;
+
+                _stateDoNotAccessDirectly = null;
+                return state;
+            }
+        }
+
         private InprogressState GetOrCreateInprogressState()
         {
-            if (_state == null)
+            lock (_gate)
             {
-                // here, we take current snapshot of solution when the state is first created. and through out this code, we use this snapshot.
-                // since we have no idea what actual snapshot of solution the out of proc build has picked up, it doesn't remove the race we can have
-                // between build and diagnostic service, but this at least make us to consistent inside of our code.
-                Interlocked.CompareExchange(ref _state, new InprogressState(this, _workspace.CurrentSolution), null);
-            }
+                if (_stateDoNotAccessDirectly == null)
+                {
+                    // here, we take current snapshot of solution when the state is first created. and through out this code, we use this snapshot.
+                    // since we have no idea what actual snapshot of solution the out of proc build has picked up, it doesn't remove the race we can have
+                    // between build and diagnostic service, but this at least make us to consistent inside of our code.
+                    _stateDoNotAccessDirectly = new InprogressState(this, _workspace.CurrentSolution);
+                }
 
-            return _state;
+                return _stateDoNotAccessDirectly;
+            }
         }
 
         private void RaiseDiagnosticsCreated(object id, Solution solution, ProjectId projectId, DocumentId documentId, ImmutableArray<DiagnosticData> items)
@@ -378,7 +384,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         public bool SupportGetDiagnostics { get { return false; } }
 
         public ImmutableArray<DiagnosticData> GetDiagnostics(
-            Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
+            Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
             return ImmutableArray<DiagnosticData>.Empty;
         }
@@ -400,8 +406,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 _solution = solution;
 
                 // let people know build has started
-                // TODO: to be more accurate, it probably needs to be counted. but for now,
-                //       I think the way it is doing probably enough.
                 _owner.RaiseBuildStarted(started: true);
             }
 
@@ -414,27 +418,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             public bool SupportedDiagnosticId(ProjectId projectId, string id)
             {
-                HashSet<string> ids;
-                if (_diagnosticIdMap.TryGetValue(projectId, out ids))
+                lock (_diagnosticIdMap)
                 {
-                    return ids.Contains(id);
+                    if (_diagnosticIdMap.TryGetValue(projectId, out var ids))
+                    {
+                        return ids.Contains(id);
+                    }
+
+                    // set ids set
+                    var map = new HashSet<string>();
+                    _diagnosticIdMap.Add(projectId, map);
+
+                    var project = _solution.GetProject(projectId);
+                    if (project == null)
+                    {
+                        // projectId no longer exist, return false;
+                        return false;
+                    }
+
+                    var descriptorMap = _owner._diagnosticService.GetDiagnosticDescriptors(project);
+                    map.UnionWith(descriptorMap.Values.SelectMany(v => v.Select(d => d.Id)));
+
+                    return map.Contains(id);
                 }
-
-                // set ids set
-                var map = new HashSet<string>();
-                _diagnosticIdMap.Add(projectId, map);
-
-                var project = _solution.GetProject(projectId);
-                if (project == null)
-                {
-                    // projectId no longer exist, return false;
-                    return false;
-                }
-
-                var descriptorMap = _owner._diagnosticService.GetDiagnosticDescriptors(project);
-                map.UnionWith(descriptorMap.Values.SelectMany(v => v.Select(d => d.Id)));
-
-                return map.Contains(id);
             }
 
             public ImmutableArray<DiagnosticData> GetBuildDiagnostics()

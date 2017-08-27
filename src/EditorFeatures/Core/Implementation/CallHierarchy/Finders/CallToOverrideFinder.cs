@@ -16,13 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
         {
         }
 
-        public override string DisplayName
-        {
-            get
-            {
-                return EditorFeaturesResources.CallsToOverrides;
-            }
-        }
+        public override string DisplayName => EditorFeaturesResources.Calls_To_Overrides;
 
         protected override async Task<IEnumerable<SymbolCallerInfo>> GetCallers(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
         {

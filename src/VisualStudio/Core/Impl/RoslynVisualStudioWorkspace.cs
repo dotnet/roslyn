@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -6,18 +6,17 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
-using Microsoft.VisualStudio.LanguageServices.Implementation;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices
@@ -26,28 +25,21 @@ namespace Microsoft.VisualStudio.LanguageServices
     [Export(typeof(VisualStudioWorkspaceImpl))]
     internal class RoslynVisualStudioWorkspace : VisualStudioWorkspaceImpl
     {
-        private readonly IEnumerable<Lazy<INavigableItemsPresenter>> _navigableItemsPresenters;
-        private readonly IEnumerable<Lazy<IReferencedSymbolsPresenter>> _referencedSymbolsPresenters;
-        private readonly IEnumerable<Lazy<INavigableDefinitionProvider>> _externalDefinitionProviders;
+        private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
 
         [ImportingConstructor]
         private RoslynVisualStudioWorkspace(
-            SVsServiceProvider serviceProvider,
-            SaveEventsService saveEventsService,
-            [ImportMany] IEnumerable<Lazy<INavigableItemsPresenter>> navigableItemsPresenters,
-            [ImportMany] IEnumerable<Lazy<IReferencedSymbolsPresenter>> referencedSymbolsPresenters,
-            [ImportMany] IEnumerable<Lazy<INavigableDefinitionProvider>> externalDefinitionProviders)
-            : base(
-                serviceProvider,
-                backgroundWork: WorkspaceBackgroundWork.ParseAndCompile)
+            ExportProvider exportProvider,
+            [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
+            [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories)
+            : base(exportProvider.AsExportProvider())
         {
-            PrimaryWorkspace.Register(this);
+            _streamingPresenters = streamingPresenters;
 
-            InitializeStandardVisualStudioWorkspace(serviceProvider, saveEventsService);
-
-            _navigableItemsPresenters = navigableItemsPresenters;
-            _referencedSymbolsPresenters = referencedSymbolsPresenters;
-            _externalDefinitionProviders = externalDefinitionProviders;
+            foreach (var providerFactory in documentOptionsProviderFactories)
+            {
+                Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(providerFactory.Create(this));
+            }
         }
 
         public override EnvDTE.FileCodeModel GetFileCodeModel(DocumentId documentId)
@@ -57,20 +49,25 @@ namespace Microsoft.VisualStudio.LanguageServices
                 throw new ArgumentNullException(nameof(documentId));
             }
 
-            var project = ProjectTracker.GetProject(documentId.ProjectId);
+            if (DeferredState == null)
+            {
+                // We haven't gotten any projects added yet, so we don't know where this came from
+                throw new ArgumentException(ServicesVSResources.The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace, nameof(documentId));
+            }
+
+            var project = DeferredState.ProjectTracker.GetProject(documentId.ProjectId);
             if (project == null)
             {
-                throw new ArgumentException(ServicesVSResources.DocumentIdNotFromWorkspace, nameof(documentId));
+                throw new ArgumentException(ServicesVSResources.The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace, nameof(documentId));
             }
 
             var document = project.GetDocumentOrAdditionalDocument(documentId);
             if (document == null)
             {
-                throw new ArgumentException(ServicesVSResources.DocumentIdNotFromWorkspace, nameof(documentId));
+                throw new ArgumentException(ServicesVSResources.The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace, nameof(documentId));
             }
 
-            var provider = project as IProjectCodeModelProvider;
-            if (provider != null)
+            if (project is IProjectCodeModelProvider provider)
             {
                 var projectCodeModel = provider.ProjectCodeModel;
                 if (projectCodeModel.CanCreateFileCodeModelThroughProject(document.FilePath))
@@ -89,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 return false;
             }
 
-            var project = ProjectTracker.GetProject(documentId.ProjectId);
+            var project = DeferredState.ProjectTracker.GetProject(documentId.ProjectId);
             if (project == null)
             {
                 return false;
@@ -126,17 +123,17 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         internal override IInvisibleEditor OpenInvisibleEditor(IVisualStudioHostDocument hostDocument)
         {
-            // We need to ensure the file is saved, only if a global undo transaction is open
             var globalUndoService = this.Services.GetService<IGlobalUndoService>();
-            var needsSave = globalUndoService.IsGlobalTransactionOpen(this);
-
             var needsUndoDisabled = false;
+
+            // Do not save the file if is open and there is not a global undo transaction.
+            var needsSave = globalUndoService.IsGlobalTransactionOpen(this) || !hostDocument.IsOpen;
             if (needsSave)
             {
                 if (this.CurrentSolution.ContainsDocument(hostDocument.Id))
                 {
                     // Disable undo on generated documents
-                    needsUndoDisabled = this.Services.GetService<IGeneratedCodeRecognitionService>().IsGeneratedCode(this.CurrentSolution.GetDocument(hostDocument.Id));
+                    needsUndoDisabled = this.CurrentSolution.GetDocument(hostDocument.Id).IsGeneratedCode(CancellationToken.None);
                 }
                 else
                 {
@@ -145,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 }
             }
 
-            return new InvisibleEditor(ServiceProvider, hostDocument.FilePath, needsSave, needsUndoDisabled);
+            return new InvisibleEditor(DeferredState.ServiceProvider, hostDocument.FilePath, hostDocument.Project, needsSave, needsUndoDisabled);
         }
 
         private static bool TryResolveSymbol(ISymbol symbol, Project project, CancellationToken cancellationToken, out ISymbol resolvedSymbol, out Project resolvedProject)
@@ -175,59 +172,36 @@ namespace Microsoft.VisualStudio.LanguageServices
             return true;
         }
 
-        public override bool TryGoToDefinition(ISymbol symbol, Project project, CancellationToken cancellationToken)
+        public override bool TryGoToDefinition(
+            ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
-            if (!_navigableItemsPresenters.Any())
+            if (!_streamingPresenters.Any())
             {
                 return false;
             }
 
-            ISymbol searchSymbol;
-            Project searchProject;
-            if (!TryResolveSymbol(symbol, project, cancellationToken, out searchSymbol, out searchProject))
+            if (!TryResolveSymbol(symbol, project, cancellationToken, 
+                    out var searchSymbol, out var searchProject))
             {
                 return false;
             }
 
             return GoToDefinitionHelpers.TryGoToDefinition(
-                searchSymbol, searchProject, _externalDefinitionProviders, _navigableItemsPresenters, cancellationToken: cancellationToken);
+                searchSymbol, searchProject, 
+                _streamingPresenters, cancellationToken);
         }
 
         public override bool TryFindAllReferences(ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
-            if (!_referencedSymbolsPresenters.Any())
-            {
-                return false;
-            }
-
-            ISymbol searchSymbol;
-            Project searchProject;
-            if (!TryResolveSymbol(symbol, project, cancellationToken, out searchSymbol, out searchProject))
-            {
-                return false;
-            }
-
-            var searchSolution = searchProject.Solution;
-
-            var result = SymbolFinder
-                .FindReferencesAsync(searchSymbol, searchSolution, cancellationToken)
-                .WaitAndGetResult(cancellationToken).ToList();
-
-            if (result != null)
-            {
-                DisplayReferencedSymbols(searchSolution, result);
-                return true;
-            }
-
+            // Legacy API.  Previously used by ObjectBrowser to support 'FindRefs' off of an
+            // object browser item.  Now ObjectBrowser goes through the streaming-FindRefs system.
             return false;
         }
 
         public override void DisplayReferencedSymbols(Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols)
         {
-            foreach (var presenter in _referencedSymbolsPresenters)
-            {
-                presenter.Value.DisplayResult(solution, referencedSymbols);
-            }
+            // Legacy API.  Previously used by ObjectBrowser to support 'FindRefs' off of an
+            // object browser item.  Now ObjectBrowser goes through the streaming-FindRefs system.
         }
 
         internal override object GetBrowseObject(SymbolListItem symbolListItem)

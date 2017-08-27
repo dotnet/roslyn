@@ -85,16 +85,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return PrevBlock
         End Function
 
-        Friend Overrides Function ProcessElseAsStatementTerminator() As BlockContext
-            ' Else from outer If terminates the lambda.
-            Return PrevBlock
-        End Function
-
-        Friend Overrides Function ProcessOtherAsStatementTerminator() As BlockContext
-            ' Other non-terminator terminates the lambda.
-            Return PrevBlock
-        End Function
-
         Friend Overrides ReadOnly Property IsSingleLine As Boolean
             Get
                 Return True

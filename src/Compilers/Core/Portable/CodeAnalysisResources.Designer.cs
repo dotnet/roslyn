@@ -126,6 +126,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} must either be &apos;default&apos; or have the same length as {1}..
+        /// </summary>
+        internal static string AnonymousTypeArgumentCountMismatch2 {
+            get {
+                return ResourceManager.GetString("AnonymousTypeArgumentCountMismatch2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} and {1} must have the same length..
+        /// </summary>
+        internal static string AnonymousTypeMemberAndNamesCountMismatch2 {
+            get {
+                return ResourceManager.GetString("AnonymousTypeMemberAndNamesCountMismatch2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Argument cannot be empty..
         /// </summary>
         internal static string ArgumentCannotBeEmpty {
@@ -146,9 +164,9 @@ namespace Microsoft.CodeAnalysis {
         /// <summary>
         ///   Looks up a localized string similar to Arrays with more than one dimension cannot be serialized..
         /// </summary>
-        internal static string ArraysWithMoreThanOneDimensionCannotBeSerialized {
+        internal static string Arrays_with_more_than_one_dimension_cannot_be_serialized {
             get {
-                return ResourceManager.GetString("ArraysWithMoreThanOneDimensionCannotBeSerialized", resourceCulture);
+                return ResourceManager.GetString("Arrays_with_more_than_one_dimension_cannot_be_serialized", resourceCulture);
             }
         }
         
@@ -189,6 +207,33 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Analyzer attempted to register an &apos;async&apos; action, which is not supported..
+        /// </summary>
+        internal static string AsyncAnalyzerActionCannotBeRegistered {
+            get {
+                return ResourceManager.GetString("AsyncAnalyzerActionCannotBeRegistered", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot deserialize type &apos;{0}&apos;..
+        /// </summary>
+        internal static string Cannot_deserialize_type_0 {
+            get {
+                return ResourceManager.GetString("Cannot_deserialize_type_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot serialize type &apos;{0}&apos;..
+        /// </summary>
+        internal static string Cannot_serialize_type_0 {
+            get {
+                return ResourceManager.GetString("Cannot_serialize_type_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Can&apos;t alias a module..
         /// </summary>
         internal static string CannotAliasModule {
@@ -221,6 +266,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string CannotEmbedInteropTypesFromModule {
             get {
                 return ResourceManager.GetString("CannotEmbedInteropTypesFromModule", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot target net module when emitting ref assembly..
+        /// </summary>
+        internal static string CannotTargetNetModuleWhenEmittingRefAssembly {
+            get {
+                return ResourceManager.GetString("CannotTargetNetModuleWhenEmittingRefAssembly", resourceCulture);
             }
         }
         
@@ -370,6 +424,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Deserialization reader for &apos;{0}&apos; read incorrect number of values..
+        /// </summary>
+        internal static string Deserialization_reader_for_0_read_incorrect_number_of_values {
+            get {
+                return ResourceManager.GetString("Deserialization_reader_for_0_read_incorrect_number_of_values", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A DiagnosticDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space..
         /// </summary>
         internal static string DiagnosticIdCantBeNullOrWhitespace {
@@ -384,6 +447,33 @@ namespace Microsoft.CodeAnalysis {
         internal static string DuplicateAnalyzerInstances {
             get {
                 return ResourceManager.GetString("DuplicateAnalyzerInstances", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to element is expected.
+        /// </summary>
+        internal static string ElementIsExpected {
+            get {
+                return ResourceManager.GetString("ElementIsExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Embedded texts are only supported when emitting a PDB..
+        /// </summary>
+        internal static string EmbeddedTextsRequirePdb {
+            get {
+                return ResourceManager.GetString("EmbeddedTextsRequirePdb", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Embedding PDB is not allowed when emitting metadata..
+        /// </summary>
+        internal static string EmbeddingPdbUnexpectedWhenEmittingMetadata {
+            get {
+                return ResourceManager.GetString("EmbeddingPdbUnexpectedWhenEmittingMetadata", resourceCulture);
             }
         }
         
@@ -515,11 +605,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Including private members should not be used when emitting to the secondary assembly output..
+        /// </summary>
+        internal static string IncludingPrivateMembersUnexpectedWhenEmittingToMetadataPeStream {
+            get {
+                return ResourceManager.GetString("IncludingPrivateMembersUnexpectedWhenEmittingToMetadataPeStream", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Inconsistent language versions.
         /// </summary>
         internal static string InconsistentLanguageVersions {
             get {
                 return ResourceManager.GetString("InconsistentLanguageVersions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Inconsistent syntax tree features.
+        /// </summary>
+        internal static string InconsistentSyntaxTreeFeature {
+            get {
+                return ResourceManager.GetString("InconsistentSyntaxTreeFeature", resourceCulture);
             }
         }
         
@@ -641,6 +749,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Reported diagnostic &apos;{0}&apos; has a source location &apos;{1}&apos; in file &apos;{2}&apos;, which is outside of the given file..
+        /// </summary>
+        internal static string InvalidDiagnosticSpanReported {
+            get {
+                return ResourceManager.GetString("InvalidDiagnosticSpanReported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid hash..
         /// </summary>
         internal static string InvalidHash {
@@ -722,6 +839,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Feature &apos;IOperation&apos; is disabled..
+        /// </summary>
+        internal static string IOperationFeatureDisabled {
+            get {
+                return ResourceManager.GetString("IOperationFeatureDisabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Argument to &apos;/keepalive&apos; option is not a 32-bit integer..
         /// </summary>
         internal static string KeepAliveIsNotAnInteger {
@@ -754,6 +880,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string KeyInPathMapEndsWithSeparator {
             get {
                 return ResourceManager.GetString("KeyInPathMapEndsWithSeparator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Metadata PE stream should not be given when emitting metadata only..
+        /// </summary>
+        internal static string MetadataPeStreamUnexpectedWhenEmittingMetadataOnly {
+            get {
+                return ResourceManager.GetString("MetadataPeStreamUnexpectedWhenEmittingMetadataOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MetadataReference &apos;{0}&apos; not found to remove..
+        /// </summary>
+        internal static string MetadataRefNotFoundToRemove1 {
+            get {
+                return ResourceManager.GetString("MetadataRefNotFoundToRemove1", resourceCulture);
             }
         }
         
@@ -821,11 +965,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Must include private members unless emitting a ref assembly..
+        /// </summary>
+        internal static string MustIncludePrivateMembersUnlessRefAssembly {
+            get {
+                return ResourceManager.GetString("MustIncludePrivateMembersUnlessRefAssembly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Name cannot be empty..
         /// </summary>
         internal static string NameCannotBeEmpty {
             get {
                 return ResourceManager.GetString("NameCannotBeEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Name cannot be null..
+        /// </summary>
+        internal static string NameCannotBeNull {
+            get {
+                return ResourceManager.GetString("NameCannotBeNull", resourceCulture);
             }
         }
         
@@ -857,38 +1019,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot deserialize type &apos;{0}&apos;, no binder supplied..
-        /// </summary>
-        internal static string NoBinderException {
-            get {
-                return ResourceManager.GetString("NoBinderException", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to A node or token is out of sequence..
         /// </summary>
         internal static string NodeOrTokenOutOfSequence {
             get {
                 return ResourceManager.GetString("NodeOrTokenOutOfSequence", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cannot deserialize type &apos;{0}&apos;, it has no deserialization reader..
-        /// </summary>
-        internal static string NoReaderException {
-            get {
-                return ResourceManager.GetString("NoReaderException", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The type &apos;{0}&apos; cannot be written, it does not implement IObjectWritable.
-        /// </summary>
-        internal static string NotWritableException {
-            get {
-                return ResourceManager.GetString("NotWritableException", resourceCulture);
             }
         }
         
@@ -938,6 +1073,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to PDB stream should not be given when embedding PDB into the PE stream..
+        /// </summary>
+        internal static string PdbStreamUnexpectedWhenEmbedding {
+            get {
+                return ResourceManager.GetString("PdbStreamUnexpectedWhenEmbedding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PDB stream should not be given when emitting metadata only..
+        /// </summary>
+        internal static string PdbStreamUnexpectedWhenEmittingMetadataOnly {
+            get {
+                return ResourceManager.GetString("PdbStreamUnexpectedWhenEmittingMetadataOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to PE image doesn&apos;t contain managed metadata..
         /// </summary>
         internal static string PEImageDoesntContainManagedMetadata {
@@ -970,6 +1123,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Property {
             get {
                 return ResourceManager.GetString("Property", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reference of type &apos;{0}&apos; is not valid for this compilation..
+        /// </summary>
+        internal static string ReferenceOfTypeIsInvalid1 {
+            get {
+                return ResourceManager.GetString("ReferenceOfTypeIsInvalid1", resourceCulture);
             }
         }
         
@@ -1064,6 +1226,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to separator is expected.
+        /// </summary>
+        internal static string SeparatorIsExpected {
+            get {
+                return ResourceManager.GetString("SeparatorIsExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Value for argument &apos;/shared:&apos; must not be empty.
         /// </summary>
         internal static string SharedArgumentMissing {
@@ -1078,6 +1249,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string SizeHasToBePositive {
             get {
                 return ResourceManager.GetString("SizeHasToBePositive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SourceText cannot be embedded. Provide encoding or canBeEmbedded=true at construction..
+        /// </summary>
+        internal static string SourceTextCannotBeEmbedded {
+            get {
+                return ResourceManager.GetString("SourceTextCannotBeEmbedded", resourceCulture);
             }
         }
         
@@ -1109,6 +1289,33 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Stream contains invalid data.
+        /// </summary>
+        internal static string Stream_contains_invalid_data {
+            get {
+                return ResourceManager.GetString("Stream_contains_invalid_data", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stream is too long..
+        /// </summary>
+        internal static string StreamIsTooLong {
+            get {
+                return ResourceManager.GetString("StreamIsTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stream must be readable..
+        /// </summary>
+        internal static string StreamMustSupportRead {
+            get {
+                return ResourceManager.GetString("StreamMustSupportRead", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Stream must support read and seek operations..
         /// </summary>
         internal static string StreamMustSupportReadAndSeek {
@@ -1136,16 +1343,16 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Windows PDB writer is not available -- could not find Microsoft.DiaSymReader.Native.{0}.dll.
+        ///   Looks up a localized string similar to Windows PDB writer doesn&apos;t support SourceLink feature: &apos;{0}&apos;.
         /// </summary>
-        internal static string SymWriterNotAvailable {
+        internal static string SymWriterDoesNotSupportSourceLink {
             get {
-                return ResourceManager.GetString("SymWriterNotAvailable", resourceCulture);
+                return ResourceManager.GetString("SymWriterDoesNotSupportSourceLink", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Windows PDB writer doesn&apos;t support deterministic compilation -- could not find Microsoft.DiaSymReader.Native.{0}.dll.
+        ///   Looks up a localized string similar to Windows PDB writer doesn&apos;t support deterministic compilation: &apos;{0}&apos;.
         /// </summary>
         internal static string SymWriterNotDeterministic {
             get {
@@ -1154,11 +1361,65 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to If names are used in a tuple type, then there must be the same number of names and elements..
+        ///   Looks up a localized string similar to The version of Windows PDB writer is older than required: &apos;{0}&apos;.
         /// </summary>
-        internal static string TupleNamesAllOrNone {
+        internal static string SymWriterOlderVersionThanRequired {
             get {
-                return ResourceManager.GetString("TupleNamesAllOrNone", resourceCulture);
+                return ResourceManager.GetString("SymWriterOlderVersionThanRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type &apos;{0}&apos; is not understood by the serialization binder..
+        /// </summary>
+        internal static string The_type_0_is_not_understood_by_the_serialization_binder {
+            get {
+                return ResourceManager.GetString("The_type_0_is_not_understood_by_the_serialization_binder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The stream cannot be read from..
+        /// </summary>
+        internal static string TheStreamCannotBeReadFrom {
+            get {
+                return ResourceManager.GetString("TheStreamCannotBeReadFrom", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The stream cannot be written to..
+        /// </summary>
+        internal static string TheStreamCannotBeWrittenTo {
+            get {
+                return ResourceManager.GetString("TheStreamCannotBeWrittenTo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to If tuple element locations are specified, the number of locations must match the cardinality of the tuple..
+        /// </summary>
+        internal static string TupleElementLocationCountMismatch {
+            get {
+                return ResourceManager.GetString("TupleElementLocationCountMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to If tuple element names are specified, the number of element names must match the cardinality of the tuple..
+        /// </summary>
+        internal static string TupleElementNameCountMismatch {
+            get {
+                return ResourceManager.GetString("TupleElementNameCountMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tuple element name cannot be an empty string..
+        /// </summary>
+        internal static string TupleElementNameEmpty {
+            get {
+                return ResourceManager.GetString("TupleElementNameEmpty", resourceCulture);
             }
         }
         
@@ -1217,6 +1478,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unrecognized resource file format..
+        /// </summary>
+        internal static string UnrecognizedResourceFileFormat {
+            get {
+                return ResourceManager.GetString("UnrecognizedResourceFileFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unresolved: .
         /// </summary>
         internal static string Unresolved {
@@ -1255,9 +1525,9 @@ namespace Microsoft.CodeAnalysis {
         /// <summary>
         ///   Looks up a localized string similar to Value too large to be represented as a 30 bit unsigned integer..
         /// </summary>
-        internal static string ValueTooLargeToBeRepresented {
+        internal static string Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer {
             get {
-                return ResourceManager.GetString("ValueTooLargeToBeRepresented", resourceCulture);
+                return ResourceManager.GetString("Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer", resourceCulture);
             }
         }
         

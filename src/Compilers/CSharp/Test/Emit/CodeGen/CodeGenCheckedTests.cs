@@ -1982,7 +1982,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,13): error CS0220: The operation overflows at compile time in checked mode
                 //         r = int.MaxValue + 1;
@@ -2114,7 +2114,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,81): error CS0220: The operation overflows at compile time in checked mode
                 //         d1 = unchecked(delegate (int i) { r1 = int.MaxValue + 1; return checked(int.MaxValue + 1); });
@@ -2152,7 +2152,7 @@ class M
         var r1 = decimal.MaxValue + 1;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,25): error CS0463: Evaluation of the decimal constant expression failed
                 //         var r = checked(decimal.MaxValue + 1);
@@ -2282,13 +2282,13 @@ public class MyClass
 {
     public static void Main()
     {
-        short foo = 0;
+        short goo = 0;
         try
         {
             for (int i = 0; i < 2; i++)
             {
-                checked { foo += 32000; }
-                Console.Write(foo);
+                checked { goo += 32000; }
+                Console.Write(goo);
             }
         }
         catch (OverflowException)
@@ -2366,6 +2366,417 @@ class Derived2 : Base1
   IL_0030:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void CheckedConversionsInExpressionTrees_Implicit()
+        {
+            // char
+            CheckedConversionInExpressionTree_Implicit("char", "char", ConvertMethod.None);
+            CheckedConversionInExpressionTree_Implicit("char", "ushort", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Implicit("char", "int", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Implicit("char", "uint", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Implicit("char", "long", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Implicit("char", "ulong", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Implicit("char", "decimal", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Implicit("char", "float", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Implicit("char", "double", ConvertMethod.Convert);
+
+            // sbyte
+            CheckedConversionInExpressionTree_Implicit("sbyte", "sbyte", ConvertMethod.None);
+            CheckedConversionInExpressionTree_Implicit("sbyte", "short", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Implicit("sbyte", "int", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Implicit("sbyte", "long", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Implicit("sbyte", "decimal", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Implicit("sbyte", "float", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Implicit("sbyte", "double", ConvertMethod.Convert);
+
+            // byte
+            CheckedConversionInExpressionTree_Implicit("byte", "byte", ConvertMethod.None);
+            CheckedConversionInExpressionTree_Implicit("byte", "short", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Implicit("byte", "ushort", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Implicit("byte", "int", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Implicit("byte", "uint", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Implicit("byte", "long", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Implicit("byte", "ulong", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Implicit("byte", "decimal", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Implicit("byte", "float", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Implicit("byte", "double", ConvertMethod.Convert);
+
+            // short
+            CheckedConversionInExpressionTree_Implicit("short", "short", ConvertMethod.None);
+            CheckedConversionInExpressionTree_Implicit("short", "int", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Implicit("short", "long", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Implicit("short", "decimal", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Implicit("short", "float", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Implicit("short", "double", ConvertMethod.Convert);
+
+            // ushort
+            CheckedConversionInExpressionTree_Implicit("ushort", "ushort", ConvertMethod.None);
+            CheckedConversionInExpressionTree_Implicit("ushort", "int", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Implicit("ushort", "uint", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Implicit("ushort", "long", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Implicit("ushort", "ulong", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Implicit("ushort", "decimal", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Implicit("ushort", "float", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Implicit("ushort", "double", ConvertMethod.Convert);
+
+            // int
+            CheckedConversionInExpressionTree_Implicit("int", "int", ConvertMethod.None);
+            CheckedConversionInExpressionTree_Implicit("int", "long", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Implicit("int", "decimal", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Implicit("int", "float", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Implicit("int", "double", ConvertMethod.Convert);
+
+            // uint
+            CheckedConversionInExpressionTree_Implicit("uint", "uint", ConvertMethod.None);
+            CheckedConversionInExpressionTree_Implicit("uint", "long", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Implicit("uint", "ulong", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Implicit("uint", "decimal", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Implicit("uint", "float", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Implicit("uint", "double", ConvertMethod.Convert);
+
+            // long
+            CheckedConversionInExpressionTree_Implicit("long", "long", ConvertMethod.None);
+            CheckedConversionInExpressionTree_Implicit("long", "decimal", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Implicit("long", "float", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Implicit("long", "double", ConvertMethod.Convert);
+
+            // ulong
+            CheckedConversionInExpressionTree_Implicit("ulong", "ulong", ConvertMethod.None);
+            CheckedConversionInExpressionTree_Implicit("ulong", "decimal", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Implicit("ulong", "float", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Implicit("ulong", "double", ConvertMethod.Convert);
+
+            // decimal
+            CheckedConversionInExpressionTree_Implicit("decimal", "decimal", ConvertMethod.None);
+
+            // float
+            CheckedConversionInExpressionTree_Implicit("float", "float", ConvertMethod.None);
+            CheckedConversionInExpressionTree_Implicit("float", "double", ConvertMethod.Convert);
+
+            // double
+            CheckedConversionInExpressionTree_Implicit("double", "double", ConvertMethod.None);
+
+            // object
+            CheckedConversionInExpressionTree_Implicit("int", "object", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Implicit("string", "object", ConvertMethod.None);
+
+            // Nullable<>
+            CheckedConversionInExpressionTree_Implicit("int", "int?", "arg => F(Convert(arg))");
+            CheckedConversionInExpressionTree_Implicit("int", "long?", "arg => F(ConvertChecked(ConvertChecked(arg)))");
+        }
+
+        [Fact]
+        [WorkItem(18459, "https://github.com/dotnet/roslyn/issues/18459")]
+        public void CheckedConversionsInExpressionTrees_ImplicitTuple()
+        {
+            CheckedConversionInExpressionTree_Implicit("(int, int)", "(int, int)?", ConvertMethod.Convert);
+        }
+
+        [Fact]
+        public void CheckedConversionsInExpressionTrees_Explicit()
+        {
+            // char
+            CheckedConversionInExpressionTree_Explicit("char", "char", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("char", "sbyte", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("char", "byte", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("char", "short", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("char", "ushort", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("char", "int", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("char", "uint", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("char", "long", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("char", "ulong", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("char", "decimal", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("char", "float", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("char", "double", ConvertMethod.Convert);
+
+            // sbyte
+            CheckedConversionInExpressionTree_Explicit("sbyte", "char", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("sbyte", "sbyte", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("sbyte", "byte", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("sbyte", "short", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("sbyte", "ushort", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("sbyte", "int", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("sbyte", "uint", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("sbyte", "long", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("sbyte", "ulong", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("sbyte", "decimal", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("sbyte", "float", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("sbyte", "double", ConvertMethod.Convert);
+
+            // byte
+            CheckedConversionInExpressionTree_Explicit("byte", "char", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("byte", "sbyte", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("byte", "byte", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("byte", "short", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("byte", "ushort", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("byte", "int", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("byte", "uint", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("byte", "long", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("byte", "ulong", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("byte", "decimal", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("byte", "float", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("byte", "double", ConvertMethod.Convert);
+
+            // short
+            CheckedConversionInExpressionTree_Explicit("short", "char", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("short", "sbyte", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("short", "byte", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("short", "short", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("short", "ushort", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("short", "int", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("short", "uint", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("short", "long", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("short", "ulong", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("short", "decimal", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("short", "float", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("short", "double", ConvertMethod.Convert);
+
+            // ushort
+            CheckedConversionInExpressionTree_Explicit("ushort", "char", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("ushort", "sbyte", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("ushort", "byte", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("ushort", "short", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("ushort", "ushort", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("ushort", "int", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("ushort", "uint", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("ushort", "long", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("ushort", "ulong", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("ushort", "decimal", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("ushort", "float", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("ushort", "double", ConvertMethod.Convert);
+
+            // int
+            CheckedConversionInExpressionTree_Explicit("int", "char", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("int", "sbyte", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("int", "byte", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("int", "short", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("int", "ushort", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("int", "int", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("int", "uint", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("int", "long", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("int", "ulong", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("int", "decimal", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("int", "float", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("int", "double", ConvertMethod.Convert);
+
+            // uint
+            CheckedConversionInExpressionTree_Explicit("uint", "char", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("uint", "sbyte", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("uint", "byte", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("uint", "short", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("uint", "ushort", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("uint", "int", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("uint", "uint", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("uint", "long", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("uint", "ulong", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("uint", "decimal", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("uint", "float", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("uint", "double", ConvertMethod.Convert);
+
+            // long
+            CheckedConversionInExpressionTree_Explicit("long", "char", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("long", "sbyte", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("long", "byte", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("long", "short", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("long", "ushort", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("long", "int", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("long", "uint", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("long", "long", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("long", "ulong", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("long", "decimal", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("long", "float", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("long", "double", ConvertMethod.Convert);
+
+            // ulong
+            CheckedConversionInExpressionTree_Explicit("ulong", "char", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("ulong", "sbyte", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("ulong", "byte", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("ulong", "short", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("ulong", "ushort", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("ulong", "int", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("ulong", "uint", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("ulong", "long", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("ulong", "ulong", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("ulong", "decimal", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("ulong", "float", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("ulong", "double", ConvertMethod.Convert);
+
+            // decimal
+            CheckedConversionInExpressionTree_Explicit("decimal", "char", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("decimal", "sbyte", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("decimal", "byte", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("decimal", "short", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("decimal", "ushort", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("decimal", "int", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("decimal", "uint", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("decimal", "long", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("decimal", "ulong", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("decimal", "decimal", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("decimal", "float", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("decimal", "double", ConvertMethod.Convert);
+
+            // float
+            CheckedConversionInExpressionTree_Explicit("float", "char", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("float", "sbyte", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("float", "byte", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("float", "short", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("float", "ushort", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("float", "int", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("float", "uint", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("float", "long", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("float", "ulong", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("float", "decimal", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("float", "float", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("float", "double", ConvertMethod.Convert);
+
+            // double
+            CheckedConversionInExpressionTree_Explicit("double", "char", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("double", "sbyte", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("double", "byte", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("double", "short", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("double", "ushort", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("double", "int", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("double", "uint", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("double", "long", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("double", "ulong", ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Explicit("double", "decimal", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("double", "float", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("double", "double", ConvertMethod.Convert);
+
+            // enum
+            CheckedConversionInExpressionTree_Explicit("E", "int", ConvertMethod.ConvertChecked, "enum E { }");
+            CheckedConversionInExpressionTree_Explicit("int", "E", ConvertMethod.ConvertChecked, "enum E { }");
+            CheckedConversionInExpressionTree_Explicit("E", "int", ConvertMethod.ConvertChecked, "enum E : short { }");
+            CheckedConversionInExpressionTree_Explicit("int", "E", ConvertMethod.ConvertChecked, "enum E : short { }");
+
+            // object
+            CheckedConversionInExpressionTree_Explicit("int", "object", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("object", "int", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("string", "object", ConvertMethod.Convert);
+            CheckedConversionInExpressionTree_Explicit("object", "string", ConvertMethod.Convert);
+
+            // Nullable<>
+            CheckedConversionInExpressionTree_Explicit("int", "byte?", "arg => ConvertChecked(arg)");
+            CheckedConversionInExpressionTree_Explicit("int", "int?", "arg => ConvertChecked(arg)");
+            CheckedConversionInExpressionTree_Explicit("int", "long?", "arg => ConvertChecked(ConvertChecked(arg))");
+        }
+
+        [Fact]
+        public void CheckedConversionsInExpressionTrees_ExplicitTuple()
+        {
+            CheckedConversionInExpressionTree_Explicit("(int, int)", "(int, int)?", ConvertMethod.Convert);
+        }
+
+        private enum ConvertMethod
+        {
+            None,
+            Convert,
+            ConvertChecked,
+        }
+
+        private void CheckedConversionInExpressionTree_Implicit(string fromType, string toType, ConvertMethod expectedMethod, string additionalTypes = "")
+        {
+            var source = CheckedConversionInExpressionTree_ImplicitSource(fromType, toType, additionalTypes);
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            string expectedOutput;
+            switch (expectedMethod)
+            {
+                default:
+                    expectedOutput = "arg => F(arg)";
+                    break;
+                case ConvertMethod.Convert:
+                    expectedOutput = "arg => F(Convert(arg))";
+                    break;
+                case ConvertMethod.ConvertChecked:
+                    expectedOutput = "arg => F(ConvertChecked(arg))";
+                    break;
+            }
+            var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            // Since Expression.ConvertChecked can generate a Checked result
+            // (rather than ConvertChecked), verify the correct method was called.
+            VerifyConversionInExpressionTreeIL(verifier.TestData.GetMethodData("C.Main").GetMethodIL(), expectedMethod);
+        }
+
+        private void CheckedConversionInExpressionTree_Implicit(string fromType, string toType, string expectedOutput)
+        {
+            var source = CheckedConversionInExpressionTree_ImplicitSource(fromType, toType, additionalTypes: "");
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        private static string CheckedConversionInExpressionTree_ImplicitSource(string fromType, string toType, string additionalTypes)
+        {
+            return
+$@"using System;
+using System.Linq.Expressions;
+{additionalTypes}
+class C
+{{
+    static {toType} F({toType} arg) => arg;
+    static void Main()
+    {{
+        Expression<Func<{fromType}, {toType}>> e = arg => checked(F(arg));
+        Console.WriteLine(e);
+    }}
+}}";
+        }
+
+        private void CheckedConversionInExpressionTree_Explicit(string fromType, string toType, ConvertMethod expectedMethod, string additionalTypes = "")
+        {
+            var source = CheckedConversionInExpressionTree_ExplicitSource(fromType, toType, additionalTypes);
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            string expectedOutput;
+            switch (expectedMethod)
+            {
+                default:
+                    expectedOutput = "arg => arg";
+                    break;
+                case ConvertMethod.Convert:
+                    expectedOutput = "arg => Convert(arg)";
+                    break;
+                case ConvertMethod.ConvertChecked:
+                    expectedOutput = "arg => ConvertChecked(arg)";
+                    break;
+            }
+            var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            // Since Expression.ConvertChecked can generate a Checked result
+            // (rather than ConvertChecked), verify the correct method was called.
+            VerifyConversionInExpressionTreeIL(verifier.TestData.GetMethodData("C.Main").GetMethodIL(), expectedMethod);
+        }
+
+        private void CheckedConversionInExpressionTree_Explicit(string fromType, string toType, string expectedOutput)
+        {
+            var source = CheckedConversionInExpressionTree_ExplicitSource(fromType, toType, additionalTypes: "");
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        private static string CheckedConversionInExpressionTree_ExplicitSource(string fromType, string toType, string additionalTypes)
+        {
+            return
+$@"using System;
+using System.Linq.Expressions;
+{additionalTypes}
+class C
+{{
+    static void Main()
+    {{
+        Expression<Func<{fromType}, {toType}>> e = arg => checked(({toType})arg);
+        Console.WriteLine(e);
+    }}
+}}";
+        }
+
+        private static void VerifyConversionInExpressionTreeIL(string actualIL, ConvertMethod expectedMethod)
+        {
+            Assert.Equal(
+                actualIL.Contains($"System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, "),
+                expectedMethod == ConvertMethod.Convert);
+            Assert.Equal(
+                actualIL.Contains($"System.Linq.Expressions.Expression.ConvertChecked(System.Linq.Expressions.Expression, "),
+                expectedMethod == ConvertMethod.ConvertChecked);
         }
     }
 }

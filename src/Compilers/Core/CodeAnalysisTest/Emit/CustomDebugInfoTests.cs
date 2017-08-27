@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using PDB::Microsoft.CodeAnalysis;
 using Roslyn.Test.Utilities;
@@ -302,15 +303,20 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
                 new LambdaDebugInfo(-180, new DebugId(2, 0), LambdaDebugInfo.StaticClosureOrdinal));
 
             var debugInfo = new EditAndContinueMethodDebugInformation(1, slots, closures, lambdas);
-            var records = new ArrayBuilder<Cci.PooledBlobBuilder>();
 
-            Cci.CustomDebugInfoWriter.SerializeCustomDebugInformation(debugInfo, records);
-            var cdi = Cci.CustomDebugInfoWriter.SerializeCustomDebugMetadata(records);
+            var builder = new BlobBuilder();
+            var cdiEncoder = new CustomDebugInfoEncoder(builder);
+            Cci.CustomDebugInfoWriter.SerializeCustomDebugInformation(ref cdiEncoder, debugInfo);
+            var cdi = cdiEncoder.ToArray();
 
-            Assert.Equal(2, records.Count);
+            Assert.Equal(2, cdiEncoder.RecordCount);
 
             AssertEx.Equal(new byte[]
             {
+                0x04,       // version
+                0x02,       // record count
+                0x00, 0x00, // alignment
+
                 0x04, // version
                 0x06, // record kind
                 0x00,
@@ -323,11 +329,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
                 0xFF, 0xC0, 0x00, 0x4E,
                 0x20, 0x81, 0xC0, 0x00,
                 0x4E, 0x1F, 0x0A, 0x9A,
-                0x00, 0x0A, 0x00, 0x00
-            }, records[0].ToArray());
+                0x00, 0x0A, 0x00, 0x00,
 
-            AssertEx.Equal(new byte[]
-            {
                 0x04, // version
                 0x07, // record kind
                 0x00,
@@ -341,7 +344,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
                 0x64, 0x80, 0xD2, 0x00,
                 0x80, 0xDC, 0x03, 0x80,
                 0x96, 0x02, 0x14, 0x01
-            }, records[1].ToArray());
+            }, cdi);
 
             var deserialized = CustomDebugInfoReader.GetCustomDebugInfoRecords(cdi).ToArray();
             Assert.Equal(CustomDebugInfoKind.EditAndContinueLocalSlotMap, deserialized[0].Kind);
@@ -365,6 +368,278 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
                 0x80, 0xDC, 0x03, 0x80,
                 0x96, 0x02, 0x14, 0x01
             }, deserialized[1].Data);
+        }
+
+        [Fact]
+        public void UsingInfo1()
+        {
+            var builder = new BlobBuilder();
+            var cdiEncoder = new CustomDebugInfoEncoder(builder);
+            cdiEncoder.AddUsingGroups(new int[0]);
+            var cdi = cdiEncoder.ToArray();
+
+            Assert.Equal(0, cdiEncoder.RecordCount);
+            Assert.Null(cdi);
+        }
+
+        [Fact]
+        public void UsingInfo2()
+        {
+            var builder = new BlobBuilder();
+            var cdiEncoder = new CustomDebugInfoEncoder(builder);
+            cdiEncoder.AddUsingGroups(new[] { 1, 2, 3, 4 });
+            var cdi = cdiEncoder.ToArray();
+
+            Assert.Equal(1, cdiEncoder.RecordCount);
+
+            AssertEx.Equal(new byte[]
+            {
+                0x04,       // version
+                0x01,       // record count
+                0x00, 0x00, // alignment
+
+                0x04, // version
+                0x00, // record kind
+                0x00,
+                0x00,
+
+                // aligned record size
+                0x14, 0x00, 0x00, 0x00,
+                
+                // payload (4B aligned)
+                0x04, 0x00, // bucket count
+                0x01, 0x00, // using count #1
+                0x02, 0x00, // using count #2
+                0x03, 0x00, // using count #3
+                0x04, 0x00, // using count #4
+                0x00, 0x00  // alignment
+            }, cdi);
+        }
+
+        [Fact]
+        public void UsingInfo3()
+        {
+            var builder = new BlobBuilder();
+            var cdiEncoder = new CustomDebugInfoEncoder(builder);
+            cdiEncoder.AddUsingGroups(new[] { 1, 2, 3 });
+            var cdi = cdiEncoder.ToArray();
+
+            Assert.Equal(1, cdiEncoder.RecordCount);
+
+            AssertEx.Equal(new byte[]
+            {
+                0x04,       // version
+                0x01,       // record count
+                0x00, 0x00, // alignment
+
+                0x04, // version
+                0x00, // record kind
+                0x00,
+                0x00,
+
+                // aligned record size
+                0x10, 0x00, 0x00, 0x00,
+                
+                // payload (4B aligned)
+                0x03, 0x00, // bucket count
+                0x01, 0x00, // using count #1
+                0x02, 0x00, // using count #2
+                0x03, 0x00, // using count #3
+            }, cdi);
+        }
+
+        [Fact]
+        public void ForwardToModuleInfo()
+        {
+            var builder = new BlobBuilder();
+            var cdiEncoder = new CustomDebugInfoEncoder(builder);
+            cdiEncoder.AddForwardModuleInfo(MetadataTokens.MethodDefinitionHandle(0x123456));
+            var cdi = cdiEncoder.ToArray();
+
+            Assert.Equal(1, cdiEncoder.RecordCount);
+
+            AssertEx.Equal(new byte[]
+            {
+                0x04,       // version
+                0x01,       // record count
+                0x00, 0x00, // alignment
+
+                0x04, // version
+                0x02, // record kind
+                0x00,
+                0x00,
+
+                // aligned record size
+                0x0C, 0x00, 0x00, 0x00,
+                
+                // payload (4B aligned)
+                0x56, 0x34, 0x12, 0x06,
+            }, cdi);
+        }
+
+        [Fact]
+        public void ForwardInfo()
+        {
+            var builder = new BlobBuilder();
+            var cdiEncoder = new CustomDebugInfoEncoder(builder);
+            cdiEncoder.AddForwardMethodInfo(MetadataTokens.MethodDefinitionHandle(0x123456));
+            var cdi = cdiEncoder.ToArray();
+
+            Assert.Equal(1, cdiEncoder.RecordCount);
+
+            AssertEx.Equal(new byte[]
+            {
+                0x04,       // version
+                0x01,       // record count
+                0x00, 0x00, // alignment
+
+                0x04, // version
+                0x01, // record kind
+                0x00,
+                0x00,
+
+                // aligned record size
+                0x0C, 0x00, 0x00, 0x00,
+                
+                // payload (4B aligned)
+                0x56, 0x34, 0x12, 0x06,
+            }, cdi);
+        }
+
+        private static byte[] Pad(int length, byte[] array)
+        {
+            var result = new byte[length];
+            Array.Copy(array, 0, result, 0, array.Length);
+            return result;
+        }
+
+        [Fact]
+        public void DynamicLocals()
+        {
+            var builder = new BlobBuilder();
+            var cdiEncoder = new CustomDebugInfoEncoder(builder);
+
+            cdiEncoder.AddDynamicLocals(new[] 
+            {
+                ("a", Pad(64, new byte[] { 0x01, 0x02 }), 10, 1),
+                ("b", Pad(64, new byte[] { 0xFF }), 1, 2),
+            });
+
+            var cdi = cdiEncoder.ToArray();
+
+            Assert.Equal(1, cdiEncoder.RecordCount);
+
+            AssertEx.Equal(new byte[]
+            {
+                0x04,       // version
+                0x01,       // record count
+                0x00, 0x00, // alignment
+
+                0x04, // version
+                0x05, // record kind
+                0x00,
+                0x00,
+
+                // aligned record size
+                0x9C, 0x01, 0x00, 0x00, 
+                
+                // payload (4B aligned)
+
+                // locals count
+                0x02, 0x00, 0x00, 0x00, 
+
+                // #1
+
+                // flags (64B):
+                0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+                // length
+                0x0A, 0x00, 0x00, 0x00,
+
+                // slot index
+                0x01, 0x00, 0x00, 0x00,
+
+                // name (64 UTF16 characters)
+                0x61, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+                // #2
+
+                // flags
+                0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+                // length
+                0x01, 0x00, 0x00, 0x00,
+
+                // slot index
+                0x02, 0x00, 0x00, 0x00,
+
+                // name (64 UTF16 characters)
+                0x62, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+            }, cdi);
+        }
+
+        [Fact]
+        public void TupleElementNames()
+        {
+            var builder = new BlobBuilder();
+            var cdiEncoder = new CustomDebugInfoEncoder(builder);
+
+            cdiEncoder.AddTupleElementNames(new[]
+            {
+                (LocalName: "a", SlotIndex: 1, ScopeStart: 0, ScopeEnd: 0, Names: ImmutableArray.Create("e")),
+                (LocalName: "b", SlotIndex: -1, ScopeStart: 0, ScopeEnd: 10, Names: ImmutableArray.Create("u", null, "v")),
+            });
+
+            var cdi = cdiEncoder.ToArray();
+
+            Assert.Equal(1, cdiEncoder.RecordCount);
+
+            AssertEx.Equal(new byte[]
+            {
+                0x04,       // version
+                0x01,       // record count
+                0x00, 0x00, // alignment
+
+                0x04, // version
+                0x08, // record kind
+                0x00,
+                0x01, // alignment size
+
+                // aligned record size
+                0x38, 0x00, 0x00, 0x00,
+
+                // payload (4B aligned)
+                0x02, 0x00, 0x00, 0x00,   // number of entries
+
+                // entry #1
+
+                0x01, 0x00, 0x00, 0x00,   // element name count
+                (byte)'e', 0x00,          // element name 1
+                0x01, 0x00, 0x00, 0x00,   // slot index
+                0x00, 0x00, 0x00, 0x00,   // scope start 
+                0x00, 0x00, 0x00, 0x00,   // scope end
+                (byte)'a', 0x00,          // local name
+
+                // entry #2
+
+                0x03, 0x00, 0x00, 0x00,   // element name count  
+                (byte)'u', 0x00,          // element name 1
+                0x00,                     // element name 2
+                (byte)'v', 0x00,          // element name 3
+
+                0xFF, 0xFF, 0xFF, 0xFF,   // slot index
+                0x00, 0x00, 0x00, 0x00,   // scope start 
+                0x0A, 0x00, 0x00, 0x00,   // scope end   
+                (byte)'b', 0x00, 0x00     // local name
+            }, cdi);
         }
 
         [Fact]
@@ -445,7 +720,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
             var records = CustomDebugInfoReader.GetCustomDebugInfoRecords(bytes).ToArray();
             Assert.Equal(1, records.Length);
 
-            Assert.Equal(CustomDebugInfoKind.ForwardInfo, records[0].Kind);
+            Assert.Equal(CustomDebugInfoKind.ForwardMethodInfo, records[0].Kind);
             Assert.Equal(4, records[0].Version);
             AssertEx.Equal(new byte[] { 0x01, 0x00, 0x00, 0x06 }, records[0].Data);
         }

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor.CSharp.EncapsulateField;
 using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -17,14 +18,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
     public class EncapsulateFieldCommandHandlerTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public async Task EncapsulatePrivateField()
+        public void EncapsulatePrivateField()
         {
             var text = @"
 class C
 {
     private int f$$ield;
 
-    private void foo()
+    private void goo()
     {
         field = 3;
     }
@@ -47,27 +48,27 @@ class C
         }
     }
 
-    private void foo()
+    private void goo()
     {
         Field = 3;
     }
 }";
 
-            using (var state = await EncapsulateFieldTestState.CreateAsync(text))
+            using (var state = EncapsulateFieldTestState.Create(text))
             {
                 state.AssertEncapsulateAs(expected);
             }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public async Task EncapsulateNonPrivateField()
+        public void EncapsulateNonPrivateField()
         {
             var text = @"
 class C
 {
     protected int fi$$eld;
 
-    private void foo()
+    private void goo()
     {
         field = 3;
     }
@@ -90,33 +91,33 @@ class C
         }
     }
 
-    private void foo()
+    private void goo()
     {
         Field = 3;
     }
 }";
 
-            using (var state = await EncapsulateFieldTestState.CreateAsync(text))
+            using (var state = EncapsulateFieldTestState.Create(text))
             {
                 state.AssertEncapsulateAs(expected);
             }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public async Task DialogShownIfNotFieldsFound()
+        public void DialogShownIfNotFieldsFound()
         {
             var text = @"
 class$$ C
 {
     private int field;
 
-    private void foo()
+    private void goo()
     {
         field = 3;
     }
 }";
 
-            using (var state = await EncapsulateFieldTestState.CreateAsync(text))
+            using (var state = EncapsulateFieldTestState.Create(text))
             {
                 state.AssertError();
             }
@@ -124,7 +125,7 @@ class$$ C
 
         [WorkItem(1086632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1086632")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public async Task EncapsulateTwoFields()
+        public void EncapsulateTwoFields()
         {
             var text = @"
 class Program
@@ -179,7 +180,7 @@ class Program
 }
 ";
 
-            using (var state = await EncapsulateFieldTestState.CreateAsync(text))
+            using (var state = EncapsulateFieldTestState.Create(text))
             {
                 state.AssertEncapsulateAs(expected);
             }
@@ -188,17 +189,17 @@ class Program
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
-        public async Task EncapsulateFieldCommandDisabledInSubmission()
+        public void EncapsulateFieldCommandDisabledInSubmission()
         {
             var exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));
 
-            using (var workspace = await TestWorkspace.CreateAsync(XElement.Parse(@"
+            using (var workspace = TestWorkspace.Create(XElement.Parse(@"
                 <Workspace>
                     <Submission Language=""C#"" CommonReferences=""true"">  
                         class C
                         {
-                            object $$foo;
+                            object $$goo;
                         }
                     </Submission>
                 </Workspace> "),
@@ -210,13 +211,14 @@ class Program
 
                 var textView = workspace.Documents.Single().GetTextView();
 
-                var handler = new EncapsulateFieldCommandHandler(workspace.GetService<Host.IWaitIndicator>(), workspace.GetService<ITextBufferUndoManagerProvider>());
+                var handler = new EncapsulateFieldCommandHandler(workspace.GetService<Host.IWaitIndicator>(), workspace.GetService<ITextBufferUndoManagerProvider>(),
+                    workspace.ExportProvider.GetExportedValues<Lazy<IAsynchronousOperationListener, FeatureMetadata>>());
                 var delegatedToNext = false;
-                Func<CommandState> nextHandler = () =>
+                CommandState nextHandler()
                 {
                     delegatedToNext = true;
                     return CommandState.Unavailable;
-                };
+                }
 
                 var state = handler.GetCommandState(new Commands.EncapsulateFieldCommandArgs(textView, textView.TextBuffer), nextHandler);
                 Assert.True(delegatedToNext);

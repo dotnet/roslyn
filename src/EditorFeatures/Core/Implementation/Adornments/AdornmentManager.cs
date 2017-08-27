@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -286,8 +286,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
                         continue;
                     }
 
-                    SnapshotSpan span;
-                    if (!TryMapToSingleSnapshotSpan(tagMappingSpan.Span, viewSnapshot, out span))
+                    if (!TryMapToSingleSnapshotSpan(tagMappingSpan.Span, viewSnapshot, out var span))
                     {
                         continue;
                     }
@@ -340,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
             var spans = mappingSpan.GetSpans(viewSnapshot);
             if (spans.Count != 1)
             {
-                span = default(SnapshotSpan);
+                span = default;
                 return false; // span is unmapped or disjoint.
             }
 

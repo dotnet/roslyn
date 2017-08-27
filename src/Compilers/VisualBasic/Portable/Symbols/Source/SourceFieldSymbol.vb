@@ -5,6 +5,7 @@ Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -280,6 +281,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
                 End If
             End If
+
+            If Me.Type.ContainsTupleNames() Then
+                AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeTupleNamesAttribute(Type))
+            End If
         End Sub
 
         Friend NotOverridable Overrides Function EarlyDecodeWellKnownAttribute(ByRef arguments As EarlyDecodeWellKnownAttributeArguments(Of EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation)) As VisualBasicAttributeData
@@ -289,7 +294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim BoundAttribute As VisualBasicAttributeData = Nothing
             Dim obsoleteData As ObsoleteAttributeData = Nothing
 
-            If EarlyDecodeDeprecatedOrObsoleteAttribute(arguments, BoundAttribute, obsoleteData) Then
+            If EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(arguments, BoundAttribute, obsoleteData) Then
                 If obsoleteData IsNot Nothing Then
                     arguments.GetOrCreateData(Of CommonFieldEarlyWellKnownAttributeData)().ObsoleteAttributeData = obsoleteData
                 End If
@@ -305,6 +310,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim attrData = arguments.Attribute
             Debug.Assert(arguments.SymbolPart = AttributeLocation.None)
+
+            If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
+                arguments.Diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
+            End If
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.SpecialNameAttribute) Then
                 arguments.GetOrCreateData(Of CommonFieldWellKnownAttributeData)().HasSpecialNameAttribute = True

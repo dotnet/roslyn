@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Linq
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
@@ -21,6 +22,10 @@ Public MustInherit Class BasicTestBase
         Return DirectCast(MyBase.GetCompilationForEmit(source, additionalRefs, options, parseOptions), VisualBasicCompilation)
     End Function
 
+    Public Function XCDataToString(Optional data As XCData = Nothing) As String
+        Return data?.Value.Replace(vbLf, Environment.NewLine)
+    End Function
+
     Private Function Translate(action As Action(Of ModuleSymbol)) As Action(Of IModuleSymbol)
         If action IsNot Nothing Then
             Return Sub(m) action(DirectCast(m, ModuleSymbol))
@@ -29,11 +34,12 @@ Public MustInherit Class BasicTestBase
         End If
     End Function
 
-    ' TODO (tomat): TestEmitOptions.All
     Friend Shadows Function CompileAndVerify(
         source As XElement,
         expectedOutput As XCData,
-        Optional additionalRefs() As MetadataReference = Nothing,
+        Optional expectedReturnCode As Integer? = Nothing,
+        Optional args As String() = Nothing,
+        Optional additionalRefs As MetadataReference() = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional validator As Action(Of PEAssembly) = Nothing,
@@ -41,16 +47,15 @@ Public MustInherit Class BasicTestBase
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
+        Optional emitOptions As EmitOptions = Nothing,
         Optional verify As Boolean = True
     ) As CompilationVerifier
 
-        If parseOptions Is Nothing AndAlso options IsNot Nothing Then
-            parseOptions = options.ParseOptions
-        End If
-
         Return CompileAndVerify(
             source,
-            If(expectedOutput IsNot Nothing, expectedOutput.Value.Replace(vbLf, Environment.NewLine), Nothing),
+            XCDataToString(expectedOutput),
+            expectedReturnCode,
+            args,
             additionalRefs,
             dependencies,
             sourceSymbolValidator,
@@ -59,10 +64,10 @@ Public MustInherit Class BasicTestBase
             expectedSignatures,
             options,
             parseOptions,
+            emitOptions,
             verify)
     End Function
 
-    ' TODO (tomat): remove - here only to override emitters default
     Friend Shadows Function CompileAndVerify(
         compilation As Compilation,
         Optional manifestResources As IEnumerable(Of ResourceDescription) = Nothing,
@@ -72,6 +77,9 @@ Public MustInherit Class BasicTestBase
         Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional expectedOutput As String = Nothing,
+        Optional expectedReturnCode As Integer? = Nothing,
+        Optional args As String() = Nothing,
+        Optional emitOptions As EmitOptions = Nothing,
         Optional verify As Boolean = True) As CompilationVerifier
 
         Return MyBase.CompileAndVerify(
@@ -83,35 +91,46 @@ Public MustInherit Class BasicTestBase
             Translate(symbolValidator),
             expectedSignatures,
             expectedOutput,
+            expectedReturnCode,
+            args,
+            emitOptions,
             verify)
     End Function
 
     Friend Shadows Function CompileAndVerify(
         compilation As Compilation,
         expectedOutput As XCData,
+        Optional args As String() = Nothing,
+        Optional manifestResources As IEnumerable(Of ResourceDescription) = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional validator As Action(Of PEAssembly) = Nothing,
         Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional expectedSignatures As SignatureDescription() = Nothing,
+        Optional emitOptions As EmitOptions = Nothing,
         Optional verify As Boolean = True) As CompilationVerifier
 
         Return CompileAndVerify(
             compilation,
-            Nothing,
+            manifestResources,
             dependencies,
             sourceSymbolValidator,
             validator,
             symbolValidator,
             expectedSignatures,
-            If(expectedOutput IsNot Nothing, expectedOutput.Value.Replace(vbLf, Environment.NewLine), Nothing),
+            XCDataToString(expectedOutput),
+            Nothing,
+            args,
+            emitOptions,
             verify)
     End Function
 
     Friend Shadows Function CompileAndVerify(
         source As XElement,
         Optional expectedOutput As String = Nothing,
-        Optional additionalRefs() As MetadataReference = Nothing,
+        Optional expectedReturnCode As Integer? = Nothing,
+        Optional args As String() = Nothing,
+        Optional additionalRefs As MetadataReference() = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional validator As Action(Of PEAssembly) = Nothing,
@@ -119,6 +138,7 @@ Public MustInherit Class BasicTestBase
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
+        Optional emitOptions As EmitOptions = Nothing,
         Optional verify As Boolean = True,
         Optional useLatestFramework As Boolean = False
     ) As CompilationVerifier
@@ -129,6 +149,8 @@ Public MustInherit Class BasicTestBase
         Return Me.CompileAndVerify(source,
                                    allReferences,
                                    expectedOutput,
+                                   expectedReturnCode,
+                                   args,
                                    dependencies,
                                    sourceSymbolValidator,
                                    validator,
@@ -136,15 +158,17 @@ Public MustInherit Class BasicTestBase
                                    expectedSignatures,
                                    options,
                                    parseOptions,
+                                   emitOptions,
                                    verify)
 
     End Function
 
-    ' TODO: EmitOptions.All
     Friend Shadows Function CompileAndVerify(
         source As XElement,
         allReferences As IEnumerable(Of MetadataReference),
         Optional expectedOutput As String = Nothing,
+        Optional expectedReturnCode As Integer? = Nothing,
+        Optional args As String() = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional validator As Action(Of PEAssembly) = Nothing,
@@ -152,6 +176,7 @@ Public MustInherit Class BasicTestBase
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
+        Optional emitOptions As EmitOptions = Nothing,
         Optional verify As Boolean = True
     ) As CompilationVerifier
 
@@ -159,7 +184,9 @@ Public MustInherit Class BasicTestBase
             options = If(expectedOutput Is Nothing, TestOptions.ReleaseDll, TestOptions.ReleaseExe)
         End If
 
-        Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=allReferences, options:=options, parseOptions:=parseOptions)
+        Dim assemblyName As String = Nothing
+        Dim sourceTrees = ParseSouceXml(source, parseOptions, assemblyName)
+        Dim compilation = CreateCompilation(sourceTrees, allReferences, options, assemblyName)
 
         Return MyBase.CompileAndVerify(
             compilation,
@@ -170,6 +197,48 @@ Public MustInherit Class BasicTestBase
             Translate(symbolValidator),
             expectedSignatures,
             expectedOutput,
+            expectedReturnCode,
+            args,
+            emitOptions,
+            verify)
+    End Function
+
+    Friend Shadows Function CompileAndVerify(
+        source As String,
+        allReferences As IEnumerable(Of MetadataReference),
+        Optional expectedOutput As String = Nothing,
+        Optional expectedReturnCode As Integer? = Nothing,
+        Optional args As String() = Nothing,
+        Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
+        Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
+        Optional validator As Action(Of PEAssembly) = Nothing,
+        Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
+        Optional expectedSignatures As SignatureDescription() = Nothing,
+        Optional options As VisualBasicCompilationOptions = Nothing,
+        Optional parseOptions As VisualBasicParseOptions = Nothing,
+        Optional emitOptions As EmitOptions = Nothing,
+        Optional assemblyName As String = Nothing,
+        Optional verify As Boolean = True
+    ) As CompilationVerifier
+
+        If options Is Nothing Then
+            options = If(expectedOutput Is Nothing, TestOptions.ReleaseDll, TestOptions.ReleaseExe)
+        End If
+
+        Dim compilation = CreateCompilation(source, allReferences, options, assemblyName, parseOptions)
+
+        Return MyBase.CompileAndVerify(
+            compilation,
+            Nothing,
+            dependencies,
+            Translate(sourceSymbolValidator),
+            validator,
+            Translate(symbolValidator),
+            expectedSignatures,
+            expectedOutput,
+            expectedReturnCode,
+            args,
+            emitOptions,
             verify)
     End Function
 
@@ -177,6 +246,8 @@ Public MustInherit Class BasicTestBase
         source As XElement,
         allReferences As IEnumerable(Of MetadataReference),
         Optional expectedOutput As String = Nothing,
+        Optional expectedReturnCode As Integer? = Nothing,
+        Optional args As String() = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional validator As Action(Of PEAssembly) = Nothing,
@@ -190,6 +261,8 @@ Public MustInherit Class BasicTestBase
             source,
             allReferences,
             If(OSVersion.IsWin8, expectedOutput, Nothing),
+            If(OSVersion.IsWin8, expectedReturnCode, Nothing),
+            args,
             dependencies,
             sourceSymbolValidator,
             validator,
@@ -200,10 +273,11 @@ Public MustInherit Class BasicTestBase
             verify:=OSVersion.IsWin8)
     End Function
 
-    ' TODO (tomat): TestEmitOptions.All
     Friend Shadows Function CompileAndVerifyOnWin8Only(
         source As XElement,
         expectedOutput As XCData,
+        Optional expectedReturnCode As Integer? = Nothing,
+        Optional args As String() = Nothing,
         Optional allReferences() As MetadataReference = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
@@ -217,7 +291,9 @@ Public MustInherit Class BasicTestBase
         Return CompileAndVerifyOnWin8Only(
             source,
             allReferences,
-            If(expectedOutput IsNot Nothing, expectedOutput.Value.Replace(vbLf, Environment.NewLine), Nothing),
+            XCDataToString(expectedOutput),
+            expectedReturnCode,
+            args,
             dependencies,
             sourceSymbolValidator,
             validator,
@@ -337,20 +413,6 @@ End Class
 
 Public MustInherit Class BasicTestBaseBase
     Inherits CommonTestBase
-
-    Friend Overrides Function ReferencesToModuleSymbols(references As IEnumerable(Of MetadataReference), Optional importOptions As MetadataImportOptions = MetadataImportOptions.Public) As IEnumerable(Of IModuleSymbol)
-        Dim options = DirectCast(CompilationOptionsReleaseDll, VisualBasicCompilationOptions).WithMetadataImportOptions(importOptions)
-        Dim tc1 = VisualBasicCompilation.Create("Dummy", references:=references, options:=options)
-        Return references.Select(
-            Function(r)
-                If r.Properties.Kind = MetadataImageKind.Assembly Then
-                    Dim assemblySymbol = tc1.GetReferencedAssemblySymbol(r)
-                    Return If(assemblySymbol Is Nothing, Nothing, assemblySymbol.Modules(0))
-                Else
-                    Return tc1.GetReferencedModuleSymbol(r)
-                End If
-            End Function)
-    End Function
 
     Protected Overrides ReadOnly Property CompilationOptionsReleaseDll As CompilationOptions
         Get

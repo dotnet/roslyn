@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -329,22 +329,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         }
 
         private static readonly GraphCommandDefinition s_overridesCommandDefinition =
-            new GraphCommandDefinition("Overrides", ServicesVSResources.Overrides, GraphContextDirection.Target, 700);
+            new GraphCommandDefinition("Overrides", ServicesVSResources.Overrides_, GraphContextDirection.Target, 700);
 
         private static readonly GraphCommandDefinition s_overriddenByCommandDefinition =
-            new GraphCommandDefinition("OverriddenBy", ServicesVSResources.OverriddenBy, GraphContextDirection.Source, 700);
+            new GraphCommandDefinition("OverriddenBy", ServicesVSResources.Overridden_By, GraphContextDirection.Source, 700);
 
         private static readonly GraphCommandDefinition s_implementsCommandDefinition =
-            new GraphCommandDefinition("Implements", ServicesVSResources.Implements, GraphContextDirection.Target, 600);
+            new GraphCommandDefinition("Implements", ServicesVSResources.Implements_, GraphContextDirection.Target, 600);
 
         private static readonly GraphCommandDefinition s_implementedByCommandDefinition =
-            new GraphCommandDefinition("ImplementedBy", ServicesVSResources.ImplementedBy, GraphContextDirection.Source, 600);
+            new GraphCommandDefinition("ImplementedBy", ServicesVSResources.Implemented_By, GraphContextDirection.Source, 600);
 
         public T GetExtension<T>(GraphObject graphObject, T previous) where T : class
         {
-            var graphNode = graphObject as GraphNode;
 
-            if (graphNode != null)
+            if (graphObject is GraphNode graphNode)
             {
                 // If this is not a Roslyn node, bail out.
                 // TODO: The check here is to see if the SymbolId property exists on the node

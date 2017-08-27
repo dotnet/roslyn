@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
 using System.Xml.Linq;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -211,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns></returns>
         public static SyntaxToken Token(SyntaxKind kind)
         {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Token((InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode, kind, (InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode));
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Token(ElasticMarker.UnderlyingNode, kind, ElasticMarker.UnderlyingNode));
         }
 
         /// <summary>
@@ -223,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="trailing">A list of trivia immediately following the token.</param>
         public static SyntaxToken Token(SyntaxTriviaList leading, SyntaxKind kind, SyntaxTriviaList trailing)
         {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Token((InternalSyntax.CSharpSyntaxNode)leading.Node, kind, (InternalSyntax.CSharpSyntaxNode)trailing.Node));
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Token(leading.Node, kind, trailing.Node));
         }
 
         /// <summary>
@@ -258,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException(string.Format(CSharpResources.ThisMethodCanOnlyBeUsedToCreateTokens, kind), nameof(kind));
             }
 
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Token((InternalSyntax.CSharpSyntaxNode)leading.Node, kind, text, valueText, (InternalSyntax.CSharpSyntaxNode)trailing.Node));
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Token(leading.Node, kind, text, valueText, trailing.Node));
         }
 
         /// <summary>
@@ -268,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="kind">A syntax kind value for a token. These have the suffix Token or Keyword.</param>
         public static SyntaxToken MissingToken(SyntaxKind kind)
         {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.MissingToken((InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode, kind, (InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode));
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.MissingToken(ElasticMarker.UnderlyingNode, kind, ElasticMarker.UnderlyingNode));
         }
 
         /// <summary>
@@ -280,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="trailing">A list of trivia immediately following the token.</param>
         public static SyntaxToken MissingToken(SyntaxTriviaList leading, SyntaxKind kind, SyntaxTriviaList trailing)
         {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.MissingToken((InternalSyntax.CSharpSyntaxNode)leading.Node, kind, (InternalSyntax.CSharpSyntaxNode)trailing.Node));
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.MissingToken(leading.Node, kind, trailing.Node));
         }
 
         /// <summary>
@@ -290,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static SyntaxToken Identifier(string text)
         {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Identifier((InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode, text, (InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode));
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Identifier(ElasticMarker.UnderlyingNode, text, ElasticMarker.UnderlyingNode));
         }
 
         /// <summary>
@@ -302,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="trailing">A list of trivia immediately following the token.</param>
         public static SyntaxToken Identifier(SyntaxTriviaList leading, string text, SyntaxTriviaList trailing)
         {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Identifier((InternalSyntax.CSharpSyntaxNode)leading.Node, text, (InternalSyntax.CSharpSyntaxNode)trailing.Node));
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Identifier(leading.Node, text, trailing.Node));
         }
 
         /// <summary>
@@ -320,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException("text should not start with an @ character.");
             }
 
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Identifier(SyntaxKind.IdentifierName, (InternalSyntax.CSharpSyntaxNode)leading.Node, "@" + text, valueText, (InternalSyntax.CSharpSyntaxNode)trailing.Node));
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Identifier(SyntaxKind.IdentifierName, leading.Node, "@" + text, valueText, trailing.Node));
         }
 
         /// <summary>
@@ -336,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns></returns>
         public static SyntaxToken Identifier(SyntaxTriviaList leading, SyntaxKind contextualKind, string text, string valueText, SyntaxTriviaList trailing)
         {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Identifier(contextualKind, (InternalSyntax.CSharpSyntaxNode)leading.Node, text, valueText, (InternalSyntax.CSharpSyntaxNode)trailing.Node));
+            return new SyntaxToken(InternalSyntax.SyntaxFactory.Identifier(contextualKind, leading.Node, text, valueText, trailing.Node));
         }
 
         /// <summary>
@@ -355,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="value">The 4-byte signed integer value to be represented by the returned token.</param>
         public static SyntaxToken Literal(string text, int value)
         {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal((InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode, text, value, (InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode));
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal(ElasticMarker.UnderlyingNode, text, value, ElasticMarker.UnderlyingNode));
         }
 
         /// <summary>
@@ -367,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="trailing">A list of trivia immediately following the token.</param>
         public static SyntaxToken Literal(SyntaxTriviaList leading, string text, int value, SyntaxTriviaList trailing)
         {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal((InternalSyntax.CSharpSyntaxNode)leading.Node, text, value, (InternalSyntax.CSharpSyntaxNode)trailing.Node));
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal(leading.Node, text, value, trailing.Node));
         }
 
         /// <summary>
@@ -386,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="value">The 4-byte unsigned integer value to be represented by the returned token.</param>
         public static SyntaxToken Literal(string text, uint value)
         {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal((InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode, text, value, (InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode));
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal(ElasticMarker.UnderlyingNode, text, value, ElasticMarker.UnderlyingNode));
         }
 
         /// <summary>
@@ -398,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="trailing">A list of trivia immediately following the token.</param>
         public static SyntaxToken Literal(SyntaxTriviaList leading, string text, uint value, SyntaxTriviaList trailing)
         {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal((InternalSyntax.CSharpSyntaxNode)leading.Node, text, value, (InternalSyntax.CSharpSyntaxNode)trailing.Node));
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal(leading.Node, text, value, trailing.Node));
         }
 
         /// <summary>
@@ -417,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="value">The 8-byte signed integer value to be represented by the returned token.</param>
         public static SyntaxToken Literal(string text, long value)
         {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal((InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode, text, value, (InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode));
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal(ElasticMarker.UnderlyingNode, text, value, ElasticMarker.UnderlyingNode));
         }
 
         /// <summary>
@@ -429,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="trailing">A list of trivia immediately following the token.</param>
         public static SyntaxToken Literal(SyntaxTriviaList leading, string text, long value, SyntaxTriviaList trailing)
         {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal((InternalSyntax.CSharpSyntaxNode)leading.Node, text, value, (InternalSyntax.CSharpSyntaxNode)trailing.Node));
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal(leading.Node, text, value, trailing.Node));
         }
 
         /// <summary>
@@ -448,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="value">The 8-byte unsigned integer value to be represented by the returned token.</param>
         public static SyntaxToken Literal(string text, ulong value)
         {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal((InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode, text, value, (InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode));
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal(ElasticMarker.UnderlyingNode, text, value, ElasticMarker.UnderlyingNode));
         }
 
         /// <summary>
@@ -460,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="trailing">A list of trivia immediately following the token.</param>
         public static SyntaxToken Literal(SyntaxTriviaList leading, string text, ulong value, SyntaxTriviaList trailing)
         {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal((InternalSyntax.CSharpSyntaxNode)leading.Node, text, value, (InternalSyntax.CSharpSyntaxNode)trailing.Node));
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal(leading.Node, text, value, trailing.Node));
         }
 
         /// <summary>
@@ -479,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="value">The 4-byte floating point value to be represented by the returned token.</param>
         public static SyntaxToken Literal(string text, float value)
         {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal((InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode, text, value, (InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode));
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal(ElasticMarker.UnderlyingNode, text, value, ElasticMarker.UnderlyingNode));
         }
 
         /// <summary>
@@ -491,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="trailing">A list of trivia immediately following the token.</param>
         public static SyntaxToken Literal(SyntaxTriviaList leading, string text, float value, SyntaxTriviaList trailing)
         {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal((InternalSyntax.CSharpSyntaxNode)leading.Node, text, value, (InternalSyntax.CSharpSyntaxNode)trailing.Node));
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal(leading.Node, text, value, trailing.Node));
         }
 
         /// <summary>
@@ -510,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="value">The 8-byte floating point value to be represented by the returned token.</param>
         public static SyntaxToken Literal(string text, double value)
         {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal((InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode, text, value, (InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode));
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal(ElasticMarker.UnderlyingNode, text, value, ElasticMarker.UnderlyingNode));
         }
 
         /// <summary>
@@ -522,7 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="trailing">A list of trivia immediately following the token.</param>
         public static SyntaxToken Literal(SyntaxTriviaList leading, string text, double value, SyntaxTriviaList trailing)
         {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal((InternalSyntax.CSharpSyntaxNode)leading.Node, text, value, (InternalSyntax.CSharpSyntaxNode)trailing.Node));
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal(leading.Node, text, value, trailing.Node));
         }
 
         /// <summary>
@@ -541,7 +542,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="value">The decimal value to be represented by the returned token.</param>
         public static SyntaxToken Literal(string text, decimal value)
         {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal((InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode, text, value, (InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode));
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal(ElasticMarker.UnderlyingNode, text, value, ElasticMarker.UnderlyingNode));
         }
 
         /// <summary>
@@ -553,7 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="trailing">A list of trivia immediately following the token.</param>
         public static SyntaxToken Literal(SyntaxTriviaList leading, string text, decimal value, SyntaxTriviaList trailing)
         {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal((InternalSyntax.CSharpSyntaxNode)leading.Node, text, value, (InternalSyntax.CSharpSyntaxNode)trailing.Node));
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal(leading.Node, text, value, trailing.Node));
         }
 
         /// <summary>
@@ -572,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="value">The string value to be represented by the returned token.</param>
         public static SyntaxToken Literal(string text, string value)
         {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal((InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode, text, value, (InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode));
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal(ElasticMarker.UnderlyingNode, text, value, ElasticMarker.UnderlyingNode));
         }
 
         /// <summary>
@@ -584,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="trailing">A list of trivia immediately following the token.</param>
         public static SyntaxToken Literal(SyntaxTriviaList leading, string text, string value, SyntaxTriviaList trailing)
         {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal((InternalSyntax.CSharpSyntaxNode)leading.Node, text, value, (InternalSyntax.CSharpSyntaxNode)trailing.Node));
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal(leading.Node, text, value, trailing.Node));
         }
 
         /// <summary>
@@ -603,7 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="value">The character value to be represented by the returned token.</param>
         public static SyntaxToken Literal(string text, char value)
         {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal((InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode, text, value, (InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode));
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal(ElasticMarker.UnderlyingNode, text, value, ElasticMarker.UnderlyingNode));
         }
 
         /// <summary>
@@ -615,7 +616,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="trailing">A list of trivia immediately following the token.</param>
         public static SyntaxToken Literal(SyntaxTriviaList leading, string text, char value, SyntaxTriviaList trailing)
         {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal((InternalSyntax.CSharpSyntaxNode)leading.Node, text, value, (InternalSyntax.CSharpSyntaxNode)trailing.Node));
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Literal(leading.Node, text, value, trailing.Node));
         }
 
         /// <summary>
@@ -626,7 +627,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="trailing">A list of trivia immediately following the token.</param>
         public static SyntaxToken BadToken(SyntaxTriviaList leading, string text, SyntaxTriviaList trailing)
         {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.BadToken((InternalSyntax.CSharpSyntaxNode)leading.Node, text, (InternalSyntax.CSharpSyntaxNode)trailing.Node));
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.BadToken(leading.Node, text, trailing.Node));
         }
 
         /// <summary>
@@ -638,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="trailing">A list of trivia immediately following the token.</param>
         public static SyntaxToken XmlTextLiteral(SyntaxTriviaList leading, string text, string value, SyntaxTriviaList trailing)
         {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.XmlTextLiteral((InternalSyntax.CSharpSyntaxNode)leading.Node, text, value, (InternalSyntax.CSharpSyntaxNode)trailing.Node));
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.XmlTextLiteral(leading.Node, text, value, trailing.Node));
         }
 
         /// <summary>
@@ -650,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="trailing">A list of trivia immediately following the token.</param>
         public static SyntaxToken XmlEntity(SyntaxTriviaList leading, string text, string value, SyntaxTriviaList trailing)
         {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.XmlEntity((InternalSyntax.CSharpSyntaxNode)leading.Node, text, value, (InternalSyntax.CSharpSyntaxNode)trailing.Node));
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.XmlEntity(leading.Node, text, value, trailing.Node));
         }
 
         /// <summary>
@@ -1047,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="textTokens">A list of tokens used for the value of the xml text attribute.</param>
         public static XmlTextAttributeSyntax XmlTextAttribute(string name, SyntaxKind quoteKind, SyntaxTokenList textTokens)
         {
-            return XmlTextAttribute(XmlName(name), SyntaxKind.DoubleQuoteToken, textTokens);
+            return XmlTextAttribute(XmlName(name), quoteKind, textTokens);
         }
 
         /// <summary>
@@ -1116,10 +1117,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new SyntaxToken(
                 InternalSyntax.SyntaxFactory.XmlTextNewLine(
-                    (InternalSyntax.CSharpSyntaxNode)leading.Node,
+                    leading.Node,
                     text,
                     value,
-                    (InternalSyntax.CSharpSyntaxNode)trailing.Node));
+                    trailing.Node));
         }
 
         /// <summary>
@@ -1133,10 +1134,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var token = new SyntaxToken(
                 InternalSyntax.SyntaxFactory.XmlTextNewLine(
-                    (InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode,
+                    ElasticMarker.UnderlyingNode,
                     text,
                     text,
-                    (InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode));
+                    ElasticMarker.UnderlyingNode));
 
             if (continueXmlDocumentationComment)
                 token = token.WithTrailingTrivia(token.TrailingTrivia.Add(DocumentationCommentExterior("/// ")));
@@ -1187,7 +1188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="value">The text used within the xml text literal.</param>
         public static SyntaxToken XmlTextLiteral(string text, string value)
         {
-            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.XmlTextLiteral((InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode, text, value, (InternalSyntax.CSharpSyntaxNode)ElasticMarker.UnderlyingNode));
+            return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.XmlTextLiteral(ElasticMarker.UnderlyingNode, text, value, ElasticMarker.UnderlyingNode));
         }
 
         /// <summary>
@@ -1236,7 +1237,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new SyntaxList<TNode>(node);
         }
 
-
         /// <summary>
         /// Creates a list of syntax nodes.
         /// </summary>
@@ -1244,20 +1244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="nodes">A sequence of element nodes.</param>
         public static SyntaxList<TNode> List<TNode>(IEnumerable<TNode> nodes) where TNode : SyntaxNode
         {
-            if (nodes != null)
-            {
-                var collection = nodes as ICollection<TNode>;
-                var builder = (collection != null) ? new SyntaxListBuilder<TNode>(collection.Count) : SyntaxListBuilder<TNode>.Create();
-
-                foreach (TNode node in nodes)
-                {
-                    builder.Add(node);
-                }
-
-                return builder.ToList();
-            }
-
-            return default(SyntaxList<TNode>);
+            return new SyntaxList<TNode>(nodes);
         }
 
         /// <summary>
@@ -1283,18 +1270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="tokens">An array of tokens.</param>
         public static SyntaxTokenList TokenList(params SyntaxToken[] tokens)
         {
-            if (tokens == null)
-            {
-                return default(SyntaxTokenList);
-            }
-
-            SyntaxTokenListBuilder builder = new SyntaxTokenListBuilder(tokens.Length);
-            for (int i = 0; i < tokens.Length; i++)
-            {
-                builder.Add((InternalSyntax.SyntaxToken)tokens[i].Node);
-            }
-
-            return builder.ToList();
+            return new SyntaxTokenList(tokens);
         }
 
         /// <summary>
@@ -1304,18 +1280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns></returns>
         public static SyntaxTokenList TokenList(IEnumerable<SyntaxToken> tokens)
         {
-            if (tokens == null)
-            {
-                return default(SyntaxTokenList);
-            }
-
-            SyntaxTokenListBuilder builder = SyntaxTokenListBuilder.Create();
-            foreach (SyntaxToken token in tokens)
-            {
-                builder.Add((InternalSyntax.SyntaxToken)token.Node);
-            }
-
-            return builder.ToList();
+            return new SyntaxTokenList(tokens);
         }
 
         /// <summary>
@@ -1348,36 +1313,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="trivias">An array of trivia.</param>
         public static SyntaxTriviaList TriviaList(params SyntaxTrivia[] trivias)
-        {
-            if (trivias != null)
-            {
-                SyntaxTriviaListBuilder builder = new SyntaxTriviaListBuilder(trivias.Length);
-                builder.Add(trivias);
-                return builder.ToList();
-            }
-
-            return default(SyntaxTriviaList);
-        }
+            => new SyntaxTriviaList(trivias);
 
         /// <summary>
         /// Creates a list of trivia.
         /// </summary>
         /// <param name="trivias">A sequence of trivia.</param>
         public static SyntaxTriviaList TriviaList(IEnumerable<SyntaxTrivia> trivias)
-        {
-            if (trivias == null)
-            {
-                return default(SyntaxTriviaList);
-            }
-
-            SyntaxTriviaListBuilder builder = SyntaxTriviaListBuilder.Create();
-            foreach (SyntaxTrivia trivia in trivias)
-            {
-                builder.Add(trivia);
-            }
-
-            return builder.ToList();
-        }
+            => new SyntaxTriviaList(trivias);
 
         /// <summary>
         /// Creates an empty separated list.
@@ -1470,7 +1413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (!enumerator.MoveNext())
                         {
-                            throw new ArgumentException();
+                            throw new ArgumentException($"{nameof(nodes)} must not be empty.", nameof(nodes));
                         }
 
                         builder.Add(enumerator.Current);
@@ -1483,7 +1426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.Add(enumerator.Current);
                     if (enumerator.MoveNext())
                     {
-                        throw new ArgumentException();
+                        throw new ArgumentException($"{nameof(separators)} must have 1 fewer element than {nameof(nodes)}", nameof(separators));
                     }
                 }
 
@@ -1492,7 +1435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (separators != null)
             {
-                throw new ArgumentException();
+                throw new ArgumentException($"When {nameof(nodes)} is null, {nameof(separators)} must also be null.", nameof(separators));
             }
 
             return default(SeparatedSyntaxList<TNode>);
@@ -1571,14 +1514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="nodesAndTokens">The sequence of nodes and tokens</param>
         public static SyntaxNodeOrTokenList NodeOrTokenList(IEnumerable<SyntaxNodeOrToken> nodesAndTokens)
         {
-            if (nodesAndTokens == null)
-            {
-                throw new ArgumentNullException(nameof(nodesAndTokens));
-            }
-
-            var builder = new SyntaxNodeOrTokenListBuilder(8);
-            builder.Add(nodesAndTokens);
-            return builder.ToList();
+            return new SyntaxNodeOrTokenList(nodesAndTokens);
         }
 
         /// <summary>
@@ -1587,7 +1523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="nodesAndTokens">The nodes and tokens</param>
         public static SyntaxNodeOrTokenList NodeOrTokenList(params SyntaxNodeOrToken[] nodesAndTokens)
         {
-            return NodeOrTokenList((IEnumerable<SyntaxNodeOrToken>)nodesAndTokens);
+            return new SyntaxNodeOrTokenList(nodesAndTokens);
         }
 
         /// <summary>
@@ -1828,7 +1764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (var lexer = MakeLexer(text, offset, (CSharpParseOptions)options))
             using (var parser = MakeParser(lexer))
             {
-                var node = parser.ParseParenthesizedParameterList(allowThisKeyword: true, allowDefaults: true, allowAttributes: true);
+                var node = parser.ParseParenthesizedParameterList();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
                 return (ParameterListSyntax)node.CreateRed();
             }
@@ -2514,96 +2450,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 semicolonToken: Token(SyntaxKind.SemicolonToken));
         }
 
-        /// <summary>Creates a new ArgumentSyntax instance.</summary>
-        public static ArgumentSyntax Argument(NameColonSyntax nameColon, SyntaxToken refOrOutKeyword, ExpressionSyntax expression)
-        {
-            return Argument(nameColon, refOrOutKeyword, (CSharpSyntaxNode)expression);
-        }
+        // backwards compatibility for extended API
+        public static AccessorDeclarationSyntax AccessorDeclaration(SyntaxKind kind, SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, BlockSyntax body)
+                => SyntaxFactory.AccessorDeclaration(kind, attributeLists, modifiers, body, default(ArrowExpressionClauseSyntax));
+        public static AccessorDeclarationSyntax AccessorDeclaration(SyntaxKind kind, SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, BlockSyntax body, SyntaxToken semicolonToken)
+                => SyntaxFactory.AccessorDeclaration(kind, attributeLists, modifiers, keyword, body, default(ArrowExpressionClauseSyntax), semicolonToken);
+        public static AccessorDeclarationSyntax AccessorDeclaration(SyntaxKind kind, SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, ArrowExpressionClauseSyntax expressionBody)
+                => SyntaxFactory.AccessorDeclaration(kind, attributeLists, modifiers, default(BlockSyntax), expressionBody);
+        public static AccessorDeclarationSyntax AccessorDeclaration(SyntaxKind kind, SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
+                => SyntaxFactory.AccessorDeclaration(kind, attributeLists, modifiers, keyword, default(BlockSyntax), expressionBody, semicolonToken);
 
-        /// <summary>Creates a new ArgumentSyntax instance.</summary>
-        public static ArgumentSyntax Argument(ExpressionSyntax expression)
-        {
-            return Argument(default(NameColonSyntax), default(SyntaxToken), expression);
-        }
-
-        /// <summary>Creates a new ArgumentSyntax instance.</summary>
-        public static ArgumentSyntax Argument(NameColonSyntax nameColon, SyntaxToken outKeyword, VariableDeclarationSyntax declaration)
-        {
-            return Argument(nameColon, outKeyword, (CSharpSyntaxNode)declaration);
-        }
-
-        /// <summary>Creates a new ArgumentSyntax instance.</summary>
-        public static ArgumentSyntax Argument(SyntaxToken outKeyword, VariableDeclarationSyntax declaration)
-        {
-            return Argument(default(NameColonSyntax), outKeyword, declaration);
-        }
-
-        static partial void ValidateArgumentParts(NameColonSyntax nameColon, SyntaxToken refOrOutKeyword, CSharpSyntaxNode expressionOrDeclaration)
-        {
-            if (expressionOrDeclaration.Kind() == SyntaxKind.VariableDeclaration)
-            {
-                if (refOrOutKeyword.Kind() != SyntaxKind.OutKeyword)
-                {
-                    throw new ArgumentException("outKeyword");
-                }
-
-                if (!ArgumentSyntax.IsValidOutVariableDeclaration((VariableDeclarationSyntax)expressionOrDeclaration))
-                {
-                    throw new ArgumentException("declaration");
-                }
-            }
-            else if (!(expressionOrDeclaration is ExpressionSyntax))
-            {
-                throw new ArgumentException(nameof(expressionOrDeclaration));
-            }
-        }
     }
 }
-
-namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
-{
-    internal static partial class SyntaxFactory
-    {
-#if DEBUG
-        static partial void ValidateArgumentParts(NameColonSyntax nameColon, SyntaxToken refOrOutKeyword, CSharpSyntaxNode expressionOrDeclaration)
-        {
-            ValidateArgumentPartsImpl(nameColon, refOrOutKeyword, expressionOrDeclaration);
-        }
-
-        static public void ValidateArgumentPartsImpl(NameColonSyntax nameColon, SyntaxToken refOrOutKeyword, CSharpSyntaxNode expressionOrDeclaration)
-        {
-            if (expressionOrDeclaration.Kind == SyntaxKind.VariableDeclaration)
-            {
-                if (refOrOutKeyword.Kind != SyntaxKind.OutKeyword)
-                {
-                    throw new ArgumentException(nameof(refOrOutKeyword));
-                }
-
-                var declaration = (VariableDeclarationSyntax)expressionOrDeclaration;
-
-                if (!(declaration.Variables.Count == 1 &&
-                    declaration.Variables[0].ArgumentList == null &&
-                    declaration.Variables[0].Initializer == null))
-                {
-                    throw new ArgumentException(nameof(expressionOrDeclaration));
-                }
-            }
-            else if (!(expressionOrDeclaration is ExpressionSyntax))
-            {
-                throw new ArgumentException(nameof(expressionOrDeclaration));
-            }
-        }
-#endif
-    }
-
-    internal partial class ContextAwareSyntax
-    {
-#if DEBUG
-        partial void ValidateArgumentParts(NameColonSyntax nameColon, SyntaxToken refOrOutKeyword, CSharpSyntaxNode expressionOrDeclaration)
-        {
-            SyntaxFactory.ValidateArgumentPartsImpl(nameColon, refOrOutKeyword, expressionOrDeclaration);
-        }
-#endif
-    }
-}
-

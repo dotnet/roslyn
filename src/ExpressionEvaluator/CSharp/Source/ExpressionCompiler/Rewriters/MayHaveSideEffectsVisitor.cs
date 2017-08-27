@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         }
 
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
+        {
+            return this.SetMayHaveSideEffects();
+        }
+
+        public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
             return this.SetMayHaveSideEffects();
         }

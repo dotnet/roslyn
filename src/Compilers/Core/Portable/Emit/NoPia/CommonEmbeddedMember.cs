@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 if (_lazyAttributes.IsDefault)
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
-                    var attributes = GetAttributes((TModuleCompilationState)context.ModuleBuilder.CommonModuleCompilationState, (TSyntaxNode)context.SyntaxNodeOpt, diagnostics);
+                    var attributes = GetAttributes((TModuleCompilationState)context.Module.CommonModuleCompilationState, (TSyntaxNode)context.SyntaxNodeOpt, diagnostics);
 
                     if (ImmutableInterlocked.InterlockedInitialize(ref _lazyAttributes, attributes))
                     {

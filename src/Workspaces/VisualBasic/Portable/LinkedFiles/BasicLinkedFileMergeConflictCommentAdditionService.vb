@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 {2}
 ",
                     header,
-                    WorkspacesResources.AddedHeader,
+                    WorkspacesResources.Added_colon,
                     GetCommentedText(afterString))
             ElseIf afterString Is Nothing Then
                 ' Removed code
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 {2}
 ",
                     header,
-                    WorkspacesResources.RemovedHeader,
+                    WorkspacesResources.Removed_colon,
                     GetCommentedText(beforeString))
             Else
                 Return String.Format("
@@ -42,9 +42,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 {4}
 ",
                     header,
-                    WorkspacesResources.BeforeHeader,
+                    WorkspacesResources.Before_colon,
                     GetCommentedText(beforeString),
-                    WorkspacesResources.AfterHeader,
+                    WorkspacesResources.After_colon,
                     GetCommentedText(afterString))
 
             End If

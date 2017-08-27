@@ -22,14 +22,13 @@ namespace Roslyn.Utilities
         {
             if (_weakValue != null)
             {
-                T value;
-                if (_weakValue.TryGetTarget(out value))
+                if (_weakValue.TryGetTarget(out var value))
                 {
                     return value;
                 }
             }
 
-            return default(T);
+            return default;
         }
 
         public override bool TryGetValue(out T value)
@@ -42,7 +41,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            value = default(T);
+            value = default;
             return false;
         }
 

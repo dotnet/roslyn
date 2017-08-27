@@ -37,21 +37,22 @@ namespace Microsoft.Cci
         public static MetadataWriter Create(
             EmitContext context,
             CommonMessageProvider messageProvider,
-            bool allowMissingMethodBodies,
+            bool metadataOnly,
             bool deterministic,
+            bool emitTestCoverageData,
             bool hasPdbStream,
             CancellationToken cancellationToken)
         {
             var builder = new MetadataBuilder();
             MetadataBuilder debugBuilderOpt;
-            switch (context.ModuleBuilder.EmitOptions.DebugInformationFormat)
+            switch (context.Module.DebugInformationFormat)
             {
                 case DebugInformationFormat.PortablePdb:
                     debugBuilderOpt = hasPdbStream ? new MetadataBuilder() : null;
                     break;
 
                 case DebugInformationFormat.Embedded:
-                    debugBuilderOpt = builder;
+                    debugBuilderOpt = metadataOnly ? null : new MetadataBuilder();
                     break;
 
                 default:
@@ -59,18 +60,26 @@ namespace Microsoft.Cci
                     break;
             }
 
-            return new FullMetadataWriter(context, builder, debugBuilderOpt, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
+            var dynamicAnalysisDataWriterOpt = emitTestCoverageData ?
+                new DynamicAnalysisDataWriter(context.Module.DebugDocumentCount, context.Module.HintNumberOfMethodDefinitions) :
+                null;
+
+            return new FullMetadataWriter(context, builder, debugBuilderOpt, dynamicAnalysisDataWriterOpt, messageProvider, metadataOnly, deterministic,
+                emitTestCoverageData, cancellationToken);
         }
 
         private FullMetadataWriter(
             EmitContext context,
             MetadataBuilder builder,
             MetadataBuilder debugBuilderOpt,
+            DynamicAnalysisDataWriter dynamicAnalysisDataWriterOpt,
             CommonMessageProvider messageProvider,
-            bool allowMissingMethodBodies,
+            bool metadataOnly,
             bool deterministic,
+            bool emitTestCoverageData,
             CancellationToken cancellationToken)
-            : base(builder, debugBuilderOpt, context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken)
+            : base(builder, debugBuilderOpt, dynamicAnalysisDataWriterOpt, context, messageProvider, metadataOnly, deterministic,
+                  emitTestCoverageData, cancellationToken)
         {
             // EDMAURER make some intelligent guesses for the initial sizes of these things.
             int numMethods = this.module.HintNumberOfMethodDefinitions;
@@ -260,6 +269,8 @@ namespace Microsoft.Cci
             return _methodSpecIndex.Rows;
         }
 
+        protected override int GreatestMethodDefIndex => _methodDefs.NextRowId;
+        
         protected override bool TryGetTypeRefeferenceHandle(ITypeReference reference, out TypeReferenceHandle handle)
         {
             int index;
@@ -360,7 +371,7 @@ namespace Microsoft.Cci
             }
         }
 
-        protected override IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(IModule module)
+        protected override IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(CommonPEModuleBuilder module)
         {
             return module.GetTopLevelTypes(this.Context);
         }
@@ -383,7 +394,7 @@ namespace Microsoft.Cci
                 this.methodImplList.Add(methodImplementation);
             }
 
-            foreach (IEventDefinition eventDef in typeDef.Events)
+            foreach (IEventDefinition eventDef in typeDef.GetEvents(Context))
             {
                 _eventDefs.Add(eventDef);
             }

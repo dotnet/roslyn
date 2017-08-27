@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports System.Threading.Tasks
@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 workspace.ExportProvider.GetExport(Of IWaitIndicator)().Value,
                 workspace.ExportProvider.GetExport(Of IInlineRenameService)().Value,
                 workspace.ExportProvider.GetExport(Of IDiagnosticAnalyzerService)().Value,
-                SpecializedCollections.SingletonEnumerable(New MockRefactorNotifyService()),
+                {New MockRefactorNotifyService()},
                 DirectCast(workspace.ExportProvider.GetExports(Of IAsynchronousOperationListener, FeatureMetadata), IEnumerable(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata))))
 
             Return tracker.CreateTagger(Of RenameTrackingTag)(document.GetTextBuffer())

@@ -1,4 +1,6 @@
-﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <GeneratedAssemblyInfoFile>$(IntermediateOutputPath)GeneratedAssemblyInfo_$(BuildVersion)$(DefaultLanguageSourceExtension)</GeneratedAssemblyInfoFile>
   </PropertyGroup>
@@ -17,7 +19,7 @@
       <_Parameter1>$(BuildVersion)</_Parameter1>
     </AssemblyVersionAttribute>
     <AssemblyVersionAttribute Include="System.Reflection.AssemblyInformationalVersionAttribute">
-      <_Parameter1>$(NuGetPerBuildPreReleaseVersion)</_Parameter1>
+      <_Parameter1>$(NuGetPerBuildPreReleaseVersion). Commit Hash: $(GitHeadSha)</_Parameter1>
     </AssemblyVersionAttribute>
   </ItemGroup>
 
@@ -64,21 +66,19 @@
           Inputs="$(MSBuildThisFileFullPath)"
           Outputs="$(GeneratedAssemblyInfoFile)"
           DependsOnTargets="PrepareForBuild"
-          Condition="('$(Language)' == 'C#' or '$(Language)' == 'VB')">
+          Condition="('$(Language)' == 'C#' OR '$(Language)' == 'VB')">
 
     <CreateItem Include="System.Reflection.AssemblyMetadataAttribute"
-            AdditionalMetadata="_Parameter1=Serviceable;_Parameter2=True"
-            Condition="'$(ServiceablePackage)' == 'true'">
+                AdditionalMetadata="_Parameter1=Serviceable;_Parameter2=True"
+                Condition="'$(ServiceablePackage)' == 'true'">
       <Output TaskParameter="Include" ItemName="AssemblyVersionAttribute" />
     </CreateItem>
 
-    <!-- The necessity of this Task is tracked by https://github.com/dotnet/roslyn/issues/8421 -->
-    <WriteCodeFragmentEx 
-        AssemblyAttributes="@(AssemblyVersionAttribute)"
-        Language="$(Language)"
-        OutputFile="$(GeneratedAssemblyInfoFile)">
+    <WriteCodeFragment AssemblyAttributes="@(AssemblyVersionAttribute)"
+                         Language="$(Language)"
+                         OutputFile="$(GeneratedAssemblyInfoFile)">
       <Output TaskParameter="OutputFile" ItemName="Compile" />
       <Output TaskParameter="OutputFile" ItemName="FileWrites" />
-    </WriteCodeFragmentEx>
+    </WriteCodeFragment>
   </Target>
 </Project>

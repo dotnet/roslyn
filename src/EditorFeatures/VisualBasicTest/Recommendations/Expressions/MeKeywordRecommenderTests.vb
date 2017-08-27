@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports Microsoft.CodeAnalysis.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class MeKeywordRecommenderTests
@@ -54,22 +56,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ex
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function MeAfterArgument1Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(|</MethodBody>, "Me")
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(|</MethodBody>, "Me")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function MeAfterArgument2Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(bar, |</MethodBody>, "Me")
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar, |</MethodBody>, "Me")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function MeAfterBinaryExpressionTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(bar + |</MethodBody>, "Me")
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar + |</MethodBody>, "Me")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function MeAfterNotTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(Not |</MethodBody>, "Me")
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(Not |</MethodBody>, "Me")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
@@ -181,7 +183,7 @@ Loop Until |</MethodBody>, "Me")
 End Class
 Public Class Derived
     Inherits Base
-    Sub Foo() Handles |
+    Sub Goo() Handles |
     End Sub
 End Class|</File>
 
@@ -196,6 +198,24 @@ End Class|</File>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function MeInNameOf2Test() As Task
             Await VerifyRecommendationsMissingAsync(<MethodBody>Dim s = NameOf(System.|</MethodBody>, "Me")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function Preselection() As Task
+            Dim code =
+<File>
+Class Program
+    Sub Main(args As String())
+        Goo(|)
+    End Sub
+
+    Sub Goo(x As Program)
+
+    End Sub
+End Class
+</File>
+
+            Await VerifyRecommendationsWithPriority(code, SymbolMatchPriority.Keyword, "Me")
         End Function
     End Class
 End Namespace

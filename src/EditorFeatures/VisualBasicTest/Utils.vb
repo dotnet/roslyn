@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.CompilerServices
 Imports System.Text
@@ -6,8 +6,6 @@ Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests
@@ -222,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests
 
                 Case "EnumDeclaration"
                     Return importStatements & vbCrLf &
-                        "Enum Foo" & vbCrLf &
+                        "Enum Goo" & vbCrLf &
                         SurroundAndJoinLines(lines, "    ", vbCrLf) &
                         "End Enum"
 
@@ -329,7 +327,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests
                         "End Structure"
 
                 Case "File"
-                    Return String.Join(vbCrLf, lines)
+                    Return testSource.NormalizedValue
 
                 Case Else
                     Throw New ArgumentException("Unexpected testSource XML tag.", NameOf(testSource))

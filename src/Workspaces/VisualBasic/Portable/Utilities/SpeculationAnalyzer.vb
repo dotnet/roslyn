@@ -19,8 +19,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
     ''' the syntax replacement doesn't break the semantics of any parenting nodes of the original expression.
     ''' </summary>
     Friend Class SpeculationAnalyzer
-        Inherits AbstractSpeculationAnalyzer(Of SyntaxNode, ExpressionSyntax, TypeSyntax, AttributeSyntax,
-                                             ArgumentSyntax, ForEachStatementSyntax, ThrowStatementSyntax, SemanticModel, Conversion)
+        Inherits AbstractSpeculationAnalyzer(Of
+            ExpressionSyntax,
+            TypeSyntax,
+            AttributeSyntax,
+            ArgumentSyntax,
+            ForEachStatementSyntax,
+            ThrowStatementSyntax,
+            Conversion)
 
         ''' <summary>
         ''' Creates a semantic analyzer for speculative syntax replacement.
@@ -139,6 +145,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
 
                 Case SyntaxKind.RangeArgument
                     semanticModel.TryGetSpeculativeSemanticModel(position, DirectCast(nodeToSpeculate, RangeArgumentSyntax), speculativeModel)
+                    Return speculativeModel
+
+                Case SyntaxKind.AsNewClause
+                    ' Speculation is not supported for AsNewClauseSyntax nodes.
+                    ' Generate an EqualsValueSyntax node with the inner NewExpression of the AsNewClauseSyntax node for speculation.
+
+                    Dim asNewClauseNode = DirectCast(nodeToSpeculate, AsNewClauseSyntax)
+                    nodeToSpeculate = SyntaxFactory.EqualsValue(asNewClauseNode.NewExpression)
+                    nodeToSpeculate = asNewClauseNode.CopyAnnotationsTo(nodeToSpeculate)
+                    semanticModel.TryGetSpeculativeSemanticModel(position, DirectCast(nodeToSpeculate, EqualsValueSyntax), speculativeModel)
                     Return speculativeModel
             End Select
 

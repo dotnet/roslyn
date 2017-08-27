@@ -198,6 +198,9 @@
   <data name="ERR_MissingGuidForOption" xml:space="preserve">
     <value>Command-line syntax error: Missing Guid for option '{1}'</value>
   </data>
+  <data name="ERR_BadChecksumAlgorithm" xml:space="preserve">
+    <value>Algorithm '{0}' is not supported</value>
+  </data>
   <data name="WRN_BadSwitch" xml:space="preserve">
     <value>unrecognized option '{0}'; ignored</value>
   </data>
@@ -281,18 +284,6 @@
   </data>
   <data name="ERR_UnreferencedModuleEvent3" xml:space="preserve">
     <value>Reference required to module '{0}' containing the definition for event '{1}'. Add one to your project.</value>
-  </data>
-  <data name="ERR_UnreferencedAssemblyBase3" xml:space="preserve">
-    <value>Reference required to assembly '{0}' containing the base class '{1}'. Add one to your project.</value>
-  </data>
-  <data name="ERR_UnreferencedModuleBase3" xml:space="preserve">
-    <value>Reference required to module '{0}' containing the base class '{1}'. Add one to your project.</value>
-  </data>
-  <data name="ERR_UnreferencedAssemblyImplements3" xml:space="preserve">
-    <value>Reference required to assembly '{0}' containing the implemented interface '{1}'. Add one to your project.</value>
-  </data>
-  <data name="ERR_UnreferencedModuleImplements3" xml:space="preserve">
-    <value>Reference required to module '{0}' containing the implemented interface '{1}'. Add one to your project.</value>
   </data>
   <data name="ERR_LbExpectedEndIf" xml:space="preserve">
     <value>'#If' block must end with a matching '#End If'.</value>
@@ -782,6 +773,9 @@
   <data name="ERR_DuplicateProcDef1" xml:space="preserve">
     <value>'{0}' has multiple definitions with identical signatures.</value>
   </data>
+  <data name="ERR_DuplicateProcDefWithDifferentTupleNames2" xml:space="preserve">
+    <value>'{0}' has multiple definitions with identical signatures with different tuple element names, including '{1}'.</value>
+  </data>
   <data name="ERR_BadInterfaceMethodFlags1" xml:space="preserve">
     <value>'{0}' is not valid on an interface method declaration.</value>
   </data>
@@ -997,6 +991,9 @@
   <data name="ERR_IdentNotMemberOfInterface4" xml:space="preserve">
     <value>'{0}' cannot implement '{1}' because there is no matching {2} on interface '{3}'.</value>
   </data>
+  <data name="ERR_ImplementingInterfaceWithDifferentTupleNames5" xml:space="preserve">
+    <value>'{0}' cannot implement {1} '{2}' on interface '{3}' because the tuple element names in '{4}' do not match those in '{5}'.</value>
+  </data>
   <data name="ERR_WithEventsRequiresClass" xml:space="preserve">
     <value>'WithEvents' variables must have an 'As' clause.</value>
   </data>
@@ -1035,6 +1032,12 @@
   </data>
   <data name="ERR_InvalidOverrideDueToReturn2" xml:space="preserve">
     <value>'{0}' cannot override '{1}' because they differ by their return types.</value>
+  </data>
+  <data name="WRN_InvalidOverrideDueToTupleNames2" xml:space="preserve">
+    <value>'{0}' cannot override '{1}' because they differ by their tuple element names.</value>
+  </data>
+  <data name="WRN_InvalidOverrideDueToTupleNames2_Title" xml:space="preserve">
+    <value>Member cannot override because it differs by its tuple element names.</value>
   </data>
   <data name="ERR_ConstantWithNoValue" xml:space="preserve">
     <value>Constants must have a value.</value>
@@ -1854,11 +1857,35 @@
   <data name="ERR_EventHandlerSignatureIncompatible2" xml:space="preserve">
     <value>Method '{0}' cannot handle event '{1}' because they do not have a compatible signature.</value>
   </data>
-  <data name="ERR_ProjectCCError1" xml:space="preserve">
-    <value>Project-level conditional compilation constant '{1}' is not valid: {0}</value>
+  <data name="ERR_ConditionalCompilationConstantNotValid" xml:space="preserve">
+    <value>Conditional compilation constant '{1}' is not valid: {0}</value>
   </data>
   <data name="ERR_InterfaceImplementedTwice1" xml:space="preserve">
     <value>Interface '{0}' can be implemented only once by this type.</value>
+  </data>
+  <data name="ERR_InterfaceImplementedTwiceWithDifferentTupleNames2" xml:space="preserve">
+    <value>Interface '{0}' can be implemented only once by this type, but already appears with different tuple element names, as '{1}'.</value>
+  </data>
+  <data name="ERR_InterfaceImplementedTwiceWithDifferentTupleNames3" xml:space="preserve">
+    <value>Interface '{0}' can be implemented only once by this type, but already appears with different tuple element names, as '{1}' (via '{2}').</value>
+  </data>
+  <data name="ERR_InterfaceImplementedTwiceWithDifferentTupleNamesReverse3" xml:space="preserve">
+    <value>Interface '{0}' (via '{1}') can be implemented only once by this type, but already appears with different tuple element names, as '{2}'.</value>
+  </data>
+  <data name="ERR_InterfaceImplementedTwiceWithDifferentTupleNames4" xml:space="preserve">
+    <value>Interface '{0}' (via '{1}') can be implemented only once by this type, but already appears with different tuple element names, as '{2}' (via '{3}').</value>
+  </data>
+  <data name="ERR_InterfaceInheritedTwiceWithDifferentTupleNames2" xml:space="preserve">
+    <value>Interface '{0}' can be inherited only once by this interface, but already appears with different tuple element names, as '{1}'.</value>
+  </data>
+  <data name="ERR_InterfaceInheritedTwiceWithDifferentTupleNames3" xml:space="preserve">
+    <value>Interface '{0}' can be inherited only once by this interface, but already appears with different tuple element names, as '{1}' (via '{2}').</value>
+  </data>
+  <data name="ERR_InterfaceInheritedTwiceWithDifferentTupleNamesReverse3" xml:space="preserve">
+    <value>Interface '{0}' (via '{1}') can be inherited only once by this interface, but already appears with different tuple element names, as '{2}'.</value>
+  </data>
+  <data name="ERR_InterfaceInheritedTwiceWithDifferentTupleNames4" xml:space="preserve">
+    <value>Interface '{0}' (via '{1}') can be inherited only once by this interface, but already appears with different tuple element names, as '{2}' (via '{3}').</value>
   </data>
   <data name="ERR_InterfaceNotImplemented1" xml:space="preserve">
     <value>Interface '{0}' is not implemented by this class.</value>
@@ -1991,6 +2018,9 @@
   </data>
   <data name="ERR_TypeRefResolutionError3" xml:space="preserve">
     <value>Import of type '{0}' from assembly or module '{1}' failed.</value>
+  </data>
+  <data name="ERR_ValueTupleTypeRefResolutionError1" xml:space="preserve">
+    <value>Predefined type '{0}' is not defined or imported.</value>
   </data>
   <data name="ERR_ParamArrayWrongType" xml:space="preserve">
     <value>ParamArray parameters must have an array type.</value>
@@ -3121,6 +3151,15 @@
   <data name="ERR_AnonymousTypeDisallowsTypeChar" xml:space="preserve">
     <value>Type characters cannot be used in anonymous type declarations.</value>
   </data>
+  <data name="ERR_TupleLiteralDisallowsTypeChar" xml:space="preserve">
+    <value>Type characters cannot be used in tuple literals.</value>
+  </data>
+  <data name="ERR_NewWithTupleTypeSyntax" xml:space="preserve">
+    <value>'New' cannot be used with tuple type. Use a tuple literal expression instead.</value>
+  </data>
+  <data name="ERR_PredefinedValueTupleTypeMustBeStruct" xml:space="preserve">
+    <value>Predefined type '{0}' must be a structure.</value>
+  </data>
   <data name="ERR_ExtensionMethodUncallable1" xml:space="preserve">
     <value>Extension method '{0}' has type constraints that can never be satisfied.</value>
   </data>
@@ -3425,7 +3464,7 @@
     <value>Type '{0}' cannot be embedded because it has generic argument. Consider disabling the embedding of interop types.</value>
   </data>
   <data name="ERR_CannotUseGenericTypeAcrossAssemblyBoundaries" xml:space="preserve">
-    <value>Type '{0}' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.</value>
+    <value>Type '{0}' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.</value>
   </data>
   <data name="WRN_UseOfObsoleteSymbol2" xml:space="preserve">
     <value>'{0}' is obsolete: '{1}'.</value>
@@ -4301,6 +4340,15 @@
   <data name="ERR_PublicSignNoKey" xml:space="preserve">
     <value>Public sign was specified and requires a public key, but no public key was specified</value>
   </data>
+  <data name="ERR_PublicSignNetModule" xml:space="preserve">
+    <value>Public signing is not supported for netmodules.</value>
+  </data>
+  <data name="WRN_AttributeIgnoredWhenPublicSigning" xml:space="preserve">
+    <value>Attribute '{0}' is ignored when public signing is specified.</value>
+  </data>
+  <data name="WRN_AttributeIgnoredWhenPublicSigning_Title" xml:space="preserve">
+    <value>Attribute is ignored when public signing is specified.</value>
+  </data>
   <data name="WRN_DelaySignButNoKey" xml:space="preserve">
     <value>Delay signing was specified and requires a public key, but no public key was specified.</value>
   </data>
@@ -4796,8 +4844,8 @@
   <data name="ERR_NetModuleNameMismatch" xml:space="preserve">
     <value>Module name '{0}' stored in '{1}' must match its filename.</value>
   </data>
-  <data name="ERR_BadCompilationOption" xml:space="preserve">
-    <value>{0}</value>
+  <data name="ERR_BadModuleName" xml:space="preserve">
+    <value>Invalid module name: {0}</value>
   </data>
   <data name="WRN_AssemblyAttributeFromModuleIsOverridden" xml:space="preserve">
     <value>Attribute '{0}' from module '{1}' will be ignored in favor of the instance appearing in source.</value>
@@ -4916,9 +4964,6 @@
   <data name="IDS_TheSystemCannotFindThePathSpecified" xml:space="preserve">
     <value>The system cannot find the path specified</value>
   </data>
-  <data name="IDS_UnrecognizedFileFormat" xml:space="preserve">
-    <value>Unrecognized file format.</value>
-  </data>
   <data name="ThereAreNoPointerTypesInVB" xml:space="preserve">
     <value>There are no pointer types in VB.</value>
   </data>
@@ -5000,6 +5045,9 @@
   <data name="IDS_LogoLine2" xml:space="preserve">
     <value>Copyright (C) Microsoft Corporation. All rights reserved.</value>
   </data>
+  <data name="IDS_LangVersions" xml:space="preserve">
+    <value>Supported language versions:</value>
+  </data>
   <data name="IDS_VBCHelp" xml:space="preserve">
     <value>                  Visual Basic Compiler Options
 
@@ -5016,6 +5064,7 @@
 /target:winmdobj                  Create a Windows Metadata intermediate file
 /doc[+|-]                         Generates XML documentation file.
 /doc:&lt;file&gt;                       Generates XML documentation file to &lt;file&gt;.
+/refout:&lt;file&gt;                    Reference assembly output to generate
 
                                   - INPUT FILES -
 /addmodule:&lt;file_list&gt;            Reference metadata from the specified modules
@@ -5054,10 +5103,16 @@
 /removeintchecks[+|-]             Remove integer checks. Default off.
 /debug[+|-]                       Emit debugging information.
 /debug:full                       Emit full debugging information (default).
-/debug:portable                   Emit debugging information in the portable format.
-/debug:pdbonly                    Emit PDB file only.
+/debug:pdbonly                    Emit full debugging information.
+/debug:portable                   Emit cross-platform debugging information.
+/debug:embedded                   Emit cross-platform debugging information into 
+                                  the target .dll or .exe.
 /deterministic                    Produce a deterministic assembly
                                   (including module version GUID and timestamp)
+/refonly                          Produce a reference assembly in place of the main output
+/instrument:TestCoverage          Produce an assembly instrumented to collect
+                                  coverage information
+/sourcelink:&lt;file&gt;                Source link info to embed into PDB.
 
                                   - ERRORS AND WARNINGS -
 /nowarn                           Disable all warnings.
@@ -5070,24 +5125,27 @@
                                   diagnostics.
 /reportanalyzer                   Report additional analyzer information, such as
                                   execution time.
-                                  - LANGUAGE -
 
+                                  - LANGUAGE -
 /define:&lt;symbol_list&gt;             Declare global conditional compilation 
                                   symbol(s). symbol_list:name=value,... 
                                   (Short form: /d)
 /imports:&lt;import_list&gt;            Declare global Imports for namespaces in 
                                   referenced metadata files. 
                                   import_list:namespace,...
-/langversion:&lt;number&gt;             Specify language version: 
-                                  9|9.0|10|10.0|11|11.0|12|12.0|14|14.0
+/langversion:?                    Display the allowed values for language version
+/langversion:&lt;string&gt;             Specify language version such as
+                                  `default` (latest major version), or
+                                  `latest` (latest version, including minor versions),
+                                  or specific versions like `14` or `15.3`
 /optionexplicit[+|-]              Require explicit declaration of variables.
 /optioninfer[+|-]                 Allow type inference of variables.
 /rootnamespace:&lt;string&gt;           Specifies the root Namespace for all type 
                                   declarations.
 /optionstrict[+|-]                Enforce strict language semantics.
-/optionstrict:custom              Warn when strict language semantics are not 
+/optionstrict:custom              Warn when strict language semantics are not
                                   respected.
-/optioncompare:binary             Specifies binary-style string comparisons. 
+/optioncompare:binary             Specifies binary-style string comparisons.
                                   This is the default.
 /optioncompare:text               Specifies text-style string comparisons.
 
@@ -5098,11 +5156,11 @@
 /quiet                            Quiet output mode.
 /verbose                          Display verbose messages.
 /parallel[+|-]                    Concurrent build. 
+/version                          Display the compiler version number and exit.
 
                                   - ADVANCED -
 /baseaddress:&lt;number&gt;             The base address for a library or module 
                                   (hex).
-/bugreport:&lt;file&gt;                 Create bug report file.
 /checksumalgorithm:&lt;alg&gt;          Specify algorithm for calculating source file 
                                   checksum stored in PDB. Supported values are:
                                   SHA1 (default) or SHA256.
@@ -5211,7 +5269,7 @@
   <data name="ERR_InvalidFormatSpecifier" xml:space="preserve">
     <value>'{0}' is not a valid format specifier</value>
   </data>
-  <data name="IDS_InvalidPreprocessorConstantType" xml:space="preserve">
+  <data name="ERR_InvalidPreprocessorConstantType" xml:space="preserve">
     <value>Preprocessor constant '{0}' of type '{1}' is not supported, only primitive types are allowed.</value>
   </data>
   <data name="ERR_ExpectedWarningKeyword" xml:space="preserve">
@@ -5346,6 +5404,9 @@
   <data name="FEATURE_BinaryLiterals" xml:space="preserve">
     <value>binary literals</value>
   </data>
+  <data name="FEATURE_Tuples" xml:space="preserve">
+    <value>tuples</value>
+  </data>
   <data name="ERR_DebugEntryPointNotSourceMethodDefinition" xml:space="preserve">
     <value>Debug entry point must be a definition of a method declared in the current compilation.</value>
   </data>
@@ -5361,10 +5422,83 @@
   <data name="ERR_PeWritingFailure" xml:space="preserve">
     <value>An error occurred while writing the output file: {0}</value>
   </data>
-  <data name="TuplesNotSupported" xml:space="preserve">
-    <value>Tuples are not supported in VB.</value>
-  </data>
   <data name="ERR_OptionMustBeAbsolutePath" xml:space="preserve">
     <value>Option '{0}' must be an absolute path.</value>
   </data>
+  <data name="ERR_SourceLinkRequiresPdb" xml:space="preserve">
+    <value>/sourcelink switch is only supported when emitting PDB.</value>
+  </data>
+  <data name="ERR_TupleDuplicateElementName" xml:space="preserve">
+    <value>Tuple element names must be unique.</value>
+  </data>
+  <data name="WRN_TupleLiteralNameMismatch" xml:space="preserve">
+    <value>The tuple element name '{0}' is ignored because a different name or no name is specified by the target type '{1}'.</value>
+  </data>
+  <data name="WRN_TupleLiteralNameMismatch_Title" xml:space="preserve">
+    <value>The tuple element name is ignored because a different name or no name is specified by the assignment target.</value>
+  </data>
+  <data name="ERR_TupleReservedElementName" xml:space="preserve">
+    <value>Tuple element name '{0}' is only allowed at position {1}.</value>
+  </data>
+  <data name="ERR_TupleReservedElementNameAnyPosition" xml:space="preserve">
+    <value>Tuple element name '{0}' is disallowed at any position.</value>
+  </data>
+  <data name="ERR_TupleTooFewElements" xml:space="preserve">
+    <value>Tuple must contain at least two elements.</value>
+  </data>
+  <data name="ERR_TupleElementNamesAttributeMissing" xml:space="preserve">
+    <value>Cannot define a class or member that utilizes tuples because the compiler required type '{0}' cannot be found. Are you missing a reference?</value>
+  </data>
+  <data name="ERR_ExplicitTupleElementNamesAttribute" xml:space="preserve">
+    <value>Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.</value>
+  </data>
+  <data name="ERR_RefReturningCallInExpressionTree" xml:space="preserve">
+    <value>An expression tree may not contain a call to a method or property that returns by reference.</value>
+  </data>
+  <data name="ERR_CannotEmbedWithoutPdb" xml:space="preserve">
+    <value>/embed switch is only supported when emitting a PDB.</value>
+  </data>
+  <data name="ERR_InvalidInstrumentationKind" xml:space="preserve">
+    <value>Invalid instrumentation kind: {0}</value>
+  </data>
+  <data name="ERR_DocFileGen" xml:space="preserve">
+    <value>Error writing to XML documentation file: {0}</value>
+  </data>
+  <data name="ERR_BadAssemblyName" xml:space="preserve">
+    <value>Invalid assembly name: {0}</value>
+  </data>
+  <data name="ERR_TypeForwardedToMultipleAssemblies" xml:space="preserve">
+    <value>Module '{0}' in assembly '{1}' is forwarding the type '{2}' to multiple assemblies: '{3}' and '{4}'.</value>
+  </data>
+  <data name="ERR_Merge_conflict_marker_encountered" xml:space="preserve">
+    <value>Merge conflict marker encountered</value>
+  </data>
+  <data name="ERR_NoRefOutWhenRefOnly" xml:space="preserve">
+    <value>Do not use refout when using refonly.</value>
+  </data>
+  <data name="ERR_NoNetModuleOutputWhenRefOutOrRefOnly" xml:space="preserve">
+    <value>Cannot compile net modules when using /refout or /refonly.</value>
+  </data>
+  <data name="ERR_BadDocumentationMode" xml:space="preserve">
+    <value>Provided documentation mode is unsupported or invalid: '{0}'.</value>
+  </data>
+  <data name="ERR_BadLanguageVersion" xml:space="preserve">
+    <value>Provided language version is unsupported or invalid: '{0}'.</value>
+  </data>
+  <data name="ERR_BadSourceCodeKind" xml:space="preserve">
+    <value>Provided source code kind is unsupported or invalid: '{0}'</value>
+  </data>
+  <data name="ERR_TupleInferredNamesNotAvailable" xml:space="preserve">
+    <value>Tuple element name '{0}' is inferred. Please use language version {1} or greater to access an element by its inferred name.</value>
+  </data>
+  <data name="WRN_Experimental" xml:space="preserve">
+    <value>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</value>
+  </data>
+  <data name="WRN_Experimental_Title" xml:space="preserve">
+    <value>Type is for evaluation purposes only and is subject to change or removal in future updates.</value>
+  </data>
+  <data name="ERR_InvalidDebugInfo" xml:space="preserve">
+    <value>Unable to read debug information of method '{0}' (token 0x{1}) from assembly '{2}'</value>
+  </data>
 </root>
+

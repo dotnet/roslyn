@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
     System.Int32 int32Field2;
 }";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(csharpCode))
+            using (var workspace = TestWorkspace.CreateCSharp(csharpCode))
             {
                 var type = (ITypeSymbol)(await workspace.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
 
@@ -118,8 +118,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
     dim int32Field1 as System.Int32
 end class";
 
-            using (var csharpWorkspace = await TestWorkspace.CreateCSharpAsync(csharpCode))
-            using (var vbWorkspace = await TestWorkspace.CreateVisualBasicAsync(vbCode))
+            using (var csharpWorkspace = TestWorkspace.CreateCSharp(csharpCode))
+            using (var vbWorkspace = TestWorkspace.CreateVisualBasic(vbCode))
             {
                 var csharpType = (ITypeSymbol)(await csharpWorkspace.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
                 var vbType = (await vbWorkspace.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
@@ -190,8 +190,8 @@ class Type2
     bool field3;
     string field2;
 }";
-            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
-            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
+            using (var workspace1 = TestWorkspace.CreateCSharp(csharpCode1))
+            using (var workspace2 = TestWorkspace.CreateCSharp(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type2_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type2").Single();
@@ -244,8 +244,8 @@ class Type2
     dim field3 as Boolean;
     dim field2 as String;
 end class";
-            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
-            using (var workspace2 = await TestWorkspace.CreateVisualBasicAsync(vbCode1))
+            using (var workspace1 = TestWorkspace.CreateCSharp(csharpCode1))
+            using (var workspace2 = TestWorkspace.CreateVisualBasic(vbCode1))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type2_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type2").Single();
@@ -274,7 +274,7 @@ end class";
             var code =
 @"class C<T>
 {
-    int foo;
+    int goo;
     C<int> intInstantiation1;
     C<string> stringInstantiation;
     C<T> instanceInstantiation;
@@ -286,7 +286,7 @@ class D
 }
 ";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var typeC = (await workspace.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
                 var typeD = (await workspace.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("D").Single();
@@ -296,24 +296,24 @@ class D
                 var instanceInstantiation = (IFieldSymbol)typeC.GetMembers("instanceInstantiation").Single();
                 var intInstantiation2 = (IFieldSymbol)typeD.GetMembers("intInstantiation2").Single();
 
-                var foo = typeC.GetMembers("foo").Single();
-                var foo_intInstantiation1 = intInstantiation1.Type.GetMembers("foo").Single();
-                var foo_stringInstantiation = stringInstantiation.Type.GetMembers("foo").Single();
-                var foo_instanceInstantiation = instanceInstantiation.Type.GetMembers("foo").Single();
-                var foo_intInstantiation2 = intInstantiation2.Type.GetMembers("foo").Single();
+                var goo = typeC.GetMembers("goo").Single();
+                var goo_intInstantiation1 = intInstantiation1.Type.GetMembers("goo").Single();
+                var goo_stringInstantiation = stringInstantiation.Type.GetMembers("goo").Single();
+                var goo_instanceInstantiation = instanceInstantiation.Type.GetMembers("goo").Single();
+                var goo_intInstantiation2 = intInstantiation2.Type.GetMembers("goo").Single();
 
-                Assert.False(SymbolEquivalenceComparer.Instance.Equals(foo, foo_intInstantiation1));
-                Assert.False(SymbolEquivalenceComparer.Instance.Equals(foo, foo_intInstantiation2));
-                Assert.False(SymbolEquivalenceComparer.Instance.Equals(foo, foo_stringInstantiation));
-                Assert.False(SymbolEquivalenceComparer.Instance.Equals(foo_intInstantiation1, foo_stringInstantiation));
+                Assert.False(SymbolEquivalenceComparer.Instance.Equals(goo, goo_intInstantiation1));
+                Assert.False(SymbolEquivalenceComparer.Instance.Equals(goo, goo_intInstantiation2));
+                Assert.False(SymbolEquivalenceComparer.Instance.Equals(goo, goo_stringInstantiation));
+                Assert.False(SymbolEquivalenceComparer.Instance.Equals(goo_intInstantiation1, goo_stringInstantiation));
 
-                Assert.True(SymbolEquivalenceComparer.Instance.Equals(foo, foo_instanceInstantiation));
-                Assert.Equal(SymbolEquivalenceComparer.Instance.GetHashCode(foo),
-                             SymbolEquivalenceComparer.Instance.GetHashCode(foo_instanceInstantiation));
+                Assert.True(SymbolEquivalenceComparer.Instance.Equals(goo, goo_instanceInstantiation));
+                Assert.Equal(SymbolEquivalenceComparer.Instance.GetHashCode(goo),
+                             SymbolEquivalenceComparer.Instance.GetHashCode(goo_instanceInstantiation));
 
-                Assert.True(SymbolEquivalenceComparer.Instance.Equals(foo_intInstantiation1, foo_intInstantiation2));
-                Assert.Equal(SymbolEquivalenceComparer.Instance.GetHashCode(foo_intInstantiation1),
-                             SymbolEquivalenceComparer.Instance.GetHashCode(foo_intInstantiation2));
+                Assert.True(SymbolEquivalenceComparer.Instance.Equals(goo_intInstantiation1, goo_intInstantiation2));
+                Assert.Equal(SymbolEquivalenceComparer.Instance.GetHashCode(goo_intInstantiation1),
+                             SymbolEquivalenceComparer.Instance.GetHashCode(goo_intInstantiation2));
             }
         }
 
@@ -323,22 +323,22 @@ class D
             var csharpCode1 =
 @"class Type1
 {
-    void Foo() {}
+    void Goo() {}
 }";
 
             var csharpCode2 =
 @"class Type1
 {
-    int Foo() {}
+    int Goo() {}
 }";
-            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
-            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
+            using (var workspace1 = TestWorkspace.CreateCSharp(csharpCode1))
+            using (var workspace2 = TestWorkspace.CreateCSharp(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
-                var method_v1 = type1_v1.GetMembers("Foo").Single();
-                var method_v2 = type1_v2.GetMembers("Foo").Single();
+                var method_v1 = type1_v1.GetMembers("Goo").Single();
+                var method_v2 = type1_v2.GetMembers("Goo").Single();
 
                 Assert.False(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
             }
@@ -350,22 +350,22 @@ class D
             var csharpCode1 =
 @"class Type1
 {
-    void Foo() {}
+    void Goo() {}
 }";
 
             var csharpCode2 =
 @"class Type1
 {
-    void Foo1() {}
+    void Goo1() {}
 }";
-            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
-            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
+            using (var workspace1 = TestWorkspace.CreateCSharp(csharpCode1))
+            using (var workspace2 = TestWorkspace.CreateCSharp(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
-                var method_v1 = type1_v1.GetMembers("Foo").Single();
-                var method_v2 = type1_v2.GetMembers("Foo1").Single();
+                var method_v1 = type1_v1.GetMembers("Goo").Single();
+                var method_v2 = type1_v2.GetMembers("Goo1").Single();
 
                 Assert.False(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
             }
@@ -377,22 +377,22 @@ class D
             var csharpCode1 =
 @"class Type1
 {
-    void Foo() {}
+    void Goo() {}
 }";
 
             var csharpCode2 =
 @"class Type1
 {
-    void Foo<T>() {}
+    void Goo<T>() {}
 }";
-            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
-            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
+            using (var workspace1 = TestWorkspace.CreateCSharp(csharpCode1))
+            using (var workspace2 = TestWorkspace.CreateCSharp(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
-                var method_v1 = type1_v1.GetMembers("Foo").Single();
-                var method_v2 = type1_v2.GetMembers("Foo").Single();
+                var method_v1 = type1_v1.GetMembers("Goo").Single();
+                var method_v2 = type1_v2.GetMembers("Goo").Single();
 
                 Assert.False(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
             }
@@ -404,22 +404,22 @@ class D
             var csharpCode1 =
 @"class Type1
 {
-    void Foo() {}
+    void Goo() {}
 }";
 
             var csharpCode2 =
 @"class Type1
 {
-    void Foo(int a) {}
+    void Goo(int a) {}
 }";
-            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
-            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
+            using (var workspace1 = TestWorkspace.CreateCSharp(csharpCode1))
+            using (var workspace2 = TestWorkspace.CreateCSharp(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
-                var method_v1 = type1_v1.GetMembers("Foo").Single();
-                var method_v2 = type1_v2.GetMembers("Foo").Single();
+                var method_v1 = type1_v1.GetMembers("Goo").Single();
+                var method_v2 = type1_v2.GetMembers("Goo").Single();
 
                 Assert.False(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
             }
@@ -431,22 +431,22 @@ class D
             var csharpCode1 =
 @"class Type1
 {
-    void Foo<A>(A a) {}
+    void Goo<A>(A a) {}
 }";
 
             var csharpCode2 =
 @"class Type1
 {
-    void Foo<B>(B a) {}
+    void Goo<B>(B a) {}
 }";
-            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
-            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
+            using (var workspace1 = TestWorkspace.CreateCSharp(csharpCode1))
+            using (var workspace2 = TestWorkspace.CreateCSharp(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
-                var method_v1 = type1_v1.GetMembers("Foo").Single();
-                var method_v2 = type1_v2.GetMembers("Foo").Single();
+                var method_v1 = type1_v1.GetMembers("Goo").Single();
+                var method_v2 = type1_v2.GetMembers("Goo").Single();
 
                 Assert.True(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
                 Assert.Equal(SymbolEquivalenceComparer.Instance.GetHashCode(method_v1),
@@ -460,22 +460,22 @@ class D
             var csharpCode1 =
 @"class Type1
 {
-    void Foo(int a) {}
+    void Goo(int a) {}
 }";
 
             var csharpCode2 =
 @"class Type1
 {
-    void Foo(int a) {}
+    void Goo(int a) {}
 }";
-            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
-            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
+            using (var workspace1 = TestWorkspace.CreateCSharp(csharpCode1))
+            using (var workspace2 = TestWorkspace.CreateCSharp(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
-                var method_v1 = type1_v1.GetMembers("Foo").Single();
-                var method_v2 = type1_v2.GetMembers("Foo").Single();
+                var method_v1 = type1_v1.GetMembers("Goo").Single();
+                var method_v2 = type1_v2.GetMembers("Goo").Single();
 
                 Assert.True(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
                 Assert.Equal(SymbolEquivalenceComparer.Instance.GetHashCode(method_v1),
@@ -489,22 +489,22 @@ class D
             var csharpCode1 =
 @"class Type1
 {
-    void Foo(int a) {}
+    void Goo(int a) {}
 }";
 
             var csharpCode2 =
 @"class Type1
 {
-    void Foo(int b) {}
+    void Goo(int b) {}
 }";
-            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
-            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
+            using (var workspace1 = TestWorkspace.CreateCSharp(csharpCode1))
+            using (var workspace2 = TestWorkspace.CreateCSharp(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
-                var method_v1 = type1_v1.GetMembers("Foo").Single();
-                var method_v2 = type1_v2.GetMembers("Foo").Single();
+                var method_v1 = type1_v1.GetMembers("Goo").Single();
+                var method_v2 = type1_v2.GetMembers("Goo").Single();
 
                 Assert.True(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
                 Assert.Equal(SymbolEquivalenceComparer.Instance.GetHashCode(method_v1),
@@ -518,22 +518,22 @@ class D
             var csharpCode1 =
 @"class Type1
 {
-    void Foo(out int a) {}
+    void Goo(out int a) {}
 }";
 
             var csharpCode2 =
 @"class Type1
 {
-    void Foo(ref int a) {}
+    void Goo(ref int a) {}
 }";
-            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
-            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
+            using (var workspace1 = TestWorkspace.CreateCSharp(csharpCode1))
+            using (var workspace2 = TestWorkspace.CreateCSharp(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
-                var method_v1 = type1_v1.GetMembers("Foo").Single();
-                var method_v2 = type1_v2.GetMembers("Foo").Single();
+                var method_v1 = type1_v1.GetMembers("Goo").Single();
+                var method_v2 = type1_v2.GetMembers("Goo").Single();
 
                 Assert.True(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
             }
@@ -545,22 +545,22 @@ class D
             var csharpCode1 =
 @"class Type1
 {
-    void Foo(out int a) {}
+    void Goo(out int a) {}
 }";
 
             var csharpCode2 =
 @"class Type1
 {
-    void Foo(int a) {}
+    void Goo(int a) {}
 }";
-            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
-            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
+            using (var workspace1 = TestWorkspace.CreateCSharp(csharpCode1))
+            using (var workspace2 = TestWorkspace.CreateCSharp(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
-                var method_v1 = type1_v1.GetMembers("Foo").Single();
-                var method_v2 = type1_v2.GetMembers("Foo").Single();
+                var method_v1 = type1_v1.GetMembers("Goo").Single();
+                var method_v2 = type1_v2.GetMembers("Goo").Single();
 
                 Assert.False(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
             }
@@ -572,22 +572,22 @@ class D
             var csharpCode1 =
 @"class Type1
 {
-    void Foo(params int[] a) {}
+    void Goo(params int[] a) {}
 }";
 
             var csharpCode2 =
 @"class Type1
 {
-    void Foo(int[] a) {}
+    void Goo(int[] a) {}
 }";
-            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
-            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
+            using (var workspace1 = TestWorkspace.CreateCSharp(csharpCode1))
+            using (var workspace2 = TestWorkspace.CreateCSharp(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
-                var method_v1 = type1_v1.GetMembers("Foo").Single();
-                var method_v2 = type1_v2.GetMembers("Foo").Single();
+                var method_v1 = type1_v1.GetMembers("Goo").Single();
+                var method_v2 = type1_v2.GetMembers("Goo").Single();
 
                 Assert.True(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
                 Assert.Equal(SymbolEquivalenceComparer.Instance.GetHashCode(method_v1),
@@ -601,22 +601,22 @@ class D
             var csharpCode1 =
 @"class Type1
 {
-    void Foo(int[] a) {}
+    void Goo(int[] a) {}
 }";
 
             var csharpCode2 =
 @"class Type1
 {
-    void Foo(string[] a) {}
+    void Goo(string[] a) {}
 }";
-            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
-            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
+            using (var workspace1 = TestWorkspace.CreateCSharp(csharpCode1))
+            using (var workspace2 = TestWorkspace.CreateCSharp(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
-                var method_v1 = type1_v1.GetMembers("Foo").Single();
-                var method_v2 = type1_v2.GetMembers("Foo").Single();
+                var method_v1 = type1_v1.GetMembers("Goo").Single();
+                var method_v2 = type1_v2.GetMembers("Goo").Single();
 
                 Assert.False(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
             }
@@ -631,7 +631,7 @@ using System.Collections.Generic;
 
 class Type1
 {
-    T Foo<T>(IList<T> list, int a) {}
+    T Goo<T>(IList<T> list, int a) {}
     void Bar() { }
 }";
 
@@ -640,31 +640,31 @@ class Type1
 Imports System.Collections.Generic
 
 class Type1
-    function Foo(of U)(list as IList(of U), a as Integer) as U
+    function Goo(of U)(list as IList(of U), a as Integer) as U
     end function
     sub Quux()
     end sub
 end class";
-            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
-            using (var workspace2 = await TestWorkspace.CreateVisualBasicAsync(vbCode1))
+            using (var workspace1 = TestWorkspace.CreateCSharp(csharpCode1))
+            using (var workspace2 = TestWorkspace.CreateVisualBasic(vbCode1))
             {
                 var csharpType1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var vbType1 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
-                var csharpFooMethod = csharpType1.GetMembers("Foo").Single();
+                var csharpGooMethod = csharpType1.GetMembers("Goo").Single();
                 var csharpBarMethod = csharpType1.GetMembers("Bar").Single();
-                var vbFooMethod = vbType1.GetMembers("Foo").Single();
+                var vbGooMethod = vbType1.GetMembers("Goo").Single();
                 var vbQuuxMethod = vbType1.GetMembers("Quux").Single();
 
-                Assert.True(SymbolEquivalenceComparer.Instance.Equals(csharpFooMethod, vbFooMethod));
-                Assert.Equal(SymbolEquivalenceComparer.Instance.GetHashCode(csharpFooMethod),
-                             SymbolEquivalenceComparer.Instance.GetHashCode(vbFooMethod));
+                Assert.True(SymbolEquivalenceComparer.Instance.Equals(csharpGooMethod, vbGooMethod));
+                Assert.Equal(SymbolEquivalenceComparer.Instance.GetHashCode(csharpGooMethod),
+                             SymbolEquivalenceComparer.Instance.GetHashCode(vbGooMethod));
 
-                Assert.False(SymbolEquivalenceComparer.Instance.Equals(csharpFooMethod, csharpBarMethod));
-                Assert.False(SymbolEquivalenceComparer.Instance.Equals(csharpFooMethod, vbQuuxMethod));
+                Assert.False(SymbolEquivalenceComparer.Instance.Equals(csharpGooMethod, csharpBarMethod));
+                Assert.False(SymbolEquivalenceComparer.Instance.Equals(csharpGooMethod, vbQuuxMethod));
 
-                Assert.False(SymbolEquivalenceComparer.Instance.Equals(csharpBarMethod, csharpFooMethod));
-                Assert.False(SymbolEquivalenceComparer.Instance.Equals(csharpBarMethod, vbFooMethod));
+                Assert.False(SymbolEquivalenceComparer.Instance.Equals(csharpBarMethod, csharpGooMethod));
+                Assert.False(SymbolEquivalenceComparer.Instance.Equals(csharpBarMethod, vbGooMethod));
                 Assert.False(SymbolEquivalenceComparer.Instance.Equals(csharpBarMethod, vbQuuxMethod));
             }
         }
@@ -678,7 +678,7 @@ using System.Collections.Generic;
 
 class Type1<X>
 {
-    T Foo<T>(IList<T> list, X a) {}
+    T Goo<T>(IList<T> list, X a) {}
     void Bar(X x) { }
 }";
 
@@ -687,31 +687,31 @@ class Type1<X>
 Imports System.Collections.Generic
 
 class Type1(of M)
-    function Foo(of U)(list as IList(of U), a as M) as U
+    function Goo(of U)(list as IList(of U), a as M) as U
     end function
     sub Bar(x as Object)
     end sub
 end class";
-            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
-            using (var workspace2 = await TestWorkspace.CreateVisualBasicAsync(vbCode1))
+            using (var workspace1 = TestWorkspace.CreateCSharp(csharpCode1))
+            using (var workspace2 = TestWorkspace.CreateVisualBasic(vbCode1))
             {
                 var csharpType1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var vbType1 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
-                var csharpFooMethod = csharpType1.GetMembers("Foo").Single();
+                var csharpGooMethod = csharpType1.GetMembers("Goo").Single();
                 var csharpBarMethod = csharpType1.GetMembers("Bar").Single();
-                var vbFooMethod = vbType1.GetMembers("Foo").Single();
+                var vbGooMethod = vbType1.GetMembers("Goo").Single();
                 var vbBarMethod = vbType1.GetMembers("Bar").Single();
 
-                Assert.True(SymbolEquivalenceComparer.Instance.Equals(csharpFooMethod, vbFooMethod));
-                Assert.Equal(SymbolEquivalenceComparer.Instance.GetHashCode(csharpFooMethod),
-                             SymbolEquivalenceComparer.Instance.GetHashCode(vbFooMethod));
+                Assert.True(SymbolEquivalenceComparer.Instance.Equals(csharpGooMethod, vbGooMethod));
+                Assert.Equal(SymbolEquivalenceComparer.Instance.GetHashCode(csharpGooMethod),
+                             SymbolEquivalenceComparer.Instance.GetHashCode(vbGooMethod));
 
-                Assert.False(SymbolEquivalenceComparer.Instance.Equals(csharpFooMethod, csharpBarMethod));
-                Assert.False(SymbolEquivalenceComparer.Instance.Equals(csharpFooMethod, vbBarMethod));
+                Assert.False(SymbolEquivalenceComparer.Instance.Equals(csharpGooMethod, csharpBarMethod));
+                Assert.False(SymbolEquivalenceComparer.Instance.Equals(csharpGooMethod, vbBarMethod));
 
-                Assert.False(SymbolEquivalenceComparer.Instance.Equals(csharpBarMethod, csharpFooMethod));
-                Assert.False(SymbolEquivalenceComparer.Instance.Equals(csharpBarMethod, vbFooMethod));
+                Assert.False(SymbolEquivalenceComparer.Instance.Equals(csharpBarMethod, csharpGooMethod));
+                Assert.False(SymbolEquivalenceComparer.Instance.Equals(csharpBarMethod, vbGooMethod));
                 Assert.False(SymbolEquivalenceComparer.Instance.Equals(csharpBarMethod, vbBarMethod));
             }
         }
@@ -726,7 +726,7 @@ end class";
     dynamic field2;
 }";
 
-            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
+            using (var workspace1 = TestWorkspace.CreateCSharp(csharpCode1))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
@@ -744,23 +744,23 @@ end class";
             var csharpCode1 =
 @"class Type1
 {
-    void Foo(object o1) { }
+    void Goo(object o1) { }
 }";
 
             var csharpCode2 =
 @"class Type1
 {
-    void Foo(dynamic o1) { }
+    void Goo(dynamic o1) { }
 }";
 
-            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
-            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
+            using (var workspace1 = TestWorkspace.CreateCSharp(csharpCode1))
+            using (var workspace2 = TestWorkspace.CreateCSharp(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
-                var method_v1 = type1_v1.GetMembers("Foo").Single();
-                var method_v2 = type1_v2.GetMembers("Foo").Single();
+                var method_v1 = type1_v1.GetMembers("Goo").Single();
+                var method_v2 = type1_v2.GetMembers("Goo").Single();
 
                 Assert.True(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
                 Assert.True(SymbolEquivalenceComparer.Instance.Equals(method_v2, method_v1));
@@ -778,7 +778,7 @@ using System.Collections.Generic;
 
 class Type1
 {
-    void Foo(IList<int> o1) { }
+    void Goo(IList<int> o1) { }
 }";
 
             var csharpCode2 =
@@ -787,17 +787,17 @@ using System.Collections.Generic;
 
 class Type1
 {
-    void Foo(IList<string> o1) { }
+    void Goo(IList<string> o1) { }
 }";
 
-            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
-            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
+            using (var workspace1 = TestWorkspace.CreateCSharp(csharpCode1))
+            using (var workspace2 = TestWorkspace.CreateCSharp(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
-                var method_v1 = type1_v1.GetMembers("Foo").Single();
-                var method_v2 = type1_v2.GetMembers("Foo").Single();
+                var method_v1 = type1_v1.GetMembers("Goo").Single();
+                var method_v2 = type1_v2.GetMembers("Goo").Single();
 
                 Assert.False(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
                 Assert.False(SymbolEquivalenceComparer.Instance.Equals(method_v2, method_v1));
@@ -813,7 +813,7 @@ using System.Collections.Generic;
 
 class Type1
 {
-    void Foo(IList<object> o1) { }
+    void Goo(IList<object> o1) { }
 }";
 
             var csharpCode2 =
@@ -822,17 +822,17 @@ using System.Collections.Generic;
 
 class Type1
 {
-    void Foo(IList<dynamic> o1) { }
+    void Goo(IList<dynamic> o1) { }
 }";
 
-            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
-            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
+            using (var workspace1 = TestWorkspace.CreateCSharp(csharpCode1))
+            using (var workspace2 = TestWorkspace.CreateCSharp(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
-                var method_v1 = type1_v1.GetMembers("Foo").Single();
-                var method_v2 = type1_v2.GetMembers("Foo").Single();
+                var method_v1 = type1_v1.GetMembers("Goo").Single();
+                var method_v2 = type1_v2.GetMembers("Goo").Single();
 
                 Assert.True(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
                 Assert.True(SymbolEquivalenceComparer.Instance.Equals(method_v2, method_v1));
@@ -850,7 +850,7 @@ using System.Collections.Generic;
 
 class Type1
 {
-    void Foo(dynamic o1) { }
+    void Goo(dynamic o1) { }
 }";
 
             var csharpCode2 =
@@ -859,17 +859,17 @@ using System.Collections.Generic;
 
 class Type1
 {
-    void Foo(string o1) { }
+    void Goo(string o1) { }
 }";
 
-            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
-            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
+            using (var workspace1 = TestWorkspace.CreateCSharp(csharpCode1))
+            using (var workspace2 = TestWorkspace.CreateCSharp(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
-                var method_v1 = type1_v1.GetMembers("Foo").Single();
-                var method_v2 = type1_v2.GetMembers("Foo").Single();
+                var method_v1 = type1_v1.GetMembers("Goo").Single();
+                var method_v2 = type1_v2.GetMembers("Goo").Single();
 
                 Assert.False(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
                 Assert.False(SymbolEquivalenceComparer.Instance.Equals(method_v2, method_v1));
@@ -895,8 +895,8 @@ class Type1
 }
 ";
 
-            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
-            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
+            using (var workspace1 = TestWorkspace.CreateCSharp(csharpCode1))
+            using (var workspace2 = TestWorkspace.CreateCSharp(csharpCode1))
             {
                 var outer1 = (INamespaceSymbol)(await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetMembers("Outer").Single();
                 var outer2 = (INamespaceSymbol)(await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetMembers("Outer").Single();
@@ -967,15 +967,15 @@ class Type2<X>
 @"
 class Type1
 {
-  void Foo();
+  void Goo();
 }
 
 class Type2<Y>
 {
 }";
 
-            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
-            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
+            using (var workspace1 = TestWorkspace.CreateCSharp(csharpCode1))
+            using (var workspace2 = TestWorkspace.CreateCSharp(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -1010,11 +1010,11 @@ class Type1
 @"
 class Type2
 {
-  void Foo();
+  void Goo();
 }";
 
-            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
-            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
+            using (var workspace1 = TestWorkspace.CreateCSharp(csharpCode1))
+            using (var workspace2 = TestWorkspace.CreateCSharp(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type2").Single();
@@ -1037,11 +1037,11 @@ struct Type1
 @"
 class Type1
 {
-  void Foo();
+  void Goo();
 }";
 
-            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
-            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
+            using (var workspace1 = TestWorkspace.CreateCSharp(csharpCode1))
+            using (var workspace2 = TestWorkspace.CreateCSharp(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -1064,11 +1064,11 @@ class Type1
 @"
 class Type1<T>
 {
-  void Foo();
+  void Goo();
 }";
 
-            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
-            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
+            using (var workspace1 = TestWorkspace.CreateCSharp(csharpCode1))
+            using (var workspace2 = TestWorkspace.CreateCSharp(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -1096,12 +1096,12 @@ class Other
 {
     class Type1
     {
-        void Foo();
+        void Goo();
     }
 }";
 
-            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
-            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
+            using (var workspace1 = TestWorkspace.CreateCSharp(csharpCode1))
+            using (var workspace2 = TestWorkspace.CreateCSharp(csharpCode2))
             {
                 var outer = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Outer").Single();
                 var other = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Other").Single();
@@ -1122,24 +1122,24 @@ using i = System.Int32;
 
 class Type1
 {
-    void Foo(i o1) { }
+    void Goo(i o1) { }
 }";
 
             var csharpCode2 =
 @"
 class Type1
 {
-    void Foo(int o1) { }
+    void Goo(int o1) { }
 }";
 
-            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
-            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
+            using (var workspace1 = TestWorkspace.CreateCSharp(csharpCode1))
+            using (var workspace2 = TestWorkspace.CreateCSharp(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
-                var method_v1 = type1_v1.GetMembers("Foo").Single();
-                var method_v2 = type1_v2.GetMembers("Foo").Single();
+                var method_v1 = type1_v1.GetMembers("Goo").Single();
+                var method_v2 = type1_v2.GetMembers("Goo").Single();
 
                 Assert.True(SymbolEquivalenceComparer.Instance.Equals(method_v1, method_v2));
                 Assert.True(SymbolEquivalenceComparer.Instance.Equals(method_v2, method_v1));
@@ -1166,8 +1166,8 @@ class C
     void M(ref int i) { }
 }";
 
-            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode1))
-            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode2))
+            using (var workspace1 = TestWorkspace.CreateCSharp(csharpCode1))
+            using (var workspace2 = TestWorkspace.CreateCSharp(csharpCode2))
             {
                 var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
                 var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
@@ -1241,8 +1241,8 @@ class Test
     } 
 }
 ";
-            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(code))
-            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace1 = TestWorkspace.CreateCSharp(code))
+            using (var workspace2 = TestWorkspace.CreateCSharp(code))
             {
                 var comp1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync());
                 var comp2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync());
@@ -1317,8 +1317,8 @@ Class Test
     End Sub
 End Class
 ";
-            using (var workspace1 = await TestWorkspace.CreateVisualBasicAsync(code))
-            using (var workspace2 = await TestWorkspace.CreateVisualBasicAsync(code))
+            using (var workspace1 = TestWorkspace.CreateVisualBasic(code))
+            using (var workspace2 = TestWorkspace.CreateVisualBasic(code))
             {
                 var comp1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync());
                 var comp2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync());
@@ -1342,8 +1342,8 @@ End Class
     }
 }";
 
-            using (var workspace1 = await TestWorkspace.CreateCSharpAsync(csharpCode, compilationOptions: new CS.CSharpCompilationOptions(OutputKind.NetModule, moduleName: "FooModule")))
-            using (var workspace2 = await TestWorkspace.CreateCSharpAsync(csharpCode, compilationOptions: new CS.CSharpCompilationOptions(OutputKind.NetModule, moduleName: "BarModule")))
+            using (var workspace1 = TestWorkspace.CreateCSharp(csharpCode, compilationOptions: new CS.CSharpCompilationOptions(OutputKind.NetModule, moduleName: "GooModule")))
+            using (var workspace2 = TestWorkspace.CreateCSharp(csharpCode, compilationOptions: new CS.CSharpCompilationOptions(OutputKind.NetModule, moduleName: "BarModule")))
             {
                 var namespace1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetNamespaceMembers().Single(n => n.Name == "N").GetNamespaceMembers().Single(n => n.Name == "M");
                 var namespace2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetNamespaceMembers().Single(n => n.Name == "N").GetNamespaceMembers().Single(n => n.Name == "M");

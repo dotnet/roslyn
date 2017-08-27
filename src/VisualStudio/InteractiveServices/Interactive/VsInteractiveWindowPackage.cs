@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 extern alias core;
 
@@ -12,6 +12,9 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using System.Diagnostics;
+using Microsoft.VisualStudio.InteractiveWindow;
+using System.Reflection;
+using Microsoft.VisualStudio.InteractiveWindow.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {
@@ -31,26 +34,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             base.Initialize();
 
             // Load the Roslyn package so that its FatalError handlers are hooked up.
-            IVsPackage roslynPackage;
             var shell = (IVsShell)this.GetService(typeof(SVsShell));
-            shell.LoadPackage(Guids.RoslynPackageId, out roslynPackage);
+            shell.LoadPackage(Guids.RoslynPackageId, out var roslynPackage);
+            
+            // Explicitly set up FatalError handlers for the InteractiveWindowPackage.
+            SetErrorHandlers(typeof(IInteractiveWindow).Assembly);
+            SetErrorHandlers(typeof(IVsInteractiveWindow).Assembly);
+
+            _componentModel = (IComponentModel)GetService(typeof(SComponentModel));
+            _interactiveWindowProvider = _componentModel.DefaultExportProvider.GetExportedValue<TVsInteractiveWindowProvider>();
+
+            var menuCommandService = (OleMenuCommandService)GetService(typeof(IMenuCommandService));
+            InitializeMenuCommands(menuCommandService);
+        }
+
+        private static void SetErrorHandlers(Assembly assembly)
+        {
             Debug.Assert(core::Microsoft.CodeAnalysis.ErrorReporting.FatalError.Handler != null);
             Debug.Assert(core::Microsoft.CodeAnalysis.ErrorReporting.FatalError.NonFatalHandler != null);
             Debug.Assert(core::Microsoft.CodeAnalysis.Internal.Log.Logger.GetLogger() != null);
 
-            // Explicitly set up FatalError handlers for the InteractiveWindowPackage.
-            // NB: Microsoft.CodeAnalysis.ErrorReporting.FatalError (InteractiveWindow), not 
-            // Microsoft.CodeAnalysis.FatalError (compiler) or core::Microsoft.CodeAnalysis.ErrorReporting.FatalError (workspaces).
-            Microsoft.CodeAnalysis.ErrorReporting.FatalError.Handler = core::Microsoft.CodeAnalysis.FailFast.OnFatalException;
-            Microsoft.CodeAnalysis.ErrorReporting.FatalError.NonFatalHandler = WatsonReporter.Report;
+            var type = assembly.GetType("Microsoft.VisualStudio.InteractiveWindow.FatalError", throwOnError: true).GetTypeInfo();
 
-            _componentModel = (IComponentModel)GetService(typeof(SComponentModel));
-            _interactiveWindowProvider = _componentModel.DefaultExportProvider.GetExportedValue<TVsInteractiveWindowProvider>();
-            KnownUIContexts.ShellInitializedContext.WhenActivated(() =>
-                _componentModel.GetService<HACK_ThemeColorFixer>());
+            var handlerSetter = type.GetDeclaredMethod("set_Handler");
+            var nonFatalHandlerSetter = type.GetDeclaredMethod("set_NonFatalHandler");
 
-            var menuCommandService = (OleMenuCommandService)GetService(typeof(IMenuCommandService));
-            InitializeMenuCommands(menuCommandService);
+            handlerSetter.Invoke(null, new object[] { new Action<Exception>(core::Microsoft.CodeAnalysis.FailFast.OnFatalException) });
+            nonFatalHandlerSetter.Invoke(null, new object[] { new Action<Exception>(WatsonReporter.Report) });
         }
 
         protected TVsInteractiveWindowProvider InteractiveWindowProvider

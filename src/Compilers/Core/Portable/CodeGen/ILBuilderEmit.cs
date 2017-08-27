@@ -43,10 +43,32 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.GetCurrentWriter().WriteUInt32(token);
         }
 
-        internal void EmitToken(Microsoft.Cci.IReference value, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        internal void EmitToken(Cci.IReference value, SyntaxNode syntaxNode, DiagnosticBag diagnostics, bool encodeAsRawToken = false)
         {
             uint token = module?.GetFakeSymbolTokenForIL(value, syntaxNode, diagnostics) ?? 0xFFFF;
+            // Setting the high bit indicates that the token value is to be interpreted literally rather than as a handle.
+            if (encodeAsRawToken)
+            {
+                token |= Cci.MetadataWriter.LiteralMethodDefinitionToken;
+            }
             this.GetCurrentWriter().WriteUInt32(token);
+        }
+
+        internal void EmitGreatestMethodToken()
+        {
+            // A magic value indicates that the token value is to be the literal value of the greatest method defnition token.
+            this.GetCurrentWriter().WriteUInt32(Cci.MetadataWriter.LiteralGreatestMethodDefinitionToken);
+        }
+
+        internal void EmitModuleVersionIdStringToken()
+        {
+            // A magic value indicates that the token value is to refer to a string constant for the spelling of the current module's MVID.
+            this.GetCurrentWriter().WriteUInt32(Cci.MetadataWriter.ModuleVersionIdStringToken);
+        }
+
+        internal void EmitSourceDocumentIndexToken(Cci.DebugSourceDocument document)
+        {
+            this.GetCurrentWriter().WriteUInt32((module?.GetSourceDocumentIndexForIL(document) ?? 0xFFFF) | Cci.MetadataWriter.SourceDocumentIndex);
         }
 
         internal void EmitArrayBlockInitializer(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
@@ -402,18 +424,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
                         EmitInt32(slot);
                     }
                     break;
-            }
-
-            // As in ILGENREC::dumpLocal
-            // CONSIDER: this is somewhat C# specific - it might be better to incorporate this
-            // into the bound tree as a conversion to int.
-            // VSADOV: pinned locals are used in C# to represent pointers in "fixed" statements.
-            // in the user's code they are used as pointers (*), however in their implementation
-            // they hold pinned references (O or &) to the fixed data so they need to be converted 
-            // them to unmanaged pointer type when loaded.
-            if (local.IsPinned)
-            {
-                EmitOpCode(ILOpCode.Conv_i);
             }
         }
 

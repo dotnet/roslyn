@@ -1,11 +1,19 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Reflection.Metadata
+Imports System.Reflection.PortableExecutable
+Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Microsoft.DiaSymReader
 Imports Roslyn.Test.PdbUtilities
@@ -27,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
 "Public Class A
 End Class"
             Const sourceB =
-"Public Class B
+"Public Class B 
     Public F As New A()
 End Class"
             Const sourceC =
@@ -436,6 +444,118 @@ End Class"
                 End Sub)
         End Sub
 
+        Private Const CorLibAssemblyName = "System.Private.CoreLib"
+
+        ' An assembly with the expected corlib name and with System.Object should
+        ' be considered the corlib, even with references to external assemblies.
+        <WorkItem(13275, "https://github.com/dotnet/roslyn/issues/13275")>
+        <Fact>
+        Public Sub CorLibWithAssemblyReferences()
+            Const sourceLib =
+"Public Class Private1
+End Class
+Public Class Private2
+End Class"
+            Dim compLib = CreateCompilationWithMscorlib(
+                {sourceLib},
+                options:=TestOptions.ReleaseDll,
+                assemblyName:="System.Private.Library")
+            compLib.VerifyDiagnostics()
+            Dim refLib = compLib.EmitToImageReference()
+
+            Const sourceCorLib =
+"Imports System.Runtime.CompilerServices
+<Assembly: TypeForwardedTo(GetType(Private2))>
+Namespace System
+    Public Class [Object]
+        Public Function F() As Private1
+            Return Nothing
+        End Function
+    End Class
+    Public Class Void
+        Inherits [Object]
+    End Class
+End Namespace"
+            ' Create a custom corlib with a reference to compilation
+            ' above and a reference to the actual mscorlib.
+            Dim compCorLib = CreateCompilation(
+                {Parse(sourceCorLib)},
+                options:=TestOptions.ReleaseDll,
+                references:={MscorlibRef, refLib},
+                assemblyName:=CorLibAssemblyName)
+            compCorLib.VerifyDiagnostics()
+            Dim objectType = compCorLib.SourceAssembly.GlobalNamespace.GetMember(Of NamedTypeSymbol)("System.Object")
+            Assert.NotNull(objectType.BaseType)
+
+            Dim peBytes As ImmutableArray(Of Byte) = Nothing
+            Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
+            ExpressionCompilerTestHelpers.EmitCorLibWithAssemblyReferences(
+                compCorLib,
+                Nothing,
+                Function(moduleBuilder, emitOptions) New PEAssemblyBuilderWithAdditionalReferences(moduleBuilder, emitOptions, objectType),
+                peBytes,
+                pdbBytes)
+
+            Using reader As New PEReader(peBytes)
+                Dim metadata = reader.GetMetadata()
+                Dim [module] = metadata.ToModuleMetadata(ignoreAssemblyRefs:=True)
+                Dim metadataReader = metadata.ToMetadataReader()
+                Dim moduleInstance = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.ModuleInstance.Create(metadata, metadataReader.GetModuleVersionIdOrThrow())
+
+                ' Verify the module declares System.Object.
+                Assert.True(metadataReader.DeclaresTheObjectClass())
+                ' Verify the PEModule has no assembly references.
+                Assert.Equal(0, [module].Module.ReferencedAssemblies.Length)
+                ' Verify the underlying metadata has the expected assembly references.
+                Dim actualReferences = metadataReader.AssemblyReferences.Select(Function(r) metadataReader.GetString(metadataReader.GetAssemblyReference(r).Name)).ToImmutableArray()
+                AssertEx.Equal({"mscorlib", "System.Private.Library"}, actualReferences)
+
+                Const source =
+"Class C
+    Shared Sub M()
+    End Sub
+End Class"
+                Dim comp = CreateCompilation(
+                    {Parse(source)},
+                    options:=TestOptions.ReleaseDll,
+                    references:={refLib, AssemblyMetadata.Create([module]).GetReference()})
+                comp.VerifyDiagnostics()
+
+                Using runtime = RuntimeInstance.Create({comp.ToModuleInstance(), moduleInstance})
+                    Dim errorMessage As String = Nothing
+                    Dim context = CreateMethodContext(runtime, "C.M")
+
+                    ' Valid expression.
+                    Dim testData = New CompilationTestData()
+                    context.CompileExpression("New Object()", errorMessage, testData)
+                    Assert.Null(errorMessage)
+                    Dim methodData = testData.GetMethodData("<>x.<>m0")
+                    methodData.VerifyIL(
+"{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  newobj     ""Sub Object..ctor()""
+  IL_0005:  ret
+}")
+
+                    ' Invalid expression: System.Int32 is not defined in corlib above.
+                    testData = New CompilationTestData()
+                    context.CompileExpression("1", errorMessage, testData)
+                    Assert.Equal("error BC30002: Type 'System.Int32' is not defined.", errorMessage)
+
+                    ' Invalid expression: type in method signature from missing referenced assembly.
+                    testData = New CompilationTestData()
+                    context.CompileExpression("(New Object()).F()", errorMessage, testData)
+                    Assert.Equal("error BC30657: 'F' has a return type that is not supported or parameter types that are not supported.", errorMessage)
+
+                    ' Invalid expression: type forwarded to missing referenced assembly.
+                    testData = New CompilationTestData()
+                    context.CompileExpression("New Private2()", errorMessage, testData)
+                    Assert.Equal("error BC30002: Type 'Private2' is not defined.", errorMessage)
+                End Using
+            End Using
+        End Sub
+
         Private Shared Function CreateTypeContextFactory(
             moduleVersionId As Guid,
             typeToken As Integer) As ExpressionCompiler.CreateContextDelegate
@@ -468,6 +588,64 @@ End Class"
                             localSignatureToken:=localSignatureToken)
                    End Function
         End Function
+
+        Private NotInheritable Class PEAssemblyBuilderWithAdditionalReferences
+            Inherits PEModuleBuilder
+            Implements IAssemblyReference
+
+            Private ReadOnly _builder As CommonPEModuleBuilder
+            Private ReadOnly _objectType As NamespaceTypeDefinitionNoBase
+
+            Friend Sub New(builder As CommonPEModuleBuilder, emitOptions As EmitOptions, objectType As INamespaceTypeDefinition)
+                MyBase.New(DirectCast(builder.CommonSourceModule, SourceModuleSymbol), emitOptions, builder.OutputKind, builder.SerializationProperties, builder.ManifestResources)
+
+                _builder = builder
+                _objectType = New NamespaceTypeDefinitionNoBase(objectType)
+            End Sub
+
+            Friend Overrides Iterator Function GetTopLevelTypesCore(context As EmitContext) As IEnumerable(Of INamespaceTypeDefinition)
+                For Each t In MyBase.GetTopLevelTypesCore(context)
+                    Yield If(t Is _objectType.UnderlyingType, _objectType, t)
+                Next
+            End Function
+
+            Public Overrides ReadOnly Property CurrentGenerationOrdinal As Integer
+                Get
+                    Return _builder.CurrentGenerationOrdinal
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property SourceAssemblyOpt As ISourceAssemblySymbolInternal
+                Get
+                    Return _builder.SourceAssemblyOpt
+                End Get
+            End Property
+
+            Public Overrides Function GetFiles(context As EmitContext) As IEnumerable(Of IFileReference)
+                Return _builder.GetFiles(context)
+            End Function
+
+            Protected Overrides Sub AddEmbeddedResourcesFromAddedModules(builder As ArrayBuilder(Of Cci.ManagedResource), diagnostics As DiagnosticBag)
+            End Sub
+
+            Friend Overrides ReadOnly Property AllowOmissionOfConditionalCalls As Boolean
+                Get
+                    Return True
+                End Get
+            End Property
+
+            Private ReadOnly Property Identity As AssemblyIdentity Implements IAssemblyReference.Identity
+                Get
+                    Return DirectCast(_builder, IAssemblyReference).Identity
+                End Get
+            End Property
+
+            Private ReadOnly Property AssemblyVersionPattern As Version Implements IAssemblyReference.AssemblyVersionPattern
+                Get
+                    Return DirectCast(_builder, IAssemblyReference).AssemblyVersionPattern
+                End Get
+            End Property
+        End Class
 
     End Class
 

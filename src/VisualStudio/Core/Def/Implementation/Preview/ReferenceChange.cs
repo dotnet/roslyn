@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -80,11 +81,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             var displayText = GetDisplayText();
             if (IsAddedReference)
             {
-                pbstrText = ServicesVSResources.PreviewChangesAddedPrefix + displayText;
+                pbstrText = ServicesVSResources.bracket_plus_bracket + displayText;
             }
             else
             {
-                pbstrText = ServicesVSResources.PreviewChangesDeletedPrefix + displayText;
+                pbstrText = ServicesVSResources.bracket_bracket + displayText;
             }
 
             tto = VSTREETEXTOPTIONS.TTO_DEFAULT;

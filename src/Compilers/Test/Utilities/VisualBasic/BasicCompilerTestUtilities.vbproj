@@ -1,70 +1,27 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{4371944A-D3BA-4B5B-8285-82E5FFC6D1F8}</ProjectGuid>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.VisualBasic.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Compilers.VisualBasic.Test.Utilities</AssemblyName>
     <NoWarn>$(NoWarn);42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
     <Nonshipping>true</Nonshipping>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <TargetFrameworkProfile />
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <TargetFramework>net46</TargetFramework>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
-      <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
-      <Name>PdbUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
-      <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
-      <Name>TestUtilities.Desktop</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
-      <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
-      <Name>BasicCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Resources\Core\CompilerTestResources.csproj">
-      <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
-      <Name>CompilerTestResources</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
-      <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
-      <Name>TestUtilities.FX45</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj" />
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj" />
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj" />
+    <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
+    <ProjectReference Include="..\..\Resources\Core\CompilerTestResources.csproj" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <DefineDebug>true</DefineDebug>
-    <DefineTrace>true</DefineTrace>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <Optimize>true</Optimize>
-    <DefineTrace>true</DefineTrace>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM'">
-    <DebugSymbols>true</DebugSymbols>
-    <DefineDebug>true</DefineDebug>
-    <DefineTrace>true</DefineTrace>
-    <DefineConstants>$(DefineConstants),ARM</DefineConstants>
-    <PlatformTarget>ARM</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|ARM'">
-    <Optimize>true</Optimize>
-    <DefineTrace>true</DefineTrace>
-    <DefineConstants>$(DefineConstants),ARM</DefineConstants>
-    <PlatformTarget>ARM</PlatformTarget>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -81,29 +38,13 @@
     <Import Include="Roslyn.Utilities" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BasicTestBase.vb" />
-    <Compile Include="BasicTrackingDiagnosticAnalyzer.vb" />
-    <Compile Include="CompilationTestUtils.vb" />
-    <Compile Include="DiagnosticExtensions.vb" />
-    <Compile Include="Extensions.vb" />
-    <Compile Include="LocalVariableDeclaratorsCollector.vb" />
-    <Compile Include="MetadataHelpers.vb" />
-    <Compile Include="MockSymbols.vb" />
-    <Compile Include="MockVbi.vb" />
-    <Compile Include="MockVisualBasicCompiler.vb" />
-    <Compile Include="TestOptions.vb" />
-    <Compile Include="ParserTestUtilities.vb" />
-    <Compile Include="SemanticModelTestBase.vb" />
-    <Compile Include="SyntaxTreeExtensions.vb" />
-    <Compile Include="VBParser.vb" />
-  </ItemGroup>
-  <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.CommandLine.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Emit.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.EnC.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Semantic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Symbol.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Syntax.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.FunctionResolver.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.VisualBasic.ExpressionCompiler.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.VisualBasic.ResultProvider.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests" />
@@ -112,11 +53,5 @@
   <ItemGroup>
     <Folder Include="My Project\" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="project.json" />
-  </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>

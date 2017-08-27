@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         private bool IsShutdownRequest(BuildRequest request)
         {
-            return request.Arguments.Length == 1 && request.Arguments[0].ArgumentId == BuildProtocolConstants.ArgumentId.Shutdown;
+            return request.Arguments.Count == 1 && request.Arguments[0].ArgumentId == BuildProtocolConstants.ArgumentId.Shutdown;
         }
 
         protected virtual Task<BuildResponse> ServeBuildRequest(BuildRequest buildRequest, CancellationToken cancellationToken)

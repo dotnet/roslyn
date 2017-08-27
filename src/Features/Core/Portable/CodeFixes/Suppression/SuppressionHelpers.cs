@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     return true;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(diagnostic.Severity);
             }
         }
 

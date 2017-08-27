@@ -8,6 +8,7 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -186,7 +187,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if ((object)_globalNamespace == null)
                 {
-                    var globalNS = new SourceNamespaceSymbol(this, this, DeclaringCompilation.MergedRootDeclaration);
+                    var diagnostics = DiagnosticBag.GetInstance();
+                    var globalNS = new SourceNamespaceSymbol(
+                        this, this, DeclaringCompilation.MergedRootDeclaration, diagnostics);
+                    Debug.Assert(diagnostics.IsEmptyWithoutResolution);
+                    diagnostics.Free();
                     Interlocked.CompareExchange(ref _globalNamespace, globalNS, null);
                 }
 
@@ -474,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        internal CommonModuleWellKnownAttributeData GetDecodedWellKnownAttributeData()
+        private CommonModuleWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)

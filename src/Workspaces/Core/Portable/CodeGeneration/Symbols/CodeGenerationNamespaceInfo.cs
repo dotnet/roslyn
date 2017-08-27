@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -29,8 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         private static CodeGenerationNamespaceInfo GetInfo(INamespaceSymbol @namespace)
         {
-            CodeGenerationNamespaceInfo info;
-            s_namespaceToInfoMap.TryGetValue(@namespace, out info);
+            s_namespaceToInfoMap.TryGetValue(@namespace, out var info);
             return info;
         }
 

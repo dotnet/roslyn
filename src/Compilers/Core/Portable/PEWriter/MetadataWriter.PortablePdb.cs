@@ -4,11 +4,15 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.Cci
@@ -47,8 +51,8 @@ namespace Microsoft.Cci
                 return;
             }
 
-            bool isIterator = bodyOpt.StateMachineTypeName != null;
-            bool emitDebugInfo = isIterator || bodyOpt.HasAnySequencePoints;
+            bool isKickoffMethod = bodyOpt.StateMachineTypeName != null;
+            bool emitDebugInfo = isKickoffMethod || !bodyOpt.SequencePoints.IsEmpty;
 
             if (!emitDebugInfo)
             {
@@ -63,9 +67,7 @@ namespace Microsoft.Cci
 
             // documents & sequence points:
             DocumentHandle singleDocumentHandle;
-            ArrayBuilder<Cci.SequencePoint> sequencePoints = ArrayBuilder<Cci.SequencePoint>.GetInstance();
-            bodyOpt.GetSequencePoints(sequencePoints);
-            BlobHandle sequencePointsBlob = SerializeSequencePoints(localSignatureHandleOpt, sequencePoints.ToImmutableAndFree(), _documentIndex, out singleDocumentHandle);
+            BlobHandle sequencePointsBlob = SerializeSequencePoints(localSignatureHandleOpt, bodyOpt.SequencePoints, _documentIndex, out singleDocumentHandle);
 
             _debugMetadataOpt.AddMethodDebugInformation(document: singleDocumentHandle, sequencePoints: sequencePointsBlob);
 
@@ -104,7 +106,7 @@ namespace Microsoft.Cci
                             index: local.SlotIndex,
                             name: _debugMetadataOpt.GetOrAddString(local.Name));
 
-                        SerializeDynamicLocalInfo(local, lastLocalVariableHandle);
+                        SerializeLocalInfo(local, lastLocalVariableHandle);
                     }
 
                     foreach (ILocalDefinition constant in scope.Constants)
@@ -116,25 +118,28 @@ namespace Microsoft.Cci
                             name: _debugMetadataOpt.GetOrAddString(constant.Name),
                             signature: SerializeLocalConstantSignature(constant));
 
-                        SerializeDynamicLocalInfo(constant, lastLocalConstantHandle);
+                        SerializeLocalInfo(constant, lastLocalConstantHandle);
                     }
                 }
             }
 
-            var asyncDebugInfo = bodyOpt.AsyncDebugInfo;
-            if (asyncDebugInfo != null)
+            var moveNextBodyInfo = bodyOpt.MoveNextBodyInfo;
+            if (moveNextBodyInfo != null)
             {
                 _debugMetadataOpt.AddStateMachineMethod(
                     moveNextMethod: methodHandle,
-                    kickoffMethod: GetMethodDefinitionHandle(asyncDebugInfo.KickoffMethod));
+                    kickoffMethod: GetMethodDefinitionHandle(moveNextBodyInfo.KickoffMethod));
 
-                SerializeAsyncMethodSteppingInfo(asyncDebugInfo, methodHandle);
+                if (moveNextBodyInfo is AsyncMoveNextBodyDebugInfo asyncInfo)
+                {
+                    SerializeAsyncMethodSteppingInfo(asyncInfo, methodHandle);
+                }
             }
 
             SerializeStateMachineLocalScopes(bodyOpt, methodHandle);
 
             // delta doesn't need this information - we use information recorded by previous generation emit
-            if (Context.ModuleBuilder.CommonCompilation.Options.EnableEditAndContinue && !IsFullMetadata)
+            if (Context.Module.CommonCompilation.Options.EnableEditAndContinue && IsFullMetadata)
             {
                 SerializeEncMethodDebugInformation(bodyOpt, methodHandle);
             }
@@ -157,7 +162,7 @@ namespace Microsoft.Cci
             SerializeCustomModifiers(encoder, localConstant.CustomModifiers);
 
             var type = localConstant.Type;
-            var typeCode = type.TypeCode(Context);
+            var typeCode = type.TypeCode;
 
             object value = localConstant.CompileTimeValue.Value;
 
@@ -463,23 +468,33 @@ namespace Microsoft.Cci
 
         #region Locals
 
-        private void SerializeDynamicLocalInfo(ILocalDefinition local, EntityHandle parent)
+        private void SerializeLocalInfo(ILocalDefinition local, EntityHandle parent)
         {
             var dynamicFlags = local.DynamicTransformFlags;
-            if (dynamicFlags.IsDefault)
+            if (!dynamicFlags.IsEmpty)
             {
-                return;
+                var value = SerializeBitVector(dynamicFlags);
+
+                _debugMetadataOpt.AddCustomDebugInformation(
+                    parent: parent,
+                    kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.DynamicLocalVariables),
+                    value: _debugMetadataOpt.GetOrAddBlob(value));
             }
 
-            var value = SerializeBitVector(dynamicFlags);
+            var tupleElementNames = local.TupleElementNames;
+            if (!tupleElementNames.IsEmpty)
+            {
+                var builder = new BlobBuilder();
+                SerializeTupleElementNames(builder, tupleElementNames);
 
-            _debugMetadataOpt.AddCustomDebugInformation(
-                parent: parent,
-                kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.DynamicLocalVariables),
-                value: _debugMetadataOpt.GetOrAddBlob(value));
+                _debugMetadataOpt.AddCustomDebugInformation(
+                    parent: parent,
+                    kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.TupleElementNames),
+                    value: _debugMetadataOpt.GetOrAddBlob(builder));
+            }
         }
 
-        private static ImmutableArray<byte> SerializeBitVector(ImmutableArray<TypedConstant> vector)
+        private static ImmutableArray<byte> SerializeBitVector(ImmutableArray<bool> vector)
         {
             var builder = ArrayBuilder<byte>.GetInstance();
 
@@ -487,7 +502,7 @@ namespace Microsoft.Cci
             int shift = 0;
             for (int i = 0; i < vector.Length; i++)
             {
-                if ((bool)vector[i].Value)
+                if (vector[i])
                 {
                     b |= 1 << shift;
                 }
@@ -523,11 +538,28 @@ namespace Microsoft.Cci
             return builder.ToImmutableAndFree();
         }
 
+        private static void SerializeTupleElementNames(BlobBuilder builder, ImmutableArray<string> names)
+        {
+            foreach (var name in names)
+            {
+                WriteUtf8String(builder, name ?? string.Empty);
+            }
+        }
+
+        /// <summary>
+        /// Write string as UTF8 with null terminator.
+        /// </summary>
+        private static void WriteUtf8String(BlobBuilder builder, string str)
+        {
+            builder.WriteUTF8(str);
+            builder.WriteByte(0);
+        }
+
         #endregion
 
         #region State Machines
 
-        private void SerializeAsyncMethodSteppingInfo(AsyncMethodBodyDebugInfo asyncInfo, MethodDefinitionHandle moveNextMethod)
+        private void SerializeAsyncMethodSteppingInfo(AsyncMoveNextBodyDebugInfo asyncInfo, MethodDefinitionHandle moveNextMethod)
         {
             Debug.Assert(asyncInfo.ResumeOffsets.Length == asyncInfo.YieldOffsets.Length);
             Debug.Assert(asyncInfo.CatchHandlerOffset >= -1);
@@ -697,57 +729,42 @@ namespace Microsoft.Cci
             DocumentHandle documentHandle;
             if (!index.TryGetValue(document, out documentHandle))
             {
-                var checksumAndAlgorithm = document.ChecksumAndAlgorithm;
+                DebugSourceInfo info = document.GetSourceInfo();
 
                 documentHandle = _debugMetadataOpt.AddDocument(
-                    name: SerializeDocumentName(document.Location),
-                    hashAlgorithm: checksumAndAlgorithm.Item1.IsDefault ? default(GuidHandle) : _debugMetadataOpt.GetOrAddGuid(checksumAndAlgorithm.Item2),
-                    hash: (checksumAndAlgorithm.Item1.IsDefault) ? default(BlobHandle) : _debugMetadataOpt.GetOrAddBlob(checksumAndAlgorithm.Item1),
+                    name: _debugMetadataOpt.GetOrAddDocumentName(document.Location),
+                    hashAlgorithm: info.Checksum.IsDefault ? default(GuidHandle) : _debugMetadataOpt.GetOrAddGuid(info.ChecksumAlgorithmId),
+                    hash: info.Checksum.IsDefault ? default(BlobHandle) : _debugMetadataOpt.GetOrAddBlob(info.Checksum),
                     language: _debugMetadataOpt.GetOrAddGuid(document.Language));
 
                 index.Add(document, documentHandle);
+
+                if (info.EmbeddedTextBlob != null)
+                {
+                    _debugMetadataOpt.AddCustomDebugInformation(
+                        parent: documentHandle,
+                        kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.EmbeddedSource),
+                        value: _debugMetadataOpt.GetOrAddBlob(info.EmbeddedTextBlob));
+                }
             }
 
             return documentHandle;
         }
 
-        private static readonly char[] s_separator1 = { '/' };
-        private static readonly char[] s_separator2 = { '\\' };
-
-        private BlobHandle SerializeDocumentName(string name)
+        /// <summary>
+        /// Add document entries for any embedded text document that does not yet have an entry.
+        /// </summary>
+        /// <remarks>
+        /// This is done after serializing method debug info to ensure that we embed all requested
+        /// text even if there are no correspodning sequence points.
+        /// </remarks>
+        public void AddRemainingEmbeddedDocuments(IEnumerable<DebugSourceDocument> documents)
         {
-            Debug.Assert(name != null);
-
-            var writer = new BlobBuilder();
-
-            int c1 = Count(name, s_separator1[0]);
-            int c2 = Count(name, s_separator2[0]);
-            char[] separator = (c1 >= c2) ? s_separator1 : s_separator2;
-
-            writer.WriteByte((byte)separator[0]);
-
-            // TODO: avoid allocations
-            foreach (var part in name.Split(separator))
+            foreach (var document in documents)
             {
-                BlobHandle partIndex = _debugMetadataOpt.GetOrAddBlob(ImmutableArray.Create(s_utf8Encoding.GetBytes(part)));
-                writer.WriteCompressedInteger(MetadataTokens.GetHeapOffset(partIndex));
+                Debug.Assert(document.GetSourceInfo().EmbeddedTextBlob != null);
+                GetOrAddDocument(document, _documentIndex);
             }
-
-            return _debugMetadataOpt.GetOrAddBlob(writer);
-        }
-
-        private static int Count(string str, char c)
-        {
-            int count = 0;
-            for (int i = 0; i < str.Length; i++)
-            {
-                if (str[i] == c)
-                {
-                    count++;
-                }
-            }
-
-            return count;
         }
 
         #endregion
@@ -784,5 +801,24 @@ namespace Microsoft.Cci
         }
 
         #endregion
+
+        private void EmbedSourceLink(Stream stream)
+        {
+            byte[] bytes;
+
+            try
+            {
+                bytes = stream.ReadAllBytes();
+            }
+            catch (Exception e) when (!(e is OperationCanceledException))
+            {
+                throw new PdbWritingException(e);
+            }
+
+            _debugMetadataOpt.AddCustomDebugInformation(
+                parent: EntityHandle.ModuleDefinition,
+                kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.SourceLink),
+                value: _debugMetadataOpt.GetOrAddBlob(bytes));
+        }
     }
 }

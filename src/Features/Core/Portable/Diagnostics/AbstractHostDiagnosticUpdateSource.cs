@@ -20,13 +20,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public abstract Workspace Workspace { get; }
 
-        public bool SupportGetDiagnostics
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool SupportGetDiagnostics => false;
 
         public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {
@@ -40,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.DiagnosticsUpdated?.Invoke(this, args);
         }
 
-        internal void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Workspace workspace, ProjectId projectIdOpt)
+        public void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Workspace workspace, ProjectId projectIdOpt)
         {
             if (workspace != this.Workspace)
             {
@@ -58,10 +52,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
             }
 
-            bool raiseDiagnosticsUpdated = true;
             var diagnosticData = project != null ?
                 DiagnosticData.Create(project, diagnostic) :
                 DiagnosticData.Create(this.Workspace, diagnostic);
+
+            ReportAnalyzerDiagnostic(analyzer, diagnosticData, project);
+        }
+
+        public void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, DiagnosticData diagnosticData, Project project)
+        {
+            if (diagnosticData.Workspace != this.Workspace)
+            {
+                return;
+            }
+
+            bool raiseDiagnosticsUpdated = true;
 
             var dxs = ImmutableInterlocked.AddOrUpdate(ref _analyzerHostDiagnosticsMap,
                 analyzer,
@@ -83,10 +88,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var analyzers = analyzerReference.GetAnalyzers(language);
             ClearAnalyzerDiagnostics(analyzers, projectId);
-            CompilationWithAnalyzers.ClearAnalyzerState(analyzers);
         }
 
-        internal void ClearAnalyzerDiagnostics(ImmutableArray<DiagnosticAnalyzer> analyzers, ProjectId projectId)
+        public void ClearAnalyzerDiagnostics(ImmutableArray<DiagnosticAnalyzer> analyzers, ProjectId projectId)
         {
             foreach (var analyzer in analyzers)
             {
@@ -94,10 +98,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        public void ClearAnalyzerDiagnostics(ProjectId projectId)
+        {
+            foreach (var (analyzer, _) in _analyzerHostDiagnosticsMap)
+            {
+                ClearAnalyzerDiagnostics(analyzer, projectId);
+            }
+        }
+
         private void ClearAnalyzerDiagnostics(DiagnosticAnalyzer analyzer, ProjectId projectId)
         {
-            ImmutableHashSet<DiagnosticData> existing;
-            if (!_analyzerHostDiagnosticsMap.TryGetValue(analyzer, out existing))
+            if (!_analyzerHostDiagnosticsMap.TryGetValue(analyzer, out var existing))
             {
                 return;
             }
@@ -147,8 +158,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal ImmutableHashSet<DiagnosticData> TestOnly_GetReportedDiagnostics(DiagnosticAnalyzer analyzer)
         {
-            ImmutableHashSet<DiagnosticData> diagnostics;
-            if (!_analyzerHostDiagnosticsMap.TryGetValue(analyzer, out diagnostics))
+            if (!_analyzerHostDiagnosticsMap.TryGetValue(analyzer, out var diagnostics))
             {
                 diagnostics = ImmutableHashSet<DiagnosticData>.Empty;
             }

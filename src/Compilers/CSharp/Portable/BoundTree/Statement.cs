@@ -1,30 +1,61 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Semantics;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class BoundStatement : IOperation
+    internal partial class BoundNode : IOperation, IOperationWithChildren
     {
-        OperationKind IOperation.Kind => this.StatementKind;
+        OperationKind IOperation.Kind => this.OperationKind;
 
         bool IOperation.IsInvalid => this.HasErrors;
 
         SyntaxNode IOperation.Syntax => this.Syntax;
 
-        ITypeSymbol IOperation.Type => null;
+        ITypeSymbol IOperation.Type => OperationType;
 
-        Optional<object> IOperation.ConstantValue => default(Optional<object>);
+        Optional<object> IOperation.ConstantValue => this.OperationConstantValue;
+
+        ImmutableArray<IOperation> IOperationWithChildren.Children => this.Children;
+
+        protected virtual OperationKind OperationKind => OperationKind.None;
+
+        protected virtual ITypeSymbol OperationType => null;
+
+        protected virtual Optional<object> OperationConstantValue => default(Optional<object>);
+
+        /// <summary>
+        /// Override this property to return the child operations if the IOperation API corresponding to this bound node is not yet designed or implemented.
+        /// </summary>
+        /// <remarks>Note that any of the child operation nodes may be null.</remarks>
+        protected virtual ImmutableArray<IOperation> Children => ImmutableArray<IOperation>.Empty;
+
+        public virtual void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public virtual TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
+        }
+    }
+
+    internal partial class BoundStatement
+    {
+        protected override OperationKind OperationKind => this.StatementKind;
 
         protected abstract OperationKind StatementKind { get; }
 
-        public abstract void Accept(OperationVisitor visitor);
+        public override abstract void Accept(OperationVisitor visitor);
 
-        public abstract TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument);
+        public override abstract TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument);
     }
 
     internal partial class BoundBlock : IBlockStatement
@@ -262,7 +293,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundForEachStatement : IForEachLoopStatement
     {
-        ILocalSymbol IForEachLoopStatement.IterationVariable => this.IterationVariable;
+        ILocalSymbol IForEachLoopStatement.IterationVariable => this.IterationVariables.Length == 1?
+                                                                        this.IterationVariables.FirstOrDefault():
+                                                                        null;
 
         IOperation IForEachLoopStatement.Collection => this.Expression;
 
@@ -466,12 +499,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         void IOperation.Accept(OperationVisitor visitor)
         {
-            visitor.VisitCatch(this);
+            visitor.VisitCatchClause(this);
         }
 
         TResult IOperation.Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitCatch(this, argument);
+            return visitor.VisitCatchClause(this, argument);
         }
     }
 
@@ -589,6 +622,24 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override OperationKind StatementKind => OperationKind.InvalidStatement;
 
+        ImmutableArray<IOperation> IInvalidStatement.Children
+        {
+            get
+            {
+                var builder = ArrayBuilder<IOperation>.GetInstance(this.ChildBoundNodes.Length);
+                foreach (var childNode in this.ChildBoundNodes)
+                {
+                    var operation = childNode as IOperation;
+                    if (operation != null)
+                    {
+                        builder.Add(operation);
+                    }
+                }
+
+                return builder.ToImmutableAndFree();
+            }
+        }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitInvalidStatement(this);
@@ -605,7 +656,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static readonly ConditionalWeakTable<BoundLocalDeclaration, object> s_variablesMappings =
             new ConditionalWeakTable<BoundLocalDeclaration, object>();
 
-        ImmutableArray<IVariableDeclaration> IVariableDeclarationStatement.Variables
+        ImmutableArray<IVariableDeclaration> IVariableDeclarationStatement.Declarations
         {
             get
             {
@@ -632,7 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static readonly ConditionalWeakTable<BoundMultipleLocalDeclarations, object> s_variablesMappings =
             new ConditionalWeakTable<BoundMultipleLocalDeclarations, object>();
 
-        ImmutableArray<IVariableDeclaration> IVariableDeclarationStatement.Variables
+        ImmutableArray<IVariableDeclaration> IVariableDeclarationStatement.Declarations
         {
             get
             {
@@ -804,16 +855,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundLocalFunctionStatement
     {
-        protected override OperationKind StatementKind => OperationKind.LocalFunctionStatement;
+        protected override OperationKind StatementKind => OperationKind.None;
+
+        protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.Body);
 
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitLocalFunctionStatement(this);
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitLocalFunctionStatement(this, argument);
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -821,6 +874,21 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         // TODO: this may need its own OperationKind.
         protected override OperationKind StatementKind => OperationKind.None;
+
+        protected override ImmutableArray<IOperation> Children
+        {
+            get
+            {
+                var builder = ImmutableArray.CreateBuilder<IOperation>(this.SwitchSections.Length + 1);
+                builder.Add(this.Expression);
+                foreach (var section in this.SwitchSections)
+                {
+                    builder.Add(section);
+                }
+
+                return builder.ToImmutable();
+            }
+        }
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -833,5 +901,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
             return visitor.VisitNoneOperation(this, argument);
         }
+    }
+
+    partial class BoundPatternSwitchSection
+    {
+        protected override ImmutableArray<IOperation> Children => this.SwitchLabels.As<IOperation>().AddRange(this.Statements);
+    }
+
+    partial class BoundPatternSwitchLabel
+    {
+        protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.Pattern, this.Guard);
     }
 }

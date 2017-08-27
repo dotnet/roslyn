@@ -35,8 +35,6 @@ namespace Microsoft.CodeAnalysis
         /// </param>
         internal abstract TypeSymbol SubstituteTypeParameters(ModuleSymbol moduleSymbol, TypeSymbol generic, ImmutableArray<KeyValuePair<TypeSymbol, ImmutableArray<ModifierInfo<TypeSymbol>>>> arguments, ImmutableArray<bool> refersToNoPiaLocalType);
 
-        internal abstract TypeSymbol GetByRefReturnTypeSymbol(ModuleSymbol moduleSymbol, TypeSymbol referencedType, ushort countOfCustomModifiersPrecedingByRef);
-
         internal abstract TypeSymbol MakePointerTypeSymbol(ModuleSymbol moduleSymbol, TypeSymbol type, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers);
         internal abstract TypeSymbol GetSpecialType(ModuleSymbol moduleSymbol, SpecialType specialType);
         internal abstract TypeSymbol GetSystemTypeSymbol(ModuleSymbol moduleSymbol);

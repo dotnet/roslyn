@@ -34,9 +34,9 @@ namespace ResetInteractiveTestsDocument
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
-        public async void TestResetREPLWithProjectContext()
+        public void TestResetREPLWithProjectContext()
         {
-            using (var workspace = await TestWorkspace.CreateAsync(WorkspaceXmlStr))
+            using (var workspace = TestWorkspace.Create(WorkspaceXmlStr))
             {
                 var project = workspace.CurrentSolution.Projects.FirstOrDefault(p => p.AssemblyName == "ResetInteractiveTestsAssembly");
                 var document = project.Documents.FirstOrDefault(d => d.FilePath == "ResetInteractiveTestsDocument");
@@ -66,7 +66,7 @@ namespace ResetInteractiveTestsDocument
 
             InteractiveWindowTestHost testHost = new InteractiveWindowTestHost();
             List<string> executedSubmissionCalls = new List<string>();
-            EventHandler<string> ExecuteSubmission = (_, code) => { executedSubmissionCalls.Add(code); };
+            void ExecuteSubmission(object _, string code) { executedSubmissionCalls.Add(code); }
 
             testHost.Evaluator.OnExecute += ExecuteSubmission;
 

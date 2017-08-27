@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Emit;
@@ -41,13 +42,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return builder.ToImmutableAndFree();
         }
 
-        Cci.INamedTypeReference Cci.IGenericTypeInstanceReference.GenericType
+        Cci.INamedTypeReference Cci.IGenericTypeInstanceReference.GetGenericType(EmitContext context)
         {
-            get
-            {
-                System.Diagnostics.Debug.Assert(UnderlyingNamedType.OriginalDefinition.IsDefinition);
-                return UnderlyingNamedType.OriginalDefinition;
-            }
+            System.Diagnostics.Debug.Assert(UnderlyingNamedType.OriginalDefinition.IsDefinition);
+            PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
+            return moduleBeingBuilt.Translate(UnderlyingNamedType.OriginalDefinition, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, 
+                                              diagnostics: context.Diagnostics, needDeclaration: true);
         }
     }
 }

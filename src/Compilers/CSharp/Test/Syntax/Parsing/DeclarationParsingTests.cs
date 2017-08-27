@@ -5,13 +5,17 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class DeclarationParsingTests : ParsingTests
     {
+        public DeclarationParsingTests(ITestOutputHelper output) : base(output) { }
+
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
         {
             return SyntaxFactory.ParseSyntaxTree(text, options);
@@ -1100,9 +1104,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
             Assert.Equal(text, file.ToString());
+
             var errors = file.Errors();
-            Assert.Equal(1, errors.Length);
-            Assert.Equal((int)ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, errors[0].Code);
+            Assert.Equal(0, errors.Length);
 
             Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
@@ -1130,6 +1134,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(cs.OpenBraceToken);
             Assert.Equal(0, cs.Members.Count);
             Assert.NotNull(cs.CloseBraceToken);
+
+            CreateStandardCompilation(text).GetDeclarationDiagnostics().Verify(
+                // (1,9): error CS0080: Constraints are not allowed on non-generic declarations
+                // class a where b : c { }
+                Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(1, 9));
+        }
+
+        [Fact]
+        public void TestNonGenericMethodWithTypeConstraintBound()
+        {
+            var text = "class a { void M() where b : c { } }";
+
+            CreateStandardCompilation(text).GetDeclarationDiagnostics().Verify(
+                // (1,20): error CS0080: Constraints are not allowed on non-generic declarations
+                // class a { void M() where b : c { } }
+                Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(1, 20));
         }
 
         [Fact]
@@ -1960,9 +1980,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind());
             var ds = (DelegateDeclarationSyntax)file.Members[0];
             Assert.NotNull(ds.DelegateKeyword);
-            Assert.NotNull(ds.RefKeyword);
             Assert.NotNull(ds.ReturnType);
-            Assert.Equal("a", ds.ReturnType.ToString());
+            Assert.Equal("ref a", ds.ReturnType.ToString());
             Assert.NotNull(ds.Identifier);
             Assert.Equal("b", ds.Identifier.ToString());
             Assert.NotNull(ds.ParameterList.OpenParenToken);
@@ -1994,7 +2013,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestDelegateWithBuiltInReturnType(SyntaxKind.ObjectKeyword);
         }
 
-        public void TestDelegateWithBuiltInReturnType(SyntaxKind builtInType)
+        private void TestDelegateWithBuiltInReturnType(SyntaxKind builtInType)
         {
             var typeText = SyntaxFacts.GetText(builtInType);
             var text = "delegate " + typeText + " b();";
@@ -2040,7 +2059,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestDelegateWithBuiltInParameterType(SyntaxKind.ObjectKeyword);
         }
 
-        public void TestDelegateWithBuiltInParameterType(SyntaxKind builtInType)
+        private void TestDelegateWithBuiltInParameterType(SyntaxKind builtInType)
         {
             var typeText = SyntaxFacts.GetText(builtInType);
             var text = "delegate a b(" + typeText + " c);";
@@ -2447,10 +2466,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.MethodDeclaration, cs.Members[0].Kind());
             var ms = (MethodDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ms.AttributeLists.Count);
-            Assert.Equal(0, ms.Modifiers.Count);
-            Assert.NotNull(ms.RefKeyword);
             Assert.NotNull(ms.ReturnType);
-            Assert.Equal("b", ms.ReturnType.ToString());
+            Assert.Equal("ref b", ms.ReturnType.ToString());
             Assert.NotNull(ms.Identifier);
             Assert.Equal("X", ms.Identifier.ToString());
             Assert.NotNull(ms.ParameterList.OpenParenToken);
@@ -2465,6 +2482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, ms.SemicolonToken.Kind());
         }
 
+        [Fact]
         public void TestClassMethodWithRef()
         {
             var text = "class a { ref }";
@@ -2859,7 +2877,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestClassMethodWithBuiltInReturnType(SyntaxKind.ObjectKeyword);
         }
 
-        public void TestClassMethodWithBuiltInReturnType(SyntaxKind type)
+        private void TestClassMethodWithBuiltInReturnType(SyntaxKind type)
         {
             var typeText = SyntaxFacts.GetText(type);
             var text = "class a { " + typeText + " M() { } }";
@@ -2924,7 +2942,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestClassMethodWithBuiltInParameterType(SyntaxKind.ObjectKeyword);
         }
 
-        public void TestClassMethodWithBuiltInParameterType(SyntaxKind type)
+        private void TestClassMethodWithBuiltInParameterType(SyntaxKind type)
         {
             var typeText = SyntaxFacts.GetText(type);
             var text = "class a { b X(" + typeText + " c) { } }";
@@ -3282,7 +3300,7 @@ class Class1<T>{
             TestClassFieldWithBuiltInType(SyntaxKind.ObjectKeyword);
         }
 
-        public void TestClassFieldWithBuiltInType(SyntaxKind type)
+        private void TestClassFieldWithBuiltInType(SyntaxKind type)
         {
             var typeText = SyntaxFacts.GetText(type);
             var text = "class a { " + typeText + " c; }";
@@ -3813,9 +3831,8 @@ class Class1<T>{
             var ps = (PropertyDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ps.AttributeLists.Count);
             Assert.Equal(0, ps.Modifiers.Count);
-            Assert.NotNull(ps.RefKeyword);
             Assert.NotNull(ps.Type);
-            Assert.Equal("b", ps.Type.ToString());
+            Assert.Equal("ref b", ps.Type.ToString());
             Assert.NotNull(ps.Identifier);
             Assert.Equal("c", ps.Identifier.ToString());
 
@@ -3857,7 +3874,7 @@ class Class1<T>{
             TestClassPropertyWithBuiltInType(SyntaxKind.ObjectKeyword);
         }
 
-        public void TestClassPropertyWithBuiltInType(SyntaxKind type)
+        private void TestClassPropertyWithBuiltInType(SyntaxKind type)
         {
             var typeText = SyntaxFacts.GetText(type);
             var text = "class a { " + typeText + " c { get; set; } }";
@@ -4049,7 +4066,7 @@ class Class1<T>{
             TestClassEventWithValue(SyntaxKind.RemoveAccessorDeclaration, SyntaxKind.RemoveKeyword, SyntaxKind.IdentifierToken);
         }
 
-        public void TestClassPropertyWithValue(SyntaxKind accessorKind, SyntaxKind accessorKeyword, SyntaxKind tokenKind)
+        private void TestClassPropertyWithValue(SyntaxKind accessorKind, SyntaxKind accessorKeyword, SyntaxKind tokenKind)
         {
             bool isEvent = accessorKeyword == SyntaxKind.AddKeyword || accessorKeyword == SyntaxKind.RemoveKeyword;
             var text = "class a { " + (isEvent ? "event" : string.Empty) + " b c { " + SyntaxFacts.GetText(accessorKeyword) + " { x = value; } } }";
@@ -4106,7 +4123,7 @@ class Class1<T>{
             Assert.Equal(tokenKind, ((IdentifierNameSyntax)bx.Right).Identifier.Kind());
         }
 
-        public void TestClassEventWithValue(SyntaxKind accessorKind, SyntaxKind accessorKeyword, SyntaxKind tokenKind)
+        private void TestClassEventWithValue(SyntaxKind accessorKind, SyntaxKind accessorKeyword, SyntaxKind tokenKind)
         {
             var text = "class a { event b c { " + SyntaxFacts.GetText(accessorKeyword) + " { x = value; } } }";
             var file = this.ParseFile(text);
@@ -4689,9 +4706,8 @@ class Class1<T>{
             var ps = (IndexerDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ps.AttributeLists.Count);
             Assert.Equal(0, ps.Modifiers.Count);
-            Assert.NotNull(ps.RefKeyword);
             Assert.NotNull(ps.Type);
-            Assert.Equal("b", ps.Type.ToString());
+            Assert.Equal("ref b", ps.Type.ToString());
             Assert.NotNull(ps.ThisKeyword);
             Assert.Equal("this", ps.ThisKeyword.ToString());
 
@@ -5174,39 +5190,66 @@ class Class1<T>{
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
-            Assert.Equal(1, file.Errors().Length);
+            Assert.Equal(0, file.Errors().Length);
             Assert.Equal(text, file.ToString());
 
             var ns = (NamespaceDeclarationSyntax)file.Members[0];
-            Assert.Equal(1, ns.Errors().Length);
+            Assert.Equal(0, ns.Errors().Length);
             Assert.Equal(SyntaxKind.AliasQualifiedName, ns.Name.Kind());
-            Assert.Equal((int)ErrorCode.ERR_UnexpectedAliasedName, ns.Name.Errors()[0].Code);
 
             text = "namespace A<B> { }";
             file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
-            Assert.Equal(1, file.Errors().Length);
+            Assert.Equal(0, file.Errors().Length);
             Assert.Equal(text, file.ToString());
 
             ns = (NamespaceDeclarationSyntax)file.Members[0];
-            Assert.Equal(1, ns.Errors().Length);
+            Assert.Equal(0, ns.Errors().Length);
             Assert.Equal(SyntaxKind.GenericName, ns.Name.Kind());
-            Assert.Equal((int)ErrorCode.ERR_UnexpectedGenericName, ns.Name.Errors()[0].Code);
 
             text = "namespace A<,> { }";
             file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
-            Assert.Equal(1, file.Errors().Length);
+            Assert.Equal(0, file.Errors().Length);
             Assert.Equal(text, file.ToString());
 
             ns = (NamespaceDeclarationSyntax)file.Members[0];
-            Assert.Equal(1, ns.Errors().Length);
+            Assert.Equal(0, ns.Errors().Length);
             Assert.Equal(SyntaxKind.GenericName, ns.Name.Kind());
-            Assert.Equal((int)ErrorCode.ERR_UnexpectedGenericName, ns.Name.Errors()[0].Code);
+        }
+
+        [Fact]
+        public void TestNamespaceDeclarationsBadNames1()
+        {
+            var text = @"namespace A::B { }";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (1,11): error CS7000: Unexpected use of an aliased name
+                // namespace A::B { }
+                Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "A::B").WithLocation(1, 11));
+        }
+
+        [Fact]
+        public void TestNamespaceDeclarationsBadNames2()
+        {
+            var text = @"namespace A<B> { }";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (1,11): error CS7002: Unexpected use of a generic name
+                // namespace A<B> { }
+                Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "A<B>").WithLocation(1, 11));
+        }
+
+        [Fact]
+        public void TestNamespaceDeclarationsBadNames3()
+        {
+            var text = @"namespace A<,> { }";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (1,11): error CS7002: Unexpected use of a generic name
+                // namespace A<,> { }
+                Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "A<,>").WithLocation(1, 11));
         }
 
         [WorkItem(537690, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537690")]
@@ -5225,6 +5268,61 @@ class Program {
             var file = this.ParseFile(text);
             Assert.Equal(1, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[0].Code);
+        }
+
+        [Fact]
+        public void TestPartialPartial()
+        {
+            var text = @"
+partial class PartialPartial
+{
+    int i = 1;
+    partial partial void PM();
+    partial partial void PM()
+    {
+        i = 0;
+    }
+    static int Main()
+    {
+        PartialPartial t = new PartialPartial();
+        t.PM();
+        return t.i;
+    }
+}
+";
+            // These errors aren't great.  Ideally we can improve things in the future.
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (5,13): error CS1525: Invalid expression term 'partial'
+                //     partial partial void PM();
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(5, 13),
+                // (5,13): error CS1002: ; expected
+                //     partial partial void PM();
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(5, 13),
+                // (6,13): error CS1525: Invalid expression term 'partial'
+                //     partial partial void PM()
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(6, 13),
+                // (6,13): error CS1002: ; expected
+                //     partial partial void PM()
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(6, 13),
+                // (6,13): error CS0102: The type 'PartialPartial' already contains a definition for ''
+                //     partial partial void PM()
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("PartialPartial", "").WithLocation(6, 13),
+                // (5,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //     partial partial void PM();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(5, 5),
+                // (6,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                //     partial partial void PM()
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(6, 5));
+        }
+
+        [Fact]
+        public void TestPartialEnum()
+        {
+            var text = @"partial enum E{}";
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // partial enum E{}
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(1, 14));
         }
 
         [WorkItem(539120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539120")]
@@ -5258,9 +5356,12 @@ class C {
             var file = this.ParseFile(text);
 
             Assert.NotNull(file);
-            Assert.Equal(1, file.Errors().Length);
+            Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal((int)ErrorCode.ERR_DefaultValueNotAllowed, file.Errors()[0].Code);
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (5,28): error CS1065: Default values are not valid in this context.
+                //      F f = delegate (int x = 0) { };
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 28));
         }
 
         [WorkItem(537865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537865")]
@@ -5379,8 +5480,14 @@ class C
    void M(__arglist, int j)  {}
 }";
 
-            TestError(text1, ErrorCode.ERR_ParamsLast);
-            TestError(text2, ErrorCode.ERR_VarargsLast);
+            CreateStandardCompilation(text1).VerifyDiagnostics(
+                // (4,11): error CS0231: A params parameter must be the last parameter in a formal parameter list
+                //    void M(params int[] i, int j)  {}
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] i").WithLocation(4, 11));
+            CreateStandardCompilation(text2).VerifyDiagnostics(
+                // (4,11): error CS0257: An __arglist parameter must be the last parameter in a formal parameter list
+                //    void M(__arglist, int j)  {}
+                Diagnostic(ErrorCode.ERR_VarargsLast, "__arglist").WithLocation(4, 11));
         }
 
         [Fact]
@@ -5570,6 +5677,431 @@ class C1
 ";
             var file = this.ParseFile(text, parseOptions: TestOptions.Regular);
             Assert.Equal(0, file.Errors().Length);
+        }
+
+        [Fact]
+        [WorkItem(13578, "https://github.com/dotnet/roslyn/issues/13578")]
+        [CompilerTrait(CompilerFeature.ExpressionBody)]
+        public void ExpressionBodiedCtorDtorProp()
+        {
+            UsingTree(@"
+class C
+{
+    C() : base() => M();
+    C() => M();
+    ~C() => M();
+    int P { set => M(); }
+}
+");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ConstructorDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.BaseConstructorInitializer);
+                        {
+                            N(SyntaxKind.ColonToken);
+                            N(SyntaxKind.BaseKeyword);
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.InvocationExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken);
+                                }
+                                N(SyntaxKind.ArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.ConstructorDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.InvocationExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken);
+                                }
+                                N(SyntaxKind.ArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.DestructorDeclaration);
+                    {
+                        N(SyntaxKind.TildeToken);
+                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.InvocationExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken);
+                                }
+                                N(SyntaxKind.ArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SetAccessorDeclaration);
+                            {
+                                N(SyntaxKind.SetKeyword);
+                                N(SyntaxKind.ArrowExpressionClause);
+                                {
+                                    N(SyntaxKind.EqualsGreaterThanToken);
+                                    N(SyntaxKind.InvocationExpression);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken);
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+        }
+
+        [Fact]
+        public void ParseOutVar()
+        {
+            var tree = UsingTree(@"
+class C
+{
+    void Goo()
+    {
+        M(out var x);
+    }
+}", options: TestOptions.Regular.WithTuplesFeature());
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "Goo");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.InvocationExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "M");
+                                    }
+                                    N(SyntaxKind.ArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.OutKeyword);
+                                            N(SyntaxKind.DeclarationExpression);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "var");
+                                                }
+                                                N(SyntaxKind.SingleVariableDesignation);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "x");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestPartiallyWrittenConstraintClauseInBaseList1()
+        {
+            var tree = UsingTree(@"
+class C<T> : where
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "where");
+                            }
+                        }
+                    }
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestPartiallyWrittenConstraintClauseInBaseList2()
+        {
+            var tree = UsingTree(@"
+class C<T> : where T
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "where");
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                        }
+                    }
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestPartiallyWrittenConstraintClauseInBaseList3()
+        {
+            var tree = UsingTree(@"
+class C<T> : where T :
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        M(SyntaxKind.SimpleBaseType);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        M(SyntaxKind.TypeConstraint);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestPartiallyWrittenConstraintClauseInBaseList4()
+        {
+            var tree = UsingTree(@"
+class C<T> : where T : X
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        M(SyntaxKind.SimpleBaseType);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.TypeConstraint);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "X");
+                            }
+                        }
+                    }
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
     }
 }

@@ -3,7 +3,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
 {

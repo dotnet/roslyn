@@ -15,12 +15,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return symbol.TypeParameterKind == TypeParameterKind.Method;
         }
 
-        protected override Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsAsync(
-            ITypeParameterSymbol symbol,
+        protected override Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
+            SymbolAndProjectId<ITypeParameterSymbol> symbolAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
             CancellationToken cancellationToken)
         {
+            var symbol = symbolAndProjectId.Symbol;
             var method = (IMethodSymbol)symbol.ContainingSymbol;
             var ordinal = method.TypeParameters.IndexOf(symbol);
 
@@ -28,19 +29,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 if (method.PartialDefinitionPart != null && ordinal < method.PartialDefinitionPart.TypeParameters.Length)
                 {
-                    return Task.FromResult(SpecializedCollections.SingletonEnumerable((ISymbol)method.PartialDefinitionPart.TypeParameters[ordinal]));
+                    return Task.FromResult(ImmutableArray.Create(
+                        symbolAndProjectId.WithSymbol((ISymbol)method.PartialDefinitionPart.TypeParameters[ordinal])));
                 }
 
                 if (method.PartialImplementationPart != null && ordinal < method.PartialImplementationPart.TypeParameters.Length)
                 {
-                    return Task.FromResult(SpecializedCollections.SingletonEnumerable((ISymbol)method.PartialImplementationPart.TypeParameters[ordinal]));
+                    return Task.FromResult(ImmutableArray.Create(
+                        symbolAndProjectId.WithSymbol((ISymbol)method.PartialImplementationPart.TypeParameters[ordinal])));
                 }
             }
 
-            return SpecializedTasks.EmptyEnumerable<ISymbol>();
+            return SpecializedTasks.EmptyImmutableArray<SymbolAndProjectId>();
         }
 
-        protected override Task<IEnumerable<Document>> DetermineDocumentsToSearchAsync(
+        protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             ITypeParameterSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
@@ -69,7 +72,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 : fullName;
         }
 
-        protected override Task<IEnumerable<ReferenceLocation>> FindReferencesInDocumentAsync(
+        protected override Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
             ITypeParameterSymbol symbol,
             Document document,
             CancellationToken cancellationToken)

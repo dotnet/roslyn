@@ -1,10 +1,10 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLocalVariable() As Task
             Dim input =
 <Workspace>
@@ -12,10 +12,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document>
             class A
             {
-	            void Foo()
+	            void Goo()
 	            {
 		            dynamic {|Definition:$$i|} = 0;
-                    [|i|] = "foo";
+                    [|i|] = "goo";
                     [|i|] = new object();
 		            Console.WriteLine([|i|]);
 	            }
@@ -23,10 +23,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLocalObject() As Task
             Dim input =
 <Workspace>
@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 	            {
 		            public int i;
 	            }
-	            void Foo()
+	            void Goo()
 	            {	
 		            dynamic {|Definition:$$o|} = new B();
 		            Console.WriteLine([|o|].i);
@@ -47,10 +47,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLocalLambda() As Task
             Dim input =
 <Workspace>
@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             class A
             {
 	            delegate void myDelegate(dynamic d);
-	            void Foo()
+	            void Goo()
 	            {	
                    int x = 10;
 		           myDelegate del = {|Definition:n|} => { [|$$n|] = [|n|] % 5; Console.WriteLine([|n|]);};
@@ -69,10 +69,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLocalArray() As Task
             Dim input =
 <Workspace>
@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document>
             class A
             {
-	            void Foo()
+	            void Goo()
 	            {
 		            dynamic[] {|Definition:$$x|} = new dynamic[10];
 		            Console.WriteLine([|x|].Length);
@@ -90,10 +90,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestLocalCast() As Task
             Dim input =
 <Workspace>
@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document>
             class A
             {
-	            void Foo()
+	            void Goo()
 	            {
 		            int i = 10;
 		            dynamic {|Definition:j|} = i;
@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
     End Class
 End Namespace

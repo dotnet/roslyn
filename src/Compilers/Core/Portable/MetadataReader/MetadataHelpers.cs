@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -33,6 +34,10 @@ namespace Microsoft.CodeAnalysis
             internal readonly string[] NestedTypes;
             internal readonly AssemblyQualifiedTypeName[] TypeArguments;
             internal readonly int PointerCount;
+
+            /// <summary>
+            /// Rank equal 0 is used to denote an SzArray, rank equal 1 denotes multi-dimensional array of rank 1.
+            /// </summary>
             internal readonly int[] ArrayRanks;
             internal readonly string AssemblyName;
 
@@ -400,12 +405,16 @@ namespace Microsoft.CodeAnalysis
                 return name;
             }
 
+            /// <summary>
+            /// Rank equal 0 is used to denote an SzArray, rank equal 1 denotes multi-dimensional array of rank 1.
+            /// </summary>
             private void DecodeArrayShape(StringBuilder typeNameBuilder, ref ArrayBuilder<int> arrayRanksBuilder)
             {
                 Debug.Assert(Current == '[');
 
                 int start = _offset;
                 int rank = 1;
+                bool isMultiDimensionalIfRankOne = false;
                 Advance();
 
                 while (!EndOfInput)
@@ -423,9 +432,26 @@ namespace Microsoft.CodeAnalysis
                                 arrayRanksBuilder = ArrayBuilder<int>.GetInstance();
                             }
 
-                            arrayRanksBuilder.Add(rank);
+                            arrayRanksBuilder.Add(rank == 1 && !isMultiDimensionalIfRankOne ? 0 : rank);
                             Advance();
                             return;
+
+                        case '*':
+                            if (rank != 1)
+                            {
+                                goto default;
+                            }
+                             
+                            Advance();
+                            if (Current != ']')
+                            {
+                                // Error case, process as regular characters
+                                typeNameBuilder.Append(_input.Substring(start, _offset - start));
+                                return;
+                            }
+
+                            isMultiDimensionalIfRankOne = true;
+                            break;
 
                         default:
                             // Error case, process as regular characters
@@ -685,7 +711,7 @@ namespace Microsoft.CodeAnalysis
         /// A sequence with information about namespaces immediately contained within this namespace.
         /// For each pair:
         ///   Key - contains simple name of a child namespace.
-        ///   Value – contains a sequence similar to the one passed to this function, but
+        ///   Value - contains a sequence similar to the one passed to this function, but
         ///           calculated for the child namespace. 
         /// </param>
         /// <remarks></remarks>
@@ -886,44 +912,57 @@ namespace Microsoft.CodeAnalysis
             return str == null || str.IsValidUnicodeString();
         }
 
-        internal static void ValidateAssemblyOrModuleName(string name, string argumentName)
+        internal static bool IsValidAssemblyOrModuleName(string name)
         {
-            var e = CheckAssemblyOrModuleName(name, argumentName);
-            if (e != null)
+            return GetAssemblyOrModuleNameErrorArgumentResourceName(name) == null;
+        }
+
+        internal static void CheckAssemblyOrModuleName(string name, CommonMessageProvider messageProvider, int code, DiagnosticBag diagnostics)
+        {
+            string errorArgumentResourceId = GetAssemblyOrModuleNameErrorArgumentResourceName(name);
+            if (errorArgumentResourceId != null)
             {
-                throw e;
+                diagnostics.Add(
+                    messageProvider.CreateDiagnostic(code, Location.None, 
+                        new CodeAnalysisResourcesLocalizableErrorArgument(errorArgumentResourceId)));
             }
         }
 
-        internal static bool IsValidAssemblyOrModuleName(string name)
+        internal static void CheckAssemblyOrModuleName(string name, CommonMessageProvider messageProvider, int code, ArrayBuilder<Diagnostic> builder)
         {
-            return CheckAssemblyOrModuleName(name, argumentName: null) == null;
+            string errorArgumentResourceId = GetAssemblyOrModuleNameErrorArgumentResourceName(name);
+            if (errorArgumentResourceId != null)
+            {
+                builder.Add(
+                    messageProvider.CreateDiagnostic(code, Location.None,
+                        new CodeAnalysisResourcesLocalizableErrorArgument(errorArgumentResourceId)));
+            }
         }
 
-        internal static Exception CheckAssemblyOrModuleName(string name, string argumentName)
+        private static string GetAssemblyOrModuleNameErrorArgumentResourceName(string name)
         {
             if (name == null)
             {
-                return new ArgumentNullException(argumentName);
+                return nameof(CodeAnalysisResources.NameCannotBeNull);
             }
 
             // Dev11 VB can produce assembly with no name (vbc /out:".dll" /target:library). 
             // We disallow it. PEVerify reports an error: Assembly has no name.
             if (name.Length == 0)
             {
-                return new ArgumentException(CodeAnalysisResources.NameCannotBeEmpty, argumentName);
+                return nameof(CodeAnalysisResources.NameCannotBeEmpty);
             }
 
             // Dev11 VB can produce assembly that starts with whitespace (vbc /out:" a.dll" /target:library). 
             // We disallow it. PEVerify reports an error: Assembly name contains leading spaces.
             if (char.IsWhiteSpace(name[0]))
             {
-                return new ArgumentException(CodeAnalysisResources.NameCannotStartWithWhitespace, argumentName);
+                return nameof(CodeAnalysisResources.NameCannotStartWithWhitespace);
             }
 
             if (!IsValidMetadataFileName(name))
             {
-                return new ArgumentException(CodeAnalysisResources.NameContainsInvalidCharacter, argumentName);
+                return nameof(CodeAnalysisResources.NameContainsInvalidCharacter);
             }
 
             return null;
@@ -933,7 +972,7 @@ namespace Microsoft.CodeAnalysis
         /// Checks that the specified name is a valid metadata String and a file name.
         /// The specification isn't entirely consistent and complete but it mentions:
         /// 
-        /// 22.19.2: "Name shall index a non-empty string in the String heap. It shall be in the format {filename}.{extension} (e.g., 'foo.dll', but not 'c:\utils\foo.dll')."
+        /// 22.19.2: "Name shall index a non-empty string in the String heap. It shall be in the format {filename}.{extension} (e.g., 'goo.dll', but not 'c:\utils\goo.dll')."
         /// 22.30.2: "The format of Name is {file name}.{file extension} with no path or drive letter; on POSIX-compliant systems Name contains no colon, no forward-slash, no backslash."
         ///          As Microsoft specific constraint.
         /// 

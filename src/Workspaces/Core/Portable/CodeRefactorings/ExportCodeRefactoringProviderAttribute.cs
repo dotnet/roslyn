@@ -30,11 +30,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public ExportCodeRefactoringProviderAttribute(string firstLanguage, params string[] additionalLanguages)
             : base(typeof(CodeRefactoringProvider))
         {
-            if (firstLanguage == null)
-            {
-                throw new ArgumentNullException(nameof(firstLanguage));
-            }
-
             if (additionalLanguages == null)
             {
                 throw new ArgumentNullException(nameof(additionalLanguages));
@@ -43,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             this.Name = null;
 
             string[] languages = new string[additionalLanguages.Length + 1];
-            languages[0] = firstLanguage;
+            languages[0] = firstLanguage ?? throw new ArgumentNullException(nameof(firstLanguage));
             for (int index = 0; index < additionalLanguages.Length; index++)
             {
                 languages[index + 1] = additionalLanguages[index];

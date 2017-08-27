@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Reflection
+Imports System.IO
 Imports Microsoft.CodeAnalysis.Scripting
 Imports Microsoft.CodeAnalysis.Scripting.Hosting
 Imports Microsoft.CodeAnalysis.Scripting.Test
@@ -28,11 +29,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
         ) As CommandLineRunner
             Dim io = New TestConsoleIO(input)
 
+            Dim buildPaths = New BuildPaths(
+                clientDir:=AppContext.BaseDirectory,
+                workingDir:=If(workingDirectory, AppContext.BaseDirectory),
+                sdkDir:=RuntimeMetadataReferenceResolver.GetDesktopFrameworkDirectory(),
+                tempDir:=Path.GetTempPath())
+
             Dim compiler = New VisualBasicInteractiveCompiler(
                 responseFile,
-                If(workingDirectory, AppContext.BaseDirectory),
-                CorLightup.Desktop.TryGetRuntimeDirectory(),
-                AppContext.BaseDirectory,
+                buildPaths,
                 If(args, s_defaultArgs),
                 New NotImplementedAnalyzerLoader())
 
@@ -75,14 +80,14 @@ Type ""#help"" for more information.
 
         <Fact()>
         Public Sub TestReferenceDirective()
-            Dim file1 = Temp.CreateFile("1.dll").WriteAllBytes(TestCompilationFactory.CreateVisualBasicCompilationWithMscorlib("
+            Dim file1 = Temp.CreateFile("1.dll").WriteAllBytes(TestCompilationFactory.CreateVisualBasicCompilationWithCorlib("
 public Class C1
-Public Function Foo() As String
+Public Function Goo() As String
     Return ""Bar""
 End Function
 End Class", "1").EmitToArray())
 
-            Dim runner = CreateRunner(args:={}, input:="#r """ & file1.Path & """" & vbCrLf & "? New C1().Foo()")
+            Dim runner = CreateRunner(args:={}, input:="#r """ & file1.Path & """" & vbCrLf & "? New C1().Goo()")
 
             runner.RunInteractive()
 
@@ -92,11 +97,11 @@ Copyright (C) Microsoft Corporation. All rights reserved.
 
 Type ""#help"" for more information.
 > #r """ & file1.Path & """
-> ? New C1().Foo()
+> ? New C1().Goo()
 ""Bar""
 >", runner.Console.Out.ToString())
 
-            runner = CreateRunner(args:={}, input:="? New C1().Foo()")
+            runner = CreateRunner(args:={}, input:="? New C1().Goo()")
 
             runner.RunInteractive()
 
@@ -105,7 +110,7 @@ Type ""#help"" for more information.
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 Type ""#help"" for more information.
-> ? New C1().Foo()
+> ? New C1().Goo()
 «Red»
 (1) : error BC30002: Type 'C1' is not defined.
 «Gray»
@@ -179,6 +184,25 @@ Type ""#help"" for more information.
 > ? System.Math.PI
 3.1415926535897931
 >", runner.Console.Out.ToString())
+        End Sub
+
+        <Fact>
+        Public Sub Version()
+            Dim runner = CreateRunner({"/version"})
+            Assert.Equal(0, runner.RunInteractive())
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersion, runner.Console.Out.ToString())
+
+            runner = CreateRunner({"/version", "/help"})
+            Assert.Equal(0, runner.RunInteractive())
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersion, runner.Console.Out.ToString())
+
+            runner = CreateRunner({"/version", "/r:somefile"})
+            Assert.Equal(0, runner.RunInteractive())
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersion, runner.Console.Out.ToString())
+
+            runner = CreateRunner({"/version", "/nologo"})
+            Assert.Equal(0, runner.RunInteractive())
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersion, runner.Console.Out.ToString())
         End Sub
 
     End Class

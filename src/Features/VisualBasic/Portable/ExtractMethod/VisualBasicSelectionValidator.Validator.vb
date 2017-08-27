@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -7,9 +7,13 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Partial Friend Class VisualBasicSelectionValidator
         Public Shared Function Check(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean
-            Return node.TypeSwitch(
-                Function(expression As ExpressionSyntax) CheckExpression(semanticModel, expression, cancellationToken),
-                Function(statement As StatementSyntax) CheckStatement(semanticModel, statement, cancellationToken))
+            If TypeOf node Is ExpressionSyntax Then
+                Return CheckExpression(semanticModel, DirectCast(node, ExpressionSyntax), cancellationToken)
+            ElseIf TypeOf node Is StatementSyntax Then
+                Return CheckStatement(semanticModel, DirectCast(node, StatementSyntax), cancellationToken)
+            Else
+                Return False
+            End If
         End Function
 
         Private Shared Function CheckExpression(semanticModel As SemanticModel, expression As ExpressionSyntax, cancellationToken As CancellationToken) As Boolean

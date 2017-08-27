@@ -493,17 +493,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
         {
-            return this.Equals(t2 as TypeParameterSymbol, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic);
+            return this.Equals(t2 as TypeParameterSymbol, comparison);
         }
 
         internal bool Equals(TypeParameterSymbol other)
         {
-            return Equals(other, false, false);
+            return Equals(other, TypeCompareKind.ConsiderEverything);
         }
 
-        private bool Equals(TypeParameterSymbol other, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
+        private bool Equals(TypeParameterSymbol other, TypeCompareKind comparison)
         {
             if (ReferenceEquals(this, other))
             {
@@ -516,23 +516,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Type parameters may be equal but not reference equal due to independent alpha renamings.
-            return other.ContainingSymbol.ContainingType.Equals(this.ContainingSymbol.ContainingType, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic);
+            return other.ContainingSymbol.ContainingType.Equals(this.ContainingSymbol.ContainingType, comparison);
         }
 
         public override int GetHashCode()
         {
             return Hash.Combine(ContainingSymbol, Ordinal);
-        }
-
-        /// <summary>
-        /// Returns a bag of applied custom attributes and data decoded from well-known attributes. Returns null if there are no attributes applied on the symbol.
-        /// </summary>
-        /// <remarks>
-        /// Forces binding and decoding of attributes.
-        /// </remarks>
-        internal virtual CustomAttributesBag<CSharpAttributeData> GetAttributesBag()
-        {
-            return null;
         }
 
         #region ITypeParameterTypeSymbol Members

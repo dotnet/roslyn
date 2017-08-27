@@ -1,10 +1,10 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestField_Private_SameType() As Task
             Dim input =
 <Workspace>
@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         {
             int {|Definition:$$i|};
 
-            void Foo()
+            void Goo()
             {
                 Console.WriteLine([|i|]);
                 Console.WriteLine(new C().[|i|]);
@@ -23,10 +23,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestField_Private_WrappedInProperty() As Task
             Dim input =
 <Workspace>
@@ -44,10 +44,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestField_MultipleVariableDeclarators() As Task
             Dim input =
 <Workspace>
@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         {
             int i = 1, {|Definition:$$j|} = 2;
 
-            void Foo()
+            void Goo()
             {
                 Console.WriteLine(i);
                 Console.WriteLine([|j|]);
@@ -67,10 +67,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestField_Public_OtherType() As Task
             Dim input =
 <Workspace>
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
         class D
         {
-            void Foo()
+            void Goo()
             {
                 Console.WriteLine(j);
                 Console.WriteLine(new C().[|j|]);
@@ -92,10 +92,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestField_Inaccessible() As Task
             Dim input =
 <Workspace>
@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
         class D
         {
-            void Foo()
+            void Goo()
             {
                 Console.WriteLine(j);
                 Console.WriteLine(new C().[|j|]);
@@ -117,10 +117,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestField_InDependentProject1() As Task
             Dim input =
 <Workspace>
@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <ProjectReference>CSharpAssembly1</ProjectReference>
         <Document>
         class D
-            sub Foo()
+            sub Goo()
                 Bar(new c().[|field|])
                 Bar(new C().[|Field|])
                 Bar(new C().blah)
@@ -145,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
         <Document>
         class E
-            sub Foo()
+            sub Goo()
                 ' Find, even in file without the original symbol name.
                 Bar(new c().[|Field|])
                 Bar(new C().blah)
@@ -154,10 +154,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestField_CSharpInaccessibleStaticField() As Task
             Dim input =
 <Workspace>
@@ -170,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
         class D
         {
-            void Foo()
+            void Goo()
             {
                 int j = C.[|j|];
             }
@@ -178,10 +178,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestField_VBInaccessibleStaticField() As Task
             Dim input =
 <Workspace>
@@ -192,17 +192,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Class
 
         Class D
-              Sub Foo()
+              Sub Goo()
                   Dim j As Integer = C.[|j|]
               End Sub
         End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestField_CSharpInaccessibleStaticProtectedField() As Task
             Dim input =
 <Workspace>
@@ -215,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
         class D
         {
-            void Foo()
+            void Goo()
             {
                 object j = C.[|j|];
             }
@@ -223,10 +223,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestField_VBInaccessibleStaticProtectedField() As Task
             Dim input =
 <Workspace>
@@ -237,17 +237,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Class
 
         Class D
-              Sub Foo()
+              Sub Goo()
                   Dim j As Object = C.[|j|]
               End Sub
         End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestField_CSharpInaccessibleInstanceProtectedField() As Task
             Dim input =
 <Workspace>
@@ -260,7 +260,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
         class D
         {
-            void Foo()
+            void Goo()
             {
                 C.[|j|];
             }
@@ -268,10 +268,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestField_VBInaccessibleInstanceProtectedField() As Task
             Dim input =
 <Workspace>
@@ -282,18 +282,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Class
 
         Class D
-              Sub Foo()
+              Sub Goo()
                   Dim j As string = C.[|j|]
               End Sub
         End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(539598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539598")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestField_EnumMember1() As Task
             Dim input =
 <Workspace>
@@ -312,11 +312,11 @@ class Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(539598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539598")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestField_EnumMember2() As Task
             Dim input =
 <Workspace>
@@ -335,43 +335,43 @@ class Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(540515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540515")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestField_AcrossSubmission() As Task
             Dim input =
 <Workspace>
     <Submission Language="C#" CommonReferences="true">
-        object {|Definition:$$foo|};
+        object {|Definition:$$goo|};
     </Submission>
     <Submission Language="C#" CommonReferences="true">
-        [|foo|]
+        [|goo|]
     </Submission>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(4952, "https://github.com/dotnet/roslyn/pull/4952")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestField_AcrossSubmission_Command() As Task
             Dim input =
 <Workspace>
     <Submission Language="C#" CommonReferences="true">
-        object {|Definition:$$foo|};
+        object {|Definition:$$goo|};
     </Submission>
     <Submission Language="NoCompilation" CommonReferences="false">
         #help
     </Submission>
     <Submission Language="C#" CommonReferences="true">
-        [|foo|]
+        [|goo|]
     </Submission>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCrefField() As Task
             Dim input =
 <Workspace>
@@ -379,8 +379,8 @@ class Program
         <Document><![CDATA[
 class Definition:Program
 {
-    private int {|Definition:foo|};
-    ///  <see cref="[|foo$$|]"/> to start the program.
+    private int {|Definition:goo|};
+    ///  <see cref="[|goo$$|]"/> to start the program.
     static void Main(string[] args)
     {
     }
@@ -389,10 +389,10 @@ class Definition:Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCrefField2() As Task
             Dim input =
 <Workspace>
@@ -400,8 +400,8 @@ class Definition:Program
         <Document><![CDATA[
 class Definition:Program
 {
-    private int {|Definition:foo$$|};
-    ///  <see cref="[|foo|]"/> to start the program.
+    private int {|Definition:goo$$|};
+    ///  <see cref="[|goo|]"/> to start the program.
     static void Main(string[] args)
     {
     }
@@ -410,7 +410,7 @@ class Definition:Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
     End Class
 End Namespace

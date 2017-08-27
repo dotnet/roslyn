@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -28,14 +28,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
         public IList<ClassificationSpan> GetClassificationSpans(SnapshotSpan span)
         {
-            ISignatureHelpSession session;
-            if (_subjectBuffer.Properties.TryGetProperty(typeof(ISignatureHelpSession), out session) &&
+            if (_subjectBuffer.Properties.TryGetProperty(typeof(ISignatureHelpSession), out ISignatureHelpSession session) &&
                 session.SelectedSignature is Signature)
             {
                 var signature = (Signature)session.SelectedSignature;
-
-                bool usePrettyPrintedContent;
-                if (!_subjectBuffer.Properties.TryGetProperty("UsePrettyPrintedContent", out usePrettyPrintedContent))
+                if (!_subjectBuffer.Properties.TryGetProperty("UsePrettyPrintedContent", out bool usePrettyPrintedContent))
                 {
                     usePrettyPrintedContent = false;
                 }

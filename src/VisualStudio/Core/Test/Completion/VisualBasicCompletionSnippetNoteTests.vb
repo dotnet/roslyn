@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
@@ -13,18 +13,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
     Public Class VisualBasicCompletionSnippetNoteTests
         Private _markup As XElement = <document>
                                           <![CDATA[Imports System
-Class Foo
+Class Goo
     $$
 End Class]]></document>
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function SnippetExpansionNoteAddedToDescription_ExactMatch() As Task
+        Public Async Function ColonDoesntTriggerSnippetInTupleLiteral() As Task
             Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "Interface")
-                state.SendTypeChars("Interfac")
-                Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Keyword, "Interface") & vbCrLf &
-                    VBFeaturesResources.InterfaceKeywordToolTip & vbCrLf &
-                    String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "Interface"))
+                state.SendTypeChars("Dim t = (Interfac")
+                Await state.AssertNoCompletionSession()
             End Using
         End Function
 
@@ -33,9 +30,9 @@ End Class]]></document>
             Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "intErfaCE")
                 state.SendTypeChars("Interfac")
                 Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Keyword, "Interface") & vbCrLf &
-                    VBFeaturesResources.InterfaceKeywordToolTip & vbCrLf &
-                    String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "Interface"))
+                Await state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources._0_Keyword, "Interface") & vbCrLf &
+                    VBFeaturesResources.Declares_the_name_of_an_interface_and_the_definitions_of_the_members_of_the_interface & vbCrLf &
+                    String.Format(FeaturesResources.Note_colon_Tab_twice_to_insert_the_0_snippet, "Interface"))
             End Using
         End Function
 
@@ -44,8 +41,8 @@ End Class]]></document>
             Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "Interfac")
                 state.SendTypeChars("Interfac")
                 Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Keyword, "Interface") & vbCrLf &
-                    VBFeaturesResources.InterfaceKeywordToolTip)
+                Await state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources._0_Keyword, "Interface") & vbCrLf &
+                    VBFeaturesResources.Declares_the_name_of_an_interface_and_the_definitions_of_the_members_of_the_interface)
             End Using
         End Function
 
@@ -54,8 +51,8 @@ End Class]]></document>
             Using state = CreateVisualBasicSnippetExpansionNoteTestState(_markup, "Interfaces")
                 state.SendTypeChars("Interfac")
                 Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Keyword, "Interface") & vbCrLf &
-                    VBFeaturesResources.InterfaceKeywordToolTip)
+                Await state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources._0_Keyword, "Interface") & vbCrLf &
+                    VBFeaturesResources.Declares_the_name_of_an_interface_and_the_definitions_of_the_members_of_the_interface)
             End Using
         End Function
 
@@ -75,14 +72,14 @@ End Class]]></document>
 
                 state.SendTypeChars("DisplayTex")
                 Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "InsertionText"))
+                Await state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Note_colon_Tab_twice_to_insert_the_0_snippet, "InsertionText"))
             End Using
         End Function
 
         Private Function CreateVisualBasicSnippetExpansionNoteTestState(xElement As XElement, ParamArray snippetShortcuts As String()) As TestState
             Dim state = TestState.CreateVisualBasicTestState(
                 xElement,
-                New CompletionProvider() {New MockCompletionProvider(New TextSpan(31, 10))},
+                New CompletionProvider() {New MockCompletionProvider()},
                 Nothing,
                 New List(Of Type) From {GetType(TestVisualBasicSnippetInfoService)})
 

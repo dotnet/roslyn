@@ -1,10 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
@@ -128,8 +124,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     var fieldBefore = (Green.FieldDeclarationSyntax)before;
                     var fieldAfter = (Green.FieldDeclarationSyntax)after;
 
-                    var isConstBefore = fieldBefore.Modifiers.Any(SyntaxKind.ConstKeyword);
-                    var isConstAfter = fieldAfter.Modifiers.Any(SyntaxKind.ConstKeyword);
+                    var isConstBefore = fieldBefore.Modifiers.Any((int)SyntaxKind.ConstKeyword);
+                    var isConstAfter = fieldAfter.Modifiers.Any((int)SyntaxKind.ConstKeyword);
 
                     if (!isConstBefore && !isConstAfter)
                     {
@@ -139,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
                 // NOTE(cyrusn): Do we want to avoid going down into attribute expressions?  I don't
                 // think we can avoid it as there are likely places in the compiler that use these
-                // expressions.  For example, if the user changes [InternalsVisibleTo("foo")] to
+                // expressions.  For example, if the user changes [InternalsVisibleTo("goo")] to
                 // [InternalsVisibleTo("bar")] then that must count as a top level change as it
                 // affects symbol visibility.  Perhaps we could enumerate the places in the compiler
                 // that use the values inside source attributes and we can check if we're in an
@@ -150,8 +146,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             if (ignoreChildNode != null)
             {
-                var e1 = ((Green.CSharpSyntaxNode)before).ChildNodesAndTokens().GetEnumerator();
-                var e2 = ((Green.CSharpSyntaxNode)after).ChildNodesAndTokens().GetEnumerator();
+                var e1 = before.ChildNodesAndTokens().GetEnumerator();
+                var e2 = after.ChildNodesAndTokens().GetEnumerator();
                 while (true)
                 {
                     GreenNode child1 = null;

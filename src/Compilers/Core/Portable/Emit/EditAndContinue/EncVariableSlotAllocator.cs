@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.Emit
@@ -36,6 +37,8 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly IReadOnlyDictionary<int, KeyValuePair<DebugId, int>> _lambdaMapOpt; // SyntaxOffset -> (Lambda Id, Closure Ordinal)
         private readonly IReadOnlyDictionary<int, DebugId> _closureMapOpt; // SyntaxOffset -> Id
 
+        private readonly LambdaSyntaxFacts _lambdaSyntaxFacts;
+
         public EncVariableSlotAllocator(
             SymbolMatcher symbolMap,
             Func<SyntaxNode, SyntaxNode> syntaxMapOpt,
@@ -48,7 +51,8 @@ namespace Microsoft.CodeAnalysis.Emit
             int hoistedLocalSlotCount,
             IReadOnlyDictionary<EncHoistedLocalInfo, int> hoistedLocalSlotsOpt,
             int awaiterCount,
-            IReadOnlyDictionary<Cci.ITypeReference, int> awaiterMapOpt)
+            IReadOnlyDictionary<Cci.ITypeReference, int> awaiterMapOpt,
+            LambdaSyntaxFacts lambdaSyntaxFacts)
         {
             Debug.Assert(symbolMap != null);
             Debug.Assert(previousTopLevelMethod != null);
@@ -66,6 +70,7 @@ namespace Microsoft.CodeAnalysis.Emit
             _awaiterMapOpt = awaiterMapOpt;
             _lambdaMapOpt = lambdaMapOpt;
             _closureMapOpt = closureMapOpt;
+            _lambdaSyntaxFacts = lambdaSyntaxFacts;
 
             // Create a map from local info to slot.
             var previousLocalInfoToSlot = new Dictionary<EncLocalInfo, int>();
@@ -132,8 +137,8 @@ namespace Microsoft.CodeAnalysis.Emit
             LocalDebugId id,
             LocalVariableAttributes pdbAttributes,
             LocalSlotConstraints constraints,
-            bool isDynamic,
-            ImmutableArray<TypedConstant> dynamicTransformFlags)
+            ImmutableArray<bool> dynamicTransformFlags,
+            ImmutableArray<string> tupleElementNames)
         {
             if (id.IsNone)
             {
@@ -171,8 +176,8 @@ namespace Microsoft.CodeAnalysis.Emit
                 id,
                 pdbAttributes,
                 constraints,
-                isDynamic,
-                dynamicTransformFlags);
+                dynamicTransformFlags,
+                tupleElementNames);
         }
 
         public override string PreviousStateMachineTypeName => _stateMachineTypeNameOpt;
@@ -249,7 +254,9 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             // Syntax map contains mapping for lambdas, but not their bodies. 
             // Map the lambda first and then determine the corresponding body.
-            var currentLambdaSyntax = isLambdaBody ? lambdaOrLambdaBodySyntax.GetLambda() : lambdaOrLambdaBodySyntax;
+            var currentLambdaSyntax = isLambdaBody 
+                ? _lambdaSyntaxFacts.GetLambda(lambdaOrLambdaBodySyntax) 
+                : lambdaOrLambdaBodySyntax;
 
             // no syntax map 
             // => the source of the current method is the same as the source of the previous method 
@@ -265,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Emit
             SyntaxNode previousSyntax;
             if (isLambdaBody)
             {
-                previousSyntax = previousLambdaSyntax.TryGetCorrespondingLambdaBody(lambdaOrLambdaBodySyntax);
+                previousSyntax = _lambdaSyntaxFacts.TryGetCorrespondingLambdaBody(previousLambdaSyntax, lambdaOrLambdaBodySyntax);
                 if (previousSyntax == null)
                 {
                     previousSyntaxOffset = 0;

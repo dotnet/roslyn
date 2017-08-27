@@ -86,6 +86,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 public override DiagnosticDescriptor Descriptor => _original.Descriptor;
 #pragma warning restore RS0013 
 
+                internal override int Code => _original.Code;
+                internal override IReadOnlyList<object> Arguments => _original.Arguments;
+
                 public override string Id => _original.Id;
                 public override DiagnosticSeverity Severity => _original.Severity;
                 public override int WarningLevel => _original.WarningLevel;

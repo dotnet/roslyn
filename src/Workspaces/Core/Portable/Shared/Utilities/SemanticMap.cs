@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {

@@ -6,12 +6,9 @@
 Option Compare Binary
 Option Strict On
 
-Imports System.Collections.ObjectModel
-Imports System.Text
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend NotInheritable Class Blender
@@ -473,7 +470,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function ContainsLeadingLineBreaks(node As VisualBasicSyntaxNode) As Boolean
             Dim lt = node.GetLeadingTrivia
             If lt IsNot Nothing Then
-                If lt.Kind = SyntaxKind.EndOfLineTrivia Then
+                If lt.RawKind = SyntaxKind.EndOfLineTrivia Then
                     Return True
                 End If
 

@@ -356,7 +356,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Overrides Function VisitConversion(conversion As BoundConversion) As BoundNode
-                Debug.Assert(conversion.RelaxationLambdaOpt Is Nothing AndAlso conversion.RelaxationReceiverPlaceholderOpt Is Nothing)
+                Debug.Assert(conversion.ExtendedInfoOpt Is Nothing)
 
                 Dim lambda As BoundLambda = TryCast(conversion.Operand, BoundLambda)
                 If lambda Is Nothing Then
@@ -398,7 +398,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' It checks for cases where variable is declared outside of the lambda in which it is being accessed
             ''' If capture is detected, than it marks variable as capturED and all lambdas involved as capturING
             ''' </summary>
-            Private Sub ReferenceVariable(variableOrParameter As Symbol, syntax As VisualBasicSyntaxNode)
+            Private Sub ReferenceVariable(variableOrParameter As Symbol, syntax As SyntaxNode)
                 ' No need to do anything if we are not in a lambda.
                 If _currentParent.MethodKind <> MethodKind.LambdaMethod Then
                     Return
@@ -437,7 +437,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End Sub
 
-            Private Sub VerifyCaptured(variableOrParameter As Symbol, syntax As VisualBasicSyntaxNode)
+            Private Sub VerifyCaptured(variableOrParameter As Symbol, syntax As SyntaxNode)
                 Dim type As TypeSymbol
                 Dim asParameter = TryCast(variableOrParameter, ParameterSymbol)
 

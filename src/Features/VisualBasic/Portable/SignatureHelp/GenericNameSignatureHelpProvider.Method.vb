@@ -1,10 +1,10 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
     Partial Friend Class GenericNameSignatureHelpProvider
 
-        Private Function GetPreambleParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IEnumerable(Of SymbolDisplayPart)
+        Private Function GetPreambleParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
             Dim result = New List(Of SymbolDisplayPart)()
 
             AddExtensionPreamble(method, result)
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             End If
         End Function
 
-        Private Function GetPostambleParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IEnumerable(Of SymbolDisplayPart)
+        Private Function GetPostambleParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
             Dim result = New List(Of SymbolDisplayPart)()
             result.Add(Punctuation(SyntaxKind.CloseParenToken))
             result.Add(Punctuation(SyntaxKind.OpenParenToken))

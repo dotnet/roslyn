@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.DocumentationComments
@@ -47,11 +47,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 GetIndexerPreambleParts(indexer, semanticModel, position),
                 GetSeparatorParts(),
                 GetIndexerPostambleParts(indexer, semanticModel, position),
-                indexer.Parameters.[Select](Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)))
+                indexer.Parameters.Select(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList())
             Return item
         End Function
 
-        Private Function GetIndexerPreambleParts(symbol As IPropertySymbol, semanticModel As SemanticModel, position As Integer) As IEnumerable(Of SymbolDisplayPart)
+        Private Function GetIndexerPreambleParts(symbol As IPropertySymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
             Dim result = New List(Of SymbolDisplayPart)()
             result.AddRange(symbol.ContainingType.ToMinimalDisplayParts(semanticModel, position))
             result.Add(Punctuation(SyntaxKind.OpenParenToken))
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
         Private Function GetIndexerPostambleParts(symbol As IPropertySymbol,
                                                   semanticModel As SemanticModel,
-                                                  position As Integer) As IEnumerable(Of SymbolDisplayPart)
+                                                  position As Integer) As IList(Of SymbolDisplayPart)
             Dim parts = New List(Of SymbolDisplayPart)
             parts.Add(Punctuation(SyntaxKind.CloseParenToken))
 

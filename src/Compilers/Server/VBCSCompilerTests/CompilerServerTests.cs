@@ -1,26 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-extern alias MSBuildTask;
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Pipes;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.Win32;
 using Roslyn.Test.Utilities;
 using Xunit;
-using System.Xml;
-using System.Threading.Tasks;
-using MSBuildTask::Microsoft.CodeAnalysis.BuildTasks;
-using Microsoft.CodeAnalysis.CommandLine;
-using Moq;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
@@ -51,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
                 // VBCSCompiler is used as a DLL in these tests, need to hook the resolve to the installed location.
                 AppDomain.CurrentDomain.AssemblyResolve += OnAssemblyResolve;
-                basePath = TestHelpers.GetMSBuildDirectory();
+                basePath = DesktopTestHelpers.GetMSBuildDirectory();
                 if (basePath == null)
                 {
                     return;
@@ -116,7 +107,7 @@ End Module")
 
         #region Helpers
 
-        private IEnumerable<KeyValuePair<string, string>> AddForLoggingEnvironmentVars(IEnumerable<KeyValuePair<string, string>> vars)
+        private static IEnumerable<KeyValuePair<string, string>> AddForLoggingEnvironmentVars(IEnumerable<KeyValuePair<string, string>> vars)
         {
             vars = vars ?? new KeyValuePair<string, string>[] { };
             if (!vars.Where(kvp => kvp.Key == "RoslynCommandLineLogFile").Any())
@@ -166,13 +157,7 @@ End Module")
             }
         }
 
-        public Process StartProcess(string fileName, string arguments, string workingDirectory = null)
-        {
-            CheckForBadShared(arguments);
-            return ProcessUtilities.StartProcess(fileName, arguments, workingDirectory);
-        }
-
-        private ProcessResult RunCommandLineCompiler(
+        private static ProcessResult RunCommandLineCompiler(
             string compilerPath,
             string arguments,
             string currentDirectory,
@@ -186,7 +171,7 @@ End Module")
                 additionalEnvironmentVars: AddForLoggingEnvironmentVars(additionalEnvironmentVars));
         }
 
-        private ProcessResult RunCommandLineCompiler(
+        private static ProcessResult RunCommandLineCompiler(
             string compilerPath,
             string arguments,
             TempDirectory currentDirectory,
@@ -889,7 +874,7 @@ class Hello
             GC.KeepAlive(rootDirectory);
         }
 
-        private async static Task<DisposableFile> RunCompilationAsync(RequestLanguage language, string pipeName, int i, TempDirectory compilationDir)
+        private async static Task<DisposableFile> RunCompilationAsync(RequestLanguage language, string pipeName, int i, TempDirectory compilationDir, TempDirectory tempDir)
         {
             TempFile sourceFile;
             string exeFileName;
@@ -936,7 +921,8 @@ End Module";
             var buildPaths = new BuildPaths(
                 clientDir: CompilerDirectory,
                 workingDir: compilationDir.Path,
-                sdkDir: RuntimeEnvironment.GetRuntimeDirectory());
+                sdkDir: RuntimeEnvironment.GetRuntimeDirectory(),
+                tempDir: tempDir.Path);
             var result = await client.RunCompilationAsync(new[] { $"/shared:{pipeName}", "/nologo", Path.GetFileName(sourceFile.Path), $"/out:{exeFileName}" }, buildPaths);
             Assert.Equal(0, result.ExitCode);
             Assert.True(result.RanOnServer);
@@ -964,7 +950,8 @@ End Module";
                 {
                     var language = i % 2 == 0 ? RequestLanguage.CSharpCompile : RequestLanguage.VisualBasicCompile;
                     var compilationDir = Temp.CreateDirectory();
-                    tasks[i] = RunCompilationAsync(language, serverData.PipeName, i, compilationDir);
+                    var tempDir = Temp.CreateDirectory();
+                    tasks[i] = RunCompilationAsync(language, serverData.PipeName, i, compilationDir, tempDir);
                 }
 
                 await Task.WhenAll(tasks);
@@ -1314,7 +1301,7 @@ class Program
         [Fact]
         public void BadKeepAlive2()
         {
-            var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:foo", _tempDirectory.Path);
+            var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:goo", _tempDirectory.Path);
 
             Assert.True(result.ContainsErrors);
             Assert.Equal(1, result.ExitCode);
@@ -1408,6 +1395,42 @@ class Program
                 Assert.Equal("", result.Output.Trim());
                 Assert.Equal(0, result.ExitCode);
                 await serverData.Verify(connections: 2, completed: 2).ConfigureAwait(true);
+            }
+        }
+
+        [WorkItem(406649, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=406649")]
+        [Fact]
+        public void MissingCompilerAssembly_CompilerServer()
+        {
+            var dir = Temp.CreateDirectory();
+            var workingDirectory = dir.Path;
+            var serverExe = dir.CopyFile(CompilerServerExecutable).Path;
+            dir.CopyFile(typeof(System.Collections.Immutable.ImmutableArray).Assembly.Location);
+
+            // Missing Microsoft.CodeAnalysis.dll launching server.
+            var result = ProcessUtilities.Run(serverExe, arguments: $"-pipename:{GetUniqueName()}", workingDirectory: workingDirectory);
+            Assert.Equal(1, result.ExitCode);
+            // Exception is logged rather than written to output/error streams.
+            Assert.Equal("", result.Output.Trim());
+        }
+
+        [WorkItem(406649, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=406649")]
+        [WorkItem(19213, "https://github.com/dotnet/roslyn/issues/19213")]
+        [Fact(Skip = "19213")]
+        public async Task MissingCompilerAssembly_CompilerServerHost()
+        {
+            var host = new TestableCompilerServerHost((request, cancellationToken) =>
+            {
+                throw new FileNotFoundException();
+            });
+            using (var serverData = ServerUtil.CreateServer(compilerServerHost: host))
+            {
+                var request = new BuildRequest(1, RequestLanguage.CSharpCompile, new BuildRequest.Argument[0]);
+                var compileTask = ServerUtil.Send(serverData.PipeName, request);
+                var response = await compileTask;
+                Assert.Equal(BuildResponse.ResponseType.Completed, response.Type);
+                Assert.Equal(0, ((CompletedBuildResponse)response).ReturnCode);
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
     }

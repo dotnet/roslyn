@@ -63,90 +63,92 @@ namespace Microsoft.CodeAnalysis.Editor {
         /// <summary>
         ///   Looks up a localized string similar to Building Project.
         /// </summary>
-        internal static string BuildingProject {
+        internal static string Building_Project {
             get {
-                return ResourceManager.GetString("BuildingProject", resourceCulture);
+                return ResourceManager.GetString("Building_Project", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Copying selection to Interactive Window..
         /// </summary>
-        internal static string CopyToInteractiveDescription {
+        internal static string Copying_selection_to_Interactive_Window {
             get {
-                return ResourceManager.GetString("CopyToInteractiveDescription", resourceCulture);
+                return ResourceManager.GetString("Copying_selection_to_Interactive_Window", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Executing selection in Interactive Window..
         /// </summary>
-        internal static string ExecuteInInteractiveDescription {
+        internal static string Executing_selection_in_Interactive_Window {
             get {
-                return ResourceManager.GetString("ExecuteInInteractiveDescription", resourceCulture);
+                return ResourceManager.GetString("Executing_selection_in_Interactive_Window", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Print a list of referenced assemblies..
         /// </summary>
-        internal static string ReferencesCommandDescription {
+        internal static string Print_a_list_of_referenced_assemblies {
             get {
-                return ResourceManager.GetString("ReferencesCommandDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The references command is not supported in this Interactive Window implementation..
-        /// </summary>
-        internal static string ReferencesCommandEvaluatorError {
-            get {
-                return ResourceManager.GetString("ReferencesCommandEvaluatorError", resourceCulture);
+                return ResourceManager.GetString("Print_a_list_of_referenced_assemblies", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Reset the execution environment to the initial state, keep history..
         /// </summary>
-        internal static string ResetCommandDescription {
+        internal static string Reset_the_execution_environment_to_the_initial_state_keep_history {
             get {
-                return ResourceManager.GetString("ResetCommandDescription", resourceCulture);
+                return ResourceManager.GetString("Reset_the_execution_environment_to_the_initial_state_keep_history", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Reset to a clean environment (only mscorlib referenced), do not run initialization script..
         /// </summary>
-        internal static string ResetCommandParametersDescription {
+        internal static string Reset_to_a_clean_environment_only_mscorlib_referenced_do_not_run_initialization_script {
             get {
-                return ResourceManager.GetString("ResetCommandParametersDescription", resourceCulture);
+                return ResourceManager.GetString("Reset_to_a_clean_environment_only_mscorlib_referenced_do_not_run_initialization_s" +
+                        "cript", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Resetting execution engine..
         /// </summary>
-        internal static string ResettingExecutionEngine {
+        internal static string Resetting_execution_engine {
             get {
-                return ResourceManager.GetString("ResettingExecutionEngine", resourceCulture);
+                return ResourceManager.GetString("Resetting_execution_engine", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Resetting Interactive.
         /// </summary>
-        internal static string ResettingInteractive {
+        internal static string Resetting_Interactive {
             get {
-                return ResourceManager.GetString("ResettingInteractive", resourceCulture);
+                return ResourceManager.GetString("Resetting_Interactive", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to The CurrentWindow property may only be assigned once..
         /// </summary>
-        internal static string WindowSetAgainException {
+        internal static string The_CurrentWindow_property_may_only_be_assigned_once {
             get {
-                return ResourceManager.GetString("WindowSetAgainException", resourceCulture);
+                return ResourceManager.GetString("The_CurrentWindow_property_may_only_be_assigned_once", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The references command is not supported in this Interactive Window implementation..
+        /// </summary>
+        internal static string The_references_command_is_not_supported_in_this_Interactive_Window_implementation {
+            get {
+                return ResourceManager.GetString("The_references_command_is_not_supported_in_this_Interactive_Window_implementation" +
+                        "", resourceCulture);
             }
         }
     }

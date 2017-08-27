@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -40,8 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
         internal override SyntaxNode LookupNode()
         {
-            SyntaxNode node;
-            if (!TryLookupNode(out node))
+            if (!TryLookupNode(out var node))
             {
                 throw Exceptions.ThrowEUnexpected();
             }
@@ -59,8 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
                 return false;
             }
 
-            SyntaxNode attributeArgumentNode;
-            if (!CodeModelService.TryGetAttributeArgumentNode(attributeNode, _index, out attributeArgumentNode))
+            if (!CodeModelService.TryGetAttributeArgumentNode(attributeNode, _index, out var attributeArgumentNode))
             {
                 return false;
             }

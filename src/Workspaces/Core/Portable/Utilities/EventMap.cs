@@ -72,9 +72,7 @@ namespace Roslyn.Utilities
             where TEventHandler : class
         {
             _guard.AssertHasLock();
-
-            object registries;
-            if (_eventNameToRegistries.TryGetValue(eventName, out registries))
+            if (_eventNameToRegistries.TryGetValue(eventName, out var registries))
             {
                 return (ImmutableArray<Registry<TEventHandler>>)registries;
             }

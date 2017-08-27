@@ -6,6 +6,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using Cci = Microsoft.Cci;
 
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             private ScopeInfo CurrentScope => _scopes.Peek();
 
-            internal ScopeInfo OpenScope(ScopeType scopeType, Microsoft.Cci.ITypeReference exceptionType)
+            internal ScopeInfo OpenScope(ScopeType scopeType, Cci.ITypeReference exceptionType)
             {
                 var scope = CurrentScope.OpenScope(scopeType, exceptionType, _enclosingExceptionHandler);
                 _scopes.Push(scope);
@@ -147,9 +149,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 return result.ToImmutableAndFree();
             }
 
-            internal ImmutableArray<Cci.StateMachineHoistedLocalScope> GetHoistedLocalScopes()
+            internal ImmutableArray<StateMachineHoistedLocalScope> GetHoistedLocalScopes()
             {
-                var result = ArrayBuilder<Cci.StateMachineHoistedLocalScope>.GetInstance();
+                var result = ArrayBuilder<StateMachineHoistedLocalScope>.GetInstance();
                 _rootScope.GetHoistedLocalScopes(result);
                 return result.ToImmutableAndFree();
             }
@@ -271,9 +273,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             /// Recursively calculates the start and end of the given scope.
             /// Only scopes with locals are actually dumped to the list.
             /// </summary>
-            internal abstract ScopeBounds GetHoistedLocalScopes(ArrayBuilder<Cci.StateMachineHoistedLocalScope> result);
+            internal abstract ScopeBounds GetHoistedLocalScopes(ArrayBuilder<StateMachineHoistedLocalScope> result);
 
-            protected static ScopeBounds GetHoistedLocalScopes<TScopeInfo>(ArrayBuilder<Cci.StateMachineHoistedLocalScope> result, ImmutableArray<TScopeInfo>.Builder scopes)
+            protected static ScopeBounds GetHoistedLocalScopes<TScopeInfo>(ArrayBuilder<StateMachineHoistedLocalScope> result, ImmutableArray<TScopeInfo>.Builder scopes)
                 where TScopeInfo : ScopeInfo
             {
                 Debug.Assert(scopes.Count > 0);
@@ -462,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 return new ScopeBounds(begin, end);
             }
 
-            internal override ScopeBounds GetHoistedLocalScopes(ArrayBuilder<Cci.StateMachineHoistedLocalScope> result)
+            internal override ScopeBounds GetHoistedLocalScopes(ArrayBuilder<StateMachineHoistedLocalScope> result)
             {
                 int begin = int.MaxValue;
                 int end = 0;
@@ -495,13 +497,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 // we are not interested in scopes with no variables or no code in them.
                 if (_stateMachineUserHoistedLocalSlotIndices != null && end > begin)
                 {
-                    var newScope = new Cci.StateMachineHoistedLocalScope(begin, end);
+                    var newScope = new StateMachineHoistedLocalScope(begin, end);
 
                     foreach (var slotIndex in _stateMachineUserHoistedLocalSlotIndices)
                     {
                         while (result.Count <= slotIndex)
                         {
-                            result.Add(default(Cci.StateMachineHoistedLocalScope));
+                            result.Add(default(StateMachineHoistedLocalScope));
                         }
 
                         result[slotIndex] = newScope;
@@ -806,7 +808,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             internal override ScopeBounds GetLocalScopes(ArrayBuilder<Cci.LocalScope> scopesWithVariables)
                 => GetLocalScopes(scopesWithVariables, _handlers);
 
-            internal override ScopeBounds GetHoistedLocalScopes(ArrayBuilder<Cci.StateMachineHoistedLocalScope> result)
+            internal override ScopeBounds GetHoistedLocalScopes(ArrayBuilder<StateMachineHoistedLocalScope> result)
                 => GetHoistedLocalScopes(result, _handlers);
 
             private static ScopeBounds GetBounds(ExceptionHandlerScope scope)

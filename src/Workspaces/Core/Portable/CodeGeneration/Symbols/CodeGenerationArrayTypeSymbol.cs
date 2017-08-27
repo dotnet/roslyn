@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
@@ -14,8 +12,32 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public int Rank { get; }
 
+        public bool IsSZArray
+        {
+            get
+            {
+                return Rank == 1;
+            }
+        }
+
+        public ImmutableArray<int> Sizes
+        {
+            get
+            {
+                return ImmutableArray<int>.Empty;
+            }
+        }
+
+        public ImmutableArray<int> LowerBounds
+        {
+            get
+            {
+                return default;
+            }
+        }
+
         public CodeGenerationArrayTypeSymbol(ITypeSymbol elementType, int rank)
-            : base(null, null, Accessibility.NotApplicable, default(DeclarationModifiers), string.Empty, SpecialType.None)
+            : base(null, default, Accessibility.NotApplicable, default, string.Empty, SpecialType.None)
         {
             this.ElementType = elementType;
             this.Rank = rank;
@@ -26,21 +48,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return new CodeGenerationArrayTypeSymbol(this.ElementType, this.Rank);
         }
 
-        public override TypeKind TypeKind
-        {
-            get
-            {
-                return TypeKind.Array;
-            }
-        }
+        public override TypeKind TypeKind => TypeKind.Array;
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.ArrayType;
-            }
-        }
+        public override SymbolKind Kind => SymbolKind.ArrayType;
 
         public override void Accept(SymbolVisitor visitor)
         {

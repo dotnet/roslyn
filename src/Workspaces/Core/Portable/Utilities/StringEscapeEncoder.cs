@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Text;
-using System.Linq;
-using System.Threading;
 
 namespace Roslyn.Utilities
 {
@@ -19,9 +16,9 @@ namespace Roslyn.Utilities
             {
                 var prefixIndex = text.IndexOf(escapePrefix, startIndex);
                 var prohibitIndex = text.IndexOfAny(prohibitedCharacters, startIndex);
-                var index = prefixIndex > 0 && prohibitIndex > 0 ? Math.Min(prefixIndex, prohibitIndex)
-                        : prefixIndex > 0 ? prefixIndex
-                        : prohibitIndex > 0 ? prohibitIndex
+                var index = prefixIndex >= 0 && prohibitIndex >= 0 ? Math.Min(prefixIndex, prohibitIndex)
+                        : prefixIndex >= 0 ? prefixIndex
+                        : prohibitIndex >= 0 ? prohibitIndex
                         : -1;
 
                 if (index < 0)

@@ -8,6 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal enum MessageID
     {
+        None = 0,
         MessageBase = 1200,
         IDS_SK_METHOD = MessageBase + 2000,
         IDS_SK_TYPE = MessageBase + 2001,
@@ -56,6 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureNullable = MessageBase + 12528,
         IDS_Lambda = MessageBase + 12531,
         IDS_FeaturePatternMatching = MessageBase + 12532,
+        IDS_FeatureThrowExpression = MessageBase + 12533,
 
         IDS_FeatureImplicitArray = MessageBase + 12557,
         IDS_FeatureImplicitLocal = MessageBase + 12558,
@@ -119,8 +121,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeatureRefLocalsReturns = MessageBase + 12710,
         IDS_FeatureTuples = MessageBase + 12711,
-        IDS_FeatureReplace = MessageBase + 12712,
         IDS_FeatureOutVar = MessageBase + 12713,
+
+        IDS_FeatureIOperation = MessageBase + 12714,
+        IDS_FeatureExpressionBodiedAccessor = MessageBase + 12715,
+        IDS_FeatureExpressionBodiedDeOrConstructor = MessageBase + 12716,
+        IDS_ThrowExpression = MessageBase + 12717,
+        IDS_FeatureDefaultLiteral = MessageBase + 12718,
+        IDS_FeatureInferredTupleNames = MessageBase + 12719,
+        IDS_FeatureGenericPatternMatching = MessageBase + 12720,
+        IDS_FeatureAsyncMain = MessageBase + 12721,
+        IDS_LangVersions = MessageBase +  12722,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -162,24 +173,39 @@ namespace Microsoft.CodeAnalysis.CSharp
         //   (hence the above rule - RequiredVersion throws when RequiredFeature returns non-null)
         internal static string RequiredFeature(this MessageID feature)
         {
-            return null;
+            switch (feature)
+            {
+                case MessageID.IDS_FeatureIOperation:
+                    return "IOperation";
+                default:
+                    return null;
+            }
         }
-        
+
         internal static LanguageVersion RequiredVersion(this MessageID feature)
         {
             // Based on CSourceParser::GetFeatureUsage from SourceParser.cpp.
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
+                // C# 7.1 features.
+                case MessageID.IDS_FeatureAsyncMain:
+                case MessageID.IDS_FeatureDefaultLiteral:
+                case MessageID.IDS_FeatureInferredTupleNames:
+                case MessageID.IDS_FeatureGenericPatternMatching:
+                    return LanguageVersion.CSharp7_1;
+
                 // C# 7 features.
                 case MessageID.IDS_FeatureBinaryLiteral:
                 case MessageID.IDS_FeatureDigitSeparator:
                 case MessageID.IDS_FeatureLocalFunctions:
                 case MessageID.IDS_FeatureRefLocalsReturns:
                 case MessageID.IDS_FeaturePatternMatching:
+                case MessageID.IDS_FeatureThrowExpression:
                 case MessageID.IDS_FeatureTuples:
-                case MessageID.IDS_FeatureReplace:
                 case MessageID.IDS_FeatureOutVar:
+                case MessageID.IDS_FeatureExpressionBodiedAccessor:
+                case MessageID.IDS_FeatureExpressionBodiedDeOrConstructor:
                     return LanguageVersion.CSharp7;
 
                 // C# 6 features.

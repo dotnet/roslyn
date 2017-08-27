@@ -279,10 +279,10 @@ Class C1
     public a as string
 
     Public Shared Sub Main()
-        Dim a As New C2() with {.a = "foo"} From {"Hello World!"}
-        Dim b As New C2() From {"Hello World!"} with {.a = "foo"}
-        Dim c As C2 = New C2() From {"Hello World!"} with {.a = "foo"}
-        Dim d As C2 = New C2() with {.a = "foo"} From {"Hello World!"} 
+        Dim a As New C2() with {.a = "goo"} From {"Hello World!"}
+        Dim b As New C2() From {"Hello World!"} with {.a = "goo"}
+        Dim c As C2 = New C2() From {"Hello World!"} with {.a = "goo"}
+        Dim d As C2 = New C2() with {.a = "goo"} From {"Hello World!"} 
     End Sub
 End Class        
     </file>
@@ -291,16 +291,16 @@ End Class
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected>
 BC36720: An Object Initializer and a Collection Initializer cannot be combined in the same initialization.
-        Dim a As New C2() with {.a = "foo"} From {"Hello World!"}
+        Dim a As New C2() with {.a = "goo"} From {"Hello World!"}
                                             ~~~~
 BC36720: An Object Initializer and a Collection Initializer cannot be combined in the same initialization.
-        Dim b As New C2() From {"Hello World!"} with {.a = "foo"}
+        Dim b As New C2() From {"Hello World!"} with {.a = "goo"}
                                                 ~~~~
 BC36720: An Object Initializer and a Collection Initializer cannot be combined in the same initialization.
-        Dim c As C2 = New C2() From {"Hello World!"} with {.a = "foo"}
+        Dim c As C2 = New C2() From {"Hello World!"} with {.a = "goo"}
                                ~~~~~~~~~~~~~~~~~~~~~
 BC36720: An Object Initializer and a Collection Initializer cannot be combined in the same initialization.
-        Dim d As C2 = New C2() with {.a = "foo"} From {"Hello World!"} 
+        Dim d As C2 = New C2() with {.a = "goo"} From {"Hello World!"} 
                                ~~~~~~~~~~~~~~~~~                                                   
                                                </expected>)
         End Sub
@@ -1555,6 +1555,45 @@ End Class
                 Assert.Null(symbolInfo.Symbol)
                 Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
                 Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
+            Next
+        End Sub
+
+        <Fact()>
+        <WorkItem(12983, "https://github.com/dotnet/roslyn/issues/12983")>
+        Public Sub GetCollectionInitializerSymbolInfo_06()
+            Dim compilation = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+Imports System.Collections.Generic
+
+Class C1
+    Public Shared Sub Main()
+        Dim list1 = new List(Of String)
+        Dim list2 = new List(Of String)()
+        
+        Dim list3 = new List(Of String) With { .Count = 3 }
+        Dim list4 = new List(Of String)() With { .Count = 3 }
+        
+        Dim list5 = new List(Of String)  From { 1, 2, 3 }
+        Dim list6 = new List(Of String)() From { 1, 2, 3 }
+    End Sub
+End Class        
+    </file>
+</compilation>)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+
+            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of GenericNameSyntax)().ToArray()
+            Assert.Equal(6, nodes.Length)
+
+            For Each name In nodes
+                Assert.Equal("List(Of String)", name.ToString())
+                Assert.Equal("System.Collections.Generic.List(Of System.String)", semanticModel.GetSymbolInfo(name).Symbol.ToTestDisplayString())
+                Assert.Null(semanticModel.GetTypeInfo(name).Type)
             Next
         End Sub
 

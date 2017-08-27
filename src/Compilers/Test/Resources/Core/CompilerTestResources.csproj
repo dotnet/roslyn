@@ -1,60 +1,22 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</ProjectGuid>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Compilers.Test.Resources</AssemblyName>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
-    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <RestorePackages>true</RestorePackages>
+    <TargetFramework>netstandard1.3</TargetFramework>
+    <RootNamespace></RootNamespace>
+    <EnableDefaultItems>false</EnableDefaultItems>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <DefineDebug>true</DefineDebug>
-    <DefineTrace>true</DefineTrace>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <DefineTrace>true</DefineTrace>
-    <Optimize>true</Optimize>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <DefineDebug>true</DefineDebug>
-    <DefineTrace>true</DefineTrace>
-    <OutDir>..\..\..\..\..\Binaries\Debug\amd64</OutDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <DefineTrace>true</DefineTrace>
-    <Optimize>true</Optimize>
-    <OutDir>..\..\..\..\..\Binaries\Release\amd64</OutDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM'">
-    <DebugSymbols>true</DebugSymbols>
-    <DefineDebug>true</DefineDebug>
-    <DefineTrace>true</DefineTrace>
-    <PlatformTarget>ARM</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|ARM'">
-    <DefineTrace>true</DefineTrace>
-    <Optimize>true</Optimize>
-    <PlatformTarget>ARM</PlatformTarget>
-  </PropertyGroup>
   <ItemGroup>
     <Content Include="Analyzers\FaultyAnalyzer.cs" />
     <EmbeddedResource Include="Analyzers\FaultyAnalyzer.dll" />
@@ -140,6 +102,7 @@
     <Content Include="NetFX\Minimal\mincorlib.cs" />
     <EmbeddedResource Include="NetFX\ValueTuple\System.ValueTuple.dll" />
     <EmbeddedResource Include="SymbolsTests\Metadata\public-and-private.dll" />
+    <EmbeddedResource Include="SymbolsTests\CustomModifiers\GenericMethodWithModifiers.dll" />
     <Content Include="SymbolsTests\NoPia\ParametersWithoutNames.cs" />
     <EmbeddedResource Include="PerfTests\CSPerfTest.cs" />
     <Content Include="Resources\License.txt" />
@@ -347,6 +310,8 @@
     <EmbeddedResource Include="SymbolsTests\snKey2.snk" />
     <EmbeddedResource Include="SymbolsTests\snPublicKey.snk" />
     <EmbeddedResource Include="SymbolsTests\snPublicKey2.snk" />
+    <EmbeddedResource Include="SymbolsTests\snMaxSizeKey.snk" />
+    <EmbeddedResource Include="SymbolsTests\snMaxSizePublicKey.snk" />
     <EmbeddedResource Include="SymbolsTests\TypeForwarders\Forwarded.netmodule" />
     <EmbeddedResource Include="SymbolsTests\TypeForwarders\TypeForwarder.dll" />
     <Content Include="SymbolsTests\TypeForwarders\TypeForwarder.vb" />
@@ -421,15 +386,20 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="NetFX\ValueTuple\ValueTuple.cs" />
-    <Compile Include="ResourceLoader.cs" />
+    <EmbeddedResource Include="NetFX\ValueTuple\TupleElementNamesAttribute.cs" />
+    <Content Include="SymbolsTests\CustomModifiers\GenericMethodWithModifiers.cpp" />
     <None Include="SymbolsTests\Metadata\public-and-private.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ResourceLoader.cs" />
     <Compile Include="TestKeys.cs" />
     <Compile Include="TestResources.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="SymbolsTests\nativeCOFFResources.obj" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-  </ImportGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Xml.ReaderWriter" Version="$(SystemXmlReaderWriterVersion)" />
+  </ItemGroup>
+  <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>

@@ -1,9 +1,10 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -65,12 +66,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             FixAllContext.DiagnosticProvider fixAllDiagnosticProvider)
         {
             Contract.ThrowIfNull(project);
-
-            if (codeFixProvider == null)
-            {
-                throw new ArgumentNullException(nameof(codeFixProvider));
-            }
-
             if (diagnosticIds == null)
             {
                 throw new ArgumentNullException(nameof(diagnosticIds));
@@ -78,22 +73,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             if (diagnosticIds.Any(d => d == null))
             {
-                throw new ArgumentException(WorkspacesResources.DiagnosticCannotBeNull, nameof(diagnosticIds));
-            }
-
-            if (fixAllDiagnosticProvider == null)
-            {
-                throw new ArgumentNullException(nameof(fixAllDiagnosticProvider));
+                throw new ArgumentException(WorkspacesResources.Supplied_diagnostic_cannot_be_null, nameof(diagnosticIds));
             }
 
             this.FixAllProvider = fixAllProvider;
             this.Document = document;
             this.Project = project;
-            this.CodeFixProvider = codeFixProvider;
+            this.CodeFixProvider = codeFixProvider ?? throw new ArgumentNullException(nameof(codeFixProvider));
             this.Scope = scope;
             this.CodeActionEquivalenceKey = codeActionEquivalenceKey;
             this.DiagnosticIds = ImmutableHashSet.CreateRange(diagnosticIds);
-            this.DiagnosticProvider = fixAllDiagnosticProvider;
+            this.DiagnosticProvider = fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider));
         }
 
         internal bool IsFixMultiple => this.DiagnosticProvider.IsFixMultiple;
@@ -118,52 +108,38 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return new FixAllContext(this, progressTracker, cancellationToken);
         }
 
-        internal static FixAllState Create(
-            FixAllProvider fixAllProvider,
-            Document document,
-            FixAllProviderInfo fixAllProviderInfo,
-            CodeFixProvider originalFixProvider,
-            IEnumerable<Diagnostic> originalFixDiagnostics,
-            Func<Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDocumentDiagnosticsAsync,
-            Func<Project, bool, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getProjectDiagnosticsAsync)
+        internal string GetDefaultFixAllTitle()
         {
-            var diagnosticIds = GetFixAllDiagnosticIds(fixAllProviderInfo, originalFixDiagnostics).ToImmutableHashSet();
-            var diagnosticProvider = new FixAllDiagnosticProvider(diagnosticIds, getDocumentDiagnosticsAsync, getProjectDiagnosticsAsync);
-            return new FixAllState(
-                fixAllProvider: fixAllProvider,
-                document: document,
-                codeFixProvider: originalFixProvider,
-                scope: FixAllScope.Document,
-                codeActionEquivalenceKey: null,
-                diagnosticIds: diagnosticIds,
-                fixAllDiagnosticProvider: diagnosticProvider);
-        }
+            var diagnosticIds = this.DiagnosticIds;
+            string diagnosticId;
+            if (diagnosticIds.Count() == 1)
+            {
+                diagnosticId = diagnosticIds.Single();
+            }
+            else
+            {
+                diagnosticId = string.Join(",", diagnosticIds.ToArray());
+            }
 
-        internal static FixAllState Create(
-            FixAllProvider fixAllProvider,
-            Project project,
-            FixAllProviderInfo fixAllProviderInfo,
-            CodeFixProvider originalFixProvider,
-            IEnumerable<Diagnostic> originalFixDiagnostics,
-            Func<Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDocumentDiagnosticsAsync,
-            Func<Project, bool, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getProjectDiagnosticsAsync)
-        {
-            var diagnosticIds = GetFixAllDiagnosticIds(fixAllProviderInfo, originalFixDiagnostics).ToImmutableHashSet();
-            var diagnosticProvider = new FixAllDiagnosticProvider(diagnosticIds, getDocumentDiagnosticsAsync, getProjectDiagnosticsAsync);
-            return new FixAllState(
-                fixAllProvider: fixAllProvider,
-                project: project,
-                codeFixProvider: originalFixProvider,
-                scope: FixAllScope.Project,
-                codeActionEquivalenceKey: null, diagnosticIds: diagnosticIds,
-                fixAllDiagnosticProvider: diagnosticProvider);
-        }
+            switch (this.Scope)
+            {
+                case FixAllScope.Custom:
+                    return string.Format(WorkspacesResources.Fix_all_0, diagnosticId);
 
-        private static IEnumerable<string> GetFixAllDiagnosticIds(FixAllProviderInfo fixAllProviderInfo, IEnumerable<Diagnostic> originalFixDiagnostics)
-        {
-            return originalFixDiagnostics
-                .Where(fixAllProviderInfo.CanBeFixed)
-                .Select(d => d.Id);
+                case FixAllScope.Document:
+                    var document = this.Document;
+                    return string.Format(WorkspacesResources.Fix_all_0_in_1, diagnosticId, document.Name);
+
+                case FixAllScope.Project:
+                    var project = this.Project;
+                    return string.Format(WorkspacesResources.Fix_all_0_in_1, diagnosticId, project.Name);
+
+                case FixAllScope.Solution:
+                    return string.Format(WorkspacesResources.Fix_all_0_in_Solution, diagnosticId);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(this.Scope);
+            }
         }
 
         #region FixMultiple

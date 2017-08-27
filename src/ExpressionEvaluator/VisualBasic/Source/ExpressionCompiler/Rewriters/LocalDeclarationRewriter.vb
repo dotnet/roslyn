@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
@@ -51,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private Shared Function GenerateCreateVariableStatement(
             compilation As VisualBasicCompilation,
             container As EENamedTypeSymbol,
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             local As LocalSymbol) As BoundStatement
 
             Dim typeType = compilation.GetWellKnownType(WellKnownType.System_Type)

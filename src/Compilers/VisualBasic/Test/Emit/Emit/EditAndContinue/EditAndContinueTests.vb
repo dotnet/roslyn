@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -17,6 +17,171 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     Public Class EditAndContinueTests
         Inherits EditAndContinueTestBase
+
+        <Fact>
+        Public Sub SemanticErrors_MethodBody()
+            Dim source0 = MarkedSource("
+Class C
+    Shared Sub E()
+        Dim x As Integer = 1
+        System.Console.WriteLine(x)
+    End Sub
+
+    Shared Sub G()
+        System.Console.WriteLine(1)
+    End Sub
+End Class
+")
+            Dim source1 = MarkedSource("
+Class C
+    Shared Sub E()
+        Dim x = Unknown(2)
+        System.Console.WriteLine(x)
+    End Sub
+
+    Shared Sub G()
+        System.Console.WriteLine(2)
+    End Sub
+End Class
+")
+            Dim compilation0 = CreateCompilationWithMscorlib(source0.Tree, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            Dim e0 = compilation0.GetMember(Of MethodSymbol)("C.E")
+            Dim e1 = compilation1.GetMember(Of MethodSymbol)("C.E")
+            Dim g0 = compilation0.GetMember(Of MethodSymbol)("C.G")
+            Dim g1 = compilation1.GetMember(Of MethodSymbol)("C.G")
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+
+            ' Semantic errors are reported only for the bodies of members being emitted.
+            Dim diffError = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, e0, e1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            diffError.EmitResult.Diagnostics.Verify(
+                Diagnostic(ERRID.ERR_NameNotDeclared1, "Unknown").WithArguments("Unknown").WithLocation(4, 17))
+
+            Dim diffGood = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, g0, g1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            diffGood.EmitResult.Diagnostics.Verify()
+            diffGood.VerifyIL("C.G", "
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldc.i4.2
+  IL_0002:  call       ""Sub System.Console.WriteLine(Integer)""
+  IL_0007:  nop
+  IL_0008:  ret
+}")
+        End Sub
+
+        <Fact>
+        Public Sub SemanticErrors_Declaration()
+            Dim source0 = MarkedSource("
+Class C
+    Sub G() 
+        System.Console.WriteLine(1)
+    End Sub
+End Class
+")
+            Dim source1 = MarkedSource("
+Class C
+    Sub G() 
+        System.Console.WriteLine(1)
+    End Sub
+End Class
+
+Class Bad 
+  Inherits Bad
+End Class
+")
+            Dim compilation0 = CreateCompilationWithMscorlib(source0.Tree, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+
+            Dim g0 = compilation0.GetMember(Of MethodSymbol)("C.G")
+            Dim g1 = compilation1.GetMember(Of MethodSymbol)("C.G")
+
+            Dim v0 = CompileAndVerify(compilation0)
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+
+            Dim diff = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, g0, g1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            diff.EmitResult.Diagnostics.Verify(
+                Diagnostic(ERRID.ERR_TypeInItsInheritsClause1, "Bad").WithArguments("Bad").WithLocation(9, 12))
+        End Sub
+
+        <Fact>
+        Public Sub ModifyMethod_WithTuples()
+            Dim source0 =
+"
+Class C
+    Shared Sub Main
+    End Sub
+    Shared Function F() As (Integer, Integer)
+        Return (1, 2)
+    End Function
+End Class
+"
+            Dim source1 =
+"
+Class C
+    Shared Sub Main
+    End Sub
+    Shared Function F() As (Integer, Integer)
+        Return (2, 3)
+    End Function
+End Class
+"
+            Dim compilation0 = CreateCompilationWithMscorlib({source0}, options:=TestOptions.DebugExe, references:={ValueTupleRef, SystemRuntimeFacadeRef})
+            Dim compilation1 = compilation0.WithSource(source1)
+
+            Dim bytes0 = compilation0.EmitToArray()
+            Using md0 = ModuleMetadata.CreateFromImage(bytes0)
+                Dim reader0 = md0.MetadataReader
+                Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+
+                Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
+                Dim diff1 = compilation1.EmitDifference(generation0, ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
+
+                ' Verify delta metadata contains expected rows.
+                Using md1 = diff1.GetMetadata()
+                    Dim reader1 = md1.Reader
+                    Dim readers = {reader0, reader1}
+                    EncValidation.VerifyModuleMvid(1, reader0, reader1)
+                    CheckNames(readers, reader1.GetTypeDefNames())
+                    CheckNames(readers, reader1.GetMethodDefNames(), "F")
+                    CheckNames(readers, reader1.GetMemberRefNames(), ".ctor") ' System.ValueTuple ctor
+                    CheckEncLog(reader1,
+                        Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                        Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(9, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                        Row(2, TableIndex.TypeSpec, EditAndContinueOperation.Default),
+                        Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                        Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default)) ' C.F
+                    CheckEncMap(reader1,
+                        Handle(8, TableIndex.TypeRef),
+                        Handle(9, TableIndex.TypeRef),
+                        Handle(3, TableIndex.MethodDef),
+                        Handle(7, TableIndex.MemberRef),
+                        Handle(2, TableIndex.StandAloneSig),
+                        Handle(2, TableIndex.TypeSpec),
+                        Handle(3, TableIndex.AssemblyRef),
+                        Handle(4, TableIndex.AssemblyRef))
+                End Using
+            End Using
+        End Sub
 
         <WorkItem(962219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962219")>
         <Fact>
@@ -2796,13 +2961,13 @@ Class C
         Return Nothing
     End Function
     Shared Sub M(o As object)
-        for i as double = foo() to foo() step foo()
-            for j as double = foo() to foo() step foo()
+        for i as double = goo() to goo() step goo()
+            for j as double = goo() to goo() step goo()
             next
         next
     End Sub
 
-    shared function foo() as double
+    shared function goo() as double
         return 1
     end function
 End Class
@@ -2830,11 +2995,11 @@ End Class
                 Boolean V_8,
                 Double V_9) //j
   IL_0000:  nop
-  IL_0001:  call       ""Function C.foo() As Double""
+  IL_0001:  call       ""Function C.goo() As Double""
   IL_0006:  stloc.0
-  IL_0007:  call       ""Function C.foo() As Double""
+  IL_0007:  call       ""Function C.goo() As Double""
   IL_000c:  stloc.1
-  IL_000d:  call       ""Function C.foo() As Double""
+  IL_000d:  call       ""Function C.goo() As Double""
   IL_0012:  stloc.2
   IL_0013:  ldloc.2
   IL_0014:  ldc.r8     0
@@ -2845,11 +3010,11 @@ End Class
   IL_0023:  ldloc.0
   IL_0024:  stloc.s    V_4
   IL_0026:  br.s       IL_007c
-  IL_0028:  call       ""Function C.foo() As Double""
+  IL_0028:  call       ""Function C.goo() As Double""
   IL_002d:  stloc.s    V_5
-  IL_002f:  call       ""Function C.foo() As Double""
+  IL_002f:  call       ""Function C.goo() As Double""
   IL_0034:  stloc.s    V_6
-  IL_0036:  call       ""Function C.foo() As Double""
+  IL_0036:  call       ""Function C.goo() As Double""
   IL_003b:  stloc.s    V_7
   IL_003d:  ldloc.s    V_7
   IL_003f:  ldc.r8     0
@@ -2923,11 +3088,11 @@ End Class
                 Boolean V_8,
                 Double V_9) //j
   IL_0000:  nop
-  IL_0001:  call       ""Function C.foo() As Double""
+  IL_0001:  call       ""Function C.goo() As Double""
   IL_0006:  stloc.0
-  IL_0007:  call       ""Function C.foo() As Double""
+  IL_0007:  call       ""Function C.goo() As Double""
   IL_000c:  stloc.1
-  IL_000d:  call       ""Function C.foo() As Double""
+  IL_000d:  call       ""Function C.goo() As Double""
   IL_0012:  stloc.2
   IL_0013:  ldloc.2
   IL_0014:  ldc.r8     0
@@ -2938,11 +3103,11 @@ End Class
   IL_0023:  ldloc.0
   IL_0024:  stloc.s    V_4
   IL_0026:  br.s       IL_007c
-  IL_0028:  call       ""Function C.foo() As Double""
+  IL_0028:  call       ""Function C.goo() As Double""
   IL_002d:  stloc.s    V_5
-  IL_002f:  call       ""Function C.foo() As Double""
+  IL_002f:  call       ""Function C.goo() As Double""
   IL_0034:  stloc.s    V_6
-  IL_0036:  call       ""Function C.foo() As Double""
+  IL_0036:  call       ""Function C.goo() As Double""
   IL_003b:  stloc.s    V_7
   IL_003d:  ldloc.s    V_7
   IL_003f:  ldc.r8     0
@@ -4431,7 +4596,7 @@ End Class
 ]]>
                     </file>
                 </compilation>
-            Dim metadata0 = DirectCast(CompileIL(ilSource, appendDefaultHeader:=False), MetadataImageReference)
+            Dim metadata0 = DirectCast(CompileIL(ilSource, prependDefaultHeader:=False), MetadataImageReference)
             ' Still need a compilation with source for the initial
             ' generation - to get a MethodSymbol and syntax map.
             Dim compilation0 = CreateCompilationWithMscorlib(source, options:=TestOptions.DebugDll)
@@ -5119,5 +5284,8 @@ End Class")
 }
 ")
         End Sub
+
+
+
     End Class
 End Namespace

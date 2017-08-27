@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -210,7 +211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     If Me.MethodKind = MethodKind.EventAdd Then
                         If Not eventType.IsErrorType AndAlso eventType <> parameterType Then
-                            Dim errid As ERRID = If(_event.IsWindowsRuntimeEvent, errid.ERR_AddParamWrongForWinRT, errid.ERR_AddRemoveParamNotEventType)
+                            Dim errid As ERRID = If(_event.IsWindowsRuntimeEvent, ERRID.ERR_AddParamWrongForWinRT, ERRID.ERR_AddRemoveParamNotEventType)
                             diagnostics.Add(errid, location)
                         End If
                     Else

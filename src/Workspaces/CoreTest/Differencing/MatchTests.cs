@@ -21,9 +21,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 
             var m = TestTreeComparer.Instance.ComputeMatch(oldRoot, newRoot,
                 new[] { KeyValuePair.Create(x1, x2), KeyValuePair.Create(x1, x2) });
-
-            TestNode n;
-            Assert.True(m.TryGetNewNode(x1, out n));
+            Assert.True(m.TryGetNewNode(x1, out var n));
             Assert.Equal(n, x2);
 
             Assert.Throws<ArgumentException>(() => TestTreeComparer.Instance.ComputeMatch(oldRoot, newRoot, new[] { KeyValuePair.Create(x1, x1) }));
@@ -34,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         [Fact]
         public void KnownMatchesDups()
         {
-            TestNode x1, x2, y1, y2, n;
+            TestNode x1, x2, y1, y2;
 
             var oldRoot = new TestNode(0, 1,
                 x1 = new TestNode(1, 1),
@@ -51,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             });
 
             // the first one wins:
-            Assert.True(m.TryGetNewNode(x1, out n));
+            Assert.True(m.TryGetNewNode(x1, out var n));
             Assert.Equal(x2, n);
             Assert.True(m.TryGetOldNode(x2, out n));
             Assert.Equal(x1, n);
@@ -62,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         [Fact]
         public void KnownMatchesRootMatch()
         {
-            TestNode x1, x2, n;
+            TestNode x1, x2;
 
             var oldRoot = new TestNode(0, 1,
                 x1 = new TestNode(0, 1));
@@ -76,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             });
 
             // the root wins:
-            Assert.True(m.TryGetNewNode(x1, out n)); // matched
+            Assert.True(m.TryGetNewNode(x1, out var n)); // matched
             Assert.Equal(x2, n);
             Assert.True(m.TryGetOldNode(newRoot, out n));
             Assert.Equal(oldRoot, n);

@@ -175,30 +175,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         ///
         /// This will return true if the pipe was disconnected.
         /// </summary>
-        protected override async Task CreateMonitorDisconnectTask(CancellationToken cancellationToken)
+        protected override Task CreateMonitorDisconnectTask(CancellationToken cancellationToken)
         {
-            var buffer = SpecializedCollections.EmptyBytes;
-
-            while (!cancellationToken.IsCancellationRequested && _pipeStream.IsConnected)
-            {
-                // Wait a second before trying again
-                await Task.Delay(1000, cancellationToken).ConfigureAwait(false);
-
-                try
-                {
-                    CompilerServerLogger.Log($"Pipe {LoggingIdentifier}: Before poking pipe.");
-                    await _pipeStream.ReadAsync(buffer, 0, 0, cancellationToken).ConfigureAwait(false);
-                    CompilerServerLogger.Log($"Pipe {LoggingIdentifier}: After poking pipe.");
-                }
-                catch (Exception e)
-                {
-                    // It is okay for this call to fail.  Errors will be reflected in the 
-                    // IsConnected property which will be read on the next iteration of the 
-                    // loop
-                    var msg = string.Format($"Pipe {LoggingIdentifier}: Error poking pipe.");
-                    CompilerServerLogger.LogException(e, msg);
-                }
-            }
+            return BuildServerConnection.CreateMonitorDisconnectTask(_pipeStream, LoggingIdentifier, cancellationToken);
         }
 
         protected override void ValidateBuildRequest(BuildRequest request)

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Microsoft.CodeAnalysis.Shared.Utilities
+﻿namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     internal interface IProgressTracker
     {

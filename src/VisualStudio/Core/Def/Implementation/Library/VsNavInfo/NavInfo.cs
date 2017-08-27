@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
             if (_referenceOwnerName != null)
             {
                 builder.Add(_referenceOwnerName, _LIB_LISTTYPE.LLT_PACKAGE);
-                builder.Add(ServicesVSResources.Library_ProjectReferences, _LIB_LISTTYPE.LLT_HIERARCHY);
+                builder.Add(ServicesVSResources.Project_References, _LIB_LISTTYPE.LLT_HIERARCHY);
             }
 
             builder.Add(_libraryName, _LIB_LISTTYPE.LLT_PACKAGE);

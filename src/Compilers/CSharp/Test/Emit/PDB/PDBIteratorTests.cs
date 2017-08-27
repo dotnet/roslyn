@@ -1,9 +1,13 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.Metadata.Tools;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -18,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             var text = @"
 class Program
 {
-    System.Collections.Generic.IEnumerable<int> Foo()
+    System.Collections.Generic.IEnumerable<int> Goo()
     {
         yield break;
     }
@@ -28,12 +32,12 @@ class Program
             c.VerifyPdb(@"
 <symbols>
   <methods>
-    <method containingType=""Program"" name=""Foo"">
+    <method containingType=""Program"" name=""Goo"">
       <customDebugInfo>
-        <forwardIterator name=""&lt;Foo&gt;d__0"" />
+        <forwardIterator name=""&lt;Goo&gt;d__0"" />
       </customDebugInfo>
     </method>
-    <method containingType=""Program+&lt;Foo&gt;d__0"" name=""MoveNext"">
+    <method containingType=""Program+&lt;Goo&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
@@ -59,7 +63,7 @@ class Program
             var text = @"
 class Program
 {
-    System.Collections.Generic.IEnumerable<int> Foo()
+    System.Collections.Generic.IEnumerable<int> Goo()
     {
         yield break;
     }
@@ -70,12 +74,12 @@ class Program
             c.VerifyPdb(@"
 <symbols>
   <methods>
-    <method containingType=""Program"" name=""Foo"">
+    <method containingType=""Program"" name=""Goo"">
       <customDebugInfo>
-        <forwardIterator name=""&lt;Foo&gt;d__0"" />
+        <forwardIterator name=""&lt;Goo&gt;d__0"" />
       </customDebugInfo>
     </method>
-    <method containingType=""Program+&lt;Foo&gt;d__0"" name=""MoveNext"">
+    <method containingType=""Program+&lt;Goo&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
@@ -101,7 +105,7 @@ class Program
             var text = @"
 class Program
 {
-    System.Collections.Generic.IEnumerable<int> Foo()
+    System.Collections.Generic.IEnumerable<int> Goo()
     {
         yield return 1; //hidden sequence point after this.
     }
@@ -112,12 +116,12 @@ class Program
             c.VerifyPdb(@"
 <symbols>
   <methods>
-    <method containingType=""Program"" name=""Foo"">
+    <method containingType=""Program"" name=""Goo"">
       <customDebugInfo>
-        <forwardIterator name=""&lt;Foo&gt;d__0"" />
+        <forwardIterator name=""&lt;Goo&gt;d__0"" />
       </customDebugInfo>
     </method>
-    <method containingType=""Program+&lt;Foo&gt;d__0"" name=""MoveNext"">
+    <method containingType=""Program+&lt;Goo&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
@@ -173,8 +177,8 @@ class Program
           <namespace usingCount=""0"" />
         </using>
         <hoistedLocalScopes>
-          <slot startOffset=""0x2a"" endOffset=""0xb3"" />
-          <slot startOffset=""0x6e"" endOffset=""0xb1"" />
+          <slot startOffset=""0x2a"" endOffset=""0xb4"" />
+          <slot startOffset=""0x6e"" endOffset=""0xb2"" />
         </hoistedLocalScopes>
       </customDebugInfo>
       <sequencePoints>
@@ -235,8 +239,8 @@ class Program
           <namespace usingCount=""0"" />
         </using>
         <hoistedLocalScopes>
-          <slot startOffset=""0x39"" endOffset=""0xc5"" />
-          <slot startOffset=""0x7e"" endOffset=""0xc3"" />
+          <slot startOffset=""0x39"" endOffset=""0xc6"" />
+          <slot startOffset=""0x7e"" endOffset=""0xc4"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -306,9 +310,9 @@ class Test<T>
           <namespace usingCount=""2"" />
         </using>
         <hoistedLocalScopes>
-          <slot startOffset=""0x32"" endOffset=""0xe1"" />
-          <slot startOffset=""0x0"" endOffset=""0x0"" />
-          <slot startOffset=""0x5b"" endOffset=""0xa4"" />
+          <slot startOffset=""0x32"" endOffset=""0xe2"" />
+          <slot />
+          <slot startOffset=""0x5b"" endOffset=""0xa5"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""temp"" />
@@ -399,6 +403,7 @@ class C
         <entry offset=""0x18"" startLine=""23"" startColumn=""13"" endLine=""23"" endColumn=""41"" />
         <entry offset=""0x1d"" startLine=""21"" startColumn=""24"" endLine=""21"" endColumn=""26"" />
         <entry offset=""0x27"" hidden=""true"" />
+        <entry offset=""0x30"" hidden=""true"" />
         <entry offset=""0x31"" startLine=""25"" startColumn=""5"" endLine=""25"" endColumn=""6"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x32"">
@@ -551,6 +556,7 @@ public class Test
         <entry offset=""0x17"" startLine=""46"" startColumn=""49"" endLine=""46"" endColumn=""50"" />
         <entry offset=""0x18"" startLine=""46"" startColumn=""24"" endLine=""46"" endColumn=""26"" />
         <entry offset=""0x22"" hidden=""true"" />
+        <entry offset=""0x2c"" hidden=""true"" />
         <entry offset=""0x2d"" startLine=""47"" startColumn=""5"" endLine=""47"" endColumn=""6"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x2e"">
@@ -563,10 +569,10 @@ public class Test
       <customDebugInfo>
         <forward declaringType=""Test`1"" methodName=""System.Collections.IEnumerable.GetEnumerator"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0x0"" endOffset=""0x0"" />
-          <slot startOffset=""0x54"" endOffset=""0x94"" />
-          <slot startOffset=""0x0"" endOffset=""0x0"" />
-          <slot startOffset=""0xd1"" endOffset=""0x10e"" />
+          <slot />
+          <slot startOffset=""0x54"" endOffset=""0x95"" />
+          <slot />
+          <slot startOffset=""0xd1"" endOffset=""0x10f"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""temp"" />
@@ -675,8 +681,8 @@ class C
           <namespace usingCount=""1"" />
         </using>
         <hoistedLocalScopes>
-          <slot startOffset=""0x2a"" endOffset=""0x82"" />
-          <slot startOffset=""0x2a"" endOffset=""0x82"" />
+          <slot startOffset=""0x2a"" endOffset=""0x83"" />
+          <slot startOffset=""0x2a"" endOffset=""0x83"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -945,7 +951,7 @@ class C
       <customDebugInfo>
         <forward declaringType=""C+&lt;&gt;c__DisplayClass0_0"" methodName=""&lt;M&gt;b__0"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0x30"" endOffset=""0xea"" />
+          <slot startOffset=""0x30"" endOffset=""0xeb"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -1082,11 +1088,6 @@ class C
     <method containingType=""C"" name=""M"">
       <customDebugInfo>
         <forwardIterator name=""&lt;M&gt;d__0"" />
-        <encLambdaMap>
-          <methodOrdinal>0</methodOrdinal>
-          <closure offset=""0"" />
-          <lambda offset=""95"" closure=""0"" />
-        </encLambdaMap>
       </customDebugInfo>
     </method>
   </methods>
@@ -1198,7 +1199,7 @@ class C
       <customDebugInfo>
         <forward declaringType=""C+&lt;&gt;c__DisplayClass0_0"" methodName=""&lt;M&gt;b__0"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0x1f"" endOffset=""0x7e"" />
+          <slot startOffset=""0x1f"" endOffset=""0x7f"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -1280,7 +1281,7 @@ class C
           <namespace usingCount=""1"" />
         </using>
         <hoistedLocalScopes>
-          <slot startOffset=""0x1f"" endOffset=""0xe2"" />
+          <slot startOffset=""0x1f"" endOffset=""0xe3"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -1355,7 +1356,7 @@ class C
           <namespace usingCount=""1"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""1"" localName=""d"" />
+          <bucket flags=""1"" slotId=""1"" localName=""d"" />
         </dynamicLocals>
       </customDebugInfo>
       <sequencePoints>
@@ -1415,7 +1416,7 @@ class C
           <namespace usingCount=""1"" />
         </using>
         <hoistedLocalScopes>
-          <slot startOffset=""0x1f"" endOffset=""0x8a"" />
+          <slot startOffset=""0x1f"" endOffset=""0x8b"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -1478,6 +1479,61 @@ class C
     </method>
   </methods>
 </symbols>");
+        }
+
+        [Fact, WorkItem(8473, "https://github.com/dotnet/roslyn/issues/8473")]
+        public void PortableStateMachineDebugInfo()
+        {
+            string src = @"
+using System.Collections.Generic;
+public class C
+{
+    IEnumerable<int> M() { yield return 1; }
+}";
+            var compilation = CreateStandardCompilation(src, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics();
+
+            var peStream = new MemoryStream();
+            var pdbStream = new MemoryStream();
+
+            var result = compilation.Emit(
+               peStream,
+               pdbStream,
+               options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb));
+
+            pdbStream.Position = 0;
+            using (var provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream))
+            {
+                var mdReader = provider.GetMetadataReader();
+                var writer = new StringWriter();
+                var visualizer = new MetadataVisualizer(mdReader, writer);
+                visualizer.WriteMethodDebugInformation();
+
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
+MethodDebugInformation (index: 0x31, size: 40): 
+==================================================
+1: nil
+2: nil
+3: nil
+4: nil
+5: #22
+{
+  Kickoff Method: 0x06000001 (MethodDef)
+  Locals: 0x11000001 (StandAloneSig)
+  Document: #1
+  IL_0000: <hidden>
+  IL_001F: (5, 26) - (5, 27)
+  IL_0020: (5, 28) - (5, 43)
+  IL_0030: <hidden>
+  IL_0037: (5, 44) - (5, 45)
+}
+6: nil
+7: nil
+8: nil
+9: nil
+a: nil",
+                    writer.ToString());
+            }
         }
     }
 }

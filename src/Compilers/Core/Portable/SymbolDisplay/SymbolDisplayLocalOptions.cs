@@ -27,5 +27,10 @@ namespace Microsoft.CodeAnalysis
         /// For example "x = 1".
         /// </summary>
         IncludeConstantValue = 1 << 1,
+
+        /// <summary>
+        /// Includes the <c>ref</c> keyword for ref-locals.
+        /// </summary>
+        IncludeRef = 1 << 2,
     }
 }

@@ -1,102 +1,50 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
-  </ImportGroup>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <NonShipping>true</NonShipping>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{ACE53515-482C-4C6A-E2D2-4242A687DFEE}</ProjectGuid>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
-    <RootNamespace>
-    </RootNamespace>
     <AssemblyName>Roslyn.ExpressionEvaluator.VisualBasic.ResultProvider.UnitTests</AssemblyName>
-    <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <VBRuntime>
-    </VBRuntime>
+    <TargetFramework>net46</TargetFramework>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <VBRuntime>Default</VBRuntime>
+    <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="File References">
-    <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Metadata.dll" />
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Dependencies\xUnit.net\xUnit.net.csproj">
-      <Project>{8635cb8f-d210-41ed-b4ff-71502cdb475c}</Project>
-      <Name>xUnit.net</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
-      <Project>{f7712928-1175-47b3-8819-ee086753dee2}</Project>
-      <Name>TestUtilities.FX45</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Core\Source\Concord\Concord.csproj">
-      <Project>{5002636a-fe8d-40bf-8818-ab513a2194fa}</Project>
-      <Name>Concord</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1ee8cad3-55f9-4d91-96b2-084641da9a6c}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Compilers\Test\Utilities\VisualBasic\BasicCompilerTestUtilities.vbproj">
-      <Project>{4371944a-d3ba-4b5b-8285-82e5ffc6d1f8}</Project>
-      <Name>BasicCompilerTestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
-      <Project>{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}</Project>
-      <Name>BasicCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
-      <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
-      <Name>TestUtilities.Desktop</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Core\Test\ResultProvider\ResultProviderTestUtilities.csproj">
-      <Project>{abdbac1e-350e-4dc3-bb45-3504404545ee}</Project>
-      <Name>ResultProviderTestUtilities</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\..\Compilers\Test\Utilities\VisualBasic\BasicCompilerTestUtilities.vbproj" />
+    <ProjectReference Include="..\..\..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
+    <ProjectReference Include="..\..\..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj" />
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj" />
+    <ProjectReference Include="..\..\..\Core\Test\ResultProvider\ResultProviderTestUtilities.csproj" />
     <!-- This reference is only needed to ensure correct build ordering (we link in all the necessary files as source). -->
+    <ProjectReference Include="..\..\..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj" />
+    <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <DefineDebug>true</DefineDebug>
-    <DefineTrace>true</DefineTrace>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <DefineTrace>true</DefineTrace>
-    <Optimize>true</Optimize>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
+    <PackageReference Include="xunit" Version="$(xunitVersion)" />
+    <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
+    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\..\Compilers\VisualBasic\Portable\SymbolDisplay\ObjectDisplay.vb">
       <Link>Compiler\SymbolDisplay\ObjectDisplay.vb</Link>
     </Compile>
-    <Compile Include="ArrayExpansionTests.vb" />
-    <Compile Include="DebuggerTypeProxyAttributeTests.vb" />
-    <Compile Include="DynamicViewTests.vb" />
-    <Compile Include="ExpansionTests.vb" />
-    <Compile Include="FormatSpecifierTests.vb" />
-    <Compile Include="FullNameTests.vb" />
-    <Compile Include="Helpers\TestTypeExtensions.vb" />
-    <Compile Include="ObjectIdTests.vb" />
-    <Compile Include="ResultsViewTests.vb" />
-    <Compile Include="TypeNameFormatterTests.vb" />
-    <Compile Include="TypeVariablesExpansionTests.vb" />
-    <Compile Include="ValueFormatterTests.vb" />
-    <Compile Include="VisualBasicResultProviderTestBase.vb" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <Import Project="..\..\Source\ResultProvider\BasicResultProvider.projitems" Label="Shared" />
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>

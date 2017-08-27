@@ -37,15 +37,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Debug.Assert(OverloadResolution.CanLiftType(parameter.Type) AndAlso
                                  argument.Type.IsNullableType() AndAlso
-                                 argument.Type.GetNullableUnderlyingType().IsSameTypeIgnoringCustomModifiers(parameter.Type))
+                                 argument.Type.GetNullableUnderlyingType().IsSameTypeIgnoringAll(parameter.Type))
 
                     Debug.Assert(underlyingCall.Type.IsNullableType())
-                    Debug.Assert(underlyingCall.Type.IsSameTypeIgnoringCustomModifiers(underlyingCall.Method.ReturnType) OrElse
+                    Debug.Assert(underlyingCall.Type.IsSameTypeIgnoringAll(underlyingCall.Method.ReturnType) OrElse
                                  (OverloadResolution.CanLiftType(underlyingCall.Method.ReturnType) AndAlso
-                                  underlyingCall.Type.GetNullableUnderlyingType().IsSameTypeIgnoringCustomModifiers(underlyingCall.Method.ReturnType)))
+                                  underlyingCall.Type.GetNullableUnderlyingType().IsSameTypeIgnoringAll(underlyingCall.Method.ReturnType)))
                 Else
-                    Debug.Assert(argument.Type.IsSameTypeIgnoringCustomModifiers(parameter.Type))
-                    Debug.Assert(underlyingCall.Type.IsSameTypeIgnoringCustomModifiers(underlyingCall.Method.ReturnType))
+                    Debug.Assert(argument.Type.IsSameTypeIgnoringAll(parameter.Type))
+                    Debug.Assert(underlyingCall.Type.IsSameTypeIgnoringAll(underlyingCall.Method.ReturnType))
                 End If
             End If
         End Sub

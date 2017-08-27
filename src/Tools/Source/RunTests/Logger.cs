@@ -26,6 +26,25 @@ namespace RunTests
             }
         }
 
+        internal static void Log(string message, Exception ex)
+        {
+            lock (s_lines)
+            {
+                s_lines.Add(message);
+                s_lines.Add(ex.Message);
+                s_lines.Add(ex.StackTrace);
+            }
+        }
+
+        internal static void Log(Exception ex)
+        {
+            lock (s_lines)
+            {
+                s_lines.Add(ex.Message);
+                s_lines.Add(ex.StackTrace);
+            }
+        }
+
         internal static void Log(string line)
         {
             lock (s_lines)
@@ -34,13 +53,22 @@ namespace RunTests
             }
         }
 
-        internal static void Finish(string logDir)
+        internal static void Clear()
         {
-            var logFilePath = Path.Combine(logDir, "runtests.log");
             lock (s_lines)
             {
-                File.WriteAllLines(logFilePath, s_lines.ToArray());
                 s_lines.Clear();
+            }
+        }
+
+        internal static void WriteTo(TextWriter textWriter)
+        {
+            lock (s_lines)
+            {
+                foreach (var line in s_lines)
+                {
+                    textWriter.WriteLine(line);
+                }
             }
         }
     }

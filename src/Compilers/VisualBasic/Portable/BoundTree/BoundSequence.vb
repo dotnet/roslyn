@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If ValueOpt Is Nothing Then
                 Debug.Assert(Type.IsVoidType())
             Else
-                Debug.Assert(Type.IsSameTypeIgnoringCustomModifiers(ValueOpt.Type))
+                Debug.Assert(Type.IsSameTypeIgnoringAll(ValueOpt.Type))
                 If Not ValueOpt.IsLValue Then
                     ValueOpt.AssertRValue() ' Value must return a result, if it doesn't, add that expression into side-effects instead.
                 End If

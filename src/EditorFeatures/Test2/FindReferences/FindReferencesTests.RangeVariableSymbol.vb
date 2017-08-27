@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 
@@ -6,7 +6,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
 
         <WorkItem(541928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541928")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharpRangeVariableInInto1() As Task
             Dim input =
 <Workspace>
@@ -26,11 +26,11 @@ class C
     </Project>
 </Workspace>
 
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(541928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541928")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharpRangeVariableInInto2() As Task
             Dim input =
 <Workspace>
@@ -50,11 +50,11 @@ class C
     </Project>
 </Workspace>
 
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(542161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542161")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharpRangeVariableInSubmission1() As Task
             Dim input =
 <Workspace>
@@ -64,11 +64,11 @@ var q = from $${|Definition:x|} in new int[] { 1, 2, 3, 4 } select [|x|];
 </Submission>
 </Workspace>
 
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(542161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542161")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharpRangeVariableInSubmission2() As Task
             Dim input =
 <Workspace>
@@ -78,11 +78,11 @@ var q = from {|Definition:x|} in new int[] { 1, 2, 3, 4 } select [|$$x|];
 </Submission>
 </Workspace>
 
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(542161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542161")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharpRangeVariableInFieldInitializer1() As Task
             Dim input =
 <Workspace>
@@ -96,11 +96,11 @@ class C
     </Project>
 </Workspace>
 
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(542161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542161")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestCSharpRangeVariableInFieldInitializer2() As Task
             Dim input =
 <Workspace>
@@ -114,11 +114,11 @@ class C
     </Project>
 </Workspace>
 
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(542509, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542509")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestVisualBasicTrivialSelect1() As Task
             Dim input =
 <Workspace>
@@ -136,11 +136,11 @@ End Module
     </Project>
 </Workspace>
 
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(542509, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542509")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestVisualBasicTrivialSelect2() As Task
             Dim input =
 <Workspace>
@@ -158,11 +158,11 @@ End Module
     </Project>
 </Workspace>
 
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(545163, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545163")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestVisualBasicLetClause1() As Task
             Dim input =
 <Workspace>
@@ -177,11 +177,11 @@ End Module
     </Project>
 </Workspace>
 
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(545163, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545163")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestVisualBasicLetClause2() As Task
             Dim input =
 <Workspace>
@@ -196,11 +196,11 @@ End Module
     </Project>
 </Workspace>
 
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(628189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/628189")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestVisualBasicMultipleAggregateFunctions() As Task
             Dim input =
 <Workspace>
@@ -212,13 +212,13 @@ Imports System.Linq
 Imports System.Runtime.CompilerServices
 Module Program  
     Sub Main()    
-        Dim q = Aggregate x In {0, 1, 2} Into Count(), {|Definition:Foo()|}
-        Dim y = q.[|$$Foo|] ' Find All references for Foo    
-        Dim y2 = q.[|Foo|]
+        Dim q = Aggregate x In {0, 1, 2} Into Count(), {|Definition:Goo()|}
+        Dim y = q.[|$$Goo|] ' Find All references for Goo    
+        Dim y2 = q.[|Goo|]
     End Sub
 
     &lt;Extension&gt;
-    Function Foo(Of T)(seq As IEnumerable(Of T)) As Integer  
+    Function Goo(Of T)(seq As IEnumerable(Of T)) As Integer  
         Return 0
     End Function 
 End Module
@@ -233,7 +233,7 @@ End Namespace
     </Project>
 </Workspace>
 
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
     End Class

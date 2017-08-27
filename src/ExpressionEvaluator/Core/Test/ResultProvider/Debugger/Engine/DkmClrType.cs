@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 #region Assembly Microsoft.VisualStudio.Debugger.Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
 // References\Debugger\v2.0\Microsoft.VisualStudio.Debugger.Engine.dll
 
@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Microsoft.VisualStudio.Debugger.Metadata;
 using Roslyn.Utilities;
@@ -57,6 +58,11 @@ namespace Microsoft.VisualStudio.Debugger.Clr
             }
         }
 
+        internal System.Type UnderlyingType
+        {
+            get { return ((TypeImpl)_lmrType).Type; }
+        }
+
         internal DkmClrType MakeGenericType(params DkmClrType[] genericArguments)
         {
             var type = new DkmClrType(
@@ -75,10 +81,25 @@ namespace Microsoft.VisualStudio.Debugger.Clr
                 _lmrType.MakeArrayType());
         }
 
-        internal object Instantiate(params object[] args)
+        internal DkmClrValue Instantiate(params object[] args)
         {
-            var t = ((TypeImpl)_lmrType).Type;
-            return t.Instantiate(args);
+            return Instantiate(args, null, DkmEvaluationResultFlags.None);
+        }
+
+        internal DkmClrValue Instantiate(
+            object[] args,
+            string alias,
+            DkmEvaluationResultFlags evalFlags)
+        {
+            object value = UnderlyingType.Instantiate(args);
+            return new DkmClrValue(
+                value,
+                DkmClrValue.GetHostObjectValue(_lmrType, value),
+                this,
+                alias: alias,
+                evalFlags: evalFlags,
+                valueFlags: DkmClrValueFlags.None,
+                nativeComPointer: 0);
         }
 
         private static readonly ReadOnlyCollection<DkmClrType> s_emptyTypes = new ReadOnlyCollection<DkmClrType>(new DkmClrType[0]);

@@ -9,18 +9,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
     Friend Module FieldGenerator
 
         Private Function LastField(Of TDeclaration As SyntaxNode)(
-            members As SyntaxList(Of TDeclaration),
-            fieldDeclaration As FieldDeclarationSyntax) As TDeclaration
-            Dim lastConst = members.Where(Function(m) TypeOf m Is FieldDeclarationSyntax AndAlso
-                                              DirectCast(DirectCast(m, Object), FieldDeclarationSyntax).Modifiers.Any(SyntaxKind.ConstKeyword)).LastOrDefault()
+                members As SyntaxList(Of TDeclaration),
+                fieldDeclaration As FieldDeclarationSyntax) As TDeclaration
+
+            Dim lastConst = members.OfType(Of FieldDeclarationSyntax).
+                                    Where(Function(f) f.Modifiers.Any(SyntaxKind.ConstKeyword)).
+                                    LastOrDefault()
 
             ' Place a const after the last existing const.
             If fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword) Then
-                Return lastConst
+                Return DirectCast(DirectCast(lastConst, Object), TDeclaration)
             End If
 
-            ' Place a field after the last field, or after the last const.
-            Return If(VisualBasicCodeGenerationHelpers.LastField(members), lastConst)
+            Dim lastReadOnly = members.OfType(Of FieldDeclarationSyntax)().
+                                       Where(Function(f) f.Modifiers.Any(SyntaxKind.ReadOnlyKeyword)).
+                                       LastOrDefault()
+
+            Dim lastNormal = members.OfType(Of FieldDeclarationSyntax)().
+                                     Where(Function(f) Not f.Modifiers.Any(SyntaxKind.ReadOnlyKeyword) AndAlso Not f.Modifiers.Any(SyntaxKind.ConstKeyword)).
+                                     LastOrDefault()
+
+            Dim result =
+                If(fieldDeclaration.Modifiers.Any(SyntaxKind.ReadOnlyKeyword),
+                    If(lastReadOnly, If(lastNormal, lastConst)),
+                    If(lastNormal, If(lastReadOnly, lastConst)))
+
+            Return DirectCast(DirectCast(result, Object), TDeclaration)
         End Function
 
         Friend Function AddFieldTo(destination As CompilationUnitSyntax,
@@ -76,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                             SyntaxFactory.SimpleAsClause(field.Type.GenerateTypeSyntax()),
                             initializer)))
 
-            Return AddCleanupAnnotationsTo(ConditionallyAddDocumentationCommentTo(EnsureLastElasticTrivia(fieldDeclaration), field, options))
+            Return AddFormatterAndCodeGeneratorAnnotationsTo(ConditionallyAddDocumentationCommentTo(EnsureLastElasticTrivia(fieldDeclaration), field, options))
         End Function
 
         Private Function GenerateEqualsValue(field As IFieldSymbol) As EqualsValueSyntax

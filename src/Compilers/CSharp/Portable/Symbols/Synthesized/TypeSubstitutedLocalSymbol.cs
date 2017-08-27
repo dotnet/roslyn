@@ -38,6 +38,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalVariable.SynthesizedKind; }
         }
 
+        internal override SyntaxNode ScopeDesignatorOpt
+        {
+            get { return _originalVariable.ScopeDesignatorOpt; }
+        }
+
         public override string Name
         {
             get { return _originalVariable.Name; }

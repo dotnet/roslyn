@@ -4,6 +4,7 @@ Imports System.Collections.ObjectModel
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -180,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 options:=Nothing,
                 [imports]:=Nothing,
                 attributes:=Nothing,
-                members:=InternalSyntax.SyntaxList.List(statement),
+                members:=Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList.List(statement),
                 endOfFileToken:=InternalSyntax.SyntaxFactory.EndOfFileToken)
         End Function
 

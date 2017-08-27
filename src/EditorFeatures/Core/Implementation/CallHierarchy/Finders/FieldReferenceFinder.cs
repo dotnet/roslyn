@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
         {
             get
             {
-                return string.Format(EditorFeaturesResources.ReferencesToField, SymbolName);
+                return string.Format(EditorFeaturesResources.References_To_Field_0, SymbolName);
             }
         }
 

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
@@ -174,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // A sequence with information about namespaces immediately contained within this namespace.
             // For each pair:
             //    Key - contains simple name of a child namespace.
-            //    Value – contains a sequence similar to the one passed to this function, but
+            //    Value - contains a sequence similar to the one passed to this function, but
             //            calculated for the child namespace. 
             IEnumerable<KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>>> nestedNamespaces = null;
             bool isGlobalNamespace = this.IsGlobalNamespace;
@@ -214,13 +215,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (this.lazyNamespaces == null)
             {
-                var children = from child in childNamespaces
-                               select new PENestedNamespaceSymbol(child.Key, this, child.Value);
-
                 var namespaces = new Dictionary<string, PENestedNamespaceSymbol>(StringOrdinalComparer.Instance);
 
-                foreach (var c in children)
+                foreach (var child in childNamespaces)
                 {
+                    var c = new PENestedNamespaceSymbol(child.Key, this, child.Value);
                     namespaces.Add(c.Name, c);
                 }
 

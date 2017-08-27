@@ -253,7 +253,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public IEnumerable<UpdatedEventArgs> GetDiagnosticsUpdatedEventArgs(Workspace workspace, ProjectId projectId, DocumentId documentId, CancellationToken cancellationToken)
+        public IEnumerable<UpdatedEventArgs> GetDiagnosticsUpdatedEventArgs(
+            Workspace workspace, ProjectId projectId, DocumentId documentId, CancellationToken cancellationToken)
         {
             foreach (var source in _updateSources)
             {
@@ -278,18 +279,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             lock (_gate)
             {
-                Dictionary<object, Data> current;
-                Dictionary<Workspace, Dictionary<object, Data>> workspaceMap;
-                if (!_map.TryGetValue(source, out workspaceMap) ||
-                    !workspaceMap.TryGetValue(workspace, out current))
+                if (!_map.TryGetValue(source, out var workspaceMap) ||
+                    !workspaceMap.TryGetValue(workspace, out var current))
                 {
                     return;
                 }
 
                 if (id != null)
                 {
-                    Data data;
-                    if (current.TryGetValue(id, out data))
+                    if (current.TryGetValue(id, out var data))
                     {
                         list.Add(data);
                     }

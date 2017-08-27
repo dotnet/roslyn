@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -52,8 +52,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return;
                 }
 
-                var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
+                var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken)
+                                .GetPreviousTokenIfTouchingWord(position);
+
                 if (token.IsMandatoryNamedParameterPosition())
+                {
+                    return;
+                }
+
+                // Don't show up within member access
+                // This previously worked because the type inferrer didn't work
+                // in member access expressions.
+                // The regular SymbolCompletionProvider will handle completion after .
+                if (token.IsKind(SyntaxKind.DotToken))
                 {
                     return;
                 }
@@ -80,7 +91,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 if (type.TypeKind != TypeKind.Enum)
                 {
-                    type = GetCompletionListType(type, semanticModel.GetEnclosingNamedType(position, cancellationToken), semanticModel.Compilation);
+                    type = TryGetEnumTypeInEnumInitializer(semanticModel, token, type, cancellationToken) ??
+                           TryGetCompletionListType(type, semanticModel.GetEnclosingNamedType(position, cancellationToken), semanticModel.Compilation);
+
                     if (type == null)
                     {
                         return;
@@ -93,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
 
                 // Does type have any aliases?
-                ISymbol alias = await type.FindApplicableAlias(position, semanticModel, cancellationToken).ConfigureAwait(false);
+                var alias = await type.FindApplicableAlias(position, semanticModel, cancellationToken).ConfigureAwait(false);
 
                 var displayService = document.GetLanguageService<ISymbolDisplayService>();
                 var displayText = alias != null
@@ -103,14 +116,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var workspace = document.Project.Solution.Workspace;
                 var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                var item = SymbolCompletionItem.Create(
+                var item = SymbolCompletionItem.CreateWithSymbolId(
                     displayText: displayText,
-                    insertionText: null,
-                    span: context.DefaultItemSpan,
-                    symbol: alias ?? type,
-                    descriptionPosition: position,
-                    matchPriority: MatchPriority.Preselect,
-                    rules: s_rules);
+                    symbols: ImmutableArray.Create(alias ?? type),
+                    rules: s_rules.WithMatchPriority(MatchPriority.Preselect),
+                    contextPosition: position);
 
                 context.AddItem(item);
             }
@@ -120,17 +130,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        private ITypeSymbol TryGetEnumTypeInEnumInitializer(
+            SemanticModel semanticModel, SyntaxToken token,
+            ITypeSymbol type, CancellationToken cancellationToken)
         {
-            return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
+            // https://github.com/dotnet/roslyn/issues/5419
+            //
+            // 14.3: "Within an enum member initializer, values of other enum members are always 
+            // treated as having the type of their underlying type"
+
+            // i.e. if we have "enum E { X, Y, Z = X | 
+            // then we want to offer the enum after the |.  However, the compiler will report this
+            // as an 'int' type, not the enum type.
+
+            // See if we're after a common enum-combining operator.
+            if (token.Kind() == SyntaxKind.BarToken ||
+                token.Kind() == SyntaxKind.AmpersandToken ||
+                token.Kind() == SyntaxKind.CaretToken)
+            {
+                // See if the type we're looking at is the underlying type for the enum we're contained in.
+                var containingType = semanticModel.GetEnclosingNamedType(token.SpanStart, cancellationToken);
+                if (containingType?.TypeKind == TypeKind.Enum &&
+                    type.Equals(containingType.EnumUnderlyingType))
+                {
+                    // If so, walk back to the token before the operator token and see if it binds to a member
+                    // of this enum.
+                    var previousToken = token.GetPreviousToken();
+                    var symbol = semanticModel.GetSymbolInfo(previousToken.Parent, cancellationToken).Symbol;
+
+                    if (symbol?.Kind == SymbolKind.Field &&
+                        containingType.Equals(symbol.ContainingType))
+                    {
+                        // If so, then offer this as a place for enum completion for the enum we're currently 
+                        // inside of.
+                        return containingType;
+                    }
+                }
+            }
+
+            return null;
         }
+
+        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
         private static readonly CompletionItemRules s_rules =
             CompletionItemRules.Default.WithCommitCharacterRules(ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.')))
                                        .WithMatchPriority(MatchPriority.Preselect)
                                        .WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection);
 
-        private INamedTypeSymbol GetCompletionListType(ITypeSymbol type, INamedTypeSymbol within, Compilation compilation)
+        private INamedTypeSymbol TryGetCompletionListType(ITypeSymbol type, INamedTypeSymbol within, Compilation compilation)
         {
             // PERF: None of the SpecialTypes include <completionlist> tags,
             // so we don't even need to load the documentation.

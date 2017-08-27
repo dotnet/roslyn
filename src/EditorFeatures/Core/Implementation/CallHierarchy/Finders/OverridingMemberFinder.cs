@@ -20,21 +20,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
         {
         }
 
-        public override string DisplayName
-        {
-            get
-            {
-                return EditorFeaturesResources.Overrides;
-            }
-        }
+        public override string DisplayName => EditorFeaturesResources.Overrides_;
 
-        public override string SearchCategory
-        {
-            get
-            {
-                return CallHierarchyPredefinedSearchCategoryNames.Overrides;
-            }
-        }
+        public override string SearchCategory => CallHierarchyPredefinedSearchCategoryNames.Overrides;
 
         protected override Task<IEnumerable<SymbolCallerInfo>> GetCallers(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
         {

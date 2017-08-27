@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             bool conflictResolutionFinishedComputing, bool previewChanges,
             IList<InlineRenameReplacementKind> replacementKinds)
         {
-            return KeyValueLogMessage.Create(m =>
+            return KeyValueLogMessage.Create(LogType.UserAction, m =>
             {
                 m[RenameInComments] = optionSet.GetOption(RenameOptions.RenameInComments);
                 m[RenameInStrings] = optionSet.GetOption(RenameOptions.RenameInStrings);

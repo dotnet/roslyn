@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.Cci
+Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
@@ -10,23 +11,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Partial Class PropertySymbol
         Implements IPropertyDefinition
 
-        Private ReadOnly Property IPropertyDefinitionAccessors As IEnumerable(Of IMethodReference) Implements IPropertyDefinition.Accessors
-            Get
-                CheckDefinitionInvariant()
+        Private Iterator Function IPropertyDefinitionAccessors(context As EmitContext) As IEnumerable(Of IMethodReference) Implements IPropertyDefinition.GetAccessors
+            CheckDefinitionInvariant()
 
-                If Me.GetMethod IsNot Nothing And Me.SetMethod IsNot Nothing Then
-                    Return {Me.GetMethod, Me.SetMethod}
-                ElseIf Me.GetMethod IsNot Nothing Then
-                    Return SpecializedCollections.SingletonEnumerable(Me.GetMethod)
-                ElseIf Me.SetMethod IsNot Nothing Then
-                    Return SpecializedCollections.SingletonEnumerable(Me.SetMethod)
-                Else
-                    Return SpecializedCollections.EmptyEnumerable(Of IMethodReference)()
-                End If
-            End Get
-        End Property
+            Dim getter As MethodSymbol = Me.GetMethod
+            If getter IsNot Nothing AndAlso getter.ShouldInclude(context) Then
+                Yield getter
+            End If
 
-        Private ReadOnly Property IPropertyDefinitionDefaultValue As IMetadataConstant Implements IPropertyDefinition.DefaultValue
+            Dim setter As MethodSymbol = Me.SetMethod
+            If setter IsNot Nothing AndAlso setter.ShouldInclude(context) Then
+                Yield setter
+            End If
+        End Function
+
+        Private ReadOnly Property IPropertyDefinitionDefaultValue As MetadataConstant Implements IPropertyDefinition.DefaultValue
             Get
                 CheckDefinitionInvariant()
                 Return Nothing
@@ -82,9 +81,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        <Conditional("DEBUG")>
+        Protected Friend Sub CheckDefinitionInvariantAllowEmbedded()
+            ' can't be generic instantiation
+            Debug.Assert(Me.IsDefinition)
+
+            ' must be declared in the module we are building
+            Debug.Assert(TypeOf Me.ContainingModule Is SourceModuleSymbol OrElse Me.ContainingAssembly.IsLinked)
+        End Sub
+
         Private ReadOnly Property ISignatureCallingConvention As CallingConvention Implements ISignature.CallingConvention
             Get
-                CheckDefinitionInvariant()
+                CheckDefinitionInvariantAllowEmbedded()
                 Return Me.CallingConvention
             End Get
         End Property
@@ -103,20 +111,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ISignatureReturnValueCustomModifiers As ImmutableArray(Of Cci.ICustomModifier) Implements ISignature.ReturnValueCustomModifiers
             Get
-                CheckDefinitionInvariant()
+                CheckDefinitionInvariantAllowEmbedded()
                 Return Me.TypeCustomModifiers.As(Of Cci.ICustomModifier)
+            End Get
+        End Property
+
+        Private ReadOnly Property ISignatureRefCustomModifiers As ImmutableArray(Of Cci.ICustomModifier) Implements ISignature.RefCustomModifiers
+            Get
+                CheckDefinitionInvariantAllowEmbedded()
+                Return Me.RefCustomModifiers.As(Of Cci.ICustomModifier)
             End Get
         End Property
 
         Private ReadOnly Property ISignatureReturnValueIsByRef As Boolean Implements ISignature.ReturnValueIsByRef
             Get
-                CheckDefinitionInvariant()
-                Return False
+                CheckDefinitionInvariantAllowEmbedded()
+                Return Me.ReturnsByRef
             End Get
         End Property
 
         Private Function ISignatureGetType(context As EmitContext) As ITypeReference Implements ISignature.GetType
-            CheckDefinitionInvariant()
+            CheckDefinitionInvariantAllowEmbedded()
             Return (DirectCast(context.Module, PEModuleBuilder)).Translate(Me.Type, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 

@@ -22,17 +22,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Debug.Assert(ElseExpression.IsNothingLiteral() OrElse
                              (TestExpression.IsConstant AndAlso Not TestExpression.ConstantValueOpt.IsNothing) OrElse
-                             Type.IsSameTypeIgnoringCustomModifiers(ElseExpression.Type))
+                             Type.IsSameTypeIgnoringAll(ElseExpression.Type))
 
                 If ConvertedTestExpression IsNot Nothing Then
                     ConvertedTestExpression.AssertRValue()
-                    Debug.Assert(Type.IsSameTypeIgnoringCustomModifiers(ConvertedTestExpression.Type))
+                    Debug.Assert(Type.IsSameTypeIgnoringAll(ConvertedTestExpression.Type))
 
                     If TestExpressionPlaceholder IsNot Nothing Then
-                        Debug.Assert(TestExpressionPlaceholder.Type.IsSameTypeIgnoringCustomModifiers(TestExpression.Type.GetNullableUnderlyingTypeOrSelf()))
+                        Debug.Assert(TestExpressionPlaceholder.Type.IsSameTypeIgnoringAll(TestExpression.Type.GetNullableUnderlyingTypeOrSelf()))
                     End If
                 Else
-                    If Not Type.IsSameTypeIgnoringCustomModifiers(TestExpression.Type.GetNullableUnderlyingTypeOrSelf()) Then
+                    If Not Type.IsSameTypeIgnoringAll(TestExpression.Type.GetNullableUnderlyingTypeOrSelf()) Then
                         Dim conversion As ConversionKind = Conversions.ClassifyDirectCastConversion(TestExpression.Type, Type, Nothing)
                         Debug.Assert(Conversions.IsWideningConversion(conversion) AndAlso Conversions.IsCLRPredefinedConversion(conversion))
                     End If

@@ -17,16 +17,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
         public BaseMemberFinder(ISymbol symbol, Project project, IAsynchronousOperationListener asyncListener, CallHierarchyProvider provider)
             : base(symbol, project, asyncListener, provider)
         {
-            _text = string.Format(EditorFeaturesResources.CallsToBaseMember, symbol.ToDisplayString());
+            _text = string.Format(EditorFeaturesResources.Calls_To_Base_Member_0, symbol.ToDisplayString());
         }
 
-        public override string DisplayName
-        {
-            get
-            {
-                return _text;
-            }
-        }
+        public override string DisplayName => _text;
 
         protected override async Task<IEnumerable<SymbolCallerInfo>> GetCallers(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
         {

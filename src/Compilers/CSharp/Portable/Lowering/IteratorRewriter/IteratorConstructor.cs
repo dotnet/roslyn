@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var intType = container.DeclaringCompilation.GetSpecialType(SpecialType.System_Int32);
             _parameters = ImmutableArray.Create<ParameterSymbol>(
-                new SynthesizedParameterSymbol(this, intType, 0, RefKind.None, GeneratedNames.MakeStateMachineStateFieldName()));
+                SynthesizedParameterSymbol.Create(this, intType, 0, RefKind.None, GeneratedNames.MakeStateMachineStateFieldName()));
         }
 
         internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)

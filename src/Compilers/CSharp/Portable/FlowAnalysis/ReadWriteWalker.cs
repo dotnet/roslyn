@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.NoteWrite(variable, value, read);
         }
 
-        protected override void CheckAssigned(BoundExpression expr, FieldSymbol fieldSymbol, CSharpSyntaxNode node)
+        protected override void CheckAssigned(BoundExpression expr, FieldSymbol fieldSymbol, SyntaxNode node)
         {
             base.CheckAssigned(expr, fieldSymbol, node);
             if (!IsInside && node.Span.Contains(RegionSpan) && (expr.Kind == BoundKind.FieldAccess))
@@ -211,16 +211,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitUnboundLambda(UnboundLambda node)
         {
             return VisitLambda(node.BindForErrorRecovery());
-        }
-
-        public override void VisitForEachIterationVariable(BoundForEachStatement node)
-        {
-            var local = node.IterationVariable;
-            if ((object)local != null)
-            {
-                GetOrCreateSlot(local);
-                Assign(node, value: null);
-            }
         }
 
         public override BoundNode VisitRangeVariable(BoundRangeVariable node)

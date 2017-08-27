@@ -1,5 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -10,28 +11,15 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal partial class ObjectCreationCompletionProvider : AbstractObjectCreationCompletionProvider
     {
-        protected override string GetInsertionText(ISymbol symbol, AbstractSyntaxContext context, char ch)
-        {
-            if (symbol is IAliasSymbol)
-            {
-                return ((IAliasSymbol)symbol).Name;
-            }
-
-            var displayService = context.GetLanguageService<ISymbolDisplayService>();
-            return displayService.ToMinimalDisplayString(context.SemanticModel, context.Position, symbol);
-        }
-
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options);
@@ -62,13 +50,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return null;
         }
 
-        protected override async Task<AbstractSyntaxContext> CreateContext(Document document, int position, CancellationToken cancellationToken)
+        protected override async Task<SyntaxContext> CreateContext(Document document, int position, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelForSpanAsync(new TextSpan(position, 0), cancellationToken).ConfigureAwait(false);
             return CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
         }
 
-        protected override async Task<IEnumerable<ISymbol>> GetPreselectedSymbolsWorker(AbstractSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var result = await base.GetPreselectedSymbolsWorker(context, position, options, cancellationToken).ConfigureAwait(false);
             if (result.Any())
@@ -77,18 +65,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var alias = await type.FindApplicableAlias(position, context.SemanticModel, cancellationToken).ConfigureAwait(false);
                 if (alias != null)
                 {
-                    return SpecializedCollections.SingletonEnumerable(alias);
+                    return ImmutableArray.Create(alias);
                 }
             }
 
             return result;
         }
 
-        protected override ValueTuple<string, string> GetDisplayAndInsertionText(ISymbol symbol, AbstractSyntaxContext context)
+        protected override (string displayText, string insertionText) GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context)
         {
             if (symbol is IAliasSymbol)
             {
-                return ValueTuple.Create(symbol.Name, symbol.Name);
+                return (symbol.Name, symbol.Name);
             }
 
             return base.GetDisplayAndInsertionText(symbol, context);
@@ -106,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 matchPriority: MatchPriority.Preselect,
                 selectionBehavior: CompletionItemSelectionBehavior.HardSelection);
 
-        protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, AbstractSyntaxContext context)
+        protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols)
         {
             // SPECIAL: If the preselected symbol is System.Object, don't commit on '{'.
             // Otherwise, it is cumbersome to type an anonymous object when the target type is object.
