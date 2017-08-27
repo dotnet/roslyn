@@ -974,6 +974,9 @@ class C
                 // (23,17): error CS8310: Operator '||' cannot be applied to operand 'default'
                 //         var r = default || 1;
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default || 1").WithArguments("||", "default").WithLocation(23, 17),
+                // (24,17): error CS8310: Operator '??' cannot be applied to operand 'default'
+                //         var s = default ?? 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default ?? 1").WithArguments("??", "default").WithLocation(24, 17),
                 // (20,13): warning CS0219: The variable 'o' is assigned but its value is never used
                 //         var o = default == 1; // ok
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(20, 13),
@@ -1009,7 +1012,8 @@ class C
         var p = 1 != default; // ok
         var q = 1 && default;
         var r = 1 || default;
-        var s = 1 ?? default;
+        var s = new object() ?? default; // ok
+        var t = 1 ?? default;
     }
 }
 ";
@@ -1063,9 +1067,9 @@ class C
                 // (23,17): error CS8310: Operator '||' cannot be applied to operand 'default'
                 //         var r = 1 || default;
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "1 || default").WithArguments("||", "default").WithLocation(23, 17),
-                // (24,17): error CS8310: Operator '??' cannot be applied to operand 'default'
-                //         var s = 1 ?? default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "1 ?? default").WithArguments("??", "default").WithLocation(24, 17),
+                // (25,17): error CS0019: Operator '??' cannot be applied to operands of type 'int' and 'default'
+                //         var t = 1 ?? default;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "1 ?? default").WithArguments("??", "int", "default").WithLocation(25, 17),
                 // (20,13): warning CS0219: The variable 'o' is assigned but its value is never used
                 //         var o = 1 == default; // ok
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(20, 13),
@@ -2211,9 +2215,9 @@ class Program
 
             var comp = CreateCompilationWithMscorlibAndSystemCore(text, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
-                // (6,47): error CS0845: An expression tree lambda may not contain a coalescing operator with a null or default literal left-hand side
+                // (6,47): error CS8310: Operator '??' cannot be applied to operand 'default'
                 //     Expression<Func<object>> testExpr = () => default ?? "hello";
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsBadCoalesce, "default").WithLocation(6, 47)
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, @"default ?? ""hello""").WithArguments("??", "default").WithLocation(6, 47)
                 );
         }
 
