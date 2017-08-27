@@ -450,17 +450,12 @@ namespace Microsoft.CodeAnalysis.Completion
             return context;
         }
 
-        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken = default)
         {
             var provider = GetProvider(item);
-            if (provider != null)
-            {
-                return provider.GetDescriptionAsync(document, item, cancellationToken);
-            }
-            else
-            {
-                return Task.FromResult(CompletionDescription.Empty);
-            }
+            return provider != null
+                ? provider.GetDescriptionAsync(document, item, cancellationToken)
+                : Task.FromResult(CompletionDescription.Empty);
         }
 
         public override bool ShouldTriggerCompletion(

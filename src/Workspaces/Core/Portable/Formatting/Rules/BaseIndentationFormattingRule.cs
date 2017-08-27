@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
                 case IndentBlockOption.AbsolutePosition:
                     return FormattingOperations.CreateIndentBlockOperation(operation.StartToken, operation.EndToken, AdjustTextSpan(operation.TextSpan), operation.IndentationDeltaOrPosition, operation.Option);
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(operation.Option);
             }
         }
 
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
         private void SetInnermostNodeForSpan(SyntaxNode root, ref TextSpan span, out SyntaxToken token1, out SyntaxToken token2, out SyntaxNode commonNode)
         {
-            commonNode = default(SyntaxNode);
+            commonNode = default;
 
             GetTokens(root, span, out token1, out token2);
 

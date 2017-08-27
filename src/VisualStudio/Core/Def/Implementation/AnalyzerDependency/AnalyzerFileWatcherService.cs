@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -140,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             // Traverse the chain of requesting assemblies to get back to the original analyzer
             // assembly.
-            var projectsWithAnalyzer = _workspace.ProjectTracker.ImmutableProjects.Where(p => p.CurrentProjectAnalyzersContains(filePath)).ToArray();
+            var projectsWithAnalyzer = _workspace.DeferredState.ProjectTracker.ImmutableProjects.Where(p => p.CurrentProjectAnalyzersContains(filePath)).ToArray();
             foreach (var project in projectsWithAnalyzer)
             {
                 RaiseAnalyzerChangedWarning(project.Id, filePath);

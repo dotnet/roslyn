@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -53,13 +53,17 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             var declarationContext = node.Parent;
 
             TypeSyntax typeSyntax = null;
-            if (declarationContext is VariableDeclarationSyntax)
+            if (declarationContext is VariableDeclarationSyntax varDecl)
             {
-                typeSyntax = ((VariableDeclarationSyntax)declarationContext).Type;
+                typeSyntax = varDecl.Type;
             }
-            else if (declarationContext is ForEachStatementSyntax)
+            else if (declarationContext is ForEachStatementSyntax forEach)
             {
-                typeSyntax = ((ForEachStatementSyntax)declarationContext).Type;
+                typeSyntax = forEach.Type;
+            }
+            else if (declarationContext is DeclarationExpressionSyntax declarationExpression)
+            {
+                typeSyntax = declarationExpression.Type;
             }
             else
             {

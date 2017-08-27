@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.RuntimeMembers;
@@ -814,7 +815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (expression.Type.IsNullableType())
             {
-                return BoundCall.Synthesized(syntax, expression, GetNullableMethod(syntax, expression.Type, SpecialMember.System_Nullable_T_GetValueOrDefault));
+                return BoundCall.Synthesized(syntax, expression, UnsafeGetNullableMethod(syntax, expression.Type, SpecialMember.System_Nullable_T_GetValueOrDefault));
             }
 
             return expression;
@@ -839,7 +840,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression MakeNullableHasValue(SyntaxNode syntax, BoundExpression expression)
         {
-            return BoundCall.Synthesized(syntax, expression, GetNullableMethod(syntax, expression.Type, SpecialMember.System_Nullable_T_get_HasValue));
+            return BoundCall.Synthesized(syntax, expression, UnsafeGetNullableMethod(syntax, expression.Type, SpecialMember.System_Nullable_T_get_HasValue));
         }
 
         private BoundExpression LowerLiftedBuiltInComparisonOperator(
@@ -1158,7 +1159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (leftAlwaysNull && rightAlwaysNull)
             {
                 // default(R?)
-                return new BoundDefaultOperator(syntax, null, type);
+                return new BoundDefaultExpression(syntax, null, type);
             }
 
             // Optimization #2: If both sides are non-null then we can again eliminate the lifting entirely.
@@ -1194,7 +1195,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // new R?(tempX.GetValueOrDefault() OP tempY.GetValueOrDefault)
             return new BoundObjectCreationExpression(
                 syntax,
-                GetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor),
+                UnsafeGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor),
+                null, 
                 unliftedOp);
         }
 
@@ -1230,14 +1232,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (sideEffect.ConstantValue != null)
             {
-                return new BoundDefaultOperator(syntax, null, type);
+                return new BoundDefaultExpression(syntax, null, type);
             }
 
             return new BoundSequence(
                 syntax: syntax,
                 locals: ImmutableArray<LocalSymbol>.Empty,
                 sideEffects: ImmutableArray.Create<BoundExpression>(sideEffect),
-                value: new BoundDefaultOperator(syntax, null, type),
+                value: new BoundDefaultExpression(syntax, null, type),
                 type: type);
         }
 
@@ -1302,7 +1304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression consequence = MakeLiftedBinaryOperatorConsequence(syntax, kind, callX_GetValueOrDefault, callY_GetValueOrDefault, type, method);
 
             // default(R?)
-            BoundExpression alternative = new BoundDefaultOperator(syntax, null, type);
+            BoundExpression alternative = new BoundDefaultExpression(syntax, null, type);
 
             // tempX.HasValue & tempY.HasValue ? 
             //          new R?(tempX.GetValueOrDefault() OP tempY.GetValueOrDefault()) : 
@@ -1478,11 +1480,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol nullableBoolType = nullableType.Construct(boolType);
             if (value == null)
             {
-                return new BoundDefaultOperator(syntax, null, nullableBoolType);
+                return new BoundDefaultExpression(syntax, null, nullableBoolType);
             }
+
             return new BoundObjectCreationExpression(
                 syntax,
-                GetNullableMethod(syntax, nullableBoolType, SpecialMember.System_Nullable_T__ctor),
+                UnsafeGetNullableMethod(syntax, nullableBoolType, SpecialMember.System_Nullable_T__ctor),
+                null,
                 MakeBooleanConstant(syntax, value.GetValueOrDefault()));
         }
 
@@ -1520,7 +1524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression alwaysNull = leftAlwaysNull ? left : right;
             BoundExpression notAlwaysNull = leftAlwaysNull ? right : left;
             BoundExpression neverNull = NullableAlwaysHasValue(notAlwaysNull);
-            BoundExpression nullBool = new BoundDefaultOperator(syntax, null, alwaysNull.Type);
+            BoundExpression nullBool = new BoundDefaultExpression(syntax, null, alwaysNull.Type);
 
             if (neverNull != null)
             {
@@ -1662,8 +1666,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
 
-            MethodSymbol getValueOrDefaultX = GetNullableMethod(syntax, boundTempX.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
-            MethodSymbol getValueOrDefaultY = GetNullableMethod(syntax, boundTempY.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
+            MethodSymbol getValueOrDefaultX = UnsafeGetNullableMethod(syntax, boundTempX.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
+            MethodSymbol getValueOrDefaultY = UnsafeGetNullableMethod(syntax, boundTempY.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
 
             // tempx.GetValueOrDefault()
             BoundExpression callX_GetValueOrDefault = BoundCall.Synthesized(syntax, boundTempX, getValueOrDefaultX);
@@ -1712,11 +1716,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type: conditionalExpression.Type);
         }
 
-        private MethodSymbol GetNullableMethod(SyntaxNode syntax, TypeSymbol nullableType, SpecialMember member)
+        /// <summary>
+        /// This function provides a false sense of security, it is likely going to surprise you when the requested member is missing.
+        /// Recommendation: Do not use, use <see cref="TryGetNullableMethod"/> instead! 
+        /// If used, a unit-test with a missing member is absolutely a must have.
+        /// </summary>
+        private MethodSymbol UnsafeGetNullableMethod(SyntaxNode syntax, TypeSymbol nullableType, SpecialMember member)
+        {
+            return UnsafeGetNullableMethod(syntax, nullableType, member, _compilation, _diagnostics);
+        }
+
+        /// <summary>
+        /// This function provides a false sense of security, it is likely going to surprise you when the requested member is missing.
+        /// Recommendation: Do not use, use <see cref="TryGetNullableMethod"/> instead! 
+        /// If used, a unit-test with a missing member is absolutely a must have.
+        /// </summary>
+        private static MethodSymbol UnsafeGetNullableMethod(SyntaxNode syntax, TypeSymbol nullableType, SpecialMember member, CSharpCompilation compilation, DiagnosticBag diagnostics)
         {
             var nullableType2 = nullableType as NamedTypeSymbol;
             Debug.Assert((object)nullableType2 != null);
-            return GetSpecialTypeMethod(syntax, member).AsMember(nullableType2);
+            return UnsafeGetSpecialTypeMethod(syntax, member, compilation, diagnostics).AsMember(nullableType2);
+        }
+
+        private bool TryGetNullableMethod(SyntaxNode syntax, TypeSymbol nullableType, SpecialMember member, out MethodSymbol result)
+        {
+            var nullableType2 = (NamedTypeSymbol)nullableType;
+            if (TryGetSpecialTypeMethod(syntax, member, out result))
+            {
+                result = result.AsMember(nullableType2);
+                return true;
+            }
+
+            return false;
         }
 
         private BoundExpression RewriteNullableNullEquality(
@@ -1791,24 +1822,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private static MethodSymbol GetTruthOperator(TypeSymbol type, bool negative)
-        {
-            string name = negative ? WellKnownMemberNames.FalseOperatorName : WellKnownMemberNames.TrueOperatorName;
-            var operators = ((NamedTypeSymbol)type.StrippedType()).GetOperators(name);
-            Debug.Assert(!operators.IsEmpty);
-            for (int i = 0; i < operators.Length; ++i)
-            {
-                Debug.Assert(operators[i].ParameterCount == 1);
-                if (operators[i].ParameterTypes[0] == type)
-                {
-                    return operators[i];
-                }
-            }
-
-            Debug.Assert(false, "How did we bind a user-defined logical operator or dynamic logical Boolean operator without operator false or operator true?");
-            return null;
-        }
-
         private BoundExpression RewriteStringEquality(BoundBinaryOperator oldNode, SyntaxNode syntax, BinaryOperatorKind operatorKind, BoundExpression loweredLeft, BoundExpression loweredRight, TypeSymbol type, SpecialMember member)
         {
             if (oldNode != null && (loweredLeft.ConstantValue == ConstantValue.Null || loweredRight.ConstantValue == ConstantValue.Null))
@@ -1816,7 +1829,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return oldNode.Update(operatorKind, loweredLeft, loweredRight, oldNode.ConstantValueOpt, oldNode.MethodOpt, oldNode.ResultKind, type);
             }
 
-            var method = GetSpecialTypeMethod(syntax, member);
+            var method = UnsafeGetSpecialTypeMethod(syntax, member);
             Debug.Assert((object)method != null);
 
             return BoundCall.Synthesized(syntax, null, method, loweredLeft, loweredRight);
@@ -1839,7 +1852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                method = GetSpecialTypeMethod(syntax, member);
+                method = UnsafeGetSpecialTypeMethod(syntax, member);
             }
 
             Debug.Assert((object)method != null);
@@ -1877,7 +1890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // call Operator (left, right)
-            var method = GetSpecialTypeMethod(syntax, member);
+            var method = UnsafeGetSpecialTypeMethod(syntax, member);
             Debug.Assert((object)method != null);
 
             return BoundCall.Synthesized(syntax, null, method, loweredLeft, loweredRight);

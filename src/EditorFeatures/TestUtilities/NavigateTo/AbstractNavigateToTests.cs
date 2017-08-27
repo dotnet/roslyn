@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Media;
@@ -9,13 +10,18 @@ using System.Windows.Media.Imaging;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.Extensibility.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Moq;
 using Roslyn.Test.EditorUtilities.NavigateTo;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
@@ -32,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         protected INavigateToItemProvider _provider;
         protected NavigateToTestAggregator _aggregator;
 
-        protected abstract Task<TestWorkspace> CreateWorkspace(string content, ExportProvider exportProvider);
+        protected abstract TestWorkspace CreateWorkspace(string content, ExportProvider exportProvider);
         protected abstract string Language { get; }
 
         protected async Task TestAsync(string content, Func<TestWorkspace, Task> body)
@@ -43,22 +49,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 
         private async Task TestAsync(string content, Func<TestWorkspace, Task> body, bool outOfProcess)
         {
-            using (var workspace = await SetupWorkspaceAsync(content))
+            using (var workspace = SetupWorkspace(content))
             {
+                workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)
+                                                     .WithChangedOption(RemoteFeatureOptions.OutOfProcessAllowed, outOfProcess)
+                                                     .WithChangedOption(RemoteFeatureOptions.NavigateToEnabled, outOfProcess);
+
                 await body(workspace);
             }
         }
 
-        protected async Task<TestWorkspace> SetupWorkspaceAsync(XElement workspaceElement)
+        protected TestWorkspace SetupWorkspace(XElement workspaceElement)
         {
-            var workspace = await TestWorkspace.CreateAsync(workspaceElement, exportProvider: s_exportProvider);
+            var workspace = TestWorkspace.Create(workspaceElement, exportProvider: s_exportProvider);
             InitializeWorkspace(workspace);
             return workspace;
         }
 
-        protected async Task<TestWorkspace> SetupWorkspaceAsync(string content)
+        protected TestWorkspace SetupWorkspace(string content)
         {
-            var workspace = await CreateWorkspace(content, s_exportProvider);
+            var workspace = CreateWorkspace(content, s_exportProvider);
             InitializeWorkspace(workspace);
             return workspace;
         }
@@ -75,7 +85,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             _aggregator = new NavigateToTestAggregator(_provider);
         }
 
-        protected void VerifyNavigateToResultItems(List<NavigateToItem> expecteditems, IEnumerable<NavigateToItem> items)
+        protected void VerifyNavigateToResultItems(
+            List<NavigateToItem> expecteditems, IEnumerable<NavigateToItem> items)
         {
             expecteditems = expecteditems.OrderBy(i => i.Name).ToList();
             items = items.OrderBy(i => i.Name).ToList();
@@ -98,8 +109,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             }
         }
 
-        protected void VerifyNavigateToResultItem(NavigateToItem result, string name, MatchKind matchKind, string navigateToItemKind,
-           string displayName = null, string additionalInfo = null)
+        protected void VerifyNavigateToResultItem(
+            NavigateToItem result, string name, string displayMarkup, 
+            MatchKind matchKind, string navigateToItemKind, 
+            string additionalInfo = null)
         {
             // Verify symbol information
             Assert.Equal(name, result.Name);
@@ -107,10 +120,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             Assert.Equal(this.Language, result.Language);
             Assert.Equal(navigateToItemKind, result.Kind);
 
-            // Verify display
-            var itemDisplay = result.DisplayFactory.CreateItemDisplay(result);
+            MarkupTestFile.GetSpans(displayMarkup, out displayMarkup,
+                out ImmutableArray<TextSpan> expectedDisplayNameSpans);
 
-            Assert.Equal(displayName ?? name, itemDisplay.Name);
+            var itemDisplay = (AbstractNavigateToItemDisplay)result.DisplayFactory.CreateItemDisplay(result);
+
+            Assert.Equal(displayMarkup, itemDisplay.Name);
+            Assert.Equal<TextSpan>(
+                expectedDisplayNameSpans,
+                itemDisplay.GetNameMatchRuns("").Select(s => s.ToTextSpan()).ToImmutableArray());
 
             if (additionalInfo != null)
             {

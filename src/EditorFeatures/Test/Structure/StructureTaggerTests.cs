@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -38,7 +38,7 @@ namespace MyNamespace
 #endregion
 }";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 workspace.Options = workspace.Options.WithChangedOption(
                     BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp, true);
@@ -82,7 +82,7 @@ namespace MyNamespace
 #endregion
 }";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var tags = await GetTagsFromWorkspaceAsync(workspace);
 
@@ -119,7 +119,7 @@ Namespace MyNamespace
 #End Region
 End Namespace";
 
-            using (var workspace = await TestWorkspace.CreateVisualBasicAsync(code))
+            using (var workspace = TestWorkspace.CreateVisualBasic(code))
             {
                 var tags = await GetTagsFromWorkspaceAsync(workspace);
 
@@ -150,12 +150,12 @@ End Namespace";
     End Sub
 End Module";
 
-            using (var workspace = await TestWorkspace.CreateVisualBasicAsync(code))
+            using (var workspace = TestWorkspace.CreateVisualBasic(code))
             {
                 var tags = await GetTagsFromWorkspaceAsync(workspace);
 
                 var hints = tags.Select(x => x.CollapsedHintForm).Cast<ViewHostingControl>().ToArray();
-                Assert.Equal("Sub Main(args As String())\r\nEnd Sub", hints[1].ToString()); // method
+                Assert.Equal("Sub Main(args As String())\r\nEnd Sub", hints[1].GetText_TestOnly()); // method
                 hints.Do(v => v.TextView_TestOnly.Close());
             }
         }

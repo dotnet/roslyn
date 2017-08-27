@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         Task FindReferencesAsync(Document document, int position, IFindUsagesContext context);
 
         /// <summary>
-        /// Finds the implementationss for the symbol at the specific position in the document,
+        /// Finds the implementations for the symbol at the specific position in the document,
         /// pushing the results into the context instance.
         /// </summary>
         Task FindImplementationsAsync(Document document, int position, IFindUsagesContext context);

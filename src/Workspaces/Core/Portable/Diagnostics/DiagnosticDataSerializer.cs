@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         public async Task<bool> SerializeAsync(object documentOrProject, string key, ImmutableArray<DiagnosticData> items, CancellationToken cancellationToken)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new StreamObjectWriter(stream, cancellationToken: cancellationToken))
+            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
             {
                 WriteTo(writer, items, cancellationToken);
 
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
             using (var storage = persistService.GetStorage(solution))
             using (var stream = await ReadStreamAsync(storage, key, documentOrProject, cancellationToken).ConfigureAwait(false))
-            using (var reader = StreamObjectReader.TryGetReader(stream))
+            using (var reader = ObjectReader.TryGetReader(stream))
             {
                 if (reader == null)
                 {
@@ -77,8 +77,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
         private Task<bool> WriteStreamAsync(IPersistentStorage storage, object documentOrProject, string key, Stream stream, CancellationToken cancellationToken)
         {
-            var document = documentOrProject as Document;
-            if (document != null)
+            if (documentOrProject is Document document)
             {
                 return storage.WriteStreamAsync(document, key, stream, cancellationToken);
             }
@@ -196,8 +195,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
         private Task<Stream> ReadStreamAsync(IPersistentStorage storage, string key, object documentOrProject, CancellationToken cancellationToken)
         {
-            var document = documentOrProject as Document;
-            if (document != null)
+            if (documentOrProject is Document document)
             {
                 return storage.ReadStreamAsync(document, key, cancellationToken);
             }
@@ -208,8 +206,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
         public StrongBox<ImmutableArray<DiagnosticData>> ReadFrom(ObjectReader reader, object documentOrProject, CancellationToken cancellationToken)
         {
-            var document = documentOrProject as Document;
-            if (document != null)
+            if (documentOrProject is Document document)
             {
                 return ReadFrom(reader, document.Project, document, cancellationToken);
             }
@@ -382,8 +379,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
         private static Solution GetSolution(object documentOrProject)
         {
-            var document = documentOrProject as Document;
-            if (document != null)
+            if (documentOrProject is Document document)
             {
                 return document.Project.Solution;
             }

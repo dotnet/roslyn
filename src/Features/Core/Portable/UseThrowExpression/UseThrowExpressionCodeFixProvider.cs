@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 // First, remote the if-statement entirely.
                 editor.RemoveNode(ifStatement);
 
-                // Now, update the assignemnt value to go from 'a' to 'a ?? throw ...'.
+                // Now, update the assignment value to go from 'a' to 'a ?? throw ...'.
                 editor.ReplaceNode(assignmentValue,
                     generator.CoalesceExpression(assignmentValue,
                     generator.ThrowExpression(throwStatementExpression)));

@@ -43,6 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics,
                 isExpressionBodied)
         {
+            CheckForBlockAndExpressionBody(
+                syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
         }
 
         internal new OperatorDeclarationSyntax GetSyntax()

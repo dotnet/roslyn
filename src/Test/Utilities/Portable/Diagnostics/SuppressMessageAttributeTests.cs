@@ -2,12 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -70,12 +69,12 @@ public class C
 public class C
 {
     [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Declaration"")]
-    public void Foo() {}
-    public void Foo1() {}
+    public void Goo() {}
+    public void Goo1() {}
 }
 ",
-                new[] { new WarningOnNamePrefixDeclarationAnalyzer("Foo") },
-                Diagnostic("Declaration", "Foo1"));
+                new[] { new WarningOnNamePrefixDeclarationAnalyzer("Goo") },
+                Diagnostic("Declaration", "Goo1"));
         }
 
         #endregion
@@ -258,7 +257,7 @@ public class E
 public class C
 {
     // before method
-    public void Foo() // after method declaration
+    public void Goo() // after method declaration
     {
         // inside method
     }
@@ -277,7 +276,7 @@ public class C
 ' before class
 Public Class C
     ' before sub
-    Public Sub Foo() ' after sub statement
+    Public Sub Goo() ' after sub statement
         ' inside sub
     End Sub
 End Class
@@ -291,12 +290,12 @@ End Class
         {
             await VerifyCSharpAsync(@"
 // before module attributes
-[module: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Comment"", Scope=""Member"" Target=""C.Foo():System.Void"")]
+[module: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Comment"", Scope=""Member"" Target=""C.Goo():System.Void"")]
 // before class
 public class C
 {
     // before method
-    public void Foo() // after method declaration
+    public void Goo() // after method declaration
     {
         // inside method
     }
@@ -314,11 +313,11 @@ public class C
         {
             await VerifyBasicAsync(@"
 ' before module attributes
-<Module: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Comment"", Scope:=""Member"", Target:=""C.Foo():System.Void"")>
+<Module: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Comment"", Scope:=""Member"", Target:=""C.Goo():System.Void"")>
 ' before class
 Public Class C
     ' before sub
-    Public Sub Foo() ' after sub statement
+    Public Sub Goo() ' after sub statement
         ' inside sub
     End Sub
 End Class
@@ -1025,9 +1024,9 @@ public class C
 public class C
 {
     [System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""CodeBody"")]
-    void Foo()
+    void Goo()
     {
-        Foo();
+        Goo();
     }
 }
 ",
@@ -1041,8 +1040,8 @@ public class C
                 @"
 Public Class C
     <System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""CodeBody"")>
-    Sub Foo()
-        Foo()
+    Sub Goo()
+        Goo()
     End Sub
 End Class
 ",
@@ -1213,10 +1212,8 @@ public class C2
         // Generate a diagnostic on every token in the specified spans, and verify that only the specified diagnostics are not suppressed
         private Task VerifyTokenDiagnosticsAsync(string markup, string language, DiagnosticDescription[] diagnostics)
         {
-            string source;
-            IList<TextSpan> spans;
-            MarkupTestFile.GetSpans(markup, out source, out spans);
-            Assert.True(spans.Count > 0, "Must specify a span within which to generate diagnostics on each token");
+            MarkupTestFile.GetSpans(markup, out var source, out ImmutableArray<TextSpan> spans);
+            Assert.True(spans.Length > 0, "Must specify a span within which to generate diagnostics on each token");
 
             return VerifyAsync(source, language, new DiagnosticAnalyzer[] { new WarningOnTokenAnalyzer(spans) }, diagnostics);
         }
@@ -1225,7 +1222,9 @@ public class C2
 
         protected DiagnosticDescription Diagnostic(string id, string squiggledText)
         {
-            var arguments = (this.ConsiderArgumentsForComparingDiagnostics && squiggledText != null) ? new[] { squiggledText } : null;
+            var arguments = this.ConsiderArgumentsForComparingDiagnostics && squiggledText != null
+                ? new[] { squiggledText }
+                : null;
             return new DiagnosticDescription(id, false, squiggledText, arguments, null, null, false);
         }
     }

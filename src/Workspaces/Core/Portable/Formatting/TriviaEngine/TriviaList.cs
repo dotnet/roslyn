@@ -68,10 +68,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return _enumerator.MoveNext();
             }
 
-            public SyntaxTrivia Current
-            {
-                get { return _enumerator.Current; }
-            }
+            public SyntaxTrivia Current => _enumerator.Current;
 
             void IDisposable.Dispose()
             {

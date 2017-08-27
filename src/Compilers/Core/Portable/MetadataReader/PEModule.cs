@@ -13,6 +13,7 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -38,7 +39,14 @@ namespace Microsoft.CodeAnalysis
         private MetadataReader _lazyMetadataReader;
 
         private ImmutableArray<AssemblyIdentity> _lazyAssemblyReferences;
-        private Dictionary<string, AssemblyReferenceHandle> _lazyForwardedTypesToAssemblyMap;
+
+        /// <summary>
+        /// This is a tuple for optimization purposes. In valid cases, we need to store
+        /// only one assembly index per type. However, if we found more than one, we
+        /// keep a second one as well to use it for error reporting.
+        /// We use -1 in case there was no forward.
+        /// </summary>
+        private Dictionary<string, (int FirstIndex, int SecondIndex)> _lazyForwardedTypesToAssemblyIndexMap;
 
         private readonly Lazy<IdentifierCollection> _lazyTypeNameCollection;
         private readonly Lazy<IdentifierCollection> _lazyNamespaceNameCollection;
@@ -764,7 +772,7 @@ namespace Microsoft.CodeAnalysis
         {
             EnsureForwardTypeToAssemblyMap();
 
-            foreach (var typeName in _lazyForwardedTypesToAssemblyMap.Keys)
+            foreach (var typeName in _lazyForwardedTypesToAssemblyIndexMap.Keys)
             {
                 int index = typeName.LastIndexOf('.');
                 string namespaceName = index >= 0 ? typeName.Substring(0, index) : "";
@@ -1012,7 +1020,7 @@ namespace Microsoft.CodeAnalysis
             return TryExtractStringArrayValueFromAttribute(info.Handle, out tupleElementNames);
         }
 
-        internal bool HasDeprecatedOrObsoleteAttribute(EntityHandle token, out ObsoleteAttributeData obsoleteData)
+        internal bool HasDeprecatedOrExperimentalOrObsoleteAttribute(EntityHandle token, out ObsoleteAttributeData obsoleteData)
         {
             AttributeInfo info;
 
@@ -1026,6 +1034,14 @@ namespace Microsoft.CodeAnalysis
             if (info.HasValue)
             {
                 return TryExtractObsoleteDataFromAttribute(info, out obsoleteData);
+            }
+
+            // [Experimental] is always a warning, not an
+            // error, so search for [Experimental] last.
+            info = FindTargetAttribute(token, AttributeDescription.ExperimentalAttribute);
+            if (info.HasValue)
+            {
+                return TryExtractExperimentalDataFromAttribute(info, out obsoleteData);
             }
 
             obsoleteData = null;
@@ -1144,7 +1160,7 @@ namespace Microsoft.CodeAnalysis
             {
                 case 0:
                     // ObsoleteAttribute()
-                    obsoleteData = new ObsoleteAttributeData(message: null, isError: false);
+                    obsoleteData = new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message: null, isError: false);
                     return true;
 
                 case 1:
@@ -1152,7 +1168,7 @@ namespace Microsoft.CodeAnalysis
                     string message;
                     if (TryExtractStringValueFromAttribute(attributeInfo.Handle, out message))
                     {
-                        obsoleteData = new ObsoleteAttributeData(message, isError: false);
+                        obsoleteData = new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message, isError: false);
                         return true;
                     }
 
@@ -1179,6 +1195,21 @@ namespace Microsoft.CodeAnalysis
                 case 2: // DeprecatedAttribute(String, DeprecationType, UInt32, Type) 
                 case 3: // DeprecatedAttribute(String, DeprecationType, UInt32, String) 
                     return TryExtractValueFromAttribute(attributeInfo.Handle, out obsoleteData, s_attributeDeprecatedDataExtractor);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(attributeInfo.SignatureIndex);
+            }
+        }
+
+        private bool TryExtractExperimentalDataFromAttribute(AttributeInfo attributeInfo, out ObsoleteAttributeData obsoleteData)
+        {
+            Debug.Assert(attributeInfo.HasValue);
+
+            switch (attributeInfo.SignatureIndex)
+            {
+                case 0: // ExperimentalAttribute() 
+                    obsoleteData = ObsoleteAttributeData.Experimental;
+                    return true;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(attributeInfo.SignatureIndex);
@@ -1427,13 +1458,13 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal static bool CrackObsoleteAttributeData(out ObsoleteAttributeData value, ref BlobReader sig)
+        private static bool CrackObsoleteAttributeData(out ObsoleteAttributeData value, ref BlobReader sig)
         {
             string message;
             if (CrackStringInAttributeValue(out message, ref sig) && sig.RemainingBytes >= 1)
             {
                 bool isError = sig.ReadBoolean();
-                value = new ObsoleteAttributeData(message, isError);
+                value = new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message, isError);
                 return true;
             }
 
@@ -1441,12 +1472,12 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        internal static bool CrackDeprecatedAttributeData(out ObsoleteAttributeData value, ref BlobReader sig)
+        private static bool CrackDeprecatedAttributeData(out ObsoleteAttributeData value, ref BlobReader sig)
         {
             StringAndInt args;
             if (CrackStringAndIntInAttributeValue(out args, ref sig))
             {
-                value = new ObsoleteAttributeData(args.StringValue, args.IntValue == 1);
+                value = new ObsoleteAttributeData(ObsoleteAttributeKind.Deprecated, args.StringValue, args.IntValue == 1);
                 return true;
             }
 
@@ -1562,7 +1593,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         // Note: not a general purpose helper
-        internal static bool CrackDecimalInDecimalConstantAttribute(out decimal value, ref BlobReader sig)
+        private static bool CrackDecimalInDecimalConstantAttribute(out decimal value, ref BlobReader sig)
         {
             byte scale;
             byte sign;
@@ -2822,7 +2853,7 @@ namespace Microsoft.CodeAnalysis
             return ConstantValue.Bad;
         }
 
-        internal AssemblyReferenceHandle GetAssemblyForForwardedType(string fullName, bool ignoreCase, out string matchedName)
+        internal (int FirstIndex, int SecondIndex) GetAssemblyRefsForForwardedType(string fullName, bool ignoreCase, out string matchedName)
         {
             EnsureForwardTypeToAssemblyMap();
 
@@ -2832,7 +2863,7 @@ namespace Microsoft.CodeAnalysis
                 // this functionality when computing diagnostics.  Note
                 // that we can't store the map case-insensitively, since real metadata name
                 // lookup has to remain case sensitive.
-                foreach (var pair in _lazyForwardedTypesToAssemblyMap)
+                foreach (var pair in _lazyForwardedTypesToAssemblyIndexMap)
                 {
                     if (string.Equals(pair.Key, fullName, StringComparison.OrdinalIgnoreCase))
                     {
@@ -2843,29 +2874,29 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                AssemblyReferenceHandle assemblyRef;
-                if (_lazyForwardedTypesToAssemblyMap.TryGetValue(fullName, out assemblyRef))
+                (int FirstIndex, int SecondIndex) assemblyIndices;
+                if (_lazyForwardedTypesToAssemblyIndexMap.TryGetValue(fullName, out assemblyIndices))
                 {
                     matchedName = fullName;
-                    return assemblyRef;
+                    return assemblyIndices;
                 }
             }
 
             matchedName = null;
-            return default(AssemblyReferenceHandle);
+            return (FirstIndex: -1, SecondIndex: - 1);
         }
 
-        internal IEnumerable<KeyValuePair<string, AssemblyReferenceHandle>> GetForwardedTypes()
+        internal IEnumerable<KeyValuePair<string, (int FirstIndex, int SecondIndex)>> GetForwardedTypes()
         {
             EnsureForwardTypeToAssemblyMap();
-            return _lazyForwardedTypesToAssemblyMap;
+            return _lazyForwardedTypesToAssemblyIndexMap;
         }
 
         private void EnsureForwardTypeToAssemblyMap()
         {
-            if (_lazyForwardedTypesToAssemblyMap == null)
+            if (_lazyForwardedTypesToAssemblyIndexMap == null)
             {
-                var typesToAssemblyMap = new Dictionary<string, AssemblyReferenceHandle>();
+                var typesToAssemblyIndexMap = new Dictionary<string, (int FirstIndex, int SecondIndex)>();
 
                 try
                 {
@@ -2874,6 +2905,27 @@ namespace Microsoft.CodeAnalysis
                     {
                         ExportedType exportedType = MetadataReader.GetExportedType(handle);
                         if (!exportedType.IsForwarder)
+                        {
+                            continue;
+                        }
+
+                        AssemblyReferenceHandle refHandle = (AssemblyReferenceHandle)exportedType.Implementation;
+                        if (refHandle.IsNil)
+                        {
+                            continue;
+                        }
+
+                        int referencedAssemblyIndex;
+                        try
+                        {
+                            referencedAssemblyIndex = this.GetAssemblyReferenceIndexOrThrow(refHandle);
+                        }
+                        catch (BadImageFormatException)
+                        {
+                            continue;
+                        }
+
+                        if (referencedAssemblyIndex < 0 || referencedAssemblyIndex >= this.ReferencedAssemblies.Length)
                         {
                             continue;
                         }
@@ -2889,13 +2941,29 @@ namespace Microsoft.CodeAnalysis
                             }
                         }
 
-                        typesToAssemblyMap.Add(name, (AssemblyReferenceHandle)exportedType.Implementation);
+                        (int FirstIndex, int SecondIndex) indices;
+
+                        if (typesToAssemblyIndexMap.TryGetValue(name, out indices))
+                        {
+                            Debug.Assert(indices.FirstIndex >= 0, "Not allowed to store a negative (non-existent) index in typesToAssemblyIndexMap");
+
+                            // Store it only if it was not a duplicate
+                            if (indices.FirstIndex != referencedAssemblyIndex && indices.SecondIndex < 0)
+                            {
+                                indices.SecondIndex = referencedAssemblyIndex;
+                                typesToAssemblyIndexMap[name] = indices;
+                            }
+                        }
+                        else
+                        {
+                            typesToAssemblyIndexMap.Add(name, (FirstIndex: referencedAssemblyIndex, SecondIndex: -1));
+                        }
                     }
                 }
                 catch (BadImageFormatException)
                 { }
 
-                _lazyForwardedTypesToAssemblyMap = typesToAssemblyMap;
+                _lazyForwardedTypesToAssemblyIndexMap = typesToAssemblyIndexMap;
             }
         }
 
@@ -2960,7 +3028,7 @@ namespace Microsoft.CodeAnalysis
             // we shouldn't ask for method IL if we don't have PE image
             Debug.Assert(_peReaderOpt != null);
 
-            MethodDefinition method = this.MetadataReader.GetMethodDefinition(methodHandle);
+            MethodDefinition method = MetadataReader.GetMethodDefinition(methodHandle);
             if ((method.ImplAttributes & MethodImplAttributes.CodeTypeMask) != MethodImplAttributes.IL ||
                  method.RelativeVirtualAddress == 0)
             {

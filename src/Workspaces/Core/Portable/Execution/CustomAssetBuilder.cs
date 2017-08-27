@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Host;
 namespace Microsoft.CodeAnalysis.Execution
 {
     /// <summary>
-    /// builder to create custom asset which is not part of solution but want to participate in ISolutionSynchronizationService
+    /// builder to create custom asset which is not part of solution but want to participate in <see cref="IRemotableDataService"/>
     /// </summary>
     internal class CustomAssetBuilder
     {
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Execution
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            return new SimpleCustomAsset(WellKnownSynchronizationKinds.OptionSet,
+            return new SimpleCustomAsset(WellKnownSynchronizationKind.OptionSet,
                 (writer, cancellationTokenOnStreamWriting) =>
                     _serializer.SerializeOptionSet(options, language, writer, cancellationTokenOnStreamWriting));
         }

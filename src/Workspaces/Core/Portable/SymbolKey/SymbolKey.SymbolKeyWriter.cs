@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -60,7 +61,6 @@ namespace Microsoft.CodeAnalysis
             private readonly Dictionary<ISymbol, int> _symbolToId = new Dictionary<ISymbol, int>();
             private readonly StringBuilder _stringBuilder = new StringBuilder();
 
-            public Compilation Compilation { get; private set; }
             public CancellationToken CancellationToken { get; private set; }
 
             private List<IMethodSymbol> _methodSymbolStack = new List<IMethodSymbol>();
@@ -83,8 +83,7 @@ namespace Microsoft.CodeAnalysis
                 _symbolToId.Clear();
                 _stringBuilder.Clear();
                 _methodSymbolStack.Clear();
-                Compilation = null;
-                CancellationToken = default(CancellationToken);
+                CancellationToken = default;
                 _nestingCount = 0;
                 _nextId = 0;
 
@@ -92,16 +91,15 @@ namespace Microsoft.CodeAnalysis
                 s_writerPool.Free(this);
             }
 
-            public static SymbolKeyWriter GetWriter(Compilation compilation, CancellationToken cancellationToken)
+            public static SymbolKeyWriter GetWriter(CancellationToken cancellationToken)
             {
                 var visitor = s_writerPool.Allocate();
-                visitor.Initialize(compilation, cancellationToken);
+                visitor.Initialize(cancellationToken);
                 return visitor;
             }
 
-            private void Initialize(Compilation compilation, CancellationToken cancellationToken)
+            private void Initialize(CancellationToken cancellationToken)
             {
-                Compilation = compilation;
                 CancellationToken = cancellationToken;
             }
 
@@ -176,17 +174,17 @@ namespace Microsoft.CodeAnalysis
                     // Note: it is possible in some situations to hit the same symbol 
                     // multiple times.  For example, if you have:
                     //
-                    //      Foo<Z>(List<Z> list)
+                    //      Goo<Z>(List<Z> list)
                     //
                     // If we start with the symbol for "list" then we'll see the following
                     // chain of symbols hit:
                     //
                     //      List<Z>     
                     //          Z
-                    //              Foo<Z>(List<Z>)
+                    //              Goo<Z>(List<Z>)
                     //                  List<Z>
                     //
-                    // The recursion is prevented because when we hit 'Foo' we mark that
+                    // The recursion is prevented because when we hit 'Goo' we mark that
                     // we're writing out a signature.  And, in signature mode we only write
                     // out the ordinal for 'Z' without recursing.  However, even though
                     // we prevent the recursion, we still hit List<Z> twice.  After writing
@@ -496,7 +494,7 @@ namespace Microsoft.CodeAnalysis
             {
                 // If it's a reference to a method type parameter, and we're currently writing
                 // out a signture, then only write out the ordinal of type parameter.  This 
-                // helps prevent recursion problems in cases like "Foo<T>(T t).
+                // helps prevent recursion problems in cases like "Goo<T>(T t).
                 if (ShouldWriteTypeParameterOrdinal(typeParameterSymbol, out int methodIndex))
                 {
                     WriteType(SymbolKeyType.TypeParameterOrdinal);

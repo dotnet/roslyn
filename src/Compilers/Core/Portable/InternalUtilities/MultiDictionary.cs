@@ -23,8 +23,8 @@ namespace Roslyn.Utilities
                 {
                     if (v._value == null)
                     {
-                        _value = default(V);
-                        _values = default(ImmutableHashSet<V>.Enumerator);
+                        _value = default;
+                        _values = default;
                         _count = 0;
                     }
                     else
@@ -33,12 +33,12 @@ namespace Roslyn.Utilities
                         if (set == null)
                         {
                             _value = (V)v._value;
-                            _values = default(ImmutableHashSet<V>.Enumerator);
+                            _values = default;
                             _count = 1;
                         }
                         else
                         {
-                            _value = default(V);
+                            _value = default;
                             _values = set.GetEnumerator();
                             _count = set.Count;
                             Debug.Assert(_count > 1);
@@ -168,25 +168,16 @@ namespace Roslyn.Utilities
 
         private readonly Dictionary<K, ValueSet> _dictionary;
 
-        public int Count
-        {
-            get
-            {
-                return _dictionary.Count;
-            }
-        }
+        public int Count => _dictionary.Count;
 
-        public IEnumerable<K> Keys
-        {
-            get { return _dictionary.Keys; }
-        }
+        public IEnumerable<K> Keys => _dictionary.Keys;
 
         // Returns an empty set if there is no such key in the dictionary.
         public ValueSet this[K k]
         {
             get
             {
-                return _dictionary.TryGetValue(k, out var set) ? set : default(ValueSet);
+                return _dictionary.TryGetValue(k, out var set) ? set : default;
             }
         }
 
@@ -228,6 +219,11 @@ namespace Roslyn.Utilities
         internal void Clear()
         {
             _dictionary.Clear();
+        }
+
+        public void Remove(K key)
+        {
+            _dictionary.Remove(key);
         }
     }
 }

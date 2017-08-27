@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -15,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Roslyn.Test.Utilities
 {
-    public class RuntimeEnvironmentFactory
+    public static class RuntimeEnvironmentFactory
     {
         private static readonly Lazy<IRuntimeEnvironmentFactory> s_lazyFactory = new Lazy<IRuntimeEnvironmentFactory>(GetFactoryImplementation);
 
@@ -26,30 +27,21 @@ namespace Roslyn.Test.Utilities
 
         private static IRuntimeEnvironmentFactory GetFactoryImplementation()
         {
-            string assemblyName;
-            string typeName;
-            if (DesktopShim.FileNotFoundException.Type != null)
-            {
-                assemblyName = "Roslyn.Test.Utilities.Desktop";
-                typeName = "Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime.DesktopRuntimeEnvironmentFactory";
-            }
-            else
-            {
-                assemblyName = "Roslyn.Test.Utilities.CoreClr";
-                typeName = "Roslyn.Test.Utilities.CoreClrRuntimeEnvironmentFactory";
-            }
+#if NET46
+            return new Roslyn.Test.Utilities.Desktop.DesktopRuntimeEnvironmentFactory();
+#elif NETCOREAPP2_0
+            return new Roslyn.Test.Utilities.CoreClr.CoreCLRRuntimeEnvironmentFactory();
+#else
+            throw new NotSupportedException();
+#endif
+        }
 
-            var thisAssemblyName = typeof(RuntimeEnvironmentFactory).GetTypeInfo().Assembly.GetName();
-            var name = new AssemblyName();
-            name.Name = assemblyName;
-            name.Version = thisAssemblyName.Version;
-            name.SetPublicKey(thisAssemblyName.GetPublicKey());
-            name.CultureName = thisAssemblyName.CultureName;
-            name.ProcessorArchitecture = thisAssemblyName.ProcessorArchitecture;
-
-            var assembly = Assembly.Load(name);
-            var type = assembly.GetType(typeName);
-            return (IRuntimeEnvironmentFactory)Activator.CreateInstance(type);
+        public static void CaptureOutput(Action action, int expectedLength, out string output, out string errorOutput)
+        {
+            using (var runtimeEnvironment = Create())
+            {
+                runtimeEnvironment.CaptureOutput(action, expectedLength, out output, out errorOutput);
+            }
         }
     }
 
@@ -67,7 +59,6 @@ namespace Roslyn.Test.Utilities
 
     internal static class RuntimeUtilities
     {
-
         private static int s_dumpCount;
 
         private static IEnumerable<ModuleMetadata> EnumerateModules(Metadata metadata)
@@ -132,7 +123,7 @@ namespace Roslyn.Test.Utilities
         /// <summary>
         /// Find all of the <see cref="Compilation"/> values reachable from this instance.
         /// </summary>
-        /// <param name="compilation"></param>
+        /// <param name="original"></param>
         /// <returns></returns>
         private static List<Compilation> FindReferencedCompilations(Compilation original)
         {
@@ -235,11 +226,12 @@ namespace Roslyn.Test.Utilities
                 {
                     result = compilation.Emit(
                         executableStream,
+                        metadataPEStream: null,
                         pdbStream: pdbStream,
                         xmlDocumentationStream: null,
                         win32Resources: null,
                         manifestResources: manifestResources,
-                        options: emitOptions ?? EmitOptions.Default,
+                        options: emitOptions,
                         debugEntryPoint: null,
                         sourceLinkStream: null,
                         embeddedTexts: null,
@@ -305,8 +297,7 @@ namespace Roslyn.Test.Utilities
                     }
                     else
                     {
-                        AssemblyIdentity identity;
-                        AssemblyIdentity.TryParseDisplayName(module.FullName, out identity);
+                        AssemblyIdentity.TryParseDisplayName(module.FullName, out var identity);
                         fileName = identity.Name;
                     }
 
@@ -349,7 +340,7 @@ namespace Roslyn.Test.Utilities
     public interface IRuntimeEnvironment : IDisposable
     {
         void Emit(Compilation mainCompilation, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, bool usePdbForDebugging = false);
-        int Execute(string moduleName, string expectedOutput);
+        int Execute(string moduleName, string[] args, string expectedOutput);
         ImmutableArray<byte> GetMainImage();
         ImmutableArray<byte> GetMainPdb();
         ImmutableArray<Diagnostic> GetDiagnostics();
@@ -357,6 +348,7 @@ namespace Roslyn.Test.Utilities
         IList<ModuleData> GetAllModuleData();
         void PeVerify();
         string[] PeVerifyModules(string[] modulesToVerify, bool throwOnError = true);
+        void CaptureOutput(Action action, int expectedLength, out string output, out string errorOutput);
     }
 
     internal interface IInternalRuntimeEnvironment

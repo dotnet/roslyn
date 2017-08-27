@@ -66,14 +66,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 case "System.Diagnostics.StackTrace":
                     return TryRedirect(name, s_b03f5f7f11d50a3a, 4, 0, 3, 0);
 
+                case "System.Reflection":
+                    return TryRedirect(name, s_b03f5f7f11d50a3a, 4, 1, 1, 0);
+
             }
 
             return false;
         }
 
-        private static bool TryRedirect(AssemblyName name, byte[] token, int major, int minor, int revision, int build)
+        private static bool TryRedirect(AssemblyName name, byte[] token, int major, int minor, int build, int revision)
         {
-            var version = new Version(major, minor, revision, build);
+            var version = new Version(major, minor, build, revision);
             if (KeysEqual(name.GetPublicKeyToken(), token) && name.Version < version)
             {
                 name.Version = version;

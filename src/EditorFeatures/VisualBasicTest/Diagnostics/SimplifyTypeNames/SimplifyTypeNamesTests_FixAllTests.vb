@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Option Strict Off
 Imports Microsoft.CodeAnalysis.CodeStyle
@@ -98,7 +98,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId, options:=PreferIntrinsicPredefinedTypeEverywhere())
+            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=fixAllActionId, options:=PreferIntrinsicPredefinedTypeEverywhere())
         End Function
 
         <Fact>
@@ -189,7 +189,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId, options:=PreferIntrinsicPredefinedTypeEverywhere())
+            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=fixAllActionId, options:=PreferIntrinsicPredefinedTypeEverywhere())
         End Function
 
         <Fact>
@@ -280,7 +280,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId, options:=PreferIntrinsicPredefinedTypeEverywhere())
+            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=fixAllActionId, options:=PreferIntrinsicPredefinedTypeEverywhere())
         End Function
 
         <Fact>
@@ -487,7 +487,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
+            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=fixAllActionId)
         End Function
 
         <Fact>
@@ -718,7 +718,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
+            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=fixAllActionId)
         End Function
 
         <Fact>
@@ -792,11 +792,10 @@ End Class]]>
             Dim options = OptionsSet(
                 SingleOption(CodeStyleOptions.QualifyPropertyAccess, False, NotificationOption.Suggestion),
                 SingleOption(CodeStyleOptions.QualifyFieldAccess, True, NotificationOption.Suggestion))
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
                 initialMarkup:=input,
                 expectedMarkup:=expected,
                 options:=options,
-                compareTokens:=False,
                 fixAllActionEquivalenceKey:=VBFeaturesResources.Remove_Me_qualification)
         End Function
 

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -27,18 +27,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         public string ErrorMessage { get; private set; }
         public NotificationSeverity ErrorSeverity { get; private set; }
 
-        public static async Task<ChangeSignatureTestState> CreateAsync(string markup, string languageName, ParseOptions parseOptions = null)
+        public static ChangeSignatureTestState Create(string markup, string languageName, ParseOptions parseOptions = null)
         {
             var workspace = languageName == LanguageNames.CSharp
-                  ? await TestWorkspace.CreateCSharpAsync(markup, exportProvider: s_exportProvider, parseOptions: (CSharpParseOptions)parseOptions)
-                  : await TestWorkspace.CreateVisualBasicAsync(markup, exportProvider: s_exportProvider, parseOptions: parseOptions, compilationOptions: new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                  ? TestWorkspace.CreateCSharp(markup, exportProvider: s_exportProvider, parseOptions: (CSharpParseOptions)parseOptions)
+                  : TestWorkspace.CreateVisualBasic(markup, exportProvider: s_exportProvider, parseOptions: parseOptions, compilationOptions: new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             return new ChangeSignatureTestState(workspace);
         }
 
-        public static async Task<ChangeSignatureTestState> CreateAsync(XElement workspaceXml)
+        public static ChangeSignatureTestState Create(XElement workspaceXml)
         {
-            var workspace = await TestWorkspace.CreateAsync(workspaceXml);
+            var workspace = TestWorkspace.Create(workspaceXml);
             return new ChangeSignatureTestState(workspace);
         }
 

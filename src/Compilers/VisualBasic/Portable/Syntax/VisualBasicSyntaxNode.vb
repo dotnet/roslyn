@@ -5,6 +5,7 @@ Imports System.Collections.ObjectModel
 Imports System.ComponentModel
 Imports System.Reflection
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -140,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeReadFrom)
             End If
 
-            Using reader = StreamObjectReader.TryGetReader(stream, knownObjects:=GetDeserializationObjectData(), binder:=s_defaultBinder, cancellationToken:=cancellationToken)
+            Using reader = ObjectReader.TryGetReader(stream, cancellationToken:=cancellationToken)
                 If reader Is Nothing Then
                     Throw New ArgumentException(CodeAnalysisResources.Stream_contains_invalid_data, NameOf(stream))
                 End If
@@ -149,48 +150,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Using
         End Function
 
-        Friend Overrides Function GetSerializationObjectData() As ObjectData
-            Return GetDeserializationObjectData()
-        End Function
-
-        Private Shared ReadOnly s_serializationObjectData As ObjectData
-        Private Shared Function GetDeserializationObjectData() As ObjectData
-            If s_serializationObjectData Is Nothing Then
-                Dim data = New ObjectData(
-                    New Object() {
-                        GetType(Object).GetTypeInfo().Assembly.FullName,
-                        GetType(Microsoft.CodeAnalysis.DiagnosticInfo).GetTypeInfo().Assembly.FullName,
-                        GetType(Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode).GetTypeInfo().Assembly.FullName,
-                        GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxToken.TriviaInfo),
-                        GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SimpleIdentifierSyntax),
-                        GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.ComplexIdentifierSyntax),
-                        GetType(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList),
-                        GetType(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList.WithTwoChildren),
-                        GetType(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList.WithThreeChildren),
-                        GetType(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList.WithManyChildren),
-                        GetType(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList.WithLotsOfChildren),
-                        GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of Int32)),
-                        GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of Int16)),
-                        GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of Int64)),
-                        GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of UInt32)),
-                        GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of UInt16)),
-                        GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of UInt64)),
-                        GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of Byte)),
-                        GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.IntegerLiteralTokenSyntax(Of SByte)),
-                        GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FloatingLiteralTokenSyntax(Of Single)),
-                        GetType(Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FloatingLiteralTokenSyntax(Of Double)),
-                        GetType(Microsoft.CodeAnalysis.DiagnosticInfo),
-                        GetType(Microsoft.CodeAnalysis.SyntaxAnnotation)
-                    } _
-                    .Concat(InternalSyntax.SyntaxFactory.GetNodeTypes()) _
-                    .Concat(InternalSyntax.SyntaxFactory.GetWellKnownTrivia()) _
-                    .ToImmutableArray())
-
-                Interlocked.CompareExchange(s_serializationObjectData, data, Nothing)
-            End If
-
-            Return s_serializationObjectData
-        End Function
 #End Region
 
         ''' <summary>

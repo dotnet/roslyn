@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.LanguageServices.ProjectInfoService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Utilities;
@@ -37,9 +38,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
         protected abstract bool TryGetArgumentList(TObjectCreationExpressionSyntax objectCreationExpression, out IList<TArgumentSyntax> argumentList);
 
         protected abstract string DefaultFileExtension { get; }
-        protected abstract IList<ITypeParameterSymbol> GetTypeParameters(State state, SemanticModel semanticModel, CancellationToken cancellationToken);
+        protected abstract ImmutableArray<ITypeParameterSymbol> GetTypeParameters(State state, SemanticModel semanticModel, CancellationToken cancellationToken);
         protected abstract Accessibility GetAccessibility(State state, SemanticModel semanticModel, bool intoNamespace, CancellationToken cancellationToken);
-        protected abstract IList<ParameterName> GenerateParameterNames(SemanticModel semanticModel, IList<TArgumentSyntax> arguments);
+        protected abstract IList<ParameterName> GenerateParameterNames(SemanticModel semanticModel, IList<TArgumentSyntax> arguments, CancellationToken cancellationToken);
 
         protected abstract INamedTypeSymbol DetermineTypeToGenerateIn(SemanticModel semanticModel, TSimpleNameSyntax simpleName, CancellationToken cancellationToken);
         protected abstract ITypeSymbol DetermineArgumentType(SemanticModel semanticModel, TArgumentSyntax argument, CancellationToken cancellationToken);
@@ -109,8 +110,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, intoNamespace: true, inNewFile: true));
                 }
 
-                // If they just are generating "Foo" then we want to offer to generate it into the
-                // namespace in the same file.  However, if they are generating "SomeNS.Foo", then we
+                // If they just are generating "Goo" then we want to offer to generate it into the
+                // namespace in the same file.  However, if they are generating "SomeNS.Goo", then we
                 // only want to allow them to generate if "SomeNS" is the namespace they are
                 // currently in.
                 var isSimpleName = state.SimpleName == state.NameOrMemberAccessExpression;
@@ -178,7 +179,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 : state.Name;
         }
 
-        protected IList<ITypeParameterSymbol> GetTypeParameters(
+        protected ImmutableArray<ITypeParameterSymbol> GetTypeParameters(
             State state,
             SemanticModel semanticModel,
             IEnumerable<SyntaxNode> typeArguments,
@@ -186,7 +187,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
         {
             var arguments = typeArguments.ToList();
             var arity = arguments.Count;
-            var typeParameters = new List<ITypeParameterSymbol>();
+            var typeParameters = ArrayBuilder<ITypeParameterSymbol>.GetInstance();
 
             // For anything that was a type parameter, just use the name (if we haven't already
             // used it).  Otherwise, synthesize new names for the parameters.
@@ -196,7 +197,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             {
                 var argument = i < arguments.Count ? arguments[i] : null;
                 var type = argument == null ? null : semanticModel.GetTypeInfo(argument, cancellationToken).Type;
-                if (type is ITypeParameterSymbol)
+                if (type is ITypeParameterSymbol typeParameter)
                 {
                     var name = type.Name;
 
@@ -205,7 +206,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     // to be changed if it collides with anything else.
                     isFixed[i] = !names.Contains(name);
                     names[i] = name;
-                    typeParameters.Add((ITypeParameterSymbol)type);
+                    typeParameters.Add(typeParameter);
                 }
                 else
                 {
@@ -228,7 +229,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 }
             }
 
-            return typeParameters;
+            return typeParameters.ToImmutableAndFree();
         }
 
         protected Accessibility DetermineDefaultAccessibility(

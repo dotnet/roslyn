@@ -7,7 +7,6 @@ using System.IO;
 using Roslyn.Test.Performance.Utilities;
 using static Roslyn.Test.Performance.Utilities.TestUtilities;
 using static Roslyn.Test.Performance.Runner.Tools;
-using static Roslyn.Test.Performance.Runner.Benchview;
 using static Roslyn.Test.Performance.Runner.TraceBackup;
 using Mono.Options;
 
@@ -17,6 +16,8 @@ namespace Runner
     {
         public static int Main(string[] args)
         {
+            Console.WriteLine("args: \n" + String.Join("\n  ", args));
+
             bool shouldReportBenchview = false;
             bool shouldUploadTrace = true;
             bool isCiTest = false;
@@ -24,31 +25,40 @@ namespace Runner
             string submissionType = null;
             string traceDestination = @"\\mlangfs1\public\basoundr\PerfTraces";
             string branch = null;
+            string searchDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
             var parameterOptions = new OptionSet()
             {
                 {"report-benchview", "report the performance results to benchview.", _ => shouldReportBenchview = true},
-                {"benchview-submission-type=", $"submission type to use when uploading to benchview ({String.Join(",", ValidSubmissionTypes)})", type => { submissionType = type; } },
+                {"benchview-submission-type=", $"submission type to use when uploading to benchview ({String.Join(",", Benchview.ValidSubmissionTypes)})", type => { submissionType = type; } },
                 {"benchview-submission-name=", "submission name to use when uploading to benchview (required for private and local submissions)", name => { submissionName = name; } },
                 {"branch=", "name of the branch you are measuring on", name => { branch = name; } },
                 {"ci-test", "mention that we are running in the continuous integration lab", _ => isCiTest = true},
                 {"no-trace-upload", "disable the uploading of traces", _ => shouldUploadTrace = false},
-                {"trace-upload_destination", "set the trace uploading destination", loc => { traceDestination = loc; }}
+                {"trace-upload_destination=", "set the trace uploading destination", loc => { traceDestination = loc; } },
+                {"search-directory=", "the directory to recursively search for tests", dir => { searchDirectory = dir; } }
             };
+
+
             parameterOptions.Parse(args);
+
+            Log($"shouldReportBenchview: {shouldReportBenchview}");
+            Log($"submissionType: {submissionType}");
 
             if (shouldReportBenchview)
             {
                 if (!CheckBenchViewOptions(submissionType, submissionName) ||
-                    !CheckEnvironment() ||
+                    !Benchview.CheckEnvironment() ||
                     !DetermineBranch(ref branch))
                 {
                     return -1;
                 }
+
+                Benchview.SetConfiguration(submissionType, branch);
             }
 
             Cleanup();
-            AsyncMain(isCiTest).GetAwaiter().GetResult();
+            AsyncMain(isCiTest, searchDirectory).GetAwaiter().GetResult();
 
             if (isCiTest)
             {
@@ -58,7 +68,7 @@ namespace Runner
             if (shouldReportBenchview)
             {
                 Log("Uploading results to benchview");
-                UploadBenchviewReport(submissionType, submissionName, branch);
+                Benchview.UploadBenchviewReport(submissionName);
             }
 
             if (shouldUploadTrace)
@@ -78,9 +88,9 @@ namespace Runner
                 return false;
             }
 
-            if (!IsValidSubmissionType(submissionType))
+            if (!Benchview.IsValidSubmissionType(submissionType))
             {
-                Log($"Parameter --benchview-submission-type must be one of ({String.Join(",", ValidSubmissionTypes)})");
+                Log($"Parameter --benchview-submission-type must be one of ({String.Join(",", Benchview.ValidSubmissionTypes)})");
                 return false;
             }
 
@@ -139,32 +149,33 @@ namespace Runner
             }
         }
 
-        private static async Task AsyncMain(bool isRunningUnderCI)
+        private static async Task AsyncMain(bool isRunningUnderCI, string searchDirectory)
         {
             RuntimeSettings.IsRunnerAttached = true;
 
-            var testDirectory = AppDomain.CurrentDomain.BaseDirectory;
-
             // Print message at startup
             Log("Starting Performance Test Run");
-            Log("hash: " + FirstLine(StdoutFromOrDefault("git", "show --format=\"%h\" HEAD --", "git missing")));
+            Log("hash: " + FirstLine(StdoutFromOrDefault("git.exe", args: "show --format=\"%h\" HEAD --", workingDirectory: Environment.CurrentDirectory, defaultText: "git missing")));
             Log("time: " + DateTime.Now.ToString());
 
             var testInstances = new List<PerfTest>();
 
             // Find all the tests from inside of the csx files.
-            foreach (var script in GetAllCsxRecursive(testDirectory))
+            foreach (var script in GetAllCsxRecursive(searchDirectory))
             {
                 var scriptName = Path.GetFileNameWithoutExtension(script);
                 Log($"Collecting tests from {scriptName}");
-                var state = await RunFile(script).ConfigureAwait(false);
+                var state = await RunFileInItsDirectory(script).ConfigureAwait(false);
                 var tests = RuntimeSettings.ResultTests;
                 RuntimeSettings.ResultTests = null;
-                foreach (var test in tests)
+                if (tests != null)
                 {
-                    test.SetWorkingDirectory(Path.GetDirectoryName(script));
+                    foreach (var test in tests)
+                    {
+                        test.SetWorkingDirectory(Path.GetDirectoryName(script));
+                    }
+                    testInstances.AddRange(tests);
                 }
-                testInstances.AddRange(tests);
             }
 
 

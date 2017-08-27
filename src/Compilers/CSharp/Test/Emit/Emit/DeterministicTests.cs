@@ -15,17 +15,23 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
+    [CompilerTrait(CompilerFeature.Determinism)]
     public class DeterministicTests : EmitMetadataTestBase
     {
         private Guid CompiledGuid(string source, string assemblyName, bool debug)
         {
+            return CompiledGuid(source, assemblyName, options: debug ? TestOptions.DebugExe : TestOptions.ReleaseExe);
+        }
+
+        private Guid CompiledGuid(string source, string assemblyName, CSharpCompilationOptions options, EmitOptions emitOptions = null)
+        {
             var compilation = CreateCompilation(source,
                 assemblyName: assemblyName,
                 references: new[] { MscorlibRef },
-                options: (debug ? TestOptions.DebugExe : TestOptions.ReleaseExe).WithDeterministic(true));
+                options: options.WithDeterministic(true));
 
             Guid result = default(Guid);
-            base.CompileAndVerify(compilation, validator: a =>
+            base.CompileAndVerify(compilation, emitOptions: emitOptions, validator: a =>
             {
                 var module = a.Modules[0];
                 result = module.GetModuleVersionIdOrThrow();
@@ -66,8 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 references: new[] { MscorlibRef },
                 options: TestOptions.DebugDll.WithDeterministic(false));
 
-            var resultDeterministic = compilationDeterministic.Emit(Stream.Null, Stream.Null);
-            var resultNonDeterministic = compilationNonDeterministic.Emit(Stream.Null, Stream.Null);
+            var resultDeterministic = compilationDeterministic.Emit(Stream.Null, pdbStream: Stream.Null);
+            var resultNonDeterministic = compilationNonDeterministic.Emit(Stream.Null, pdbStream: Stream.Null);
 
             Assert.False(resultDeterministic.Success);
             Assert.True(resultNonDeterministic.Success);
@@ -102,6 +108,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             // adding the debug option should change the MVID
             Assert.NotEqual(mvid1, mvid5);
             Assert.NotEqual(mvid3, mvid7);
+        }
+
+        [Fact]
+        public void RefAssembly()
+        {
+            var source =
+@"class Program
+{
+    public static void Main(string[] args) {}
+    CHANGE
+}";
+            var emitRefAssembly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
+
+            var mvid1 = CompiledGuid(source.Replace("CHANGE", ""), "X1", TestOptions.DebugDll, emitRefAssembly);
+            var mvid2 = CompiledGuid(source.Replace("CHANGE", "private void M() { }"), "X1", TestOptions.DebugDll, emitRefAssembly);
+            Assert.Equal(mvid1, mvid2);
         }
 
         const string CompareAllBytesEmitted_Source = @"
@@ -228,7 +250,7 @@ using System.Runtime.CompilerServices;
 [assembly: TypeForwardedTo(typeof(Namespace3.GenericType<int, int>))]
 ";
 
-            var forwardingCompilation = CreateCompilationWithMscorlib(forwardingCode, new MetadataReference[] { forwardedToReference });
+            var forwardingCompilation = CreateStandardCompilation(forwardingCode, new MetadataReference[] { forwardedToReference });
 
             var sortedFullNames = new string[]
             {

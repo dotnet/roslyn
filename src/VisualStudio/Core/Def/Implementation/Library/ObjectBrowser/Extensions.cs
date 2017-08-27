@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -49,21 +50,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         public static string GetProjectDisplayName(this Project project)
         {
-            var workspace = project.Solution.Workspace as VisualStudioWorkspaceImpl;
-            if (workspace != null)
+            if (project.Solution.Workspace is VisualStudioWorkspaceImpl workspace)
             {
-                var hierarchy = workspace.GetHierarchy(project.Id);
-                if (hierarchy != null)
-                {
-                    var solution = workspace.GetVsService<SVsSolution, IVsSolution3>();
-                    if (solution != null)
-                    {
-                        if (ErrorHandler.Succeeded(solution.GetUniqueUINameOfProject(hierarchy, out var name)) && name != null)
-                        {
-                            return name;
-                        }
-                    }
-                }
+                return workspace.GetProjectDisplayName(project);
             }
 
             return project.Name;

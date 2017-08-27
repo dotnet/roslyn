@@ -24,12 +24,12 @@ namespace Roslyn.Test.Utilities
     {
         public static void Equal(string expected, string actual)
         {
-            Equal(XElement.Parse(expected), XElement.Parse(actual), null, 0, expectedIsXmlLiteral: true);
+            Equal(XElement.Parse(expected), XElement.Parse(actual), message: null, expectedValueSourcePath: null, expectedValueSourceLine: 0, expectedIsXmlLiteral: true);
         }
 
         public static void Equal(XElement expected, XElement actual)
         {
-            Equal(expected, actual, null, 0, expectedIsXmlLiteral: false);
+            Equal(expected, actual, message: null, expectedValueSourcePath: null, expectedValueSourceLine: 0, expectedIsXmlLiteral: false);
         }
 
         /// <summary>
@@ -38,26 +38,37 @@ namespace Roslyn.Test.Utilities
         public static void Equal(
             XElement expectedRoot,
             XElement actualRoot,
+            string message,
             string expectedValueSourcePath,
             int expectedValueSourceLine,
             bool expectedIsXmlLiteral)
         {
-            Tuple<XElement, XElement> firstMismatch;
-            if (!CheckEqual(expectedRoot, actualRoot, ShallowElementComparer.Instance, out firstMismatch))
+            if (!CheckEqual(expectedRoot, actualRoot, ShallowElementComparer.Instance, out var firstMismatch))
             {
-                Assert.True(false, GetAssertText(GetXmlString(expectedRoot, expectedIsXmlLiteral), GetXmlString(actualRoot, expectedIsXmlLiteral), expectedRoot, firstMismatch, expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral));
+                Assert.True(false, message + 
+                    GetAssertText(
+                        GetXmlString(expectedRoot, expectedIsXmlLiteral), 
+                        GetXmlString(actualRoot, expectedIsXmlLiteral), 
+                        expectedRoot,
+                        firstMismatch, 
+                        expectedValueSourcePath,
+                        expectedValueSourceLine,
+                        expectedIsXmlLiteral));
             }
         }
 
         private static string GetXmlString(XElement node, bool expectedIsXmlLiteral)
         {
-            using (StringWriter sw = new StringWriter(CultureInfo.InvariantCulture))
+            using (var sw = new StringWriter(CultureInfo.InvariantCulture))
             {
-                XmlWriterSettings ws = new XmlWriterSettings();
-                ws.IndentChars = expectedIsXmlLiteral ? "    " : "  ";
-                ws.OmitXmlDeclaration = true;
-                ws.Indent = true;
-                using (XmlWriter w = XmlWriter.Create(sw, ws))
+                var ws = new XmlWriterSettings()
+                {
+                    IndentChars = expectedIsXmlLiteral ? "    " : "  ",
+                    OmitXmlDeclaration = true,
+                    Indent = true
+                };
+
+                using (var w = XmlWriter.Create(sw, ws))
                 {
                     node.WriteTo(w);
                 }
@@ -83,8 +94,7 @@ namespace Roslyn.Test.Utilities
             string actualString = expectedIsXmlLiteral ? actual.Replace(" />\r\n", "/>\r\n") : string.Format("@\"{0}\"", actual.Replace("\"", "\"\""));
             string expectedString = expectedIsXmlLiteral ? expected.Replace(" />\r\n", "/>\r\n") : string.Format("@\"{0}\"", expected.Replace("\"", "\"\""));
 
-            string link;
-            if (AssertEx.TryGenerateExpectedSourceFileAndGetDiffLink(actualString, expectedString.Count(c => c == '\n') + 1, expectedValueSourcePath, expectedValueSourceLine, out link))
+            if (AssertEx.TryGenerateExpectedSourceFileAndGetDiffLink(actualString, expectedString.Count(c => c == '\n') + 1, expectedValueSourcePath, expectedValueSourceLine, out var link))
             {
                 assertText.AppendLine(link);
             }

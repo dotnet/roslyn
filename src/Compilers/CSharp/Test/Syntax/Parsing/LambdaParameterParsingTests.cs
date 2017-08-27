@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             UsingTree(@"
 class C {
-     void Foo() {
+     void Goo() {
           System.Func<int, int> f = (out 
 ");
             N(SyntaxKind.CompilationUnit);
@@ -127,7 +127,7 @@ class C {
         {
             UsingTree(@"
 class C {
-     void Foo() {
+     void Goo() {
           System.Func<int, int> f = (out C
 ");
             N(SyntaxKind.CompilationUnit);
@@ -229,7 +229,7 @@ class C {
         {
             UsingTree(@"
 class C {
-     void Foo() {
+     void Goo() {
           System.Func<int, int> f = (out C c
 ");
             N(SyntaxKind.CompilationUnit);
@@ -331,7 +331,7 @@ class C {
         {
             UsingTree(@"
 class C {
-     void Foo() {
+     void Goo() {
           System.Func<int, int> f = (out C c
 ");
             N(SyntaxKind.CompilationUnit);
@@ -433,7 +433,7 @@ class C {
         {
             UsingTree(@"
 class C {
-     void Foo() {
+     void Goo() {
           System.Func<int, int> f = (out C c,
 ");
             N(SyntaxKind.CompilationUnit);
@@ -511,10 +511,6 @@ class C {
                                                     N(SyntaxKind.CommaToken);
                                                     M(SyntaxKind.Parameter);
                                                     {
-                                                        M(SyntaxKind.IdentifierName);
-                                                        {
-                                                            M(SyntaxKind.IdentifierToken);
-                                                        }
                                                         M(SyntaxKind.IdentifierToken);
                                                     }
                                                     M(SyntaxKind.CloseParenToken);
@@ -543,6 +539,17 @@ class C {
         public void HangingLambdaParsing_Bug14167()
         {
             var tree = UsingNode(@"(int a, int b Main();");
+            tree.GetDiagnostics().Verify(
+                // (1,1): error CS1073: Unexpected token 'b'
+                // (int a, int b Main();
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "(int a, int ").WithArguments("b").WithLocation(1, 1),
+                // (1,9): error CS1525: Invalid expression term 'int'
+                // (int a, int b Main();
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(1, 9),
+                // (1,13): error CS1026: ) expected
+                // (int a, int b Main();
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "b").WithLocation(1, 13)
+                );
             N(SyntaxKind.TupleExpression);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -563,16 +570,9 @@ class C {
                 N(SyntaxKind.CommaToken);
                 N(SyntaxKind.Argument);
                 {
-                    N(SyntaxKind.DeclarationExpression);
+                    N(SyntaxKind.PredefinedType);
                     {
-                        N(SyntaxKind.PredefinedType);
-                        {
-                            N(SyntaxKind.IntKeyword);
-                        }
-                        N(SyntaxKind.SingleVariableDesignation);
-                        {
-                            N(SyntaxKind.IdentifierToken, "b");
-                        }
+                        N(SyntaxKind.IntKeyword);
                     }
                 }
                 M(SyntaxKind.CloseParenToken);

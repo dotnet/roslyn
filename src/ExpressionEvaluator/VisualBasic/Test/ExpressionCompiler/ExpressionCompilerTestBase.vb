@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -45,25 +46,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             _runtimeInstances.Free()
         End Sub
 
-        ' TODO: remove -- workaround for bug https://github.com/dotnet/roslyn/issues/8473 in the VB compiler
-        ' https://github.com/dotnet/roslyn/issues/8473
-        Friend Shared Sub WithRuntimeInstancePortableBug(compilation As Compilation, validator As Action(Of RuntimeInstance))
-            Using instance = RuntimeInstance.Create(compilation, Nothing, DebugInformationFormat.Pdb, True)
-                validator(instance)
-            End Using
-        End Sub
-
         Friend Shared Sub WithRuntimeInstance(compilation As Compilation, validator As Action(Of RuntimeInstance))
-            WithRuntimeInstance(compilation, Nothing, True, validator)
+            WithRuntimeInstance(compilation, Nothing, validator)
         End Sub
 
         Friend Shared Sub WithRuntimeInstance(compilation As Compilation, references As IEnumerable(Of MetadataReference), validator As Action(Of RuntimeInstance))
-            WithRuntimeInstance(compilation, references, True, validator)
+            WithRuntimeInstance(compilation, references, includeLocalSignatures:=True, includeIntrinsicAssembly:=True, validator:=validator)
         End Sub
 
-        Friend Shared Sub WithRuntimeInstance(compilation As Compilation, references As IEnumerable(Of MetadataReference), includeLocalSignatures As Boolean, validator As Action(Of RuntimeInstance))
+        Friend Shared Sub WithRuntimeInstance(
+            compilation As Compilation,
+            references As IEnumerable(Of MetadataReference),
+            includeLocalSignatures As Boolean,
+            includeIntrinsicAssembly As Boolean,
+            validator As Action(Of RuntimeInstance))
             For Each debugFormat In {DebugInformationFormat.Pdb, DebugInformationFormat.PortablePdb}
-                Using instance = RuntimeInstance.Create(compilation, references, debugFormat, includeLocalSignatures)
+                Using instance = RuntimeInstance.Create(compilation, references, debugFormat, includeLocalSignatures, includeIntrinsicAssembly)
                     validator(instance)
                 End Using
             Next
@@ -81,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             Optional debugFormat As DebugInformationFormat = DebugInformationFormat.Pdb,
             Optional includeLocalSignatures As Boolean = True) As RuntimeInstance
 
-            Dim instance = RuntimeInstance.Create(compilation, references, debugFormat, includeLocalSignatures)
+            Dim instance = RuntimeInstance.Create(compilation, references, debugFormat, includeLocalSignatures, includeIntrinsicAssembly:=True)
             _runtimeInstances.Add(instance)
             Return instance
         End Function

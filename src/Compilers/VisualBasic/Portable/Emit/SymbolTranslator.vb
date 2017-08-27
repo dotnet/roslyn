@@ -4,6 +4,7 @@ Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.Cci
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -120,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Debug.Assert(Not needDeclaration)
                 namedTypeSymbol = namedTypeSymbol.TupleUnderlyingType
 
-                CheckTupleUnderlying(namedTypeSymbol, syntaxNodeOpt, diagnostics)
+                CheckTupleUnderlyingType(namedTypeSymbol, syntaxNodeOpt, diagnostics)
             End If
 
             ' Substitute error types with a special singleton object.
@@ -203,21 +204,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return namedTypeSymbol
         End Function
 
-        Private Sub CheckTupleUnderlying(namedTypeSymbol As NamedTypeSymbol, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag)
+        Private Sub CheckTupleUnderlyingType(namedTypeSymbol As NamedTypeSymbol, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag)
             ' check that underlying type of a ValueTuple is indeed a value type (or error)
             ' this should never happen, in theory,
             ' but if it does happen we should make it a failure.
             ' NOTE: declaredBase could be null for interfaces
             Dim declaredBase = namedTypeSymbol.BaseTypeNoUseSiteDiagnostics
-            If declaredBase Is Nothing OrElse declaredBase.SpecialType <> SpecialType.System_ValueType Then
-                ' Try to decrease noise by not complaining about the same type over and over again.
-                If (_reportedErrorTypesMap.Add(namedTypeSymbol)) Then
-                    diagnostics.Add(New VBDiagnostic(
-                                    ErrorFactory.ErrorInfo(ERRID.ERR_PredefinedValueTupleTypeMustBeStruct, namedTypeSymbol.MetadataName),
-                                    If(syntaxNodeOpt Is Nothing, NoLocation.Singleton, syntaxNodeOpt.GetLocation())))
+            If declaredBase IsNot Nothing AndAlso declaredBase.SpecialType = SpecialType.System_ValueType Then
+                Return
+            End If
 
+            ' Try to decrease noise by not complaining about the same type over and over again.
+            If Not _reportedErrorTypesMap.Add(namedTypeSymbol) Then
+                Return
+            End If
+
+            Dim location = If(syntaxNodeOpt Is Nothing, NoLocation.Singleton, syntaxNodeOpt.GetLocation())
+            If declaredBase IsNot Nothing Then
+                Dim diagnosticInfo = declaredBase.GetUseSiteErrorInfo()
+                If diagnosticInfo IsNot Nothing Then
+                    diagnostics.Add(diagnosticInfo, location)
+                    Return
                 End If
             End If
+
+            diagnostics.Add(
+                New VBDiagnostic(
+                    ErrorFactory.ErrorInfo(ERRID.ERR_PredefinedValueTupleTypeMustBeStruct, namedTypeSymbol.MetadataName),
+                    location))
         End Sub
 
         Friend Overloads Function Translate([param] As TypeParameterSymbol) As Microsoft.Cci.IGenericParameterReference

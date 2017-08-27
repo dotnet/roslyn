@@ -33,9 +33,9 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task IsTextualTriggerCharacterTest()
+        public void IsTextualTriggerCharacterTest()
         {
-            await TestCommonIsTextualTriggerCharacterAsync();
+            TestCommonIsTextualTriggerCharacter();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -265,7 +265,7 @@ class C
     /// <summary>
     /// $$
     /// </summary>
-    void Foo() { }
+    void Goo() { }
 }";
 
             await VerifyItemIsAbsentAsync(markup, "T");
@@ -302,17 +302,17 @@ class Program
         public async Task UnionOfItemsFromBothContexts()
         {
             var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""FOO"">
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""GOO"">
         <Document FilePath=""CurrentDocument.cs""><![CDATA[
 class C
 {
-#if FOO
-    void foo() {
+#if GOO
+    void goo() {
 #endif
 
 $$
 
-#if FOO
+#if GOO
     }
 #endif
 }

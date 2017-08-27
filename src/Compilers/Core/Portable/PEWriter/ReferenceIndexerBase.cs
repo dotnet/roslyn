@@ -279,7 +279,7 @@ namespace Microsoft.Cci
         {
             VisitTypeDefinitionNoMembers(typeDefinition);
 
-            this.Visit(typeDefinition.Events);
+            this.Visit(typeDefinition.GetEvents(Context));
             this.Visit(typeDefinition.GetFields(Context));
             this.Visit(typeDefinition.GetMethods(Context));
             this.VisitNestedTypes(typeDefinition.GetNestedTypes(Context));
@@ -451,11 +451,6 @@ namespace Microsoft.Cci
 
             this.typeReferenceNeedsToken = false;
             return true;
-        }
-
-        public override void Visit(IManagedPointerTypeReference managedPointerTypeReference)
-        {
-            Debug.Assert(false, "Unexpected ref type!");
         }
     }
 }

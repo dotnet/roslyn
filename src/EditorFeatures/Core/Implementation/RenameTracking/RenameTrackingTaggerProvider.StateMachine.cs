@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             private int _refCount;
 
             public TrackingSession TrackingSession { get; private set; }
-            public ITextBuffer Buffer { get { return _buffer; } }
+            public ITextBuffer Buffer => _buffer;
 
             public event Action TrackingSessionUpdated = delegate { };
             public event Action<ITrackingSpan> TrackingSessionCleared = delegate { };
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 return index;
             }
 
-            public bool CanInvokeRename(out TrackingSession trackingSession, bool isSmartTagCheck = false, bool waitForResult = false, CancellationToken cancellationToken = default(CancellationToken))
+            public bool CanInvokeRename(out TrackingSession trackingSession, bool isSmartTagCheck = false, bool waitForResult = false, CancellationToken cancellationToken = default)
             {
                 // This needs to be able to run on a background thread for the diagnostic.
 

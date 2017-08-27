@@ -380,8 +380,8 @@ namespace Microsoft.CodeAnalysis.Formatting
         [Conditional("DEBUG")]
         private void DebugCheckEmpty<T>(ContextIntervalTree<T> tree, TextSpan textSpan)
         {
-            var intervals = tree.GetContainingIntervals(textSpan.Start, textSpan.Length);
-            Contract.ThrowIfFalse(intervals.IsEmpty());
+            var intervals = tree.GetIntervalsThatContain(textSpan.Start, textSpan.Length);
+            Contract.ThrowIfFalse(intervals.Length == 0);
         }
 
         public int GetBaseIndentation(SyntaxToken token)
@@ -403,12 +403,12 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public IEnumerable<IndentBlockOperation> GetAllRelativeIndentBlockOperations()
         {
-            return _relativeIndentationTree.GetIntersectingIntervals(this.TreeData.StartPosition, this.TreeData.EndPosition, this).Select(i => i.Operation);
+            return _relativeIndentationTree.GetIntervalsThatIntersectWith(this.TreeData.StartPosition, this.TreeData.EndPosition, this).Select(i => i.Operation);
         }
 
         public bool TryGetEndTokenForRelativeIndentationSpan(SyntaxToken token, int maxChainDepth, out SyntaxToken endToken, CancellationToken cancellationToken)
         {
-            endToken = default(SyntaxToken);
+            endToken = default;
 
             var depth = 0;
             while (true)
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var anchorData = GetAnchorData(token);
             if (anchorData == null)
             {
-                return default(SyntaxToken);
+                return default;
             }
 
             return anchorData.AnchorToken;
@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var baseAnchorData = FindAnchorSpanOnSameLineAfterToken(tokenData);
             if (baseAnchorData == null)
             {
-                return default(SyntaxToken);
+                return default;
             }
 
             // our anchor operation is very flexible so it not only let one anchor to contain others, it also
@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             // below, we will try to flat the overlapped anchor span, and find the last position (token) of that span
 
             // find other anchors overlapping with current anchor span
-            var anchorData = _anchorTree.GetOverlappingIntervals(baseAnchorData.TextSpan.Start, baseAnchorData.TextSpan.Length);
+            var anchorData = _anchorTree.GetIntervalsThatOverlapWith(baseAnchorData.TextSpan.Start, baseAnchorData.TextSpan.Length);
 
             // among those anchors find the biggest end token
             var lastEndToken = baseAnchorData.EndToken;
@@ -600,19 +600,10 @@ namespace Microsoft.CodeAnalysis.Formatting
             return IsSpacingSuppressed(spanBetweenTwoTokens);
         }
 
-        public OptionSet OptionSet
-        {
-            get { return _engine.OptionSet; }
-        }
+        public OptionSet OptionSet => _engine.OptionSet;
 
-        public TreeData TreeData
-        {
-            get { return _engine.TreeData; }
-        }
+        public TreeData TreeData => _engine.TreeData;
 
-        public TokenStream TokenStream
-        {
-            get { return _tokenStream; }
-        }
+        public TokenStream TokenStream => _tokenStream;
     }
 }

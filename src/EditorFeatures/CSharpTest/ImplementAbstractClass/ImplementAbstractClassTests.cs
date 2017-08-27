@@ -1,6 +1,5 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -18,25 +17,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
 {
     public partial class ImplementAbstractClassTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                null, new CSharpImplementAbstractClassCodeFixProvider());
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (null, new CSharpImplementAbstractClassCodeFixProvider());
 
-        private static readonly Dictionary<OptionKey, object> AllOptionsOff =
-             new Dictionary<OptionKey, object>
-             {
-                 { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.FalseWithNoneEnforcement },
-                 { CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CodeStyleOptions.FalseWithNoneEnforcement },
-                 { CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CodeStyleOptions.FalseWithNoneEnforcement },
-                 { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.FalseWithNoneEnforcement },
-                 { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.FalseWithNoneEnforcement },
-                 { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CodeStyleOptions.FalseWithNoneEnforcement },
-             };
+        private IDictionary<OptionKey, object> AllOptionsOff =>
+            OptionsSet(
+                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
+                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
+                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
+                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
+                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
+                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithNoneEnforcement));
 
         internal Task TestAllOptionsOffAsync(
             string initialMarkup, string expectedMarkup,
-            int index = 0, bool compareTokens = true,
-            IDictionary<OptionKey, object> options = null)
+            int index = 0, IDictionary<OptionKey, object> options = null)
         {
             options = options ?? new Dictionary<OptionKey, object>();
             foreach (var kvp in AllOptionsOff)
@@ -44,20 +39,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                 options.Add(kvp);
             }
 
-            return TestAsync(initialMarkup, expectedMarkup, index, compareTokens, options);
+            return TestInRegularAndScriptAsync(
+                initialMarkup, expectedMarkup,
+                index: index, options: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestSimpleMethods()
         {
             await TestAllOptionsOffAsync(
-@"abstract class Foo
+@"abstract class Goo
 {
-    protected abstract string FooMethod();
+    protected abstract string GooMethod();
     public abstract void Blah();
 }
 
-abstract class Bar : Foo
+abstract class Bar : Goo
 {
     public abstract bool BarMethod();
 
@@ -66,21 +63,19 @@ abstract class Bar : Foo
     }
 }
 
-class [|Program|] : Foo
+class [|Program|] : Goo
 {
     static void Main(string[] args)
     {
     }
 }",
-@"using System;
-
-abstract class Foo
+@"abstract class Goo
 {
-    protected abstract string FooMethod();
+    protected abstract string GooMethod();
     public abstract void Blah();
 }
 
-abstract class Bar : Foo
+abstract class Bar : Goo
 {
     public abstract bool BarMethod();
 
@@ -89,7 +84,7 @@ abstract class Bar : Foo
     }
 }
 
-class Program : Foo
+class Program : Goo
 {
     static void Main(string[] args)
     {
@@ -97,12 +92,39 @@ class Program : Foo
 
     public override void Blah()
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 
-    protected override string FooMethod()
+    protected override string GooMethod()
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [WorkItem(16434, "https://github.com/dotnet/roslyn/issues/16434")]
+        public async Task TestMethodWithTupleNames()
+        {
+            await TestAllOptionsOffAsync(
+@"abstract class Base
+{
+    protected abstract (int a, int b) Method((string, string d) x);
+}
+
+class [|Program|] : Base
+{
+}",
+@"abstract class Base
+{
+    protected abstract (int a, int b) Method((string, string d) x);
+}
+
+class Program : Base
+{
+    protected override (int a, int b) Method((string, string d) x)
+    {
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -111,13 +133,13 @@ class Program : Foo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestNotAvailableForStruct()
         {
-            await TestMissingAsync(
-@"abstract class Foo
+            await TestMissingInRegularAndScriptAsync(
+@"abstract class Goo
 {
     public abstract void Bar();
 }
 
-struct [|Program|] : Foo
+struct [|Program|] : Goo
 {
 }");
         }
@@ -128,24 +150,22 @@ struct [|Program|] : Foo
             await TestAllOptionsOffAsync(
 @"abstract class d
 {
-    public abstract void foo(int x = 3);
+    public abstract void goo(int x = 3);
 }
 
 class [|b|] : d
 {
 }",
-@"using System;
-
-abstract class d
+@"abstract class d
 {
-    public abstract void foo(int x = 3);
+    public abstract void goo(int x = 3);
 }
 
 class b : d
 {
-    public override void foo(int x = 3)
+    public override void goo(int x = 3)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -156,24 +176,22 @@ class b : d
             await TestAllOptionsOffAsync(
 @"abstract class d
 {
-    public abstract void foo(char x = 'a');
+    public abstract void goo(char x = 'a');
 }
 
 class [|b|] : d
 {
 }",
-@"using System;
-
-abstract class d
+@"abstract class d
 {
-    public abstract void foo(char x = 'a');
+    public abstract void goo(char x = 'a');
 }
 
 class b : d
 {
-    public override void foo(char x = 'a')
+    public override void goo(char x = 'a')
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -184,24 +202,22 @@ class b : d
             await TestAllOptionsOffAsync(
 @"abstract class d
 {
-    public abstract void foo(string x = ""x"");
+    public abstract void goo(string x = ""x"");
 }
 
 class [|b|] : d
 {
 }",
-@"using System;
-
-abstract class d
+@"abstract class d
 {
-    public abstract void foo(string x = ""x"");
+    public abstract void goo(string x = ""x"");
 }
 
 class b : d
 {
-    public override void foo(string x = ""x"")
+    public override void goo(string x = ""x"")
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -212,24 +228,22 @@ class b : d
             await TestAllOptionsOffAsync(
 @"abstract class d
 {
-    public abstract void foo(short x = 3);
+    public abstract void goo(short x = 3);
 }
 
 class [|b|] : d
 {
 }",
-@"using System;
-
-abstract class d
+@"abstract class d
 {
-    public abstract void foo(short x = 3);
+    public abstract void goo(short x = 3);
 }
 
 class b : d
 {
-    public override void foo(short x = 3)
+    public override void goo(short x = 3)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -240,24 +254,22 @@ class b : d
             await TestAllOptionsOffAsync(
 @"abstract class d
 {
-    public abstract void foo(decimal x = 3);
+    public abstract void goo(decimal x = 3);
 }
 
 class [|b|] : d
 {
 }",
-@"using System;
-
-abstract class d
+@"abstract class d
 {
-    public abstract void foo(decimal x = 3);
+    public abstract void goo(decimal x = 3);
 }
 
 class b : d
 {
-    public override void foo(decimal x = 3)
+    public override void goo(decimal x = 3)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -268,24 +280,22 @@ class b : d
             await TestAllOptionsOffAsync(
 @"abstract class d
 {
-    public abstract void foo(double x = 3);
+    public abstract void goo(double x = 3);
 }
 
 class [|b|] : d
 {
 }",
-@"using System;
-
-abstract class d
+@"abstract class d
 {
-    public abstract void foo(double x = 3);
+    public abstract void goo(double x = 3);
 }
 
 class b : d
 {
-    public override void foo(double x = 3)
+    public override void goo(double x = 3)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -296,24 +306,22 @@ class b : d
             await TestAllOptionsOffAsync(
 @"abstract class d
 {
-    public abstract void foo(long x = 3);
+    public abstract void goo(long x = 3);
 }
 
 class [|b|] : d
 {
 }",
-@"using System;
-
-abstract class d
+@"abstract class d
 {
-    public abstract void foo(long x = 3);
+    public abstract void goo(long x = 3);
 }
 
 class b : d
 {
-    public override void foo(long x = 3)
+    public override void goo(long x = 3)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -324,24 +332,22 @@ class b : d
             await TestAllOptionsOffAsync(
 @"abstract class d
 {
-    public abstract void foo(float x = 3);
+    public abstract void goo(float x = 3);
 }
 
 class [|b|] : d
 {
 }",
-@"using System;
-
-abstract class d
+@"abstract class d
 {
-    public abstract void foo(float x = 3);
+    public abstract void goo(float x = 3);
 }
 
 class b : d
 {
-    public override void foo(float x = 3)
+    public override void goo(float x = 3)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -352,24 +358,22 @@ class b : d
             await TestAllOptionsOffAsync(
 @"abstract class d
 {
-    public abstract void foo(ushort x = 3);
+    public abstract void goo(ushort x = 3);
 }
 
 class [|b|] : d
 {
 }",
-@"using System;
-
-abstract class d
+@"abstract class d
 {
-    public abstract void foo(ushort x = 3);
+    public abstract void goo(ushort x = 3);
 }
 
 class b : d
 {
-    public override void foo(ushort x = 3)
+    public override void goo(ushort x = 3)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -380,24 +384,22 @@ class b : d
             await TestAllOptionsOffAsync(
 @"abstract class d
 {
-    public abstract void foo(uint x = 3);
+    public abstract void goo(uint x = 3);
 }
 
 class [|b|] : d
 {
 }",
-@"using System;
-
-abstract class d
+@"abstract class d
 {
-    public abstract void foo(uint x = 3);
+    public abstract void goo(uint x = 3);
 }
 
 class b : d
 {
-    public override void foo(uint x = 3)
+    public override void goo(uint x = 3)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -408,24 +410,22 @@ class b : d
             await TestAllOptionsOffAsync(
 @"abstract class d
 {
-    public abstract void foo(ulong x = 3);
+    public abstract void goo(ulong x = 3);
 }
 
 class [|b|] : d
 {
 }",
-@"using System;
-
-abstract class d
+@"abstract class d
 {
-    public abstract void foo(ulong x = 3);
+    public abstract void goo(ulong x = 3);
 }
 
 class b : d
 {
-    public override void foo(ulong x = 3)
+    public override void goo(ulong x = 3)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -440,28 +440,26 @@ class b : d
 
 abstract class d
 {
-    public abstract void foo(b x = new b());
+    public abstract void goo(b x = new b());
 }
 
 class [|c|] : d
 {
 }",
-@"using System;
-
-struct b
+@"struct b
 {
 }
 
 abstract class d
 {
-    public abstract void foo(b x = new b());
+    public abstract void goo(b x = new b());
 }
 
 class c : d
 {
-    public override void foo(b x = default(b))
+    public override void goo(b x = default(b))
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -483,9 +481,7 @@ abstract class d
 class [|c|] : d
 {
 }",
-@"using System;
-
-struct b
+@"struct b
 {
 }
 
@@ -496,9 +492,9 @@ abstract class d
 
 class c : d
 {
-    public override void m(b? x = default(b?), b? y = default(b?))
+    public override void m(b? x = null, b? y = null)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -516,18 +512,16 @@ class c : d
 class [|c|] : d
 {
 }",
-@"using System;
-
-abstract class d
+@"abstract class d
 {
     public abstract void m(int? x = 5, int? y = default(int?));
 }
 
 class c : d
 {
-    public override void m(int? x = 5, int? y = default(int?))
+    public override void m(int? x = 5, int? y = null)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -542,28 +536,26 @@ class c : d
 
 abstract class d
 {
-    public abstract void foo(b x = null);
+    public abstract void goo(b x = null);
 }
 
 class [|c|] : d
 {
 }",
-@"using System;
-
-class b
+@"class b
 {
 }
 
 abstract class d
 {
-    public abstract void foo(b x = null);
+    public abstract void goo(b x = null);
 }
 
 class c : d
 {
-    public override void foo(b x = null)
+    public override void goo(b x = null)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -581,9 +573,7 @@ class c : d
 class [|c2|] : c1
 {
 }",
-@"using System;
-
-abstract class c1
+@"abstract class c1
 {
     public abstract c1 this[c1 x] { get; internal set; }
 }
@@ -594,12 +584,12 @@ class c2 : c1
     {
         get
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
 
         internal set
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
     }
 }");
@@ -691,15 +681,15 @@ class D : C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestMissingInHiddenType()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
-abstract class Foo
+abstract class Goo
 {
     public abstract void F();
 }
 
-class [|Program|] : Foo
+class [|Program|] : Goo
 {
 #line hidden
 }
@@ -712,9 +702,9 @@ class [|Program|] : Foo
             await TestAllOptionsOffAsync(
 @"using System;
 
-abstract class Foo { public abstract void F(); }
+abstract class Goo { public abstract void F(); }
 
-partial class [|Program|] : Foo
+partial class [|Program|] : Goo
 {
 #line hidden
 }
@@ -723,9 +713,9 @@ partial class [|Program|] : Foo
 partial class Program ",
 @"using System;
 
-abstract class Foo { public abstract void F(); }
+abstract class Goo { public abstract void F(); }
 
-partial class Program : Foo
+partial class Program : Goo
 {
 #line hidden
 }
@@ -738,8 +728,7 @@ partial class Program
         throw new NotImplementedException();
     }
 }
-",
-compareTokens: false);
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
@@ -749,9 +738,9 @@ compareTokens: false);
 @"#line default
 using System;
 
-abstract class Foo { public abstract void F(); }
+abstract class Goo { public abstract void F(); }
 
-partial class [|Program|] : Foo
+partial class [|Program|] : Goo
 {
     void Bar()
     {
@@ -763,9 +752,9 @@ partial class [|Program|] : Foo
 @"#line default
 using System;
 
-abstract class Foo { public abstract void F(); }
+abstract class Goo { public abstract void F(); }
 
-partial class Program : Foo
+partial class Program : Goo
 {
     public override void F()
     {
@@ -778,8 +767,7 @@ partial class Program : Foo
 
 #line hidden
 }
-#line default",
-compareTokens: false);
+#line default");
         }
 
         [WorkItem(545585, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545585")]
@@ -845,38 +833,36 @@ class C : B
             await TestAllOptionsOffAsync(
 @"class A
 {
-    public virtual void Foo(int x, params int[] y)
+    public virtual void Goo(int x, params int[] y)
     {
     }
 }
 
 abstract class B : A
 {
-    public abstract override void Foo(int x, int[] y = null);
+    public abstract override void Goo(int x, int[] y = null);
 }
 
 class [|C|] : B
 {
 }",
-@"using System;
-
-class A
+@"class A
 {
-    public virtual void Foo(int x, params int[] y)
+    public virtual void Goo(int x, params int[] y)
     {
     }
 }
 
 abstract class B : A
 {
-    public abstract override void Foo(int x, int[] y = null);
+    public abstract override void Goo(int x, int[] y = null);
 }
 
 class C : B
 {
-    public override void Foo(int x, params int[] y)
+    public override void Goo(int x, params int[] y)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -888,24 +874,22 @@ class C : B
             await TestAllOptionsOffAsync(
 @"abstract class C
 {
-    unsafe public abstract void Foo(int* x = null);
+    unsafe public abstract void Goo(int* x = null);
 }
 
 class [|D|] : C
 {
 }",
-@"using System;
-
-abstract class C
+@"abstract class C
 {
-    unsafe public abstract void Foo(int* x = null);
+    unsafe public abstract void Goo(int* x = null);
 }
 
 class D : C
 {
-    public override unsafe void Foo(int* x = null)
+    public override unsafe void Goo(int* x = null)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -919,7 +903,7 @@ class D : C
 
 abstract class C
 {
-    public abstract void Foo(var::X x);
+    public abstract void Goo(var::X x);
 }
 
 class [|D|] : C
@@ -927,18 +911,16 @@ class [|D|] : C
 }",
 @"extern alias var;
 
-using System;
-
 abstract class C
 {
-    public abstract void Foo(var::X x);
+    public abstract void Goo(var::X x);
 }
 
 class D : C
 {
-    public override void Foo(X x)
+    public override void Goo(X x)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -959,9 +941,7 @@ class D : C
         }
     }
 }",
-@"using System;
-
-abstract class A<T>
+@"abstract class A<T>
 {
     public abstract void M(T x);
 
@@ -971,7 +951,7 @@ abstract class A<T>
         {
             public override void M(B.T x)
             {
-                throw new NotImplementedException();
+                throw new System.NotImplementedException();
             }
         }
     }
@@ -992,9 +972,7 @@ abstract class A<T>
     }
 }
 ",
-@"using System;
-
-abstract class A<T>
+@"abstract class A<T>
 {
     public abstract void M(T x);
     abstract class B : A<B>
@@ -1003,12 +981,12 @@ abstract class A<T>
         {
             public override void M(A<A<T>.B>.B.T x)
             {
-                throw new NotImplementedException();
+                throw new System.NotImplementedException();
             }
         }
     }
 }
-", compareTokens: false);
+");
         }
 
         [WorkItem(2407, "https://github.com/dotnet/roslyn/issues/2407")]
@@ -1179,7 +1157,7 @@ partial class A : Base
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestCodeStyle_Method1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"abstract class A
 {
     public abstract void M(int x);
@@ -1188,24 +1166,22 @@ partial class A : Base
 class [|T|] : A
 {
 }",
-@"using System;
-
-abstract class A
+@"abstract class A
 {
     public abstract void M(int x);
 }
 
 class T : A
 {
-    public override void M(int x) => throw new NotImplementedException();
-}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.TrueWithNoneEnforcement));
+    public override void M(int x) => throw new System.NotImplementedException();
+}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestCodeStyle_Property1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"abstract class A
 {
     public abstract int M { get; }
@@ -1214,24 +1190,22 @@ class T : A
 class [|T|] : A
 {
 }",
-@"using System;
-
-abstract class A
+@"abstract class A
 {
     public abstract int M { get; }
 }
 
 class T : A
 {
-    public override int M => throw new NotImplementedException();
-}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.TrueWithNoneEnforcement));
+    public override int M => throw new System.NotImplementedException();
+}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestCodeStyle_Property3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"abstract class A
 {
     public abstract int M { set; }
@@ -1240,9 +1214,7 @@ class T : A
 class [|T|] : A
 {
 }",
-@"using System;
-
-abstract class A
+@"abstract class A
 {
     public abstract int M { set; }
 }
@@ -1253,19 +1225,19 @@ class T : A
     {
         set
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
     }
 }", options: OptionsSet(
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, true, NotificationOption.None),
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption.None),
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption.None)));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestCodeStyle_Property4()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"abstract class A
 {
     public abstract int M { get; set; }
@@ -1274,9 +1246,7 @@ class T : A
 class [|T|] : A
 {
 }",
-@"using System;
-
-abstract class A
+@"abstract class A
 {
     public abstract int M { get; set; }
 }
@@ -1287,24 +1257,24 @@ class T : A
     {
         get
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
 
         set
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
     }
 }", options: OptionsSet(
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, true, NotificationOption.None),
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption.None),
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption.None)));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestCodeStyle_Indexers1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"abstract class A
 {
     public abstract int this[int i] { get; }
@@ -1313,24 +1283,22 @@ class T : A
 class [|T|] : A
 {
 }",
-@"using System;
-
-abstract class A
+@"abstract class A
 {
     public abstract int this[int i] { get; }
 }
 
 class T : A
 {
-    public override int this[int i] => throw new NotImplementedException();
-}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CodeStyleOptions.TrueWithNoneEnforcement));
+    public override int this[int i] => throw new System.NotImplementedException();
+}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestCodeStyle_Indexer3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"abstract class A
 {
     public abstract int this[int i] { set; }
@@ -1339,9 +1307,7 @@ class T : A
 class [|T|] : A
 {
 }",
-@"using System;
-
-abstract class A
+@"abstract class A
 {
     public abstract int this[int i] { set; }
 }
@@ -1352,19 +1318,19 @@ class T : A
     {
         set
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
     }
 }", options: OptionsSet(
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, true, NotificationOption.None),
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.WhenPossible, NotificationOption.None),
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption.None)));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestCodeStyle_Indexer4()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"abstract class A
 {
     public abstract int this[int i] { get; set; }
@@ -1373,9 +1339,7 @@ class T : A
 class [|T|] : A
 {
 }",
-@"using System;
-
-abstract class A
+@"abstract class A
 {
     public abstract int this[int i] { get; set; }
 }
@@ -1386,24 +1350,24 @@ class T : A
     {
         get
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
 
         set
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
     }
 }", options: OptionsSet(
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, true, NotificationOption.None),
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.WhenPossible, NotificationOption.None),
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption.None)));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestCodeStyle_Accessor1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"abstract class A
 {
     public abstract int M { get; }
@@ -1412,29 +1376,24 @@ class T : A
 class [|T|] : A
 {
 }",
-@"using System;
-
-abstract class A
+@"abstract class A
 {
     public abstract int M { get; }
 }
 
 class T : A
 {
-    public override int M
-    {
-        get => throw new NotImplementedException();
-        }
-    }", options: OptionsSet(
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, false, NotificationOption.None),
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, true, NotificationOption.None)));
+    public override int M { get => throw new System.NotImplementedException(); }
+}", options: OptionsSet(
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.Never, NotificationOption.None),
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.WhenPossible, NotificationOption.None)));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestCodeStyle_Accessor3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"abstract class A
 {
     public abstract int M { set; }
@@ -1443,27 +1402,22 @@ class T : A
 class [|T|] : A
 {
 }",
-@"using System;
-
-abstract class A
+@"abstract class A
 {
     public abstract int M { set; }
 }
 
 class T : A
 {
-    public override int M
-    {
-        set => throw new NotImplementedException();
-        }
-    }", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.TrueWithNoneEnforcement));
+    public override int M { set => throw new System.NotImplementedException(); }
+}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestCodeStyle_Accessor4()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"abstract class A
 {
     public abstract int M { get; set; }
@@ -1472,28 +1426,22 @@ class T : A
 class [|T|] : A
 {
 }",
-@"using System;
-
-abstract class A
+@"abstract class A
 {
     public abstract int M { get; set; }
 }
 
 class T : A
 {
-    public override int M
-    {
-        get => throw new NotImplementedException();
-        set => throw new NotImplementedException();
-        }
-    }", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.TrueWithNoneEnforcement));
+    public override int M { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
         }
 
         [WorkItem(15387, "https://github.com/dotnet/roslyn/issues/15387")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestWithGroupingOff1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"abstract class Base
 {
     public abstract int Prop { get; }
@@ -1501,21 +1449,128 @@ class T : A
 
 class [|Derived|] : Base
 {
-    void Foo() { }
+    void Goo() { }
 }",
-@"using System;
-
-abstract class Base
+@"abstract class Base
 {
     public abstract int Prop { get; }
 }
 
 class Derived : Base
 {
-    void Foo() { }
+    void Goo() { }
 
-    public override int Prop => throw new NotImplementedException();
+    public override int Prop => throw new System.NotImplementedException();
 }", options: Option(ImplementTypeOptions.InsertionBehavior, ImplementTypeInsertionBehavior.AtTheEnd));
+        }
+
+        [WorkItem(17274, "https://github.com/dotnet/roslyn/issues/17274")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestAddedUsingWithBanner1()
+        {
+            await TestInRegularAndScriptAsync(
+@"// Copyright ...
+
+using Microsoft.Win32;
+
+namespace My
+{
+    public abstract class Goo
+    {
+        public abstract void Bar(System.Collections.Generic.List<object> values);
+    }
+
+    public class [|Goo2|] : Goo // Implement Abstract Class
+    {
+    }
+}",
+@"// Copyright ...
+
+using System.Collections.Generic;
+using Microsoft.Win32;
+
+namespace My
+{
+    public abstract class Goo
+    {
+        public abstract void Bar(System.Collections.Generic.List<object> values);
+    }
+
+    public class Goo2 : Goo // Implement Abstract Class
+    {
+        public override void Bar(List<object> values)
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+}");
+        }
+
+        [WorkItem(17562, "https://github.com/dotnet/roslyn/issues/17562")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestNullableOptionalParameters()
+        {
+            await TestInRegularAndScriptAsync(
+@"struct V { }
+abstract class B
+{
+    public abstract void M1(int i = 0, string s = null, int? j = null, V v = default(V));
+    public abstract void M2<T>(T? i = null) where T : struct;
+}
+sealed class [|D|] : B
+{
+}",
+@"struct V { }
+abstract class B
+{
+    public abstract void M1(int i = 0, string s = null, int? j = null, V v = default(V));
+    public abstract void M2<T>(T? i = null) where T : struct;
+}
+sealed class D : B
+{
+    public override void M1(int i = 0, string s = null, int? j = null, V v = default(V))
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override void M2<T>(T? i = null)
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(13932, "https://github.com/dotnet/roslyn/issues/13932")]
+        [WorkItem(5898, "https://github.com/dotnet/roslyn/issues/5898")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestAutoProperties()
+        {
+            await TestInRegularAndScript1Async(
+@"abstract class AbstractClass
+{
+    public abstract int ReadOnlyProp { get; }
+    public abstract int ReadWriteProp { get; set; }
+    public abstract int WriteOnlyProp { set; }
+}
+
+class [|C|] : AbstractClass
+{
+}",
+@"abstract class AbstractClass
+{
+    public abstract int ReadOnlyProp { get; }
+    public abstract int ReadWriteProp { get; set; }
+    public abstract int WriteOnlyProp { set; }
+}
+
+class C : AbstractClass
+{
+    public override int ReadOnlyProp { get; }
+    public override int ReadWriteProp { get; set; }
+    public override int WriteOnlyProp { set => throw new System.NotImplementedException(); }
+}", parameters: new TestParameters(options: Option(
+    ImplementTypeOptions.PropertyGenerationBehavior,
+    ImplementTypePropertyGenerationBehavior.PreferAutoProperties)));
         }
     }
 }

@@ -3,6 +3,8 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             }
 
             protected abstract bool HasDefaultValue { get; }
-            protected abstract Cci.IMetadataConstant GetDefaultValue(EmitContext context);
+            protected abstract MetadataConstant GetDefaultValue(EmitContext context);
             protected abstract bool IsIn { get; }
             protected abstract bool IsOut { get; }
             protected abstract bool IsOptional { get; }
@@ -130,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            Cci.IMetadataConstant Cci.IParameterDefinition.GetDefaultValue(EmitContext context)
+            MetadataConstant Cci.IParameterDefinition.GetDefaultValue(EmitContext context)
             {
                 return GetDefaultValue(context);
             }

@@ -14,13 +14,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             switch (conversion.ConversionKind)
             {
                 case ConversionKind.MethodGroup:
-                    EmitMethodGroupConversion(conversion, used);
-                    return;
+                    throw ExceptionUtilities.UnexpectedValue(conversion.ConversionKind);
                 case ConversionKind.NullToPointer:
                     // The null pointer is represented as 0u.
                     _builder.EmitIntConstant(0);
                     _builder.EmitOpCode(ILOpCode.Conv_u);
                     EmitPopIfUnused(used);
+                    return;
+                case ConversionKind.IdentityValue:
+                    EmitExpressionCore(conversion.Operand, used);
                     return;
             }
 
@@ -108,6 +110,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 #endif
 
                     _builder.EmitNumericConversion(fromPredefTypeKind, toPredefTypeKind, conversion.Checked);
+                    break;
+                case ConversionKind.PinnedObjectToPointer:
+                    // CLR allows unsafe conversion from(O) to native int/uint.
+                    // The conversion does not change the representation of the value, 
+                    // but the value will not be reported to subsequent GC operations (and therefore will not be updated by such operations)
+                    _builder.EmitOpCode(ILOpCode.Conv_u);
                     break;
                 case ConversionKind.NullToPointer:
                     throw ExceptionUtilities.UnexpectedValue(conversion.ConversionKind); // Should be handled by caller.
@@ -312,12 +320,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // The delegate '{0}' does not have a valid constructor
             _diagnostics.Add(ErrorCode.ERR_BadDelegateConstructor, syntax.Location, delegateType);
             return null;
-        }
-
-        private void EmitMethodGroupConversion(BoundConversion conversion, bool used)
-        {
-            var group = (BoundMethodGroup)conversion.Operand;
-            EmitDelegateCreation(conversion, group.InstanceOpt, conversion.IsExtensionMethod, conversion.SymbolOpt, conversion.Type, used);
         }
     }
 }

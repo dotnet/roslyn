@@ -27,8 +27,7 @@ namespace RepoUtil
 
         public bool Run(TextWriter writer, string[] args)
         {
-            List<NuGetPackage> changes;
-            if (!TryParseChangeSource(writer, args, out changes))
+            if (!TryParseChangeSource(writer, args, out var changes))
             {
                 return false;
             }
@@ -84,6 +83,7 @@ namespace RepoUtil
         {
             try
             {
+                var allGood = true;
                 foreach (var line in File.ReadAllLines(path))
                 {
                     if (string.IsNullOrWhiteSpace(line))
@@ -93,10 +93,12 @@ namespace RepoUtil
 
                     if (!TryParsePackage(writer, line, changes))
                     {
-                        return false;
+                        writer.WriteLine($"Error parsing {line}");
+                        allGood = false;
                     }
                 }
-                return true;
+
+                return allGood;
             }
             catch (Exception ex)
             {
@@ -161,8 +163,7 @@ namespace RepoUtil
             Console.WriteLine("Calculating the changes");
             foreach (var package in packages)
             {
-                NuGetPackage existingPackage;
-                if (!map.TryGetValue(package.Name, out existingPackage))
+                if (!map.TryGetValue(package.Name, out var existingPackage))
                 {
                     Console.WriteLine($"\tSkipping {package.Name} as it's not a floating package in this repo.");
                 }

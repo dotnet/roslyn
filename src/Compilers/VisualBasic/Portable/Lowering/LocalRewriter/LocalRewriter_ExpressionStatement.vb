@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Instrument(node, rewritten) Then
-                rewritten = _instrumenter.InstrumentExpressionStatement(node, rewritten)
+                rewritten = _instrumenterOpt.InstrumentExpressionStatement(node, rewritten)
             End If
 
             Return rewritten

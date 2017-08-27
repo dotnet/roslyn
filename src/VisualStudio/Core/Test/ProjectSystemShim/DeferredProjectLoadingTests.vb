@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis
@@ -31,9 +31,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         Public Sub DoNotDeferLoadIfInNonBackgroundBatch()
             Using testEnvironment = New TestEnvironment(solutionIsFullyLoaded:=False)
-                testEnvironment.GetSolutionLoadEvents().OnBeforeLoadProjectBatch(fIsBackgroundIdleBatch:=False)
+                testEnvironment.ProjectTracker.OnBeforeLoadProjectBatch(fIsBackgroundIdleBatch:=False)
                 CreateVisualBasicProject(testEnvironment, "TestProject")
-                testEnvironment.GetSolutionLoadEvents().OnAfterLoadProjectBatch(fIsBackgroundIdleBatch:=False)
+                testEnvironment.ProjectTracker.OnAfterLoadProjectBatch(fIsBackgroundIdleBatch:=False)
 
                 ' We should have pushed this project to the workspace
                 Assert.Single(testEnvironment.Workspace.CurrentSolution.Projects)
@@ -51,9 +51,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Using testEnvironment = New TestEnvironment(solutionIsFullyLoaded:=False)
                 CreateVisualBasicProject(testEnvironment, "TestProject1")
 
-                testEnvironment.GetSolutionLoadEvents().OnBeforeLoadProjectBatch(fIsBackgroundIdleBatch:=False)
+                testEnvironment.ProjectTracker.OnBeforeLoadProjectBatch(fIsBackgroundIdleBatch:=False)
                 CreateVisualBasicProject(testEnvironment, "TestProject2")
-                testEnvironment.GetSolutionLoadEvents().OnAfterLoadProjectBatch(fIsBackgroundIdleBatch:=False)
+                testEnvironment.ProjectTracker.OnAfterLoadProjectBatch(fIsBackgroundIdleBatch:=False)
 
                 ' We should have pushed the second project only
                 Assert.Equal("TestProject2", testEnvironment.Workspace.CurrentSolution.Projects.Single().Name)
@@ -72,10 +72,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim project1 = CreateVisualBasicProject(testEnvironment, "TestProject1")
 
                 ' Include a project reference in this batch. This means that project1 must also be pushed
-                testEnvironment.GetSolutionLoadEvents().OnBeforeLoadProjectBatch(fIsBackgroundIdleBatch:=False)
+                testEnvironment.ProjectTracker.OnBeforeLoadProjectBatch(fIsBackgroundIdleBatch:=False)
                 Dim project2 = CreateVisualBasicProject(testEnvironment, "TestProject2")
                 project2.AddProjectReference(project1)
-                testEnvironment.GetSolutionLoadEvents().OnAfterLoadProjectBatch(fIsBackgroundIdleBatch:=False)
+                testEnvironment.ProjectTracker.OnAfterLoadProjectBatch(fIsBackgroundIdleBatch:=False)
 
                 ' We should have pushed both projects
                 Assert.Equal(2, testEnvironment.Workspace.CurrentSolution.Projects.Count())
@@ -89,9 +89,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim project1 = CreateVisualBasicProject(testEnvironment, "TestProject1")
 
                 ' Include a project reference in this batch. This means that project1 must also be pushed
-                testEnvironment.GetSolutionLoadEvents().OnBeforeLoadProjectBatch(fIsBackgroundIdleBatch:=False)
+                testEnvironment.ProjectTracker.OnBeforeLoadProjectBatch(fIsBackgroundIdleBatch:=False)
                 Dim project2 = CreateVisualBasicProject(testEnvironment, "TestProject2")
-                testEnvironment.GetSolutionLoadEvents().OnAfterLoadProjectBatch(fIsBackgroundIdleBatch:=False)
+                testEnvironment.ProjectTracker.OnAfterLoadProjectBatch(fIsBackgroundIdleBatch:=False)
 
                 ' We should have pushed the second project only
                 Assert.Equal("TestProject2", testEnvironment.Workspace.CurrentSolution.Projects.Single().Name)

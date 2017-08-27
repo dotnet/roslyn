@@ -206,16 +206,16 @@ class Program
         public async Task DoNotCrashInLinkedFile()
         {
             var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""FOO"">
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""GOO"">
         <Document FilePath=""SourceDocument""><![CDATA[
 class C
 {
-#if FOO
+#if GOO
     void bar()
     {
     }
 #endif
-    void foo()
+    void goo()
     {
         (int, string) x = ($$
     }

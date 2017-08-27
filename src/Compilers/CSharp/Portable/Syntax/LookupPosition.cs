@@ -423,20 +423,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 case SyntaxKind.SimpleLambdaExpression:
                     SimpleLambdaExpressionSyntax simple = (SimpleLambdaExpressionSyntax)lambdaExpressionOrQueryNode;
-                    firstIncluded = simple.Parameter.Identifier;
+                    firstIncluded = simple.ArrowToken;
                     body = simple.Body;
                     break;
 
                 case SyntaxKind.ParenthesizedLambdaExpression:
                     ParenthesizedLambdaExpressionSyntax parenthesized = (ParenthesizedLambdaExpressionSyntax)lambdaExpressionOrQueryNode;
-                    firstIncluded = parenthesized.ParameterList.OpenParenToken;
+                    firstIncluded = parenthesized.ArrowToken;
                     body = parenthesized.Body;
                     break;
 
                 case SyntaxKind.AnonymousMethodExpression:
                     AnonymousMethodExpressionSyntax anon = (AnonymousMethodExpressionSyntax)lambdaExpressionOrQueryNode;
-                    firstIncluded = anon.DelegateKeyword;
                     body = anon.Block;
+                    firstIncluded = body.GetFirstToken(includeZeroWidth:true);
                     break;
 
                 default:

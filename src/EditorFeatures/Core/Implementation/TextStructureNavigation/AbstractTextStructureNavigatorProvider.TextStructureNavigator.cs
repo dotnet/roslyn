@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using System.Threading;
@@ -38,10 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 _waitIndicator = waitIndicator;
             }
 
-            public IContentType ContentType
-            {
-                get { return _subjectBuffer.ContentType; }
-            }
+            public IContentType ContentType => _subjectBuffer.ContentType;
 
             public TextExtent GetExtentOfWord(SnapshotPoint currentPosition)
             {
@@ -88,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                     var root = document.GetSyntaxRootSynchronously(cancellationToken);
                     var trivia = root.FindTrivia(position, findInsideTrivia: true);
 
-                    if (trivia != default(SyntaxTrivia))
+                    if (trivia != default)
                     {
                         if (trivia.Span.Start == position && _provider.ShouldSelectEntireTriviaFromStart(trivia))
                         {
@@ -327,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                     return true;
                 }
 
-                token = default(SyntaxToken);
+                token = default;
                 return false;
             }
 

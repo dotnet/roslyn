@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -15,6 +16,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
         private const string User32 = "User32.dll";
         private const string SetupConfigurationNative = "x86\\Microsoft.VisualStudio.Setup.Configuration.Native.dll";
 
+        #region Microsoft.VisualStudio.Setup.Configuration.Native.dll
+
         public const int REGDB_E_CLASSNOTREG = unchecked((int)0x80040154);
 
         [DllImport(SetupConfigurationNative, BestFitMapping = false, CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode, EntryPoint = "GetSetupConfiguration", ExactSpelling = true, PreserveSig = true, SetLastError = false, ThrowOnUnmappableChar = false)]
@@ -23,14 +26,26 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
             [In] IntPtr pReserved
         );
 
+        #endregion
+
+        #region kernel32.dll
+
         [DllImport(Kernel32)]
         public static extern uint GetCurrentThreadId();
+
+        #endregion
+
+        #region ole32.dll
 
         [DllImport(Ole32, PreserveSig = false)]
         public static extern void CreateBindCtx(int reserved, [MarshalAs(UnmanagedType.Interface)] out IBindCtx bindContext);
 
         [DllImport(Ole32, PreserveSig = false)]
         public static extern void GetRunningObjectTable(int reserved, [MarshalAs(UnmanagedType.Interface)] out IRunningObjectTable runningObjectTable);
+
+        #endregion
+
+        #region user32.dll
 
         public static readonly int SizeOf_INPUT = Marshal.SizeOf<INPUT>();
 
@@ -145,6 +160,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
         public static extern IntPtr GetAncestor(IntPtr hWnd, uint gaFlags);
 
         [DllImport(User32)]
+        public static extern IntPtr GetDesktopWindow();
+
+        [DllImport(User32)]
         public static extern IntPtr GetForegroundWindow();
 
         [DllImport(User32, SetLastError = true)]
@@ -152,6 +170,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
 
         [DllImport(User32, SetLastError = true)]
         public static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
+
+        [DllImport(User32)]
+        public static extern IntPtr GetWindowDC(IntPtr hWnd);
 
         [DllImport(User32)]
         public static extern uint GetWindowThreadProcessId(IntPtr hWnd, [Optional] IntPtr lpdwProcessId);
@@ -192,5 +213,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
 
         [DllImport(User32, CharSet = CharSet.Unicode)]
         public static extern uint MapVirtualKey(uint uCode, uint uMapType);
+
+        #endregion
     }
 }

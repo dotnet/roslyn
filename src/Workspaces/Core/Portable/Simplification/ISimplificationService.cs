@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.Simplification
 
         Task<Document> ReduceAsync(
             Document document,
-            IEnumerable<TextSpan> spans,
+            ImmutableArray<TextSpan> spans,
             OptionSet optionSet = null,
-            ImmutableArray<AbstractReducer> reducers = default(ImmutableArray<AbstractReducer>),
-            CancellationToken cancellationToken = default(CancellationToken));
+            ImmutableArray<AbstractReducer> reducers = default,
+            CancellationToken cancellationToken = default);
     }
 }

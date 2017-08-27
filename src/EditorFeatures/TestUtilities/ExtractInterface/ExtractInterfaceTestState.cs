@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -29,11 +29,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
         public string ErrorMessage { get; private set; }
         public NotificationSeverity ErrorSeverity { get; private set; }
 
-        public static async Task<ExtractInterfaceTestState> CreateAsync(string markup, string languageName, CompilationOptions compilationOptions)
+        public static ExtractInterfaceTestState Create(string markup, string languageName, CompilationOptions compilationOptions)
         {
             var workspace = languageName == LanguageNames.CSharp
-                ? await TestWorkspace.CreateCSharpAsync(markup, exportProvider: ExportProvider, compilationOptions: compilationOptions as CSharpCompilationOptions)
-                : await TestWorkspace.CreateVisualBasicAsync(markup, exportProvider: ExportProvider, compilationOptions: compilationOptions);
+                ? TestWorkspace.CreateCSharp(markup, exportProvider: ExportProvider, compilationOptions: compilationOptions as CSharpCompilationOptions)
+                : TestWorkspace.CreateVisualBasic(markup, exportProvider: ExportProvider, compilationOptions: compilationOptions);
             return new ExtractInterfaceTestState(workspace);
         }
 

@@ -12,16 +12,16 @@ Imports Roslyn.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
     Friend Class EditAndContinueTestHelper
 
-        Public Shared Function CreateTestWorkspaceAsync() As Task(Of TestWorkspace)
+        Public Shared Function CreateTestWorkspace() As TestWorkspace
             ' create workspace
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
-                                        class Foo { }
+                                        class Goo { }
                                     </Document>
                            </Project>
                        </Workspace>
-            Return TestWorkspace.CreateAsync(test)
+            Return TestWorkspace.Create(test)
         End Function
 
         Public Class TestDiagnosticAnalyzerService

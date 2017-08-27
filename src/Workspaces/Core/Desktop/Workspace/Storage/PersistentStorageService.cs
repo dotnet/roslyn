@@ -1,16 +1,14 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Esent;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionSize;
-using Microsoft.Isam.Esent.Interop;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Storage
@@ -19,16 +17,9 @@ namespace Microsoft.CodeAnalysis.Storage
     /// A service that enables storing and retrieving of information associated with solutions,
     /// projects or documents across runtime sessions.
     /// </summary>
-    internal partial class PersistentStorageService : IPersistentStorageService
+    internal abstract partial class AbstractPersistentStorageService : IPersistentStorageService2
     {
-        /// <summary>
-        /// threshold to start to use esent (50MB)
-        /// </summary>
-        private const int SolutionSizeThreshold = 50 * 1024 * 1024;
-
-        internal static readonly IPersistentStorage NoOpPersistentStorageInstance = new NoOpPersistentStorage();
-
-        private readonly IOptionService _optionService;
+        protected readonly IOptionService OptionService;
         private readonly SolutionSizeTracker _solutionSizeTracker;
 
         private readonly object _lookupAccessLock;
@@ -40,11 +31,11 @@ namespace Microsoft.CodeAnalysis.Storage
         private SolutionId _primarySolutionId;
         private AbstractPersistentStorage _primarySolutionStorage;
 
-        public PersistentStorageService(
+        protected AbstractPersistentStorageService(
             IOptionService optionService,
             SolutionSizeTracker solutionSizeTracker)
         {
-            _optionService = optionService;
+            OptionService = optionService;
             _solutionSizeTracker = solutionSizeTracker;
 
             _lookupAccessLock = new object();
@@ -56,20 +47,24 @@ namespace Microsoft.CodeAnalysis.Storage
             _primarySolutionStorage = null;
         }
 
-        public PersistentStorageService(IOptionService optionService, bool testing) : this(optionService)
+        protected AbstractPersistentStorageService(IOptionService optionService, bool testing) 
+            : this(optionService, solutionSizeTracker: null)
         {
             _testing = true;
         }
 
-        public PersistentStorageService(IOptionService optionService) : this(optionService, null)
-        {
-        }
+        protected abstract string GetDatabaseFilePath(string workingFolderPath);
+        protected abstract bool TryOpenDatabase(Solution solution, string workingFolderPath, string databaseFilePath, out AbstractPersistentStorage storage);
+        protected abstract bool ShouldDeleteDatabase(Exception exception);
 
         public IPersistentStorage GetStorage(Solution solution)
+            => GetStorage(solution, checkBranchId: true);
+
+        public IPersistentStorage GetStorage(Solution solution, bool checkBranchId)
         {
-            if (!ShouldUseEsent(solution))
+            if (!ShouldUseDatabase(solution, checkBranchId))
             {
-                return NoOpPersistentStorageInstance;
+                return NoOpPersistentStorage.Instance;
             }
 
             // can't use cached information
@@ -78,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Storage
                 // check whether the solution actually exist on disk
                 if (!File.Exists(solution.FilePath))
                 {
-                    return NoOpPersistentStorageInstance;
+                    return NoOpPersistentStorage.Instance;
                 }
             }
 
@@ -89,8 +84,8 @@ namespace Microsoft.CodeAnalysis.Storage
             var workingFolderPath = GetWorkingFolderPath(solution);
             if (workingFolderPath == null)
             {
-                // we don't have place to save esent file. don't use esent
-                return NoOpPersistentStorageInstance;
+                // we don't have place to save db file. don't use db
+                return NoOpPersistentStorage.Instance;
             }
 
             return GetStorage(solution, workingFolderPath);
@@ -103,10 +98,10 @@ namespace Microsoft.CodeAnalysis.Storage
                 // see whether we have something we can use
                 if (_lookup.TryGetValue(solution.FilePath, out var storage))
                 {
-                    // previous attempt to create esent storage failed.
+                    // previous attempt to create db storage failed.
                     if (storage == null && !SolutionSizeAboveThreshold(solution))
                     {
-                        return NoOpPersistentStorageInstance;
+                        return NoOpPersistentStorage.Instance;
                     }
 
                     // everything seems right, use what we have
@@ -121,15 +116,15 @@ namespace Microsoft.CodeAnalysis.Storage
                 // remove existing one
                 _lookup.Remove(solution.FilePath);
 
-                var dbFile = EsentPersistentStorage.GetDatabaseFile(workingFolderPath);
+                var dbFile = GetDatabaseFilePath(workingFolderPath);
                 if (!File.Exists(dbFile) && !SolutionSizeAboveThreshold(solution))
                 {
                     _lookup.Add(solution.FilePath, storage);
-                    return NoOpPersistentStorageInstance;
+                    return NoOpPersistentStorage.Instance;
                 }
 
                 // try create new one
-                storage = TryCreateEsentStorage(workingFolderPath, solution.FilePath);
+                storage = TryCreatePersistentStorage(solution, workingFolderPath);
                 _lookup.Add(solution.FilePath, storage);
 
                 if (storage != null)
@@ -140,20 +135,25 @@ namespace Microsoft.CodeAnalysis.Storage
                     return storage;
                 }
 
-                return NoOpPersistentStorageInstance;
+                return NoOpPersistentStorage.Instance;
             }
         }
 
-        private bool ShouldUseEsent(Solution solution)
+        private bool ShouldUseDatabase(Solution solution, bool checkBranchId)
         {
             if (_testing)
             {
                 return true;
             }
 
-            // we only use esent for primary solution. (Ex, forked solution will not use esent)
-            if (solution.BranchId != solution.Workspace.PrimaryBranchId || solution.FilePath == null)
+            if (solution.FilePath == null)
             {
+                return false;
+            }
+
+            if (checkBranchId && solution.BranchId != solution.Workspace.PrimaryBranchId)
+            {
+                // we only use database for primary solution. (Ex, forked solution will not use database)
                 return false;
             }
 
@@ -167,13 +167,22 @@ namespace Microsoft.CodeAnalysis.Storage
                 return true;
             }
 
+            var workspace = solution.Workspace;
+            if (workspace.Kind == WorkspaceKind.RemoteWorkspace ||
+                workspace.Kind == WorkspaceKind.RemoteTemporaryWorkspace)
+            {
+                // Storage is always available in the remote server.
+                return true;
+            }
+
             if (_solutionSizeTracker == null)
             {
                 return false;
             }
 
             var size = _solutionSizeTracker.GetSolutionSize(solution.Workspace, solution.Id);
-            return size > SolutionSizeThreshold;
+            var threshold = this.OptionService.GetOption(StorageOptions.SolutionSizeThreshold);
+            return size >= threshold;
         }
 
         private void RegisterPrimarySolutionStorageIfNeeded(Solution solution, AbstractPersistentStorage storage)
@@ -199,18 +208,16 @@ namespace Microsoft.CodeAnalysis.Storage
             return locationService?.GetStorageLocation(solution);
         }
 
-        private AbstractPersistentStorage TryCreateEsentStorage(string workingFolderPath, string solutionPath)
+        private AbstractPersistentStorage TryCreatePersistentStorage(Solution solution, string workingFolderPath)
         {
-            if (TryCreateEsentStorage(workingFolderPath, solutionPath, out var esentStorage))
+            // Attempt to create the database up to two times.  The first time we may encounter
+            // some sort of issue (like DB corruption).  We'll then try to delete the DB and can
+            // try to create it again.  If we can't create it the second time, then there's nothing
+            // we can do and we have to store things in memory.
+            if (TryCreatePersistentStorage(solution, workingFolderPath, out var persistentStorage) ||
+                TryCreatePersistentStorage(solution, workingFolderPath, out persistentStorage))
             {
-                return esentStorage;
-            }
-
-            // first attempt could fail if there was something wrong with existing esent db.
-            // try one more time in case the first attempt fixed the problem.
-            if (TryCreateEsentStorage(workingFolderPath, solutionPath, out esentStorage))
-            {
-                return esentStorage;
+                return persistentStorage;
             }
 
             // okay, can't recover, then use no op persistent service 
@@ -218,57 +225,48 @@ namespace Microsoft.CodeAnalysis.Storage
             return null;
         }
 
-        private bool TryCreateEsentStorage(string workingFolderPath, string solutionPath, out AbstractPersistentStorage esentStorage)
+        private bool TryCreatePersistentStorage(
+            Solution solution, string workingFolderPath,
+            out AbstractPersistentStorage persistentStorage)
         {
-            esentStorage = null;
-            EsentPersistentStorage esent = null;
+            persistentStorage = null;
+            AbstractPersistentStorage database = null;
 
+            var databaseFilePath = GetDatabaseFilePath(workingFolderPath);
             try
             {
-                esent = new EsentPersistentStorage(_optionService, workingFolderPath, solutionPath, this.Release);
-                esent.Initialize();
-
-                esentStorage = esent;
-                return true;
-            }
-            catch (EsentAccessDeniedException ex)
-            {
-                // esent db is already in use by someone.
-                if (esent != null)
+                if (!TryOpenDatabase(solution, workingFolderPath, databaseFilePath, out database))
                 {
-                    esent.Close();
+                    return false;
                 }
 
-                EsentLogger.LogException(ex);
+                database.Initialize(solution);
 
-                return false;
+                persistentStorage = database;
+                return true;
             }
             catch (Exception ex)
             {
-                if (esent != null)
+                StorageDatabaseLogger.LogException(ex);
+
+                if (database != null)
                 {
-                    esent.Close();
+                    database.Close();
                 }
 
-                EsentLogger.LogException(ex);
-            }
-
-            try
-            {
-                if (esent != null)
+                if (ShouldDeleteDatabase(ex))
                 {
-                    Directory.Delete(esent.EsentDirectory, recursive: true);
+                    // this was not a normal exception that we expected during DB open.
+                    // Report this so we can try to address whatever is causing this.
+                    FatalError.ReportWithoutCrash(ex);
+                    IOUtilities.PerformIO(() => Directory.Delete(Path.GetDirectoryName(databaseFilePath), recursive: true));
                 }
-            }
-            catch
-            {
-                // somehow, we couldn't delete the directory.
-            }
 
-            return false;
+                return false;
+            }
         }
 
-        private void Release(AbstractPersistentStorage storage)
+        protected void Release(AbstractPersistentStorage storage)
         {
             lock (_lookupAccessLock)
             {
@@ -282,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Storage
 
         public void RegisterPrimarySolution(SolutionId solutionId)
         {
-            // don't create esent storage file right away. it will be
+            // don't create database storage file right away. it will be
             // created when first C#/VB project is added
             lock (_lookupAccessLock)
             {

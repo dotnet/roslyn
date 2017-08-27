@@ -1,6 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextDiffing
             _differenceSelectorService = differenceSelectorService;
         }
 
-        public async Task<IEnumerable<TextChange>> GetTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<TextChange>> GetTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
         {
             var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextDiffing
             return diffResult.Differences.Select(d =>
                 new TextChange(
                     diffResult.LeftDecomposition.GetSpanInOriginal(d.Left).ToTextSpan(),
-                    newText.GetSubText(diffResult.RightDecomposition.GetSpanInOriginal(d.Right).ToTextSpan()).ToString()));
+                    newText.GetSubText(diffResult.RightDecomposition.GetSpanInOriginal(d.Right).ToTextSpan()).ToString())).ToImmutableArray();
         }
     }
 }

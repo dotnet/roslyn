@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 #if DEBUG
@@ -96,12 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 #endif
         }
 
-        private TagSource CreateTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
-        {
-            return new TagSource(textViewOpt, subjectBuffer, this, _asyncListener, _notificationService);
-        }
-
-        internal IAccurateTagger<T> GetOrCreateTagger<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
+        internal IAccurateTagger<T> CreateTaggerWorker<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
         {
             if (!subjectBuffer.GetFeatureOnOffOption(EditorComponentOnOffOptions.Tagger))
             {
@@ -109,11 +104,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             var tagSource = GetOrCreateTagSource(textViewOpt, subjectBuffer);
-            if (tagSource == null)
-            {
-                return null;
-            }
-
             return new Tagger(_asyncListener, _notificationService, tagSource, subjectBuffer) as IAccurateTagger<T>;
         }
 
@@ -121,11 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         {
             if (!this.TryRetrieveTagSource(textViewOpt, subjectBuffer, out var tagSource))
             {
-                tagSource = this.CreateTagSource(textViewOpt, subjectBuffer);
-                if (tagSource == null)
-                {
-                    return null;
-                }
+                tagSource = new TagSource(textViewOpt, subjectBuffer, this, _asyncListener, _notificationService);
 
                 this.StoreTagSource(textViewOpt, subjectBuffer, tagSource);
                 tagSource.Disposed += (s, e) => this.RemoveTagSource(textViewOpt, subjectBuffer);

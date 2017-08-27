@@ -67,6 +67,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         Public Function CreateSimpleTypeSyntax(symbol As INamedTypeSymbol) As TypeSyntax
+            Dim syntax = TryCreateSpecializedNamedTypeSyntax(symbol)
+            If syntax IsNot Nothing Then
+                Return syntax
+            End If
+
+            If symbol.IsTupleType AndAlso
+               symbol.TupleUnderlyingType IsNot Nothing AndAlso
+               Not symbol.Equals(symbol.TupleUnderlyingType) Then
+                Return CreateSimpleTypeSyntax(symbol.TupleUnderlyingType)
+            End If
+
+            If symbol.Name = String.Empty OrElse symbol.IsAnonymousType Then
+                Return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("Object"))
+            End If
+
+            If symbol.OriginalDefinition.SpecialType = SpecialType.System_Nullable_T Then
+                Return AddInformationTo(SyntaxFactory.NullableType(symbol.TypeArguments.First().Accept(Me)), symbol)
+            End If
+
+            If symbol.TypeParameters.Length = 0 Then
+                Return symbol.Name.ToIdentifierName
+            End If
+
+            Return SyntaxFactory.GenericName(
+                symbol.Name.ToIdentifierToken,
+                SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(symbol.TypeArguments.[Select](Function(t) t.Accept(Me)))))
+        End Function
+
+        Private Function TryCreateSpecializedNamedTypeSyntax(symbol As INamedTypeSymbol) As TypeSyntax
             Select Case symbol.SpecialType
                 Case SpecialType.System_Object
                     Return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("Object"))
@@ -102,25 +131,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("DateTime"))
             End Select
 
-            If symbol.IsTupleType Then
+            If symbol.IsTupleType AndAlso symbol.TupleElements.Length >= 2 Then
                 Return CreateTupleTypeSyntax(symbol)
             End If
 
-            If symbol.Name = String.Empty OrElse symbol.IsAnonymousType Then
-                Return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("Object"))
-            End If
-
-            If symbol.OriginalDefinition.SpecialType = SpecialType.System_Nullable_T Then
-                Return AddInformationTo(SyntaxFactory.NullableType(symbol.TypeArguments.First().Accept(Me)), symbol)
-            End If
-
-            If symbol.TypeParameters.Length = 0 Then
-                Return symbol.Name.ToIdentifierName
-            End If
-
-            Return SyntaxFactory.GenericName(
-                symbol.Name.ToIdentifierToken,
-                SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(symbol.TypeArguments.[Select](Function(t) t.Accept(Me)))))
+            Return Nothing
         End Function
 
         Private Shared Function CreateTupleTypeSyntax(symbol As INamedTypeSymbol) As TypeSyntax

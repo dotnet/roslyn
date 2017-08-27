@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     new Lazy<IOptionProvider>(() => new TestOptionsProvider())
                 },
-                Enumerable.Empty<Lazy<IOptionPersister>>()), workspaceServices: null);
+                Enumerable.Empty<Lazy<IOptionPersister>>()), workspaceServices: new AdhocWorkspace().Services);
         }
 
         internal class TestOptionsProvider : IOptionProvider

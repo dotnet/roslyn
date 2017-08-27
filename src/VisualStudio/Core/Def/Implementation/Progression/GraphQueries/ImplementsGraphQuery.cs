@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -24,9 +24,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             foreach (var node in context.InputNodes)
             {
                 var symbol = graphBuilder.GetSymbol(node);
-                if (symbol is INamedTypeSymbol)
+                if (symbol is INamedTypeSymbol namedType)
                 {
-                    var namedType = (INamedTypeSymbol)symbol;
                     var implementedSymbols = namedType.AllInterfaces;
 
                     await AddImplementedSymbols(graphBuilder, node, implementedSymbols).ConfigureAwait(false);

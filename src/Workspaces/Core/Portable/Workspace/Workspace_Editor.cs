@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -18,24 +18,28 @@ namespace Microsoft.CodeAnalysis
         private readonly Dictionary<ProjectId, ISet<DocumentId>> _projectToOpenDocumentsMap = new Dictionary<ProjectId, ISet<DocumentId>>();
 
         // text buffer maps
+        /// <summary>
+        /// Tracks the document ID in the current context for a source text container for an opened text buffer.
+        /// </summary>
+        /// <remarks>For each entry in this map, there must be a corresponding entry in <see cref="_bufferToAssociatedDocumentsMap"/> where the document ID in current context is one of associated document IDs.</remarks>
         private readonly Dictionary<SourceTextContainer, DocumentId> _bufferToDocumentInCurrentContextMap = new Dictionary<SourceTextContainer, DocumentId>();
+
+        /// <summary>
+        /// Tracks all the associated document IDs for a source text container for an opened text buffer.
+        /// </summary>
+        private readonly Dictionary<SourceTextContainer, OneOrMany<DocumentId>> _bufferToAssociatedDocumentsMap = new Dictionary<SourceTextContainer, OneOrMany<DocumentId>>();
+
         private readonly Dictionary<DocumentId, TextTracker> _textTrackers = new Dictionary<DocumentId, TextTracker>();
 
         /// <summary>
         /// True if this workspace supports manually opening and closing documents.
         /// </summary>
-        public virtual bool CanOpenDocuments
-        {
-            get { return false; }
-        }
+        public virtual bool CanOpenDocuments => false;
 
         /// <summary>
         /// True if this workspace supports manually changing the active context document of a text buffer.
         /// </summary>
-        internal virtual bool CanChangeActiveContextDocument
-        {
-            get { return false; }
-        }
+        internal virtual bool CanChangeActiveContextDocument => false;
 
         private static void RemoveIfEmpty<TKey, TValue>(IDictionary<TKey, ISet<TValue>> dictionary, TKey key)
         {
@@ -290,13 +294,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private SourceTextContainer GetOpenDocumentSourceTextContainer_NoLock(DocumentId documentId)
-        {
-            SourceTextContainer container;
-            var documentIds = this.CurrentSolution.GetRelatedDocumentIds(documentId);
-            container = _bufferToDocumentInCurrentContextMap.Where(kvp => documentIds.Contains(kvp.Value)).Select(kvp => kvp.Key).FirstOrDefault();
-            return container;
-        }
+        private SourceTextContainer GetOpenDocumentSourceTextContainer_NoLock(DocumentId documentId) =>
+            _bufferToAssociatedDocumentsMap.Where(kvp => kvp.Value.Contains(documentId)).Select(kvp => kvp.Key).FirstOrDefault();
 
         private DocumentId GetDocumentIdInCurrentContext_NoLock(SourceTextContainer container)
         {
@@ -344,19 +343,38 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal void OnDocumentContextUpdated(DocumentId documentId, SourceTextContainer container)
         {
-            using (_serializationLock.DisposableWait())
+            if (_isProjectUnloading.Value)
             {
-                DocumentId oldActiveContextDocumentId;
-
-                using (_stateLock.DisposableWait())
+                // When the project is unloading, the serialization lock is already taken, so there
+                // is no need for us to take the lock since everything is already serialized.
+                OnDocumentContextUpdated_NoSerializationLock(documentId, container);
+            }
+            else
+            {
+                using (_serializationLock.DisposableWait())
                 {
-                    oldActiveContextDocumentId = _bufferToDocumentInCurrentContextMap[container];
-                    _bufferToDocumentInCurrentContextMap[container] = documentId;
+                    OnDocumentContextUpdated_NoSerializationLock(documentId, container);
+                }
+            }
+        }
+
+        internal void OnDocumentContextUpdated_NoSerializationLock(DocumentId documentId, SourceTextContainer container)
+        {
+            DocumentId oldActiveContextDocumentId;
+
+            using (_stateLock.DisposableWait())
+            {
+                oldActiveContextDocumentId = _bufferToDocumentInCurrentContextMap[container];
+                if (documentId == oldActiveContextDocumentId)
+                {
+                    return;
                 }
 
-                // fire and forget
-                this.RaiseDocumentActiveContextChangedEventAsync(container, oldActiveContextDocumentId: oldActiveContextDocumentId, newActiveContextDocumentId: documentId);
+                UpdateCurrentContextMapping_NoLock(container, documentId, isCurrentContext: true);
             }
+
+            // fire and forget
+            this.RaiseDocumentActiveContextChangedEventAsync(container, oldActiveContextDocumentId: oldActiveContextDocumentId, newActiveContextDocumentId: documentId);
         }
 
         protected void CheckDocumentIsClosed(DocumentId documentId)
@@ -611,40 +629,55 @@ namespace Microsoft.CodeAnalysis
 
         private void UpdateCurrentContextMapping_NoLock(SourceTextContainer textContainer, DocumentId id, bool isCurrentContext)
         {
+            if (_bufferToAssociatedDocumentsMap.TryGetValue(textContainer, out OneOrMany<DocumentId> docIds))
+            {
+                Contract.ThrowIfFalse(_bufferToDocumentInCurrentContextMap.ContainsKey(textContainer));
+                if (!docIds.Contains(id))
+                {
+                    docIds = docIds.Add(id);
+                }
+            }
+            else
+            {
+                Contract.ThrowIfFalse(!_bufferToDocumentInCurrentContextMap.ContainsKey(textContainer));
+                docIds = new OneOrMany<DocumentId>(id);
+            }
+
             if (isCurrentContext || !_bufferToDocumentInCurrentContextMap.ContainsKey(textContainer))
             {
                 _bufferToDocumentInCurrentContextMap[textContainer] = id;
             }
+
+            _bufferToAssociatedDocumentsMap[textContainer] = docIds;
         }
 
         /// <returns>The DocumentId of the current context document attached to the textContainer, if any.</returns>
-        private DocumentId UpdateCurrentContextMapping_NoLock(SourceTextContainer textContainer, DocumentId id)
+        private DocumentId UpdateCurrentContextMapping_NoLock(SourceTextContainer textContainer, DocumentId closedDocumentId)
         {
-            var documentIds = this.CurrentSolution.GetRelatedDocumentIds(id);
-            if (documentIds.Length == 0)
+            // Check if we are tracking this textContainer.
+            if (!_bufferToAssociatedDocumentsMap.TryGetValue(textContainer, out OneOrMany<DocumentId> docIds))
             {
-                // no related document. remove map and return no context
+                Contract.ThrowIfFalse(!_bufferToDocumentInCurrentContextMap.ContainsKey(textContainer));
+                return null;
+            }
+
+            Contract.ThrowIfFalse(_bufferToDocumentInCurrentContextMap.ContainsKey(textContainer));
+
+            // Remove closedDocumentId
+            docIds = docIds.RemoveAll(closedDocumentId);
+
+            // Remove the entry if there are no more documents attached to given textContainer.
+            if (docIds.Equals(default(OneOrMany<DocumentId>)))
+            {
+                _bufferToAssociatedDocumentsMap.Remove(textContainer);
                 _bufferToDocumentInCurrentContextMap.Remove(textContainer);
                 return null;
             }
 
-            if (documentIds.Length == 1 && documentIds[0] == id)
-            {
-                // only related document is myself. remove map and return no context
-                _bufferToDocumentInCurrentContextMap.Remove(textContainer);
-                return null;
-            }
-
-            if (documentIds[0] != id)
-            {
-                // there are related documents, set first one as new context.
-                _bufferToDocumentInCurrentContextMap[textContainer] = documentIds[0];
-                return documentIds[0];
-            }
-
-            // there are multiple related documents, and first one is myself. return next one.
-            _bufferToDocumentInCurrentContextMap[textContainer] = documentIds[1];
-            return documentIds[1];
+            // Update the new list of documents attached to the given textContainer and the current context document, and return the latter.
+            _bufferToAssociatedDocumentsMap[textContainer] = docIds;
+            _bufferToDocumentInCurrentContextMap[textContainer] = docIds[0];
+            return docIds[0];
         }
 
         private SourceText GetOpenDocumentText(Solution solution, DocumentId documentId)

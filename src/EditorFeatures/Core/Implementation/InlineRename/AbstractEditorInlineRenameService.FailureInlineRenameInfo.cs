@@ -17,25 +17,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 this.LocalizedErrorMessage = localizedErrorMessage;
             }
 
-            public bool CanRename { get { return false; } }
+            public bool CanRename => false;
 
-            public bool HasOverloads { get { return false; } }
+            public bool HasOverloads => false;
 
-            public bool ForceRenameOverloads { get { return false; } }
+            public bool ForceRenameOverloads => false;
 
             public string LocalizedErrorMessage { get; }
 
-            public TextSpan TriggerSpan { get { return default(TextSpan); } }
+            public TextSpan TriggerSpan { get { return default; } }
 
-            public string DisplayName { get { return null; } }
+            public string DisplayName => null;
 
-            public string FullDisplayName { get { return null; } }
+            public string FullDisplayName => null;
 
             public Glyph Glyph => Glyph.None;
 
             public string GetFinalSymbolName(string replacementText) { return null; }
 
-            public TextSpan GetReferenceEditSpan(InlineRenameLocation location, CancellationToken cancellationToken) { return default(TextSpan); }
+            public TextSpan GetReferenceEditSpan(InlineRenameLocation location, CancellationToken cancellationToken) { return default; }
 
             public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string replacementText, CancellationToken cancellationToken) { return null; }
 

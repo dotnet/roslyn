@@ -56,11 +56,10 @@ namespace RepoUtil
         /// state of the repo and add in the current data.  If any conflicting package definitions are detected this method 
         /// will throw.
         /// </summary>
-        internal static RepoData Create(RepoConfig config, string sourcesDir)
+        internal static RepoData Create(RepoConfig config, string sourcesDir, bool ignoreConflicts)
         {
-            List<NuGetPackageConflict> conflicts;
-            var repoData = Create(config, sourcesDir, out conflicts);
-            if (conflicts?.Count > 0)
+            var repoData = Create(config, sourcesDir, out var conflicts);
+            if (conflicts?.Count > 0 && !ignoreConflicts)
             {
                 throw new ConflictingPackagesException(conflicts);
             }
@@ -83,12 +82,13 @@ namespace RepoUtil
             var floatingPackageMap = new Dictionary<string, NuGetPackageSource>(Constants.NugetPackageNameComparer);
             foreach (var filePath in ProjectJsonUtil.GetProjectJsonFiles(sourcesDir))
             {
-                if (config.ProjectJsonExcludes.Any(x => x.IsMatch(filePath)))
+                var fileName = FileName.FromFullPath(sourcesDir, filePath);
+
+                if (config.ProjectJsonExcludes.Any(x => x.IsMatch(fileName.RelativePath)))
                 {
                     continue;
                 }
 
-                var fileName = FileName.FromFullPath(sourcesDir, filePath);
                 foreach (var package in ProjectJsonUtil.GetDependencies(filePath))
                 {
                     if (fixedPackageSet.Contains(package))
@@ -99,8 +99,7 @@ namespace RepoUtil
                     // If this is the first time we've seen the package then record where it was found.  Need the source
                     // information to provide better error messages later.
                     var packageSource = new NuGetPackageSource(package, fileName);
-                    NuGetPackageSource originalSource;
-                    if (floatingPackageMap.TryGetValue(package.Name, out originalSource))
+                    if (floatingPackageMap.TryGetValue(package.Name, out var originalSource))
                     {
                         if (originalSource.NuGetPackage.Version != package.Version)
                         {

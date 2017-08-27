@@ -25,17 +25,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var comment = DocumentationComment.FromXmlFragment(
                 @"<summary>Hello, world!</summary>
                   <returns>42.</returns>
-                  <example>foo.Bar();</example>
-                  <param name=""foo"">A foo.</param>
+                  <example>goo.Bar();</example>
+                  <param name=""goo"">A goo.</param>
                   <typeparam name=""T"">A type.</typeparam>
                   <exception cref=""System.Exception"">An exception</exception>
                   <remarks>A remark</remarks>");
 
             Assert.Equal("Hello, world!", comment.SummaryText);
             Assert.Equal("42.", comment.ReturnsText);
-            Assert.Equal("foo.Bar();", comment.ExampleText);
-            Assert.Equal("foo", comment.ParameterNames[0]);
-            Assert.Equal("A foo.", comment.GetParameterText("foo"));
+            Assert.Equal("goo.Bar();", comment.ExampleText);
+            Assert.Equal("goo", comment.ParameterNames[0]);
+            Assert.Equal("A goo.", comment.GetParameterText("goo"));
             Assert.Equal("T", comment.TypeParameterNames[0]);
             Assert.Equal("A type.", comment.GetTypeParameterText("T"));
             Assert.Equal("System.Exception", comment.ExceptionTypes[0]);
@@ -66,7 +66,7 @@ Summary 2
         [Fact]
         public void ParseInvalidXML()
         {
-            var comment = DocumentationComment.FromXmlFragment("<summary>foo");
+            var comment = DocumentationComment.FromXmlFragment("<summary>goo");
 
             Assert.True(comment.HadXmlParseError);
             Assert.Null(comment.SummaryText);
@@ -223,6 +223,50 @@ This is random top-level text.
 
             Assert.Equal(fragment, comments.FullXmlFragment);
             Assert.True(comments.HadXmlParseError);
+        }
+
+        [Fact, WorkItem(18901, "https://github.com/dotnet/roslyn/pull/18901")]
+        public void TrimEachLine()
+        {
+            string multiLineText = @"
+
+
+
+Hello
+     World     .        
++
+.......
+
+
+
+
+123
+
+                                           1";
+
+            string fullXml = $@"<summary>{multiLineText}</summary>
+                  <returns>{multiLineText}</returns>
+                  <example>{multiLineText}</example>
+                  <param name=""goo"">{multiLineText}</param>
+                  <typeparam name=""T"">{multiLineText}</typeparam>
+                  <remarks>{multiLineText}</remarks>";
+                                 
+
+            string expected = @"Hello
+World     .
++
+.......
+123
+1";
+
+            var comment = DocumentationComment.FromXmlFragment(fullXml);
+
+            Assert.Equal(expected, comment.SummaryText);
+            Assert.Equal(expected, comment.ReturnsText);
+            Assert.Equal(expected, comment.ExampleText);
+            Assert.Equal(expected, comment.GetParameterText("goo"));
+            Assert.Equal(expected, comment.GetTypeParameterText("T"));
+            Assert.Equal(expected, comment.RemarksText);
         }
     }
 }

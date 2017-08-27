@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialMethodInvalidModifier = 750,
         ERR_PartialMethodOnlyInPartialClass = 751,
         ERR_PartialMethodCannotHaveOutParameters = 752,
-        ERR_PartialMethodOnlyMethods = 753,
+        // ERR_PartialMethodOnlyMethods = 753, Removed as it is subsumed by ERR_PartialMisplaced
         ERR_PartialMethodNotExplicit = 754,
         ERR_PartialMethodExtensionDifference = 755,
         ERR_PartialMethodOnlyOneLatent = 756,
@@ -952,7 +952,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //ERR_InvalidCollectionInitializerType = 1925,  unused in Roslyn. Occurs so infrequently in real usage that it is not worth reimplementing.
         ERR_CantOpenWin32Manifest = 1926,
         WRN_CantHaveManifestForModule = 1927,
-        ERR_BadExtensionArgTypes = 1928,
+        //ERR_BadExtensionArgTypes = 1928, unused in Roslyn (replaced by ERR_BadInstanceArgType)
         ERR_BadInstanceArgType = 1929,
         ERR_QueryDuplicateRangeVariable = 1930,
         ERR_QueryRangeVariableOverrides = 1931,
@@ -977,7 +977,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadArgTypesForCollectionAdd = 1950,
         ERR_ByRefParameterInExpressionTree = 1951,
         ERR_VarArgsInExpressionTree = 1952,
-        // ERR_MemGroupInExpressionTree = 1953, unused in roslyn (replaced by ERR_LambdaInIsAs)
+        // ERR_MemGroupInExpressionTree = 1953, unused in Roslyn (replaced by ERR_LambdaInIsAs)
         ERR_InitializerAddHasParamModifiers = 1954,
         ERR_NonInvocableMemberCalled = 1955,
         WRN_MultipleRuntimeImplementationMatches = 1956,
@@ -1060,7 +1060,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidOutputName = 2041,
         ERR_InvalidDebugInformationFormat = 2042,
         ERR_LegacyObjectIdSyntax = 2043,
-        ERR_SourceLinkRequiresPortablePdb = 2044,
+        ERR_SourceLinkRequiresPdb = 2044,
         ERR_CannotEmbedWithoutPdb = 2045,
         // unused 2046-2999
         WRN_CLS_NoVarArgs = 3000,
@@ -1104,7 +1104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_VarargsAsync = 4006,
         ERR_ByRefTypeAndAwait = 4007,
         ERR_BadAwaitArgVoidCall = 4008,
-        ERR_MainCantBeAsync = 4009,
+        ERR_NonTaskMainCantBeAsync = 4009,
         ERR_CantConvAsyncAnonFuncReturns = 4010,
         ERR_BadAwaiterPattern = 4011,
         ERR_BadSpecialByRefLocal = 4012,
@@ -1240,9 +1240,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidAssemblyCulture = 7100,
         ERR_EncReferenceToAddedMember = 7101,
         ERR_MutuallyExclusiveOptions = 7102,
+        ERR_InvalidDebugInfo = 7103,
         #endregion diagnostics introduced in C# 6
 
-        // huge gap here; unused 7103-8000
+        // huge gap here; unused 7104-8000
 
         #region more diagnostics introduced in Roslyn (C# 6)
         WRN_UnimplementedCommandLineSwitch = 8001,
@@ -1291,7 +1292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_EnumsCantContainDefaultConstructor = 8054,
         ERR_EncodinglessSyntaxTree = 8055,
-        ERR_AccessorListAndExpressionBody = 8056,
+        // ERR_AccessorListAndExpressionBody = 8056, Deprecated in favor of ERR_BlockBodyAndExpressionBody
         ERR_BlockBodyAndExpressionBody = 8057,
         ERR_FeatureIsExperimental = 8058,
         ERR_FeatureNotAvailableInVersion6 = 8059,
@@ -1351,7 +1352,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
-        // Available = 8112, 8113, 8114, 8115
+        ERR_LocalFunctionMissingBody = 8112,
+
+        // Available = 8113, 8114, 8115
 
         #region diagnostics for pattern-matching introduced in C# 7
         ERR_ThrowMisplaced = 8115,
@@ -1439,7 +1442,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DelegateRefMismatch = 8189,
         #endregion stragglers for C# 7
 
-        // Available  = 8190-8195
+        #region diagnostics for parse options
+        ERR_BadSourceCodeKind = 8190,
+        ERR_BadDocumentationMode = 8191,
+        ERR_BadLanguageVersion = 8192,
+        #endregion
+
+        // Available  = 8193-8195
 
         #region diagnostics for out var
         ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8196,
@@ -1453,7 +1462,41 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionVariableInQueryClause = 8201,
         ERR_PublicSignNetModule = 8202,
         ERR_BadAssemblyName = 8203,
-        ERR_AttributesInLocalFuncDecl = 8204
+        ERR_BadAsyncMethodBuilderTaskProperty = 8204,
+        ERR_AttributesInLocalFuncDecl = 8205,
+        ERR_TypeForwardedToMultipleAssemblies = 8206,
+        ERR_ExpressionTreeContainsDiscard = 8207,
+        ERR_PatternDynamicType = 8208,
+        ERR_VoidAssignment = 8209,
+        ERR_VoidInTuple = 8210,
         #endregion more stragglers for C# 7
+
+        #region diagnostics introduced for C# 7.1
+
+        ERR_Merge_conflict_marker_encountered = 8300,
+        ERR_InvalidPreprocessingSymbol = 8301,
+        ERR_FeatureNotAvailableInVersion7_1 = 8302,
+        ERR_LanguageVersionCannotHaveLeadingZeroes = 8303,
+        ERR_CompilerAndLanguageVersion = 8304,
+        WRN_Experimental = 8305,
+        ERR_TupleInferredNamesNotAvailable = 8306,
+        ERR_TypelessTupleInAs = 8307,
+
+        ERR_NoRefOutWhenRefOnly = 8308,
+        ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 8309,
+        ERR_BadOpOnNullOrDefault = 8310,
+        ERR_BadDynamicMethodArgDefaultLiteral = 8311,
+        ERR_DefaultLiteralNotValid = 8312,
+        WRN_DefaultInSwitch = 8313,
+        ERR_PatternWrongGenericTypeInVersion = 8314,
+        ERR_AmbigBinaryOpsOnDefault = 8315,
+
+        #endregion diagnostics introduced for C# 7.1
+
+        #region diagnostics introduced for C# 7.2
+        ERR_FeatureNotAvailableInVersion7_2 = 8320,
+        WRN_UnreferencedLocalFunction = 8321,
+        ERR_DynamicLocalFunctionTypeParameter = 8322,
+        #endregion diagnostics introduced for C# 7.2
     }
 }

@@ -1,47 +1,60 @@
-using System;
+﻿using System;
+using System.Collections.Immutable;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 {
     public class SplitStringLiteralCommandHandlerTests
     {
-        private async Task TestWorkerAsync(
+        private void TestWorker(
             string inputMarkup, string expectedOutputMarkup, Action callback)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(inputMarkup))
+            using (var workspace = TestWorkspace.CreateCSharp(inputMarkup))
             {
                 var document = workspace.Documents.Single();
                 var view = document.GetTextView();
 
-                var snapshot = view.TextBuffer.CurrentSnapshot;
-                view.SetSelection(document.SelectedSpans.Single().ToSnapshotSpan(snapshot));
+                var originalSnapshot = view.TextBuffer.CurrentSnapshot;
+                var originalSelection = document.SelectedSpans.Single();
+                view.SetSelection(originalSelection.ToSnapshotSpan(originalSnapshot));
 
-                var commandHandler = new SplitStringLiteralCommandHandler();
+                var undoHistoryRegistry = workspace.GetService<ITextUndoHistoryRegistry>();
+                var commandHandler = new SplitStringLiteralCommandHandler(
+                    undoHistoryRegistry,
+                    workspace.GetService<IEditorOperationsFactoryService>());
                 commandHandler.ExecuteCommand(new ReturnKeyCommandArgs(view, view.TextBuffer), callback);
 
                 if (expectedOutputMarkup != null)
                 {
-                    MarkupTestFile.GetSpans(expectedOutputMarkup, out var expectedOutput, out IList<TextSpan> expectedSpans);
+                    MarkupTestFile.GetSpans(expectedOutputMarkup,
+                        out var expectedOutput, out ImmutableArray<TextSpan> expectedSpans);
 
                     Assert.Equal(expectedOutput, view.TextBuffer.CurrentSnapshot.AsText().ToString());
                     Assert.Equal(expectedSpans.Single().Start, view.Caret.Position.BufferPosition.Position);
+
+                    // Ensure that after undo we go back to where we were to begin with.
+                    var history = undoHistoryRegistry.GetHistory(document.TextBuffer);
+                    history.Undo(count: 1);
+
+                    var currentSnapshot = document.TextBuffer.CurrentSnapshot;
+                    Assert.Equal(originalSnapshot.GetText(), currentSnapshot.GetText());
+                    Assert.Equal(originalSelection.Start, view.Caret.Position.BufferPosition.Position);
                 }
             }
         }
 
-        private Task TestHandledAsync(string inputMarkup, string expectedOutputMarkup)
+        private void TestHandled(string inputMarkup, string expectedOutputMarkup)
         {
-            return TestWorkerAsync(
+            TestWorker(
                 inputMarkup, expectedOutputMarkup,
                 callback: () =>
                 {
@@ -49,10 +62,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
                 });
         }
 
-        private async Task TestNotHandledAsync(string inputMarkup)
+        private void TestNotHandled(string inputMarkup)
         {
             var notHandled = false;
-            await TestWorkerAsync(
+            TestWorker(
                 inputMarkup, null,
                 callback: () =>
                 {
@@ -63,9 +76,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public async Task TestMissingBeforeString()
+        public void TestMissingBeforeString()
         {
-            await TestNotHandledAsync(
+            TestNotHandled(
 @"class C
 {
     void M()
@@ -76,9 +89,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public async Task TestMissingBeforeInterpolatedString()
+        public void TestMissingBeforeInterpolatedString()
         {
-            await TestNotHandledAsync(
+            TestNotHandled(
 @"class C
 {
     void M()
@@ -89,9 +102,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public async Task TestMissingAfterString_1()
+        public void TestMissingAfterString_1()
         {
-            await TestNotHandledAsync(
+            TestNotHandled(
 @"class C
 {
     void M()
@@ -102,9 +115,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public async Task TestMissingAfterString_2()
+        public void TestMissingAfterString_2()
         {
-            await TestNotHandledAsync(
+            TestNotHandled(
 @"class C
 {
     void M()
@@ -115,9 +128,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public async Task TestMissingAfterString_3()
+        public void TestMissingAfterString_3()
         {
-            await TestNotHandledAsync(
+            TestNotHandled(
 @"class C
 {
     void M()
@@ -128,9 +141,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public async Task TestMissingAfterString_4()
+        public void TestMissingAfterString_4()
         {
-            await TestNotHandledAsync(
+            TestNotHandled(
 @"class C
 {
     void M()
@@ -141,9 +154,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public async Task TestMissingAfterInterpolatedString_1()
+        public void TestMissingAfterInterpolatedString_1()
         {
-            await TestNotHandledAsync(
+            TestNotHandled(
 @"class C
 {
     void M()
@@ -154,9 +167,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public async Task TestMissingAfterInterpolatedString_2()
+        public void TestMissingAfterInterpolatedString_2()
         {
-            await TestNotHandledAsync(
+            TestNotHandled(
 @"class C
 {
     void M()
@@ -167,9 +180,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public async Task TestMissingAfterInterpolatedString_3()
+        public void TestMissingAfterInterpolatedString_3()
         {
-            await TestNotHandledAsync(
+            TestNotHandled(
 @"class C
 {
     void M()
@@ -180,9 +193,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public async Task TestMissingAfterInterpolatedString_4()
+        public void TestMissingAfterInterpolatedString_4()
         {
-            await TestNotHandledAsync(
+            TestNotHandled(
 @"class C
 {
     void M()
@@ -193,9 +206,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public async Task TestMissingInVerbatimString()
+        public void TestMissingInVerbatimString()
         {
-            await TestNotHandledAsync(
+            TestNotHandled(
 @"class C
 {
     void M()
@@ -206,9 +219,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public async Task TestMissingInInterpolatedVerbatimString()
+        public void TestMissingInInterpolatedVerbatimString()
         {
-            await TestNotHandledAsync(
+            TestNotHandled(
 @"class C
 {
     void M()
@@ -219,9 +232,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public async Task TestInEmptyString()
+        public void TestInEmptyString()
         {
-            await TestHandledAsync(
+            TestHandled(
 @"class C
 {
     void M()
@@ -240,9 +253,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public async Task TestInEmptyInterpolatedString()
+        public void TestInEmptyInterpolatedString()
         {
-            await TestHandledAsync(
+            TestHandled(
 @"class C
 {
     void M()
@@ -261,9 +274,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public async Task TestSimpleString1()
+        public void TestSimpleString1()
         {
-            await TestHandledAsync(
+            TestHandled(
 @"class C
 {
     void M()
@@ -282,9 +295,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public async Task TestInterpolatedString1()
+        public void TestInterpolatedString1()
         {
-            await TestHandledAsync(
+            TestHandled(
 @"class C
 {
     void M()
@@ -303,9 +316,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public async Task TestInterpolatedString2()
+        public void TestInterpolatedString2()
         {
-            await TestHandledAsync(
+            TestHandled(
 @"class C
 {
     void M()
@@ -324,9 +337,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public async Task TestInterpolatedString3()
+        public void TestInterpolatedString3()
         {
-            await TestHandledAsync(
+            TestHandled(
 @"class C
 {
     void M()
@@ -345,9 +358,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public async Task TestMissingInInterpolation1()
+        public void TestMissingInInterpolation1()
         {
-            await TestNotHandledAsync(
+            TestNotHandled(
 @"class C
 {
     void M()
@@ -358,9 +371,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public async Task TestMissingInInterpolation2()
+        public void TestMissingInInterpolation2()
         {
-            await TestNotHandledAsync(
+            TestNotHandled(
 @"class C
 {
     void M()
@@ -371,14 +384,218 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public async Task TestSelection()
+        public void TestSelection()
         {
-            await TestNotHandledAsync(
+            TestNotHandled(
 @"class C
 {
     void M()
     {
         var v = ""now is [|the|] time"";
+    }
+}");
+        }
+
+        [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestBeforeEndQuote1()
+        {
+            TestHandled(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        var str = $""somestring { args[0]}[||]"" +
+            $""{args[1]}"" +
+            $""{args[2]}"";
+
+        var str2 = ""string1"" +
+            ""string2"" +
+            ""string3"";
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        var str = $""somestring { args[0]}"" +
+            $""[||]"" +
+            $""{args[1]}"" +
+            $""{args[2]}"";
+
+        var str2 = ""string1"" +
+            ""string2"" +
+            ""string3"";
+    }
+}");
+        }
+
+        [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestBeforeEndQuote2()
+        {
+            TestHandled(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        var str = $""somestring { args[0]}"" +
+            $""{args[1]}[||]"" +
+            $""{args[2]}"";
+
+        var str2 = ""string1"" +
+            ""string2"" +
+            ""string3"";
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        var str = $""somestring { args[0]}"" +
+            $""{args[1]}"" +
+            $""[||]"" +
+            $""{args[2]}"";
+
+        var str2 = ""string1"" +
+            ""string2"" +
+            ""string3"";
+    }
+}");
+        }
+
+        [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestBeforeEndQuote3()
+        {
+            TestHandled(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        var str = $""somestring { args[0]}"" +
+            $""{args[1]}"" +
+            $""{args[2]}[||]"";
+
+        var str2 = ""string1"" +
+            ""string2"" +
+            ""string3"";
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        var str = $""somestring { args[0]}"" +
+            $""{args[1]}"" +
+            $""{args[2]}"" +
+            $""[||]"";
+
+        var str2 = ""string1"" +
+            ""string2"" +
+            ""string3"";
+    }
+}");
+        }
+
+        [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestBeforeEndQuote4()
+        {
+            TestHandled(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        var str = $""somestring { args[0]}"" +
+            $""{args[1]}"" +
+            $""{args[2]}"";
+
+        var str2 = ""string1[||]"" +
+            ""string2"" +
+            ""string3"";
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        var str = $""somestring { args[0]}"" +
+            $""{args[1]}"" +
+            $""{args[2]}"";
+
+        var str2 = ""string1"" +
+            ""[||]"" +
+            ""string2"" +
+            ""string3"";
+    }
+}");
+        }
+
+        [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestBeforeEndQuote5()
+        {
+            TestHandled(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        var str = $""somestring { args[0]}"" +
+            $""{args[1]}"" +
+            $""{args[2]}"";
+
+        var str2 = ""string1"" +
+            ""string2[||]"" +
+            ""string3"";
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        var str = $""somestring { args[0]}"" +
+            $""{args[1]}"" +
+            $""{args[2]}"";
+
+        var str2 = ""string1"" +
+            ""string2"" +
+            ""[||]"" +
+            ""string3"";
+    }
+}");
+        }
+
+        [WorkItem(20258, "https://github.com/dotnet/roslyn/issues/20258")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestBeforeEndQuote6()
+        {
+            TestHandled(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        var str = $""somestring { args[0]}"" +
+            $""{args[1]}"" +
+            $""{args[2]}"";
+
+        var str2 = ""string1"" +
+            ""string2"" +
+            ""string3[||]"";
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        var str = $""somestring { args[0]}"" +
+            $""{args[1]}"" +
+            $""{args[2]}"";
+
+        var str2 = ""string1"" +
+            ""string2"" +
+            ""string3"" +
+            ""[||]"";
     }
 }");
         }

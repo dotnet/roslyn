@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var expression = BindValue(node.Expression, diagnostics, BindValueKind.RValue);
             var hasErrors = IsOperandErrors(node, ref expression, diagnostics);
             var expressionType = expression.Type;
-            if ((object)expressionType == null)
+            if ((object)expressionType == null || expressionType.SpecialType == SpecialType.System_Void)
             {
                 expressionType = CreateErrorType();
                 if (!hasErrors)
@@ -53,60 +53,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
-        }
-        /// <summary>
-        /// Is a user-defined `operator is` applicable? At the use site, we ignore those that are not.
-        /// </summary>
-        private bool ApplicableOperatorIs(MethodSymbol candidate, CSharpSyntaxNode node, DiagnosticBag diagnostics)
-        {
-            // must be a user-defined operator, and requires at least one parameter
-            if (candidate.MethodKind != MethodKind.UserDefinedOperator || candidate.ParameterCount == 0)
-            {
-                return false;
-            }
-
-            // must be static.
-            if (!candidate.IsStatic)
-            {
-                return false;
-            }
-
-            // the first parameter must be a value. The remaining parameters must be out.
-            foreach (var parameter in candidate.Parameters)
-            {
-                if (parameter.RefKind != ((parameter.Ordinal == 0) ? RefKind.None : RefKind.Out))
-                {
-                    return false;
-                }
-            }
-
-            // must return void or bool
-            switch (candidate.ReturnType.SpecialType)
-            {
-                case SpecialType.System_Void:
-                case SpecialType.System_Boolean:
-                    break;
-                default:
-                    return false;
-            }
-
-            // must not be generic
-            if (candidate.Arity != 0)
-            {
-                return false;
-            }
-
-            // it should be accessible
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            bool isAccessible = this.IsAccessible(candidate, ref useSiteDiagnostics);
-            diagnostics.Add(node, useSiteDiagnostics);
-            if (!isAccessible)
-            {
-                return false;
-            }
-
-            // all requirements are satisfied
-            return true;
         }
 
         private BoundConstantPattern BindConstantPattern(
@@ -182,6 +128,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return convertedExpression;
         }
 
+        /// <summary>
+        /// Check that the pattern type is valid for the operand. Return true if an error was reported.
+        /// </summary>
         private bool CheckValidPatternType(
             CSharpSyntaxNode typeSyntax,
             BoundExpression operand,
@@ -193,6 +142,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)operandType != null);
             Debug.Assert((object)patternType != null);
+
+            // Because we do not support recursive patterns, we always have an operand
+            Debug.Assert((object)operand != null);
+            // Once we support recursive patterns that will be relaxed.
+
             if (operandType.IsErrorType() || patternType.IsErrorType())
             {
                 return false;
@@ -210,34 +164,70 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (!isVar)
             {
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                Conversion conversion =
-                    operand != null
-                    ? this.Conversions.ClassifyConversionFromExpression(operand, patternType, ref useSiteDiagnostics, forCast: true)
-                    : this.Conversions.ClassifyConversionFromType(operandType, patternType, ref useSiteDiagnostics, forCast: true);
-                diagnostics.Add(typeSyntax, useSiteDiagnostics);
-                switch (conversion.Kind)
+                if (patternType.IsDynamic())
                 {
-                    case ConversionKind.Boxing:
-                    case ConversionKind.ExplicitNullable:
-                    case ConversionKind.ExplicitReference:
-                    case ConversionKind.Identity:
-                    case ConversionKind.ImplicitReference:
-                    case ConversionKind.Unboxing:
-                    case ConversionKind.NullLiteral:
-                    case ConversionKind.ImplicitNullable:
-                        // these are the conversions allowed by a pattern match
-                        break;
-                    //case ConversionKind.ExplicitNumeric:  // we do not perform numeric conversions of the operand
-                    //case ConversionKind.ImplicitConstant:
-                    //case ConversionKind.ImplicitNumeric:
-                    default:
-                        Error(diagnostics, ErrorCode.ERR_PatternWrongType, typeSyntax, operandType, patternType);
-                        return true;
+                    Error(diagnostics, ErrorCode.ERR_PatternDynamicType, typeSyntax);
+                    return true;
+                }
+
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                var matchPossible = ExpressionOfTypeMatchesPatternType(Conversions, operandType, patternType, ref useSiteDiagnostics, out Conversion conversion, operandConstantValue: null, operandCouldBeNull: true);
+                diagnostics.Add(typeSyntax, useSiteDiagnostics);
+                if (matchPossible != false)
+                {
+                    if (!conversion.Exists && (operandType.ContainsTypeParameter() || patternType.ContainsTypeParameter()))
+                    {
+                        // permit pattern-matching when one of the types is an open type in C# 7.1.
+                        LanguageVersion requiredVersion = MessageID.IDS_FeatureGenericPatternMatching.RequiredVersion();
+                        if (requiredVersion > Compilation.LanguageVersion)
+                        {
+                            Error(diagnostics, ErrorCode.ERR_PatternWrongGenericTypeInVersion, typeSyntax,
+                                operandType, patternType,
+                                Compilation.LanguageVersion.ToDisplayString(),
+                                new CSharpRequiredLanguageVersion(requiredVersion));
+                            return true;
+                        }
+                    }
+                }
+                else
+                {
+                    Error(diagnostics, ErrorCode.ERR_PatternWrongType, typeSyntax, operandType, patternType);
+                    return true;
                 }
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Does an expression of type <paramref name="expressionType"/> "match" a pattern that looks for
+        /// type <paramref name="patternType"/>?
+        /// 'true' if the matched type catches all of them, 'false' if it catches none of them, and
+        /// 'null' if it might catch some of them.
+        /// </summary>
+        internal static bool? ExpressionOfTypeMatchesPatternType(
+            Conversions conversions,
+            TypeSymbol expressionType,
+            TypeSymbol patternType,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            out Conversion conversion,
+            ConstantValue operandConstantValue = null,
+            bool operandCouldBeNull = false)
+        {
+            Debug.Assert((object)expressionType != null);
+            if (expressionType.IsDynamic())
+            {
+                // if operand is the dynamic type, we do the same thing as though it were object
+                expressionType = conversions.CorLibrary.GetSpecialType(SpecialType.System_Object);
+            }
+
+            conversion = conversions.ClassifyConversionFromType(expressionType, patternType, ref useSiteDiagnostics);
+            var result = Binder.GetIsOperatorConstantResult(expressionType, patternType, conversion.Kind, operandConstantValue, operandCouldBeNull);
+            return
+                (result == null) ? (bool?)null :
+                (result == ConstantValue.True) ? true :
+                (result == ConstantValue.False) ? false :
+                throw ExceptionUtilities.UnexpectedValue(result);
         }
 
         private BoundPattern BindDeclarationPattern(
@@ -292,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (localSymbol != (object)null)
             {
-                if (InConstructorInitializer || InFieldInitializer)
+                if ((InConstructorInitializer || InFieldInitializer) && ContainingMemberOrLambda.ContainingSymbol.Kind == SymbolKind.NamedType)
                 {
                     Error(diagnostics, ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, node);
                 }

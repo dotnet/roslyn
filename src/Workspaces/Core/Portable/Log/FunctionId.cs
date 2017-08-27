@@ -162,8 +162,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Refactoring_CodeRefactoringService_GetRefactoringsAsync,
         Refactoring_AddImport,
         Refactoring_FullyQualify,
-        Refactoring_GenerateFromMembers_AddConstructorParameters,
-        Refactoring_GenerateFromMembers_GenerateConstructor,
+        Refactoring_GenerateFromMembers_AddConstructorParametersFromMembers,
+        Refactoring_GenerateFromMembers_GenerateConstructorFromMembers,
         Refactoring_GenerateFromMembers_GenerateEqualsAndGetHashCode,
         Refactoring_GenerateMember_GenerateConstructor,
         Refactoring_GenerateMember_GenerateDefaultConstructors,
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         DiagnosticAnalyzerDriver_AnalyzerCrash,
         DiagnosticAnalyzerDriver_AnalyzerTypeCount,
         PersistedSemanticVersion_Info,
-        Esent_Exceptions,
+        StorageDatabase_Exceptions,
         WorkCoordinator_ShutdownTimeout,
         Diagnostics_HyperLink,
 
@@ -327,39 +327,71 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         BKTree_ExceptionInCacheRead,
         IntellisenseBuild_Failed,
 
+        FileTextLoader_FileLengthThresholdExceeded,
+
         // Generic performance measurement action IDs
         MeasurePerformance_StartAction,
         MeasurePerformance_StopAction,
 
-        RemoteHostClientService_AddGlobalAssetsAsync,
-        RemoteHostClientService_RemoveGlobalAssets,
-        RemoteHostClientService_Enabled,
-        ServiceHubRemoteHostClient_CreateAsync,
-        SolutionSynchronizationServiceFactory_CreatePinnedRemotableDataScopeAsync,
-        PinnedRemotableDataScope_GetRemotableData,
         Serializer_CreateChecksum,
         Serializer_Serialize,
         Serializer_Deserialize,
+
         CodeAnalysisService_CalculateDiagnosticsAsync,
         CodeAnalysisService_SerializeDiagnosticResultAsync,
-        AssetStorage_CleanAssets,
-        AssetService_GetAssetAsync,
-        SnapshotService_RequestAssetAsync,
-        CompilationService_GetCompilationAsync,
-        RemoteHostService_Synchronize,
-        AssetStorage_TryGetAsset,
-        AssetService_SynchronizeAssetsAsync,
-        AssetService_SynchronizeSolutionAssetsAsync,
         CodeAnalysisService_GetReferenceCountAsync,
         CodeAnalysisService_FindReferenceLocationsAsync,
         CodeAnalysisService_FindReferenceMethodsAsync,
         CodeAnalysisService_GetFullyQualifiedName,
-        SolutionChecksumUpdater_SynchronizePrimaryWorkspace,
+        CodeAnalysisService_GetTodoCommentsAsync,
+        CodeAnalysisService_GetDesignerAttributesAsync,
+
+        ServiceHubRemoteHostClient_CreateAsync,
+        PinnedRemotableDataScope_GetRemotableData,
+
+        RemoteHost_Connect,
+        RemoteHost_Disconnect,
+
+        RemoteHostClientService_AddGlobalAssetsAsync,
+        RemoteHostClientService_RemoveGlobalAssets,
+        RemoteHostClientService_Enabled,
+        RemoteHostClientService_Restarted,
+
+        RemoteHostService_SynchronizePrimaryWorkspaceAsync,
+        RemoteHostService_SynchronizeGlobalAssetsAsync,
+
+        AssetStorage_CleanAssets,
+        AssetStorage_TryGetAsset,
+
+        AssetService_GetAssetAsync,
+        AssetService_SynchronizeAssetsAsync,
+        AssetService_SynchronizeSolutionAssetsAsync,
+        AssetService_SynchronizeProjectAssetsAsync,
+
+        CodeLens_GetReferenceCountAsync,
+        CodeLens_FindReferenceLocationsAsync,
+        CodeLens_FindReferenceMethodsAsync,
+        CodeLens_GetFullyQualifiedName,
+
         SolutionState_ComputeChecksumsAsync,
         ProjectState_ComputeChecksumsAsync,
         DocumentState_ComputeChecksumsAsync,
-        JsonRpcSession_RequestAssetAsync,
+
         SolutionSynchronizationService_GetRemotableData,
-        AssetService_SynchronizeProjectAssetsAsync,
+        SolutionSynchronizationServiceFactory_CreatePinnedRemotableDataScopeAsync,
+
+        SolutionChecksumUpdater_SynchronizePrimaryWorkspace,
+
+        JsonRpcSession_RequestAssetAsync,
+
+        SolutionService_GetSolutionAsync,
+        SolutionService_UpdatePrimaryWorkspaceAsync,
+
+        SnapshotService_RequestAssetAsync,
+
+        CompilationService_GetCompilationAsync,
+        SolutionCreator_AssetDifferences,
+        Extension_InfoBar,
+        Experiment_ABTesting,
     }
 }

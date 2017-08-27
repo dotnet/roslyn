@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -187,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundAssignmentOperator tempAssignment;
             BoundLocal boundTemp = _factory.StoreToTemp(loweredOperand, out tempAssignment);
-            MethodSymbol getValueOrDefault = GetNullableMethod(syntax, boundTemp.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
+            MethodSymbol getValueOrDefault = UnsafeGetNullableMethod(syntax, boundTemp.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
 
             // temp.HasValue
             BoundExpression condition = MakeNullableHasValue(syntax, boundTemp);
@@ -199,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression consequence = GetLiftedUnaryOperatorConsequence(kind, syntax, method, type, call_GetValueOrDefault);
 
             // default(R?)
-            BoundExpression alternative = new BoundDefaultOperator(syntax, null, type);
+            BoundExpression alternative = new BoundDefaultExpression(syntax, null, type);
 
             // temp.HasValue ? 
             //          new R?(OP(temp.GetValueOrDefault())) : 
@@ -233,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (NullableNeverHasValue(loweredOperand))
             {
-                return new BoundDefaultOperator(syntax, null, type);
+                return new BoundDefaultExpression(syntax, null, type);
             }
 
             // Second, another simple optimization. If we know that the operand is never null
@@ -333,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression GetLiftedUnaryOperatorConsequence(UnaryOperatorKind kind, SyntaxNode syntax, MethodSymbol method, TypeSymbol type, BoundExpression nonNullOperand)
         {
-            MethodSymbol ctor = GetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor);
+            MethodSymbol ctor = UnsafeGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor);
 
             // OP(temp.GetValueOrDefault())
             BoundExpression unliftedOp = MakeUnaryOperator(
@@ -348,6 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression consequence = new BoundObjectCreationExpression(
                     syntax,
                     ctor,
+                    null,
                     unliftedOp);
             return consequence;
         }
@@ -620,8 +622,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundAssignmentOperator tempAssignment;
             BoundLocal boundTemp = _factory.StoreToTemp(rewrittenArgument, out tempAssignment);
 
-            MethodSymbol getValueOrDefault = GetNullableMethod(syntax, type, SpecialMember.System_Nullable_T_GetValueOrDefault);
-            MethodSymbol ctor = GetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor);
+            MethodSymbol getValueOrDefault = UnsafeGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T_GetValueOrDefault);
+            MethodSymbol ctor = UnsafeGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor);
 
             // temp.HasValue
             BoundExpression condition = MakeNullableHasValue(node.Syntax, boundTemp);
@@ -633,10 +635,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression userDefinedCall = BoundCall.Synthesized(syntax, null, node.MethodOpt, call_GetValueOrDefault);
 
             // new S?(op_Increment(temp.GetValueOrDefault()))
-            BoundExpression consequence = new BoundObjectCreationExpression(syntax, ctor, userDefinedCall);
+            BoundExpression consequence = new BoundObjectCreationExpression(syntax, ctor, null, userDefinedCall);
 
             // default(S?)
-            BoundExpression alternative = new BoundDefaultOperator(syntax, null, type);
+            BoundExpression alternative = new BoundDefaultExpression(syntax, null, type);
 
             // temp.HasValue ? 
             //          new S?(op_Increment(temp.GetValueOrDefault())) : 
@@ -699,8 +701,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (binaryOperatorKind.IsLifted())
             {
                 binaryOperandType = _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(binaryOperandType);
-                MethodSymbol ctor = GetNullableMethod(node.Syntax, binaryOperandType, SpecialMember.System_Nullable_T__ctor);
-                boundOne = new BoundObjectCreationExpression(node.Syntax, ctor, boundOne);
+                MethodSymbol ctor = UnsafeGetNullableMethod(node.Syntax, binaryOperandType, SpecialMember.System_Nullable_T__ctor);
+                boundOne = new BoundObjectCreationExpression(node.Syntax, ctor, null, boundOne);
             }
 
             // Now we construct the other operand to the binary addition. We start with just plain "x".
@@ -790,8 +792,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // This method assumes that operand is already a temporary and so there is no need to copy it again.
             MethodSymbol method = GetDecimalIncDecOperator(oper);
-            MethodSymbol getValueOrDefault = GetNullableMethod(syntax, operand.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
-            MethodSymbol ctor = GetNullableMethod(syntax, operand.Type, SpecialMember.System_Nullable_T__ctor);
+            MethodSymbol getValueOrDefault = UnsafeGetNullableMethod(syntax, operand.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
+            MethodSymbol ctor = UnsafeGetNullableMethod(syntax, operand.Type, SpecialMember.System_Nullable_T__ctor);
 
             // x.HasValue
             BoundExpression condition = MakeNullableHasValue(syntax, operand);
@@ -800,9 +802,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // op_Inc(x.GetValueOrDefault())
             BoundExpression methodCall = BoundCall.Synthesized(syntax, null, method, getValueCall);
             // new decimal?(op_Inc(x.GetValueOrDefault()))
-            BoundExpression consequence = new BoundObjectCreationExpression(syntax, ctor, methodCall);
+            BoundExpression consequence = new BoundObjectCreationExpression(syntax, ctor, null, methodCall);
             // default(decimal?)
-            BoundExpression alternative = new BoundDefaultOperator(syntax, null, operand.Type);
+            BoundExpression alternative = new BoundDefaultExpression(syntax, null, operand.Type);
 
             // x.HasValue ? new decimal?(op_Inc(x.GetValueOrDefault())) : default(decimal?)
             return RewriteConditionalOperator(syntax, condition, consequence, alternative, ConstantValue.NotAvailable, operand.Type);

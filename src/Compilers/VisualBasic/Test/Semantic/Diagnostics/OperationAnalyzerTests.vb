@@ -124,12 +124,18 @@ End Class
             comp.VerifyAnalyzerDiagnostics({New BadStuffTestAnalyzer}, Nothing, Nothing, False,
                                            Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "Framitz()").WithLocation(3, 9),
                                            Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Framitz()").WithLocation(3, 9),
+                                           Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "Framitz").WithLocation(3, 9),
+                                           Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Framitz").WithLocation(3, 9),
                                            Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "Bexley()").WithLocation(4, 28),
                                            Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Bexley()").WithLocation(4, 28),
+                                           Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "Bexley").WithLocation(4, 28),
+                                           Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Bexley").WithLocation(4, 28),
                                            Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "M1(d)").WithLocation(7, 9),
                                            Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "M1(d)").WithLocation(7, 9),
                                            Diagnostic(BadStuffTestAnalyzer.InvalidStatementDescriptor.Id, "Goto").WithLocation(8, 9),
-                                           Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Goto").WithLocation(8, 9))
+                                           Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Goto").WithLocation(8, 9),
+                                           Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "").WithLocation(8, 13),
+                                           Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "").WithLocation(8, 13))
         End Sub
 
         <Fact>
@@ -300,13 +306,17 @@ End Class
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New InvocationTestAnalyzer}, Nothing, Nothing, False,
-                                           Diagnostic(InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor.Id, "2").WithLocation(11, 21),
-                                           Diagnostic(InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor.Id, "1").WithLocation(12, 15),
-                                           Diagnostic(InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor.Id, "2").WithLocation(12, 21),
-                                           Diagnostic(InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor.Id, "4").WithLocation(12, 33),
-                                           Diagnostic(InvocationTestAnalyzer.BigParamArrayArgumentsDescriptor.Id, "M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)").WithLocation(14, 9),
-                                           Diagnostic(InvocationTestAnalyzer.BigParamArrayArgumentsDescriptor.Id, "M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)").WithLocation(15, 9),
-                                           Diagnostic(InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor.Id, "3").WithLocation(17, 21))
+                                          Diagnostic(InvocationTestAnalyzer.UseDefaultArgumentDescriptor.Id, "M3(Nothing,)").WithArguments("b").WithLocation(25, 9),
+                                          Diagnostic(InvocationTestAnalyzer.UseDefaultArgumentDescriptor.Id, "M3(,0)").WithArguments("a").WithLocation(26, 9),
+                                          Diagnostic(InvocationTestAnalyzer.UseDefaultArgumentDescriptor.Id, "M3(,)").WithArguments("a").WithLocation(27, 9),
+                                          Diagnostic(InvocationTestAnalyzer.UseDefaultArgumentDescriptor.Id, "M3(,)").WithArguments("b").WithLocation(27, 9),
+                                          Diagnostic(InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor.Id, "2").WithLocation(11, 21),
+                                          Diagnostic(InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor.Id, "4").WithLocation(12, 33),
+                                          Diagnostic(InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor.Id, "2").WithLocation(12, 21),
+                                          Diagnostic(InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor.Id, "1").WithLocation(12, 15),
+                                          Diagnostic(InvocationTestAnalyzer.BigParamArrayArgumentsDescriptor.Id, "M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)").WithLocation(14, 9),
+                                          Diagnostic(InvocationTestAnalyzer.BigParamArrayArgumentsDescriptor.Id, "M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)").WithLocation(15, 9),
+                                          Diagnostic(InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor.Id, "3").WithLocation(17, 21))
         End Sub
 
         <Fact>
@@ -748,7 +758,7 @@ End Class
             Dim source = <compilation>
                              <file name="c.vb">
                                  <![CDATA[
-Class Foo
+Class Goo
     Public Sub New(X As String)
 
     End Sub
@@ -766,8 +776,8 @@ Class C
     End Sub
 
     Public Sub M2()
-        Dim f1 = New Foo("""")
-        Dim f2 = New Foo(Nothing)
+        Dim f1 = New Goo("""")
+        Dim f2 = New Goo(Nothing)
     End Sub
 End Class
 ]]>
@@ -784,7 +794,7 @@ End Class
                                            Diagnostic(NullArgumentTestAnalyzer.NullArgumentsDescriptor.Id, "Nothing").WithLocation(20, 26))
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/19300")>
         Public Sub MemberInitializerVisualBasic()
             Dim source = <compilation>
                              <file name="c.vb">
@@ -793,7 +803,7 @@ Class Bar
     Public Field As Boolean
 End Class
 
-Class Foo
+Class Goo
     Public Field As Integer
     Public Property Prop1 As String
     Public Property Prop2 As Bar
@@ -801,14 +811,14 @@ End Class
 
 Class C
     Public Sub M1()
-        Dim f1 = New Foo()
-        Dim f2 = New Foo() With {.Field = 10}
-        Dim f3 = New Foo With {.Prop1 = Nothing}
-        Dim f4 = New Foo With {.Field = 10, .Prop1 = Nothing}
-        Dim f5 = New Foo With {.Prop2 = New Bar() With {.Field = True}}
+        Dim f1 = New Goo()
+        Dim f2 = New Goo() With {.Field = 10}
+        Dim f3 = New Goo With {.Prop1 = Nothing}
+        Dim f4 = New Goo With {.Field = 10, .Prop1 = Nothing}
+        Dim f5 = New Goo With {.Prop2 = New Bar() With {.Field = True}}
 
-        Dim e1 = New Foo() With {.Prop1 = 10}
-        Dim e2 = New Foo With {10}
+        Dim e1 = New Goo() With {.Prop1 = 10}
+        Dim e2 = New Goo With {10}
     End Sub
 End Class
 ]]>
@@ -836,7 +846,7 @@ Class Bar
     Public Field As Boolean
 End Class
 
-Class Foo
+Class Goo
     Public Field As Integer
     Public Property Prop1 As String
     Public Property Prop2 As Bar
@@ -844,15 +854,15 @@ End Class
 
 Class C
     Public Sub M1()
-        Dim f1 = New Foo()
-        Dim f2 = New Foo() With {.Field = 10}
-        Dim f3 = New Foo With {.Prop1 = Nothing}
-        Dim f4 = New Foo With {.Field = 10, .Prop1 = Nothing}
-        Dim f5 = New Foo With {.Prop2 = New Bar() With {.Field = True}}
+        Dim f1 = New Goo()
+        Dim f2 = New Goo() With {.Field = 10}
+        Dim f3 = New Goo With {.Prop1 = Nothing}
+        Dim f4 = New Goo With {.Field = 10, .Prop1 = Nothing}
+        Dim f5 = New Goo With {.Prop2 = New Bar() With {.Field = True}}
     End Sub
 
     Public Sub M2()
-        Dim f1 = New Foo With {.Prop2 = New Bar() With {.Field = True}}
+        Dim f1 = New Goo With {.Prop2 = New Bar() With {.Field = True}}
         f1.Field = 0
         f1.Prop1 = Nothing
 
@@ -867,9 +877,17 @@ End Class
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New AssignmentTestAnalyzer}, Nothing, Nothing, False,
-                Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, "f1.Field = 0").WithLocation(22, 9),
-                Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, "f1.Prop1 = Nothing").WithLocation(23, 9),
-                Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, "f2.Field = True").WithLocation(26, 9))
+              Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, ".Prop2 = New Bar() With {.Field = True}").WithLocation(21, 32),
+              Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, ".Field = 10").WithLocation(14, 34),
+              Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, ".Prop1 = Nothing").WithLocation(15, 32),
+              Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, ".Field = 10").WithLocation(16, 32),
+              Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, ".Prop1 = Nothing").WithLocation(16, 45),
+              Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, ".Prop2 = New Bar() With {.Field = True}").WithLocation(17, 32),
+              Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, ".Field = True").WithLocation(17, 57),
+              Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, ".Field = True").WithLocation(21, 57),
+              Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, "f1.Field = 0").WithLocation(22, 9),
+              Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, "f1.Prop1 = Nothing").WithLocation(23, 9),
+              Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, "f2.Field = True").WithLocation(26, 9))
         End Sub
 
         <Fact>
@@ -931,20 +949,20 @@ Class C
     Dim field1, field2, field3, field4 As Integer
     Public Sub M1()
         Dim a1 = 10
-        Dim b1 As New Integer, b2, b3, b4 As New Foo(1)         'too many
-        Dim c1, c2 As Integer, c3, c4 As Foo                    'too many
-        Dim d1() As Foo
+        Dim b1 As New Integer, b2, b3, b4 As New Goo(1)         'too many
+        Dim c1, c2 As Integer, c3, c4 As Goo                    'too many
+        Dim d1() As Goo
         Dim e1 As Integer = 10, e2 = {1, 2, 3}, e3, e4 As C     'too many
         Dim f1 = 10, f2 = 11, f3 As Integer
         Dim h1, h2, , h3 As Integer                             'too many
         Dim i1, i2, i3, i4 As New UndefType                     'too many
         Dim j1, j2, j3, j4 As UndefType                         'too many
-        Dim k1 As Integer, k2, k3, k4 As New Foo(1)             'too many
+        Dim k1 As Integer, k2, k3, k4 As New Goo(1)             'too many
     End Sub
 #Enable Warning BC42024
 End Class
 
-Class Foo
+Class Goo
     Public Sub New(X As Integer)
     End Sub
 End Class
@@ -965,12 +983,12 @@ End Class
                 Diagnostic(ERRID.ERR_UndefinedType1, "UndefType").WithArguments("UndefType").WithLocation(13, 31))
             comp.VerifyAnalyzerDiagnostics({New VariableDeclarationTestAnalyzer}, Nothing, Nothing, False,
                 Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "a1").WithLocation(5, 13),
-                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim b1 As New Integer, b2, b3, b4 As New Foo(1)").WithLocation(6, 9),
+                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim b1 As New Integer, b2, b3, b4 As New Goo(1)").WithLocation(6, 9),
                 Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "b1").WithLocation(6, 13),
                 Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "b2").WithLocation(6, 32),
                 Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "b3").WithLocation(6, 36),
                 Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "b4").WithLocation(6, 40),
-                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim c1, c2 As Integer, c3, c4 As Foo").WithLocation(7, 9),
+                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim c1, c2 As Integer, c3, c4 As Goo").WithLocation(7, 9),
                 Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim e1 As Integer = 10, e2 = {1, 2, 3}, e3, e4 As C").WithLocation(9, 9),
                 Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "e1").WithLocation(9, 13),
                 Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "e2").WithLocation(9, 33),
@@ -979,7 +997,7 @@ End Class
                 Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim h1, h2, , h3 As Integer").WithLocation(11, 9),
                 Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim i1, i2, i3, i4 As New UndefType").WithLocation(12, 9),
                 Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim j1, j2, j3, j4 As UndefType").WithLocation(13, 9),
-                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim k1 As Integer, k2, k3, k4 As New Foo(1)").WithLocation(14, 9),
+                Diagnostic(VariableDeclarationTestAnalyzer.TooManyLocalVarDeclarationsDescriptor.Id, "Dim k1 As Integer, k2, k3, k4 As New Goo(1)").WithLocation(14, 9),
                 Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "k2").WithLocation(14, 28),
                 Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "k3").WithLocation(14, 32),
                 Diagnostic(VariableDeclarationTestAnalyzer.LocalVarInitializedDeclarationDescriptor.Id, "k4").WithLocation(14, 36))
@@ -1128,7 +1146,7 @@ End Class
                Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ImplicitInstanceDescriptor.Id, "M2").WithLocation(15, 9))
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/18839")>
         Public Sub EventAndMethodReferencesVisualBasic()
             Dim source = <compilation>
                              <file name="c.vb">
@@ -1210,12 +1228,8 @@ End Class
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New ParamsArrayTestAnalyzer}, Nothing, Nothing, False,
                                            Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "M0(1, 2, 3, 4, 5)").WithLocation(9, 9),
-                                           Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "M0(1, 2, 3, 4, 5)").WithLocation(9, 9),
-                                           Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "M0(1, 2, 3, 4, 5, 6)").WithLocation(10, 9),
                                            Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "M0(1, 2, 3, 4, 5, 6)").WithLocation(10, 9),
                                            Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5 }").WithLocation(12, 15),
-                                           Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5 }").WithLocation(12, 15),
-                                           Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5, 6 }").WithLocation(13, 15),
                                            Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5, 6 }").WithLocation(13, 15),
                                            Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "D").WithLocation(14, 30),
                                            Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "New Integer() { 2, 3, 4, 5 }").WithLocation(15, 26))
@@ -1229,9 +1243,9 @@ End Class
 Class C
     Public F1 As Integer = 44
     Public F2 As String = "Hello"
-    Public F3 As Integer = Foo()
+    Public F3 As Integer = Goo()
 
-    Public Shared Function Foo()
+    Public Shared Function Goo()
         Return 10
     End Function
 
@@ -1248,7 +1262,7 @@ End Class
             comp.VerifyAnalyzerDiagnostics({New EqualsValueTestAnalyzer}, Nothing, Nothing, False,
                                            Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= 44").WithLocation(2, 26),
                                            Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= ""Hello""").WithLocation(3, 25),
-                                           Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= Foo()").WithLocation(4, 26),
+                                           Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= Goo()").WithLocation(4, 26),
                                            Diagnostic(EqualsValueTestAnalyzer.EqualsValueDescriptor.Id, "= 20").WithLocation(10, 84))
         End Sub
 
@@ -1405,7 +1419,7 @@ End Class
         End Sub
 
         <WorkItem(8385, "https://github.com/dotnet/roslyn/issues/8385")>
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/18839")>
         Public Sub StaticMemberReferenceVisualBasic()
             Dim source = <compilation>
                              <file name="c.vb">
@@ -1427,7 +1441,7 @@ Class C
     Public Shared Sub Bar()
     End Sub
 
-    Public Sub Foo()
+    Public Sub Goo()
         AddHandler C.E, AddressOf D.Method
         RaiseEvent E()  ' Can't raise static event with type in VB
         C.Bar()
@@ -1775,10 +1789,7 @@ End Class
             comp.VerifyAnalyzerDiagnostics({New NullOperationSyntaxTestAnalyzer}, Nothing, Nothing, False,
                 Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "M0()").WithLocation(6, 9),
                 Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "M0(1)").WithLocation(7, 9),
-                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "M0(1, 2)").WithLocation(8, 9),
-                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "New Integer() {  }").WithLocation(9, 12),
-                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "New Integer() { 1 }").WithLocation(10, 12),
-                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "New Integer() { 1, 2 }").WithLocation(11, 12))
+                Diagnostic(NullOperationSyntaxTestAnalyzer.ParamsArrayOperationDescriptor.Id, "M0(1, 2)").WithLocation(8, 9))
         End Sub
 
         <WorkItem(8114, "https://github.com/dotnet/roslyn/issues/8114")>
@@ -1929,7 +1940,7 @@ Module M1
             Return Nothing
         End Operator
     End Class
-    Sub foo()
+    Sub goo()
         For i As C1(Of Integer) = 1 To 10
         Next
     End Sub

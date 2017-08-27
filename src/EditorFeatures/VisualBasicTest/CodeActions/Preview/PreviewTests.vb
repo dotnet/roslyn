@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
         Private Shared ReadOnly s_addedProjectId As ProjectId = ProjectId.CreateNewId()
         Private Const s_changedDocumentText As String = "Class C : End Class"
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New MyCodeRefactoringProvider()
         End Function
 
@@ -64,9 +64,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
             End Class
         End Class
 
-        Private Sub GetMainDocumentAndPreviews(workspace As TestWorkspace, ByRef document As Document, ByRef previews As SolutionPreviewResult)
+        Private Sub GetMainDocumentAndPreviews(parameters As TestParameters, workspace As TestWorkspace, ByRef document As Document, ByRef previews As SolutionPreviewResult)
             document = GetDocument(workspace)
-            Dim provider = CreateCodeRefactoringProvider(workspace)
+            Dim provider = CreateCodeRefactoringProvider(workspace, parameters)
             Dim span = document.GetSyntaxRootAsync().Result.Span
             Dim refactorings = New List(Of CodeAction)()
             Dim context = New CodeRefactoringContext(document, span, Sub(a) refactorings.Add(a), CancellationToken.None)
@@ -78,10 +78,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 
         <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/14421")>
         Public Async Function TestPickTheRightPreview_NoPreference() As Task
-            Using workspace = Await CreateWorkspaceFromFileAsync("Class D : End Class", Nothing, Nothing)
+            Dim parameters As New TestParameters()
+            Using workspace = CreateWorkspaceFromFile("Class D : End Class", parameters)
                 Dim document As Document = Nothing
                 Dim previews As SolutionPreviewResult = Nothing
-                GetMainDocumentAndPreviews(workspace, document, previews)
+                GetMainDocumentAndPreviews(parameters, workspace, document, previews)
 
                 ' The changed document comes first.
                 Dim previewObjects = Await previews.GetPreviewsAsync()

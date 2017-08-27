@@ -20,8 +20,11 @@ namespace Microsoft.CodeAnalysis
             {
                 var methodIndex = reader.ReadInteger();
                 var ordinal = reader.ReadInteger();
-                var typeParameter = reader.ResolveMethod(methodIndex).TypeParameters[ordinal];
-                return new SymbolKeyResolution(typeParameter);
+                var method = reader.ResolveMethod(methodIndex);
+                var typeParameter = method?.TypeParameters[ordinal];
+                return typeParameter == null
+                    ? default
+                    : new SymbolKeyResolution(typeParameter);
             }
         }
     }

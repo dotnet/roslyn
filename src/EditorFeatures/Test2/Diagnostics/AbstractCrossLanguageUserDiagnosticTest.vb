@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Option Strict Off
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
@@ -19,10 +19,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     Partial Public MustInherit Class AbstractCrossLanguageUserDiagnosticTest
         Protected Const DestinationDocument = "DestinationDocument"
 
-        Friend MustOverride Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
+        Friend MustOverride Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As (DiagnosticAnalyzer, CodeFixProvider)
 
         Protected Async Function TestMissing(definition As XElement) As Task
-            Using workspace = Await TestWorkspace.CreateAsync(definition)
+            Using workspace = TestWorkspace.Create(definition)
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Assert.Null(diagnosticAndFix)
             End Using
@@ -67,7 +67,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 verifySolutions?.Invoke(oldSolution, updatedSolution)
 
-                If fileNameToExpected Is Nothing Then
+                If expected Is Nothing AndAlso fileNameToExpected Is Nothing Then
+                    Dim projectChanges = SolutionUtilities.GetSingleChangedProjectChanges(oldSolution, updatedSolution)
+                    Assert.Empty(projectChanges.GetChangedDocuments())
+                ElseIf expected IsNot Nothing Then
                     Dim updatedDocument = SolutionUtilities.GetSingleChangedDocument(oldSolution, updatedSolution)
 
                     Await VerifyAsync(expected, verifyTokens, updatedDocument)
@@ -151,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                                               expectedProjectReferenceTo As String,
                                               Optional index As Integer = 0) As Task
 
-            Using workspace = Await TestWorkspace.CreateAsync(xmlDefinition)
+            Using workspace = TestWorkspace.Create(xmlDefinition)
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Dim codeAction = diagnosticAndFix.Item2.Fixes.ElementAt(index).Action
                 Dim operations = Await codeAction.GetOperationsAsync(CancellationToken.None)
@@ -170,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                                                          expectedAssemblyIdentity As String,
                                                          Optional index As Integer = 0) As Task
 
-            Using workspace = Await TestWorkspace.CreateAsync(xmlDefinition)
+            Using workspace = TestWorkspace.Create(xmlDefinition)
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Dim codeAction = diagnosticAndFix.Item2.Fixes.ElementAt(index).Action
                 Dim operations = Await codeAction.GetOperationsAsync(CancellationToken.None)

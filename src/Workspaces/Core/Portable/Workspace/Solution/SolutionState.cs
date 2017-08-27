@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -372,7 +373,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // TODO: Remove this loop when we add source assembly symbols to s_assemblyOrModuleSymbolToProjectMap
-            foreach (var state in _projectIdToProjectStateMap.Values)
+            foreach (var (_, state) in _projectIdToProjectStateMap)
             {
                 if (this.TryGetCompilation(state.Id, out var compilation))
                 {
@@ -1091,6 +1092,27 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new solution instance with the document specified updated to have the specified name.
+        /// </summary>
+        public SolutionState WithDocumentName(DocumentId documentId, string name)
+        {
+            if (documentId == null)
+            {
+                throw new ArgumentNullException(nameof(documentId));
+            }
+
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            var oldDocument = this.GetDocumentState(documentId);
+            var newDocument = oldDocument.UpdateName(name);
+
+            return this.WithDocumentState(newDocument);
+        }
+
+        /// <summary>
         /// Creates a new solution instance with the document specified updated to be contained in
         /// the sequence of logical folders.
         /// </summary>
@@ -1106,10 +1128,31 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(folders));
             }
 
-            folders = folders != null ? folders.WhereNotNull().ToReadOnlyCollection() : null;
+            var folderCollection = folders.WhereNotNull().ToReadOnlyCollection();
 
             var oldDocument = this.GetDocumentState(documentId);
-            var newDocument = oldDocument.UpdateFolders(folders.WhereNotNull().ToReadOnlyCollection());
+            var newDocument = oldDocument.UpdateFolders(folderCollection);
+
+            return this.WithDocumentState(newDocument);
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the document specified updated to have the specified file path.
+        /// </summary>
+        public SolutionState WithDocumentFilePath(DocumentId documentId, string filePath)
+        {
+            if (documentId == null)
+            {
+                throw new ArgumentNullException(nameof(documentId));
+            }
+
+            if (filePath == null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
+            var oldDocument = this.GetDocumentState(documentId);
+            var newDocument = oldDocument.UpdateFilePath(filePath);
 
             return this.WithDocumentState(newDocument);
         }
@@ -1532,18 +1575,17 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// This not intended to be the public API, use Document.WithFrozenPartialSemantics() instead.
         /// </summary>
-        public async Task<SolutionState> WithFrozenPartialCompilationIncludingSpecificDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
+        public SolutionState WithFrozenPartialCompilationIncludingSpecificDocument(DocumentId documentId, CancellationToken cancellationToken)
         {
             try
             {
                 var doc = this.GetDocumentState(documentId);
-                var tree = await doc.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var tree = doc.GetSyntaxTree(cancellationToken);
 
                 using (this.StateLock.DisposableWait(cancellationToken))
                 {
                     // in progress solutions are disabled for some testing
-                    Workspace ws = this.Workspace as Workspace;
-                    if (ws != null && ws.TestHookPartialSolutionsDisabled)
+                    if (this.Workspace is Workspace ws && ws.TestHookPartialSolutionsDisabled)
                     {
                         return this;
                     }

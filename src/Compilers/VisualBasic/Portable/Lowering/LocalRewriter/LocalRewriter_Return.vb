@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Instrument synthesized returns when expressions are not compiler generated.
             If Instrument(node, rewritten) OrElse (node.ExpressionOpt IsNot Nothing AndAlso Instrument(node.ExpressionOpt)) Then
-                rewritten = _instrumenter.InstrumentReturnStatement(node, rewritten)
+                rewritten = _instrumenterOpt.InstrumentReturnStatement(node, rewritten)
             End If
 
             Return rewritten

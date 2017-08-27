@@ -106,13 +106,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
             private TypeSyntax GetTypeSyntaxFromDeclaration(SyntaxNode declarationStatement)
             {
-                if (declarationStatement is VariableDeclarationSyntax)
+                if (declarationStatement is VariableDeclarationSyntax varDecl)
                 {
-                    return ((VariableDeclarationSyntax)declarationStatement).Type;
+                    return varDecl.Type;
                 }
-                else if (declarationStatement is ForEachStatementSyntax)
+                else if (declarationStatement is ForEachStatementSyntax forEach)
                 {
-                    return ((ForEachStatementSyntax)declarationStatement).Type;
+                    return forEach.Type;
                 }
 
                 return null;

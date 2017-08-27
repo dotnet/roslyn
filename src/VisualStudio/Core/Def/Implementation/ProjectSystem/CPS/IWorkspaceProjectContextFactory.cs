@@ -3,6 +3,7 @@
 using System;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
 {
@@ -14,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         /// <summary>
         /// Creates and initializes a new Workspace project and returns a <see cref="IWorkspaceProjectContext"/> to lazily initialize the properties and items for the project.
         /// This method can be invoked on a background thread and doesn't access any members of the given UI <paramref name="hierarchy"/>,
-        /// allowing the UI hierarchy to be published lazily.
+        /// allowing the UI hierarchy to be published lazily, as long as <see cref="VisualStudioWorkspaceImpl.GetProjectTrackerAndInitializeIfNecessary"/> has been called once.
         /// </summary>
         /// <param name="languageName">Project language.</param>
         /// <param name="projectDisplayName">Display name for the project.</param>
@@ -27,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         /// <summary>
         /// Creates and initializes a new Workspace project and returns a <see cref="IWorkspaceProjectContext"/> to lazily initialize the properties and items for the project.
         /// This method can be invoked on a background thread and doesn't access any members of the given UI <paramref name="hierarchy"/>,
-        /// allowing the UI hierarchy to be published lazily.
+        /// allowing the UI hierarchy to be published lazily, as long as <see cref="VisualStudioWorkspaceImpl.GetProjectTrackerAndInitializeIfNecessary"/> has been called once.
         /// </summary>
         /// <param name="languageName">Project language.</param>
         /// <param name="projectDisplayName">Display name for the project.</param>

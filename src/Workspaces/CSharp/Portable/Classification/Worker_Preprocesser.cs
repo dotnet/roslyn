@@ -108,38 +108,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 return;
             }
 
-            if (node is LiteralExpressionSyntax)
+            if (node is LiteralExpressionSyntax literal)
             {
                 // true or false
-                AddClassification(((LiteralExpressionSyntax)node).Token, ClassificationTypeNames.Keyword);
+                AddClassification(literal.Token, ClassificationTypeNames.Keyword);
             }
-            else if (node is IdentifierNameSyntax)
+            else if (node is IdentifierNameSyntax identifier)
             {
                 // DEBUG
-                AddClassification(((IdentifierNameSyntax)node).Identifier, ClassificationTypeNames.Identifier);
+                AddClassification(identifier.Identifier, ClassificationTypeNames.Identifier);
             }
-            else if (node is ParenthesizedExpressionSyntax)
+            else if (node is ParenthesizedExpressionSyntax parenExpression)
             {
                 // (true)
-                var expression = (ParenthesizedExpressionSyntax)node;
-                AddClassification(expression.OpenParenToken, ClassificationTypeNames.Punctuation);
-                ClassifyPreprocessorExpression(expression.Expression);
-                AddClassification(expression.CloseParenToken, ClassificationTypeNames.Punctuation);
+                AddClassification(parenExpression.OpenParenToken, ClassificationTypeNames.Punctuation);
+                ClassifyPreprocessorExpression(parenExpression.Expression);
+                AddClassification(parenExpression.CloseParenToken, ClassificationTypeNames.Punctuation);
             }
-            else if (node is PrefixUnaryExpressionSyntax)
+            else if (node is PrefixUnaryExpressionSyntax prefixExpression)
             {
                 // !
-                var expression = (PrefixUnaryExpressionSyntax)node;
-                AddClassification(expression.OperatorToken, ClassificationTypeNames.Operator);
-                ClassifyPreprocessorExpression(expression.Operand);
+                AddClassification(prefixExpression.OperatorToken, ClassificationTypeNames.Operator);
+                ClassifyPreprocessorExpression(prefixExpression.Operand);
             }
-            else if (node is BinaryExpressionSyntax)
+            else if (node is BinaryExpressionSyntax binaryExpression)
             {
                 // &&, ||, ==, !=
-                var expression = (BinaryExpressionSyntax)node;
-                ClassifyPreprocessorExpression(expression.Left);
-                AddClassification(expression.OperatorToken, ClassificationTypeNames.Operator);
-                ClassifyPreprocessorExpression(expression.Right);
+                ClassifyPreprocessorExpression(binaryExpression.Left);
+                AddClassification(binaryExpression.OperatorToken, ClassificationTypeNames.Operator);
+                ClassifyPreprocessorExpression(binaryExpression.Right);
             }
         }
 

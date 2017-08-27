@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         public uint SelectedItemId { get; private set; } = VSConstants.VSITEMID_NIL;
         public AnalyzersFolderItem SelectedFolder { get; private set; }
         public ImmutableArray<AnalyzerItem> SelectedAnalyzerItems { get; private set; } = ImmutableArray<AnalyzerItem>.Empty;
-        public ImmutableArray<DiagnosticItem> SelectedDiagnosticItems { get; private set; } = ImmutableArray<DiagnosticItem>.Empty;
+        public ImmutableArray<BaseDiagnosticItem> SelectedDiagnosticItems { get; private set; } = ImmutableArray<BaseDiagnosticItem>.Empty;
 
         int IVsSelectionEvents.OnCmdUIContextChanged(uint dwCmdUICookie, int fActive)
         {
@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                                   .FirstOrDefault();
 
             this.SelectedDiagnosticItems = selectedObjects
-                                           .OfType<DiagnosticItem.BrowseObject>()
+                                           .OfType<BaseDiagnosticItem.BrowseObject>()
                                            .Select(b => b.DiagnosticItem)
                                            .ToImmutableArray();
 

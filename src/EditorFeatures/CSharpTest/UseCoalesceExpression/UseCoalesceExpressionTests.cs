@@ -1,6 +1,5 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.UseCoalesceExpression;
@@ -14,17 +13,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCoalesceExpression
 {
     public class UseCoalesceExpressionTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                new CSharpUseCoalesceExpressionDiagnosticAnalyzer(),
-                new UseCoalesceExpressionCodeFixProvider());
-        }
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (new CSharpUseCoalesceExpressionDiagnosticAnalyzer(), new UseCoalesceExpressionCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestOnLeft_Equals()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -48,7 +43,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestOnLeft_NotEquals()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -72,7 +67,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestOnRight_Equals()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -96,7 +91,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestOnRight_NotEquals()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -120,7 +115,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestComplexExpression()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -144,7 +139,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestParens1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -168,7 +163,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestParens2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -192,7 +187,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestParens3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -216,7 +211,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestParens4()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -240,7 +235,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestFixAll1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -266,7 +261,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestFixAll2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -290,7 +285,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestFixAll3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -315,7 +310,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestTrivia1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class Program
@@ -337,7 +332,164 @@ class Program
 
         string y = x ?? string.Empty;
     }
-}", compareTokens: false);
+}");
+        }
+
+        [WorkItem(17028, "https://github.com/dotnet/roslyn/issues/17028")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestInExpressionOfT()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Linq.Expressions;
+
+class C
+{
+    void Main(string s, string y)
+    {
+        Expression<Func<string>> e = () => [||]s != null ? s : y;
+    }
+}",
+@"using System;
+using System.Linq.Expressions;
+
+class C
+{
+    void Main(string s, string y)
+    {
+        Expression<Func<string>> e = () => {|Warning:s ?? y|};
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestUnconstrainedTypeParameter()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C<T>
+{
+    void Main(T t)
+    {
+        var v = [||]t == null ? throw new Exception() : t;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestStructConstrainedTypeParameter()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C<T> where T : struct
+{
+    void Main(T t)
+    {
+        var v = [||]t == null ? throw new Exception() : t;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestClassConstrainedTypeParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C<T> where T : class
+{
+    void Main(T t)
+    {
+        var v = [||]t == null ? throw new Exception() : t;
+    }
+}",
+@"
+class C<T> where T : class
+{
+    void Main(T t)
+    {
+        var v = t ?? throw new Exception();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestNotOnNullable()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void Main(int? t)
+    {
+        var v = [||]t == null ? throw new Exception() : t;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestOnArray()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void Main(int[] t)
+    {
+        var v = [||]t == null ? throw new Exception() : t;
+    }
+}",
+@"
+class C
+{
+    void Main(int[] t)
+    {
+        var v = t ?? throw new Exception();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestOnInterface()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void Main(System.ICloneable t)
+    {
+        var v = [||]t == null ? throw new Exception() : t;
+    }
+}",
+@"
+class C
+{
+    void Main(System.ICloneable t)
+    {
+        var v = t ?? throw new Exception();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestOnDynamic()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void Main(dynamic t)
+    {
+        var v = [||]t == null ? throw new Exception() : t;
+    }
+}",
+@"
+class C
+{
+    void Main(dynamic t)
+    {
+        var v = t ?? throw new Exception();
+    }
+}");
         }
     }
 }

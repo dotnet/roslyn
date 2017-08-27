@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 parameters = delegateInvokeMethod?.Parameters ?? ImmutableArray.Create<IParameterSymbol>();
                                 break;
                             default:
-                                throw new ArgumentException(nameof(context));
+                                throw new ArgumentException($"{context.Symbol.Kind} is not supported.", nameof(context));
                         }
 
                         foreach (var parameter in parameters)

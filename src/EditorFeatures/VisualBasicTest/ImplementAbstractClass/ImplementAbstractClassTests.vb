@@ -1,321 +1,343 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.ImplementType
 Imports Microsoft.CodeAnalysis.VisualBasic.ImplementAbstractClass
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementAbstractClass
     Partial Public Class ImplementAbstractClassTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(
-                Nothing, New VisualBasicImplementAbstractClassCodeFixProvider)
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (Nothing, New VisualBasicImplementAbstractClassCodeFixProvider)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestSimpleCases() As Task
-            Await TestAsync(
-"Public MustInherit Class Foo
-    Public MustOverride Sub Foo(i As Integer)
+            Await TestInRegularAndScriptAsync(
+"Public MustInherit Class Goo
+    Public MustOverride Sub Goo(i As Integer)
     Protected MustOverride Function Bar(s As String, ByRef d As Double) As Boolean
 End Class
 Public Class [|Bar|]
-    Inherits Foo
+    Inherits Goo
 End Class",
-"Imports System
-Public MustInherit Class Foo
-    Public MustOverride Sub Foo(i As Integer)
+"Public MustInherit Class Goo
+    Public MustOverride Sub Goo(i As Integer)
     Protected MustOverride Function Bar(s As String, ByRef d As Double) As Boolean
 End Class
 Public Class Bar
-    Inherits Foo
-    Public Overrides Sub Foo(i As Integer)
-        Throw New NotImplementedException()
+    Inherits Goo
+
+    Public Overrides Sub Goo(i As Integer)
+        Throw New System.NotImplementedException()
     End Sub
+
     Protected Overrides Function Bar(s As String, ByRef d As Double) As Boolean
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
+    End Function
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        Public Async Function TestMethodWithTupleNames() As Task
+            Await TestInRegularAndScriptAsync(
+"Public MustInherit Class Base
+    Protected MustOverride Function Bar(x As (a As Integer, Integer)) As (c As Integer, Integer)
+End Class
+Public Class [|Derived|]
+    Inherits Base
+End Class",
+"Public MustInherit Class Base
+    Protected MustOverride Function Bar(x As (a As Integer, Integer)) As (c As Integer, Integer)
+End Class
+Public Class Derived
+    Inherits Base
+
+    Protected Overrides Function Bar(x As (a As Integer, Integer)) As (c As Integer, Integer)
+        Throw New System.NotImplementedException()
     End Function
 End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalIntParameter() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "MustInherit Class b
     Public MustOverride Sub g(Optional x As Integer = 3)
 End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-MustInherit Class b
+"MustInherit Class b
     Public MustOverride Sub g(Optional x As Integer = 3)
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As Integer = 3)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalTrueParameter() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "MustInherit Class b
     Public MustOverride Sub g(Optional x As Boolean = True)
 End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-MustInherit Class b
+"MustInherit Class b
     Public MustOverride Sub g(Optional x As Boolean = True)
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As Boolean = True)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalFalseParameter() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "MustInherit Class b
     Public MustOverride Sub g(Optional x As Boolean = False)
 End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-MustInherit Class b
+"MustInherit Class b
     Public MustOverride Sub g(Optional x As Boolean = False)
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As Boolean = False)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalStringParameter() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "MustInherit Class b
     Public MustOverride Sub g(Optional x As String = ""a"")
 End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-MustInherit Class b
+"MustInherit Class b
     Public MustOverride Sub g(Optional x As String = ""a"")
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As String = ""a"")
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalCharParameter() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "MustInherit Class b
     Public MustOverride Sub g(Optional x As Char = ""c""c)
 End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-MustInherit Class b
+"MustInherit Class b
     Public MustOverride Sub g(Optional x As Char = ""c""c)
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As Char = ""c""c)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalLongParameter() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "MustInherit Class b
     Public MustOverride Sub g(Optional x As Long = 3)
 End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-MustInherit Class b
+"MustInherit Class b
     Public MustOverride Sub g(Optional x As Long = 3)
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As Long = 3)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalShortParameter() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "MustInherit Class b
     Public MustOverride Sub g(Optional x As Short = 3)
 End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-MustInherit Class b
+"MustInherit Class b
     Public MustOverride Sub g(Optional x As Short = 3)
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As Short = 3)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalUShortParameter() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "MustInherit Class b
     Public MustOverride Sub g(Optional x As UShort = 3)
 End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-MustInherit Class b
+"MustInherit Class b
     Public MustOverride Sub g(Optional x As UShort = 3)
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As UShort = 3)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalNegativeIntParameter() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "MustInherit Class b
     Public MustOverride Sub g(Optional x As Integer = -3)
 End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-MustInherit Class b
+"MustInherit Class b
     Public MustOverride Sub g(Optional x As Integer = -3)
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As Integer = -3)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalUIntParameter() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "MustInherit Class b
     Public MustOverride Sub g(Optional x As UInteger = 3)
 End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-MustInherit Class b
+"MustInherit Class b
     Public MustOverride Sub g(Optional x As UInteger = 3)
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As UInteger = 3)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalULongParameter() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "MustInherit Class b
     Public MustOverride Sub g(Optional x As ULong = 3)
 End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-MustInherit Class b
+"MustInherit Class b
     Public MustOverride Sub g(Optional x As ULong = 3)
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As ULong = 3)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalDecimalParameter() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "MustInherit Class b
     Public MustOverride Sub g(Optional x As Decimal = 3)
 End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-MustInherit Class b
+"MustInherit Class b
     Public MustOverride Sub g(Optional x As Decimal = 3)
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As Decimal = 3)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalDoubleParameter() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "MustInherit Class b
     Public MustOverride Sub g(Optional x As Double = 3)
 End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-MustInherit Class b
+"MustInherit Class b
     Public MustOverride Sub g(Optional x As Double = 3)
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As Double = 3)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalStructParameter() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Structure S
 End Structure
 MustInherit Class b
@@ -324,16 +346,16 @@ End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-Structure S
+"Structure S
 End Structure
 MustInherit Class b
     Public MustOverride Sub g(Optional x As S = Nothing)
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As S = Nothing)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -341,7 +363,7 @@ End Class")
         <WorkItem(916114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916114")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalNullableStructParameter() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Structure S
 End Structure
 MustInherit Class b
@@ -350,16 +372,16 @@ End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-Structure S
+"Structure S
 End Structure
 MustInherit Class b
     Public MustOverride Sub g(Optional x As S? = Nothing)
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As S? = Nothing)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -367,28 +389,28 @@ End Class")
         <WorkItem(916114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916114")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalNullableIntParameter() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "MustInherit Class b
     Public MustOverride Sub g(Optional x As Integer? = Nothing, Optional y As Integer? = 5)
 End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-MustInherit Class b
+"MustInherit Class b
     Public MustOverride Sub g(Optional x As Integer? = Nothing, Optional y As Integer? = 5)
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As Integer? = Nothing, Optional y As Integer? = 5)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestOptionalClassParameter() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Class S
 End Class
 MustInherit Class b
@@ -397,16 +419,16 @@ End Class
 Class [|c|]
     Inherits b
 End Class",
-"Imports System
-Class S
+"Class S
 End Class
 MustInherit Class b
     Public MustOverride Sub g(Optional x As S = Nothing)
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As S = Nothing)
-        Throw New NotImplementedException()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
@@ -414,18 +436,19 @@ End Class")
         <WorkItem(544641, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544641")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestClassStatementTerminators1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 MustInherit Class D
-    MustOverride Sub Foo()
+    MustOverride Sub Goo()
 End Class
 Class [|C|] : Inherits D : End Class",
 "Imports System
 MustInherit Class D
-    MustOverride Sub Foo()
+    MustOverride Sub Goo()
 End Class
 Class C : Inherits D
-    Public Overrides Sub Foo()
+
+    Public Overrides Sub Goo()
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -434,18 +457,19 @@ End Class")
         <WorkItem(544641, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544641")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestClassStatementTerminators2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 MustInherit Class D
-    MustOverride Sub Foo()
+    MustOverride Sub Goo()
 End Class
 Class [|C|] : Inherits D : Implements IDisposable : End Class",
 "Imports System
 MustInherit Class D
-    MustOverride Sub Foo()
+    MustOverride Sub Goo()
 End Class
 Class C : Inherits D : Implements IDisposable
-    Public Overrides Sub Foo()
+
+    Public Overrides Sub Goo()
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -454,28 +478,28 @@ End Class")
         <WorkItem(530737, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530737")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestRenameTypeParameters() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "MustInherit Class A(Of T)
-    MustOverride Sub Foo(Of S As T)()
+    MustOverride Sub Goo(Of S As T)()
 End Class
 Class [|C(Of S)|]
     Inherits A(Of S)
 End Class",
-"Imports System
-MustInherit Class A(Of T)
-    MustOverride Sub Foo(Of S As T)()
+"MustInherit Class A(Of T)
+    MustOverride Sub Goo(Of S As T)()
 End Class
 Class C(Of S)
     Inherits A(Of S)
-    Public Overrides Sub Foo(Of S1 As S)()
-        Throw New NotImplementedException()
+
+    Public Overrides Sub Goo(Of S1 As S)()
+        Throw New System.NotImplementedException()
     End Sub
 End Class")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestFormattingInImplementAbstractClass() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 <Text>Imports System
 
 Class S
@@ -501,14 +525,13 @@ Class c
         Throw New NotImplementedException()
     End Sub
 End Class
-</Text>.Value.Replace(vbLf, vbCrLf),
-compareTokens:=False)
+</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(2407, "https://github.com/dotnet/roslyn/issues/2407")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestImplementClassWithInaccessibleMembers() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Globalization
 Class [|x|]
@@ -571,6 +594,43 @@ Class x
         Throw New NotImplementedException()
     End Function
 End Class")
+        End Function
+
+        <WorkItem(13932, "https://github.com/dotnet/roslyn/issues/13932")>
+        <WorkItem(5898, "https://github.com/dotnet/roslyn/issues/5898")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        Public Async Function TestAutoProperties() As Task
+            Await TestInRegularAndScript1Async(
+"MustInherit Class AbstractClass
+    MustOverride ReadOnly Property ReadOnlyProp As Integer
+    MustOverride Property ReadWriteProp As Integer
+    MustOverride WriteOnly Property WriteOnlyProp As Integer
+End Class
+
+Class [|C|]
+    Inherits AbstractClass
+
+End Class",
+"MustInherit Class AbstractClass
+    MustOverride ReadOnly Property ReadOnlyProp As Integer
+    MustOverride Property ReadWriteProp As Integer
+    MustOverride WriteOnly Property WriteOnlyProp As Integer
+End Class
+
+Class C
+    Inherits AbstractClass
+
+    Public Overrides ReadOnly Property ReadOnlyProp As Integer
+    Public Overrides Property ReadWriteProp As Integer
+
+    Public Overrides WriteOnly Property WriteOnlyProp As Integer
+        Set(value As Integer)
+            Throw New System.NotImplementedException()
+        End Set
+    End Property
+End Class", parameters:=New TestParameters(options:=[Option](
+    ImplementTypeOptions.PropertyGenerationBehavior,
+    ImplementTypePropertyGenerationBehavior.PreferAutoProperties)))
         End Function
     End Class
 End Namespace

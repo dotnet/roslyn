@@ -12,6 +12,7 @@ using System.Threading;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -362,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public override string ToString() => $"{_type} {_containingType}.{this.Name}";
 
-        public Cci.IMetadataConstant GetCompileTimeValue(EmitContext context) => null;
+        public MetadataConstant GetCompileTimeValue(EmitContext context) => null;
 
         public abstract ImmutableArray<byte> MappedData { get; }
 
@@ -420,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public Cci.ISpecializedFieldReference AsSpecializedFieldReference => null;
 
-        public Cci.IMetadataConstant Constant
+        public MetadataConstant Constant
         {
             get { throw ExceptionUtilities.Unreachable; }
         }
@@ -469,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// </summary>
     internal abstract class DefaultTypeDef : Cci.ITypeDefinition
     {
-        public IEnumerable<Cci.IEventDefinition> Events
+        public IEnumerable<Cci.IEventDefinition> GetEvents(EmitContext context)
             => SpecializedCollections.EmptyEnumerable<Cci.IEventDefinition>();
 
         public IEnumerable<Cci.MethodImplementation> GetExplicitImplementationOverrides(EmitContext context)

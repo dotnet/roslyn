@@ -137,9 +137,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static TypeSyntax GenerateTypeSyntaxOrVar(
-            this ITypeSymbol symbol, OptionSet options, bool typeIsApperant)
+            this ITypeSymbol symbol, OptionSet options, bool typeIsApparent)
         {
-            var useVar = IsVarDesired(symbol, options, typeIsApperant);
+            var useVar = IsVarDesired(symbol, options, typeIsApparent);
 
             return useVar
                 ? SyntaxFactory.IdentifierName("var")

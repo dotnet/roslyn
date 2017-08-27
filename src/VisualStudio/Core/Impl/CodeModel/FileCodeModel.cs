@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -138,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return false;
             }
 
-            var project = ((VisualStudioWorkspaceImpl)this.State.Workspace).ProjectTracker.GetProject(_incomingProjectId);
+            var project = ((VisualStudioWorkspaceImpl)this.State.Workspace).DeferredState?.ProjectTracker.GetProject(_incomingProjectId);
             if (project == null)
             {
                 return false;
@@ -226,9 +226,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                         var element = ComAggregate.TryGetManagedObject<AbstractCodeElement>(codeElement);
                         if (element.IsValidNode())
                         {
-                            if (codeElement is T)
+                            if (codeElement is T tcodeElement)
                             {
-                                return (T)codeElement;
+                                return tcodeElement;
                             }
 
                             throw new InvalidOperationException($"Found a valid code element for {nodeKey}, but it is not of type, {typeof(T).ToString()}");
@@ -409,7 +409,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         internal AbstractProject GetAbstractProject()
         {
-            return ((VisualStudioWorkspaceImpl)Workspace).ProjectTracker.GetProject(GetProjectId());
+            return ((VisualStudioWorkspaceImpl)Workspace).DeferredState.ProjectTracker.GetProject(GetProjectId());
         }
 
         internal SyntaxNode LookupNode(SyntaxNodeKey nodeKey)

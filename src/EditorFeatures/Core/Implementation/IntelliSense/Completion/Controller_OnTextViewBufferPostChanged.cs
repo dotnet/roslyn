@@ -29,12 +29,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
             else
             {
-                // Filter the model, recheck the caret position if we haven't computed the initial model yet
-                sessionOpt.FilterModel(
-                    CompletionFilterReason.TypeChar,
-                    recheckCaretPosition: model == null,
-                    dismissIfEmptyAllowed: true,
-                    filterState: null);
+                // Something changed in the buffer without us hearing about the change first.
+                // This can happen in complex projection scenarios (with buffers being mapped/unmapped).
+                // In this case, queue up a CaretPositionChanged filter first.  That way if the caret
+                // moved out of bounds of the items, then we'll dismiss.  Also queue up an insertion.
+                // that way we go and filter things properly to ensure that the list contains the 
+                // appropriate items.
+                sessionOpt.FilterModel(CompletionFilterReason.CaretPositionChanged, filterState: null);
+                sessionOpt.FilterModel(CompletionFilterReason.Insertion, filterState: null);
             }
         }
     }

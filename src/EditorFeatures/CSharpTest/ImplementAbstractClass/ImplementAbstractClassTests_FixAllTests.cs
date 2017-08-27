@@ -64,8 +64,6 @@ class B3 : A1
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
-using System;
-
 public abstract class A1
 {
     public abstract void F1();
@@ -80,14 +78,14 @@ class B1 : A1
 {
     public override void F1()
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 
     class C1 : A1, I1
     {
         public override void F1()
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
     }
 }
@@ -113,7 +111,7 @@ class B3 : A1
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -169,8 +167,6 @@ class B3 : A1
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
-using System;
-
 public abstract class A1
 {
     public abstract void F1();
@@ -185,33 +181,31 @@ class B1 : A1
 {
     public override void F1()
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 
     class C1 : A1, I1
     {
         public override void F1()
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
     }
 }
         </Document>
         <Document>
-using System;
-
 class B2 : A1
 {
     public override void F1()
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 
     class C2 : A1, I1
     {
         public override void F1()
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
     }
 }
@@ -229,7 +223,7 @@ class B3 : A1
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -286,8 +280,6 @@ class B3 : A1
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
-using System;
-
 public abstract class A1
 {
     public abstract void F1();
@@ -302,33 +294,31 @@ class B1 : A1
 {
     public override void F1()
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 
     class C1 : A1, I1
     {
         public override void F1()
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
     }
 }
         </Document>
         <Document>
-using System;
-
 class B2 : A1
 {
     public override void F1()
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 
     class C2 : A1, I1
     {
         public override void F1()
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
     }
 }
@@ -337,20 +327,18 @@ class B2 : A1
     <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
         <ProjectReference>Assembly1</ProjectReference>
         <Document>
-using System;
-
 class B3 : A1
 {
     public override void F1()
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 
     class C3 : A1, I1
     {
         public override void F1()
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
     }
 }
@@ -358,7 +346,7 @@ class B3 : A1
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -419,8 +407,6 @@ class B3 : A1
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
-using System;
-
 public abstract class A1
 {
     public abstract void F1();
@@ -435,33 +421,31 @@ class B1 : A1
 {
     public override void F1()
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 
     class C1 : A1, I1
     {
         public override void F1()
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
     }
 }
         </Document>
         <Document>
-using System;
-
 class B2 : A1
 {
     public override void F1()
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 
     class C2 : A1, I1
     {
         public override void F1()
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
     }
 }
@@ -484,7 +468,7 @@ class B3 : A1
     </Project>
 </Workspace>";
 
-            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         #endregion

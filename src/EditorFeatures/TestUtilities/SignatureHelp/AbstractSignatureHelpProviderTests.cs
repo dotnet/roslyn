@@ -1,6 +1,7 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Security;
 using System.Threading;
@@ -10,8 +11,6 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp.Presentation;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -34,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 
         public override void Dispose()
         {
-            this.workspaceFixture.CloseTextViewAsync().Wait();
+            this.workspaceFixture.CloseTextView();
             base.Dispose();
         }
 
@@ -74,15 +73,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
         {
             markupWithPositionAndOptSpan = markupWithPositionAndOptSpan.NormalizeLineEndings();
 
-            string code;
-            int cursorPosition;
-            IList<TextSpan> textSpans;
             TextSpan? textSpan = null;
             MarkupTestFile.GetPositionAndSpans(
                 markupWithPositionAndOptSpan,
-                out code,
-                out cursorPosition,
-                out textSpans);
+                out var code,
+                out var cursorPosition,
+                out ImmutableArray<TextSpan> textSpans);
 
             if (textSpans.Any())
             {
@@ -92,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             var parseOptions = CreateExperimentalParseOptions();
 
             // regular
-            var document1 = await workspaceFixture.UpdateDocumentAsync(code, sourceCodeKind);
+            var document1 = workspaceFixture.UpdateDocument(code, sourceCodeKind);
             if (experimental)
             {
                 document1 = document1.Project.WithParseOptions(parseOptions).GetDocument(document1.Id);
@@ -103,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             // speculative semantic model
             if (await CanUseSpeculativeSemanticModelAsync(document1, cursorPosition))
             {
-                var document2 = await workspaceFixture.UpdateDocumentAsync(code, sourceCodeKind, cleanBeforeUpdate: false);
+                var document2 = workspaceFixture.UpdateDocument(code, sourceCodeKind, cleanBeforeUpdate: false);
                 if (experimental)
                 {
                     document2 = document2.Project.WithParseOptions(parseOptions).GetDocument(document2.Id);
@@ -172,11 +168,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 
         private async Task VerifyCurrentParameterNameWorkerAsync(string markup, string expectedParameterName, SourceCodeKind sourceCodeKind)
         {
-            string code;
-            int cursorPosition;
-            MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), out code, out cursorPosition);
+            MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), out var code, out int cursorPosition);
 
-            var document = await workspaceFixture.UpdateDocumentAsync(code, sourceCodeKind);
+            var document = workspaceFixture.UpdateDocument(code, sourceCodeKind);
 
             var signatureHelpProvider = CreateSignatureHelpProvider();
             var triggerInfo = new SignatureHelpTriggerInfo(SignatureHelpTriggerReason.InvokeSignatureHelpCommand);
@@ -350,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 
         protected async Task VerifyItemWithReferenceWorkerAsync(string xmlString, IEnumerable<SignatureHelpTestItem> expectedOrderedItems, bool hideAdvancedMembers)
         {
-            using (var testWorkspace = await TestWorkspace.CreateAsync(xmlString))
+            using (var testWorkspace = TestWorkspace.Create(xmlString))
             {
                 var cursorPosition = testWorkspace.Documents.First(d => d.Name == "SourceDocument").CursorPosition.Value;
                 var documentId = testWorkspace.Documents.First(d => d.Name == "SourceDocument").Id;
@@ -437,7 +431,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
     </Project>
 </Workspace>", sourceLanguage, SecurityElement.Escape(markup));
 
-            using (var testWorkspace = await TestWorkspace.CreateAsync(xmlString))
+            using (var testWorkspace = TestWorkspace.Create(xmlString))
             {
                 var cursorPosition = testWorkspace.Documents.Single(d => d.Name == "SourceDocument").CursorPosition.Value;
                 var documentId = testWorkspace.Documents.Where(d => d.Name == "SourceDocument").Single().Id;

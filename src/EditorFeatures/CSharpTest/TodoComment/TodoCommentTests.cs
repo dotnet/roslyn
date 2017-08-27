@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using System.Threading;
@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Roslyn.Utilities;
 using Xunit;
@@ -166,8 +167,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
 
         private static async Task TestAsync(string codeWithMarker)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(codeWithMarker))
+            await TestAsync(codeWithMarker, remote: false);
+            await TestAsync(codeWithMarker, remote: true);
+        }
+
+        private static async Task TestAsync(string codeWithMarker, bool remote)
+        {
+            using (var workspace = TestWorkspace.CreateCSharp(codeWithMarker, openDocuments: false))
             {
+                workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, remote);
+
                 var commentTokens = new TodoCommentTokens();
                 var provider = new TodoCommentIncrementalAnalyzerProvider(commentTokens);
                 var worker = (TodoCommentIncrementalAnalyzer)provider.CreateIncrementalAnalyzer(workspace);

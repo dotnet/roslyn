@@ -2,20 +2,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.IO.Pipes;
-using System.Runtime.InteropServices;
-using System.Security.Principal;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using static Microsoft.CodeAnalysis.CommandLine.CompilerServerLogger;
-using static Microsoft.CodeAnalysis.CommandLine.NativeMethods;
 using System.Reflection;
-using System.Security.AccessControl;
-using System.Security.Cryptography;
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
@@ -37,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             _analyzerAssemblyLoader = analyzerAssemblyLoader;
         }
 
-        internal static int Run(IEnumerable<string> arguments, IEnumerable<string> extraArguments, RequestLanguage language, CompileFunc compileFunc, IAnalyzerAssemblyLoader analyzerAssemblyLoader)
+        internal static int Run(IEnumerable<string> arguments, RequestLanguage language, CompileFunc compileFunc, IAnalyzerAssemblyLoader analyzerAssemblyLoader)
         {
             var client = new DesktopBuildClient(language, compileFunc, analyzerAssemblyLoader);
             var clientDir = AppContext.BaseDirectory;
@@ -45,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var workingDir = Directory.GetCurrentDirectory();
             var tempDir = BuildServerConnection.GetTempPath(workingDir);
             var buildPaths = new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir, tempDir: tempDir);
-            var originalArguments = BuildClient.GetCommandLineArgs(arguments).Concat(extraArguments).ToArray();
+            var originalArguments = GetCommandLineArgs(arguments).ToArray();
             return client.RunCompilation(originalArguments, buildPaths).ExitCode;
         }
 

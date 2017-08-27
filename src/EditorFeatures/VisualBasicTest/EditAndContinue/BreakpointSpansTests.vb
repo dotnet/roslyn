@@ -1,5 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
@@ -64,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
         Private Sub TestAll(markup As String)
             Dim position As Integer = Nothing
-            Dim expectedSpans As IList(Of TextSpan) = Nothing
+            Dim expectedSpans As ImmutableArray(Of TextSpan) = Nothing
             Dim source As String = Nothing
             MarkupTestFile.GetPositionAndSpans(markup, source, position, expectedSpans)
 
@@ -111,7 +112,7 @@ $$
         <Fact>
         Public Sub TopLevel()
             TestMissing(<text>Option $$Explicit</text>)
-            TestMissing(<text>Imports $$Foo</text>)
+            TestMissing(<text>Imports $$Goo</text>)
             TestMissing(<text>Class C(O$$f Action) : End Class</text>)
             TestMissing(<text>Class C(Of Action) : End $$Class</text>)
             TestMissing(<text>Struc$$ture S : End Structure</text>)
@@ -193,7 +194,7 @@ End Class
         Public Sub Sub_Header()
             TestSpan(<text>
 Class C
-  [|$$Sub Foo()|]
+  [|$$Sub Goo()|]
   End Sub
 End Class
 </text>)
@@ -203,7 +204,7 @@ End Class
         Public Sub Sub_Header_WithAttributes()
             TestSpan("
 Class C
-  <A>[|$$Sub Foo()|]
+  <A>[|$$Sub Goo()|]
   End Sub
 End Class
 ")
@@ -213,7 +214,7 @@ End Class
         Public Sub Sub_Header_WithImplementsClause()
             TestSpan("
 Class C
-  [|$$Sub Foo() Implements I.Foo|]
+  [|$$Sub Goo() Implements I.Goo|]
   End Sub
 End Class
 ")
@@ -223,7 +224,7 @@ End Class
         Public Sub Sub_End()
             TestSpan(<text>
 Class C
-  Sub Foo()
+  Sub Goo()
   [|$$End Sub|]
 End Class
 </text>)
@@ -253,7 +254,7 @@ End Class
         Public Sub Function1()
             TestSpan(<text>
 Class C
-  [|$$Function Foo()|]
+  [|$$Function Goo()|]
   End Function
 End Class
 </text>)
@@ -263,7 +264,7 @@ End Class
         Public Sub Function2()
             TestSpan(<text>
 Class C
-  Function Foo()
+  Function Goo()
   [|$$End Function|]
 End Class
 </text>)
@@ -273,7 +274,7 @@ End Class
         Public Sub Function_WithAttributes()
             TestSpan("
 Class C
-  <A>[|$$Function Foo()|]
+  <A>[|$$Function Goo()|]
   End Function
 End Class
 ")
@@ -283,7 +284,7 @@ End Class
         Public Sub Function_WithImplementsClause()
             TestSpan("
 Class C
-  [|$$Function Foo() Implements I.F|]
+  [|$$Function Goo() Implements I.F|]
   End Function
 End Class
 ")
@@ -1698,7 +1699,7 @@ End Class
         Public Sub TestEndOfStatement()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     [|Console.WriteLine()$$|]
   end sub
 end class</text>)
@@ -1759,7 +1760,7 @@ End Class
             TestSpan(<text>
 Class C
   Sub M
-    [|If$$ True Then|] Foo() Else Bar()
+    [|If$$ True Then|] Goo() Else Bar()
   End Sub
 End Class
 </text>)
@@ -1770,7 +1771,7 @@ End Class
             TestSpan(<text>
 Class C
   Sub M
-    If True Then [|Foo()|] $$
+    If True Then [|Goo()|] $$
   End Sub
 End Class
 </text>)
@@ -1781,7 +1782,7 @@ End Class
             TestSpan(<text>
 Class C
   Sub M
-    If True Then Foo() [|E$$lse|] Bar()
+    If True Then Goo() [|E$$lse|] Bar()
   End Sub
 End Class
 </text>)
@@ -1792,7 +1793,7 @@ End Class
             TestSpan(<text>
 Class C
   Sub M
-    If True Then Foo() Else [|Bar($$)|]  
+    If True Then Goo() Else [|Bar($$)|]  
   End Sub
 End Class
 </text>)
@@ -1803,7 +1804,7 @@ End Class
             TestSpan(<text>
 Class C
   Sub M
-    [|Using $$Foo|]
+    [|Using $$Goo|]
     End Using
   End Sub
 End Class
@@ -1815,7 +1816,7 @@ End Class
             TestSpan(<text>
 Class C
   Sub M
-    Using Foo
+    Using Goo
     [|End$$ Using|]
   End Sub
 End Class
@@ -1827,7 +1828,7 @@ End Class
             TestSpan(<text>
 Class C
   Sub M
-    [|SyncLock $$Foo|]
+    [|SyncLock $$Goo|]
     End SyncLock
   End Sub
 End Class
@@ -1839,7 +1840,7 @@ End Class
             TestSpan(<text>
 Class C
   Sub M
-    SyncLock Foo
+    SyncLock Goo
     [|End$$ SyncLock|]
   End Sub
 End Class
@@ -1851,7 +1852,7 @@ End Class
             TestSpan(<text>
 Class C
   Sub M
-    [|With $$Foo|]
+    [|With $$Goo|]
     End With
   End Sub
 End Class
@@ -1863,7 +1864,7 @@ End Class
             TestSpan(<text>
 Class C
   Sub M
-    With Foo
+    With Goo
     [|End$$ With|]
   End Sub
 End Class
@@ -2096,7 +2097,7 @@ End Class
         Public Sub Lambda_SingleLine_Header1()
             TestSpan(<text>
 Class C
-  Sub Foo()
+  Sub Goo()
     Console.WriteLine([|Funct$$ion(x)|] x + x)
   End Sub
 End Class</text>)
@@ -2106,7 +2107,7 @@ End Class</text>)
         Public Sub Lambda_SingleLine_Header2()
             TestSpan(<text>
 Class C
-  Sub Foo()
+  Sub Goo()
     Console.WriteLine([|$$Async Function()|] x + x)
   End Sub
 End Class</text>)
@@ -2116,7 +2117,7 @@ End Class</text>)
         Public Sub Lambda_SingleLine_Header3()
             TestSpan(<text>
 Class C
-  Sub Foo()
+  Sub Goo()
     Console.WriteLine([|Sub($$)|] M())
   End Sub
 End Class</text>)
@@ -2126,7 +2127,7 @@ End Class</text>)
         Public Sub Lambda_SingleLine_Header4()
             TestSpan(<text>
 Class C
-  Sub Foo()
+  Sub Goo()
     [|Console.WriteLine( $$ Sub() M())|]
   End Sub
 End Class</text>)
@@ -2136,7 +2137,7 @@ End Class</text>)
         Public Sub Lambda_SingleLine_Body1()
             TestSpan(<text>
 Class C
-  Sub Foo()
+  Sub Goo()
     Console.WriteLine(Function(x) [|x $$+ x|])
   End Sub
 End Class</text>)
@@ -2146,7 +2147,7 @@ End Class</text>)
         Public Sub Lambda_SingleLine_Body2()
             TestSpan(<text>
 Class C
-  Sub Foo()
+  Sub Goo()
     [|Console.WriteLine(Sub(x) M()$$)|]
   End Sub
 End Class</text>)
@@ -2156,7 +2157,7 @@ End Class</text>)
         Public Sub Lambda_SingleLine_Body3()
             TestSpan(<text>
 Class C
-  Sub Foo()
+  Sub Goo()
     Console.WriteLine(  Sub() [|M()|]   $$        )
   End Sub
 End Class</text>)
@@ -2166,7 +2167,7 @@ End Class</text>)
         Public Sub Lambda_SingleLine_Body4()
             TestSpan(<text>
 Class C
-  Sub Foo()
+  Sub Goo()
     [|Console.WriteLine(  Sub() M()  
              $$        )|] 
   End Sub
@@ -2177,7 +2178,7 @@ End Class</text>)
         Public Sub Lambda_SingleLine_Body5()
             TestSpan(<text>
 Class C
-  Sub Foo()
+  Sub Goo()
     Private a As New D(Function() [|$$1|])
   End Sub
 End Class</text>)
@@ -2187,7 +2188,7 @@ End Class</text>)
         Public Sub Lambda_MultiLine_Header1()
             TestSpan(<text>
 Class C
-  Sub Foo()
+  Sub Goo()
     Console.WriteLine([|Funct$$ion(x)|] 
                            x + x
                         End Function)
@@ -2199,7 +2200,7 @@ End Class</text>)
         Public Sub Lambda_MultiLine_Header2()
             TestSpan(<text>
 Class C
-  Sub Foo()
+  Sub Goo()
     Console.WriteLine([|$$Async Function()|] 
                             x + x
                         End Function)
@@ -2211,7 +2212,7 @@ End Class</text>)
         Public Sub Lambda_MultiLine_Header3()
             TestSpan(<text>
 Class C
-  Sub Foo()
+  Sub Goo()
     Console.WriteLine([|Sub($$)|] 
                         End Sub)
   End Sub
@@ -2222,7 +2223,7 @@ End Class</text>)
         Public Sub Lambda_MultiLine_Header4()
             TestSpan(<text>
 Class C
-  Sub Foo()
+  Sub Goo()
     [|Console.WriteLine( $$ Sub()
                             M() 
                         End Sub)|]
@@ -2234,7 +2235,7 @@ End Class</text>)
         Public Sub Lambda_MultiLine_Body1()
             TestSpan(<text>
 Class C
-  Sub Foo()
+  Sub Goo()
     Console.WriteLine(Function(x)
                         [|F()|]  $$
                       End Function)
@@ -2246,7 +2247,7 @@ End Class</text>)
         Public Sub Lambda_MultiLine_Footer1()
             TestSpan(<text>
 Class C
-  Sub Foo()
+  Sub Goo()
     Console.WriteLine(Function(x)
                         F()  
                       [|End Function|]     $$    )
@@ -2258,7 +2259,7 @@ End Class</text>)
         Public Sub Lambda_MultiLine_Footer2()
             TestSpan(<text>
 Class C
-  Sub Foo()
+  Sub Goo()
     Console.WriteLine(Sub()
                       [|$$End Sub|])
   End Sub
@@ -2272,7 +2273,7 @@ End Class</text>)
         Public Sub TestFromClause1()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     dim q = from x in $$customers, e in [|employees|]
             select x
   end sub
@@ -2283,7 +2284,7 @@ end class</text>)
         Public Sub TestFromClause2()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     dim q = from x in customers, e in [|$$employees|]
             select x
   end sub
@@ -2294,7 +2295,7 @@ end class</text>)
         Public Sub TestFromClause3()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     dim q = from x in customers
             from e in [|$$employees|]
             select x
@@ -2306,7 +2307,7 @@ end class</text>)
         Public Sub TestFromInQueryContinuation1()
             TestSpan(<text>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim q = From x In customers
                 From e In employees
                 Group e By x Into g
@@ -2321,7 +2322,7 @@ End Class</text>)
         Public Sub TestBeforeFromInQueryContinuation1()
             TestSpan(<text>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim q = From x In customers
     $$          From e In [|employees|]
                 Group e By x Into g
@@ -2336,7 +2337,7 @@ End Class</text>)
         Public Sub TestBeforeFromInQueryContinuation2()
             TestSpan(<text>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim q = 
           $$    From x In customers, e In [|employees|]
                 Group e By x Into g
@@ -2351,7 +2352,7 @@ End Class</text>)
         Public Sub TestBeforeFromInQueryContinuation3()
             TestSpan(<text>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim q = From x In customers
                 From e In employees
                 Group e By x Into g
@@ -2365,7 +2366,7 @@ End Class</text>)
         Public Sub TestJoin1()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     dim [|q = from x in customers
             join ord in $$orders on c.Id Equals ord.Id
             select x|]
@@ -2377,7 +2378,7 @@ end class</text>)
         Public Sub TestJoin2()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     dim q = from x in customers
             join ord in orders on [|$$c.Id|] Equals ord.Id
             select x
@@ -2389,7 +2390,7 @@ end class</text>)
         Public Sub TestJoin3()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     dim q = from x in customers
             join ord in orders on c.Id Equals [|$$ord.Id|]
             select x
@@ -2401,7 +2402,7 @@ end class</text>)
         Public Sub TestLet1()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     dim q = from x in customers
             let m = $$[|x.y|]
             select x
@@ -2413,7 +2414,7 @@ end class</text>)
         Public Sub TestLet2()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     dim q = from x in customers
             let n = 0, m = $$[|x.y|]
             select x
@@ -2425,7 +2426,7 @@ end class</text>)
         Public Sub TestLet3()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     dim q = from x in customers
  $$         let n = [|0|], m = x.y
             select x
@@ -2437,7 +2438,7 @@ end class</text>)
         Public Sub TestLet4()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     dim q = from x in customers
             let n = [|0|]$$, m = x.y
             select x
@@ -2449,7 +2450,7 @@ end class</text>)
         Public Sub TestLet5()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     dim q = from x in customers
             let n = 0,$$ m = [|x.y|]
             select x
@@ -2461,7 +2462,7 @@ end class</text>)
         Public Sub TestLet6()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     dim q = from x in customers
             let n = [|F($$0)|], m = x.y
             select x
@@ -2473,7 +2474,7 @@ end class</text>)
         Public Sub TestLet7()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     dim q = from x in customers
             let $$n = [|F(0)|], m = x.y
             select x
@@ -2485,7 +2486,7 @@ end class</text>)
         Public Sub TestSelect1()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     dim q = from x in customers
             let n = 0, m = x.y
             select [|$$x + 1|]
@@ -2497,7 +2498,7 @@ end class</text>)
         Public Sub TestSelect2()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     dim q = from x in customers
             let n = 0, m = x.y
             select m = [|$$x + 1|]
@@ -2509,7 +2510,7 @@ end class</text>)
         Public Sub TestSelect3()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     dim q = from x in customers
             let n = 0, m = x.y
             select [|n = 2, m = $$x + 1|]
@@ -2550,7 +2551,7 @@ End Class</text>)
         Public Sub TestSelect6()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     dim q = from x in customers
             let n = 0, m = x.y
             select [|n = 2, $$m = x + 1|]
@@ -2575,7 +2576,7 @@ End Class</text>)
         Public Sub TestWhereClauseExpression()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     dim q = from x in customers
             let n = 0, m = x.y
             where [|$$x + 1 > 0|]
@@ -2588,7 +2589,7 @@ end class</text>)
         Public Sub TestBeforeWhereClause()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     dim q = from x in customers
             let n = 0, m = x.y
          $$   where [|x + 1 > 0|]
@@ -2600,7 +2601,7 @@ end class</text>)
         Public Sub TestTakeWhile1()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     dim q = from x in customers
             let n = 0, m = x.y
             Take While [|$$x + 1 > 0|]
@@ -2613,7 +2614,7 @@ end class</text>)
         Public Sub TestBeforeTakeWhile()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     dim q = from x in customers
             let n = 0, m = x.y
 $$            Take While [|x + 1 > 0|]
@@ -2625,7 +2626,7 @@ end class</text>)
         Public Sub TestSkipWhile1()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     dim q = from x in customers
             let n = 0, m = x.y
             Skip While [|$$x + 1 > 0|]
@@ -2638,7 +2639,7 @@ end class</text>)
         Public Sub TestBeforeSkipWhile()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     dim q = from x in customers
             let n = 0, m = x.y
    $$         Skip While [|x + 1 > 0|]
@@ -2650,7 +2651,7 @@ end class</text>)
         Public Sub TestOrderBy1()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     dim q = from x in customers
             let n = 0, m = x.y
             order by [|$$x|]
@@ -2662,7 +2663,7 @@ end class</text>)
         Public Sub TestOrderBy2()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     dim q = from x in customers
             let n = 0, m = x.y
             order by [|$$x|] ascending
@@ -2674,7 +2675,7 @@ end class</text>)
         Public Sub TestOrderBy3()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     dim q = from x in customers
             let n = 0, m = x.y
             order by [|$$x|] descending
@@ -2687,7 +2688,7 @@ end class</text>)
         Public Sub TestBeforeOrderBy()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     dim q = from x in customers
             let n = 0, m = x.y
       $$      order by [|x|] descending
@@ -2699,7 +2700,7 @@ end class</text>)
         Public Sub TestThenBy1()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
         Dim digits() = {"zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"}
 
         Dim sortedDigits = From d In digits
@@ -2713,7 +2714,7 @@ end class</text>)
         Public Sub TestThenBy2()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
         Dim digits() = {"zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"}
 
         Dim sortedDigits = From d In digits
@@ -2727,7 +2728,7 @@ end class</text>)
         Public Sub TestThenBy3()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
         Dim digits() = {"zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"}
 
         Dim sortedDigits = From d In digits
@@ -2742,7 +2743,7 @@ end class</text>)
         Public Sub TestThenBy4()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
         Dim digits() = {"zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"}
 
         Dim sortedDigits = From d In digits
@@ -2757,7 +2758,7 @@ end class</text>)
         Public Sub TestBeforeOrderByAndThenBy()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
         Dim digits() = {"zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"}
 
         Dim sortedDigits = From d In digits
@@ -2771,7 +2772,7 @@ end class</text>)
         Public Sub TestFunctionAggregation1()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     dim q = from x in customers
             let n = 0, m = x.y
             order by x descending
@@ -2784,7 +2785,7 @@ end class</text>)
         Public Sub GroupBy1a()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     Dim q = From x In Nums()
             Let n = 0, m = x.ToString()
             Order By x Descending
@@ -2797,7 +2798,7 @@ end class</text>)
         Public Sub GroupBy1b()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     Dim q = From x In Nums()
             Let n = 0, m = x.ToString()
             Order By x Descending
@@ -2810,7 +2811,7 @@ end class</text>)
         Public Sub GroupBy1c()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     Dim q = From x In Nums()
             Let n = 0, m = x.ToString()
             Order By x Descending
@@ -2823,7 +2824,7 @@ end class</text>)
         Public Sub GroupBy2()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     Dim q = From x In Nums()
             Let n = 0, m = x.ToString()
             Order By x Descending
@@ -2836,7 +2837,7 @@ end class</text>)
         Public Sub GroupBy3()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     Dim q = From x In Nums()
             Let n = 0, m = x.ToString()
             Order By x Descending
@@ -2849,7 +2850,7 @@ end class</text>)
         Public Sub GroupBy4()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     Dim q = From x In Nums()
             Let n = 0, m = x.ToString()
             Order By x Descending
@@ -2862,7 +2863,7 @@ end class</text>)
         Public Sub GroupBy5a()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     Dim q = From x In Nums()
             Let n = 0, m = x.ToString()
             Order By x Descending
@@ -2875,7 +2876,7 @@ end class</text>)
         Public Sub GroupBy5b()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     Dim q = From x In Nums()
             Let n = 0, m = x.ToString()
             Order By x Descending
@@ -2888,7 +2889,7 @@ end class</text>)
         Public Sub GroupBy5c()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     Dim q = From x In Nums()
             Let n = 0, m = x.ToString()
             Order By x Descending
@@ -2902,7 +2903,7 @@ end class</text>)
         Public Sub GroupBy5d()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     Dim q = From x In Nums()
             Let n = 0, m = x.ToString()
             Order By x Descending
@@ -2916,7 +2917,7 @@ end class</text>)
         Public Sub GroupBy5f()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     Dim q = From x In Nums()
             Let n = 0, m = x.ToString()
             Order By x Descending
@@ -2930,7 +2931,7 @@ end class</text>)
         Public Sub GroupBy6a()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     Dim q = From x In Nums()
             Let n = 0, m = x.ToString()
             Order By x Descending
@@ -2943,7 +2944,7 @@ end class</text>)
         Public Sub GroupBy6b()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     Dim q = From x In Nums()
             Let n = 0, m = x.ToString()
             Order By x Descending
@@ -2956,7 +2957,7 @@ end class</text>)
         Public Sub GroupBy7a()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     Dim q = From x In Nums()
             Let n = 0, m = x.ToString()
             Order By x Descending
@@ -2969,7 +2970,7 @@ end class</text>)
         Public Sub GroupBy7b()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     Dim q = From x In Nums()
             Let n = 0, m = x.ToString()
             Order By x Descending
@@ -2982,7 +2983,7 @@ end class</text>)
         Public Sub GroupBy8()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     Dim q = From x In Nums()
             Let n = 0, m = x.ToString()
             Order By x Descending
@@ -2996,7 +2997,7 @@ end class</text>)
         Public Sub GroupBy9()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     Dim q = From x In Nums()
             Let n = 0, m = x.ToString()
             Order By x Descending
@@ -3010,7 +3011,7 @@ end class</text>)
         Public Sub GroupBy10()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     Dim q = From x In Nums()
             Let n = 0, m = x.ToString()
             Order By x Descending
@@ -3024,7 +3025,7 @@ end class</text>)
         Public Sub GroupBy11()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     Dim q = From x In Nums()
             Let n = 0, m = x.ToString()
             Order By x Descending
@@ -3038,7 +3039,7 @@ end class</text>)
         Public Sub GroupBy12()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     Dim q = From x In Nums()
             Let n = 0, m = x.ToString()
             Order By x Descending
@@ -3052,7 +3053,7 @@ end class</text>)
         Public Sub GroupBy13()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     Dim q = From x In Nums()
             Let n = 0, m = x.ToString()
             Order By x Descending
@@ -3066,7 +3067,7 @@ end class</text>)
         Public Sub GroupBy14()
             TestSpan(<text>
 class C
-  sub Foo()
+  sub Goo()
     Dim q = From x In Nums()
             Let n = 0, m = x.ToString()
             Order By x Descending

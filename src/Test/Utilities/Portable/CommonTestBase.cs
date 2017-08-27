@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     /// </summary>
     public abstract partial class CommonTestBase : TestBase
     {
-        internal abstract IEnumerable<IModuleSymbol> ReferencesToModuleSymbols(IEnumerable<MetadataReference> references, MetadataImportOptions importOptions = MetadataImportOptions.Public);
-
         #region Emit
 
         protected abstract Compilation GetCompilationForEmit(
@@ -73,6 +71,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Action<IModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
+            int? expectedReturnCode = null,
+            string[] args = null,
             CompilationOptions options = null,
             ParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
@@ -94,6 +94,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 symbolValidator,
                 expectedSignatures,
                 expectedOutput,
+                expectedReturnCode,
+                args,
                 emitOptions,
                 verify);
         }
@@ -107,6 +109,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Action<IModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
+            int? expectedReturnCode = null,
+            string[] args = null,
             EmitOptions emitOptions = null,
             bool verify = true)
         {
@@ -136,6 +140,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 manifestResources,
                                 expectedSignatures,
                                 expectedOutput,
+                                expectedReturnCode,
+                                args ?? Array.Empty<string>(),
                                 assemblyValidator,
                                 symbolValidator,
                                 emitOptions,
@@ -199,16 +205,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<ResourceDescription> manifestResources,
             SignatureDescription[] expectedSignatures,
             string expectedOutput,
+            int? expectedReturnCode,
+            string[] args,
             Action<PEAssembly> assemblyValidator,
             Action<IModuleSymbol> symbolValidator,
             EmitOptions emitOptions,
             bool verify)
         {
-            CompilationVerifier verifier = null;
+            var verifier = new CompilationVerifier(compilation, VisualizeRealIL, dependencies);
 
-            verifier = new CompilationVerifier(this, compilation, dependencies);
-
-            verifier.Emit(expectedOutput, manifestResources, emitOptions, verify, expectedSignatures);
+            verifier.Emit(expectedOutput, expectedReturnCode, args, manifestResources, emitOptions, verify, expectedSignatures);
 
             // We're dual-purposing emitters here.  In this context, it
             // tells the validator the version of Emit that is calling it. 
@@ -234,9 +240,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             out ImmutableArray<byte> assemblyBytes,
             out ImmutableArray<byte> pdbBytes)
         {
-            string assemblyPath;
-            string pdbPath;
-            IlasmUtilities.IlasmTempAssembly(ilSource, appendDefaultHeader, includePdb, out assemblyPath, out pdbPath);
+            IlasmUtilities.IlasmTempAssembly(ilSource, appendDefaultHeader, includePdb, out var assemblyPath, out var pdbPath);
 
             Assert.NotNull(assemblyPath);
             Assert.Equal(pdbPath != null, includePdb);
@@ -259,12 +263,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        internal static MetadataReference CompileIL(string ilSource, bool appendDefaultHeader = true, bool embedInteropTypes = false)
+        internal static MetadataReference CompileIL(string ilSource, bool prependDefaultHeader = true, bool embedInteropTypes = false)
         {
-            ImmutableArray<byte> assemblyBytes;
-            ImmutableArray<byte> pdbBytes;
-            EmitILToArray(ilSource, appendDefaultHeader, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            EmitILToArray(ilSource, prependDefaultHeader, includePdb: false, assemblyBytes: out var assemblyBytes, pdbBytes: out var pdbBytes);
             return AssemblyMetadata.CreateFromImage(assemblyBytes).GetReference(embedInteropTypes: embedInteropTypes);
+        }
+
+        internal static MetadataReference GetILModuleReference(string ilSource, bool prependDefaultHeader = true)
+        {
+            EmitILToArray(ilSource, prependDefaultHeader, includePdb: false, assemblyBytes: out var assemblyBytes, pdbBytes: out var pdbBytes);
+            return ModuleMetadata.CreateFromImage(assemblyBytes).GetReference();
         }
 
         #endregion

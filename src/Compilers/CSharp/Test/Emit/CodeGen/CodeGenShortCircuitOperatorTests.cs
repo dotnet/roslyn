@@ -4244,12 +4244,12 @@ class Program
 {
     interface I1
     {
-        void Foo(I1 arg);
+        void Goo(I1 arg);
     }
 
     class C1 : I1
     {
-        public void Foo(I1 arg)
+        public void Goo(I1 arg)
         {
         }
     }
@@ -4263,13 +4263,13 @@ class Program
     static void Test1()
     {
         var c = new C1();
-        c?.Foo(c);
+        c?.Goo(c);
     }
 
     static void Test2<T>() where T : I1, new()
     {
         var c = new T();
-        c?.Foo(c);
+        c?.Goo(c);
     }
 }
 ";
@@ -4285,7 +4285,7 @@ class Program
   IL_0007:  brfalse.s  IL_0010
   IL_0009:  ldloc.0
   IL_000a:  ldloc.0
-  IL_000b:  call       ""void Program.C1.Foo(Program.I1)""
+  IL_000b:  call       ""void Program.C1.Goo(Program.I1)""
   IL_0010:  ret
 }
 ").VerifyIL("Program.Test2<T>()", @"
@@ -4302,7 +4302,7 @@ class Program
   IL_0010:  ldloc.0
   IL_0011:  box        ""T""
   IL_0016:  constrained. ""T""
-  IL_001c:  callvirt   ""void Program.I1.Foo(Program.I1)""
+  IL_001c:  callvirt   ""void Program.I1.Goo(Program.I1)""
   IL_0021:  ret
 }
 ");
@@ -5085,13 +5085,13 @@ class C
     static void Main()
     {
         System.Console.WriteLine(""---"");
-        Foo<int>(new C<int>());
+        Goo<int>(new C<int>());
         System.Console.WriteLine(""---"");
-        Foo<int>(null);
+        Goo<int>(null);
         System.Console.WriteLine(""---"");
     }
 
-    static void Foo<T>(C<T> x)
+    static void Goo<T>(C<T> x)
     {
         x?.M();
     }
@@ -5110,7 +5110,7 @@ M
 ---
 ---");
 
-            verifier.VerifyIL("C.Foo<T>", @"
+            verifier.VerifyIL("C.Goo<T>", @"
 {
   // Code size       11 (0xb)
   .maxstack  1
@@ -5133,13 +5133,13 @@ unsafe class C
     static void Main()
     {
         System.Console.WriteLine(""---"");
-        Foo(new C());
+        Goo(new C());
         System.Console.WriteLine(""---"");
-        Foo(null);
+        Goo(null);
         System.Console.WriteLine(""---"");
     }
 
-    static void Foo(C x)
+    static void Goo(C x)
     {
         x?.M();
     }
@@ -5156,7 +5156,7 @@ M
 ---
 ---");
 
-            verifier.VerifyIL("C.Foo", @"
+            verifier.VerifyIL("C.Goo", @"
 {
   // Code size       14 (0xe)
   .maxstack  1
@@ -5276,7 +5276,7 @@ class C
     void M() => System.Console.WriteLine(""M"");
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics(
     // (16,32): error CS0029: Cannot implicitly convert type 'void' to 'object'
@@ -5406,7 +5406,7 @@ class C<T>
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics(
     // (15,33): error CS0023: Operator '?' cannot be applied to operand of type 'T'
@@ -5535,7 +5535,7 @@ unsafe class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
 
             compilation.VerifyDiagnostics(
     // (16,40): error CS0023: Operator '?' cannot be applied to operand of type 'void*'
@@ -5672,7 +5672,7 @@ class C<T>
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics(
     // (15,17): error CS0023: Operator '?' cannot be applied to operand of type 'T'
@@ -5743,19 +5743,19 @@ M
 using System;
 using System.Threading.Tasks;
 
-class Foo<T>
+class Goo<T>
 {
     public T Method(int i)
     {
         Console.Write(i);
         return default(T); // returns value of unconstrained type parameter type
     }
-    public void M1(Foo<T> x) => x?.Method(4);
-    public async void M2(Foo<T> x) => x?.Method(5);
-    public async Task M3(Foo<T> x) => x?.Method(6);
+    public void M1(Goo<T> x) => x?.Method(4);
+    public async void M2(Goo<T> x) => x?.Method(5);
+    public async Task M3(Goo<T> x) => x?.Method(6);
     public async Task M4() {
-        Foo<T> a = new Foo<T>();
-        Foo<T> b = null;
+        Goo<T> a = new Goo<T>();
+        Goo<T> b = null;
 
         Action f1 = async () => a?.Method(1);
         f1();
@@ -5778,7 +5778,7 @@ class Program
     public static void Main()
     {
         // this will complete synchronously as there are no truly async ops.
-        new Foo<int>().M4();
+        new Goo<int>().M4();
     }
 }";
             var compilation = CreateCompilationWithMscorlib45(
@@ -6095,10 +6095,10 @@ class C
 
         static async Task<bool> HasLength(string s, int len)
         {
-            return (s?.Foo(await Bar()) ?? await Bar() + await Bar()) + 1 == len;
+            return (s?.Goo(await Bar()) ?? await Bar() + await Bar()) + 1 == len;
         }
 
-        static int Foo(this string s, int arg)
+        static int Goo(this string s, int arg)
         {
             return s.Length;
         }
@@ -6132,10 +6132,10 @@ class C
 
         static async Task<bool> HasLength<T>(T s, int len)
         {
-            return (s?.Foo(await Bar()) ?? 2) + 1 == len;
+            return (s?.Goo(await Bar()) ?? 2) + 1 == len;
         }
 
-        static int Foo<T>(this T s, int arg)
+        static int Goo<T>(this T s, int arg)
         {
             return ((string)(object)s).Length;
         }
@@ -6169,10 +6169,10 @@ class C
 
         static async Task<bool> HasLength<T>(T s, int len)
         {
-            return (s?.Foo(await Bar(await Bar())) ?? 2) + 1 == len;
+            return (s?.Goo(await Bar(await Bar())) ?? 2) + 1 == len;
         }
 
-        static int Foo<T>(this T s, int arg)
+        static int Goo<T>(this T s, int arg)
         {
             return ((string)(object)s).Length;
         }
@@ -6213,11 +6213,11 @@ class C
 
         static async Task<bool> HasLength(string s, int len)
         {
-            System.Console.WriteLine(s?.Foo(await Bar())?.Foo(await Bar()) + ""#"");
-            return s?.Foo(await Bar())?.Foo(await Bar()).Length == len;
+            System.Console.WriteLine(s?.Goo(await Bar())?.Goo(await Bar()) + ""#"");
+            return s?.Goo(await Bar())?.Goo(await Bar()).Length == len;
         }
 
-        static string Foo(this string s, string arg)
+        static string Goo(this string s, string arg)
         {
             return s + arg;
         }
@@ -6251,10 +6251,10 @@ True");
 
         static async Task<bool> Test(string s)
         {
-            return (await Bar(s))?.Foo(await Bar())?.ToString()?.Length > 1;
+            return (await Bar(s))?.Goo(await Bar())?.ToString()?.Length > 1;
         }
 
-        static string Foo(this string s, string arg1)
+        static string Goo(this string s, string arg1)
         {
             return s + arg1;
         }
@@ -6336,7 +6336,7 @@ class C
 
     class C1
     {
-        public S1 Foo()
+        public S1 Goo()
         {
             return new S1();
         }
@@ -6353,12 +6353,12 @@ class C
 
     static bool TestEq(C1 c, S1 arg)
     {
-        return c?.Foo() == arg;
+        return c?.Goo() == arg;
     }
 
     static bool TestNeq(C1 c, S1 arg)
     {
-        return c?.Foo() != arg;
+        return c?.Goo() != arg;
     }
 
 }
@@ -6380,7 +6380,7 @@ class C
   IL_000b:  ldloc.0
   IL_000c:  br.s       IL_0019
   IL_000e:  ldarg.0
-  IL_000f:  call       ""C.S1 C.C1.Foo()""
+  IL_000f:  call       ""C.S1 C.C1.Goo()""
   IL_0014:  newobj     ""C.S1?..ctor(C.S1)""
   IL_0019:  ldarg.1
   IL_001a:  newobj     ""C.S1?..ctor(C.S1)""
@@ -6413,7 +6413,7 @@ class C
 
     class C1
     {
-        public S1 Foo()
+        public S1 Goo()
         {
             return new S1();
         }
@@ -6432,12 +6432,12 @@ class C
 
     static bool TestEq(C1 c, S1? arg)
     {
-        return c?.Foo() == arg;
+        return c?.Goo() == arg;
     }
 
     static bool TestNeq(C1 c, S1? arg)
     {
-        return c?.Foo() != arg;
+        return c?.Goo() != arg;
     }
 
 }
@@ -6461,7 +6461,7 @@ class C
   IL_000b:  ldloc.0
   IL_000c:  br.s       IL_0019
   IL_000e:  ldarg.0
-  IL_000f:  call       ""C.S1 C.C1.Foo()""
+  IL_000f:  call       ""C.S1 C.C1.Goo()""
   IL_0014:  newobj     ""C.S1?..ctor(C.S1)""
   IL_0019:  ldarg.1
   IL_001a:  call       ""bool C.S1.op_Inequality(C.S1?, C.S1?)""
@@ -6493,7 +6493,7 @@ class C
 
     class C1
     {
-        public S1 Foo()
+        public S1 Goo()
         {
             return new S1();
         }
@@ -6510,12 +6510,12 @@ class C
 
     static bool TestEq(C1 c, S1 arg)
     {
-        return c?.Foo() == arg;
+        return c?.Goo() == arg;
     }
 
     static bool TestNeq(C1 c, S1 arg)
     {
-        return c?.Foo() != arg;
+        return c?.Goo() != arg;
     }
 
 }
@@ -6534,7 +6534,7 @@ True
   IL_0003:  ldc.i4.1
   IL_0004:  ret
   IL_0005:  ldarg.0
-  IL_0006:  call       ""C.S1 C.C1.Foo()""
+  IL_0006:  call       ""C.S1 C.C1.Goo()""
   IL_000b:  ldarg.1
   IL_000c:  call       ""bool C.S1.op_Inequality(C.S1, C.S1)""
   IL_0011:  ret
@@ -6565,7 +6565,7 @@ class C
 
     class C1
     {
-        public S1 Foo()
+        public S1 Goo()
         {
             return new S1();
         }
@@ -6584,12 +6584,12 @@ class C
 
     static bool TestEq(C1 c, S1? arg)
     {
-        return c?.Foo() == arg;
+        return c?.Goo() == arg;
     }
 
     static bool TestNeq(C1 c, S1? arg)
     {
-        return c?.Foo() != arg;
+        return c?.Goo() != arg;
     }
 
 }
@@ -6613,7 +6613,7 @@ True");
   IL_0005:  call       ""bool C.S1?.HasValue.get""
   IL_000a:  ret
   IL_000b:  ldarg.0
-  IL_000c:  call       ""C.S1 C.C1.Foo()""
+  IL_000c:  call       ""C.S1 C.C1.Goo()""
   IL_0011:  stloc.0
   IL_0012:  ldarg.1
   IL_0013:  stloc.1
@@ -6924,37 +6924,29 @@ class Program
 
             verifier.VerifyIL("Test<T>.Run", @"
 {
-  // Code size       65 (0x41)
-  .maxstack  2
+  // Code size       48 (0x30)
+  .maxstack  1
   .locals init (T V_0,
-                T V_1,
-                string V_2)
+                string V_1)
   IL_0000:  nop
   IL_0001:  ldloca.s   V_0
   IL_0003:  initobj    ""T""
   IL_0009:  ldloc.0
-  IL_000a:  stloc.0
-  IL_000b:  ldloca.s   V_0
-  IL_000d:  ldloca.s   V_1
-  IL_000f:  initobj    ""T""
-  IL_0015:  ldloc.1
-  IL_0016:  box        ""T""
-  IL_001b:  brtrue.s   IL_0031
-  IL_001d:  ldobj      ""T""
-  IL_0022:  stloc.1
-  IL_0023:  ldloca.s   V_1
-  IL_0025:  ldloc.1
-  IL_0026:  box        ""T""
-  IL_002b:  brtrue.s   IL_0031
-  IL_002d:  pop
-  IL_002e:  ldnull
-  IL_002f:  br.s       IL_003c
-  IL_0031:  constrained. ""T""
-  IL_0037:  callvirt   ""string object.ToString()""
-  IL_003c:  stloc.2
-  IL_003d:  br.s       IL_003f
-  IL_003f:  ldloc.2
-  IL_0040:  ret
+  IL_000a:  box        ""T""
+  IL_000f:  brtrue.s   IL_0014
+  IL_0011:  ldnull
+  IL_0012:  br.s       IL_002b
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  initobj    ""T""
+  IL_001c:  ldloc.0
+  IL_001d:  stloc.0
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  constrained. ""T""
+  IL_0026:  callvirt   ""string object.ToString()""
+  IL_002b:  stloc.1
+  IL_002c:  br.s       IL_002e
+  IL_002e:  ldloc.1
+  IL_002f:  ret
 }");
         }
 
@@ -7051,37 +7043,29 @@ class Program
 
             verifier.VerifyIL("Test<T>.Run", @"
 {
-  // Code size       65 (0x41)
-  .maxstack  2
+  // Code size       48 (0x30)
+  .maxstack  1
   .locals init (T V_0,
-                T V_1,
-                string V_2)
+                string V_1)
   IL_0000:  nop
   IL_0001:  ldloca.s   V_0
   IL_0003:  initobj    ""T""
   IL_0009:  ldloc.0
-  IL_000a:  stloc.0
-  IL_000b:  ldloca.s   V_0
-  IL_000d:  ldloca.s   V_1
-  IL_000f:  initobj    ""T""
-  IL_0015:  ldloc.1
-  IL_0016:  box        ""T""
-  IL_001b:  brtrue.s   IL_0031
-  IL_001d:  ldobj      ""T""
-  IL_0022:  stloc.1
-  IL_0023:  ldloca.s   V_1
-  IL_0025:  ldloc.1
-  IL_0026:  box        ""T""
-  IL_002b:  brtrue.s   IL_0031
-  IL_002d:  pop
-  IL_002e:  ldnull
-  IL_002f:  br.s       IL_003c
-  IL_0031:  constrained. ""T""
-  IL_0037:  callvirt   ""string object.ToString()""
-  IL_003c:  stloc.2
-  IL_003d:  br.s       IL_003f
-  IL_003f:  ldloc.2
-  IL_0040:  ret
+  IL_000a:  box        ""T""
+  IL_000f:  brtrue.s   IL_0014
+  IL_0011:  ldnull
+  IL_0012:  br.s       IL_002b
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  initobj    ""T""
+  IL_001c:  ldloc.0
+  IL_001d:  stloc.0
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  constrained. ""T""
+  IL_0026:  callvirt   ""string object.ToString()""
+  IL_002b:  stloc.1
+  IL_002c:  br.s       IL_002e
+  IL_002e:  ldloc.1
+  IL_002f:  ret
 }");
         }
 

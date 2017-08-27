@@ -35,7 +35,7 @@ class A
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
                 // (7,22): warning CS0219: The variable 'o2' is assigned but its value is never used
                 //         const string o2 = (string)o1; // Dev10 reports CS0133
@@ -58,7 +58,7 @@ class B : IFace<B.C.D>
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             // In Dev10, there was an error - ErrorCode.ERR_CircularBase at (4,7)
             Assert.Equal(0, comp.GetDiagnostics().Count());
         }
@@ -75,7 +75,7 @@ public class Base<T>
     public virtual List<T> Property1 { get { return null; } protected internal set { } }
     public virtual List<T> Property2 { protected internal get { return null; } set { } }
 }";
-            var compilation1 = CreateCompilationWithMscorlib(source1);
+            var compilation1 = CreateStandardCompilation(source1);
 
             var source2 = @"
 using System.Collections.Generic;
@@ -85,7 +85,7 @@ public class Derived : Base<int>
     public sealed override List<int> Property1 { get { return null; } }
     public sealed override List<int> Property2 { set { } }
 }";
-            var comp = CreateCompilationWithMscorlib(source2, new[] { new CSharpCompilationReference(compilation1) });
+            var comp = CreateStandardCompilation(source2, new[] { new CSharpCompilationReference(compilation1) });
             comp.VerifyDiagnostics();
 
             // This is not a breaking change - but it is a change in behavior from Dev10
@@ -154,7 +154,7 @@ public class MonthDays : idx
    }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text);
+            var compilation = CreateStandardCompilation(text);
 
             compilation.VerifyDiagnostics();
 
@@ -244,7 +244,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "null ?? null").WithArguments("??", "<null>", "<null>"),
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, @"null ?? ""ABC""").WithArguments("b"),
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, @"""DEF"" ?? null").WithArguments("c"),
@@ -258,15 +258,15 @@ class Program
             var test = @"using System;
 
 [AttributeUsage(AttributeTargets.All)]
-public class Foo : Attribute
+public class Goo : Attribute
 {
     public int Name;
-    public Foo(int sName) { Name = sName; }
+    public Goo(int sName) { Name = sName; }
 }
 
 public delegate void EventHandler(object sender, EventArgs e);
 
-[assembly: Foo(5)]
+[assembly: Goo(5)]
 public class Test { }
 ";
 
@@ -288,7 +288,7 @@ public class Test { }
         static T x;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
                 // (3,18): warning CS0169: The field 'S1<T>.x' is never used
                 //     S1<S1<T>>.S2 x;
@@ -359,8 +359,8 @@ class Test01
     public static int Bar<T>(int x, T y, params int[] z) { return 1; }
     public static int Bar<T>(string y, int x) { return 0; } // Roslyn pick this one
 
-    public static int Foo<T>(int x, T y) { return 1; }
-    public static int Foo<T>(string y, int x) { return 0; } // Roslyn pick this one
+    public static int Goo<T>(int x, T y) { return 1; }
+    public static int Goo<T>(string y, int x) { return 0; } // Roslyn pick this one
 
     public static int AbcDef<T>(int x, T y) { return 0; } // Roslyn pick this one
     public static int AbcDef<T>(string y, int x, params int[] z) { return 1; }
@@ -368,7 +368,7 @@ class Test01
     public static void Main01()
     {
         Console.Write(Bar<string>(x: 1, y: ""T1""));    // Dev10:CS0121
-        Console.Write(Foo<string>(x: 1, y: ""T2""));    // Dev10:CS0121
+        Console.Write(Goo<string>(x: 1, y: ""T2""));    // Dev10:CS0121
         Console.Write(AbcDef<string>(x: 1, y: ""T3"")); // Dev10:CS0121
     }
 }
@@ -399,8 +399,8 @@ class C
     }
 }
 ";
-            var standardCompilation = CreateCompilationWithMscorlib(source);
-            var strictCompilation = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithStrictFeature());
+            var standardCompilation = CreateStandardCompilation(source);
+            var strictCompilation = CreateStandardCompilation(source, parseOptions: TestOptions.Regular.WithStrictFeature());
 
             standardCompilation.VerifyDiagnostics(
                 // (8,32): warning CS0642: Possible mistaken empty statement
@@ -449,14 +449,14 @@ class A
 {
     static void Main()
     {
-        Foo( delegate () { throw new Exception(); }); // both Dev10 & Roslyn no error
-        Foo(x: () => { throw new Exception(); });    // Dev10: CS0121, Roslyn: no error
+        Goo( delegate () { throw new Exception(); }); // both Dev10 & Roslyn no error
+        Goo(x: () => { throw new Exception(); });    // Dev10: CS0121, Roslyn: no error
     }
-    public static void Foo(Action x)
+    public static void Goo(Action x)
     {
         Console.WriteLine(1);
     }
-    public static void Foo(Func<int> x)
+    public static void Goo(Func<int> x)
     {
         Console.WriteLine(2);   // Roslyn call this one
     }
@@ -466,7 +466,7 @@ class A
             // Dev10 reports CS0121 because ExpressionBinder::WhichConversionIsBetter fails to unwrap
             // the NamedArgumentSpecification to find the UNBOUNDLAMBDA and, thus, never calls
             // WhichLambdaConversionIsBetter.
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            CreateStandardCompilation(text).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(529202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529202")]
@@ -494,7 +494,7 @@ struct S
     }
 }";
             // Dev10/11: (11,9): error CS0029: Cannot implicitly convert type 'int' to 'S'
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,15): error CS0029: Cannot implicitly convert type 'int' to 'S'
                 //         S s = 0;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "S")
@@ -572,7 +572,7 @@ public class GenC<T, U> where T : struct, U
         U valueUn = nt;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,21): error CS0029: Cannot implicitly convert type 'T?' to 'U'
                 //         U valueUn = nt;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "nt").WithArguments("T?", "U"));
@@ -593,10 +593,10 @@ public class GenC<T, U> where T : struct, U
 
             string source = @"using System;
 
-public interface IFoo {    void Method();    }
-public class CT : IFoo {    public void Method() { }    }
+public interface IGoo {    void Method();    }
+public class CT : IGoo {    public void Method() { }    }
 
-public class GenC<T>  where T : IFoo
+public class GenC<T>  where T : IGoo
 {
     public T valueT;
     public static explicit operator T(GenC<T> val)
@@ -610,14 +610,14 @@ public class Test
 {
     public static void Main()
     {
-        var _class = new GenC<IFoo>();
+        var _class = new GenC<IGoo>();
         var ret = (CT)_class;
     }
 }
 ";
 
             // CompileAndVerify(source, expectedOutput: "ExpConv");
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(529362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529362")]
@@ -710,7 +710,7 @@ class NullCoalescingTest
 }
 ";
             // Native compiler no error (print -123)
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (10,27): error CS0165: Use of unassigned local variable 'c'
                 //         Console.WriteLine(c);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "c").WithArguments("c"),
@@ -736,7 +736,7 @@ class A
 ";
             // Dev10 Won't fix bug#31328 for md array with different types' index and involving ulong
             // CS0266: Cannot implicitly convert type 'ulong' to 'int'. ...
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            CreateStandardCompilation(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -753,7 +753,7 @@ unsafe class C
 ";
             // Dev10: the null literal is treated as though it is converted to void*, making the subtraction illegal (ExpressionBinder::GetPtrBinOpSigs).
             // Roslyn: the null literal is converted to int*, making the subtraction legal.
-            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -773,7 +773,7 @@ class Boom : System.Attribute
 ";
             // Roslyn: error CS0181: Attribute constructor parameter 'x' has type 'int?', which is not a valid attribute parameter type
             // Dev10/11: no error, but throw at runtime - System.Reflection.CustomAttributeFormatException
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Boom").WithArguments("x", "int?"));
         }
 
@@ -800,7 +800,7 @@ public class Test
 ";
             // Roslyn: error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('T')
             // Dev10/11: no error
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "T*").WithArguments("T"));
         }
 
@@ -813,7 +813,7 @@ class F<T> : A where T : F<object*>.I { }
 ";
             // Roslyn: error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('object')
             // Dev10/11: no error
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "object*").WithArguments("object"));
         }
 
@@ -843,7 +843,7 @@ class C
 ";
             // Roslyn: error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('object')
             // Dev10/11: no error
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // This is new in Roslyn.
 
                 // (7,29): error CS0165: Use of unassigned local variable 'i'
@@ -930,13 +930,13 @@ public class Program
             // Dev11 reported no errors for the above repro and allowed the name 'count' to bind to different
             // variables within the same declaration space. According to the old spec the error should be reported.
             // In Roslyn the single definition rule is relaxed and we do not give an error, but for a different reason.
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(530301, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530301")]
         public void NoMore_CS0458WRN_AlwaysNull02()
         {
-            CreateCompilationWithMscorlib(
+            CreateStandardCompilation(
 @"
 public class Test
 {
@@ -1000,7 +1000,7 @@ public class c
    }
 } 
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
 
             // In Roslyn the single definition rule is relaxed and we do not give an error.
             comp.VerifyDiagnostics();
@@ -1076,7 +1076,7 @@ public class Test
 }
 ";
             // Native compiler no error (print -123)
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
     // (8,13): warning CS0219: The variable 'b1' is assigned but its value is never used
     //         var b1 = new Derived(); // Both Warning CS0219
     Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "b1").WithArguments("b1"),
@@ -1097,7 +1097,7 @@ class MyAtt1 : Attribute { }
 public class Test {}
 ";
             // Native compiler  error CS0591: Invalid value for argument to 'AttributeUsage' attribute
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(530586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530586")]
@@ -1115,7 +1115,7 @@ class Program
         var demo = new test();
         try
         {
-            foreach (var x in demo.Foo()) { }
+            foreach (var x in demo.Goo()) { }
         }
         catch (Exception)
         {
@@ -1126,7 +1126,7 @@ class Program
     class test
     {
         public int count = 0;
-        public IEnumerable Foo()
+        public IEnumerable Goo()
         {
             try
             {
@@ -1152,7 +1152,7 @@ class Program
             var verifier = CompileAndVerify(source, expectedOutput: " ++ EX 1");
 
             // must not load "<>4__this"
-            verifier.VerifyIL("Program.test.<Foo>d__1.System.Collections.IEnumerator.MoveNext()", @"
+            verifier.VerifyIL("Program.test.<Goo>d__1.System.Collections.IEnumerator.MoveNext()", @"
 {
   // Code size      101 (0x65)
   .maxstack  2
@@ -1161,7 +1161,7 @@ class Program
   .try
   {
     IL_0000:  ldarg.0
-    IL_0001:  ldfld      ""int Program.test.<Foo>d__1.<>1__state""
+    IL_0001:  ldfld      ""int Program.test.<Goo>d__1.<>1__state""
     IL_0006:  stloc.1
     IL_0007:  ldloc.1
     IL_0008:  brfalse.s  IL_0012
@@ -1173,22 +1173,22 @@ class Program
     IL_0010:  leave.s    IL_0063
     IL_0012:  ldarg.0
     IL_0013:  ldc.i4.m1
-    IL_0014:  stfld      ""int Program.test.<Foo>d__1.<>1__state""
+    IL_0014:  stfld      ""int Program.test.<Goo>d__1.<>1__state""
     IL_0019:  ldarg.0
     IL_001a:  ldc.i4.s   -3
-    IL_001c:  stfld      ""int Program.test.<Foo>d__1.<>1__state""
+    IL_001c:  stfld      ""int Program.test.<Goo>d__1.<>1__state""
     IL_0021:  ldarg.0
     IL_0022:  ldnull
-    IL_0023:  stfld      ""object Program.test.<Foo>d__1.<>2__current""
+    IL_0023:  stfld      ""object Program.test.<Goo>d__1.<>2__current""
     IL_0028:  ldarg.0
     IL_0029:  ldc.i4.1
-    IL_002a:  stfld      ""int Program.test.<Foo>d__1.<>1__state""
+    IL_002a:  stfld      ""int Program.test.<Goo>d__1.<>1__state""
     IL_002f:  ldc.i4.1
     IL_0030:  stloc.0
     IL_0031:  leave.s    IL_0063
     IL_0033:  ldarg.0
     IL_0034:  ldc.i4.s   -3
-    IL_0036:  stfld      ""int Program.test.<Foo>d__1.<>1__state""
+    IL_0036:  stfld      ""int Program.test.<Goo>d__1.<>1__state""
     .try
     {
       IL_003b:  ldc.i4.0
@@ -1201,21 +1201,21 @@ class Program
       IL_0040:  leave.s    IL_0042
     }
     IL_0042:  ldarg.0
-    IL_0043:  call       ""void Program.test.<Foo>d__1.<>m__Finally1()""
+    IL_0043:  call       ""void Program.test.<Goo>d__1.<>m__Finally1()""
     IL_0048:  br.s       IL_0052
     IL_004a:  ldarg.0
-    IL_004b:  call       ""void Program.test.<Foo>d__1.<>m__Finally1()""
+    IL_004b:  call       ""void Program.test.<Goo>d__1.<>m__Finally1()""
     IL_0050:  leave.s    IL_0063
     IL_0052:  leave.s    IL_005b
   }
   fault
   {
     IL_0054:  ldarg.0
-    IL_0055:  call       ""void Program.test.<Foo>d__1.Dispose()""
+    IL_0055:  call       ""void Program.test.<Goo>d__1.Dispose()""
     IL_005a:  endfinally
   }
   IL_005b:  ldarg.0
-  IL_005c:  call       ""void Program.test.<Foo>d__1.Dispose()""
+  IL_005c:  call       ""void Program.test.<Goo>d__1.Dispose()""
   IL_0061:  ldc.i4.1
   IL_0062:  stloc.0
   IL_0063:  ldloc.0
@@ -1224,15 +1224,15 @@ class Program
 ");
 
             // must load "<>4__this"
-            verifier.VerifyIL("Program.test.<Foo>d__1.<>m__Finally1()", @"
+            verifier.VerifyIL("Program.test.<Goo>d__1.<>m__Finally1()", @"
 {
   // Code size       42 (0x2a)
   .maxstack  3
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.m1
-  IL_0002:  stfld      ""int Program.test.<Foo>d__1.<>1__state""
+  IL_0002:  stfld      ""int Program.test.<Goo>d__1.<>1__state""
   IL_0007:  ldarg.0
-  IL_0008:  ldfld      ""Program.test Program.test.<Foo>d__1.<>4__this""
+  IL_0008:  ldfld      ""Program.test Program.test.<Goo>d__1.<>4__this""
   IL_000d:  ldstr      ""++ ""
   IL_0012:  call       ""void System.Console.Write(string)""
   IL_0017:  dup
@@ -1285,7 +1285,7 @@ if (esbyte.e0 == esbyte.e0)
 }}
 ";
             // Native compiler no warn
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,5): warning CS1718: Comparison made to same variable; did you mean to compare something else?
                 Diagnostic(ErrorCode.WRN_ComparisonToSelf, "esbyte.e0 == esbyte.e0"));
         }
@@ -1303,7 +1303,7 @@ namespace VS7_336319
     public class ExpressionBinder
     {
         private static PredefinedTypes PredefinedTypes = null;
-        private void Foo()
+        private void Goo()
         {
             if (0 == (int)PredefinedTypes.Kind.Decimal) { }
         }
@@ -1311,7 +1311,7 @@ namespace VS7_336319
 }
 ";
             // Native compiler no warn
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
     // (10,40): warning CS0414: The field 'VS7_336319.ExpressionBinder.PredefinedTypes' is assigned but its value is never used
     //         private static PredefinedTypes PredefinedTypes = null;
     Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "PredefinedTypes").WithArguments("VS7_336319.ExpressionBinder.PredefinedTypes"));
@@ -1370,7 +1370,7 @@ static int Main()
     }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
     // (15,13): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(params double[])' and 'C.M(params G<int>[])'
     //             M();
     Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(params double[])", "C.M(params G<int>[])"));
@@ -1501,8 +1501,8 @@ using System;
 
 class Base<T, S>
 {
-    public virtual int Foo(ref S x) { return 0; }
-    public virtual string Foo(out T x)
+    public virtual int Goo(ref S x) { return 0; }
+    public virtual string Goo(out T x)
     {
         x = default(T); return ""Base.Out"";
     }
@@ -1510,14 +1510,14 @@ class Base<T, S>
 
 class Derived : Base<int, int>
 {
-    public override string Foo(out int x)
+    public override string Goo(out int x)
     {
         x = 0; return ""Derived.Out"";
     }
     static void Main()
     {
         int x;
-        Console.WriteLine(new Derived().Foo(out x));
+        Console.WriteLine(new Derived().Goo(out x));
     }
 }
 ";
@@ -1595,7 +1595,7 @@ public static class Util
 }
 ";
 
-            var libRef = CreateCompilationWithMscorlib(libSource, assemblyName: "lib").EmitToImageReference();
+            var libRef = CreateStandardCompilation(libSource, assemblyName: "lib").EmitToImageReference();
 
             {
                 var source = @"
@@ -1606,11 +1606,11 @@ class Test
 {
     static void Main()
     {
-        Console.Write(Util.Count(Foo<S>()));
-        Console.Write(Util.Count(Foo<C>()));
+        Console.Write(Util.Count(Goo<S>()));
+        Console.Write(Util.Count(Goo<C>()));
     }
 
-    static Wrapper<T> Foo<T>() where T : IEnumerable, IAdd, new()
+    static Wrapper<T> Goo<T>() where T : IEnumerable, IAdd, new()
     {
         return new Wrapper<T> { Item = { 1, 2, 3} };
     }
@@ -1618,7 +1618,7 @@ class Test
 ";
 
                 // As in dev11.
-                var comp = CreateCompilationWithMscorlib(source, new[] { libRef }, TestOptions.ReleaseExe);
+                var comp = CreateStandardCompilation(source, new[] { libRef }, TestOptions.ReleaseExe);
                 CompileAndVerify(comp, expectedOutput: "03");
             }
 
@@ -1631,10 +1631,10 @@ class Test
 {
     static void Main()
     {
-        Console.Write(Util.Count(Foo<C>()));
+        Console.Write(Util.Count(Goo<C>()));
     }
 
-    static Wrapper<T> Foo<T>() where T : class, IEnumerable, IAdd, new()
+    static Wrapper<T> Goo<T>() where T : class, IEnumerable, IAdd, new()
     {
         return new Wrapper<T> { Item = { 1, 2, 3} };
     }
@@ -1643,7 +1643,7 @@ class Test
 
                 // As in dev11.
                 // NOTE: The spec will likely be updated to make this illegal.
-                var comp = CreateCompilationWithMscorlib(source, new[] { libRef }, TestOptions.ReleaseExe);
+                var comp = CreateStandardCompilation(source, new[] { libRef }, TestOptions.ReleaseExe);
                 CompileAndVerify(comp, expectedOutput: "3");
             }
 
@@ -1656,10 +1656,10 @@ class Test
 {
     static void Main()
     {
-        Console.Write(Util.Count(Foo<S>()));
+        Console.Write(Util.Count(Goo<S>()));
     }
 
-    static Wrapper<T> Foo<T>() where T : struct, IEnumerable, IAdd
+    static Wrapper<T> Goo<T>() where T : struct, IEnumerable, IAdd
     {
         return new Wrapper<T> { Item = { 1, 2, 3} };
     }
@@ -1667,7 +1667,7 @@ class Test
 ";
 
                 // BREAK: dev11 compiles and prints "0"
-                var comp = CreateCompilationWithMscorlib(source, new[] { libRef }, TestOptions.ReleaseExe);
+                var comp = CreateStandardCompilation(source, new[] { libRef }, TestOptions.ReleaseExe);
                 comp.VerifyDiagnostics(
                     // (15,33): error CS1918: Members of property 'Wrapper<T>.Item' of type 'T' cannot be assigned with an object initializer because it is of a value type
                     //         return new Wrapper<T> { Item = { 1, 2, 3} };

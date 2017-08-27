@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -203,8 +204,8 @@ namespace Microsoft.CodeAnalysis
             {
                 foreach (int rank in fullName.ArrayRanks)
                 {
-                    Debug.Assert(rank > 0);
-                    container = rank == 1 ?
+                    Debug.Assert(rank >= 0);
+                    container = rank == 0 ?
                                 GetSZArrayTypeSymbol(container, default(ImmutableArray<ModifierInfo<TypeSymbol>>)) :
                                 GetMDArrayTypeSymbol(rank, container, default(ImmutableArray<ModifierInfo<TypeSymbol>>), ImmutableArray<int>.Empty, default(ImmutableArray<int>));
                 }

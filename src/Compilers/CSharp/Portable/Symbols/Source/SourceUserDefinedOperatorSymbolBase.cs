@@ -11,7 +11,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal abstract class SourceUserDefinedOperatorSymbolBase : SourceMethodSymbol
+    internal abstract class SourceUserDefinedOperatorSymbolBase : SourceMemberMethodSymbol
     {
         private readonly string _name;
         private readonly bool _isExpressionBodied;
@@ -42,12 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool modifierErrors;
             var declarationModifiers = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
-                modifiersSyntax,
-                defaultAccess,
-                allowedModifiers,
-                location,
-                diagnostics,
-                out modifierErrors);
+                modifiersSyntax, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
             this.CheckUnsafeModifier(declarationModifiers, diagnostics);
 
@@ -128,10 +123,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 signatureBinder,
                 this,
                 ParameterListSyntax,
-                true,
                 out arglistToken,
-                diagnostics,
-                false);
+                allowRefOrOut: true,
+                allowThis: false,
+                diagnostics: diagnostics);
 
             if (arglistToken.Kind() == SyntaxKind.ArgListKeyword)
             {
@@ -610,6 +605,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
         }
+
+        public sealed override ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraintClauses
+            => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
         internal override RefKind RefKind
         {

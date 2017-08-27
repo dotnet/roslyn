@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.ObjectModel;
@@ -409,15 +409,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal abstract string GetArrayDisplayString(DkmClrAppDomain appDomain, Type lmrType, ReadOnlyCollection<int> sizes, ReadOnlyCollection<int> lowerBounds, ObjectDisplayOptions options);
 
-        internal abstract string GetArrayIndexExpression(int[] indices);
+        internal abstract string GetArrayIndexExpression(string[] indices);
 
-        internal abstract string GetCastExpression(string argument, string type, bool parenthesizeArgument, bool parenthesizeEntireExpression);
+        internal abstract string GetCastExpression(string argument, string type, DkmClrCastExpressionOptions options);
 
         internal abstract string GetNamesForFlagsEnumValue(ArrayBuilder<EnumField> fields, object value, ulong underlyingValue, ObjectDisplayOptions options, Type typeToDisplayOpt);
 
         internal abstract string GetNameForEnumValue(ArrayBuilder<EnumField> fields, object value, ulong underlyingValue, ObjectDisplayOptions options, Type typeToDisplayOpt);
 
-        internal abstract string GetObjectCreationExpression(string type, string arguments);
+        internal abstract string GetObjectCreationExpression(string type, string[] arguments);
 
         internal abstract string GetTupleExpression(string[] values);
 

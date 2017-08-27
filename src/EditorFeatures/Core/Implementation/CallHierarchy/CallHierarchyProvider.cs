@@ -61,11 +61,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 
         private ISymbol GetTargetSymbol(ISymbol symbol)
         {
-            if (symbol is IMethodSymbol)
+            if (symbol is IMethodSymbol methodSymbol)
             {
-                var methodSymbol = (IMethodSymbol)symbol;
-                methodSymbol = methodSymbol.ReducedFrom != null ? methodSymbol.ReducedFrom : methodSymbol;
-                methodSymbol = methodSymbol.ConstructedFrom != null ? methodSymbol.ConstructedFrom : methodSymbol;
+                methodSymbol = methodSymbol.ReducedFrom ?? methodSymbol;
+                methodSymbol = methodSymbol.ConstructedFrom ?? methodSymbol;
                 return methodSymbol;
             }
 

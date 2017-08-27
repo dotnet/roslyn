@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public ITypeSymbol PointedAtType { get; }
 
         public CodeGenerationPointerTypeSymbol(ITypeSymbol pointedAtType)
-            : base(null, null, Accessibility.NotApplicable, default(DeclarationModifiers), string.Empty, SpecialType.None)
+            : base(null, default, Accessibility.NotApplicable, default, string.Empty, SpecialType.None)
         {
             this.PointedAtType = pointedAtType;
         }
@@ -20,21 +20,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return new CodeGenerationPointerTypeSymbol(this.PointedAtType);
         }
 
-        public override TypeKind TypeKind
-        {
-            get
-            {
-                return TypeKind.Pointer;
-            }
-        }
+        public override TypeKind TypeKind => TypeKind.Pointer;
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.PointerType;
-            }
-        }
+        public override SymbolKind Kind => SymbolKind.PointerType;
 
         public override void Accept(SymbolVisitor visitor)
         {

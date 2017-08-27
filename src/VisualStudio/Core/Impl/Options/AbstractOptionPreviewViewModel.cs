@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -173,7 +173,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 LineSpan.FromBounds(startLine, endLine));
 
             var textView = _textEditorFactoryService.CreateTextView(projection,
-              _textEditorFactoryService.CreateTextViewRoleSet(PredefinedTextViewRoles.Analyzable));
+              _textEditorFactoryService.CreateTextViewRoleSet(PredefinedTextViewRoles.Interactive));
 
             this.TextViewHost = _textEditorFactoryService.CreateTextViewHost(textView, setFocus: false);
 

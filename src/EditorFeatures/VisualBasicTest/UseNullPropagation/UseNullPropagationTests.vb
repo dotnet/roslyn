@@ -9,15 +9,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseNullPropagation
     Partial Public Class UseNullPropagationTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
-                New VisualBasicUseNullPropagationDiagnosticAnalyzer(),
-                New VisualBasicUseNullPropagationCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (New VisualBasicUseNullPropagationDiagnosticAnalyzer(),
+                    New VisualBasicUseNullPropagationCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
         Public Async Function TestLeft_Equals() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -46,12 +45,12 @@ Class C
     Sub M(o As Object)
         Dim v = [||]If (o Is Nothing, Nothing, o.ToString())
     End Sub
-End Class", parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+End Class", New TestParameters(VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12)))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
         Public Async Function TestRight_Equals() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -72,7 +71,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
         Public Async Function TestLeft_NotEquals() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -93,7 +92,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
         Public Async Function TestRight_NotEquals() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -114,7 +113,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
         Public Async Function TestIndexer() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -135,7 +134,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
         Public Async Function TestConditionalAccess() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -156,7 +155,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
         Public Async Function TestMemberAccess() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -177,7 +176,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
         Public Async Function TestMissingOnSimpleMatch() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "
 Imports System
 
@@ -190,7 +189,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
         Public Async Function TestParenthesizedCondition() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -211,7 +210,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
         Public Async Function TestFixAll1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -234,7 +233,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
         Public Async Function TestFixAll2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 Imports System
 
@@ -249,6 +248,32 @@ Imports System
 Class C
     void M(object o1, object o2)
         Dim v1 = o1?.ToString(o2?.ToString())
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        Public Async Function TestNullable1() As Task
+            Await TestMissingAsync(
+"
+Imports System
+
+Class C
+    Function M(o As String) As Integer?
+        return [||]If (o Is Nothing, Nothing, o.Length)
+    End Function
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        Public Async Function TestNullable2() As Task
+            Await TestMissingAsync(
+"
+Imports System
+
+Class C
+    Sub M(o As String)
+        Dim x = [||]If (o Is Nothing, Nothing, o.Length)
     End Sub
 End Class")
         End Function

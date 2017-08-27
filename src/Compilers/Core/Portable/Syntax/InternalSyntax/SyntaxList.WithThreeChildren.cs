@@ -9,6 +9,11 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
     {
         internal class WithThreeChildren : SyntaxList
         {
+            static WithThreeChildren()
+            {
+                ObjectBinder.RegisterTypeReader(typeof(WithThreeChildren), r => new WithThreeChildren(r));
+            }
+
             private readonly GreenNode _child0;
             private readonly GreenNode _child1;
             private readonly GreenNode _child2;
@@ -54,11 +59,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 writer.WriteValue(_child0);
                 writer.WriteValue(_child1);
                 writer.WriteValue(_child2);
-            }
-
-            internal override Func<ObjectReader, object> GetReader()
-            {
-                return r => new WithThreeChildren(r);
             }
 
             internal override GreenNode GetSlot(int index)

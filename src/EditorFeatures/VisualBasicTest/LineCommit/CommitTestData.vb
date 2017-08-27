@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports System.Xml.Linq
@@ -24,8 +24,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
         Private ReadOnly _formatter As FormatterMock
         Private ReadOnly _inlineRenameService As InlineRenameServiceMock
 
-        Public Shared Async Function CreateAsync(test As XElement) As Task(Of CommitTestData)
-            Dim workspace = Await TestWorkspace.CreateAsync(test)
+        Public Shared Function Create(test As XElement) As CommitTestData
+            Dim workspace = TestWorkspace.Create(test)
             Return New CommitTestData(workspace)
         End Function
 

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 {
     public abstract class AbstractAutomaticLineEnderTests
     {
-        protected abstract Task<TestWorkspace> CreateWorkspaceAsync(string code);
+        protected abstract TestWorkspace CreateWorkspace(string code);
         protected abstract Action CreateNextHandler(TestWorkspace workspace);
 
         internal abstract ICommandHandler<AutomaticLineEnderCommandArgs> CreateCommandHandler(
@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             ITextUndoHistoryRegistry undoRegistry,
             IEditorOperationsFactoryService editorOperations);
 
-        protected async Task TestAsync(string expected, string code, bool completionActive = false, bool assertNextHandlerInvoked = false)
+        protected void Test(string expected, string code, bool completionActive = false, bool assertNextHandlerInvoked = false)
         {
-            using (var workspace = await CreateWorkspaceAsync(code))
+            using (var workspace = CreateWorkspace(code))
             {
                 var view = workspace.Documents.Single().GetTextView();
                 var buffer = workspace.Documents.Single().GetTextBuffer();

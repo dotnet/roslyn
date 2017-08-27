@@ -9,15 +9,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseExplicitTupleNa
     Public Class UseExplicitTupleNameTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
-                New UseExplicitTupleNameDiagnosticAnalyzer(),
-                New UseExplicitTupleNameCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (New UseExplicitTupleNameDiagnosticAnalyzer(),
+                    New UseExplicitTupleNameCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
         Public Async Function TestNamedTuple1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     Sub M()
@@ -36,32 +35,32 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
         Public Async Function TestInArgument() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     Sub M()
         dim v1 as (i as integer, s as string)
-        Foo(v1.[|Item1|])
+        Goo(v1.[|Item1|])
     end sub
 
-    Sub Foo(i as integer)
+    Sub Goo(i as integer)
     end sub
 end class",
 "
 class C
     Sub M()
         dim v1 as (i as integer, s as string)
-        Foo(v1.i)
+        Goo(v1.i)
     end sub
 
-    Sub Foo(i as integer)
+    Sub Goo(i as integer)
     end sub
 end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
         Public Async Function TestNamedTuple2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     Sub M()
@@ -80,7 +79,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
         Public Async Function TestMissingOnMatchingName1() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "
 class C
     Sub M()
@@ -92,7 +91,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
         Public Async Function TestMissingOnMatchingName2() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "
 class C
     Sub M()
@@ -104,7 +103,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
         Public Async Function TestWrongCasing() As Task
-            Await TestMissingAsync(
+            Await TestMissingInRegularAndScriptAsync(
 "
 class C
     Sub M()
@@ -116,7 +115,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
         Public Async Function TestFixAll1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     Sub M()
@@ -137,7 +136,7 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)>
         Public Async Function TestFixAll2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "
 class C
     Sub M()

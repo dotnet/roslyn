@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             ImmutableDictionary<TKey, AnalyzerTelemetryInfo> telemetryInfo,
             ImmutableDictionary<TKey, ImmutableArray<DiagnosticData>> exceptions)
         {
-            AnalysisResult = analysisResult;
-            TelemetryInfo = telemetryInfo;
-            Exceptions = exceptions;
+            AnalysisResult = analysisResult ?? ImmutableDictionary<TKey, TValue>.Empty;
+            TelemetryInfo = telemetryInfo ?? ImmutableDictionary<TKey, AnalyzerTelemetryInfo>.Empty;
+            Exceptions = exceptions ?? ImmutableDictionary<TKey, ImmutableArray<DiagnosticData>>.Empty;
         }
     }
 }

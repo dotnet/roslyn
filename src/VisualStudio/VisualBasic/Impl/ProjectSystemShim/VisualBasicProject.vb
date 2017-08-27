@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.InteropServices
 Imports System.Runtime.InteropServices.ComTypes
@@ -392,7 +392,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
         Protected Overrides Function CreateParseOptions(commandLineArguments As CommandLineArguments) As ParseOptions
             Dim baseParseOptions = DirectCast(MyBase.CreateParseOptions(commandLineArguments), VisualBasicParseOptions)
-            Return VisualBasicProjectOptionsHelper.CreateParseOptions(baseParseOptions, _rawOptions)
+
+            Dim resultParseOptions = VisualBasicProjectOptionsHelper.CreateParseOptions(baseParseOptions, _rawOptions)
+
+            Dim commandLineOptions = DirectCast(commandLineArguments.ParseOptions, VisualBasicParseOptions)
+            If commandLineOptions.LanguageVersion > LanguageVersion.VisualBasic15 Then
+                ' For language versions after VB 15, we expect the version to be passed from MSBuild to the IDE
+                ' via command-line arguments (`ICompilerOptionsHostObject.SetCompilerOptions`)
+                ' instead of using `IVbcHostObject3.SetLanguageVersion`
+                resultParseOptions = resultParseOptions.WithLanguageVersion(commandLineOptions.LanguageVersion)
+            End If
+
+            Return resultParseOptions
         End Function
 
         Private Shadows Sub UpdateOptions()

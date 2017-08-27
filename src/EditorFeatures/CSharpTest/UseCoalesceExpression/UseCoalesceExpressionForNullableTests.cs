@@ -1,6 +1,5 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.UseCoalesceExpression;
@@ -14,17 +13,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCoalesceExpression
 {
     public class UseCoalesceExpressionForNullableTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                new CSharpUseCoalesceExpressionForNullableDiagnosticAnalyzer(),
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (new CSharpUseCoalesceExpressionForNullableDiagnosticAnalyzer(),
                 new UseCoalesceExpressionForNullableCodeFixProvider());
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestOnLeft_Equals()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -40,7 +36,7 @@ class C
 {
     void M(int? x, int? y)
     {
-        var z = x ?? y;
+        var z = x ?? y ;
     }
 }");
         }
@@ -48,7 +44,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestOnLeft_NotEquals()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -72,7 +68,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestComplexExpression()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -88,7 +84,7 @@ class C
 {
     void M(int? x, int? y)
     {
-        var z = (x + y) ?? y;
+        var z = (x + y) ?? y ;
     }
 }");
         }
@@ -96,7 +92,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestParens1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -120,7 +116,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestFixAll1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -138,7 +134,7 @@ class C
     void M(int? x, int? y)
     {
         var z1 = x ?? y;
-        var z2 = x ?? y;
+        var z2 = x ?? y ;
     }
 }");
         }
@@ -146,7 +142,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestFixAll2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -170,7 +166,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
         public async Task TestFixAll3()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -187,6 +183,33 @@ class C
     void M(int? x, int? y, int? z)
     {
         var w = x ?? y ?? z;
+    }
+}");
+        }
+
+        [WorkItem(17028, "https://github.com/dotnet/roslyn/issues/17028")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestInExpressionOfT()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Linq.Expressions;
+
+class C
+{
+    void M(int? x, int? y)
+    {
+        Expression<Func<int>> e = () => [||]!x.HasValue ? y : x.Value;
+    }
+}",
+@"using System;
+using System.Linq.Expressions;
+
+class C
+{
+    void M(int? x, int? y)
+    {
+        Expression<Func<int>> e = () => {|Warning:x ?? y|} ;
     }
 }");
         }

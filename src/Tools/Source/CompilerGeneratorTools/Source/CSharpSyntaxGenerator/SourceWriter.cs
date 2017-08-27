@@ -376,9 +376,9 @@ namespace CSharpSyntaxGenerator
 
             // IReadable
             WriteLine();
-            WriteLine("    internal override Func<ObjectReader, object> GetReader()");
+            WriteLine("    static {0}()", node.Name);
             WriteLine("    {");
-            WriteLine("       return r => new {0}(r);", node.Name);
+            WriteLine("       ObjectBinder.RegisterTypeReader(typeof({0}), r => new {0}(r));", node.Name);
             WriteLine("    }");
         }
 
@@ -510,8 +510,7 @@ namespace CSharpSyntaxGenerator
             int nWritten = 0;
             for (int i = 0, n = nodes.Count; i < n; i++)
             {
-                var node = nodes[i] as Node;
-                if (node != null)
+                if (nodes[i] is Node node)
                 {
                     if (nWritten > 0)
                         WriteLine();
@@ -604,8 +603,7 @@ namespace CSharpSyntaxGenerator
             int nWritten = 0;
             for (int i = 0, n = nodes.Count; i < n; i++)
             {
-                var node = nodes[i] as Node;
-                if (node != null)
+                if (nodes[i] is Node node)
                 {
                     var nodeFields = node.Fields.Where(nd => IsNodeOrNodeList(nd.Type)).ToList();
 
@@ -1213,8 +1211,7 @@ namespace CSharpSyntaxGenerator
             int nWritten = 0;
             for (int i = 0, n = nodes.Count; i < n; i++)
             {
-                var node = nodes[i] as Node;
-                if (node != null)
+                if (nodes[i] is Node node)
                 {
                     if (nWritten > 0)
                         WriteLine();
@@ -1430,8 +1427,7 @@ namespace CSharpSyntaxGenerator
             int nWritten = 0;
             for (int i = 0, n = nodes.Count; i < n; i++)
             {
-                var node = nodes[i] as Node;
-                if (node != null)
+                if (nodes[i] is Node node)
                 {
                     var nodeFields = node.Fields.Where(nd => IsNodeOrNodeList(nd.Type)).ToList();
 

@@ -35,9 +35,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             _typeCharacter = CType(reader.ReadByte(), TypeCharacter)
         End Sub
 
-        Friend Overrides Function GetReader() As Func(Of ObjectReader, Object)
-            Return Function(r) New ComplexIdentifierSyntax(r)
-        End Function
+        Shared Sub New()
+            ObjectBinder.RegisterTypeReader(GetType(ComplexIdentifierSyntax), Function(r) New ComplexIdentifierSyntax(r))
+        End Sub
 
         Friend Overrides Sub WriteTo(writer As ObjectWriter)
             MyBase.WriteTo(writer)

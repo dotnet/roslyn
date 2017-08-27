@@ -1089,7 +1089,7 @@ End Class
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables:=True)))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
-                AssertEx.Equal(Of Integer)({&H06000002UI, &H06000005UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
+                diff1.VerifyUpdatedMethods("0x06000005")
 
                 ' verify delta metadata contains expected rows
                 Using md1 = diff1.GetMetadata()
@@ -1239,7 +1239,7 @@ End Class
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables:=True)))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
-                AssertEx.Equal(Of Integer)({&H06000004UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
+                diff1.VerifyUpdatedMethods("0x06000004")
 
                 ' verify delta metadata contains expected rows
                 Using md1 = diff1.GetMetadata()
@@ -1487,7 +1487,7 @@ End Class
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
-                AssertEx.Equal(Of Integer)({&H06000002UI, &H06000005UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
+                diff1.VerifyUpdatedMethods("0x06000005")
 
                 ' verify delta metadata contains expected rows
                 Using md1 = diff1.GetMetadata()
@@ -1599,7 +1599,7 @@ End Class
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
-                AssertEx.Equal(Of Integer)({&H06000002UI, &H06000005UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
+                diff1.VerifyUpdatedMethods("0x06000005")
 
                 ' verify delta metadata contains expected rows
                 Using md1 = diff1.GetMetadata()
@@ -1716,7 +1716,7 @@ End Class
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
-                AssertEx.Equal(Of Integer)({&H06000002UI, &H06000005UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
+                diff1.VerifyUpdatedMethods("0x06000005")
 
                 ' verify delta metadata contains expected rows
                 Using md1 = diff1.GetMetadata()
@@ -1829,7 +1829,7 @@ End Class
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
-                AssertEx.Equal(Of Integer)({&H06000002UI, &H06000005UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
+                diff1.VerifyUpdatedMethods("0x06000005")
 
                 ' verify delta metadata contains expected rows
                 Using md1 = diff1.GetMetadata()
@@ -1970,7 +1970,7 @@ End Class
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapByKind(method0, SyntaxKind.ForEachStatement), preserveLocalVariables:=True)))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
-                AssertEx.Equal(Of Integer)({&H06000002UI, &H06000005UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
+                diff1.VerifyUpdatedMethods("0x06000005")
 
                 ' verify delta metadata contains expected rows
                 Using md1 = diff1.GetMetadata()
@@ -2122,7 +2122,7 @@ End Class
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
-                AssertEx.Equal(Of Integer)({&H06000004UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
+                diff1.VerifyUpdatedMethods("0x06000004")
 
                 ' verify delta metadata contains expected rows
                 Using md1 = diff1.GetMetadata()
@@ -2282,7 +2282,7 @@ End Class
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
-                AssertEx.Equal(Of Integer)({&H06000004UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
+                diff1.VerifyUpdatedMethods("0x06000004")
 
                 ' verify delta metadata contains expected rows
                 Using md1 = diff1.GetMetadata()
@@ -2447,7 +2447,7 @@ End Class
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
-                AssertEx.Equal(Of Integer)({&H06000004UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
+                diff1.VerifyUpdatedMethods("0x06000004")
 
                 ' verify delta metadata contains expected rows
                 Using md1 = diff1.GetMetadata()
@@ -2608,7 +2608,7 @@ End Class
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
-                AssertEx.Equal(Of Integer)({&H06000004UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
+                diff1.VerifyUpdatedMethods("0x06000004")
 
                 ' verify delta metadata contains expected rows
                 Using md1 = diff1.GetMetadata()

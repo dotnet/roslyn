@@ -135,7 +135,7 @@ namespace Roslyn.Utilities
                     break;
 
                 default:
-                    throw new ArgumentException(nameof(origin));
+                    throw new ArgumentException($"{nameof(origin)} ({origin}) is invalid.", nameof(origin));
             }
 
             if (plibNewPosition != IntPtr.Zero)

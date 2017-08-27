@@ -191,8 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitAsExpression((BoundAsOperator)expression, used);
                     break;
 
-                case BoundKind.DefaultOperator:
-                    EmitDefaultExpression((BoundDefaultOperator)expression, used);
+                case BoundKind.DefaultExpression:
+                    EmitDefaultExpression((BoundDefaultExpression)expression, used);
                     break;
 
                 case BoundKind.TypeOfOperator:
@@ -382,8 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // or if we have default(T) (to do box just once)
             var nullCheckOnCopy = LocalRewriter.CanChangeValueBetweenReads(receiver, localsMayBeAssignedOrCaptured: false) ||
                                    (receiverType.IsReferenceType && receiverType.TypeKind == TypeKind.TypeParameter) ||
-                                   (receiver.Kind == BoundKind.Local && IsStackLocal(((BoundLocal)receiver).LocalSymbol)) ||
-                                   (receiver.IsDefaultValue() && unconstrainedReceiver);
+                                   (receiver.Kind == BoundKind.Local && IsStackLocal(((BoundLocal)receiver).LocalSymbol));
 
             // ===== RECEIVER
             if (nullCheckOnCopy)
@@ -492,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 Debug.Assert(receiverTemp == null);
                 receiverTemp = EmitReceiverRef(receiver, isAccessConstrained: unconstrainedReceiver);
-                Debug.Assert(receiverTemp == null);
+                Debug.Assert(receiverTemp == null || receiver.IsDefaultValue());
             }
 
             EmitExpression(expression.WhenNotNull, used);
@@ -591,7 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             var temp = EmitAddress(expression.Operand, AddressKind.Writeable);
             Debug.Assert(temp == null, "If the operand is addressable, then a temp shouldn't be required.");
-            if (used && !expression.IsFixedStatementAddressOf)
+            if (used)
             {
                 // When computing an address to be used to initialize a fixed-statement variable, we have to be careful
                 // not to convert the managed reference to an unmanaged pointer before storing it.  Otherwise the GC might
@@ -634,8 +633,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitDelegateCreationExpression(BoundDelegateCreationExpression expression, bool used)
         {
-            var mg = expression.Argument as BoundMethodGroup;
-            var receiver = mg != null ? mg.ReceiverOpt : expression.Argument;
+            Debug.Assert(expression.Argument?.Kind != BoundKind.MethodGroup);
+            var receiver = expression.Argument;
             var meth = expression.MethodOpt ?? receiver.Type.DelegateInvokeMethod();
             Debug.Assert((object)meth != null);
             EmitDelegateCreation(expression, receiver, expression.IsExtensionMethod, meth, expression.Type, used);
@@ -1270,7 +1269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                         case ConversionKind.MethodGroup:
                         case ConversionKind.AnonymousFunction:
-                            return true;
+                            throw ExceptionUtilities.UnexpectedValue(conversion.ConversionKind);
 
                         case ConversionKind.ExplicitReference:
                         case ConversionKind.ImplicitReference:
@@ -1924,12 +1923,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 // It is desirable to do in-place ctor call if possible.
                 // we could do newobj/stloc, but in-place call 
-                // produces same or better code in current JITs 
+                // produces the same or better code in current JITs 
                 if (PartialCtorResultCannotEscape(left))
                 {
                     var objCreation = (BoundObjectCreationExpression)right;
-                    InPlaceCtorCall(left, objCreation, used);
-                    return true;
+                    var ctor = objCreation.Constructor;
+
+                    // ctor can possibly see its own assignments indirectly if there are ref parameters or __arglist
+                    if (System.Linq.ImmutableArrayExtensions.All(ctor.Parameters, p => p.RefKind == RefKind.None) &&
+                        !ctor.IsVararg)
+                    {
+                        InPlaceCtorCall(left, objCreation, used);
+                        return true;
+                    }
                 }
             }
 
@@ -2638,7 +2644,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitDefaultExpression(BoundDefaultOperator expression, bool used)
+        private void EmitDefaultExpression(BoundDefaultExpression expression, bool used)
         {
             Debug.Assert(expression.Type.SpecialType == SpecialType.System_Decimal ||
                 expression.Type.GetDefaultValue() == null, "constant should be set on this expression");
@@ -2720,7 +2726,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(node.Method.IsDefinition);
             Debug.Assert(node.Type.SpecialType == SpecialType.System_Int32);
             _builder.EmitOpCode(ILOpCode.Ldtoken);
-            EmitSymbolToken(node.Method, node.Syntax, null, encodeAsRawDefinitionToken: true);
+
+            // For partial methods, we emit pseudo token based on the symbol for the partial
+            // definition part as opposed to the symbol for the partial implementation part.
+            // We will need to resolve the symbol associated with each pseudo token in order
+            // to compute the real method definition tokens later. For partial methods, this
+            // resolution can only succeed if the associated symbol is the symbol for the
+            // partial definition and not the symbol for the partial implementation (see
+            // MethodSymbol.ResolvedMethodImpl()).
+            var symbol = node.Method.PartialDefinitionPart ?? node.Method;
+
+            EmitSymbolToken(symbol, node.Syntax, null, encodeAsRawDefinitionToken: true);
         }
 
         private void EmitMaximumMethodDefIndexExpression(BoundMaximumMethodDefIndex node)
@@ -3010,10 +3026,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.Conversion:
                     var conversion = (BoundConversion)expr;
                     var conversionKind = conversion.ConversionKind;
-                    if (conversionKind.IsImplicitConversion() &&
-                        conversionKind != ConversionKind.MethodGroup &&
-                        conversionKind != ConversionKind.NullLiteral)
+                    Debug.Assert(conversionKind != ConversionKind.DefaultOrNullLiteral);
+
+                    if (conversionKind.IsImplicitConversion())
                     {
+                        Debug.Assert(conversionKind != ConversionKind.MethodGroup);
                         return StackMergeType(conversion.Operand);
                     }
                     break;

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -147,15 +147,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        public InlineRenameSession Session
-        {
-            get { return _session; }
-        }
+        public InlineRenameSession Session => _session;
 
-        public DashboardSeverity Severity
-        {
-            get { return _severity; }
-        }
+        public DashboardSeverity Severity => _severity;
 
         public string HeaderText
         {
@@ -189,10 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        public string SearchText
-        {
-            get { return _searchText; }
-        }
+        public string SearchText => _searchText;
 
         public bool HasResolvableConflicts
         {
@@ -229,20 +220,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             get { return _errorText != null; }
         }
 
-        public string ErrorText
-        {
-            get { return _errorText; }
-        }
+        public string ErrorText => _errorText;
 
-        public Visibility RenameOverloadsVisibility
-        {
-            get { return _renameOverloadsVisibility; }
-        }
+        public Visibility RenameOverloadsVisibility => _renameOverloadsVisibility;
 
-        public bool IsRenameOverloadsEditable
-        {
-            get { return _isRenameOverloadsEditable; }
-        }
+        public bool IsRenameOverloadsEditable => _isRenameOverloadsEditable;
 
         public bool DefaultRenameOverloadFlag
         {

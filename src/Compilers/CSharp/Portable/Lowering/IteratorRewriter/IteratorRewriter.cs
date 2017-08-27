@@ -1,10 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -171,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Add a field: T current
             _currentField = F.StateMachineField(_elementType, GeneratedNames.MakeIteratorCurrentFieldName());
 
-            // if it is an enumerable, and either Environment.CurrentManagedThreadId or System.Thread are available
+            // if it is an enumerable, and either Environment.CurrentManagedThreadId or Thread.ManagedThreadId are available
             // add a field: int initialThreadId
             bool addInitialThreadId =
                    _isEnumerable &&

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -1320,7 +1321,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool IsCustomTaskType(this NamedTypeSymbol type, out object builderArgument)
         {
             Debug.Assert((object)type != null);
-            Debug.Assert(type.SpecialType != SpecialType.System_Void);
 
             var arity = type.Arity;
             if (arity < 2)

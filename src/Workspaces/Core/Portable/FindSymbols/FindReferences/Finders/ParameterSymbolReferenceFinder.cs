@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -223,20 +224,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var parameter = parameterAndProjectId.Symbol;
             var ordinal = parameter.Ordinal;
             var containingSymbol = parameter.ContainingSymbol;
-            if (containingSymbol is IMethodSymbol)
+            if (containingSymbol is IMethodSymbol containingMethod)
             {
-                var containingMethod = (IMethodSymbol)containingSymbol;
-                if (containingMethod.AssociatedSymbol is IPropertySymbol)
+                if (containingMethod.AssociatedSymbol is IPropertySymbol property)
                 {
-                    var property = (IPropertySymbol)containingMethod.AssociatedSymbol;
                     AddParameterAtIndex(
-                        parameterAndProjectId, results, 
+                        parameterAndProjectId, results,
                         ordinal, property.Parameters);
                 }
             }
-            else if (containingSymbol is IPropertySymbol)
+            else if (containingSymbol is IPropertySymbol containingProperty)
             {
-                var containingProperty = (IPropertySymbol)containingSymbol;
                 if (containingProperty.GetMethod != null && ordinal < containingProperty.GetMethod.Parameters.Length)
                 {
                     results.Add(parameterAndProjectId.WithSymbol(containingProperty.GetMethod.Parameters[ordinal]));
@@ -256,8 +254,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var parameter = parameterAndProjectId.Symbol;
             var ordinal = parameter.Ordinal;
-            var containingMethod = parameter.ContainingSymbol as IMethodSymbol;
-            if (containingMethod != null)
+            if (parameter.ContainingSymbol is IMethodSymbol containingMethod)
             {
                 var containingType = containingMethod.ContainingType as INamedTypeSymbol;
                 if (containingType.IsDelegateType())

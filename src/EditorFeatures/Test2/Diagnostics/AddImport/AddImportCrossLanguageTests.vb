@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
     Public Class AddImportCrossLanguageTests
         Inherits AbstractCrossLanguageUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As (DiagnosticAnalyzer, CodeFixProvider)
             Dim fixer As CodeFixProvider
             If language = LanguageNames.CSharp Then
                 fixer = New CSharpAddImportCodeFixProvider()
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
                 fixer = New VisualBasicAddImportCodeFixProvider()
             End If
 
-            Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, fixer)
+            Return (Nothing, fixer)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
                         <Document FilePath="Test1.vb">
                             public class Class1
                             {
-                                public void Foo()
+                                public void Goo()
                                 {
                                     var x = new Cl$$ass2();
                                 }
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
 
                             public class Class1
                             {
-                                public void Foo()
+                                public void Goo()
                                 {
                                     var x = new Class2();
                                 }
@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
                         <ProjectReference>CSAssembly1</ProjectReference>
                         <Document FilePath="Test1.vb">
                             public class Class1
-                                public sub Foo()
+                                public sub Goo()
                                     dim x as new Cl$$ass2()
                                 end sub
                             end class
@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
                             Imports NS2
 
                             Public Class Class1
-                                Public Sub Foo()
+                                Public Sub Goo()
                                     Dim x As New Class2()
                                 End Sub
                             End Class
@@ -219,7 +219,7 @@ Namespace VBAssembly1
 End Namespace
                 </text>.Value.Trim()
 
-            Await TestAsync(input, expected, codeActionIndex:=0)
+            Await TestAsync(input, expected, codeActionIndex:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
@@ -442,6 +442,36 @@ class C
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <WorkItem(16022, "https://github.com/dotnet/roslyn/issues/16022")>
+        Public Async Function TestAddProjectReference_EvenWithExistingUsing() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language='C#' AssemblyName='CSAssembly1' CommonReferences='true'>
+                        <Document FilePath='Test1.cs'>
+using A;
+
+class C
+{
+    $$B b;
+}
+                        </Document>
+                    </Project>
+                    <Project Language='C#' AssemblyName='CSAssembly2' CommonReferences='true'>
+                        <Document FilePath="Test2.cs">
+namespace A
+{
+    public class B { }
+}
+
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Await TestAsync(input, addedReference:="CSAssembly2",
+                            onAfterWorkspaceCreated:=AddressOf WaitForSolutionCrawler)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestAddProjectReferenceMissingForCircularReference() As Task
             Dim input =
                 <Workspace>
@@ -480,12 +510,14 @@ namespace CSAssembly2
                             Optional addedReference As String = Nothing,
                             Optional onAfterWorkspaceCreated As Action(Of TestWorkspace) = Nothing) As Task
             Dim verifySolutions As Action(Of Solution, Solution) = Nothing
+            Dim workspace As TestWorkspace = Nothing
+
             If addedReference IsNot Nothing Then
                 verifySolutions =
                     Sub(oldSolution As Solution, newSolution As Solution)
-                        Dim changedDoc = SolutionUtilities.GetSingleChangedDocument(oldSolution, newSolution)
-                        Dim oldProject = oldSolution.GetDocument(changedDoc.Id).Project
-                        Dim newProject = newSolution.GetDocument(changedDoc.Id).Project
+                        Dim initialDocId = workspace.DocumentWithCursor.Id
+                        Dim oldProject = oldSolution.GetDocument(initialDocId).Project
+                        Dim newProject = newSolution.GetDocument(initialDocId).Project
 
                         Dim oldProjectReferences = From r In oldProject.ProjectReferences
                                                    Let p = oldSolution.GetProject(r.ProjectId)
@@ -500,7 +532,12 @@ namespace CSAssembly2
                     End Sub
             End If
 
-            Await TestAsync(definition, expected, codeActionIndex, verifySolutions:=verifySolutions, onAfterWorkspaceCreated:=onAfterWorkspaceCreated)
+            Await TestAsync(definition, expected, codeActionIndex,
+                            verifySolutions:=verifySolutions,
+                            onAfterWorkspaceCreated:=Sub(ws As TestWorkspace)
+                                                         workspace = ws
+                                                         onAfterWorkspaceCreated?.Invoke(ws)
+                                                     End Sub)
         End Function
     End Class
 End Namespace

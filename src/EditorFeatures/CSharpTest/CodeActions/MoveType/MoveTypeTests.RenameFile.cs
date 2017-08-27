@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
@@ -29,6 +29,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
 }";
 
             var expectedDocumentName = "Class1.cs";
+
+            await TestRenameFileToMatchTypeAsync(code, expectedDocumentName);
+        }
+
+        [WorkItem(16284, "https://github.com/dotnet/roslyn/issues/16284")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoreThanOneTypeInFile_RenameFile_InnerType()
+        {
+            var code =
+@"class Class1
+{ 
+    [||]class Inner { }
+}";
+
+            var expectedDocumentName = "Class1.Inner.cs";
 
             await TestRenameFileToMatchTypeAsync(code, expectedDocumentName);
         }

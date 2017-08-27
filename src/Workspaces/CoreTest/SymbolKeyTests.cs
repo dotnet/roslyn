@@ -542,7 +542,7 @@ public class A<T1>
             var markup = @"
 class C
 {
-    void foo()
+    void goo()
     {
         System.Func<int> lambda = () => 
         {
@@ -570,13 +570,155 @@ class C
             var tree2 = await document.GetSyntaxTreeAsync();
             var basemethod2 = tree2.FindTokenOnLeftOfPosition(position, CancellationToken.None).GetAncestor<CSharp.Syntax.BaseMethodDeclarationSyntax>();
 
-            var service = new CSharp.CSharpSemanticFactsService();
+            var service = CSharp.CSharpSemanticFactsService.Instance;
             var m = service.TryGetSpeculativeSemanticModel(firstModel, basemethod1, basemethod2, out var testModel);
 
             var xSymbol = testModel.LookupSymbols(position).First(s => s.Name == "x");
 
             // This should not throw an exception.
             Assert.NotNull(SymbolKey.Create(xSymbol));
+        }
+
+        [Fact]
+        public void TestGenericMethodTypeParameterMissing1()
+        {
+            var source1 = @"
+public class C
+{
+    void M<T>(T t) { }
+}
+";
+
+            var source2 = @"
+public class C
+{
+}
+";
+
+            var compilation1 = GetCompilation(source1, LanguageNames.CSharp);
+            var compilation2 = GetCompilation(source2, LanguageNames.CSharp);
+
+            var methods = GetDeclaredSymbols(compilation1).OfType<IMethodSymbol>();
+            foreach (var method in methods)
+            {
+                var key = SymbolKey.Create(method);
+                key.Resolve(compilation2);
+            }
+        }
+
+        [Fact, WorkItem(377839, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=377839")]
+        public void TestConstructedMethodInsideLocalFunctionWithTypeParameters()
+        {
+            var source = @"
+using System.Linq;
+
+class C
+{
+    void Method()
+    {
+        object LocalFunction<T>()
+        {
+            return Enumerable.Empty<T>();
+        }
+    }
+}";
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
+            var symbols = GetAllSymbols(
+                compilation.GetSemanticModel(compilation.SyntaxTrees.Single()),
+                n => n is CSharp.Syntax.MemberAccessExpressionSyntax || n is CSharp.Syntax.InvocationExpressionSyntax);
+
+            var tested = false;
+            foreach (var symbol in symbols)
+            {
+                // Ensure we don't crash getting these symbol keys.
+                var id = SymbolKey.ToString(symbol);
+                Assert.NotNull(id);
+                var found = SymbolKey.Resolve(id, compilation: compilation).GetAnySymbol();
+                Assert.NotNull(found);
+
+                // note: we don't check that the symbols are equal.  That's because the compiler
+                // doesn't guarantee that the TypeParameters will be hte same across successive
+                // invocations. 
+                Assert.Equal(symbol.OriginalDefinition, found.OriginalDefinition);
+
+                tested = true;
+            }
+
+            Assert.True(tested);
+        }
+
+        [Fact, WorkItem(17702, "https://github.com/dotnet/roslyn/issues/17702")]
+        public void TestTupleWithLocalTypeReferences1()
+        {
+            var source = @"
+using System.Linq;
+
+class C
+{
+    void Method((C, int) t)
+    {
+    }
+}";
+            // Tuples store locations along with them.  But we can only recover those locations
+            // if we're re-resolving into a compilation with the same files.
+            var compilation1 = GetCompilation(source, LanguageNames.CSharp, "File1.cs");
+            var compilation2 = GetCompilation(source, LanguageNames.CSharp, "File2.cs");
+
+            var symbol = GetAllSymbols(
+                compilation1.GetSemanticModel(compilation1.SyntaxTrees.Single()),
+                n => n is CSharp.Syntax.MethodDeclarationSyntax).Single();
+
+            // Ensure we don't crash getting these symbol keys.
+            var id = SymbolKey.ToString(symbol);
+            Assert.NotNull(id);
+
+            // Validate that if the client does ask to resolve locations that we
+            // do not crash if those locations cannot be found.
+            var found = SymbolKey.Resolve(id, compilation2, resolveLocations: true).GetAnySymbol();
+            Assert.NotNull(found);
+
+            Assert.Equal(symbol.Name, found.Name);
+            Assert.Equal(symbol.Kind, found.Kind);
+
+            var method = found as IMethodSymbol;
+            Assert.True(method.Parameters[0].Type.IsTupleType);
+        }
+
+        [Fact, WorkItem(17702, "https://github.com/dotnet/roslyn/issues/17702")]
+        public void TestTupleWithLocalTypeReferences2()
+        {
+            var source = @"
+using System.Linq;
+
+class C
+{
+    void Method((C a, int b) t)
+    {
+    }
+}";
+            // Tuples store locations along with them.  But we can only recover those locations
+            // if we're re-resolving into a compilation with the same files.
+            var compilation1 = GetCompilation(source, LanguageNames.CSharp, "File1.cs");
+            var compilation2 = GetCompilation(source, LanguageNames.CSharp, "File2.cs");
+
+            var symbol = GetAllSymbols(
+                compilation1.GetSemanticModel(compilation1.SyntaxTrees.Single()),
+                n => n is CSharp.Syntax.MethodDeclarationSyntax).Single();
+
+            // Ensure we don't crash getting these symbol keys.
+            var id = SymbolKey.ToString(symbol);
+            Assert.NotNull(id);
+
+            // Validate that if the client does ask to resolve locations that we
+            // do not crash if those locations cannot be found.
+            var found = SymbolKey.Resolve(id, compilation2, resolveLocations: true).GetAnySymbol();
+            Assert.NotNull(found);
+
+            Assert.Equal(symbol.Name, found.Name);
+            Assert.Equal(symbol.Kind, found.Kind);
+
+            var method = found as IMethodSymbol;
+            Assert.True(method.Parameters[0].Type.IsTupleType);
         }
 
         private void TestRoundTrip(IEnumerable<ISymbol> symbols, Compilation compilation, Func<ISymbol, object> fnId = null)
@@ -606,48 +748,60 @@ class C
             }
         }
 
-        private Compilation GetCompilation(string source, string language)
+        private Compilation GetCompilation(string source, string language, string path = "")
         {
+            var references = new[]
+            {
+                MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location)
+            };
+
             if (language == LanguageNames.CSharp)
             {
-                var tree = CSharp.SyntaxFactory.ParseSyntaxTree(source);
-                return CSharp.CSharpCompilation.Create("Test", syntaxTrees: new[] { tree }, references: new[] { MetadataReference.CreateFromFile(typeof(object).Assembly.Location) });
+                var tree = CSharp.SyntaxFactory.ParseSyntaxTree(source, path: path);
+                return CSharp.CSharpCompilation.Create("Test", syntaxTrees: new[] { tree }, references: references);
             }
             else if (language == LanguageNames.VisualBasic)
             {
-                var tree = VisualBasic.SyntaxFactory.ParseSyntaxTree(source);
-                return VisualBasic.VisualBasicCompilation.Create("Test", syntaxTrees: new[] { tree }, references: new[] { MetadataReference.CreateFromFile(typeof(object).Assembly.Location) });
+                var tree = VisualBasic.SyntaxFactory.ParseSyntaxTree(source, path: path);
+                return VisualBasic.VisualBasicCompilation.Create("Test", syntaxTrees: new[] { tree }, references: references);
             }
 
             throw new NotSupportedException();
         }
 
-        private List<ISymbol> GetAllSymbols(SemanticModel model)
+        private List<ISymbol> GetAllSymbols(
+            SemanticModel model, Func<SyntaxNode, bool> predicate = null)
         {
             var list = new List<ISymbol>();
-            GetAllSymbols(model, model.SyntaxTree.GetRoot(), list);
+            GetAllSymbols(model, model.SyntaxTree.GetRoot(), list, predicate);
             return list;
         }
 
-        private void GetAllSymbols(SemanticModel model, SyntaxNode node, List<ISymbol> list)
+        private void GetAllSymbols(
+            SemanticModel model, SyntaxNode node,
+            List<ISymbol> list, Func<SyntaxNode, bool> predicate)
         {
-            var symbol = model.GetDeclaredSymbol(node);
-            if (symbol != null)
+            if (predicate == null || predicate(node))
             {
-                list.Add(symbol);
-            }
+                var symbol = model.GetDeclaredSymbol(node);
+                if (symbol != null)
+                {
+                    list.Add(symbol);
+                }
 
-            symbol = model.GetSymbolInfo(node).GetAnySymbol();
-            if (symbol != null)
-            {
-                list.Add(symbol);
+                symbol = model.GetSymbolInfo(node).GetAnySymbol();
+                if (symbol != null)
+                {
+                    list.Add(symbol);
+                }
             }
 
             foreach (var child in node.ChildNodesAndTokens())
             {
                 if (child.IsNode)
                 {
-                    GetAllSymbols(model, child.AsNode(), list);
+                    GetAllSymbols(model, child.AsNode(), list, predicate);
                 }
             }
         }
@@ -665,8 +819,7 @@ class C
             {
                 symbols.Add(member);
 
-                var nsOrType = member as INamespaceOrTypeSymbol;
-                if (nsOrType != null)
+                if (member is INamespaceOrTypeSymbol nsOrType)
                 {
                     GetDeclaredSymbols(nsOrType, symbols);
                 }

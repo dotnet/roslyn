@@ -3,10 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Globalization;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -39,15 +37,10 @@ namespace Microsoft.CodeAnalysis
                 if ((warningLevel == 0 && severity != DiagnosticSeverity.Error) ||
                     (warningLevel != 0 && severity == DiagnosticSeverity.Error))
                 {
-                    throw new ArgumentException(nameof(warningLevel));
+                    throw new ArgumentException($"{nameof(warningLevel)} ({warningLevel}) and {nameof(severity)} ({severity}) are not compatible.", nameof(warningLevel));
                 }
 
-                if (descriptor == null)
-                {
-                    throw new ArgumentNullException(nameof(descriptor));
-                }
-
-                _descriptor = descriptor;
+                _descriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));
                 _severity = severity;
                 _warningLevel = warningLevel;
                 _location = location ?? Location.None;

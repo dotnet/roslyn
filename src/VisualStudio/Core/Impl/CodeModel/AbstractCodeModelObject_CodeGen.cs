@@ -1,6 +1,7 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
@@ -27,11 +28,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var destination = CodeModelService.GetDestination(containerNode);
 
             var newMethodSymbol = CodeGenerationSymbolFactory.CreateConstructorSymbol(
-                attributes: null,
+                attributes: default(ImmutableArray<AttributeData>),
                 accessibility: CodeModelService.GetAccessibility(access, SymbolKind.Method, destination),
                 modifiers: new DeclarationModifiers(),
                 typeName: typeName,
-                parameters: null);
+                parameters: default(ImmutableArray<IParameterSymbol>));
 
             return CodeGenerationService.CreateMethodDeclaration(
                 newMethodSymbol, destination,
@@ -43,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var destination = CodeModelService.GetDestination(containerNode);
 
             var newMethodSymbol = CodeGenerationSymbolFactory.CreateDestructorSymbol(
-                attributes: null,
+                attributes: default(ImmutableArray<AttributeData>),
                 typeName: typeName);
 
             return CodeGenerationService.CreateMethodDeclaration(
@@ -55,10 +56,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var destination = CodeModelService.GetDestination(containerNode);
 
             var newTypeSymbol = CodeGenerationSymbolFactory.CreateDelegateTypeSymbol(
-                attributes: null,
+                attributes: default(ImmutableArray<AttributeData>),
                 accessibility: CodeModelService.GetAccessibility(access, SymbolKind.NamedType, destination),
                 modifiers: new DeclarationModifiers(),
                 returnType: returnType,
+                returnsByRef: false,
                 name: name);
 
             return CodeGenerationService.CreateNamedTypeDeclaration(
@@ -76,32 +78,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             if (createPropertyStyleEvent)
             {
                 addMethod = CodeGenerationSymbolFactory.CreateMethodSymbol(
-                    attributes: null,
+                    attributes: default(ImmutableArray<AttributeData>),
                     accessibility: Accessibility.NotApplicable,
                     modifiers: new DeclarationModifiers(),
                     returnType: null,
-                    explicitInterfaceSymbol: null,
+                    returnsByRef: false,
+                    explicitInterfaceImplementations: default,
                     name: "add_" + name,
-                    typeParameters: null,
-                    parameters: null);
+                    typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
+                    parameters: default(ImmutableArray<IParameterSymbol>));
 
                 removeMethod = CodeGenerationSymbolFactory.CreateMethodSymbol(
-                    attributes: null,
+                    attributes: default(ImmutableArray<AttributeData>),
                     accessibility: Accessibility.NotApplicable,
                     modifiers: new DeclarationModifiers(),
                     returnType: null,
-                    explicitInterfaceSymbol: null,
+                    returnsByRef: false,
+                    explicitInterfaceImplementations: default,
                     name: "remove_" + name,
-                    typeParameters: null,
-                    parameters: null);
+                    typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
+                    parameters: default(ImmutableArray<IParameterSymbol>));
             }
 
             var newEventSymbol = CodeGenerationSymbolFactory.CreateEventSymbol(
-                attributes: null,
+                attributes: default(ImmutableArray<AttributeData>),
                 accessibility: CodeModelService.GetAccessibility(access, SymbolKind.Event, destination),
                 modifiers: new DeclarationModifiers(),
                 type: type,
-                explicitInterfaceSymbol: null,
+                explicitInterfaceImplementations: default,
                 name: name,
                 addMethod: addMethod,
                 removeMethod: removeMethod);
@@ -116,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var destination = CodeModelService.GetDestination(containerNode);
 
             var newFieldSymbol = CodeGenerationSymbolFactory.CreateFieldSymbol(
-                attributes: null,
+                attributes: default(ImmutableArray<AttributeData>),
                 accessibility: CodeModelService.GetAccessibility(access, SymbolKind.Field, destination),
                 modifiers: new DeclarationModifiers(isWithEvents: CodeModelService.GetWithEvents(access)),
                 type: type,
@@ -132,14 +136,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var destination = CodeModelService.GetDestination(containerNode);
 
             var newMethodSymbol = CodeGenerationSymbolFactory.CreateMethodSymbol(
-                attributes: null,
+                attributes: default(ImmutableArray<AttributeData>),
                 accessibility: CodeModelService.GetAccessibility(access, SymbolKind.Method, destination),
                 modifiers: new DeclarationModifiers(),
                 returnType: returnType,
-                explicitInterfaceSymbol: null,
+                returnsByRef: false,
+                explicitInterfaceImplementations: default,
                 name: name,
-                typeParameters: null,
-                parameters: null);
+                typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
+                parameters: default(ImmutableArray<IParameterSymbol>));
 
             return CodeGenerationService.CreateMethodDeclaration(
                 newMethodSymbol, destination,
@@ -154,39 +159,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             if (generateGetter)
             {
                 getMethod = CodeGenerationSymbolFactory.CreateMethodSymbol(
-                    attributes: null,
+                    attributes: default(ImmutableArray<AttributeData>),
                     accessibility: Accessibility.NotApplicable,
                     modifiers: new DeclarationModifiers(),
                     returnType: null,
-                    explicitInterfaceSymbol: null,
+                    returnsByRef: false,
+                    explicitInterfaceImplementations: default,
                     name: "get_" + name,
-                    typeParameters: null,
-                    parameters: null,
-                    statements: new[] { CodeModelService.CreateReturnDefaultValueStatement(type) });
+                    typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
+                    parameters: default(ImmutableArray<IParameterSymbol>),
+                    statements: ImmutableArray.Create(CodeModelService.CreateReturnDefaultValueStatement(type)));
             }
 
             IMethodSymbol setMethod = null;
             if (generateSetter)
             {
                 setMethod = CodeGenerationSymbolFactory.CreateMethodSymbol(
-                    attributes: null,
+                    attributes: default(ImmutableArray<AttributeData>),
                     accessibility: Accessibility.NotApplicable,
                     modifiers: new DeclarationModifiers(),
                     returnType: null,
-                    explicitInterfaceSymbol: null,
+                    returnsByRef: false,
+                    explicitInterfaceImplementations: default,
                     name: "set_" + name,
-                    typeParameters: null,
-                    parameters: null);
+                    typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
+                    parameters: default(ImmutableArray<IParameterSymbol>));
             }
 
             var newPropertySymbol = CodeGenerationSymbolFactory.CreatePropertySymbol(
-                attributes: null,
+                attributes: default(ImmutableArray<AttributeData>),
                 accessibility: CodeModelService.GetAccessibility(access, SymbolKind.Field, destination),
                 modifiers: new DeclarationModifiers(),
                 type: type,
-                explicitInterfaceSymbol: null,
+                returnsByRef: false,
+                explicitInterfaceImplementations: default,
                 name: name,
-                parameters: null,
+                parameters: default(ImmutableArray<IParameterSymbol>),
                 getMethod: getMethod,
                 setMethod: setMethod);
 
@@ -213,21 +221,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             string name,
             EnvDTE.vsCMAccess access,
             INamedTypeSymbol baseType = null,
-            IList<INamedTypeSymbol> implementedInterfaces = null)
+            ImmutableArray<INamedTypeSymbol> implementedInterfaces = default(ImmutableArray<INamedTypeSymbol>))
         {
             var destination = CodeModelService.GetDestination(containerNode);
 
             var newTypeSymbol = CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
-                attributes: null,
+                attributes: default(ImmutableArray<AttributeData>),
                 accessibility: CodeModelService.GetAccessibility(access, SymbolKind.NamedType, destination),
                 modifiers: new DeclarationModifiers(),
                 typeKind: typeKind,
                 name: name,
-                typeParameters: null,
+                typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
                 baseType: baseType,
                 interfaces: implementedInterfaces,
                 specialType: SpecialType.None,
-                members: null);
+                members: default(ImmutableArray<ISymbol>));
 
             return CodeGenerationService.CreateNamedTypeDeclaration(
                 newTypeSymbol, destination,

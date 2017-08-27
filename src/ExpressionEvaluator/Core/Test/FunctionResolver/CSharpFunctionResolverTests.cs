@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
     static void F(object o) { }
     object F() => null;
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             var module = new Module(compilation.EmitToArray());
             using (var process = new Process())
             {
@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
     static void F() { }
     static void G() { }
 }";
-            var bytesA = CreateCompilationWithMscorlib(sourceA).EmitToArray();
-            var bytesB = CreateCompilationWithMscorlib(sourceB).EmitToArray();
+            var bytesA = CreateStandardCompilation(sourceA).EmitToArray();
+            var bytesB = CreateStandardCompilation(sourceB).EmitToArray();
             var resolver = Resolver.CSharpResolver;
 
             // Two modules loaded before two global requests,
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {
     static void F() { }
 }";
-            var bytes = CreateCompilationWithMscorlib(source).EmitToArray();
+            var bytes = CreateStandardCompilation(source).EmitToArray();
             var resolver = Resolver.CSharpResolver;
             var unknownId = Guid.Parse("F02FB87B-64EC-486E-B039-D4A97F48858C");
             var csharpLanguageId = Guid.Parse("3f5162f8-07c6-11d3-9053-00c04fa302a1");
@@ -312,9 +312,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
     static void F3() { }
     static void F4() { }
 }";
-            var moduleA = new Module(CreateCompilationWithMscorlib(sourceA).EmitToArray(), name: "A.dll");
+            var moduleA = new Module(CreateStandardCompilation(sourceA).EmitToArray(), name: "A.dll");
             var moduleB = new Module(default(ImmutableArray<byte>), name: "B.dll");
-            var moduleC = new Module(CreateCompilationWithMscorlib(sourceC).EmitToArray(), name: "C.dll");
+            var moduleC = new Module(CreateStandardCompilation(sourceC).EmitToArray(), name: "C.dll");
 
             using (var process = new Process())
             {
@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
     static void F() { }
 }";
             var nameA = GetUniqueName();
-            var compilationA = CreateCompilationWithMscorlib(sourceA, assemblyName: nameA);
+            var compilationA = CreateStandardCompilation(sourceA, assemblyName: nameA);
             var imageA = compilationA.EmitToArray();
             var refA = AssemblyMetadata.CreateFromImage(imageA).GetReference();
             var sourceB =
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
     static void Main() { }
 }";
             var nameB = GetUniqueName();
-            var compilationB = CreateCompilationWithMscorlib(sourceB, assemblyName: nameB, options: TestOptions.DebugExe, references: new[] { refA });
+            var compilationB = CreateStandardCompilation(sourceB, assemblyName: nameB, options: TestOptions.DebugExe, references: new[] { refA });
             var imageB = compilationB.EmitToArray();
             using (var process = new Process(new Module(imageA, nameA + ".dll"), new Module(imageB, nameB + ".exe")))
             {
@@ -464,7 +464,7 @@ class B
     static void F(A[][,,] o) { }
     static void F(A[][][] o) { }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.CSharpResolver;
@@ -491,7 +491,7 @@ class B
     static unsafe void F(int*[] p) { }
     static unsafe void F(int** q) { }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeDebugDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.UnsafeDebugDll);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.CSharpResolver;
@@ -516,7 +516,7 @@ class B
     void F(S? o) { }
     static void F(int?[] o) { }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.CSharpResolver;
@@ -539,7 +539,7 @@ class C
     static void F(@out a, @ref b) { }
     static void F(ref @out a, out @ref b) { b = null; }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.CSharpResolver;
@@ -574,7 +574,7 @@ interface I
 {
     object F();
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.CSharpResolver;
@@ -612,7 +612,7 @@ interface I
 {
     object P { get; set; }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.CSharpResolver;
@@ -655,7 +655,7 @@ class D
     static object A => null;
     static void B<T>() { }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.CSharpResolver;
@@ -690,7 +690,7 @@ class B : A<int>
 {
     static void F<T>() { }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 // Note, Dev14 matches type ignoring type parameters. For instance,
@@ -734,7 +734,7 @@ namespace N
         static void F() { }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.CSharpResolver;
@@ -780,7 +780,7 @@ namespace N
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 // See comment in GenericMethods regarding differences with Dev14.
@@ -837,7 +837,7 @@ class A<T>
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.CSharpResolver;
@@ -893,7 +893,7 @@ namespace B
         static void F(A3.B.C c) { }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.CSharpResolver;
@@ -926,7 +926,7 @@ class A<T>
         static void F<V>(B<V> v) { }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.CSharpResolver;
@@ -961,7 +961,7 @@ class B
     static void Method() { }
     object Property { get; set; }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.CSharpResolver;
@@ -993,7 +993,7 @@ namespace One.Two
         static void Method(Three t) { }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.CSharpResolver;
@@ -1028,7 +1028,7 @@ namespace N
     {
     }
 }";
-            var compilationA = CreateCompilationWithMscorlib(sourceA);
+            var compilationA = CreateStandardCompilation(sourceA);
             var bytesA = compilationA.EmitToArray();
             var refA = AssemblyMetadata.CreateFromImage(bytesA).GetReference();
             var sourceB =
@@ -1036,7 +1036,7 @@ namespace N
 {
     static void F<U, V>(N.C<A<U>.B<V>[]> b) { }
 }";
-            var compilationB = CreateCompilationWithMscorlib(sourceB, references: new[] { refA });
+            var compilationB = CreateStandardCompilation(sourceB, references: new[] { refA });
             var bytesB = compilationB.EmitToArray();
             using (var process = new Process(new Module(bytesA), new Module(bytesB)))
             {
@@ -1066,7 +1066,7 @@ namespace N
         object @public => 1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.CSharpResolver;
@@ -1087,7 +1087,7 @@ namespace N
 {
     static void F<@out>(@in i, @out o) { }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.CSharpResolver;
@@ -1118,7 +1118,7 @@ class C
 {
     static void F(@namespace.@struct s) { }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.CSharpResolver;
@@ -1146,7 +1146,7 @@ class C
 {
     static void F(@class<@this.@base> c) { }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.CSharpResolver;
@@ -1170,7 +1170,7 @@ class C
     static void F(Object o) { }
     static void F(object o) { }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.CSharpResolver;
@@ -1197,7 +1197,7 @@ class C
     static void F(C<uint, long, ulong, float> o) { }
     static void F(C<double, string, object, decimal> o) { }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.CSharpResolver;
@@ -1220,7 +1220,7 @@ class C
     static void F(System.UIntPtr p) { }
     static void F(System.TypedReference r) { }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.CSharpResolver;
@@ -1245,7 +1245,7 @@ class C
     static void F(dynamic d) { }
     static void F(C<dynamic[]> d) { }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, references: new[] { CSharpRef, SystemCoreRef });
+            var compilation = CreateStandardCompilation(source, references: new[] { CSharpRef, SystemCoreRef });
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.CSharpResolver;
@@ -1265,7 +1265,7 @@ class C
 {
     static System.Collections.IEnumerable F() { yield break; }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.CSharpResolver;
@@ -1310,7 +1310,7 @@ namespace N
         static void F(global::C o) { }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.CSharpResolver;
@@ -1341,7 +1341,7 @@ namespace N
             ImmutableArray<byte> pdbA;
             EmitILToArray(sourceA, appendDefaultHeader: true, includePdb: false, assemblyBytes: out bytesA, pdbBytes: out pdbA);
             var refA = AssemblyMetadata.CreateFromImage(bytesA).GetReference();
-            var compilationB = CreateCompilationWithMscorlib(sourceB, references: new[] { refA });
+            var compilationB = CreateStandardCompilation(sourceB, references: new[] { refA });
             var bytesB = compilationB.EmitToArray();
             using (var process = new Process(new Module(bytesB)))
             {
@@ -1368,7 +1368,7 @@ class B
 {
     public static int F() => 0;
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 var resolver = Resolver.CSharpResolver;

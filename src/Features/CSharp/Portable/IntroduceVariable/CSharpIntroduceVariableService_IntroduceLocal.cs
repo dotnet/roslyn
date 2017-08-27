@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
             var modifiers = isConstant
                 ? SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ConstKeyword))
-                : default(SyntaxTokenList);
+                : default;
 
             var options = await document.Document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
@@ -166,51 +166,6 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 && !typeSymbol.IsFormattableString();
         }
 
-        private static async Task<Tuple<SemanticDocument, ISet<ExpressionSyntax>>> ComplexifyParentingStatements(
-            SemanticDocument semanticDocument,
-            ISet<ExpressionSyntax> matches,
-            CancellationToken cancellationToken)
-        {
-            // First, track the matches so that we can get back to them later.
-            var newRoot = semanticDocument.Root.TrackNodes(matches);
-            var newDocument = semanticDocument.Document.WithSyntaxRoot(newRoot);
-            var newSemanticDocument = await SemanticDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
-            var newMatches = newSemanticDocument.Root.GetCurrentNodes(matches.AsEnumerable()).ToSet();
-
-            // Next, expand the topmost parenting expression of each match, being careful
-            // not to expand the matches themselves.
-            var topMostExpressions = newMatches
-                .Select(m => m.AncestorsAndSelf().OfType<ExpressionSyntax>().Last())
-                .Distinct();
-
-            newRoot = await newSemanticDocument.Root
-                .ReplaceNodesAsync(
-                    topMostExpressions,
-                    computeReplacementAsync: async (oldNode, newNode, ct) =>
-                    {
-                        return await Simplifier
-                            .ExpandAsync(
-                                oldNode,
-                                newSemanticDocument.Document,
-                                expandInsideNode: node =>
-                                {
-                                    var expression = node as ExpressionSyntax;
-                                    return expression == null
-                                        || !newMatches.Contains(expression);
-                                },
-                                cancellationToken: ct)
-                            .ConfigureAwait(false);
-                    },
-                    cancellationToken: cancellationToken)
-                .ConfigureAwait(false);
-
-            newDocument = newSemanticDocument.Document.WithSyntaxRoot(newRoot);
-            newSemanticDocument = await SemanticDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
-            newMatches = newSemanticDocument.Root.GetCurrentNodes(matches.AsEnumerable()).ToSet();
-
-            return Tuple.Create(newSemanticDocument, newMatches);
-        }
-
         private Document RewriteExpressionBodiedMemberAndIntroduceLocalDeclaration(
             SemanticDocument document,
             ArrowExpressionClauseSyntax arrowExpression,
@@ -232,12 +187,12 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                                        .WithAdditionalAnnotations(Formatter.Annotation);
 
             SyntaxNode newParentingNode = null;
-            if (oldParentingNode is BasePropertyDeclarationSyntax)
+            if (oldParentingNode is BasePropertyDeclarationSyntax baseProperty)
             {
                 var getAccessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, newBody);
                 var accessorList = SyntaxFactory.AccessorList(SyntaxFactory.List(new[] { getAccessor }));
 
-                newParentingNode = ((BasePropertyDeclarationSyntax)oldParentingNode).RemoveNode(oldBody, SyntaxRemoveOptions.KeepNoTrivia);
+                newParentingNode = baseProperty.RemoveNode(oldBody, SyntaxRemoveOptions.KeepNoTrivia);
 
                 if (newParentingNode.IsKind(SyntaxKind.PropertyDeclaration))
                 {
@@ -256,11 +211,10 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                         .WithTrailingTrivia(indexerDeclaration.SemicolonToken.TrailingTrivia);
                 }
             }
-            else if (oldParentingNode is BaseMethodDeclarationSyntax)
+            else if (oldParentingNode is BaseMethodDeclarationSyntax baseMethod)
             {
-                newParentingNode = ((BaseMethodDeclarationSyntax)oldParentingNode)
-                    .RemoveNode(oldBody, SyntaxRemoveOptions.KeepNoTrivia)
-                    .WithBody(newBody);
+                newParentingNode = baseMethod.RemoveNode(oldBody, SyntaxRemoveOptions.KeepNoTrivia)
+                                             .WithBody(newBody);
 
                 if (newParentingNode.IsKind(SyntaxKind.MethodDeclaration))
                 {
@@ -304,9 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             var matches = FindMatches(document, expression, document, oldOutermostBlock, allOccurrences, cancellationToken);
             Debug.Assert(matches.Contains(expression));
 
-            var complexified = await ComplexifyParentingStatements(document, matches, cancellationToken).ConfigureAwait(false);
-            document = complexified.Item1;
-            matches = complexified.Item2;
+            (document, matches) = await ComplexifyParentingStatements(document, matches, cancellationToken).ConfigureAwait(false);
 
             // Our original expression should have been one of the matches, which were tracked as part
             // of complexification, so we can retrieve the latest version of the expression here.

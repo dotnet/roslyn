@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -41,13 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
 
         public abstract string DisplayName { get; }
 
-        public virtual string SearchCategory
-        {
-            get
-            {
-                return DisplayName;
-            }
-        }
+        public virtual string SearchCategory => DisplayName;
 
         public void CancelSearch()
         {

@@ -5,6 +5,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -12,241 +14,364 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
+            var right = node.Right;
+            Debug.Assert(right.Conversion.Kind == ConversionKind.Deconstruction);
+
+            return RewriteDeconstruction(node.Left, right.Conversion, right.Operand, node.IsUsed);
+        }
+
+        /// <summary>
+        /// The left represents a tree of L-values. The structure of right can be missing parts of the tree on the left.
+        /// The conversion holds nested conversisons and deconstruction information, which matches the tree from the left,
+        /// and it provides the information to fill in the missing parts of the tree from the right and convert it to
+        /// the tree from the left.
+        ///
+        /// A bound sequence is returned which has different phases of side-effects:
+        /// - the initialization phase includes side-effects from the left, followed by evaluations of the right
+        /// - the deconstruction phase includes all the invocations of Deconstruct methods and tuple element accesses below a Deconstruct call
+        /// - the conversion phase
+        /// - the assignment phase
+        /// </summary>
+        private BoundExpression RewriteDeconstruction(BoundTupleExpression left, Conversion conversion, BoundExpression right, bool isUsed)
+        {
             var temps = ArrayBuilder<LocalSymbol>.GetInstance();
-            var stores = ArrayBuilder<BoundExpression>.GetInstance();
-            var placeholders = ArrayBuilder<BoundValuePlaceholderBase>.GetInstance();
+            var effects = DeconstructionSideEffects.GetInstance();
+            ArrayBuilder<Binder.DeconstructionVariable> lhsTargets = GetAssignmentTargetsAndSideEffects(left, temps, effects.init);
 
-            // evaluate left-hand-side side-effects
-            ImmutableArray<BoundExpression> lhsTargets = GetAssignmentTargetsAndSideEffects(node.Left, temps, stores);
+            BoundExpression returnValue = ApplyDeconstructionConversion(lhsTargets, right, conversion, temps, effects, isUsed, inInit: true);
+            effects.Consolidate();
 
-            // get or make right-hand-side values
-            BoundExpression loweredRight = VisitExpression(node.Right);
+            BoundExpression result;
+            if (!isUsed)
+            {
+                // When a deconstruction is not used, the last effect is used as return value
+                Debug.Assert(returnValue is null);
+                var last = effects.PopLast();
+                if (last is null)
+                {
+                    // Deconstructions with no effects lower to nothing. For example, `(_, _) = (1, 2);`
+                    result = null;
+                    temps.Free();
+                    _ = effects.ToImmutableAndFree();
+                }
+                else
+                {
+                    result = _factory.Sequence(temps.ToImmutableAndFree(), effects.ToImmutableAndFree(), last);
+                }
+            }
+            else
+            {
+                if (!returnValue.HasErrors)
+                {
+                    returnValue = VisitExpression(returnValue);
+                }
+                result = _factory.Sequence(temps.ToImmutableAndFree(), effects.ToImmutableAndFree(), returnValue);
+            }
 
-            ApplyDeconstructions(node, temps, stores, placeholders, loweredRight);
-            ApplyConversions(node, temps, stores, placeholders);
-            ApplyAssignments(node, stores, lhsTargets);
-
-            BoundExpression returnValue = MakeReturnValue(node, placeholders);
-            BoundExpression result = _factory.Sequence(temps.ToImmutable(), stores.ToImmutable(), returnValue);
-
-            RemovePlaceholderReplacements(placeholders);
-            placeholders.Free();
-
-            temps.Free();
-            stores.Free();
-
+            Binder.DeconstructionVariable.FreeDeconstructionVariables(lhsTargets);
             return result;
         }
 
         /// <summary>
-        /// Applies the deconstructions.
-        /// Adds any new locals to the temps and any new expressions to be evaluated to the stores.
+        /// This method recurses through leftTargets, right and conversion at the same time.
+        /// As it does, it collects side-effects into the proper buckets (init, deconstructions, conversions, assignments).
+        ///
+        /// The side-effects from the right initially go into the init bucket. But once we started drilling into a Deconstruct
+        /// invocation, subsequent side-effects from the right go into the deconstructions bucket (otherwise they would
+        /// be evaluated out of order).
         /// </summary>
-        private void ApplyDeconstructions(BoundDeconstructionAssignmentOperator node, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores, ArrayBuilder<BoundValuePlaceholderBase> placeholders, BoundExpression loweredRight)
+        private BoundExpression ApplyDeconstructionConversion(ArrayBuilder<Binder.DeconstructionVariable> leftTargets,
+            BoundExpression right, Conversion conversion, ArrayBuilder<LocalSymbol> temps, DeconstructionSideEffects effects,
+            bool isUsed, bool inInit)
         {
-            var firstDeconstructStep = node.DeconstructSteps[0];
-            AddPlaceholderReplacement(firstDeconstructStep.InputPlaceholder, loweredRight);
-            placeholders.Add(firstDeconstructStep.InputPlaceholder);
+            Debug.Assert(conversion.Kind == ConversionKind.Deconstruction);
+            ImmutableArray<BoundExpression> rightParts = GetRightParts(right, conversion, ref temps, effects, ref inInit);
 
-            foreach (BoundDeconstructionDeconstructStep deconstruction in node.DeconstructSteps)
+            ImmutableArray<Conversion> underlyingConversions = conversion.UnderlyingConversions;
+            Debug.Assert(!underlyingConversions.IsDefault);
+            Debug.Assert(leftTargets.Count == rightParts.Length && leftTargets.Count == conversion.UnderlyingConversions.Length);
+
+            var builder = isUsed ? ArrayBuilder<BoundExpression>.GetInstance(leftTargets.Count) : null;
+            for (int i = 0; i < leftTargets.Count; i++)
             {
-                if (deconstruction.DeconstructInvocationOpt == null)
+                BoundExpression resultPart;
+                if (leftTargets[i].HasNestedVariables)
                 {
-                    // tuple case
-                    AccessTupleFields(node, deconstruction, temps, stores, placeholders);
+                    resultPart = ApplyDeconstructionConversion(leftTargets[i].NestedVariables, rightParts[i],
+                        underlyingConversions[i], temps, effects, isUsed, inInit);
                 }
                 else
                 {
-                    CallDeconstruct(node, deconstruction, temps, stores, placeholders);
+                    var rightPart = rightParts[i];
+                    if (inInit)
+                    {
+                        rightPart = EvaluateSideEffectingArgumentToTemp(VisitExpression(rightPart), inInit ? effects.init : effects.deconstructions, ref temps);
+                    }
+                    BoundExpression leftTarget = leftTargets[i].Single;
+
+                    resultPart = EvaluateConversionToTemp(rightPart, underlyingConversions[i], leftTarget.Type, temps,
+                        effects.conversions);
+
+                    if (leftTarget.Kind != BoundKind.DiscardExpression)
+                    {
+                        effects.assignments.Add(MakeAssignmentOperator(resultPart.Syntax, leftTarget, resultPart, leftTarget.Type,
+                            used: true, isChecked: false, isCompoundAssignment: false));
+                    }
+                }
+                builder?.Add(resultPart);
+            }
+
+            if (isUsed)
+            {
+                var tupleType = TupleTypeSymbol.Create(locationOpt: null, elementTypes: builder.SelectAsArray(e => e.Type),
+                    elementLocations: default, elementNames: default,
+                    compilation: _compilation, shouldCheckConstraints: false, errorPositions: default);
+
+                return new BoundTupleLiteral(right.Syntax, argumentNamesOpt: default, inferredNamesOpt: default,
+                    arguments: builder.ToImmutableAndFree(), type: tupleType);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        private ImmutableArray<BoundExpression> GetRightParts(BoundExpression right, Conversion conversion,
+            ref ArrayBuilder<LocalSymbol> temps, DeconstructionSideEffects effects, ref bool inInit)
+        {
+            // Example:
+            // var (x, y) = new Point(1, 2);
+            var deconstructionInfo = conversion.DeconstructionInfo;
+            if (!deconstructionInfo.IsDefault)
+            {
+                Debug.Assert(!IsTupleExpression(right.Kind));
+
+                BoundExpression evaluationResult = EvaluateSideEffectingArgumentToTemp(VisitExpression(right),
+                    inInit ? effects.init : effects.deconstructions, ref temps);
+
+                inInit = false;
+                return InvokeDeconstructMethod(deconstructionInfo, evaluationResult, effects.deconstructions, ref temps);
+            }
+
+            // Example:
+            // var (x, y) = (1, 2);
+            if (IsTupleExpression(right.Kind))
+            {
+                return ((BoundTupleExpression)right).Arguments;
+            }
+
+            // Example:
+            // (byte x, byte y) = (1, 2);
+            // (int x, string y) = (1, null);
+            if (right.Kind == BoundKind.Conversion)
+            {
+                var tupleConversion = (BoundConversion)right;
+                if ((tupleConversion.Conversion.Kind == ConversionKind.ImplicitTupleLiteral || tupleConversion.Conversion.Kind == ConversionKind.Identity)
+                    && IsTupleExpression(tupleConversion.Operand.Kind))
+                {
+                    return ((BoundTupleExpression)tupleConversion.Operand).Arguments;
                 }
             }
-        }
 
-        /// <summary>
-        /// Applies the conversions.
-        /// Adds any new locals to the temps and any new expressions to be evaluated to the stores.
-        /// </summary>
-        private void ApplyConversions(BoundDeconstructionAssignmentOperator node, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores, ArrayBuilder<BoundValuePlaceholderBase> placeholders)
-        {
-            int numConversions = node.ConversionSteps.Length;
-            var conversionLocals = ArrayBuilder<BoundExpression>.GetInstance();
-
-            foreach (var conversionInfo in node.ConversionSteps)
+            // Example:
+            // var (x, y) = GetTuple();
+            // var (x, y) = ((byte, byte)) (1, 2);
+            // var (a, _) = ((short, short))((int, int))(1L, 2L);
+            if (right.Type.IsTupleType)
             {
-                // lower the conversions and assignments to locals
-                var localSymbol = new SynthesizedLocal(_factory.CurrentMethod, conversionInfo.OutputPlaceholder.Type, SynthesizedLocalKind.LoweringTemp);
-                var localBound = new BoundLocal(node.Syntax,
-                                               localSymbol,
-                                               null,
-                                               conversionInfo.OutputPlaceholder.Type)
-                { WasCompilerGenerated = true };
-
-                temps.Add(localSymbol);
-                conversionLocals.Add(localBound);
-
-                AddPlaceholderReplacement(conversionInfo.OutputPlaceholder, localBound);
-                placeholders.Add(conversionInfo.OutputPlaceholder);
-
-                var conversion = VisitExpression(conversionInfo.Assignment);
-
-                stores.Add(conversion);
-            }
-        }
-
-        /// <summary>
-        /// Applies the assignments.
-        /// Adds any new expressions to be evaluated to the stores.
-        /// </summary>
-        private void ApplyAssignments(BoundDeconstructionAssignmentOperator node, ArrayBuilder<BoundExpression> stores, ImmutableArray<BoundExpression> lhsTargets)
-        {
-            int numAssignments = node.AssignmentSteps.Length;
-            for (int i = 0; i < numAssignments; i++)
-            {
-                if (lhsTargets[i].Kind == BoundKind.DiscardExpression)
-                {
-                    // skip assignment step for discards
-                    continue;
-                }
-
-                var assignmentInfo = node.AssignmentSteps[i];
-                AddPlaceholderReplacement(assignmentInfo.OutputPlaceholder, lhsTargets[i]);
-
-                var assignment = assignmentInfo.Assignment;
-
-                // All the input placeholders for the assignments should already be set with lowered nodes
-                Debug.Assert(assignment.Left.Kind == BoundKind.DeconstructValuePlaceholder);
-                Debug.Assert(assignment.Right.Kind == BoundKind.DeconstructValuePlaceholder);
-                var rewrittenLeft = (BoundExpression)Visit(assignment.Left);
-                var rewrittenRight = (BoundExpression)Visit(assignment.Right);
-
-                var loweredAssignment = MakeAssignmentOperator(assignment.Syntax, rewrittenLeft, rewrittenRight, assignment.Type,
-                                            used: true, isChecked: false, isCompoundAssignment: false);
-
-                RemovePlaceholderReplacement(assignmentInfo.OutputPlaceholder);
-
-                stores.Add(loweredAssignment);
-            }
-        }
-
-        /// <summary>
-        /// Makes an expression that constructs the return value for the deconstruction:
-        /// a series of tuple constructions, that are chained with the help of placeholders.
-        /// The placeholders that are set are added to the list for later clearing.
-        /// </summary>
-        private BoundExpression MakeReturnValue(BoundDeconstructionAssignmentOperator node, ArrayBuilder<BoundValuePlaceholderBase> placeholders)
-        {
-            BoundExpression loweredConstruction = null;
-            foreach (var constructionInfo in node.ConstructionStepsOpt)
-            {
-                // All the input placeholders for the constructions should already be set
-                loweredConstruction = (BoundExpression)Visit(constructionInfo.Construct);
-
-                AddPlaceholderReplacement(constructionInfo.OutputPlaceholder, loweredConstruction);
-                placeholders.Add(constructionInfo.OutputPlaceholder);
+                inInit = false;
+                return AccessTupleFields(VisitExpression(right), temps, effects.deconstructions);
             }
 
-            Debug.Assert(loweredConstruction != null);
-            return loweredConstruction;
+            throw ExceptionUtilities.Unreachable;
         }
 
-        /// <summary>
-        /// Adds the side effects to stores and returns temporaries (as a flat list) to access them.
-        /// </summary>
-        private ImmutableArray<BoundExpression> GetAssignmentTargetsAndSideEffects(BoundTupleExpression variables, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores)
+        private static bool IsTupleExpression(BoundKind kind)
         {
-            var assignmentTargets = ArrayBuilder<BoundExpression>.GetInstance(variables.Arguments.Length);
-
-            variables.VisitAllElements(
-                (variable, args) =>
-                {
-                    if (variable.Kind == BoundKind.DiscardExpression)
-                    {
-                        args.targets.Add(variable);
-                    }
-                    else
-                    {
-                        args.targets.Add(args.self.TransformCompoundAssignmentLHS(variable, args.stores, args.temps, isDynamicAssignment: variable.Type.IsDynamic()));
-                    }
-                },
-                (temps: temps, stores: stores, targets: assignmentTargets, self: this)
-            );
-
-            return assignmentTargets.ToImmutableAndFree();
+            return kind == BoundKind.TupleLiteral || kind == BoundKind.ConvertedTupleLiteral;
         }
 
-        private void AccessTupleFields(BoundDeconstructionAssignmentOperator node, BoundDeconstructionDeconstructStep deconstruction, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores, ArrayBuilder<BoundValuePlaceholderBase> placeholders)
+        // This returns accessors and may create a temp for the tuple, but will not create temps for the tuple elements.
+        private ImmutableArray<BoundExpression> AccessTupleFields(BoundExpression expression, ArrayBuilder<LocalSymbol> temps,
+            ArrayBuilder<BoundExpression> effects)
         {
-            var target = PlaceholderReplacement(deconstruction.InputPlaceholder);
-            var tupleType = target.Type.IsTupleType ? target.Type : TupleTypeSymbol.Create((NamedTypeSymbol)target.Type);
+            Debug.Assert(expression.Type.IsTupleType);
+            var tupleType = expression.Type;
             var tupleElementTypes = tupleType.TupleElementTypes;
 
             var numElements = tupleElementTypes.Length;
 
-            SyntaxNode syntax = node.Syntax;
-
             // save the target as we need to access it multiple times
-            BoundAssignmentOperator assignmentToTemp;
-            BoundLocal savedTuple = _factory.StoreToTemp(target, out assignmentToTemp);
-            stores.Add(assignmentToTemp);
-            temps.Add(savedTuple.LocalSymbol);
+            BoundExpression tuple;
+            if (CanChangeValueBetweenReads(expression, localsMayBeAssignedOrCaptured: true))
+            {
+                BoundAssignmentOperator assignmentToTemp;
+                BoundLocal savedTuple = _factory.StoreToTemp(expression, out assignmentToTemp);
+                effects.Add(assignmentToTemp);
+                temps.Add(savedTuple.LocalSymbol);
+                tuple = savedTuple;
+            }
+            else
+            {
+                tuple = expression;
+            }
 
             // list the tuple fields accessors
             var fields = tupleType.TupleElements;
-
+            var builder = ArrayBuilder<BoundExpression>.GetInstance(numElements);
             for (int i = 0; i < numElements; i++)
             {
-                var field = fields[i];
+                var fieldAccess = MakeTupleFieldAccessAndReportUseSiteDiagnostics(tuple, expression.Syntax, fields[i]);
+                builder.Add(fieldAccess);
+            }
+            return builder.ToImmutableAndFree();
+        }
 
-                DiagnosticInfo useSiteInfo = field.GetUseSiteDiagnostic();
-                if ((object)useSiteInfo != null && useSiteInfo.Severity == DiagnosticSeverity.Error)
+        private BoundExpression EvaluateConversionToTemp(BoundExpression expression, Conversion conversion,
+            TypeSymbol destinationType, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> effects)
+        {
+            if (conversion.IsIdentity)
+            {
+                return expression;
+            }
+            var evalConversion = MakeConversionNode(expression.Syntax, expression, conversion, destinationType, @checked: false);
+            return EvaluateSideEffectingArgumentToTemp(evalConversion, effects, ref temps);
+        }
+
+        private ImmutableArray<BoundExpression> InvokeDeconstructMethod(DeconstructionInfo deconstruction, BoundExpression target,
+            ArrayBuilder<BoundExpression> effects, ref ArrayBuilder<LocalSymbol> temps)
+        {
+            AddPlaceholderReplacement(deconstruction.InputPlaceholder, target);
+
+            var outputPlaceholders = deconstruction.OutputPlaceholders;
+            var outLocals = ArrayBuilder<BoundExpression>.GetInstance(outputPlaceholders.Length);
+            foreach (var outputPlaceholder in outputPlaceholders)
+            {
+                var localSymbol = new SynthesizedLocal(_factory.CurrentMethod, outputPlaceholder.Type, SynthesizedLocalKind.LoweringTemp);
+
+                var localBound = new BoundLocal(target.Syntax, localSymbol, constantValueOpt: null, type: outputPlaceholder.Type)
+                { WasCompilerGenerated = true };
+
+                temps.Add(localSymbol);
+                AddPlaceholderReplacement(outputPlaceholder, localBound);
+                outLocals.Add(localBound);
+            }
+
+            effects.Add(VisitExpression(deconstruction.Invocation));
+
+            RemovePlaceholderReplacement(deconstruction.InputPlaceholder);
+            foreach (var outputPlaceholder in outputPlaceholders)
+            {
+                RemovePlaceholderReplacement(outputPlaceholder);
+            }
+
+            return outLocals.ToImmutableAndFree();
+        }
+
+        BoundExpression EvaluateSideEffectingArgumentToTemp(BoundExpression arg, ArrayBuilder<BoundExpression> effects,
+            ref ArrayBuilder<LocalSymbol> temps)
+        {
+            if (CanChangeValueBetweenReads(arg, localsMayBeAssignedOrCaptured: true))
+            {
+                BoundAssignmentOperator store;
+                var temp = _factory.StoreToTemp(arg, out store);
+
+                if (temps == null)
                 {
-                    Symbol.ReportUseSiteDiagnostic(useSiteInfo, _diagnostics, syntax.Location);
+                    temps = ArrayBuilder<LocalSymbol>.GetInstance();
                 }
-                var fieldAccess = MakeTupleFieldAccess(syntax, field, savedTuple, null, LookupResultKind.Empty);
 
-                AddPlaceholderReplacement(deconstruction.OutputPlaceholders[i], fieldAccess);
-                placeholders.Add(deconstruction.OutputPlaceholders[i]);
+                temps.Add(temp.LocalSymbol);
+                effects.Add(store);
+                return temp;
+            }
+            else
+            {
+                return arg;
             }
         }
 
         /// <summary>
-        /// Prepares local variables to be used in Deconstruct call
-        /// Adds a invocation of Deconstruct with those as out parameters onto the 'stores' sequence
-        /// Returns the expressions for those out parameters
+        /// Adds the side effects to effects and returns temporaries to access them.
+        /// The caller is responsible for releasing the nested ArrayBuilders.
+        /// The variables should be unlowered.
         /// </summary>
-        private void CallDeconstruct(BoundDeconstructionAssignmentOperator node, BoundDeconstructionDeconstructStep deconstruction, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores, ArrayBuilder<BoundValuePlaceholderBase> placeholders)
+        private ArrayBuilder<Binder.DeconstructionVariable> GetAssignmentTargetsAndSideEffects(BoundTupleExpression variables, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> effects)
         {
-            Debug.Assert((object)deconstruction.DeconstructInvocationOpt != null);
+            var assignmentTargets = ArrayBuilder<Binder.DeconstructionVariable>.GetInstance(variables.Arguments.Length);
 
-            SyntaxNode syntax = node.Syntax;
-
-            // prepare out parameters for Deconstruct
-            var deconstructParameters = deconstruction.OutputPlaceholders;
-            var outParametersBuilder = ArrayBuilder<BoundExpression>.GetInstance(deconstructParameters.Length);
-
-            for (var i = 0; i < deconstructParameters.Length; i++)
+            foreach (var variable in variables.Arguments)
             {
-                var deconstructParameter = deconstructParameters[i];
-                var localSymbol = new SynthesizedLocal(_factory.CurrentMethod, deconstructParameter.Type, SynthesizedLocalKind.LoweringTemp);
+                switch (variable.Kind)
+                {
+                    case BoundKind.DiscardExpression:
+                        assignmentTargets.Add(new Binder.DeconstructionVariable(variable, variable.Syntax));
+                        break;
 
-                var localBound = new BoundLocal(syntax,
-                                                localSymbol,
-                                                null,
-                                                deconstructParameter.Type
-                                                )
-                { WasCompilerGenerated = true };
+                    case BoundKind.TupleLiteral:
+                        var tuple = (BoundTupleExpression)variable;
+                        assignmentTargets.Add(new Binder.DeconstructionVariable(GetAssignmentTargetsAndSideEffects(tuple, temps, effects), tuple.Syntax));
+                        break;
 
-                temps.Add(localSymbol);
-                outParametersBuilder.Add(localBound);
+                    case BoundKind.ConvertedTupleLiteral:
+                        throw ExceptionUtilities.UnexpectedValue(variable.Kind);
 
-                AddPlaceholderReplacement(deconstruction.OutputPlaceholders[i], localBound);
-                placeholders.Add(deconstruction.OutputPlaceholders[i]);
+                    default:
+                        var temp = this.TransformCompoundAssignmentLHS(variable, effects, temps, isDynamicAssignment: variable.Type.IsDynamic());
+                        assignmentTargets.Add(new Binder.DeconstructionVariable(temp, variable.Syntax));
+                        break;
+                }
             }
 
-            var outParameters = outParametersBuilder.ToImmutableAndFree();
+            return assignmentTargets;
+        }
 
-            // invoke Deconstruct with placeholders replaced by locals
-            stores.Add(VisitExpression(deconstruction.DeconstructInvocationOpt));
+        internal class DeconstructionSideEffects
+        {
+            internal ArrayBuilder<BoundExpression> init;
+            internal ArrayBuilder<BoundExpression> deconstructions;
+            internal ArrayBuilder<BoundExpression> conversions;
+            internal ArrayBuilder<BoundExpression> assignments;
+
+            internal static DeconstructionSideEffects GetInstance()
+            {
+                var result = new DeconstructionSideEffects();
+                result.init = ArrayBuilder<BoundExpression>.GetInstance();
+                result.deconstructions = ArrayBuilder<BoundExpression>.GetInstance();
+                result.conversions = ArrayBuilder<BoundExpression>.GetInstance();
+                result.assignments = ArrayBuilder<BoundExpression>.GetInstance();
+
+                return result;
+            }
+
+            internal void Consolidate()
+            {
+                init.AddRange(deconstructions);
+                init.AddRange(conversions);
+                init.AddRange(assignments);
+
+                deconstructions.Free();
+                conversions.Free();
+                assignments.Free();
+            }
+
+            internal BoundExpression PopLast()
+            {
+                if (init.Count == 0)
+                {
+                    return null;
+                }
+
+                var last = init.Last();
+                init.RemoveLast();
+                return last;
+            }
+
+            // This can only be called after Consolidate
+            internal ImmutableArray<BoundExpression> ToImmutableAndFree()
+            {
+                return init.ToImmutableAndFree();
+            }
         }
     }
 }

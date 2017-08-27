@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
@@ -69,7 +69,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
     static void Main(string[] args)
     [|{|]
         int x = 3;
-        string bar = "foo";
+        string bar = "goo";
     }
 }</Document>
                            </Project>
@@ -99,7 +99,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
     static void Main(string[] args)
     [|{|]
         int x = 3;
-        string bar = "foo";
+        string bar = "goo";
     }
 }</Document>
                            </Project>
@@ -130,8 +130,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 {
     static void Main(string[] args)
     {
-        string foo = "green";
-        [|string bar = "foo";|]
+        string goo = "green";
+        [|string bar = "goo";|]
         string green = "yellow";
     }
 }</Document>
@@ -139,9 +139,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                        </Workspace>
 
             Using state = TestState.CreateCSharpTestState(text, False)
-                state.SendTypeChars("foo")
+                state.SendTypeChars("goo")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem("foo")
+                Await state.AssertSelectedCompletionItem("goo")
                 state.SendTab()
                 state.SendTypeChars(".ToS")
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -329,8 +329,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 {
     static void Main(string[] args)
     {
-        string foo = "green";
-        [|string bar = "foo";|]
+        string goo = "green";
+        [|string bar = "goo";|]
         string green = "yellow";
     }
 }</Document>
@@ -357,8 +357,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
     static void Main(string[] args)
     {
-        string foo = "green";
-        [|string bar = "foo";|]
+        string goo = "green";
+        [|string bar = "goo";|]
         string green = "yellow";
     }
 }</Document>
@@ -386,8 +386,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
     static void Main(string[] args)
     {
-        string foo = "green";
-        [|string bar = "foo";|]
+        string goo = "green";
+        [|string bar = "goo";|]
         string green = "yellow";
     }
 }</Document>
@@ -411,7 +411,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
     static void Main(string[] args)
     {
         int OOO = 3;
-        foreach (var z in "foo")
+        foreach (var z in "goo")
         {
             [|var q = 1;|]
         }
@@ -666,6 +666,89 @@ $$</Document>
                 Assert.Contains("args", state.GetCurrentViewLineText())
             End Using
         End Sub
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        Public Async Function TypeNumberAtStartOfViewDoesNotCrash() As Task
+			Dim text = <Workspace>
+							   <Project Language="C#" CommonReferences="true">
+								   <Document>$$</Document>
+								   <Document>class Program
+	{
+		static void Main(string[] args)
+		[|{|]
+
+		}
+	}</Document>
+							   </Project>
+						   </Workspace>
+		
+		    Using state = TestState.CreateCSharpTestState(text, True)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                state.SendTypeChars("4")
+                Await state.AssertNoCompletionSession()
+			End Using
+		End Function
+        
+		<ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+		Public Async Function BuilderSettingRetainedBetweenComputations_Watch() As Task
+            Dim text = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document>$$</Document>
+                               <Document>class Program
+{
+    static void Main(string[] args)
+    [|{|]
+
+    }
+}</Document>
+                           </Project>
+                       </Workspace>
+
+            Using state = TestState.CreateCSharpTestState(text, isImmediateWindow:=False)
+                state.SendTypeChars("args")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.Equal("args", state.GetCurrentViewLineText())
+                Await state.AssertCompletionSession()
+                Assert.True(state.CurrentCompletionPresenterSession.SuggestionMode)
+                state.SendToggleCompletionMode()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.False(state.CurrentCompletionPresenterSession.SuggestionMode)
+                state.SendTypeChars(".")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.False(state.CurrentCompletionPresenterSession.SuggestionMode)
+            End Using
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        Public Async Function BuilderSettingRetainedBetweenComputations_Watch_Immediate() As Task
+            Dim text = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document>$$</Document>
+                               <Document>class Program
+{
+    static void Main(string[] args)
+    [|{|]
+
+    }
+}</Document>
+                           </Project>
+                       </Workspace>
+
+            Using state = TestState.CreateCSharpTestState(text, isImmediateWindow:=True)
+                state.SendTypeChars("args")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.Equal("args", state.GetCurrentViewLineText())
+                Await state.AssertCompletionSession()
+                Assert.True(state.CurrentCompletionPresenterSession.SuggestionMode)
+                state.SendToggleCompletionMode()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.False(state.CurrentCompletionPresenterSession.SuggestionMode)
+                state.SendTypeChars(".")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.False(state.CurrentCompletionPresenterSession.SuggestionMode)
+            End Using
+        End Function
 
         Private Async Function VerifyCompletionAndDotAfter(item As String, state As TestState) As Task
             state.SendTypeChars(item)

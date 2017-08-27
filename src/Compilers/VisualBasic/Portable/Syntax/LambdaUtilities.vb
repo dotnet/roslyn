@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Runtime.InteropServices
 
@@ -88,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return If(oldJoinCondition.Left Is oldBody, GetJoinLeftLambdaBody(newJoinClause), GetJoinRightLambdaBody(newJoinClause))
 
                 Case Else
-                    Throw ExceptionUtilities.Unreachable
+                    Throw ExceptionUtilities.UnexpectedValue(oldLambda.Kind)
             End Select
         End Function
 
@@ -587,7 +588,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return DirectCast(clause, JoinClauseSyntax).JoinedVariables
 
                 Case Else
-                    Throw ExceptionUtilities.Unreachable
+                    Throw ExceptionUtilities.UnexpectedValue(clause.Kind)
             End Select
         End Function
 

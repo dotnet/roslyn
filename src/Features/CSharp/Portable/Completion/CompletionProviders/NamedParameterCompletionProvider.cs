@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -97,12 +97,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                     displayText: escapedName + ColonString,
-                    insertionText: null,
-                    symbol: parameter,
+                    symbols: ImmutableArray.Create(parameter),
+                    rules: s_rules.WithMatchPriority(SymbolMatchPriority.PreferNamedArgument),
                     contextPosition: token.SpanStart,
-                    filterText: escapedName,
-                    rules: s_rules,
-                    matchPriority: SymbolMatchPriority.PreferNamedArgument));
+                    filterText: escapedName));
             }
         }
 

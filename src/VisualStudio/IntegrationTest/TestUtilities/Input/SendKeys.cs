@@ -21,28 +21,27 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
 
             foreach (var key in keys)
             {
-                if (key is string)
+                if (key is string s)
                 {
-                    var text = ((string)key)
-                        .Replace("\r\n", "\r")
-                        .Replace("\n", "\r");
+                    var text = s.Replace("\r\n", "\r")
+                                .Replace("\n", "\r");
 
                     foreach (var ch in text)
                     {
                         AddInputs(inputs, ch);
                     }
                 }
-                else if (key is char)
+                else if (key is char c)
                 {
-                    AddInputs(inputs, (char)key);
+                    AddInputs(inputs, c);
                 }
-                else if (key is VirtualKey)
+                else if (key is VirtualKey virtualKey)
                 {
-                    AddInputs(inputs, (VirtualKey)key);
+                    AddInputs(inputs, virtualKey);
                 }
-                else if (key is KeyPress)
+                else if (key is KeyPress keyPress)
                 {
-                    AddInputs(inputs, (KeyPress)key);
+                    AddInputs(inputs, keyPress);
                 }
                 else if (key == null)
                 {

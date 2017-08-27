@@ -8,8 +8,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
     internal class TokenComparer : IComparer<SyntaxToken>
     {
-        private const string SystemNamespace = "System";
-
         public static readonly IComparer<SyntaxToken> NormalInstance = new TokenComparer(specialCaseSystem: false);
         public static readonly IComparer<SyntaxToken> SystemFirstInstance = new TokenComparer(specialCaseSystem: true);
 
@@ -20,19 +18,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             _specialCaseSystem = specialCaseSystem;
         }
 
-        private static bool IsSystem(string s)
-        {
-            return s == SystemNamespace;
-        }
-
         public int Compare(SyntaxToken x, SyntaxToken y)
         {
             if (_specialCaseSystem &&
                 x.GetPreviousToken(includeSkipped: true).IsKind(SyntaxKind.UsingKeyword, SyntaxKind.StaticKeyword) &&
                 y.GetPreviousToken(includeSkipped: true).IsKind(SyntaxKind.UsingKeyword, SyntaxKind.StaticKeyword))
             {
-                var token1IsSystem = IsSystem(x.ValueText);
-                var token2IsSystem = IsSystem(y.ValueText);
+                var token1IsSystem = x.ValueText == nameof(System);
+                var token2IsSystem = y.ValueText == nameof(System);
 
                 if (token1IsSystem && !token2IsSystem)
                 {
@@ -55,8 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
 
             // By using 'ValueText' we get the value that is normalized.  i.e.
-            // @class will be 'class', and unicode escapes will be converted
-            // to actual unicode.  This allows sorting to work properly across
+            // @class will be 'class', and Unicode escapes will be converted
+            // to actual Unicode.  This allows sorting to work properly across
             // tokens that have different source representations, but which
             // mean the same thing.
             var string1 = x.ValueText;

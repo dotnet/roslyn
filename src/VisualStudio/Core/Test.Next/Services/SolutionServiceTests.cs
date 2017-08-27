@@ -8,8 +8,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Remote.DebugUtil;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServices.Remote;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.Next.UnitTests.Mocks;
@@ -24,7 +25,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var code = @"class Test { void Method() { } }";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var solution = workspace.CurrentSolution;
                 var service = await GetSolutionServiceAsync(solution);
@@ -33,6 +34,36 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 var synched = await service.GetSolutionAsync(solutionChecksum, CancellationToken.None);
 
                 Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestGetSolutionWithPrimaryFlag()
+        {
+            var code1 = @"class Test1 { void Method() { } }";
+
+            using (var workspace = TestWorkspace.CreateCSharp(code1))
+            {
+                var solution = workspace.CurrentSolution;
+                var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
+
+                var service = await GetSolutionServiceAsync(solution);
+                var synched = await service.GetSolutionAsync(solutionChecksum, CancellationToken.None);
+                Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
+                Assert.True(synched.Workspace is TemporaryWorkspace);
+            }
+
+            var code2 = @"class Test2 { void Method() { } }";
+
+            using (var workspace = TestWorkspace.CreateCSharp(code2))
+            {
+                var solution = workspace.CurrentSolution;
+                var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
+
+                var service = (ISolutionController)await GetSolutionServiceAsync(solution);
+                var synched = await service.GetSolutionAsync(solutionChecksum, fromPrimaryBranch: true, cancellationToken: CancellationToken.None);
+                Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
+                Assert.True(synched.Workspace is RemoteWorkspace);
             }
         }
 
@@ -92,58 +123,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
-        public async Task TestCreationWithOption()
-        {
-            var code = @"class Test { void Method() { } }";
-
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
-            {
-                var options = new TestOptionSet().WithChangedOption(RemoteHostOptions.RemoteHostTest, true);
-
-                var solution = workspace.CurrentSolution;
-                var service = await GetSolutionServiceAsync(solution);
-
-                var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
-                var synched = await service.GetSolutionAsync(solutionChecksum, options, CancellationToken.None);
-
-                Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
-                Assert.Empty(options.GetChangedOptions(synched.Workspace.Options));
-
-                Assert.True(options.GetOption(RemoteHostOptions.RemoteHostTest));
-                Assert.True(synched.Workspace.Options.GetOption(RemoteHostOptions.RemoteHostTest));
-            }
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
-        public async Task TestOptionIsolation()
-        {
-            var code = @"class Test { void Method() { } }";
-
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
-            {
-                var solution = workspace.CurrentSolution;
-                var service = await GetSolutionServiceAsync(solution);
-
-                var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
-
-                var options = new TestOptionSet().WithChangedOption(RemoteHostOptions.RemoteHostTest, true);
-                var first = await service.GetSolutionAsync(solutionChecksum, options, CancellationToken.None);
-                var second = await service.GetSolutionAsync(solutionChecksum, options.WithChangedOption(RemoteHostOptions.RemoteHostTest, false), CancellationToken.None);
-
-                Assert.Equal(await first.State.GetChecksumAsync(CancellationToken.None), await second.State.GetChecksumAsync(CancellationToken.None));
-
-                // option change shouldn't affect other workspace
-                Assert.True(first.Workspace.Options.GetOption(RemoteHostOptions.RemoteHostTest));
-                Assert.False(second.Workspace.Options.GetOption(RemoteHostOptions.RemoteHostTest));
-            }
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestCache()
         {
             var code = @"class Test { void Method() { } }";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var solution = workspace.CurrentSolution;
                 var service = await GetSolutionServiceAsync(solution);
@@ -155,36 +139,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 // same instance from cache
                 Assert.True(object.ReferenceEquals(first, second));
-                Assert.True(first.Workspace is TemporaryWorkspace);
-            }
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
-        public async Task TestCacheWithOption()
-        {
-            var code = @"class Test { void Method() { } }";
-
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
-            {
-                var options = new TestOptionSet().WithChangedOption(RemoteHostOptions.RemoteHostTest, true);
-
-                var solution = workspace.CurrentSolution;
-                var service = await GetSolutionServiceAsync(solution);
-
-                var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
-
-                var first = await service.GetSolutionAsync(solutionChecksum, options, CancellationToken.None);
-                var second = await service.GetSolutionAsync(solutionChecksum, options, CancellationToken.None);
-
-                // new solutions if option is involved for isolation
-                Assert.False(object.ReferenceEquals(first, second));
-
-                // but semantic of both solution should be same
-                Assert.Equal(await first.State.GetChecksumAsync(CancellationToken.None), await second.State.GetChecksumAsync(CancellationToken.None));
-
-                // also any sub nodes such as projects should be same
-                Assert.True(object.ReferenceEquals(first.Projects.First().State, second.Projects.First().State));
-
                 Assert.True(first.Workspace is TemporaryWorkspace);
             }
         }
@@ -251,7 +205,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         public async Task TestAdditionalDocument()
         {
             var code = @"class Test { void Method() { } }";
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var projectId = workspace.CurrentSolution.ProjectIds.First();
                 var additionalDocumentId = DocumentId.CreateNewId(projectId);
@@ -283,7 +237,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var code = @"class Test { void Method() { } }";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var projectId = workspace.CurrentSolution.ProjectIds.First();
                 var documentId = DocumentId.CreateNewId(projectId);
@@ -310,9 +264,53 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             }
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestRemoteWorkspaceSolutionCrawler()
+        {
+            var code = @"class Test { void Method() { } }";
+
+            // create base solution
+            using (var workspace = TestWorkspace.CreateCSharp(code))
+            {
+                // create solution service
+                var solution = workspace.CurrentSolution;
+                var service = await GetSolutionServiceAsync(solution);
+
+                // update primary workspace
+                var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
+                await ((ISolutionController)service).UpdatePrimaryWorkspaceAsync(solutionChecksum, CancellationToken.None);
+
+                // get solution in remote host
+                var oopSolution = await service.GetSolutionAsync(solutionChecksum, CancellationToken.None);
+                Assert.True(oopSolution.Workspace is RemoteWorkspace);
+
+                // get solution cralwer in remote host
+                var solutionCrawlerService = oopSolution.Workspace.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
+                Assert.NotNull(solutionCrawlerService);
+
+                // check remote workspace has enabled solution crawler in remote host
+                var testAnalyzerProvider = new TestAnalyzerProvider();
+                solutionCrawlerService.AddAnalyzerProvider(
+                    testAnalyzerProvider,
+                    new IncrementalAnalyzerProviderMetadata("Test", highPriorityForActiveFile: false, workspaceKinds: WorkspaceKind.RemoteWorkspace));
+
+                // check our solution crawler has ran
+                Assert.True(await testAnalyzerProvider.Analyzer.Called);
+
+                testAnalyzerProvider.Analyzer.Reset();
+
+                // update remote workspace
+                var remoteWorkspace = (RemoteWorkspace)oopSolution.Workspace;
+                remoteWorkspace.UpdateSolution(oopSolution.WithDocumentText(oopSolution.Projects.First().Documents.First().Id, SourceText.From(code + " class Test2 { }")));
+
+                // check solution update correctly ran solution crawler
+                Assert.True(await testAnalyzerProvider.Analyzer.Called);
+            }
+        }
+
         private static async Task VerifySolutionUpdate(string code, Func<Solution, Solution> newSolutionGetter)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 await VerifySolutionUpdate(workspace, newSolutionGetter);
             }
@@ -328,7 +326,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
 
             // update primary workspace
-            await service.UpdatePrimaryWorkspaceAsync(solutionChecksum, CancellationToken.None);
+            await ((ISolutionController)service).UpdatePrimaryWorkspaceAsync(solutionChecksum, CancellationToken.None);
             var first = await service.GetSolutionAsync(solutionChecksum, CancellationToken.None);
 
             Assert.Equal(solutionChecksum, await first.State.GetChecksumAsync(CancellationToken.None));
@@ -346,7 +344,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.False(object.ReferenceEquals(PrimaryWorkspace.Workspace.PrimaryBranchId, second.BranchId));
 
             // do same once updating primary workspace
-            await service.UpdatePrimaryWorkspaceAsync(newSolutionChecksum, CancellationToken.None);
+            await ((ISolutionController)service).UpdatePrimaryWorkspaceAsync(newSolutionChecksum, CancellationToken.None);
             var third = await service.GetSolutionAsync(newSolutionChecksum, CancellationToken.None);
 
             Assert.Equal(newSolutionChecksum, await third.State.GetChecksumAsync(CancellationToken.None));
@@ -363,10 +361,38 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var sessionId = 0;
             var storage = new AssetStorage();
-            var source = new TestAssetSource(storage, sessionId, map);
+            var source = new TestAssetSource(storage, map);
             var service = new SolutionService(new AssetService(sessionId, storage));
 
             return service;
+        }
+
+        private class TestAnalyzerProvider : IIncrementalAnalyzerProvider
+        {
+            public readonly TestAnalyzer Analyzer = new TestAnalyzer();
+
+            public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
+            {
+                return Analyzer;
+            }
+
+            public class TestAnalyzer : IncrementalAnalyzerBase
+            {
+                private TaskCompletionSource<bool> _source = new TaskCompletionSource<bool>();
+
+                public override Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+                {
+                    _source.SetResult(true);
+                    return SpecializedTasks.EmptyTask;
+                }
+
+                public Task<bool> Called => _source.Task;
+
+                public void Reset()
+                {
+                    _source = new TaskCompletionSource<bool>();
+                }
+            }
         }
     }
 }

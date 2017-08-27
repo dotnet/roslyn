@@ -26,9 +26,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             var markup = @"
 class MyGeneric<T> { }
 
-void foo()
+void goo()
 {
-   MyGeneric<string> foo = new $$
+   MyGeneric<string> goo = new $$
 }";
 
             await VerifyItemExistsAsync(markup, "MyGeneric<string>");
@@ -42,11 +42,11 @@ class C
 {
     void M()
     {
-        var x = new[] { new { Foo = ""asdf"", Bar = 1 }, new $$
+        var x = new[] { new { Goo = ""asdf"", Bar = 1 }, new $$
     }
 }";
 
-            await VerifyItemIsAbsentAsync(markup, "<anonymous type: string Foo, int Bar>");
+            await VerifyItemIsAbsentAsync(markup, "<anonymous type: string Goo, int Bar>");
         }
 
         [WorkItem(854497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854497")]
@@ -121,13 +121,13 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task IsTextualTriggerCharacterTest()
+        public void IsTextualTriggerCharacterTest()
         {
-            await VerifyTextualTriggerCharacterAsync("Abc$$ ", shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true);
-            await VerifyTextualTriggerCharacterAsync("Abc $$X", shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: false);
-            await VerifyTextualTriggerCharacterAsync("Abc $$@", shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
-            await VerifyTextualTriggerCharacterAsync("Abc$$@", shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
-            await VerifyTextualTriggerCharacterAsync("Abc$$.", shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
+            VerifyTextualTriggerCharacter("Abc$$ ", shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true);
+            VerifyTextualTriggerCharacter("Abc $$X", shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: false);
+            VerifyTextualTriggerCharacter("Abc $$@", shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
+            VerifyTextualTriggerCharacter("Abc$$@", shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
+            VerifyTextualTriggerCharacter("Abc$$.", shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -218,14 +218,14 @@ class Program
             var markup = @"
 class Location {}
 enum EAB { A, B }
-class Foo
+class Goo
 {
     Location Loc {get; set;}
     EAB E {get; set;}
 
     void stuff()
     {
-        var x = new Foo
+        var x = new Goo
             {
                 Loc = new $$
                 E = EAB.A

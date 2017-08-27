@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Threading.Tasks;
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TypeInferrer
 
         public override void Dispose()
         {
-            this.fixture.CloseTextViewAsync().Wait();
+            this.fixture.CloseTextView();
             base.Dispose();
         }
 
@@ -55,12 +55,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TypeInferrer
             string expectedType,
             bool useNodeStartPosition)
         {
-            var document = await fixture.UpdateDocumentAsync(text, SourceCodeKind.Regular);
+            var document = fixture.UpdateDocument(text, SourceCodeKind.Regular);
             await TestWorkerAsync(document, textSpan, expectedType, useNodeStartPosition);
 
             if (await CanUseSpeculativeSemanticModelAsync(document, textSpan.Start))
             {
-                var document2 = await fixture.UpdateDocumentAsync(text, SourceCodeKind.Regular, cleanBeforeUpdate: false);
+                var document2 = fixture.UpdateDocument(text, SourceCodeKind.Regular, cleanBeforeUpdate: false);
                 await TestWorkerAsync(document2, textSpan, expectedType, useNodeStartPosition);
             }
         }

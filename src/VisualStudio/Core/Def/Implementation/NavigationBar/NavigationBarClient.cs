@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -49,8 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
             _projectItems = SpecializedCollections.EmptyList<NavigationBarProjectItem>();
             _currentTypeItems = SpecializedCollections.EmptyList<NavigationBarItem>();
 
-            var vsShell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
-            if (vsShell != null)
+            if (serviceProvider.GetService(typeof(SVsShell)) is IVsShell vsShell)
             {
                 int hresult = vsShell.GetProperty((int)__VSSPROPID.VSSPROPID_ObjectMgrTypesImgList, out var varImageList);
                 if (ErrorHandler.Succeeded(hresult) && varImageList != null)
@@ -290,10 +289,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
             // If this is a project item, try to get the actual proper image from the VSHierarchy it 
             // represents.  That way the icon will always look right no matter which type of project
             // it is.  For example, if phone/Windows projects have different icons, then this can 
-            // ensure we get the right icon, and not just a hardcoded C#/VB icon.
-            if (item is NavigationBarProjectItem)
+            // ensure we get the right icon, and not just a hard-coded C#/VB icon.
+            if (item is NavigationBarProjectItem projectItem)
             {
-                var projectItem = (NavigationBarProjectItem)item;
                 if (_workspace.TryGetImageListAndIndex(_imageService, projectItem.DocumentId.ProjectId, out phImageList, out piImageIndex))
                 {
                     return VSConstants.S_OK;

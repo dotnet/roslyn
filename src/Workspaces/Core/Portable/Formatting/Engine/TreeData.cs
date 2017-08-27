@@ -49,10 +49,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         public abstract string GetTextBetween(SyntaxToken token1, SyntaxToken token2);
         public abstract int GetOriginalColumn(int tabSize, SyntaxToken token);
 
-        public SyntaxNode Root
-        {
-            get { return _root; }
-        }
+        public SyntaxNode Root => _root;
 
         public bool IsFirstToken(SyntaxToken token)
         {

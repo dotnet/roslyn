@@ -56,25 +56,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            var switchSection = node as SwitchSectionSyntax;
-            if (switchSection != null)
+            switch (node)
             {
-                return ValueTuple.Create(switchSection.GetFirstToken(includeZeroWidth: true), switchSection.GetLastToken(includeZeroWidth: true));
+                case SwitchSectionSyntax switchSection:
+                    return ValueTuple.Create(switchSection.GetFirstToken(includeZeroWidth: true), switchSection.GetLastToken(includeZeroWidth: true));
+                case AnonymousMethodExpressionSyntax anonymousMethod:
+                    return ValueTuple.Create(anonymousMethod.DelegateKeyword, anonymousMethod.GetLastToken(includeZeroWidth: true));
             }
 
-            var anonymousMethod = node as AnonymousMethodExpressionSyntax;
-            if (anonymousMethod != null)
-            {
-                return ValueTuple.Create(anonymousMethod.DelegateKeyword, anonymousMethod.GetLastToken(includeZeroWidth: true));
-            }
-
-            return default(ValueTuple<SyntaxToken, SyntaxToken>);
+            return default;
         }
 
         private void AddSpecificNodesSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
             var tokens = GetSpecificNodeSuppressionTokenRange(node);
-            if (!tokens.Equals(default(ValueTuple<SyntaxToken, SyntaxToken>)))
+            if (!tokens.Equals(default))
             {
                 AddSuppressWrappingIfOnSingleLineOperation(list, tokens.Item1, tokens.Item2);
             }
@@ -106,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             var tokens = GetSpecificNodeSuppressionTokenRange(node);
-            if (!tokens.Equals(default(ValueTuple<SyntaxToken, SyntaxToken>)))
+            if (!tokens.Equals(default))
             {
                 RemoveSuppressOperation(list, tokens.Item1, tokens.Item2);
             }
@@ -141,20 +137,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private ValueTuple<SyntaxToken, SyntaxToken> GetBracePair(SyntaxNode node)
         {
-            var methodDeclaration = node as BaseMethodDeclarationSyntax;
-            if (methodDeclaration != null && methodDeclaration.Body != null)
+            if (node is BaseMethodDeclarationSyntax methodDeclaration && methodDeclaration.Body != null)
             {
                 return ValueTuple.Create(methodDeclaration.Body.OpenBraceToken, methodDeclaration.Body.CloseBraceToken);
             }
 
-            var propertyDeclaration = node as PropertyDeclarationSyntax;
-            if (propertyDeclaration != null && propertyDeclaration.AccessorList != null)
+            if (node is PropertyDeclarationSyntax propertyDeclaration && propertyDeclaration.AccessorList != null)
             {
                 return ValueTuple.Create(propertyDeclaration.AccessorList.OpenBraceToken, propertyDeclaration.AccessorList.CloseBraceToken);
             }
 
-            var accessorDeclaration = node as AccessorDeclarationSyntax;
-            if (accessorDeclaration != null && accessorDeclaration.Body != null)
+            if (node is AccessorDeclarationSyntax accessorDeclaration && accessorDeclaration.Body != null)
             {
                 return ValueTuple.Create(accessorDeclaration.Body.OpenBraceToken, accessorDeclaration.Body.CloseBraceToken);
             }

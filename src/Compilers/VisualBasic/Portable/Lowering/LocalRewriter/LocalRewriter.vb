@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -16,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _compilationState As TypeCompilationState
         Private ReadOnly _previousSubmissionFields As SynthesizedSubmissionFields
         Private ReadOnly _diagnostics As DiagnosticBag
-        Private ReadOnly _instrumenter As Instrumenter
+        Private ReadOnly _instrumenterOpt As Instrumenter
         Private _symbolsCapturedWithoutCopyCtor As ISet(Of Symbol)
 
         Private _currentMethodOrLambda As MethodSymbol
@@ -118,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             previousSubmissionFields As SynthesizedSubmissionFields,
             diagnostics As DiagnosticBag,
             flags As RewritingFlags,
-            instrumenter As Instrumenter,
+            instrumenterOpt As Instrumenter,
             recursionDepth As Integer
         )
             MyBase.New(recursionDepth)
@@ -131,8 +132,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._diagnostics = diagnostics
             Me._flags = flags
 
-            Debug.Assert(instrumenter IsNot Nothing)
-            Me._instrumenter = instrumenter
+            Debug.Assert(instrumenterOpt IsNot Instrumenter.NoOp)
+            Me._instrumenterOpt = instrumenterOpt
         End Sub
 
         Public ReadOnly Property OptimizationLevelIsDebug As Boolean
@@ -152,13 +153,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             <Out> ByRef hasLambdas As Boolean,
             <Out> ByRef symbolsCapturedWithoutCtor As ISet(Of Symbol),
             flags As RewritingFlags,
-            instrumenter As Instrumenter,
+            instrumenterOpt As Instrumenter,
             recursionDepth As Integer
         ) As BoundNode
 
             Debug.Assert(node Is Nothing OrElse Not node.HasErrors, "node has errors")
 
-            Dim rewriter = New LocalRewriter(topMethod, currentMethod, compilationState, previousSubmissionFields, diagnostics, flags, instrumenter, recursionDepth)
+            Dim rewriter = New LocalRewriter(topMethod, currentMethod, compilationState, previousSubmissionFields, diagnostics, flags, instrumenterOpt, recursionDepth)
 
 #If DEBUG Then
             If rewrittenNodes IsNot Nothing Then
@@ -209,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             <Out> ByRef hasLambdas As Boolean,
             <Out> ByRef symbolsCapturedWithoutCopyCtor As ISet(Of Symbol),
             flags As RewritingFlags,
-            instrumenter As Instrumenter,
+            instrumenterOpt As Instrumenter,
             currentMethod As MethodSymbol
         ) As BoundBlock
 
@@ -225,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                           hasLambdas,
                                           symbolsCapturedWithoutCopyCtor,
                                           flags,
-                                          instrumenter,
+                                          instrumenterOpt,
                                           recursionDepth:=0), BoundBlock)
         End Function
 
@@ -249,8 +250,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                 hasLambdas,
                                                 SpecializedCollections.EmptySet(Of Symbol),
                                                 RewritingFlags.Default,
-                                                Instrumenter.NoOp, ' don't do any instrumentation in expression tree lambdas
-                                                recursionDepth), BoundExpression)
+                                                instrumenterOpt:=Nothing, ' don't do any instrumentation in expression tree lambdas
+                                                recursionDepth:=recursionDepth), BoundExpression)
             Debug.Assert(Not hasLambdas)
             Return result
         End Function
@@ -309,7 +310,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If instrumentExpressionInQuery Then
                 _instrumentTopLevelNonCompilerGeneratedExpressionsInQuery = True
-                result = _instrumenter.InstrumentTopLevelExpressionInQuery(node, result)
+                result = _instrumenterOpt.InstrumentTopLevelExpressionInQuery(node, result)
             End If
 
 #If DEBUG Then
@@ -367,7 +368,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property Instrument As Boolean
             Get
-                Return _instrumenter IsNot Instrumenter.NoOp AndAlso Not _inExpressionLambda
+                Return _instrumenterOpt IsNot Nothing AndAlso Not _inExpressionLambda
             End Get
         End Property
 
@@ -451,7 +452,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' NOTE: should be set to make sure we don't assert and rewrite the statement properly.
             ' NOTE: GenerateDebugInfo in this case should be False as all sequence points are 
             ' NOTE: supposed to be generated by this time
-            Debug.Assert((Me._flags And RewritingFlags.AllowSequencePoints) <> 0 AndAlso _instrumenter Is Instrumenter.NoOp, "are we trying to rewrite a node more than once?")
+            Debug.Assert((Me._flags And RewritingFlags.AllowSequencePoints) <> 0 AndAlso _instrumenterOpt Is Nothing, "are we trying to rewrite a node more than once?")
             Return node.Update(DirectCast(Me.Visit(node.StatementOpt), BoundStatement), node.Span)
         End Function
 
@@ -462,7 +463,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' NOTE: should be set to make sure we don't assert and rewrite the statement properly.
             ' NOTE: GenerateDebugInfo in this case should be False as all sequence points are 
             ' NOTE: supposed to be generated by this time
-            Debug.Assert((Me._flags And RewritingFlags.AllowSequencePoints) <> 0 AndAlso _instrumenter Is Instrumenter.NoOp, "are we trying to rewrite a node more than once?")
+            Debug.Assert((Me._flags And RewritingFlags.AllowSequencePoints) <> 0 AndAlso _instrumenterOpt Is Nothing, "are we trying to rewrite a node more than once?")
             Return node.Update(DirectCast(Me.Visit(node.StatementOpt), BoundStatement))
         End Function
 
@@ -864,7 +865,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Instrument(node, rewritten) Then
-                rewritten = _instrumenter.InstrumentStopStatement(node, rewritten)
+                rewritten = _instrumenterOpt.InstrumentStopStatement(node, rewritten)
             End If
 
             Return rewritten
@@ -881,7 +882,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Instrument(node, rewritten) Then
-                rewritten = _instrumenter.InstrumentEndStatement(node, rewritten)
+                rewritten = _instrumenterOpt.InstrumentEndStatement(node, rewritten)
             End If
 
             Return rewritten

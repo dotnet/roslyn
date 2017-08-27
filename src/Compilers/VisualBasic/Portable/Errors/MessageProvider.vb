@@ -7,9 +7,13 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class MessageProvider
         Inherits CommonMessageProvider
-        Implements IObjectWritable, IObjectReadable
+        Implements IObjectWritable
 
         Public Shared ReadOnly Instance As MessageProvider = New MessageProvider()
+
+        Shared Sub New()
+            ObjectBinder.RegisterTypeReader(GetType(MessageProvider), Function(r) Instance)
+        End Sub
 
         Private Sub New()
         End Sub
@@ -17,10 +21,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub WriteTo(writer As ObjectWriter) Implements IObjectWritable.WriteTo
             ' don't write anything since we always return the shared 'Instance' when read.
         End Sub
-
-        Private Function GetReader() As Func(Of ObjectReader, Object) Implements IObjectReadable.GetReader
-            Return Function(r) Instance
-        End Function
 
         Public Overrides ReadOnly Property CodePrefix As String
             Get
@@ -229,6 +229,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Get
                 ' TODO: Add an error code for CompileCancelled
                 Return ERRID.ERR_None
+            End Get
+        End Property
+
+        ' parse options:
+
+        Public Overrides ReadOnly Property ERR_BadSourceCodeKind As Integer
+            Get
+                Return ERRID.ERR_BadSourceCodeKind
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ERR_BadDocumentationMode As Integer
+            Get
+                Return ERRID.ERR_BadDocumentationMode
             End Get
         End Property
 
@@ -529,6 +543,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property ERR_BadAssemblyName As Integer
             Get
                 Return ERRID.ERR_BadAssemblyName
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ERR_InvalidDebugInfo As Integer
+            Get
+                Return ERRID.ERR_InvalidDebugInfo
             End Get
         End Property
     End Class

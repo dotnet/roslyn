@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
     public abstract class AbstractXmlTagCompletionTests
     {
         internal abstract ICommandHandler<TypeCharCommandArgs> CreateCommandHandler(ITextUndoHistoryRegistry undoHistory);
-        protected abstract Task<TestWorkspace> CreateTestWorkspaceAsync(string initialMarkup);
+        protected abstract TestWorkspace CreateTestWorkspace(string initialMarkup);
 
-        public async Task VerifyAsync(string initialMarkup, string expectedMarkup, char typeChar)
+        public void Verify(string initialMarkup, string expectedMarkup, char typeChar)
         {
-            using (var workspace = await CreateTestWorkspaceAsync(initialMarkup))
+            using (var workspace = CreateTestWorkspace(initialMarkup))
             {
                 var testDocument = workspace.Documents.Single();
                 var view = testDocument.GetTextView();

@@ -11,6 +11,7 @@ Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Text
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
@@ -611,7 +612,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' optimization for a common case
             ' the ASCII range between ': and ~ , with exception of except "'", "_" and R cannot start trivia
-            If ch > ":"c AndAlso ch <= "~"c AndAlso ch <> "'"c AndAlso ch <> "_"c AndAlso ch <> "R"c AndAlso ch <> "r"c Then
+            If ch > ":"c AndAlso
+               ch <= "~"c AndAlso
+               ch <> "'"c AndAlso
+               ch <> "_"c AndAlso
+               ch <> "R"c AndAlso
+               ch <> "r"c AndAlso
+               ch <> "<"c AndAlso
+               ch <> "="c AndAlso
+               ch <> ">"c Then
                 Return Nothing
             End If
 
@@ -640,6 +649,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     If StartsDirective(0) Then
                         Return TryScanDirective(tList)
+                    End If
+
+                    If IsConflictMarkerTrivia() Then
+                        ScanConflictMarker(tList)
+                        Return True
                     End If
                 End If
 
@@ -675,6 +689,107 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Return False
         End Function
+
+        ' All conflict markers consist of the same character repeated seven times.  If it Is
+        ' a <<<<<<< Or >>>>>>> marker then it Is also followed by a space.
+        Private Shared ReadOnly s_conflictMarkerLength As Integer = "<<<<<<<".Length
+
+        Private Function IsConflictMarkerTrivia() As Boolean
+            If CanGet() Then
+                Dim ch = Peek()
+
+                If ch = "<"c OrElse ch = ">"c OrElse ch = "="c Then
+                    Dim position = _lineBufferOffset
+                    Dim text = _buffer
+
+                    If position = 0 OrElse SyntaxFacts.IsNewLine(text(position - 1)) Then
+                        Dim firstCh = _buffer(position)
+
+                        If (position + s_conflictMarkerLength) <= text.Length Then
+                            For i = 0 To s_conflictMarkerLength - 1
+                                If text(position + i) <> firstCh Then
+                                    Return False
+                                End If
+                            Next
+
+                            If firstCh = "="c Then
+                                Return True
+                            End If
+
+                            Return (position + s_conflictMarkerLength) < text.Length AndAlso
+                                   text(position + s_conflictMarkerLength) = " "c
+                        End If
+                    End If
+                End If
+            End If
+
+            Return False
+        End Function
+
+        Private Sub ScanConflictMarker(tList As SyntaxListBuilder)
+            Dim startCh = Peek()
+
+            ' First create a trivia from the start of this merge conflict marker to the
+            ' end of line/file (whicever comes first).
+            ScanConflictMarkerHeader(tList)
+
+            ' Now add the newlines as the next trivia.
+            ScanConflictMarkerEndOfLine(tList)
+
+            If startCh = "="c Then
+                ' Consume everything from the start of the mid-conflict marker to the start of the next
+                ' end-conflict marker.
+                ScanConflictMarkerDisabledText(tList)
+            End If
+        End Sub
+
+        Private Sub ScanConflictMarkerDisabledText(tList As SyntaxListBuilder)
+            Dim start = _lineBufferOffset
+            While CanGet()
+                Dim ch = Peek()
+
+                If ch = ">"c AndAlso IsConflictMarkerTrivia() Then
+                    Exit While
+                End If
+
+                AdvanceChar()
+            End While
+
+            Dim width = _lineBufferOffset - start
+            If width > 0 Then
+                tList.Add(SyntaxFactory.DisabledTextTrivia(GetText(start, width)))
+            End If
+        End Sub
+
+        Private Sub ScanConflictMarkerEndOfLine(tList As SyntaxListBuilder)
+            Dim start = _lineBufferOffset
+
+            While CanGet() AndAlso SyntaxFacts.IsNewLine(Peek())
+                AdvanceChar()
+            End While
+
+            Dim width = _lineBufferOffset - start
+            If width > 0 Then
+                tList.Add(SyntaxFactory.EndOfLineTrivia(GetText(start, width)))
+            End If
+        End Sub
+
+        Private Sub ScanConflictMarkerHeader(tList As SyntaxListBuilder)
+            Dim start = _lineBufferOffset
+
+            While CanGet()
+                Dim ch = Peek()
+                If SyntaxFacts.IsNewLine(ch) Then
+                    Exit While
+                End If
+
+                AdvanceChar()
+            End While
+
+            Dim trivia = SyntaxFactory.ConflictMarkerTrivia(GetText(start, _lineBufferOffset - start))
+            trivia = DirectCast(trivia.SetDiagnostics({ErrorFactory.ErrorInfo(ERRID.ERR_Merge_conflict_marker_encountered)}), SyntaxTrivia)
+            tList.Add(trivia)
+        End Sub
 
         ' check for '''(~')
         Private Function StartsXmlDoc(Here As Integer) As Boolean
@@ -2536,7 +2651,11 @@ baddate:
             If CheckFeatureAvailability(feature) Then
                 Return token
             End If
-            Dim errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_LanguageVersion, _options.LanguageVersion.GetErrorName(), ErrorFactory.ErrorInfo(feature.GetResourceId()))
+            Dim requiredVersion = New VisualBasicRequiredLanguageVersion(feature.GetLanguageVersion())
+            Dim errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_LanguageVersion,
+                                                   _options.LanguageVersion.GetErrorName(),
+                                                   ErrorFactory.ErrorInfo(feature.GetResourceId()),
+                                                   requiredVersion)
             Return DirectCast(token.AddError(errorInfo), SyntaxToken)
         End Function
 

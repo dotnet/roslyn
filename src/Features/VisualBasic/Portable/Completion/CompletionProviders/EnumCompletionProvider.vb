@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -123,6 +123,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Protected Overrides Function CreateItem(displayText As String, insertionText As String, symbols As List(Of ISymbol), context As SyntaxContext, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
+            Dim rules = GetCompletionItemRules(symbols)
+            rules = rules.WithMatchPriority(If(preselect, MatchPriority.Preselect, MatchPriority.Default))
+
             Return SymbolCompletionItem.CreateWithSymbolId(
                 displayText:=displayText,
                 insertionText:=insertionText,
@@ -130,15 +133,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 symbols:=symbols,
                 contextPosition:=context.Position,
                 sortText:=insertionText,
-                matchPriority:=If(preselect, MatchPriority.Preselect, MatchPriority.Default),
                 supportedPlatforms:=supportedPlatformData,
-                rules:=GetCompletionItemRules(symbols, context))
+                rules:=rules)
         End Function
 
         Private Shared ReadOnly s_rules As CompletionItemRules =
             CompletionItemRules.Default.WithMatchPriority(MatchPriority.Preselect)
 
-        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As SyntaxContext) As CompletionItemRules
+        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol)) As CompletionItemRules
             Return s_rules
         End Function
 

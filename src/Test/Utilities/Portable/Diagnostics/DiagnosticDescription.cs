@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private readonly string _squiggledText;
         private readonly object[] _arguments;
         private readonly LinePosition? _startPosition; // May not have a value only in the case that we're constructed via factories
-        private bool _showPosition; // show start position in ToString if comparison fails
         private readonly bool _argumentOrderDoesNotMatter;
         private readonly Type _errorCodeType;
         private readonly bool _ignoreArgumentsWhenComparing;
@@ -45,8 +44,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 // (and is closer to what the compiler actually does when displaying error messages)
                 _argumentsAsStrings = _arguments.Select(o =>
                 {
-                    var embedded = o as DiagnosticInfo;
-                    if (embedded != null)
+                    if (o is DiagnosticInfo embedded)
                     {
                         return embedded.GetMessage(EnsureEnglishUICulture.PreferredOrNull);
                     }
@@ -96,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _errorCodeType = errorCodeType ?? code.GetType();
         }
 
-        internal DiagnosticDescription(Diagnostic d, bool errorCodeOnly, bool showPosition = false)
+        public DiagnosticDescription(Diagnostic d, bool errorCodeOnly)
         {
             _code = d.Code;
             _isWarningAsError = d.IsWarningAsError;
@@ -124,7 +122,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             _ignoreArgumentsWhenComparing = errorCodeOnly;
-            _showPosition = showPosition;
 
             if (!_ignoreArgumentsWhenComparing)
             {
@@ -219,13 +216,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     if (_startPosition.Value != d._startPosition.Value)
                     {
-                        _showPosition = true;
-                        d._showPosition = true;
                         return false;
                     }
-
-                    _showPosition = false;
-                    d._showPosition = false;
                 }
             }
 
@@ -354,7 +346,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 sb.Append(")");
             }
 
-            if (_startPosition != null && _showPosition)
+            if (_startPosition != null)
             {
                 sb.Append(".WithLocation(");
                 sb.Append(_startPosition.Value.Line + 1);
@@ -378,8 +370,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public static string GetAssertText(DiagnosticDescription[] expected, IEnumerable<Diagnostic> actual)
         {
-            var includeCompilerOutput = false;
-
             const int CSharp = 1;
             const int VisualBasic = 2;
             var language = actual.Any() && actual.First().Id.StartsWith("CS", StringComparison.Ordinal) ? CSharp : VisualBasic;
@@ -388,28 +378,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             StringBuilder assertText = new StringBuilder();
             assertText.AppendLine();
-
-            // Write out the 'command line compiler output' including squiggles (easy to read debugging info in the case of a failure).
-            // This will be useful for VB, because we can't do the inline comments.
-            if (includeCompilerOutput)
-            {
-                assertText.AppendLine("Compiler output:");
-                foreach (var d in actual)
-                {
-                    Indent(assertText, 1);
-                    assertText.AppendLine(d.ToString());
-                    var location = d.Location;
-                    var lineText = location.SourceTree.GetText().Lines.GetLineFromPosition(location.SourceSpan.Start).ToString();
-                    assertText.AppendLine(lineText);
-                    var span = location.GetMappedLineSpan();
-                    var startPosition = span.StartLinePosition;
-                    var endPosition = span.EndLinePosition;
-                    assertText.Append(' ', startPosition.Character);
-                    var endCharacter = (startPosition.Line == endPosition.Line) ? endPosition.Character : lineText.Length;
-                    assertText.Append('~', endCharacter - startPosition.Character);
-                    assertText.AppendLine();
-                }
-            }
 
             // write out the error baseline as method calls
             int i;
@@ -462,9 +430,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     }
                 }
 
-                var description = new DiagnosticDescription(d, errorCodeOnly: false, showPosition: true);
+                var description = new DiagnosticDescription(d, errorCodeOnly: false);
+                var diffDescription = description;
+                var idx = Array.IndexOf(expected, description);
+                if (idx != -1)
+                {
+                    diffDescription = expected[idx];
+                }
                 AppendDiagnosticDescription(assertText, description, indentDepth);
-                AppendDiagnosticDescription(actualText, description, indentDepth);
+                AppendDiagnosticDescription(actualText, diffDescription, indentDepth);
             }
             if (i > 0)
             {

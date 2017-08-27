@@ -1,47 +1,4 @@
 ﻿{
-  "fixedPackages": {
-    "Microsoft.VSSDK.BuildTools": [ "14.3.25420", "15.0.25929-RC2" ],
-    "Newtonsoft.Json": "9.0.1",
-    "System.Reflection.Metadata": "1.0.21",
-    "System.Collections.Immutable": "1.1.36",
-    "Microsoft.Build": {
-      "generateName": "Microsoft.Build.14",
-      "version": "14.3.0"
-    },
-    "Microsoft.Build.Tasks.Core": {
-      "generateName": "Microsoft.Build.Tasks.Core.14",
-      "version": "14.3.0"
-    }
-  },
-
-  "toolsetPackages": [
-    "Microsoft.VSSDK.BuildTools"
-  ],
-
-  "generate": {
-    "msbuild": {
-      "path": "build\\Targets\\Dependencies.props",
-      "values": [
-        "Microsoft.Dia.*",
-        "System.*",
-        "Microsoft.CodeAnalysis.Analyzers",
-        "Microsoft.VisualBasic",
-        "Microsoft.Composition",
-        "Microsoft.CSharp",
-        "Microsoft.VisualStudio.InteractiveWindow",
-        "Microsoft.VisualStudio.VsInteractiveWindow",
-        "MicroBuild.*",
-        "ManagedEsent",
-        "Microsoft.CodeAnalysis.Elfie",
-        "xunit",
-        "RoslynTools.*",
-        "^Microsoft.?Build.*",
-        "GitLink",
-        "Microsoft.NETCore.Runtime.CoreCLR"
-      ]
-    }
-  },
-
   "nuspecExcludes": [
     "^packages.*",
     "^Binaries.*",

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Organizing
@@ -193,7 +193,7 @@ end class</element>
         End Sub
         Shared Friend Function Bar() As Integer
         End Function
-        Shared Private Function Foo() As Integer
+        Shared Private Function Goo() As Integer
         End Function
         Function Goo() As Integer
         End Function  
@@ -203,7 +203,7 @@ End class</element>
 
             Dim final =
     <element>class C 
-        Shared Private Function Foo() As Integer
+        Shared Private Function Goo() As Integer
         End Function
         Shared Public Sub Main(args As String())
         End Sub
@@ -907,7 +907,7 @@ end class</element>
         Public Async Function TestBug2592() As Task
             Dim initial =
 <element>Namespace Acme
-    Public Class Foo
+    Public Class Goo
         
         
         Shared Public Sub Main(args As String())
@@ -920,7 +920,7 @@ End Namespace</element>
 
             Dim final =
 <element>Namespace Acme
-    Public Class Foo
+    Public Class Goo
         
         
         Public Shared Function Bar() As Integer
@@ -936,15 +936,15 @@ End Namespace</element>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Organizing)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
-        Public Async Function TestOrganizingCommandsDisabledInSubmission() As Task
+        Public Sub TestOrganizingCommandsDisabledInSubmission()
             Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
 
-            Using workspace = Await TestWorkspace.CreateAsync(
+            Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Submission Language="Visual Basic" CommonReferences="true">  
                         Class C
-                            Private $foo As Object
+                            Private $goo As Object
                         End Class
                     </Submission>
                 </Workspace>,
@@ -973,6 +973,6 @@ End Namespace</element>
                 Assert.True(delegatedToNext)
                 Assert.False(state.IsAvailable)
             End Using
-        End Function
+        End Sub
     End Class
 End Namespace

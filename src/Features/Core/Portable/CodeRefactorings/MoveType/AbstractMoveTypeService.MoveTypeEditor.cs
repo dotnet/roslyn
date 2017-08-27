@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// <summary>
             /// Given a document and a type contained in it, moves the type
             /// out to its own document. The new document's name typically
-            /// is the type name, or is atleast based on the type name.
+            /// is the type name, or is at least based on the type name.
             /// </summary>
             /// <remarks>
             /// The algorithm for this, is as follows:
@@ -86,7 +86,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 // Make the type chain above this new type partial.  Also, remove any 
                 // attributes from the containing partial types.  We don't want to create
                 // duplicate attributes on things.
-                AddPartialModifiersToTypeChain(documentEditor, removeAttributesAndComments: true);
+                AddPartialModifiersToTypeChain(
+                    documentEditor, removeAttributesAndComments: true, removeTypeInheritance: true);
 
                 // remove things that are not being moved, from the forked document.
                 var membersToRemove = GetMembersToRemove(root);
@@ -96,6 +97,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 }
 
                 var modifiedRoot = documentEditor.GetChangedRoot();
+                modifiedRoot = await AddFinalNewLineIfDesired(document, modifiedRoot).ConfigureAwait(false);
 
                 // add an empty document to solution, so that we'll have options from the right context.
                 var solutionWithNewDocument = projectToBeUpdated.Solution.AddDocument(
@@ -114,6 +116,33 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             }
 
             /// <summary>
+            /// Add a trailing newline if we don't already have one if that's what the user's 
+            /// preference is.
+            /// </summary>
+            private async Task<SyntaxNode> AddFinalNewLineIfDesired(Document document, SyntaxNode modifiedRoot)
+            {
+                var options = await document.GetOptionsAsync(CancellationToken).ConfigureAwait(false);
+                var insertFinalNewLine = options.GetOption(FormattingOptions.InsertFinalNewLine);
+                if (insertFinalNewLine)
+                {
+                    var endOfFileToken = ((ICompilationUnitSyntax)modifiedRoot).EndOfFileToken;
+                    var previousToken = endOfFileToken.GetPreviousToken(includeZeroWidth: true, includeSkipped: true);
+
+                    var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+                    if (endOfFileToken.LeadingTrivia.IsEmpty() &&
+                        !previousToken.TrailingTrivia.Any(syntaxFacts.IsEndOfLineTrivia))
+                    {
+                        var generator = SyntaxGenerator.GetGenerator(document);
+                        var endOfLine = generator.EndOfLine(options.GetOption(FormattingOptions.NewLine));
+                        return modifiedRoot.ReplaceToken(
+                            previousToken, previousToken.WithAppendedTrailingTrivia(endOfLine));
+                    }
+                }
+
+                return modifiedRoot;
+            }
+
+            /// <summary>
             /// update the original document and remove the type that was moved.
             /// perform other fix ups as necessary.
             /// </summary>
@@ -126,14 +155,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 // Make the type chain above the type we're moving 'partial'.  
                 // However, keep all the attributes on these types as theses are the 
                 // original attributes and we don't want to mess with them. 
-                AddPartialModifiersToTypeChain(documentEditor, removeAttributesAndComments: false);
-                documentEditor.RemoveNode(State.TypeNode, SyntaxRemoveOptions.KeepNoTrivia);
+                AddPartialModifiersToTypeChain(documentEditor, 
+                    removeAttributesAndComments: false, removeTypeInheritance: false);
+                documentEditor.RemoveNode(State.TypeNode, SyntaxRemoveOptions.KeepUnbalancedDirectives);
 
                 var updatedDocument = documentEditor.GetChangedDocument();
 
                 // Now, remove any imports that we no longer need *if* they were used in the new
                 // file with the moved type.  Essentially, those imports were here just to serve
-                // that new type and we shoudl remove them.  If we have *other* imports that that
+                // that new type and we should remove them.  If we have *other* imports that
                 // other file does not use *and* we do not use, we'll still keep those around.
                 // Those may be important to the user for code they're about to write, and we 
                 // don't want to interfere with them by removing them.
@@ -146,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                                                     .Where(syntaxFacts.IsUsingOrExternOrImport)
                                                     .ToImmutableArray();
 
-                Func<SyntaxNode, bool> predicate = n => movedImports.Contains(i => i.IsEquivalentTo(n));
+                bool predicate(SyntaxNode n) => movedImports.Contains(i => i.IsEquivalentTo(n));
                 updatedDocument = await service.RemoveUnnecessaryImportsAsync(
                     updatedDocument, predicate, CancellationToken).ConfigureAwait(false);
 
@@ -208,7 +238,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// if a nested type is being moved, this ensures its containing type is partial.
             /// </summary>
             private void AddPartialModifiersToTypeChain(
-                DocumentEditor documentEditor, bool removeAttributesAndComments)
+                DocumentEditor documentEditor,
+                bool removeAttributesAndComments,
+                bool removeTypeInheritance)
             {
                 var semanticFacts = State.SemanticDocument.Document.GetLanguageService<ISemanticFactsService>();
                 var typeChain = State.TypeNode.Ancestors().OfType<TTypeDeclarationSyntax>();
@@ -227,6 +259,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                         documentEditor.RemoveAllAttributes(node);
                         documentEditor.RemoveAllComments(node);
                     }
+
+                    if (removeTypeInheritance)
+                    {
+                        documentEditor.RemoveAllTypeInheritance(node);
+                    }
                 }
 
                 documentEditor.ReplaceNode(State.TypeNode,
@@ -234,24 +271,21 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     {
                         var currentTypeNode = (TTypeDeclarationSyntax)currentNode;
 
-                        // Trim leading whitespace from the type so we don't have excessive
-                        // leading blank lines.
-                        return RemoveLeadingWhitespace(currentTypeNode);
+                        // Trim leading blank lines from the type so we don't have an 
+                        // excessive number of them.
+                        return RemoveLeadingBlankLines(currentTypeNode);
                     });
             }
 
-            private TTypeDeclarationSyntax RemoveLeadingWhitespace(
+            private TTypeDeclarationSyntax RemoveLeadingBlankLines(
                 TTypeDeclarationSyntax currentTypeNode)
             {
                 var syntaxFacts = State.SemanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
-                var leadingTrivia = currentTypeNode.GetLeadingTrivia();
-                var afterWhitespace = leadingTrivia.SkipWhile(
-                    t => syntaxFacts.IsWhitespaceTrivia(t) || syntaxFacts.IsEndOfLineTrivia(t));
+                var withoutBlankLines = syntaxFacts.GetNodeWithoutLeadingBlankLines(currentTypeNode);
 
-                var withoutLeadingWhitespace = currentTypeNode.WithLeadingTrivia(afterWhitespace);
-                return withoutLeadingWhitespace.ReplaceToken(
-                    withoutLeadingWhitespace.GetFirstToken(),
-                    withoutLeadingWhitespace.GetFirstToken().WithAdditionalAnnotations(Formatter.Annotation));
+                // Add an elastic marker so the formatter can add any blank lines it thinks are
+                // important to have (i.e. after a block of usings/imports).
+                return withoutBlankLines.WithPrependedLeadingTrivia(syntaxFacts.ElasticMarker);
             }
         }
     }

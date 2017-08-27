@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -432,7 +432,7 @@ class D
 ";
             var dll = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.InvalidDynamicAttributeArgs.AsImmutableOrNull());
 
-            var c = CreateCompilationWithMscorlib(csSource, new[] { dll });
+            var c = CreateStandardCompilation(csSource, new[] { dll });
 
             c.VerifyDiagnostics(
                 // (7,20): error CS0570: 'C.F1' is not supported by the language
@@ -449,7 +449,8 @@ class D
                 Diagnostic(ErrorCode.ERR_BindToBogus, "P2").WithArguments("C.P2"));
         }
 
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void TestDynamicTransformsBadMetadata()
         {
             var il = @"
@@ -546,7 +547,7 @@ str
 3
 str";
 
-            var compilation = CreateCompilationWithCustomILSource(source, il, references: new[] { MscorlibRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithCustomILSource(source, il, references: new[] { SystemCoreRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
 
             var classDerived = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");

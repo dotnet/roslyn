@@ -9,8 +9,9 @@ namespace Microsoft.CodeAnalysis.Remote
     internal partial class CodeAnalysisService : ServiceHubServiceBase
     {
         public CodeAnalysisService(Stream stream, IServiceProvider serviceProvider) :
-            base(stream, serviceProvider)
+            base(serviceProvider, stream)
         {
+            Rpc.StartListening();
         }
     }
 }

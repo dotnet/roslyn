@@ -120,6 +120,11 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         internal sealed class WithManyChildren : WithManyChildrenBase
         {
+            static WithManyChildren()
+            {
+                ObjectBinder.RegisterTypeReader(typeof(WithManyChildren), r => new WithManyChildren(r));
+            }
+
             internal WithManyChildren(ArrayElement<GreenNode>[] children)
                 : base(children)
             {
@@ -133,11 +138,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             internal WithManyChildren(ObjectReader reader)
                 : base(reader)
             {
-            }
-
-            internal override Func<ObjectReader, object> GetReader()
-            {
-                return r => new WithManyChildren(r);
             }
 
             internal override GreenNode SetDiagnostics(DiagnosticInfo[] errors)

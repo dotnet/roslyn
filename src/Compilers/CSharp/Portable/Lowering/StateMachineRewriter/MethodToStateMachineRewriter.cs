@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -549,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ThisReference:
                 case BoundKind.BaseReference:
-                case BoundKind.DefaultOperator:
+                case BoundKind.DefaultExpression:
                     return expr;
 
                 default:
@@ -625,16 +626,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitScope(BoundScope node)
         {
             Debug.Assert(!node.Locals.IsEmpty);
-            var newLocals = ArrayBuilder<LocalSymbol>.GetInstance();
+            var newLocalsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
             var hoistedLocalsWithDebugScopes = ArrayBuilder<StateMachineFieldSymbol>.GetInstance();
+            bool localsRewritten = false;
             foreach (var local in node.Locals)
             {
                 Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
                     local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection);
 
-                if (!NeedsProxy(local))
+                LocalSymbol localToUse;
+                if (TryRewriteLocal(local, out localToUse))
                 {
-                    newLocals.Add(local);
+                    newLocalsBuilder.Add(localToUse);
+                    localsRewritten |= ((object)local != localToUse);
                     continue;
                 }
 
@@ -648,14 +652,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundStatement translated;
 
-                if (newLocals.Count == 0)
+                if (newLocalsBuilder.Count == 0)
                 {
-                    newLocals.Free();
+                    newLocalsBuilder.Free();
                     translated = new BoundStatementList(node.Syntax, statements);
                 }
                 else
                 {
-                    translated = node.Update(newLocals.ToImmutableAndFree(), statements);
+                    translated = node.Update(newLocalsBuilder.ToImmutableAndFree(), statements);
                 }
 
                 return MakeStateMachineScope(hoistedLocalsWithDebugScopes.ToImmutable(), translated);
@@ -663,8 +667,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 hoistedLocalsWithDebugScopes.Free();
-                newLocals.Free();
-                return node.Update(node.Locals, statements);
+                ImmutableArray<LocalSymbol> newLocals;
+
+                if (localsRewritten)
+                {
+                    newLocals = newLocalsBuilder.ToImmutableAndFree();
+                }
+                else
+                {
+                    newLocalsBuilder.Free();
+                    newLocals = node.Locals;
+                }
+
+                return node.Update(newLocals, statements);
             }
         }
 

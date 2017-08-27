@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -53,19 +54,38 @@ namespace Microsoft.CodeAnalysis.CSharp
         // We need an indexable collection of mappings from method candidates to their up-to-date
         // overload resolution status. It must be fast and memory efficient, but it will very often
         // contain just 1 candidate.      
-        private static int RemainingCandidatesCount<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> list)
+        private static bool AnyValidResult<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results)
             where TMember : Symbol
         {
-            var count = 0;
-            for (int i = 0; i < list.Count; i++)
+            foreach (var result in results)
             {
-                if (list[i].Result.IsValid)
+                if (result.IsValid)
                 {
-                    count += 1;
+                    return true;
                 }
             }
 
-            return count;
+            return false;
+        }
+
+        private static bool SingleValidResult<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results)
+            where TMember : Symbol
+        {
+            bool oneValid = false;
+            foreach (var result in results)
+            {
+                if (result.IsValid)
+                {
+                    if (oneValid)
+                    {
+                        return false;
+                    }
+
+                    oneValid = true;
+                }
+            }
+
+            return oneValid;
         }
 
         // Perform overload resolution on the given method group, with the given arguments and
@@ -175,22 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            bool oneValid = false;
-
-            foreach (var curResult in results)
-            {
-                if (curResult.Result.IsValid)
-                {
-                    if (oneValid)
-                    {
-                        // We somehow have two valid results.
-                        return false;
-                    }
-                    oneValid = true;
-                }
-            }
-
-            return oneValid;
+            return SingleValidResult(results);
         }
 
         // Perform method/indexer overload resolution, storing the results into "results". If
@@ -254,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: If the resulting set of candidate methods is empty, then further processing along the following steps are abandoned,
             // SPEC: and instead an attempt is made to process the invocation as an extension method invocation. If this fails, then no
             // SPEC: applicable methods exist, and a binding-time error occurs.
-            if (RemainingCandidatesCount(results) == 0)
+            if (!AnyValidResult(results))
             {
                 return;
             }
@@ -312,13 +317,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var normalResult = IsConstructorApplicableInNormalForm(constructor, arguments, ref useSiteDiagnostics);
+            var normalResult = IsConstructorApplicableInNormalForm(constructor, arguments, completeResults, ref useSiteDiagnostics);
             var result = normalResult;
             if (!normalResult.IsValid)
             {
                 if (IsValidParams(constructor))
                 {
-                    var expandedResult = IsConstructorApplicableInExpandedForm(constructor, arguments, ref useSiteDiagnostics);
+                    var expandedResult = IsConstructorApplicableInExpandedForm(constructor, arguments, completeResults, ref useSiteDiagnostics);
                     if (expandedResult.IsValid || completeResults)
                     {
                         result = expandedResult;
@@ -333,7 +338,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private MemberAnalysisResult IsConstructorApplicableInNormalForm(MethodSymbol constructor, AnalyzedArguments arguments, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private MemberAnalysisResult IsConstructorApplicableInNormalForm(
+            MethodSymbol constructor,
+            AnalyzedArguments arguments,
+            bool completeResults,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             var argumentAnalysis = AnalyzeArguments(constructor, arguments, isMethodGroupConversion: false, expanded: false); // Constructors are never involved in method group conversion.
             if (!argumentAnalysis.IsValid)
@@ -349,10 +358,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var effectiveParameters = GetEffectiveParametersInNormalForm(constructor, arguments.Arguments.Count, argumentAnalysis.ArgsToParamsOpt, arguments.RefKinds, allowRefOmittedArguments: false);
 
-            return IsApplicable(constructor, effectiveParameters, arguments, argumentAnalysis.ArgsToParamsOpt, isVararg: constructor.IsVararg, hasAnyRefOmittedArgument: false, ignoreOpenTypes: false, useSiteDiagnostics: ref useSiteDiagnostics);
+            return IsApplicable(
+                constructor,
+                effectiveParameters,
+                arguments,
+                argumentAnalysis.ArgsToParamsOpt,
+                isVararg: constructor.IsVararg,
+                hasAnyRefOmittedArgument: false,
+                ignoreOpenTypes: false,
+                completeResults: completeResults,
+                useSiteDiagnostics: ref useSiteDiagnostics);
         }
 
-        private MemberAnalysisResult IsConstructorApplicableInExpandedForm(MethodSymbol constructor, AnalyzedArguments arguments, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private MemberAnalysisResult IsConstructorApplicableInExpandedForm(
+            MethodSymbol constructor,
+            AnalyzedArguments arguments,
+            bool completeResults,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             var argumentAnalysis = AnalyzeArguments(constructor, arguments, isMethodGroupConversion: false, expanded: true);
             if (!argumentAnalysis.IsValid)
@@ -371,7 +393,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // A vararg ctor is never applicable in its expanded form because
             // it is never a params method.
             Debug.Assert(!constructor.IsVararg);
-            var result = IsApplicable(constructor, effectiveParameters, arguments, argumentAnalysis.ArgsToParamsOpt, isVararg: false, hasAnyRefOmittedArgument: false, ignoreOpenTypes: false, useSiteDiagnostics: ref useSiteDiagnostics);
+            var result = IsApplicable(
+                constructor,
+                effectiveParameters,
+                arguments,
+                argumentAnalysis.ArgsToParamsOpt,
+                isVararg: false,
+                hasAnyRefOmittedArgument: false,
+                ignoreOpenTypes: false,
+                completeResults: completeResults,
+                useSiteDiagnostics: ref useSiteDiagnostics);
 
             return result.IsValid ? MemberAnalysisResult.ExpandedForm(result.ArgsToParamsOpt, result.ConversionsOpt, hasAnyRefOmittedArgument: false) : result;
         }
@@ -492,7 +523,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Second, we need to determine if the method is applicable in its normal form or its expanded form.
 
             var normalResult = (allowUnexpandedForm || !IsValidParams(leastOverriddenMember))
-                ? IsMemberApplicableInNormalForm(member, leastOverriddenMember, typeArguments, arguments, isMethodGroupConversion, allowRefOmittedArguments, inferWithDynamic, ref useSiteDiagnostics, completeResults: completeResults)
+                ? IsMemberApplicableInNormalForm(
+                    member,
+                    leastOverriddenMember,
+                    typeArguments,
+                    arguments,
+                    isMethodGroupConversion: isMethodGroupConversion,
+                    allowRefOmittedArguments: allowRefOmittedArguments,
+                    inferWithDynamic: inferWithDynamic,
+                    completeResults: completeResults,
+                    useSiteDiagnostics: ref useSiteDiagnostics)
                 : default(MemberResolutionResult<TMember>);
 
             var result = normalResult;
@@ -505,7 +545,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!isMethodGroupConversion && IsValidParams(leastOverriddenMember))
                 {
-                    var expandedResult = IsMemberApplicableInExpandedForm(member, leastOverriddenMember, typeArguments, arguments, allowRefOmittedArguments, ref useSiteDiagnostics);
+                    var expandedResult = IsMemberApplicableInExpandedForm(
+                        member,
+                        leastOverriddenMember,
+                        typeArguments,
+                        arguments,
+                        allowRefOmittedArguments: allowRefOmittedArguments,
+                        completeResults: completeResults,
+                        useSiteDiagnostics: ref useSiteDiagnostics);
+
                     if (PreferExpandedFormOverNormalForm(normalResult.Result, expandedResult.Result))
                     {
                         result = expandedResult;
@@ -523,8 +571,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         // If the normal form is invalid and the expanded form is valid then obviously we prefer
         // the expanded form. However, there may be error-reporting situations where we
         // prefer to report the error on the expanded form rather than the normal form. 
-        // For example, if you have something like Foo<T>(params T[]) and a call
-        // Foo(1, "") then the error for the normal form is "too many arguments"
+        // For example, if you have something like Goo<T>(params T[]) and a call
+        // Goo(1, "") then the error for the normal form is "too many arguments"
         // and the error for the expanded form is "failed to infer T". Clearly the
         // expanded form error is better.
         private static bool PreferExpandedFormOverNormalForm(MemberAnalysisResult normalResult, MemberAnalysisResult expandedResult)
@@ -856,21 +904,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Consider the following case:
             // 
-            // interface IFoo { string ToString(); }
+            // interface IGoo { string ToString(); }
             // class C { public override string ToString() { whatever } }
-            // class D : C, IFoo 
+            // class D : C, IGoo 
             // { 
             //     public override string ToString() { whatever }
-            //     string IFoo.ToString() { whatever }
+            //     string IGoo.ToString() { whatever }
             // }
             // ...
-            // void M<U>(U u) where U : C, IFoo { u.ToString(); } // ???
+            // void M<U>(U u) where U : C, IGoo { u.ToString(); } // ???
             // ...
             // M(new D());
             //
             // What should overload resolution do on the call to u.ToString()?
             // 
-            // We will have IFoo.ToString and C.ToString (which is an override of object.ToString)
+            // We will have IGoo.ToString and C.ToString (which is an override of object.ToString)
             // in the candidate set. Does the rule apply to eliminate all interface methods?  NO.  The
             // rule only applies if the candidate set contains a method which originally came from a
             // class type other than object. The method C.ToString is the "slot" for
@@ -967,6 +1015,66 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private int GetTheBestCandidateIndex<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, AnalyzedArguments arguments, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            where TMember : Symbol
+        {
+            int currentBestIndex = -1;
+            for (int index = 0; index < results.Count; index++)
+            {
+                if (!results[index].IsValid)
+                {
+                    continue;
+                }
+
+                // Assume that the current candidate is the best if we don't have any
+                if (currentBestIndex == -1)
+                {
+                    currentBestIndex = index;
+                }
+                else if (results[currentBestIndex].Member == results[index].Member)
+                {
+                    currentBestIndex = -1;
+                }
+                else
+                {
+                    var better = BetterFunctionMember(results[currentBestIndex], results[index], arguments.Arguments, ref useSiteDiagnostics);
+                    if (better == BetterResult.Right)
+                    {
+                        // The current best is worse
+                        currentBestIndex = index;
+                    }
+                    else if (better != BetterResult.Left)
+                    {
+                        // The current best is not better
+                        currentBestIndex = -1;
+                    }
+                }
+            }
+
+            // Make sure that every candidate up to the current best is worse
+            for (int index = 0; index < currentBestIndex; index++)
+            {
+                if (!results[index].IsValid)
+                {
+                    continue;
+                }
+
+                if (results[currentBestIndex].Member == results[index].Member)
+                {
+                    return -1;
+                }
+
+                var better = BetterFunctionMember(results[currentBestIndex], results[index], arguments.Arguments, ref useSiteDiagnostics);
+                if (better != BetterResult.Left)
+                {
+                    // The current best is not better
+                    return -1;
+                }
+            }
+
+            return currentBestIndex;
+        }
+
         private void RemoveWorseMembers<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, AnalyzedArguments arguments, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
             where TMember : Symbol
         {
@@ -990,90 +1098,84 @@ namespace Microsoft.CodeAnalysis.CSharp
             // then we need to do no more work; we know it cannot win. But it is also possible that
             // it is not worse than anything but not better than everything. 
 
+            if (SingleValidResult(results))
+            {
+                return;
+            }
+
+            // See if we have a winner, otherwise we might need to perform additional analysis
+            // in order to improve diagnostics
+            int bestIndex = GetTheBestCandidateIndex(results, arguments, ref useSiteDiagnostics);
+            if (bestIndex != -1)
+            {
+                // Mark all other candidates as worse
+                for (int index = 0; index < results.Count; index++)
+                {
+                    if (results[index].IsValid && index != bestIndex)
+                    {
+                        results[index] = results[index].Worse();
+                    }
+                }
+
+                return;
+            }
+
             const int unknown = 0;
             const int worseThanSomething = 1;
             const int notBetterThanEverything = 2;
-            const int betterThanEverything = 3;
 
             var worse = ArrayBuilder<int>.GetInstance(results.Count, unknown);
 
+            int countOfNotBestCandidates = 0;
+            int notBestIdx = -1;
+
             for (int c1Idx = 0; c1Idx < results.Count; c1Idx++)
             {
-                var c1result = results[c1Idx];
+                var c1Result = results[c1Idx];
 
                 // If we already know this is worse than something else, no need to check again.
-                if (!c1result.Result.IsValid || worse[c1Idx] == worseThanSomething)
+                if (!c1Result.IsValid || worse[c1Idx] == worseThanSomething)
                 {
                     continue;
                 }
 
-                bool c1IsBetterThanEverything = true;
                 for (int c2Idx = 0; c2Idx < results.Count; c2Idx++)
                 {
-                    var c2result = results[c2Idx];
-
-                    if (!c2result.Result.IsValid)
+                    var c2Result = results[c2Idx];
+                    if (!c2Result.IsValid || c1Idx == c2Idx || c1Result.Member == c2Result.Member)
                     {
                         continue;
                     }
 
-                    if (c1result.Member == c2result.Member)
-                    {
-                        continue;
-                    }
-
-                    var better = BetterFunctionMember(c1result, c2result, arguments.Arguments, ref useSiteDiagnostics);
+                    var better = BetterFunctionMember(c1Result, c2Result, arguments.Arguments, ref useSiteDiagnostics);
                     if (better == BetterResult.Left)
                     {
                         worse[c2Idx] = worseThanSomething;
                     }
-                    else
+                    else if (better == BetterResult.Right)
                     {
-                        c1IsBetterThanEverything = false;
-                        if (better == BetterResult.Right)
-                        {
-                            worse[c1Idx] = worseThanSomething;
-                            break;
-                        }
+                        worse[c1Idx] = worseThanSomething;
+                        break;
                     }
                 }
+
                 if (worse[c1Idx] == unknown)
                 {
-                    // c1 was not worse than anything. Was it better than everything?
-                    worse[c1Idx] = c1IsBetterThanEverything ? betterThanEverything : notBetterThanEverything;
-                }
-            }
-
-            // See we have a winner, otherwise we might need to perform additional analysis
-            // in order to improve diagnostics
-            bool haveBestCandidate = false;
-            int countOfNotBestCandidates = 0;
-            int notBestIdx = -1;
-            for (int i = 0; i < worse.Count; ++i)
-            {
-                Debug.Assert(!results[i].Result.IsValid || worse[i] != unknown);
-                if (worse[i] == betterThanEverything)
-                {
-                    haveBestCandidate = true;
-                    break;
-                }
-                else if (worse[i] == notBetterThanEverything)
-                {
+                    // c1 was not worse than anything
+                    worse[c1Idx] = notBetterThanEverything;
                     countOfNotBestCandidates++;
-                    notBestIdx = i;
+                    notBestIdx = c1Idx;
                 }
             }
 
-            Debug.Assert(countOfNotBestCandidates == 0 || !haveBestCandidate);
-
-            if (haveBestCandidate || countOfNotBestCandidates == 0)
+            if (countOfNotBestCandidates == 0)
             {
                 for (int i = 0; i < worse.Count; ++i)
                 {
-                    Debug.Assert(!results[i].Result.IsValid || worse[i] != unknown);
-                    if (worse[i] == worseThanSomething || worse[i] == notBetterThanEverything)
+                    Debug.Assert(!results[i].IsValid || worse[i] != unknown);
+                    if (worse[i] == worseThanSomething)
                     {
-                        results[i] = new MemberResolutionResult<TMember>(results[i].Member, results[i].LeastOverriddenMember, MemberAnalysisResult.Worse());
+                        results[i] = results[i].Worse();
                     }
                 }
             }
@@ -1081,14 +1183,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 for (int i = 0; i < worse.Count; ++i)
                 {
-                    Debug.Assert(!results[i].Result.IsValid || worse[i] != unknown);
+                    Debug.Assert(!results[i].IsValid || worse[i] != unknown);
                     if (worse[i] == worseThanSomething)
                     {
                         // Mark those candidates, that are worse than the single notBest candidate, as Worst in order to improve error reporting.
-                        var analysisResult = BetterFunctionMember(results[notBestIdx], results[i], arguments.Arguments, ref useSiteDiagnostics) == BetterResult.Left ?
-                                                MemberAnalysisResult.Worst() :
-                                                MemberAnalysisResult.Worse();
-                        results[i] = new MemberResolutionResult<TMember>(results[i].Member, results[i].LeastOverriddenMember, analysisResult);
+                        results[i] = BetterResult.Left == BetterFunctionMember(results[notBestIdx], results[i], arguments.Arguments, ref useSiteDiagnostics)
+                            ? results[i].Worst() : results[i].Worse();
                     }
                     else
                     {
@@ -1097,7 +1197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 Debug.Assert(worse[notBestIdx] == notBetterThanEverything);
-                results[notBestIdx] = new MemberResolutionResult<TMember>(results[notBestIdx].Member, results[notBestIdx].LeastOverriddenMember, MemberAnalysisResult.Worse());
+                results[notBestIdx] = results[notBestIdx].Worse();
             }
             else
             {
@@ -1105,15 +1205,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 for (int i = 0; i < worse.Count; ++i)
                 {
-                    Debug.Assert(!results[i].Result.IsValid || worse[i] != unknown);
+                    Debug.Assert(!results[i].IsValid || worse[i] != unknown);
                     if (worse[i] == worseThanSomething)
                     {
                         // Mark those candidates, that are worse than something, as Worst in order to improve error reporting.
-                        results[i] = new MemberResolutionResult<TMember>(results[i].Member, results[i].LeastOverriddenMember, MemberAnalysisResult.Worst());
+                        results[i] = results[i].Worst();
                     }
                     else if (worse[i] == notBetterThanEverything)
                     {
-                        results[i] = new MemberResolutionResult<TMember>(results[i].Member, results[i].LeastOverriddenMember, MemberAnalysisResult.Worse());
+                        results[i] = results[i].Worse();
                     }
                 }
             }
@@ -1682,8 +1782,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             //   argument is more specific and no type argument is less specific than the
             //   corresponding type argument in the other. 
 
-            var n1 = t1 as NamedTypeSymbol;
-            var n2 = t2 as NamedTypeSymbol;
+            var n1 = t1.TupleUnderlyingTypeOrSelf() as NamedTypeSymbol;
+            var n2 = t2.TupleUnderlyingTypeOrSelf() as NamedTypeSymbol;
             Debug.Assert(((object)n1 == null) == ((object)n2 == null));
 
             if ((object)n1 == null)
@@ -2537,7 +2637,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new EffectiveParameters(types.ToImmutableAndFree(), refKinds);
         }
 
-        internal MemberResolutionResult<TMember> IsMemberApplicableInNormalForm<TMember>(
+        private MemberResolutionResult<TMember> IsMemberApplicableInNormalForm<TMember>(
             TMember member,                // method or property
             TMember leastOverriddenMember, // method or property
             ArrayBuilder<TypeSymbol> typeArguments,
@@ -2545,8 +2645,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isMethodGroupConversion,
             bool allowRefOmittedArguments,
             bool inferWithDynamic,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            bool completeResults = false)
+            bool completeResults,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
             where TMember : Symbol
         {
             // AnalyzeArguments matches arguments to parameter names and positions. 
@@ -2601,9 +2701,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var applicableResult = IsApplicable(
                 member, leastOverriddenMember,
                 typeArguments, arguments, originalEffectiveParameters, constructedEffectiveParameters,
-                argumentAnalysis.ArgsToParamsOpt, hasAnyRefOmittedArgument,
-                ref useSiteDiagnostics,
-                inferWithDynamic);
+                argumentAnalysis.ArgsToParamsOpt,
+                hasAnyRefOmittedArgument: hasAnyRefOmittedArgument,
+                inferWithDynamic: inferWithDynamic,
+                completeResults: completeResults,
+                useSiteDiagnostics: ref useSiteDiagnostics);
 
             // If we were producing complete results and had missing arguments, we pushed on in order to call IsApplicable for
             // type inference and lambda binding. In that case we still need to return the argument mismatch failure here.
@@ -2621,6 +2723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<TypeSymbol> typeArguments,
             AnalyzedArguments arguments,
             bool allowRefOmittedArguments,
+            bool completeResults,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
             where TMember : Symbol
         {
@@ -2665,7 +2768,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = IsApplicable(
                 member, leastOverriddenMember,
                 typeArguments, arguments, originalEffectiveParameters, constructedEffectiveParameters,
-                argumentAnalysis.ArgsToParamsOpt, hasAnyRefOmittedArgument, ref useSiteDiagnostics);
+                argumentAnalysis.ArgsToParamsOpt,
+                hasAnyRefOmittedArgument: hasAnyRefOmittedArgument,
+                inferWithDynamic: false,
+                completeResults: completeResults,
+                useSiteDiagnostics: ref useSiteDiagnostics);
 
             return result.Result.IsValid ?
                 new MemberResolutionResult<TMember>(
@@ -2684,8 +2791,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             EffectiveParameters constructedEffectiveParameters,
             ImmutableArray<int> argsToParamsMap,
             bool hasAnyRefOmittedArgument,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            bool inferWithDynamic = false)
+            bool inferWithDynamic,
+            bool completeResults,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
             where TMember : Symbol
         {
             bool ignoreOpenTypes;
@@ -2791,10 +2899,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ignoreOpenTypes = false;
             }
 
-            return new MemberResolutionResult<TMember>(
+            var applicableResult = IsApplicable(
                 member,
-                leastOverriddenMember,
-                IsApplicable(member, effectiveParameters, arguments, argsToParamsMap, member.GetIsVararg(), hasAnyRefOmittedArgument, ignoreOpenTypes, ref useSiteDiagnostics));
+                effectiveParameters,
+                arguments,
+                argsToParamsMap,
+                isVararg: member.GetIsVararg(),
+                hasAnyRefOmittedArgument: hasAnyRefOmittedArgument,
+                ignoreOpenTypes: ignoreOpenTypes,
+                completeResults: completeResults,
+                useSiteDiagnostics: ref useSiteDiagnostics);
+            return new MemberResolutionResult<TMember>(member, leastOverriddenMember, applicableResult);
         }
 
         private ImmutableArray<TypeSymbol> InferMethodTypeArguments(
@@ -2849,6 +2964,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isVararg,
             bool hasAnyRefOmittedArgument,
             bool ignoreOpenTypes,
+            bool completeResults,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // The effective parameters are in the right order with respect to the arguments.
@@ -2901,10 +3017,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     RefKind parameterRefKind = parameters.ParameterRefKinds.IsDefault ? RefKind.None : parameters.ParameterRefKinds[argumentPosition];
-                    conversion = CheckArgumentForApplicability(candidate, argument, argumentRefKind, parameters.ParameterTypes[argumentPosition], parameterRefKind, ignoreOpenTypes, ref useSiteDiagnostics);
+                    bool forExtensionMethodThisArg = arguments.IsExtensionMethodThisArgument(argumentPosition);
 
-                    if (!conversion.Exists ||
-                        (arguments.IsExtensionMethodThisArgument(argumentPosition) && !Conversions.IsValidExtensionMethodThisArgConversion(conversion)))
+                    conversion = CheckArgumentForApplicability(
+                        candidate,
+                        argument,
+                        argumentRefKind,
+                        parameters.ParameterTypes[argumentPosition],
+                        parameterRefKind,
+                        ignoreOpenTypes,
+                        ref useSiteDiagnostics,
+                        forExtensionMethodThisArg);
+
+                    if (forExtensionMethodThisArg && !Conversions.IsValidExtensionMethodThisArgConversion(conversion))
+                    {
+                        // Return early, without checking conversions of subsequent arguments,
+                        // if the instance argument is not convertible to the 'this' parameter,
+                        // even when 'completeResults' is requested. This avoids unnecessary
+                        // lambda binding in particular, for instance, with LINQ expressions.
+                        // Note that BuildArgumentsForErrorRecovery will still bind some number
+                        // of overloads for the semantic model.
+                        Debug.Assert(badArguments == null);
+                        Debug.Assert(conversions == null);
+                        return MemberAnalysisResult.BadArgumentConversions(argsToParameters, ImmutableArray.Create(argumentPosition), ImmutableArray.Create(conversion));
+                    }
+
+                    if (!conversion.Exists)
                     {
                         badArguments = badArguments ?? ArrayBuilder<int>.GetInstance();
                         badArguments.Add(argumentPosition);
@@ -2920,6 +3058,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversions = ArrayBuilder<Conversion>.GetInstance(paramCount);
                     conversions.AddMany(Conversion.Identity, argumentPosition);
                     conversions.Add(conversion);
+                }
+
+                if (badArguments != null && !completeResults)
+                {
+                    break;
                 }
             }
 
@@ -2944,7 +3087,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol parameterType,
             RefKind parRefKind,
             bool ignoreOpenTypes,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            bool forExtensionMethodThisArg)
         {
             // Spec 7.5.3.1
             // For each argument in A, the parameter passing mode of the argument (i.e., value, ref, or out) is identical
@@ -2985,7 +3129,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (argRefKind == RefKind.None)
             {
-                var conversion = Conversions.ClassifyImplicitConversionFromExpression(argument, parameterType, ref useSiteDiagnostics);
+                var conversion = forExtensionMethodThisArg ?
+                    Conversions.ClassifyImplicitExtensionMethodThisArgConversion(argument, argument.Type, parameterType, ref useSiteDiagnostics) :
+                    Conversions.ClassifyImplicitConversionFromExpression(argument, parameterType, ref useSiteDiagnostics);
                 Debug.Assert((!conversion.Exists) || conversion.IsImplicit, "ClassifyImplicitConversion should only return implicit conversions");
                 return conversion;
             }

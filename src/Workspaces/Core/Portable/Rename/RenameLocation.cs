@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Rename
         public readonly TextSpan ContainingLocationForStringOrComment;
         public readonly bool IsWrittenTo;
 
-        public bool IsRenameInStringOrComment => ContainingLocationForStringOrComment != default(TextSpan);
+        public bool IsRenameInStringOrComment => ContainingLocationForStringOrComment != default;
 
         public RenameLocation(
             Location location,
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Rename
             bool isRenamableAliasUsage = false,
             bool isRenamableAccessor = false,
             bool isWrittenTo = false,
-            TextSpan containingLocationForStringOrComment = default(TextSpan))
+            TextSpan containingLocationForStringOrComment = default)
         {
             Location = location;
             DocumentId = documentId;
@@ -50,14 +50,8 @@ namespace Microsoft.CodeAnalysis.Rename
 
         public override bool Equals(object obj)
         {
-            if (obj is RenameLocation)
-            {
-                return Equals((RenameLocation)obj);
-            }
-            else
-            {
-                return false;
-            }
+            return obj is RenameLocation loc &&
+                   Equals(loc);
         }
 
         public override int GetHashCode()

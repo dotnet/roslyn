@@ -492,9 +492,6 @@
   <data name="Deserialization_reader_for_0_read_incorrect_number_of_values" xml:space="preserve">
     <value>Deserialization reader for '{0}' read incorrect number of values.</value>
   </data>
-  <data name="Option_0_has_an_unsupported_type_to_use_with_1_You_should_specify_a_parsing_function" xml:space="preserve">
-    <value>Option '{0}' has an unsupported type to use with {1}. You should specify a parsing function.</value>
-  </data>
   <data name="Pascal_Case" xml:space="preserve">
     <value>Pascal Case</value>
   </data>
@@ -609,5 +606,11 @@
   </data>
   <data name="The_first_word_0_must_begin_with_a_lower_case_character" xml:space="preserve">
     <value>The first word, '{0}', must begin with a lower case character</value>
+  </data>
+  <data name="File_0_size_of_1_exceeds_maximum_allowed_size_of_2" xml:space="preserve">
+    <value>File '{0}' size of {1} exceeds maximum allowed size of {2}</value>
+  </data>
+  <data name="Changing_document_property_is_not_supported" xml:space="preserve">
+    <value>Changing document properties is not supported</value>
   </data>
 </root>

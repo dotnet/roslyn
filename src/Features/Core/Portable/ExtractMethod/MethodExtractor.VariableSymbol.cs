@@ -90,10 +90,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 throw ExceptionUtilities.Unreachable;
             }
 
-            public override SyntaxAnnotation IdentifierTokenAnnotation
-            {
-                get { throw ExceptionUtilities.Unreachable; }
-            }
+            public override SyntaxAnnotation IdentifierTokenAnnotation => throw ExceptionUtilities.Unreachable;
 
             public override void AddIdentifierTokenAnnotationPair(
                 List<Tuple<SyntaxToken, SyntaxAnnotation>> annotations, CancellationToken cancellationToken)
@@ -255,10 +252,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return token;
             }
 
-            public override SyntaxAnnotation IdentifierTokenAnnotation
-            {
-                get { return _annotation; }
-            }
+            public override SyntaxAnnotation IdentifierTokenAnnotation => _annotation;
 
             public override void AddIdentifierTokenAnnotationPair(
                 List<Tuple<SyntaxToken, SyntaxAnnotation>> annotations, CancellationToken cancellationToken)
@@ -281,7 +275,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     return true;
                 }
 
-                var declStatement = identifier.Parent.FirstAncestorOrSelf<T>((n) => true);
+                var declStatement = identifier.Parent.FirstAncestorOrSelf<T>(n => true);
                 if (declStatement == null)
                 {
                     return true;

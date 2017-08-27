@@ -1,15 +1,17 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editor.FindUsages
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.FindSymbols
+Imports Microsoft.CodeAnalysis.FindUsages
+Imports Microsoft.CodeAnalysis.Remote
+Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Utilities
 Imports Xunit.Abstractions
-Imports Microsoft.CodeAnalysis.Editor.FindUsages
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
@@ -26,13 +28,27 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestStreamingFeature(definition, searchSingleFileOnly, uiVisibleOnly)
         End Function
 
-        Private Async Function TestStreamingFeature(element As XElement, searchSingleFileOnly As Boolean, uiVisibleOnly As Boolean) As Task
-            ' We don't support testing features htat only expect partial results.
+        Private Async Function TestStreamingFeature(element As XElement, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
+            Await TestStreamingFeature(element, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=False)
+            Await TestStreamingFeature(element, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=True)
+        End Function
+
+        Private Async Function TestStreamingFeature(element As XElement,
+                                                    searchSingleFileOnly As Boolean,
+                                                    uiVisibleOnly As Boolean,
+                                                    outOfProcess As Boolean) As Task
+            ' We don't support testing features that only expect partial results.
             If searchSingleFileOnly OrElse uiVisibleOnly Then
                 Return
             End If
 
-            Using workspace = Await TestWorkspace.CreateAsync(element)
+            Using workspace = TestWorkspace.Create(element)
+                workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess).
+                                                      WithChangedOption(RemoteFeatureOptions.OutOfProcessAllowed, outOfProcess).
+                                                      WithChangedOption(RemoteFeatureOptions.SymbolFinderEnabled, outOfProcess)
+
+                Assert.True(workspace.Documents.Any(Function(d) d.CursorPosition.HasValue))
+
                 For Each cursorDocument In workspace.Documents.Where(Function(d) d.CursorPosition.HasValue)
                     Dim cursorPosition = cursorDocument.CursorPosition.Value
 
@@ -109,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
         End Structure
 
-        Private Class TestContext
+        Friend Class TestContext
             Inherits FindUsagesContext
 
             Private ReadOnly gate As Object = New Object()
@@ -143,7 +159,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Class
 
         Private Async Function TestAPI(definition As XElement, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
-            Using workspace = Await TestWorkspace.CreateAsync(definition)
+            Await TestAPI(definition, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=False)
+            Await TestAPI(definition, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=True)
+        End Function
+
+        Private Async Function TestAPI(definition As XElement,
+                                       searchSingleFileOnly As Boolean,
+                                       uiVisibleOnly As Boolean,
+                                       outOfProcess As Boolean) As Task
+            Using workspace = TestWorkspace.Create(definition)
+                workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess).
+                                                      WithChangedOption(RemoteFeatureOptions.OutOfProcessAllowed, outOfProcess).
+                                                      WithChangedOption(RemoteFeatureOptions.SymbolFinderEnabled, outOfProcess)
+
                 workspace.SetTestLogger(AddressOf _outputHelper.WriteLine)
 
                 For Each cursorDocument In workspace.Documents.Where(Function(d) d.CursorPosition.HasValue)

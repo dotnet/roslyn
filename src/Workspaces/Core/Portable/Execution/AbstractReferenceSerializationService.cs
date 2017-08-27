@@ -5,8 +5,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Execution
     internal abstract class AbstractReferenceSerializationService : IReferenceSerializationService
     {
         private const int MetadataFailed = int.MaxValue;
+        private const string VisualStudioUnresolvedAnalyzerReference = "Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.VisualStudioAnalyzer+VisualStudioUnresolvedAnalyzerReference";
 
         protected const byte NoEncodingSerialization = 0;
         protected const byte EncodingSerialization = 1;
@@ -28,10 +29,14 @@ namespace Microsoft.CodeAnalysis.Execution
         private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new ConditionalWeakTable<Metadata, object>();
 
         private readonly ITemporaryStorageService _storageService;
+        private readonly IDocumentationProviderService _documentationService;
 
-        protected AbstractReferenceSerializationService(ITemporaryStorageService storageService)
+        protected AbstractReferenceSerializationService(
+            ITemporaryStorageService storageService,
+            IDocumentationProviderService documentationService)
         {
             _storageService = storageService;
+            _documentationService = documentationService;
         }
 
         public virtual void WriteTo(Encoding encoding, ObjectWriter writer, CancellationToken cancellationToken)
@@ -71,8 +76,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public Checksum CreateChecksum(MetadataReference reference, CancellationToken cancellationToken)
         {
-            var portable = reference as PortableExecutableReference;
-            if (portable != null)
+            if (reference is PortableExecutableReference portable)
             {
                 return CreatePortableExecutableReferenceChecksum(portable, cancellationToken);
             }
@@ -82,10 +86,33 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public Checksum CreateChecksum(AnalyzerReference reference, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new StreamObjectWriter(stream, cancellationToken: cancellationToken))
+            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
             {
-                WriteTo(reference, writer, checksum: true, cancellationToken: cancellationToken);
+                switch (reference)
+                {
+                    case AnalyzerFileReference file:
+                        WriteAnalyzerFileReferenceMvid(file, writer, cancellationToken);
+                        break;
+
+                    case UnresolvedAnalyzerReference unresolved:
+                        WriteUnresolvedAnalyzerReferenceTo(unresolved, writer);
+                        break;
+
+                    case AnalyzerReference analyzerReference when analyzerReference.GetType().FullName == VisualStudioUnresolvedAnalyzerReference:
+                        WriteUnresolvedAnalyzerReferenceTo(analyzerReference, writer);
+                        break;
+
+                    case AnalyzerImageReference _:
+                        // TODO: think a way to support this or a way to deal with this kind of situation.
+                        // https://github.com/dotnet/roslyn/issues/15783
+                        throw new NotSupportedException(nameof(AnalyzerImageReference));
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(reference);
+                }
 
                 stream.Position = 0;
                 return Checksum.Create(stream);
@@ -94,11 +121,9 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public void WriteTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
-            var portable = reference as PortableExecutableReference;
-            if (portable != null)
+            if (reference is PortableExecutableReference portable)
             {
-                var supportTemporaryStorage = portable as ISupportTemporaryStorage;
-                if (supportTemporaryStorage != null)
+                if (portable is ISupportTemporaryStorage supportTemporaryStorage)
                 {
                     if (TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(supportTemporaryStorage, writer, cancellationToken))
                     {
@@ -124,9 +149,59 @@ namespace Microsoft.CodeAnalysis.Execution
             throw ExceptionUtilities.UnexpectedValue(type);
         }
 
-        public void WriteTo(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        public void WriteTo(AnalyzerReference reference, ObjectWriter writer, bool usePathFromAssembly, CancellationToken cancellationToken)
         {
-            WriteTo(reference, writer, checksum: false, cancellationToken: cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            switch (reference)
+            {
+                case AnalyzerFileReference file:
+                    {
+                        // fail to load analyzer assembly
+                        var assemblyPath = usePathFromAssembly ? TryGetAnalyzerAssemblyPath(file) : file.FullPath;
+                        if (assemblyPath == null)
+                        {
+                            WriteUnresolvedAnalyzerReferenceTo(reference, writer);
+                            return;
+                        }
+
+                        writer.WriteString(nameof(AnalyzerFileReference));
+                        writer.WriteInt32((int)SerializationKinds.FilePath);
+
+                        // TODO: remove this kind of host specific knowledge from common layer.
+                        //       but think moving it to host layer where this implementation detail actually exist.
+                        //
+                        // analyzer assembly path to load analyzer acts like
+                        // snapshot version for analyzer (since it is based on shadow copy)
+                        // we can't send over bits and load analyer from memory (image) due to CLR not being able
+                        // to find satellite dlls for analyzers.
+                        writer.WriteString(file.FullPath);
+                        writer.WriteString(assemblyPath);
+                        return;
+                    }
+
+                case UnresolvedAnalyzerReference unresolved:
+                    {
+                        WriteUnresolvedAnalyzerReferenceTo(unresolved, writer);
+                        return;
+                    }
+
+                case AnalyzerReference analyzerReference when analyzerReference.GetType().FullName == VisualStudioUnresolvedAnalyzerReference:
+                    {
+                        WriteUnresolvedAnalyzerReferenceTo(analyzerReference, writer);
+                        return;
+                    }
+
+                case AnalyzerImageReference _:
+                    {
+                        // TODO: think a way to support this or a way to deal with this kind of situation.
+                        // https://github.com/dotnet/roslyn/issues/15783
+                        throw new NotSupportedException(nameof(AnalyzerImageReference));
+                    }
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(reference);
+            }
         }
 
         public AnalyzerReference ReadAnalyzerReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
@@ -155,6 +230,29 @@ namespace Microsoft.CodeAnalysis.Execution
             throw ExceptionUtilities.UnexpectedValue(type);
         }
 
+        private void WriteAnalyzerFileReferenceMvid(AnalyzerFileReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using (var stream = new FileStream(reference.FullPath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete))
+                using (var peReader = new PEReader(stream))
+                {
+                    var metadataReader = peReader.GetMetadataReader();
+
+                    var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
+                    var guid = metadataReader.GetGuid(mvidHandle);
+
+                    writer.WriteGuid(guid);
+                }
+            }
+            catch
+            {
+                // we can't load the assembly analyzer file reference is pointing to.
+                // rather than crashing, handle it gracefully
+                WriteUnresolvedAnalyzerReferenceTo(reference, writer);
+            }
+        }
+
         protected void WritePortableExecutableReferenceHeaderTo(
             PortableExecutableReference reference, SerializationKinds kind, ObjectWriter writer, CancellationToken cancellationToken)
         {
@@ -173,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Execution
         private Checksum CreatePortableExecutableReferenceChecksum(PortableExecutableReference reference, CancellationToken cancellationToken)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new StreamObjectWriter(stream, cancellationToken: cancellationToken))
+            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
             {
                 WritePortableExecutableReferencePropertiesTo(reference, writer, cancellationToken);
                 WriteMvidsTo(TryGetMetadata(reference), writer, cancellationToken);
@@ -192,8 +290,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 return;
             }
 
-            var assemblyMetadata = metadata as AssemblyMetadata;
-            if (assemblyMetadata != null)
+            if (metadata is AssemblyMetadata assemblyMetadata)
             {
                 writer.WriteInt32((int)assemblyMetadata.Kind);
 
@@ -222,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Execution
             var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
             var guid = metadataReader.GetGuid(mvidHandle);
 
-            writer.WriteValue(guid.ToByteArray());
+            writer.WriteGuid(guid);
         }
 
         private void WritePortableExecutableReferenceTo(
@@ -254,11 +351,18 @@ namespace Microsoft.CodeAnalysis.Execution
                     return new MissingMetadataReference(properties, filePath, XmlDocumentationProvider.Default);
                 }
 
-                // TODO: deal with xml document provider properly
-                //       should we shadow copy xml doc comment?
+                // for now, we will use IDocumentationProviderService to get DocumentationProvider for metadata
+                // references. if the service is not available, then use Default (NoOp) provider.
+                // since xml doc comment is not part of solution snapshot, (like xml reference resolver or strong name
+                // provider) this provider can also potentially provide content that is different than one in the host. 
+                // an alternative approach of this is synching content of xml doc comment to remote host as well
+                // so that we can put xml doc comment as part of snapshot. but until we believe that is necessary,
+                // it will go with simpler approach
+                var documentProvider = filePath != null && _documentationService != null ?
+                    _documentationService.GetDocumentationProvider(filePath) : XmlDocumentationProvider.Default;
+
                 return new SerializedMetadataReference(
-                    properties, filePath, tuple.Value.metadata, tuple.Value.storages,
-                    XmlDocumentationProvider.Default);
+                    properties, filePath, tuple.Value.metadata, tuple.Value.storages, documentProvider);
             }
 
             throw ExceptionUtilities.UnexpectedValue(kind);
@@ -293,8 +397,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 return;
             }
 
-            var assemblyMetadata = metadata as AssemblyMetadata;
-            if (assemblyMetadata != null)
+            if (metadata is AssemblyMetadata assemblyMetadata)
             {
                 writer.WriteInt32((int)assemblyMetadata.Kind);
 
@@ -321,7 +424,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 return false;
             }
 
-            using (var pooled = Creator.CreateList<(string name, long size)>())
+            using (var pooled = Creator.CreateList<(string name, long offset, long size)>())
             {
                 foreach (var storage in storages)
                 {
@@ -331,7 +434,7 @@ namespace Microsoft.CodeAnalysis.Execution
                         return false;
                     }
 
-                    pooled.Object.Add((storage2.Name, storage2.Size));
+                    pooled.Object.Add((storage2.Name, storage2.Offset, storage2.Size));
                 }
 
                 WritePortableExecutableReferenceHeaderTo((PortableExecutableReference)reference, SerializationKinds.MemoryMapFile, writer, cancellationToken);
@@ -343,6 +446,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 {
                     writer.WriteInt32((int)MetadataImageKind.Module);
                     writer.WriteString(tuple.name);
+                    writer.WriteInt64(tuple.offset);
                     writer.WriteInt64(tuple.size);
                 }
 
@@ -431,9 +535,10 @@ namespace Microsoft.CodeAnalysis.Execution
                 Contract.ThrowIfNull(service2);
 
                 var name = reader.ReadString();
+                var offset = reader.ReadInt64();
                 var size = reader.ReadInt64();
 
-                storage = service2.AttachTemporaryStreamStorage(name, size, cancellationToken);
+                storage = service2.AttachTemporaryStreamStorage(name, offset, size, cancellationToken);
                 length = size;
 
                 return;
@@ -444,8 +549,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
         private void GetMetadata(Stream stream, long length, out ModuleMetadata metadata, out object lifeTimeObject)
         {
-            var directAccess = stream as ISupportDirectMemoryAccess;
-            if (directAccess != null)
+            if (stream is ISupportDirectMemoryAccess directAccess)
             {
                 metadata = ModuleMetadata.CreateFromMetadata(directAccess.GetPointer(), (int)length);
                 lifeTimeObject = stream;
@@ -453,8 +557,7 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             PinnedObject pinnedObject;
-            var memory = stream as MemoryStream;
-            if (memory != null &&
+            if (stream is MemoryStream memory &&
                 memory.TryGetBuffer(out var buffer) &&
                 buffer.Offset == 0)
             {
@@ -498,63 +601,6 @@ namespace Microsoft.CodeAnalysis.Execution
             Marshal.Copy((IntPtr)reader.MetadataPointer, bytes, 0, length);
 
             writer.WriteValue(bytes);
-        }
-
-        private void WriteTo(AnalyzerReference reference, ObjectWriter writer, bool checksum, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var file = reference as AnalyzerFileReference;
-            if (file != null)
-            {
-                // fail to load analyzer assembly
-                var assemblyPath = TryGetAnalyzerAssemblyPath(file);
-                if (assemblyPath == null)
-                {
-                    WriteUnresolvedAnalyzerReferenceTo(reference, writer);
-                    return;
-                }
-
-                writer.WriteString(nameof(AnalyzerFileReference));
-                writer.WriteInt32((int)SerializationKinds.FilePath);
-
-                if (checksum)
-                {
-                    // we don't write full path when creating checksum
-                    // make sure we always normalize assemblyPath to lower case since it comes from Assembly.Location
-                    // unlike FullPath which comes from string
-                    writer.WriteString(assemblyPath.ToLowerInvariant());
-                    return;
-                }
-
-                // TODO: remove this kind of host specific knowledge from common layer.
-                //       but think moving it to host layer where this implementation detail actually exist.
-                //
-                // analyzer assembly path to load analyzer acts like
-                // snapshot version for analyzer (since it is based on shadow copy)
-                // we can't send over bits and load analyer from memory (image) due to CLR not being able
-                // to find satellite dlls for analyzers.
-                writer.WriteString(file.FullPath);
-                writer.WriteString(assemblyPath);
-                return;
-            }
-
-            var unresolved = reference as UnresolvedAnalyzerReference;
-            if (unresolved != null)
-            {
-                WriteUnresolvedAnalyzerReferenceTo(reference, writer);
-                return;
-            }
-
-            var image = reference as AnalyzerImageReference;
-            if (image != null)
-            {
-                // TODO: think a way to support this or a way to deal with this kind of situation.
-                // https://github.com/dotnet/roslyn/issues/15783
-                throw new NotSupportedException(nameof(AnalyzerImageReference));
-            }
-
-            throw ExceptionUtilities.UnexpectedValue(reference.GetType());
         }
 
         private static void WriteUnresolvedAnalyzerReferenceTo(AnalyzerReference reference, ObjectWriter writer)
@@ -672,7 +718,6 @@ namespace Microsoft.CodeAnalysis.Execution
                 Metadata metadata, ImmutableArray<ITemporaryStreamStorage> storagesOpt, DocumentationProvider initialDocumentation) :
                 base(properties, fullPath, initialDocumentation)
             {
-                // TODO: doc comment provider is a bit wierd.
                 _metadata = metadata;
                 _storagesOpt = storagesOpt;
 
@@ -681,8 +726,8 @@ namespace Microsoft.CodeAnalysis.Execution
 
             protected override DocumentationProvider CreateDocumentationProvider()
             {
-                // TODO: properly implement this
-                return null;
+                // this uses documentation provider given at the constructor
+                throw ExceptionUtilities.Unreachable;
             }
 
             protected override Metadata GetMetadataImpl()

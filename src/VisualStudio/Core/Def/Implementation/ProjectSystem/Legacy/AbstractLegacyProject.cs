@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
         protected void AddFile(string filename, SourceCodeKind sourceCodeKind)
         {
-            Func<IVisualStudioHostDocument, bool> getIsCurrentContext = document => LinkedFileUtilities.IsCurrentContextHierarchy(document, RunningDocumentTable);
+            bool getIsCurrentContext(IVisualStudioHostDocument document) => LinkedFileUtilities.IsCurrentContextHierarchy(document, RunningDocumentTable);
             AddFile(filename, sourceCodeKind, getIsCurrentContext, GetFolderNamesFromHierarchy);
         }
 
@@ -107,6 +107,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 }
 
                 outputDirectory = FileUtilities.ResolveRelativePath(outputDirectory, containingDirectoryPathOpt);
+            }
+
+            if (outputDirectory == null || targetFileName == null)
+            {
+                return false;
             }
 
             binOutputPath = FileUtilities.NormalizeAbsolutePath(Path.Combine(outputDirectory, targetFileName));

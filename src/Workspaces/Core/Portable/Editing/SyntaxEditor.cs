@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -44,10 +44,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// A <see cref="SyntaxGenerator"/> to use to create and change <see cref="SyntaxNode"/>'s.
         /// </summary>
-        public SyntaxGenerator Generator
-        {
-            get { return _generator; }
-        }
+        public SyntaxGenerator Generator => _generator;
 
         /// <summary>
         /// Returns the changed root node.

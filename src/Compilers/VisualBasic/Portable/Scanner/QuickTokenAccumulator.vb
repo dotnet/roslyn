@@ -66,6 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' The following table classifies the first &H180 Unicode characters. 
         ' R and r are marked as COMPLEX so that quick-scanning doesn't stop after "REM".
         ' # is marked complex as it may start directives.
+        ' < = > are complex because they might start a merge conflict marker.
         ' PERF: Use UShort instead of CharFlags so the compiler can use array literal initialization.
         '       The most natural type choice, Enum arrays, are not blittable due to a CLR limitation.
         Private Shared ReadOnly s_charProperties As UShort() = {
@@ -77,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             CharFlags.White, CharFlags.Complex, CharFlags.Complex, CharFlags.Complex, CharFlags.TypeChar, CharFlags.TypeChar, CharFlags.TypeChar, CharFlags.Complex,
             CharFlags.Punct, CharFlags.Punct, CharFlags.CompoundPunctStart, CharFlags.CompoundPunctStart, CharFlags.Punct, CharFlags.CompoundPunctStart, CharFlags.Punct, CharFlags.CompoundPunctStart,
             CharFlags.Digit, CharFlags.Digit, CharFlags.Digit, CharFlags.Digit, CharFlags.Digit, CharFlags.Digit, CharFlags.Digit, CharFlags.Digit,
-            CharFlags.Digit, CharFlags.Digit, CharFlags.Complex, CharFlags.Complex, CharFlags.CompoundPunctStart, CharFlags.Punct, CharFlags.CompoundPunctStart, CharFlags.Punct, _
+            CharFlags.Digit, CharFlags.Digit, CharFlags.Complex, CharFlags.Complex, CharFlags.Complex, CharFlags.Complex, CharFlags.Complex, CharFlags.Punct, _
  _
             CharFlags.TypeChar, CharFlags.Letter, CharFlags.Letter, CharFlags.Letter, CharFlags.Letter, CharFlags.Letter, CharFlags.Letter, CharFlags.Letter,
             CharFlags.Letter, CharFlags.Letter, CharFlags.Letter, CharFlags.Letter, CharFlags.Letter, CharFlags.Letter, CharFlags.Letter, CharFlags.Letter,

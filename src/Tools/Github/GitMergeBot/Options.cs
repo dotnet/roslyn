@@ -14,7 +14,7 @@ namespace GitMergeBot
         public string SourceProject { get; set; }
         public string SourceUserId { get; set; }
         public string SourceUserName { get; set; }
-        public string SourcePassword { get; set; }
+        public string SourceAuthTokenSecretName { get; set; }
         public string SourceRemoteName { get; set; }
         public string SourceBranchName { get; set; }
 
@@ -25,7 +25,7 @@ namespace GitMergeBot
         private string _destinationRepoOwner;
         private string _destinationRepoName;
         private string _destinationUserName;
-        private string _destinationPassword;
+        private string _destinationAuthTokenSecretName;
         private string _destinationRemoteName;
         private string _destinationBranchName;
 
@@ -62,10 +62,10 @@ namespace GitMergeBot
             set { _destinationUserName = value; }
         }
 
-        public string DestinationPassword
+        public string DestinationAuthTokenSecretName
         {
-            get { return _destinationPassword ?? SourcePassword; }
-            set { _destinationPassword = value; }
+            get { return _destinationAuthTokenSecretName ?? SourceAuthTokenSecretName; }
+            set { _destinationAuthTokenSecretName = value; }
         }
 
         public string DestinationRemoteName
@@ -85,7 +85,7 @@ namespace GitMergeBot
             RepositoryPath,
             SourceRepoName,
             SourceUserName,
-            SourcePassword,
+            SourceAuthTokenSecretName,
             SourceRemoteName,
             SourceBranchName
         }.All(s => s != null);

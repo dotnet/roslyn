@@ -25,30 +25,15 @@ namespace Microsoft.CodeAnalysis.Differencing
             _edits = edits.AsImmutable();
         }
 
-        public ImmutableArray<Edit<TNode>> Edits
-        {
-            get { return _edits; }
-        }
+        public ImmutableArray<Edit<TNode>> Edits => _edits;
 
-        public Match<TNode> Match
-        {
-            get { return _match; }
-        }
+        public Match<TNode> Match => _match;
 
-        private TreeComparer<TNode> Comparer
-        {
-            get { return _match.Comparer; }
-        }
+        private TreeComparer<TNode> Comparer => _match.Comparer;
 
-        private TNode Root1
-        {
-            get { return _match.OldRoot; }
-        }
+        private TNode Root1 => _match.OldRoot;
 
-        private TNode Root2
-        {
-            get { return _match.NewRoot; }
-        }
+        private TNode Root2 => _match.NewRoot;
 
         private void AddUpdatesInsertsMoves(List<Edit<TNode>> edits)
         {
@@ -106,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Differencing
                 //   i. k := FindPos(x)
                 //  ii. Append INS((w, a, value(x)), z, k) to E for a new identifier w.
                 // iii. Add (w, x) to M' and apply INS((w, a, value(x)), z, k) to T1.          
-                edits.Add(new Edit<TNode>(EditKind.Insert, Comparer, oldNode: default(TNode), newNode: x));
+                edits.Add(new Edit<TNode>(EditKind.Insert, Comparer, oldNode: default, newNode: x));
 
                 // NOTE:
                 // We don't update M' here.
@@ -167,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             {
                 if (!_match.HasPartnerInTree2(w))
                 {
-                    edits.Add(new Edit<TNode>(EditKind.Delete, Comparer, oldNode: w, newNode: default(TNode)));
+                    edits.Add(new Edit<TNode>(EditKind.Delete, Comparer, oldNode: w, newNode: default));
                 }
             }
         }

@@ -51,9 +51,7 @@ namespace RepoUtil
 
         private static bool Run(string[] args)
         {
-            ParsedArgs parsedArgs;
-            CreateCommand func;
-            if (!TryParseCommandLine(args, out parsedArgs, out func))
+            if (!TryParseCommandLine(args, out var parsedArgs, out var func))
             {
                 Usage();
                 return false;
@@ -187,17 +185,14 @@ namespace RepoUtil
             var name = args[index];
             switch (name)
             {
-                case "verify":
-                    func = (c, s, g) => new VerifyCommand(c, s,g );
-                    break;
                 case "view":
                     func = (c, s, g) => new ViewCommand(c, s);
                     break;
                 case "consumes":
-                    func = (c, s, g) => new ConsumesCommand(RepoData.Create(c, s));
+                    func = (c, s, g) => new ConsumesCommand(RepoData.Create(c, s, ignoreConflicts: false));
                     break;
                 case "change":
-                    func = (c, s, g) => new ChangeCommand(RepoData.Create(c, s), g);
+                    func = (c, s, g) => new ChangeCommand(RepoData.Create(c, s, ignoreConflicts: true), g);
                     break;
                 case "produces":
                     func = (c, s, g) => new ProducesCommand(c, s);

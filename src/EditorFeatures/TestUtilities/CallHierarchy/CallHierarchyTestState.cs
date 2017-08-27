@@ -1,9 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition.Hosting;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -12,11 +11,10 @@ using Microsoft.CodeAnalysis.Editor.CSharp.CallHierarchy;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy;
 using Microsoft.CodeAnalysis.Editor.Implementation.Notification;
-using Microsoft.CodeAnalysis.Editor.SymbolMapping;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.VisualStudio.Language.CallHierarchy;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -93,10 +91,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
             }
         }
 
-        public static async Task<CallHierarchyTestState> CreateAsync(XElement markup, params Type[] additionalTypes)
+        public static CallHierarchyTestState Create(XElement markup, params Type[] additionalTypes)
         {
             var exportProvider = CreateExportProvider(additionalTypes);
-            var workspace = await TestWorkspace.CreateAsync(markup, exportProvider: exportProvider);
+            var workspace = TestWorkspace.Create(markup, exportProvider: exportProvider);
 
             return new CallHierarchyTestState(workspace);
         }
@@ -123,17 +121,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
         {
             var catalog = TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic
                 .WithPart(typeof(CallHierarchyProvider))
-                .WithPart(typeof(SymbolMappingServiceFactory))
+                .WithPart(typeof(DefaultSymbolMappingService))
                 .WithPart(typeof(EditorNotificationServiceFactory))
                 .WithParts(additionalTypes);
 
             return MinimalTestExportProvider.CreateExportProvider(catalog);
         }
 
-        public static async Task<CallHierarchyTestState> CreateAsync(string markup, params Type[] additionalTypes)
+        public static CallHierarchyTestState Create(string markup, params Type[] additionalTypes)
         {
             var exportProvider = CreateExportProvider(additionalTypes);
-            var workspace = await TestWorkspace.CreateCSharpAsync(markup, exportProvider: exportProvider);
+            var workspace = TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider);
             return new CallHierarchyTestState(markup, workspace);
         }
 

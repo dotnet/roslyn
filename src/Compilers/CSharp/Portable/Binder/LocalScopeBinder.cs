@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -398,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var local in this.LocalsMap)
                     {
-                        if (originalBinder.CanAddLookupSymbolInfo(local.Value, options, null))
+                        if (originalBinder.CanAddLookupSymbolInfo(local.Value, options, result, null))
                         {
                             result.AddSymbol(local.Value, local.Key, 0);
                         }
@@ -408,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var local in this.LocalFunctionsMap)
                     {
-                        if (originalBinder.CanAddLookupSymbolInfo(local.Value, options, null))
+                        if (originalBinder.CanAddLookupSymbolInfo(local.Value, options, result, null))
                         {
                             result.AddSymbol(local.Value, local.Key, 0);
                         }

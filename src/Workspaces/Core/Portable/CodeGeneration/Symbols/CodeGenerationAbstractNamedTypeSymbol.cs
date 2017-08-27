@@ -12,16 +12,16 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public ImmutableArray<IFieldSymbol> TupleElements { get; protected set; }
 
-        internal readonly IList<CodeGenerationAbstractNamedTypeSymbol> TypeMembers;
+        internal readonly ImmutableArray<CodeGenerationAbstractNamedTypeSymbol> TypeMembers;
 
         protected CodeGenerationAbstractNamedTypeSymbol(
             INamedTypeSymbol containingType,
-            IList<AttributeData> attributes,
+            ImmutableArray<AttributeData> attributes,
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             string name,
             SpecialType specialType,
-            IList<CodeGenerationAbstractNamedTypeSymbol> typeMembers)
+            ImmutableArray<CodeGenerationAbstractNamedTypeSymbol> typeMembers)
             : base(containingType, attributes, declaredAccessibility, modifiers, name, specialType)
         {
             this.TypeMembers = typeMembers;
@@ -51,7 +51,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 return this;
             }
 
-            return new CodeGenerationConstructedNamedTypeSymbol(this, typeArguments, this.TypeMembers);
+            return new CodeGenerationConstructedNamedTypeSymbol(
+                this, typeArguments.ToImmutableArray(), this.TypeMembers);
         }
 
         public abstract int Arity { get; }

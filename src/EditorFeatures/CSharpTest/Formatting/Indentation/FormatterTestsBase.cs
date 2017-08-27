@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             TextSpan span = default(TextSpan))
         {
             // create tree service
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 if (baseIndentation.HasValue)
                 {
@@ -156,10 +156,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                                                      It.IsAny<ITextSnapshot>()))
                 .Returns<SnapshotPoint, PointTrackingMode, PositionAffinity, ITextSnapshot>((p, m, a, s) =>
                 {
-                    var factory = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>()
-                                    as TestFormattingRuleFactoryServiceFactory.Factory;
 
-                    if (factory != null && factory.BaseIndentation != 0 && factory.TextSpan.Contains(p.Position))
+                    if (workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>() is TestFormattingRuleFactoryServiceFactory.Factory factory && factory.BaseIndentation != 0 && factory.TextSpan.Contains(p.Position))
                     {
                         var line = p.GetContainingLine();
                         var projectedOffset = line.GetFirstNonWhitespaceOffset().Value - factory.BaseIndentation;

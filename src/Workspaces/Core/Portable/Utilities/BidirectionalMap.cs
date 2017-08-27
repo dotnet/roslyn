@@ -77,21 +77,9 @@ namespace Roslyn.Utilities
                 _backwardMap.Add(value, key));
         }
 
-        public IEnumerable<TKey> Keys
-        {
-            get
-            {
-                return _forwardMap.Keys;
-            }
-        }
+        public IEnumerable<TKey> Keys => _forwardMap.Keys;
 
-        public IEnumerable<TValue> Values
-        {
-            get
-            {
-                return _backwardMap.Keys;
-            }
-        }
+        public IEnumerable<TValue> Values => _backwardMap.Keys;
 
         public bool IsEmpty
         {
@@ -117,7 +105,7 @@ namespace Roslyn.Utilities
                 return result;
             }
 
-            return default(TValue);
+            return default;
         }
 
         public TKey GetKeyOrDefault(TValue value)
@@ -127,7 +115,7 @@ namespace Roslyn.Utilities
                 return result;
             }
 
-            return default(TKey);
+            return default;
         }
     }
 }

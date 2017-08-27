@@ -459,7 +459,7 @@ Imports System.Collections.Generic
 Public Class R 
     Public Dictionary(Of A, B) Dict = New Dictionary(Of A, B)()
 
-    Public Sub Foo(a As A, b As B)
+    Public Sub Goo(a As A, b As B)
     End Sub
 End Class
 ]]>
@@ -478,7 +478,7 @@ Public Class M
     Public Sub F()
         Dim r = New R()
         System.Console.WriteLine(r.Dict)   ' 2 errors
-        r.Foo(Nothing, Nothing)            ' 2 errors
+        r.Goo(Nothing, Nothing)            ' 2 errors
     End Sub
 End Class
 ]]>
@@ -489,7 +489,7 @@ End Class
 
             main.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_NameNotMember2, "r.Dict").WithArguments("Dict", "R"),
-                Diagnostic(ERRID.ERR_SxSIndirectRefHigherThanDirectRef3, "r.Foo(Nothing, Nothing)").WithArguments("B", "2.0.0.0", "1.0.0.0"))
+                Diagnostic(ERRID.ERR_SxSIndirectRefHigherThanDirectRef3, "r.Goo(Nothing, Nothing)").WithArguments("B", "2.0.0.0", "1.0.0.0"))
         End Sub
 
         <Fact>
@@ -1024,7 +1024,7 @@ Public Class B
     Inherits A
 End Class
 
-Public Class Foo
+Public Class Goo
 End Class
     </file>
 </compilation>
@@ -1038,7 +1038,7 @@ End Class
 <compilation name="A">
     <file>        
 Public Class A 
-    Public x As Foo = New Foo()
+    Public x As Goo = New Goo()
 End Class
     </file>
 </compilation>
@@ -1067,7 +1067,7 @@ End Class
 
             GC.KeepAlive(symbolA2)
 
-            ' Recompile "B" and remove int Foo. The assembly manager should not reuse symbols for A since they are referring to old version of B.
+            ' Recompile "B" and remove int Goo. The assembly manager should not reuse symbols for A since they are referring to old version of B.
             Dim sourceB2 =
 <compilation name="B">
     <file>
@@ -1084,11 +1084,11 @@ End Class
             Dim b2 = CreateCompilationWithMscorlibAndReferences(sourceB2, {refA2})
 
             ' TODO (tomat): Dev11 reports error:
-            ' error BC30652: Reference required to assembly 'b, Version=1.0.0.0, Culture=neutral, PublicKeyToken = null' containing the type 'Foo'. Add one to your project.
+            ' error BC30652: Reference required to assembly 'b, Version=1.0.0.0, Culture=neutral, PublicKeyToken = null' containing the type 'Goo'. Add one to your project.
 
             AssertTheseDiagnostics(b2,
 <errors>
-BC31091: Import of type 'Foo' from assembly or module 'B.dll' failed.
+BC31091: Import of type 'Goo' from assembly or module 'B.dll' failed.
        Dim objX As Object = Me.x
                             ~~~~
 </errors>)
@@ -1253,28 +1253,28 @@ End Module
             ' ref only specifies name
             If True Then
                 Dim il = String.Format(ilTemplate.Value, "")
-                Dim ilRef = CompileIL(il, appendDefaultHeader:=False)
+                Dim ilRef = CompileIL(il, prependDefaultHeader:=False)
                 CreateCompilationWithMscorlibAndVBRuntimeAndReferences(vb, {ilRef}).VerifyDiagnostics()
             End If
 
             ' public key specified by ref, but not def
             If True Then
                 Dim il = String.Format(ilTemplate.Value, "  .publickeytoken = (31 BF 38 56 AD 36 4E 35 )                         // 1.8V.6N5")
-                Dim ilRef = CompileIL(il, appendDefaultHeader:=False)
+                Dim ilRef = CompileIL(il, prependDefaultHeader:=False)
                 CreateCompilationWithMscorlibAndVBRuntimeAndReferences(vb, {ilRef}).VerifyDiagnostics()
             End If
 
             ' version specified by ref, but not def
             If True Then
                 Dim il = String.Format(ilTemplate.Value, "  .ver 4:0:0:0")
-                Dim ilRef = CompileIL(il, appendDefaultHeader:=False)
+                Dim ilRef = CompileIL(il, prependDefaultHeader:=False)
                 CreateCompilationWithMscorlibAndVBRuntimeAndReferences(vb, {ilRef}).VerifyDiagnostics()
             End If
 
             ' culture specified by ref, but not def
             If True Then
                 Dim il = String.Format(ilTemplate.Value, "  .locale = (65 00 6E 00 2D 00 63 00 61 00 00 00 )             // e.n.-.c.a...")
-                Dim ilRef = CompileIL(il, appendDefaultHeader:=False)
+                Dim ilRef = CompileIL(il, prependDefaultHeader:=False)
                 CreateCompilationWithMscorlibAndVBRuntimeAndReferences(vb, {ilRef}).VerifyDiagnostics()
             End If
         End Sub
@@ -1364,7 +1364,7 @@ End Namespace
                 </compilation>
 
 
-            Dim ilRef = CompileIL(il.Value, appendDefaultHeader:=False)
+            Dim ilRef = CompileIL(il.Value, prependDefaultHeader:=False)
             Dim oldRef = CreateCompilationWithMscorlibAndVBRuntime(oldVb).ToMetadataReference()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(newVb, {ilRef, oldRef})
@@ -1590,7 +1590,7 @@ Public Class B
     Inherits A
 End Class
 
-Public Class Foo
+Public Class Goo
 End Class
     </file>
 </compilation>

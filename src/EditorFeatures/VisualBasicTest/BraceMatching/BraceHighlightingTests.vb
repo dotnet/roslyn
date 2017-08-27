@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -35,9 +35,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
         Public Async Function TestParens() As Tasks.Task
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(
+            Using workspace = TestWorkspace.CreateVisualBasic(
 "Module Module1
-    Function Foo(x As Integer) As Integer
+    Function Goo(x As Integer) As Integer
     End Function
 End Module")
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
@@ -71,10 +71,10 @@ End Module")
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
         Public Async Function TestNestedTouchingItems() As Tasks.Task
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(
+            Using workspace = TestWorkspace.CreateVisualBasic(
 "Module Module1
     <SomeAttr(New With {.name = ""test""})>  
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Module")
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
@@ -146,7 +146,7 @@ End Module")
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
         Public Async Function TestUnnestedTouchingItems() As Tasks.Task
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(
+            Using workspace = TestWorkspace.CreateVisualBasic(
 "Module Module1
     Dim arr()() As Integer
 End Module")
@@ -186,10 +186,10 @@ End Module")
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
         Public Async Function TestAngles() As Tasks.Task
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(
+            Using workspace = TestWorkspace.CreateVisualBasic(
 "Module Module1
     <Attribute()>
-    Sub Foo()
+    Sub Goo()
         Dim x = 2 > 3
         Dim y = 4 > 5
         Dim z = <element></element>

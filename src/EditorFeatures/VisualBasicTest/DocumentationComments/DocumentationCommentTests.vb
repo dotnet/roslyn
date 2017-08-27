@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComme
         Inherits AbstractDocumentationCommentTests
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestTypingCharacter_Class_AutoGenerateXmlDocCommentsOff() As Task
+        Public Sub TestTypingCharacter_Class_AutoGenerateXmlDocCommentsOff()
             Const code = "
 ''$$
 Class C
@@ -22,11 +22,11 @@ End Class
 Class C
 End Class
 "
-            Await VerifyTypingCharacterAsync(code, expected, autoGenerateXmlDocComments:=False)
-        End Function
+            VerifyTypingCharacter(code, expected, autoGenerateXmlDocComments:=False)
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestTypingCharacter_Class() As Task
+        Public Sub TestTypingCharacter_Class()
             Const code = "
 ''$$
 Class C
@@ -39,15 +39,15 @@ End Class
 Class C
 End Class
 "
-            Await VerifyTypingCharacterAsync(code, expected)
-        End Function
+            VerifyTypingCharacter(code, expected)
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestTypingCharacter_Method() As Task
+        Public Sub TestTypingCharacter_Method()
             Const code = "
 Class C
     ''$$
-    Function M(Of T)(foo As Integer, i() As Integer) As Integer
+    Function M(Of T)(goo As Integer, i() As Integer) As Integer
         Return 0
     End Function
 End Class
@@ -58,20 +58,20 @@ Class C
     ''' $$
     ''' </summary>
     ''' <typeparam name=""T""></typeparam>
-    ''' <param name=""foo""></param>
+    ''' <param name=""goo""></param>
     ''' <param name=""i""></param>
     ''' <returns></returns>
-    Function M(Of T)(foo As Integer, i() As Integer) As Integer
+    Function M(Of T)(goo As Integer, i() As Integer) As Integer
         Return 0
     End Function
 End Class
 "
-            Await VerifyTypingCharacterAsync(code, expected)
-        End Function
+            VerifyTypingCharacter(code, expected)
+        End Sub
 
         <WorkItem(538715, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538715")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestTypingCharacter_NoReturnType() As Task
+        Public Sub TestTypingCharacter_NoReturnType()
             Const code = "
 Class C
    ''$$
@@ -89,11 +89,11 @@ Class C
    End Function
 End Class
 "
-            Await VerifyTypingCharacterAsync(code, expected)
-        End Function
+            VerifyTypingCharacter(code, expected)
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestTypingCharacter_NotWhenDocCommentExists1() As Task
+        Public Sub TestTypingCharacter_NotWhenDocCommentExists1()
             Const code = "
 ''$$
 ''' <summary></summary>
@@ -106,16 +106,16 @@ End Class
 Class C
 End Class
 "
-            Await VerifyTypingCharacterAsync(code, expected)
-        End Function
+            VerifyTypingCharacter(code, expected)
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestTypingCharacter_NotWhenDocCommentExists2() As Task
+        Public Sub TestTypingCharacter_NotWhenDocCommentExists2()
             Const code = "
 Class C
     ''$$
     ''' <summary></summary>
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         Return 0
     End Function
 End Class
@@ -124,17 +124,17 @@ End Class
 Class C
     '''$$
     ''' <summary></summary>
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         Return 0
     End Function
 End Class
 "
-            Await VerifyTypingCharacterAsync(code, expected)
-        End Function
+            VerifyTypingCharacter(code, expected)
+        End Sub
 
         <WorkItem(537506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537506")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestTypingCharacter_NotAfterClassName() As Task
+        Public Sub TestTypingCharacter_NotAfterClassName()
             Const code = "
 Class C''$$
 End Class
@@ -143,12 +143,12 @@ End Class
 Class C'''$$
 End Class
 "
-            Await VerifyTypingCharacterAsync(code, expected)
-        End Function
+            VerifyTypingCharacter(code, expected)
+        End Sub
 
         <WorkItem(537508, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537508")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestTypingCharacter_NotInsideClass() As Task
+        Public Sub TestTypingCharacter_NotInsideClass()
             Const code = "
 Class C
     ''$$
@@ -159,12 +159,12 @@ Class C
     '''$$
 End Class
 "
-            Await VerifyTypingCharacterAsync(code, expected)
-        End Function
+            VerifyTypingCharacter(code, expected)
+        End Sub
 
         <WorkItem(537510, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537510")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestTypingCharacter_NotAfterConstructorName() As Task
+        Public Sub TestTypingCharacter_NotAfterConstructorName()
             Const code = "
 Class C
     Sub New() ''$$
@@ -175,12 +175,12 @@ Class C
     Sub New() '''$$
 End Class
 "
-            Await VerifyTypingCharacterAsync(code, expected)
-        End Function
+            VerifyTypingCharacter(code, expected)
+        End Sub
 
         <WorkItem(537511, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537511")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestTypingCharacter_NotInsideConstructor() As Task
+        Public Sub TestTypingCharacter_NotInsideConstructor()
             Const code = "
 Class C
     Sub New()
@@ -195,32 +195,32 @@ Class C
     End Sub
 End Class
 "
-            Await VerifyTypingCharacterAsync(code, expected)
-        End Function
+            VerifyTypingCharacter(code, expected)
+        End Sub
 
         <WorkItem(537512, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537512")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestTypingCharacter_NotInsideMethodBody() As Task
+        Public Sub TestTypingCharacter_NotInsideMethodBody()
             Const code = "
 Class C
-    Sub Foo()
+    Sub Goo()
     ''$$
     End Sub
 End Class
 "
             Const expected = "
 Class C
-    Sub Foo()
+    Sub Goo()
     '''$$
     End Sub
 End Class
 "
-            Await VerifyTypingCharacterAsync(code, expected)
-        End Function
+            VerifyTypingCharacter(code, expected)
+        End Sub
 
         <WorkItem(540004, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540004")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestTypingCharacter_NoReturnsOnWriteOnlyProperty() As Task
+        Public Sub TestTypingCharacter_NoReturnsOnWriteOnlyProperty()
             Const code = "
 Class C
     ''$$
@@ -241,11 +241,11 @@ Class C
     End Property
 End Class
 "
-            Await VerifyTypingCharacterAsync(code, expected)
-        End Function
+            VerifyTypingCharacter(code, expected)
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestPressingEnter_Class1() As Task
+        Public Sub TestPressingEnter_Class1()
             Const code = "
 '''$$
 Class C
@@ -258,11 +258,11 @@ End Class
 Class C
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
-        End Function
+            VerifyPressingEnter(code, expected)
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestPressingEnter_Class1_AutoGenerateXmlDocCommentsOff() As Task
+        Public Sub TestPressingEnter_Class1_AutoGenerateXmlDocCommentsOff()
             Const code = "
 '''$$
 Class C
@@ -274,11 +274,11 @@ $$
 Class C
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected, autoGenerateXmlDocComments:=False)
-        End Function
+            VerifyPressingEnter(code, expected, autoGenerateXmlDocComments:=False)
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestPressingEnter_Class2() As Task
+        Public Sub TestPressingEnter_Class2()
             Const code = "
 '''$$Class C
 End Class
@@ -290,28 +290,28 @@ End Class
 Class C
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
-        End Function
+            VerifyPressingEnter(code, expected)
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestPressingEnter_Class3() As Task
+        Public Sub TestPressingEnter_Class3()
             Const code = "
-'''$$<Foo()> Class C
+'''$$<Goo()> Class C
 End Class
 "
             Const expected = "
 ''' <summary>
 ''' $$
 ''' </summary>
-<Foo()> Class C
+<Goo()> Class C
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
-        End Function
+            VerifyPressingEnter(code, expected)
+        End Sub
 
         <WorkItem(538717, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538717")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestPressingEnter_Module() As Task
+        Public Sub TestPressingEnter_Module()
             Const code = "
 '''$$Module M
    Dim x As Integer
@@ -325,15 +325,15 @@ Module M
     Dim x As Integer
 End Module
 "
-            Await VerifyPressingEnterAsync(code, expected)
-        End Function
+            VerifyPressingEnter(code, expected)
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestPressingEnter_Method1() As Task
+        Public Sub TestPressingEnter_Method1()
             Const code = "
 Class C
     '''$$
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         Return 0
     End Function
 End Class
@@ -344,21 +344,21 @@ Class C
     ''' $$
     ''' </summary>
     ''' <typeparam name=""T""></typeparam>
-    ''' <param name=""foo""></param>
+    ''' <param name=""goo""></param>
     ''' <returns></returns>
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         Return 0
     End Function
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
-        End Function
+            VerifyPressingEnter(code, expected)
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestPressingEnter_Method2() As Task
+        Public Sub TestPressingEnter_Method2()
             Const code = "
 Class C
-    '''$$Function M(Of T)(foo As Integer) As Integer
+    '''$$Function M(Of T)(goo As Integer) As Integer
         Return 0
     End Function
 End Class
@@ -369,18 +369,18 @@ Class C
     ''' $$
     ''' </summary>
     ''' <typeparam name=""T""></typeparam>
-    ''' <param name=""foo""></param>
+    ''' <param name=""goo""></param>
     ''' <returns></returns>
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         Return 0
     End Function
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
-        End Function
+            VerifyPressingEnter(code, expected)
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestPressingEnter_InsertApostrophes1() As Task
+        Public Sub TestPressingEnter_InsertApostrophes1()
             Const code = "
 '''$$
 ''' <summary></summary>
@@ -394,11 +394,11 @@ End Class
 Class C
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
-        End Function
+            VerifyPressingEnter(code, expected)
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestPressingEnter_InsertApostrophes2() As Task
+        Public Sub TestPressingEnter_InsertApostrophes2()
             Const code = "
 ''' <summary>
 ''' $$
@@ -414,11 +414,11 @@ End Class
 Class C
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
-        End Function
+            VerifyPressingEnter(code, expected)
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestPressingEnter_InsertApostrophes3() As Task
+        Public Sub TestPressingEnter_InsertApostrophes3()
             Const code = "
 ''' <summary>$$</summary>
 Class C
@@ -430,11 +430,11 @@ End Class
 Class C
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
-        End Function
+            VerifyPressingEnter(code, expected)
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestPressingEnter_InsertApostrophes4() As Task
+        Public Sub TestPressingEnter_InsertApostrophes4()
             Const code = "
     '''$$
     ''' <summary></summary>
@@ -448,11 +448,11 @@ End Class
     Class C
     End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
-        End Function
+            VerifyPressingEnter(code, expected)
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestPressingEnter_InsertApostrophes5() As Task
+        Public Sub TestPressingEnter_InsertApostrophes5()
             Const code = "
     ''' <summary>
     ''' $$
@@ -468,11 +468,11 @@ End Class
     Class C
     End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
-        End Function
+            VerifyPressingEnter(code, expected)
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestPressingEnter_InsertApostrophes6() As Task
+        Public Sub TestPressingEnter_InsertApostrophes6()
             Const code = "
     ''' <summary>$$</summary>
     Class C
@@ -484,16 +484,16 @@ End Class
     Class C
     End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
-        End Function
+            VerifyPressingEnter(code, expected)
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestPressingEnter_InsertApostrophes7() As Task
+        Public Sub TestPressingEnter_InsertApostrophes7()
             Const code = "
 Class C
     '''$$
     ''' <summary></summary>
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         Return 0
     End Function
 End Class
@@ -503,17 +503,17 @@ Class C
     '''
     ''' $$
     ''' <summary></summary>
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         Return 0
     End Function
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
-        End Function
+            VerifyPressingEnter(code, expected)
+        End Sub
 
         <WorkItem(540017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540017")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestPressingEnter_InsertApostrophes8() As Task
+        Public Sub TestPressingEnter_InsertApostrophes8()
             Const code = "
 ''' <summary></summary>$$
 Class C
@@ -525,12 +525,12 @@ End Class
 Class C
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
-        End Function
+            VerifyPressingEnter(code, expected)
+        End Sub
 
         <WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestPressingEnter_InsertApostrophes9_AutoGenerateXmlDocCommentsOff() As Task
+        Public Sub TestPressingEnter_InsertApostrophes9_AutoGenerateXmlDocCommentsOff()
             Const code = "
 ''' <summary></summary>$$
 Class C
@@ -542,12 +542,12 @@ End Class
 Class C
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected, autoGenerateXmlDocComments:=False)
-        End Function
+            VerifyPressingEnter(code, expected, autoGenerateXmlDocComments:=False)
+        End Sub
 
         <WorkItem(540017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540017")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestPressingEnter_DontInsertApostrophes1() As Task
+        Public Sub TestPressingEnter_DontInsertApostrophes1()
             Const code = "
 ''' <summary></summary>
 ''' $$
@@ -561,11 +561,11 @@ $$
 Class C
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
-        End Function
+            VerifyPressingEnter(code, expected)
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestPressingEnter_NotInsideConstructor() As Task
+        Public Sub TestPressingEnter_NotInsideConstructor()
             Const code = "
 Class C
     Sub New()
@@ -581,40 +581,40 @@ $$
     End Sub
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
-        End Function
+            VerifyPressingEnter(code, expected)
+        End Sub
 
         <WorkItem(537534, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537534")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestPressingEnter_NotInsideMethodBody() As Task
+        Public Sub TestPressingEnter_NotInsideMethodBody()
             Const code = "
 Class C
-    Sub Foo()
+    Sub Goo()
     '''$$
     End Sub
 End Class
 "
             Const expected = "
 Class C
-    Sub Foo()
+    Sub Goo()
     '''
 $$
     End Sub
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
-        End Function
+            VerifyPressingEnter(code, expected)
+        End Sub
 
         <WorkItem(537550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537550")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestPressingEnter_NotBeforeDocComment() As Task
+        Public Sub TestPressingEnter_NotBeforeDocComment()
             Const code = "
     Class c1
 $$''' <summary>
         ''' 
         ''' </summary>
         ''' <returns></returns>
-Public Async Function TestFoo() As Task
+Public Async Function TestGoo() As Task
             Dim x = 1
         End Sub
     End Class
@@ -626,17 +626,17 @@ $$''' <summary>
         ''' 
         ''' </summary>
         ''' <returns></returns>
-Public Async Function TestFoo() As Task
+Public Async Function TestGoo() As Task
             Dim x = 1
         End Sub
     End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
-        End Function
+            VerifyPressingEnter(code, expected)
+        End Sub
 
         <WorkItem(2091, "https://github.com/dotnet/roslyn/issues/2091")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestPressingEnter_InTextBeforeSpace() As Task
+        Public Sub TestPressingEnter_InTextBeforeSpace()
             Const code = "
 Class C
     ''' <summary>
@@ -656,12 +656,12 @@ Class C
     End Sub
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
-        End Function
+            VerifyPressingEnter(code, expected)
+        End Sub
 
         <WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestPressingEnter_Indentation1() As Task
+        Public Sub TestPressingEnter_Indentation1()
             Const code = "
 Class C
     ''' <summary>
@@ -681,12 +681,12 @@ Class C
     End Sub
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
-        End Function
+            VerifyPressingEnter(code, expected)
+        End Sub
 
         <WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestPressingEnter_Indentation2() As Task
+        Public Sub TestPressingEnter_Indentation2()
             Const code = "
 Class C
     ''' <summary>
@@ -706,12 +706,12 @@ Class C
     End Sub
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
-        End Function
+            VerifyPressingEnter(code, expected)
+        End Sub
 
         <WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestPressingEnter_Indentation3() As Task
+        Public Sub TestPressingEnter_Indentation3()
             Const code = "
 Class C
     ''' <summary>
@@ -731,12 +731,12 @@ Class C
     End Sub
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
-        End Function
+            VerifyPressingEnter(code, expected)
+        End Sub
 
         <WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestPressingEnter_Indentation4() As Task
+        Public Sub TestPressingEnter_Indentation4()
             Const code = "
 Class C
     ''' <summary>
@@ -756,12 +756,12 @@ Class C
     End Sub
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
-        End Function
+            VerifyPressingEnter(code, expected)
+        End Sub
 
         <WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestPressingEnter_Indentation5_UseTabs() As Task
+        Public Sub TestPressingEnter_Indentation5_UseTabs()
             Const code = "
 Class C
     ''' <summary>
@@ -781,12 +781,12 @@ Class C
     End Sub
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected, useTabs:=True)
-        End Function
+            VerifyPressingEnter(code, expected, useTabs:=True)
+        End Sub
 
         <WorkItem(5486, "https://github.com/dotnet/roslyn/issues/5486")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestPressingEnter_Selection1() As Task
+        Public Sub TestPressingEnter_Selection1()
             Const code = "
 ''' <summary>
 ''' Hello [|World|]$$!
@@ -802,12 +802,12 @@ End Class
 Class C
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
-        End Function
+            VerifyPressingEnter(code, expected)
+        End Sub
 
         <WorkItem(5486, "https://github.com/dotnet/roslyn/issues/5486")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestPressingEnter_Selection2() As Task
+        Public Sub TestPressingEnter_Selection2()
             Const code = "
 ''' <summary>
 ''' Hello $$[|World|]!
@@ -823,11 +823,11 @@ End Class
 Class C
 End Class
 "
-            Await VerifyPressingEnterAsync(code, expected)
-        End Function
+            VerifyPressingEnter(code, expected)
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestCommand_Class() As Task
+        Public Sub TestCommand_Class()
             Const code = "
 Class C
     $$
@@ -841,12 +841,12 @@ Class C
 
 End Class
 "
-            Await VerifyInsertCommentCommandAsync(code, expected)
-        End Function
+            VerifyInsertCommentCommand(code, expected)
+        End Sub
 
         <WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestCommand_Class_AutoGenerateXmlDocCommentsOff() As Task
+        Public Sub TestCommand_Class_AutoGenerateXmlDocCommentsOff()
             Const code = "
 Class C
     $$
@@ -860,11 +860,11 @@ Class C
 
 End Class
 "
-            Await VerifyInsertCommentCommandAsync(code, expected, autoGenerateXmlDocComments:=False)
-        End Function
+            VerifyInsertCommentCommand(code, expected, autoGenerateXmlDocComments:=False)
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestCommand_Class_NotIfCommentExists() As Task
+        Public Sub TestCommand_Class_NotIfCommentExists()
             Const code = "
 ''' <summary></summary>
 Class C
@@ -877,12 +877,12 @@ Class C
     $$
 End Class
 "
-            Await VerifyInsertCommentCommandAsync(code, expected)
-        End Function
+            VerifyInsertCommentCommand(code, expected)
+        End Sub
 
         <WorkItem(538715, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538715")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestCommand_Method1() As Task
+        Public Sub TestCommand_Method1()
             Const code = "
 Class C
     Function F()$$
@@ -899,14 +899,14 @@ Class C
     End Function
 End Class
 "
-            Await VerifyInsertCommentCommandAsync(code, expected)
-        End Function
+            VerifyInsertCommentCommand(code, expected)
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestCommand_Method2() As Task
+        Public Sub TestCommand_Method2()
             Const code = "
 Class C
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         $$Return 0
     End Function
 End Class
@@ -917,22 +917,22 @@ Class C
     ''' $$
     ''' </summary>
     ''' <typeparam name=""T""></typeparam>
-    ''' <param name=""foo""></param>
+    ''' <param name=""goo""></param>
     ''' <returns></returns>
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         Return 0
     End Function
 End Class
 "
-            Await VerifyInsertCommentCommandAsync(code, expected)
-        End Function
+            VerifyInsertCommentCommand(code, expected)
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestCommand_Method_NotIfCommentExists() As Task
+        Public Sub TestCommand_Method_NotIfCommentExists()
             Const code = "
 Class C
     ''' <summary></summary>
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         $$Return 0
     End Function
 End Class
@@ -940,17 +940,17 @@ End Class
             Const expected = "
 Class C
     ''' <summary></summary>
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         $$Return 0
     End Function
 End Class
 "
-            Await VerifyInsertCommentCommandAsync(code, expected)
-        End Function
+            VerifyInsertCommentCommand(code, expected)
+        End Sub
 
         <WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestCommand_FirstModuleOnLine() As Task
+        Public Sub TestCommand_FirstModuleOnLine()
             Const code = "
 $$Module M : End Module : Module N : End Module
 "
@@ -961,21 +961,21 @@ $$Module M : End Module : Module N : End Module
 ''' </summary>
 Module M : End Module : Module N : End Module
 "
-            Await VerifyInsertCommentCommandAsync(code, expected)
-        End Function
+            VerifyInsertCommentCommand(code, expected)
+        End Sub
 
         <WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestCommand_NotOnSecondModuleOnLine() As Task
+        Public Sub TestCommand_NotOnSecondModuleOnLine()
             Const code = "Module M : End Module : $$Module N : End Module"
             Const expected = "Module M : End Module : $$Module N : End Module"
 
-            Await VerifyInsertCommentCommandAsync(code, expected)
-        End Function
+            VerifyInsertCommentCommand(code, expected)
+        End Sub
 
         <WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestCommand_FirstPropertyOnLine() As Task
+        Public Sub TestCommand_FirstPropertyOnLine()
             Const code = "
 Module M
     Property $$i As Integer : Property j As Integer
@@ -990,12 +990,12 @@ Module M
     Property i As Integer : Property j As Integer
 End Module
 "
-            Await VerifyInsertCommentCommandAsync(code, expected)
-        End Function
+            VerifyInsertCommentCommand(code, expected)
+        End Sub
 
         <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestOpenLineAbove1() As Task
+        Public Sub TestOpenLineAbove1()
             Const code = "
 Class C
     ''' <summary>
@@ -1015,12 +1015,12 @@ Class C
     End Sub
 End Class
 "
-            Await VerifyOpenLineAboveAsync(code, expected)
-        End Function
+            VerifyOpenLineAbove(code, expected)
+        End Sub
 
         <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestOpenLineAbove2() As Task
+        Public Sub TestOpenLineAbove2()
             Const code = "
 Class C
     ''' <summary>
@@ -1040,8 +1040,8 @@ Class C
     End Sub
 End Class
 "
-            Await VerifyOpenLineAboveAsync(code, expected)
-        End Function
+            VerifyOpenLineAbove(code, expected)
+        End Sub
 
         <WorkItem(538482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538482")>
         <Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
@@ -1054,7 +1054,7 @@ End Class
 
         <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestOpenLineAbove3() As Task
+        Public Sub TestOpenLineAbove3()
             Const code = "
 Class C
     ''' $$<summary>
@@ -1076,12 +1076,12 @@ $$
     End Sub
 End Class
 "
-            Await VerifyOpenLineAboveAsync(code, expected)
-        End Function
+            VerifyOpenLineAbove(code, expected)
+        End Sub
 
         <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestOpenLineAbove4_Tabs() As Task
+        Public Sub TestOpenLineAbove4_Tabs()
             Const code = "
 Class C
 		  ''' <summary>
@@ -1101,12 +1101,12 @@ Class C
     End Sub
 End Class
 "
-            Await VerifyOpenLineAboveAsync(code, expected, useTabs:=True)
-        End Function
+            VerifyOpenLineAbove(code, expected, useTabs:=True)
+        End Sub
 
         <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestOpenLineBelow1() As Task
+        Public Sub TestOpenLineBelow1()
             Const code = "
 Class C
     ''' <summary>
@@ -1126,12 +1126,12 @@ Class C
     End Sub
 End Class
 "
-            Await VerifyOpenLineBelowAsync(code, expected)
-        End Function
+            VerifyOpenLineBelow(code, expected)
+        End Sub
 
         <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestOpenLineBelow2() As Task
+        Public Sub TestOpenLineBelow2()
             Const code = "
 Class C
     ''' <summary>
@@ -1151,12 +1151,12 @@ Class C
     End Sub
 End Class
 "
-            Await VerifyOpenLineBelowAsync(code, expected)
-        End Function
+            VerifyOpenLineBelow(code, expected)
+        End Sub
 
         <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestOpenLineBelow3() As Task
+        Public Sub TestOpenLineBelow3()
             Const code = "
 ''' <summary>
 ''' stuff
@@ -1166,12 +1166,12 @@ End Class
 ''' stuff
 ''' </summary>
 ''' $$"
-            Await VerifyOpenLineBelowAsync(code, expected)
-        End Function
+            VerifyOpenLineBelow(code, expected)
+        End Sub
 
         <WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
-        Public Async Function TestOpenLineBelow4_Tabs() As Task
+        Public Sub TestOpenLineBelow4_Tabs()
             Const code = "
 Class C
     ''' <summary>
@@ -1191,8 +1191,8 @@ Class C
     End Sub
 End Class
 "
-            Await VerifyOpenLineBelowAsync(code, expected, useTabs:=True)
-        End Function
+            VerifyOpenLineBelow(code, expected, useTabs:=True)
+        End Sub
 
         Friend Overrides Function CreateCommandHandler(
             waitIndicator As IWaitIndicator,
@@ -1202,8 +1202,8 @@ End Class
             Return New DocumentationCommentCommandHandler(waitIndicator, undoHistoryRegistry, editorOperationsFactoryService)
         End Function
 
-        Protected Overrides Function CreateTestWorkspaceAsync(code As String) As Task(Of TestWorkspace)
-            Return TestWorkspace.CreateVisualBasicAsync(code)
+        Protected Overrides Function CreateTestWorkspace(code As String) As TestWorkspace
+            Return TestWorkspace.CreateVisualBasic(code)
         End Function
 
         Protected Overrides ReadOnly Property DocumentationCommentCharacter As Char

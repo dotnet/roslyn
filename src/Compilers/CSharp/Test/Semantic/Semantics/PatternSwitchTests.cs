@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             case var n:
                 break;
-            case ""foo"": ; // error: subsumed by previous case
+            case ""goo"": ; // error: subsumed by previous case
             case null: ; // error: subsumed by previous case
         }
     }
@@ -130,8 +130,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
                 // (10,13): error CS8120: The switch case has already been handled by a previous case.
-                //             case "foo": ; // error: subsumed by previous case
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, @"case ""foo"":").WithLocation(10, 13),
+                //             case "goo": ; // error: subsumed by previous case
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, @"case ""goo"":").WithLocation(10, 13),
                 // (11,13): error CS8120: The switch case has already been handled by a previous case.
                 //             case null: ; // error: subsumed by previous case
                 Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case null:").WithLocation(11, 13)
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             case bool n:
                 break;
-            case ""foo"": // wrong type
+            case ""goo"": // wrong type
                 break; // unreachable
         }
     }
@@ -160,8 +160,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
                 // (10,18): error CS0029: Cannot implicitly convert type 'string' to 'bool'
-                //             case "foo": // wrong type
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""foo""").WithArguments("string", "bool").WithLocation(10, 18),
+                //             case "goo": // wrong type
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""goo""").WithArguments("string", "bool").WithLocation(10, 18),
                 // (11,17): warning CS0162: Unreachable code detected
                 //                 break; // unreachable
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
@@ -443,7 +443,10 @@ null";
             compilation.VerifyDiagnostics(
                 // (10,18): error CS0037: Cannot convert null to 'bool' because it is a non-nullable value type
                 //             case null: // error: impossible given the type
-                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("bool").WithLocation(10, 18)
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("bool").WithLocation(10, 18),
+                // (11,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
                 );
         }
 
@@ -469,7 +472,10 @@ null";
             compilation.VerifyDiagnostics(
                 // (10,18): error CS0029: Cannot implicitly convert type 'int' to 'bool'
                 //             case 3: // error: impossible given the type
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "3").WithArguments("int", "bool").WithLocation(10, 18)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "3").WithArguments("int", "bool").WithLocation(10, 18),
+                // (11,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
                 );
         }
 
@@ -495,7 +501,10 @@ null";
             compilation.VerifyDiagnostics(
                 // (10,18): error CS0031: Constant value '1000' cannot be converted to a 'byte'
                 //             case 1000: // error: impossible given the type
-                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "1000").WithArguments("1000", "byte").WithLocation(10, 18)
+                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "1000").WithArguments("1000", "byte").WithLocation(10, 18),
+                // (11,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
                 );
         }
 
@@ -605,6 +614,29 @@ null";
         }
 
         [Fact]
+        public void Subsumption04b()
+        {
+            var source =
+@"public class X
+{
+    public static void Main(string[] args)
+    {
+        switch ((string)null)
+        {
+            case object o:
+                break; // unreachable
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (8,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(8, 17)
+                );
+        }
+
+        [Fact]
         public void Subsumption05()
         {
             var source =
@@ -675,7 +707,7 @@ null";
 {
     public static void Main(string[] args)
     {
-        switch (""foo"")
+        switch (""goo"")
         {
             case null when true:
                 break;
@@ -735,28 +767,28 @@ null";
             case true:
             case false:
                 break;
-            case ""foo"": // wrong type
+            case ""goo"": // wrong type
                 break;
         }
     }
 }";
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (10,18): error CS0029: Cannot implicitly convert type 'string' to 'bool'
-                //             case "foo": // wrong type
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""foo""").WithArguments("string", "bool").WithLocation(11, 18)
+                //             case "goo": // wrong type
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""goo""").WithArguments("string", "bool").WithLocation(11, 18)
                 );
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
                 // (11,18): error CS0029: Cannot implicitly convert type 'string' to 'bool'
-                //             case "foo": // wrong type
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""foo""").WithArguments("string", "bool").WithLocation(11, 18),
+                //             case "goo": // wrong type
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""goo""").WithArguments("string", "bool").WithLocation(11, 18),
                 // (12,17): warning CS0162: Unreachable code detected
                 //                 break;
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
                 );
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (10,18): error CS0029: Cannot implicitly convert type 'string' to 'bool'
-                //             case "foo": // wrong type
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""foo""").WithArguments("string", "bool").WithLocation(11, 18)
+                //             case "goo": // wrong type
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""goo""").WithArguments("string", "bool").WithLocation(11, 18)
                 );
         }
 
@@ -787,9 +819,9 @@ class Program
     }
 }";
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (18,13): error CS8059: Feature 'pattern matching' is not available in C# 6.  Please use language version 7 or greater.
+                // (18,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //             case Color x when false:
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case Color x when false:").WithArguments("pattern matching", "7").WithLocation(18, 13),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case Color x when false:").WithArguments("pattern matching", "7.0").WithLocation(18, 13),
                 // (11,17): warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
                 //                 goto case 1; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
                 Diagnostic(ErrorCode.WRN_GotoCaseShouldConvert, "goto case 1;").WithArguments("Color").WithLocation(11, 17),
@@ -802,9 +834,9 @@ class Program
                 // (15,17): error CS0159: No such label 'case 3:' within the scope of the goto statement
                 //                 goto case 3; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
                 Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 3;").WithArguments("case 3:").WithLocation(15, 17),
-                // (18,13): error CS8070: Control cannot fall out of switch from final case label ('case Color x when false:')
-                //             case Color x when false:
-                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case Color x when false:").WithArguments("case Color x when false:").WithLocation(18, 13)
+                // (15,17): warning CS0162: Unreachable code detected
+                //                 goto case 3; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "goto").WithLocation(15, 17)
                 );
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
@@ -819,7 +851,10 @@ class Program
                 Diagnostic(ErrorCode.WRN_GotoCaseShouldConvert, "goto case 3;").WithArguments("Color").WithLocation(15, 17),
                 // (15,17): error CS0159: No such label 'case 3:' within the scope of the goto statement
                 //                 goto case 3; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 3;").WithArguments("case 3:").WithLocation(15, 17)
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 3;").WithArguments("case 3:").WithLocation(15, 17),
+                // (15,17): warning CS0162: Unreachable code detected
+                //                 goto case 3; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "goto").WithLocation(15, 17)
                 );
         }
 
@@ -1693,12 +1728,27 @@ class Program
                 // (52,55): error CS0103: The name 'c' does not exist in the current context
                 //             if (o is (System.Int32 a, System.Int32 b) c) {}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "c").WithArguments("c").WithLocation(52, 55),
-                // (23,13): error CS0163: Control cannot fall through from one case label ('case (int, int) ') to another
+                // (23,29): warning CS0162: Unreachable code detected
                 //             case (int, int) z:
-                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case (int, int) ").WithArguments("case (int, int) ").WithLocation(23, 13),
-                // (24,13): error CS0163: Control cannot fall through from one case label ('case (int a, int b) ') to another
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "z").WithLocation(23, 29),
+                // (24,33): warning CS0162: Unreachable code detected
                 //             case (int a, int b) c:
-                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case (int a, int b) ").WithArguments("case (int a, int b) ").WithLocation(24, 13),
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "c").WithLocation(24, 33),
+                // (25,31): warning CS0162: Unreachable code detected
+                //             case (long, long) d:
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "d").WithLocation(25, 31),
+                // (30,29): warning CS0162: Unreachable code detected
+                //             case (int, int) z:
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "z").WithLocation(30, 29),
+                // (32,31): warning CS0162: Unreachable code detected
+                //             case (long, long) d:
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "d").WithLocation(32, 31),
+                // (37,47): warning CS0162: Unreachable code detected
+                //             case (System.Int32, System.Int32) z:
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "z").WithLocation(37, 47),
+                // (39,47): warning CS0162: Unreachable code detected
+                //             case (System.Int64, System.Int64) d:
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "d").WithLocation(39, 47),
                 // (23,29): warning CS0164: This label has not been referenced
                 //             case (int, int) z:
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "z").WithLocation(23, 29),
@@ -1839,7 +1889,10 @@ class Program
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "is").WithArguments("is").WithLocation(7, 18),
                 // (7,21): error CS0246: The type or namespace name 'EnvDTE' could not be found (are you missing a using directive or an assembly reference?)
                 //             case is EnvDTE.Project x1:
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "EnvDTE").WithArguments("EnvDTE").WithLocation(7, 21)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "EnvDTE").WithArguments("EnvDTE").WithLocation(7, 21),
+                // (8,17): warning CS0162: Unreachable code detected
+                //                 System.Console.WriteLine(x1);
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(8, 17)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -2007,7 +2060,7 @@ null");
 class Program
 {
     static void Main(string[] args)
-    {                           
+    {
         switch((object)new A())
         {
             case A a:
@@ -2036,9 +2089,9 @@ class Program
 {
     static void Main(string[] args)
     {
-        int val = 3; 
+        int val = 3;
         var l = new System.Collections.Generic.List<System.Action>();
-        int i = 1;                          
+        int i = 1;
         switch(val)
         {
             case int a when a == 3:
@@ -2098,9 +2151,9 @@ class Program
 
     static System.Collections.Generic.IEnumerable<string> Test()
     {
-        int val = 3; 
+        int val = 3;
         var l = new System.Collections.Generic.List<System.Action>();
-        int i = 1;                          
+        int i = 1;
         switch(val)
         {
             case int a when a == 3:
@@ -2160,8 +2213,8 @@ class Program
 
     static System.Collections.Generic.IEnumerable<string> Test()
     {
-        int val = 3; 
-        int i = 1;                          
+        int val = 3;
+        int i = 1;
         switch(val)
         {
             case int a when a == 3:
@@ -2216,8 +2269,8 @@ class Program
 
     static System.Collections.Generic.IEnumerable<int> Test()
     {
-        int val = 3; 
-        int i = 1;                          
+        int val = 3;
+        int i = 1;
         switch(val)
         {
             case int a when a == 3:
@@ -2275,7 +2328,7 @@ class Program
 
     static System.Collections.Generic.IEnumerable<string> Test()
     {
-        int val = 3; 
+        int val = 3;
         switch(val)
         {
             case int a when TakeOutVar(out var b) && a == b:
@@ -2316,9 +2369,9 @@ class Program
 
     static async Task<int> Test()
     {
-        int val = 3; 
+        int val = 3;
         var l = new System.Collections.Generic.List<System.Action>();
-        int i = 1;                          
+        int i = 1;
         switch(val)
         {
             case int a when a == 3:
@@ -2386,8 +2439,8 @@ class Program
 
     static async Task<int> Test()
     {
-        int val = 3; 
-        int i = 1;                          
+        int val = 3;
+        int i = 1;
         switch(val)
         {
             case int a when a == 3:
@@ -2450,8 +2503,8 @@ class Program
 
     static async Task<int> Test()
     {
-        int val = 3; 
-        int i = 1;                          
+        int val = 3;
+        int i = 1;
         switch(val)
         {
             case int a when a == 3:
@@ -2509,7 +2562,7 @@ class Program
 
     static async Task<int> Test()
     {
-        int val = 3; 
+        int val = 3;
         switch(val)
         {
             case int a when TakeOutVar(out var b) && a == b:
@@ -2538,6 +2591,679 @@ class Program
             var comp = CompileAndVerify(compilation, expectedOutput:
 @"case: 3
 3");
+        }
+
+        [Fact]
+        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        [WorkItem(401335, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=401335")]
+        public void SwitchAwaitGenericsAndOptimization()
+        {
+            var source =
+@"
+using System.Threading.Tasks;
+
+class Test
+{
+    static void Main()
+    {
+        System.Console.WriteLine(SendMessageAsync<string>(""a"").Result);
+        System.Console.WriteLine(SendMessageAsync<string>('a').Result);
+    }
+
+    public static async Task<string> SendMessageAsync<T>(object response)
+    {
+        switch (response)
+        {
+            case T expected:
+                return ""T"";
+            default:
+                return ""default"";
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (12,38): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public static async Task<string> SendMessageAsync<T>(object response)
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "SendMessageAsync").WithLocation(12, 38)
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"T
+default");
+        }
+
+        [Fact]
+        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        [WorkItem(401335, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=401335")]
+        public void SwitchLambdaGenericsAndOptimization()
+        {
+            var source =
+@"
+class Test
+{
+    static void Main()
+    {
+        System.Console.WriteLine(SendMessage<string>(""a""));
+        System.Console.WriteLine(SendMessage<string>('a'));
+    }
+
+    public static string SendMessage<T>(object input)
+    {
+        System.Func<object, string> f = (response) =>
+        {
+            switch (response)
+            {
+                case T expected:
+                    return ""T"";
+                default:
+                    return ""default"";
+            }
+        };
+
+        return f(input);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"T
+default");
+        }
+
+        [Fact]
+        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        [WorkItem(401335, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=401335")]
+        public void SwitchIteratorGenericsAndOptimization()
+        {
+            var source =
+@"
+class Test
+{
+    static void Main()
+    {
+        foreach (var s in SendMessage<string>(""a""))
+        {
+            System.Console.WriteLine(s);
+        }
+        foreach (var s in SendMessage<string>('a'))
+        {
+            System.Console.WriteLine(s);
+        }
+    }
+
+    public static System.Collections.Generic.IEnumerable<string> SendMessage<T>(object response)
+    {
+        switch (response)
+        {
+            case T expected:
+                yield return ""T"";
+                yield break;
+            default:
+                yield return ""default"";
+                yield break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"T
+default");
+        }
+
+        [Fact]
+        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        public void TupleNameDifferences_01()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        var list = new List<(int a, int b)>();
+        switch (list)
+        {
+            case List<(int x, int y)> list1:
+                break;
+            case List<(int z, int w)> list2: // subsumed
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (13,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case List<(int z, int w)> list2: // subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "List<(int z, int w)> list2").WithLocation(13, 18),
+                // (14,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(14, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        public void TupleNameDifferences_02()
+        {
+            var source =
+@"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        var list = new List<(int a, int b)>();
+        switch (list)
+        {
+            case List<(int x, int y)> list1:
+                Console.WriteLine(""pass"");
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"pass");
+        }
+
+        [Fact]
+        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        public void TupleNameDifferences_03()
+        {
+            var source =
+@"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        var t = (a: 1, b: 2);
+        switch (t)
+        {
+            case ValueTuple<int, int> x:
+                Console.WriteLine(""pass"");
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"pass");
+        }
+
+        [Fact]
+        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        public void TupleNameDifferences_04()
+        {
+            var source =
+@"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        var t = (a: 1, b: 2);
+        switch (t)
+        {
+            case var x:
+                Console.WriteLine(x.a);
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"1");
+        }
+
+        [Fact]
+        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        public void TupleNameDifferences_05()
+        {
+            var source =
+@"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        var t = (a: 1, b: 2);
+        switch (t)
+        {
+            case ValueTuple<int, int> x:
+                break;
+            case var x:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (13,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case var x:
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "var x").WithLocation(13, 18),
+                // (14,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(14, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        public void DynamicDifferences_01()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        var list = new List<dynamic>();
+        switch (list)
+        {
+            case List<object> list1:
+                break;
+            case List<dynamic> list2: // subsumed
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (13,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case List<dynamic> list2: // subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "List<dynamic> list2").WithLocation(13, 18),
+                // (14,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break")
+                );
+        }
+
+        [Fact]
+        [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
+        public void DynamicDifferences_02()
+        {
+            var source =
+@"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        var list = new List<dynamic>();
+        switch (list)
+        {
+            case List<object> list1:
+                Console.WriteLine(""pass"");
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"pass");
+        }
+
+        [Fact]
+        [WorkItem(17089, "https://github.com/dotnet/roslyn/issues/17089")]
+        public void Dynamic_01()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        switch (d)
+        {
+            case dynamic x: // error 1
+                break;
+        }
+        if (d is dynamic y) {} // error 2
+        if (d is var z) // ok
+        {
+            long l = z;
+            string s = z;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (9,18): error CS8207: It is not legal to use the type 'dynamic' in a pattern.
+                //             case dynamic x: // error 1
+                Diagnostic(ErrorCode.ERR_PatternDynamicType, "dynamic"),
+                // (12,18): error CS8207: It is not legal to use the type 'dynamic' in a pattern.
+                //         if (d is dynamic y) {} // error 2
+                Diagnostic(ErrorCode.ERR_PatternDynamicType, "dynamic").WithLocation(12, 18)
+                );
+        }
+
+        [Fact]
+        [WorkItem(17089, "https://github.com/dotnet/roslyn/issues/17089")]
+        public void Dynamic_02()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        switch (d)
+        {
+            case object x:
+            case var y: // OK, catches null
+            case var z: // error: subsumed
+                break;
+        }
+        switch (d)
+        {
+            case object x:
+            case null:
+            case var y: // error: subsumed
+                break;
+        }
+        switch (d)
+        {
+            case object x:
+            case 1: // error: subsumed
+                break;
+        }
+        switch (d)
+        {
+            case object x:
+            case int y: // error: subsumed
+                break;
+        }
+        switch (d)
+        {
+            case object x:
+            case (dynamic)null:
+            case (string)null: // error: subsumed
+                break;
+        }
+        switch (d)
+        {
+            case int i:
+            case long l:
+            case object o:
+            case var v:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (11,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case var z: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "var z").WithLocation(11, 18),
+                // (18,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case var y: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "var y").WithLocation(18, 18),
+                // (24,13): error CS8120: The switch case has already been handled by a previous case.
+                //             case 1: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 1:"),
+                // (30,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case int y: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "int y").WithLocation(30, 18),
+                // (37,13): error CS0152: The switch statement contains multiple cases with the label value 'null'
+                //             case (string)null: // error: subsumed
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case (string)null:").WithArguments("null").WithLocation(37, 13)
+                );
+        }
+
+        [Fact]
+        public void SubsumedCasesAreUnreachable_01()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        switch (args.Length)
+        {
+            case 1:
+                break;
+            case System.IComparable c:
+                break;
+            case 2: // error: subsumed
+                break; // unreachable
+            case int n: // error: subsumed
+                break; // unreachable
+            case var i: // error: subsumed
+                break; // unreachable
+            default:
+                break; // ok; default case is always considered reachable
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (12,13): error CS8120: The switch case has already been handled by a previous case.
+                //             case 2: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 2:").WithLocation(12, 13),
+                // (14,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case int n: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "int n").WithLocation(14, 18),
+                // (16,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case var i: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "var i").WithLocation(16, 18),
+                // (13,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(13, 17),
+                // (15,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(15, 17),
+                // (17,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(17, 17)
+                );
+        }
+
+        [Fact]
+        public void SwitchTuple()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        switch ((x: 1, y: 2))
+        {
+            case System.IComparable c:
+                break;
+            case System.ValueTuple<int, int> x: // error: subsumed
+                break; // unreachable
+            default:
+                break; // ok; default case is always considered reachable
+        }
+    }
+}
+";
+            var compilation = CreateStandardCompilation(
+                source, options: TestOptions.ReleaseExe, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
+            compilation.VerifyDiagnostics(
+                // (10,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case System.ValueTuple<int, int> x: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "System.ValueTuple<int, int> x").WithLocation(10, 18),
+                // (11,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
+                );
+        }
+
+        [Fact]
+        public void ByValueThenByTypeTwice()
+        {
+            var source =
+@"
+class Program
+{
+    static bool b = false;
+    static int i = 2;
+    static void Main(string[] args)
+    {
+        switch (i)
+        {
+            case 1:
+                break;
+            case System.IComparable c when b:
+                break;
+            case System.IFormattable f when b:
+                break;
+            default:
+                System.Console.WriteLine(nameof(Main));
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateStandardCompilation(
+                source, options: TestOptions.ReleaseExe, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput: "Main");
+        }
+
+        [Fact, WorkItem(18948, "https://github.com/dotnet/roslyn/issues/18948")]
+        public void AsyncGenericPatternCrash()
+        {
+            var source =
+@"
+using System.Threading.Tasks;
+
+static class Ex
+{
+    public static async Task<T> SwitchWithAwaitInPatternFails<T>(Task self, T defaultValue)
+    {
+        switch (self)
+        {
+            case Task<T> resultTask:
+                return await resultTask.ConfigureAwait(false);
+
+            default:
+                await self.ConfigureAwait(false);
+                return default(T);
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(
+                source, options: TestOptions.ReleaseDll.WithOptimizationLevel(OptimizationLevel.Release), references: new[] { SystemCoreRef, CSharpRef });
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation);
+        }
+
+        [Fact, WorkItem(388743, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=388743")]
+        public void SemanticModelForBrokenSwitch_01()
+        {
+            // a syntax error that happens to look like a pattern switch if you squint
+            var source =
+@"class Sample
+{
+    void M()
+    {
+        bool x = true;
+
+        switch (x) {
+            case
+
+        var q = 3;
+        var y = q/*BIND*/;
+    }
+}";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular6);
+            compilation.VerifyDiagnostics(
+                // (8,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
+                //             case
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, @"case
+
+        var q ").WithArguments("pattern matching", "7.0").WithLocation(8, 13),
+                // (10,15): error CS1003: Syntax error, ':' expected
+                //         var q = 3;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments(":", "=").WithLocation(10, 15),
+                // (10,15): error CS1525: Invalid expression term '='
+                //         var q = 3;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(10, 15),
+                // (13,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(13, 2),
+                // (10,9): error CS8070: Control cannot fall out of switch from final case label ('var q')
+                //         var q = 3;
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "var q").WithArguments("var q").WithLocation(10, 9)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .Where(n => n.Identifier.ValueText == "q" && n.ToFullString().Contains("/*BIND*/"))
+                .Single();
+            var type = model.GetTypeInfo(node);
+        }
+
+        [Fact, WorkItem(388743, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=388743")]
+        public void SemanticModelForBrokenSwitch_02()
+        {
+            // a simple legal pattern switch but run in language version 6
+            var source =
+@"class Sample
+{
+    void M()
+    {
+        bool b = true;
+        switch (b) {
+            case var q:
+                System.Console.WriteLine(q/*BIND*/);
+                break;
+        }
+    }
+}";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular6);
+            compilation.VerifyDiagnostics(
+                // (7,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
+                //             case var q:
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case var q:").WithArguments("pattern matching", "7.0").WithLocation(7, 13)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .Where(n => n.Identifier.ValueText == "q" && n.ToFullString().Contains("/*BIND*/"))
+                .Single();
+            var type = model.GetTypeInfo(node);
+            Assert.Equal(SpecialType.System_Boolean, type.Type.SpecialType);
+            Assert.Equal(SpecialType.System_Boolean, type.ConvertedType.SpecialType);
         }
     }
 }

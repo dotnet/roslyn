@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -25,28 +25,28 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Document corresponding to the <see cref="CodeFixContext.Span"/> to fix.
         /// </summary>
-        public Document Document { get { return _document; } }
+        public Document Document => _document;
 
         /// <summary>
         /// Project corresponding to the diagnostics to fix.
         /// </summary>
-        internal Project Project { get { return _project; } }
+        internal Project Project => _project;
 
         /// <summary>
         /// Text span within the <see cref="CodeFixContext.Document"/> to fix.
         /// </summary>
-        public TextSpan Span { get { return _span; } }
+        public TextSpan Span => _span;
 
         /// <summary>
         /// Diagnostics to fix.
         /// NOTE: All the diagnostics in this collection have the same <see cref="CodeFixContext.Span"/>.
         /// </summary>
-        public ImmutableArray<Diagnostic> Diagnostics { get { return _diagnostics; } }
+        public ImmutableArray<Diagnostic> Diagnostics => _diagnostics;
 
         /// <summary>
         /// CancellationToken.
         /// </summary>
-        public CancellationToken CancellationToken { get { return _cancellationToken; } }
+        public CancellationToken CancellationToken => _cancellationToken;
 
         /// <summary>
         /// Creates a code fix context to be passed into <see cref="CodeFixProvider.RegisterCodeFixesAsync(CodeFixContext)"/> method.
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             ImmutableArray<Diagnostic> diagnostics,
             Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
             CancellationToken cancellationToken)
-            : this(document: null, project: project, span: default(TextSpan), diagnostics: diagnostics, registerCodeFix: registerCodeFix, verifyArguments: false, cancellationToken: cancellationToken)
+            : this(document: null, project: project, span: default, diagnostics: diagnostics, registerCodeFix: registerCodeFix, verifyArguments: false, cancellationToken: cancellationToken)
         {
         }
 

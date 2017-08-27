@@ -1,15 +1,17 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 #region Assembly Microsoft.VisualStudio.Debugger.Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
 // References\Debugger\v2.0\Microsoft.VisualStudio.Debugger.Engine.dll
 
 #endregion
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Microsoft.VisualStudio.Debugger.Symbols;
-using System;
-using System.Linq;
-using System.Reflection;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
 namespace Microsoft.VisualStudio.Debugger.Clr
@@ -72,7 +74,7 @@ namespace Microsoft.VisualStudio.Debugger.Clr
 
         internal DkmClrType GetType(string typeName, params System.Type[] typeArguments)
         {
-            foreach (var module in this.Modules)
+            foreach (var module in WithMscorlibLast(this.Modules))
             {
                 var assembly = module.Assembly;
                 var type = assembly.GetType(typeName);
@@ -87,6 +89,32 @@ namespace Microsoft.VisualStudio.Debugger.Clr
                 }
             }
             return null;
+        }
+
+        private static IEnumerable<DkmClrModuleInstance> WithMscorlibLast(DkmClrModuleInstance[] list)
+        {
+            DkmClrModuleInstance mscorlib = null;
+            foreach (var module in list)
+            {
+                if (IsMscorlib(module.Assembly))
+                {
+                    Debug.Assert(mscorlib == null);
+                    mscorlib = module;
+                }
+                else
+                {
+                    yield return module;
+                }
+            }
+            if (mscorlib != null)
+            {
+                yield return mscorlib;
+            }
+        }
+
+        private static bool IsMscorlib(Assembly assembly)
+        {
+            return assembly.GetReferencedAssemblies().Length == 0 && (object)assembly.GetType("System.Object") != null;
         }
 
         internal DkmClrModuleInstance FindClrModuleInstance(Guid mvid)

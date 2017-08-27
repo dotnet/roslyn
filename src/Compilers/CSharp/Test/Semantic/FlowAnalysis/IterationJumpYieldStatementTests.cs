@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
-    static void Foo()
+    static void Goo()
     {
         int x;
         while (true) { 
@@ -54,7 +54,7 @@ class C {
         {
             var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
-    static void Foo()
+    static void Goo()
     {
         int x;
         while (true) { 
@@ -87,7 +87,7 @@ class C {
         {
             var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
-    static void Foo()
+    static void Goo()
     {
         int? x;
 /*<bind>*/
@@ -117,7 +117,7 @@ class C {
         {
             var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
-    static void Foo()
+    static void Goo()
     {
         int x;
 /*<bind>*/
@@ -147,7 +147,7 @@ class C {
         {
             var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
-    static void Foo()
+    static void Goo()
     {
         int x;
 /*<bind>*/
@@ -177,7 +177,7 @@ class C {
         {
             var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
-    static void Foo()
+    static void Goo()
     {
         int x;
 /*<bind>*/
@@ -207,7 +207,7 @@ class C {
         {
             var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
-    static void Foo()
+    static void Goo()
     {
         int x;
 /*<bind>*/
@@ -236,7 +236,7 @@ class C {
         {
             var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
-    static void Foo()
+    static void Goo()
     {
         bool x;
 /*<bind>*/
@@ -266,7 +266,7 @@ class C {
             var analysisResults = CompileAndAnalyzeControlFlowStatements(@"
 using System;
 class C {
-    static void Foo()
+    static void Goo()
     {
 /*<bind>*/
         while (DayOfWeek.Sunday == 0) { }
@@ -282,7 +282,7 @@ class C {
         {
             var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
-    static void Foo()
+    static void Goo()
     {
         int x;
 /*<bind>*/
@@ -311,7 +311,7 @@ class C {
         {
             var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
-    static void Foo()
+    static void Goo()
     {
         int x;
 /*<bind>*/
@@ -340,7 +340,7 @@ class C {
         {
             var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
-    static void Foo()
+    static void Goo()
     {
         int x;
 /*<bind>*/
@@ -369,7 +369,7 @@ class C {
         {
             var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
-    static void Foo()
+    static void Goo()
     {
         int x;
 /*<bind>*/
@@ -398,7 +398,7 @@ class C {
         {
             var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
-    static void Foo()
+    static void Goo()
     {
         int x;
 /*<bind>*/
@@ -427,7 +427,7 @@ class C {
         {
             var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
-    static void Foo()
+    static void Goo()
     {
         int x;
 /*<bind>*/
@@ -905,7 +905,7 @@ public class Program
         }
     }
 }");
-            var comp = CreateCompilationWithMscorlib(new[] { tree });
+            var comp = CreateStandardCompilation(new[] { tree });
             var semanticModel = comp.GetSemanticModel(tree);
             var foreachNode = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
             var flow = semanticModel.AnalyzeDataFlow(foreachNode);
@@ -985,7 +985,7 @@ class C {
         {
             var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
-    static int Foo()
+    static int Goo()
     {
         int x = 1, y = x;
 /*<bind>*/
@@ -1013,7 +1013,7 @@ class C {
         {
             var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
-    static int? Foo()
+    static int? Goo()
     {
         int x = 0;
 /*<bind>*/
@@ -1041,7 +1041,7 @@ class C {
         {
             var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
-    static int Foo()
+    static int Goo()
     {
         int? x;
 /*<bind>*/

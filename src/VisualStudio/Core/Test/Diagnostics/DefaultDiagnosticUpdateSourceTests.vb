@@ -25,7 +25,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Dim code = <code>
 class 123 { }
                        </code>
-            Using workspace = Await TestWorkspace.CreateCSharpAsync(code.Value)
+            Using workspace = TestWorkspace.CreateCSharp(code.Value)
                 Dim listener = New AsynchronousOperationListener()
                 Dim listeners = AsynchronousOperationListener.CreateListeners(
                     ValueTuple.Create(FeatureAttribute.DiagnosticService, listener),
@@ -71,7 +71,7 @@ class A
 }
                        </code>
 
-            Using workspace = Await TestWorkspace.CreateCSharpAsync(code.Value)
+            Using workspace = TestWorkspace.CreateCSharp(code.Value)
                 Dim listener = New AsynchronousOperationListener()
                 Dim listeners = AsynchronousOperationListener.CreateListeners(
                     ValueTuple.Create(FeatureAttribute.DiagnosticService, listener),
@@ -108,7 +108,7 @@ class A
 }
                        </code>
 
-            Using workspace = Await TestWorkspace.CreateCSharpAsync(code.Value)
+            Using workspace = TestWorkspace.CreateCSharp(code.Value)
                 Dim listener = New AsynchronousOperationListener()
                 Dim listeners = AsynchronousOperationListener.CreateListeners(
                     ValueTuple.Create(FeatureAttribute.DiagnosticService, listener),
@@ -145,7 +145,7 @@ class A
 }
                        </code>
 
-            Using workspace = Await TestWorkspace.CreateCSharpAsync(code.Value)
+            Using workspace = TestWorkspace.CreateCSharp(code.Value)
                 Dim listener = New AsynchronousOperationListener()
                 Dim listeners = AsynchronousOperationListener.CreateListeners(
                     ValueTuple.Create(FeatureAttribute.DiagnosticService, listener),
@@ -182,7 +182,7 @@ class A
 }
                        </code>
 
-            Using workspace = Await TestWorkspace.CreateCSharpAsync(code.Value)
+            Using workspace = TestWorkspace.CreateCSharp(code.Value)
                 Dim listener = New AsynchronousOperationListener()
                 Dim listeners = AsynchronousOperationListener.CreateListeners(
                     ValueTuple.Create(FeatureAttribute.DiagnosticService, listener),
@@ -213,7 +213,7 @@ class A
             Dim code = <code>
 class 123 { }
                        </code>
-            Using workspace = Await TestWorkspace.CreateCSharpAsync(code.Value)
+            Using workspace = TestWorkspace.CreateCSharp(code.Value)
                 Dim miscService = New DefaultDiagnosticAnalyzerService(New MockDiagnosticUpdateSourceRegistrationService())
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
@@ -238,7 +238,7 @@ class 123 { }
 Class 123
 End Class
                        </code>
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(code.Value)
+            Using workspace = TestWorkspace.CreateVisualBasic(code.Value)
                 Dim miscService = New DefaultDiagnosticAnalyzerService(New MockDiagnosticUpdateSourceRegistrationService())
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)

@@ -10,16 +10,14 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         public static CompletionItem Create(
             string displayText,
+            CompletionItemRules rules,
             Glyph? glyph = null,
-            ImmutableArray<SymbolDisplayPart> description = default(ImmutableArray<SymbolDisplayPart>),
+            ImmutableArray<SymbolDisplayPart> description = default,
             string sortText = null,
             string filterText = null,
-            int? matchPriority = null,
             bool showsWarningIcon = false,
-            bool shouldFormatOnCommit = false,
             ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default(ImmutableArray<string>),
-            CompletionItemRules rules = null)
+            ImmutableArray<string> tags = default)
         {
             tags = tags.NullToEmpty();
 
@@ -39,10 +37,6 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 properties = properties.Add("Description", EncodeDescription(description));
             }
-
-            rules = rules ?? CompletionItemRules.Default;
-            rules = rules.WithMatchPriority(matchPriority.GetValueOrDefault())
-                         .WithFormatOnCommit(shouldFormatOnCommit);
 
             return CompletionItem.Create(
                 displayText: displayText,

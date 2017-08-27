@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestAssemblyAttributes()
         {
-            var source = CreateCompilationWithMscorlib(@"
+            var source = CreateStandardCompilation(@"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -110,11 +110,11 @@ public class A: Attribute
 public class Derived: Base
 {
     internal const string Str = ""temp"";
-    public override int Foo { get { return 1; } }
+    public override int Goo { get { return 1; } }
 }
 public class Base
 {
-    public virtual int Foo { get { return 0; } }
+    public virtual int Goo { get { return 0; } }
 }
 ";
             CompileAndVerify(source);
@@ -123,7 +123,7 @@ public class Base
         [Fact]
         public void TestAssemblyAttributesReflection()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -194,7 +194,7 @@ class C
         [Fact]
         public void TestAttributesOnClassDefinedInClass()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -219,10 +219,10 @@ class C
         [Fact]
         public void TestAttributesOnClassWithConstantDefinedInClass()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 using System;
-[Attr(Foo.p)]
-class Foo
+[Attr(Goo.p)]
+class Goo
 {
     private const object p = null;
 }
@@ -235,7 +235,7 @@ class C
     public static void Main() { }
 }
 ");
-            var attrs = compilation.SourceModule.GlobalNamespace.GetMember("Foo").GetAttributes();
+            var attrs = compilation.SourceModule.GlobalNamespace.GetMember("Goo").GetAttributes();
             Assert.Equal(1, attrs.Length);
             attrs.First().VerifyValue<object>(0, TypedConstantKind.Primitive, null);
         }
@@ -243,7 +243,7 @@ class C
         [Fact]
         public void TestAttributeEmit()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 using System;
 public enum e1
 {
@@ -302,7 +302,7 @@ class C
         [Fact]
         public void TestAttributesOnClassProperty()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 using System;
 public class A
 {
@@ -335,7 +335,7 @@ class C
         [Fact]
         public void Bug688268()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 using System;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -420,7 +420,7 @@ public class A
             var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.MDTestAttributeDefLib.AsImmutableOrNull()) };
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilationWithMscorlib(source, references, options: opt);
+            var compilation = CreateStandardCompilation(source, references, options: opt);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -608,7 +608,7 @@ public class Test
     public event System.Action E10 { [return: JJ(0)] add { } remove { } } //on return (after .param[0])
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (15,6): error CS1729: 'AA' does not contain a constructor that takes 1 arguments
                 //     [AA(0)] //in event decl
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "AA(0)").WithArguments("AA", "1"),
@@ -677,7 +677,7 @@ public class Test
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (10,22): error CS1729: 'AA' does not contain a constructor that takes 1 arguments
                 //     public int this[[AA(0)]int x]
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "AA(0)").WithArguments("AA", "1"),
@@ -829,7 +829,7 @@ class C
 
     public delegate int Delegate2 ([ParamAttribute4(0)]int p1 = 0, [param: ParamAttribute5(0)]params int[] p2);
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (13,6): error CS1729: 'TypeAttribute' does not contain a constructor that takes 1 arguments
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "TypeAttribute(0)").WithArguments("TypeAttribute", "1"),
                 // (15,33): error CS1729: 'TypeParamAttribute' does not contain a constructor that takes 1 arguments
@@ -940,7 +940,7 @@ using AN = CustomAttribute.AttrName;
 // [module: AttrName(TypeField = typeof(System.IO.FileStream))]
 namespace AttributeTest
 {
-    class Foo
+    class Goo
     {
         public class NestedClass
         {
@@ -965,7 +965,7 @@ namespace AttributeTest
 
             var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
 
-            var compilation = CreateCompilationWithMscorlib(source, references, options: TestOptions.ReleaseDll);
+            var compilation = CreateStandardCompilation(source, references, options: TestOptions.ReleaseDll);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -981,7 +981,7 @@ namespace AttributeTest
                 attrs[1].VerifyNamedArgumentValue<ushort>(0, "UShortField", TypedConstantKind.Primitive, 1234);
 
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
-                var top = (NamedTypeSymbol)ns.GetMember("Foo");
+                var top = (NamedTypeSymbol)ns.GetMember("Goo");
                 var type = top.GetMember<NamedTypeSymbol>("NestedClass");
 
                 var field = type.GetMember<FieldSymbol>("Field");
@@ -1029,7 +1029,7 @@ using CustomAttribute;
 
 namespace AttributeTest
 {
-    public class Foo
+    public class Goo
     {
         [AllInheritMultiple(new object[] { 0, """", null }, 255, -127 - 1, AryProp = new object[] { new object[] { """", typeof(IList<string>) } })]
         public delegate void NestedSubDele([AllInheritMultiple()]string p1, [Derived(typeof(string[, ,]))]string p2);
@@ -1040,12 +1040,12 @@ namespace AttributeTest
             var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01) };
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilationWithMscorlib(source, references, options: opt);
+            var compilation = CreateStandardCompilation(source, references, options: opt);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
-                var type = (NamedTypeSymbol)ns.GetMember("Foo");
+                var type = (NamedTypeSymbol)ns.GetMember("Goo");
 
                 var dele = (NamedTypeSymbol)type.GetTypeMember("NestedSubDele");
                 var attrs = dele.GetAttributes();
@@ -1072,7 +1072,7 @@ namespace AttributeTest
 using System;
 namespace AttributeTest
 {
-    public interface IFoo
+    public interface IGoo
     {
         [CustomAttribute.Derived(new object[] { 1, null, ""Hi"" }, ObjectField = 2)]
         int F(int p);
@@ -1082,12 +1082,12 @@ namespace AttributeTest
             var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilationWithMscorlib(source, references, options: opt);
+            var compilation = CreateStandardCompilation(source, references, options: opt);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
-                var type = (NamedTypeSymbol)ns.GetMember("IFoo");
+                var type = (NamedTypeSymbol)ns.GetMember("IGoo");
                 var attrs = type.GetMember<MethodSymbol>("F").GetAttributes();
 
                 Assert.Equal(@"CustomAttribute.DerivedAttribute({1, null, ""Hi""}, ObjectField = 2)", attrs.First().ToString());
@@ -1130,7 +1130,7 @@ partial class CDoc
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
 
             var globalNs = compilation.GlobalNamespace;
             var cDoc = globalNs.GetTypeMember("CDoc");
@@ -1178,7 +1178,7 @@ partial class CDoc
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
 
             var globalNs = compilation.GlobalNamespace;
             var cDoc = globalNs.GetTypeMember("CDoc");
@@ -1230,7 +1230,7 @@ partial class CDoc
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
 
             var globalNs = compilation.GlobalNamespace;
             var cDoc = globalNs.GetTypeMember("CDoc");
@@ -1282,7 +1282,7 @@ partial class CDoc
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
 
             var globalNs = compilation.GlobalNamespace;
             var cDoc = globalNs.GetTypeMember("CDoc");
@@ -1308,7 +1308,7 @@ using CustomAttribute;
 namespace AttributeTest
 {
     [AllInheritMultiple(new char[] { ' '}, """")]
-    public interface IFoo
+    public interface IGoo
     {
     }
 }
@@ -1316,12 +1316,12 @@ namespace AttributeTest
             var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilationWithMscorlib(source, references, options: opt);
+            var compilation = CreateStandardCompilation(source, references, options: opt);
 
             Action<ModuleSymbol> sourceAttributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
-                var type = (NamedTypeSymbol)ns.GetMember("IFoo");
+                var type = (NamedTypeSymbol)ns.GetMember("IGoo");
                 var attrs = type.GetAttributes();
                 attrs.First().VerifyValue<char[]>(0, TypedConstantKind.Array, new char[] { ' ' });
                 attrs.First().VerifyValue<string[]>(1, TypedConstantKind.Array, new string[] { "" });
@@ -1332,7 +1332,7 @@ namespace AttributeTest
             Action<ModuleSymbol> mdAttributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
-                var type = (NamedTypeSymbol)ns.GetMember("IFoo");
+                var type = (NamedTypeSymbol)ns.GetMember("IGoo");
                 var attrs = type.GetAttributes();
                 attrs.First().VerifyValue<char[]>(0, TypedConstantKind.Array, new char[] { ' ' });
                 attrs.First().VerifyValue<string[]>(1, TypedConstantKind.Array, new string[] { "" });
@@ -1445,7 +1445,7 @@ using CustomAttribute;
 namespace AttributeTest
 {
     [AllInheritMultiple(new char[] { ' ' }, new string[] { ""whatever"" })]
-    public interface IFoo
+    public interface IGoo
     {
     }
 }
@@ -1453,12 +1453,12 @@ namespace AttributeTest
             var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilationWithMscorlib(source, references, options: opt);
+            var compilation = CreateStandardCompilation(source, references, options: opt);
 
             Action<ModuleSymbol> sourceAttributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
-                var type = (NamedTypeSymbol)ns.GetMember("IFoo");
+                var type = (NamedTypeSymbol)ns.GetMember("IGoo");
                 var attrs = type.GetAttributes();
                 attrs.First().VerifyValue<char[]>(0, TypedConstantKind.Array, new char[] { ' ' });
                 attrs.First().VerifyValue<string[]>(1, TypedConstantKind.Array, new string[] { "whatever" });
@@ -1469,7 +1469,7 @@ namespace AttributeTest
             Action<ModuleSymbol> mdAttributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
-                var type = (NamedTypeSymbol)ns.GetMember("IFoo");
+                var type = (NamedTypeSymbol)ns.GetMember("IGoo");
                 var attrs = type.GetAttributes();
                 attrs.First().VerifyValue<char[]>(0, TypedConstantKind.Array, new char[] { ' ' });
                 attrs.First().VerifyValue<string[]>(1, TypedConstantKind.Array, new string[] { "whatever" });
@@ -1499,7 +1499,7 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -1545,7 +1545,7 @@ namespace AttributeTest
             var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilationWithMscorlib(source, references, options: opt);
+            var compilation = CreateStandardCompilation(source, references, options: opt);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -1625,7 +1625,7 @@ using CustomAttribute;
 
 namespace AttributeTest
 {    
-    public class Foo
+    public class Goo
     {
         int p;
         public int Property
@@ -1652,12 +1652,12 @@ namespace AttributeTest
             var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilationWithMscorlib(source, references, options: opt);
+            var compilation = CreateStandardCompilation(source, references, options: opt);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
-                var type = (NamedTypeSymbol)ns.GetMember("Foo");
+                var type = (NamedTypeSymbol)ns.GetMember("Goo");
 
                 var property = (PropertySymbol)type.GetMember("Property");
                 var getter = property.GetMethod;
@@ -1726,7 +1726,7 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -1766,7 +1766,7 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -1812,7 +1812,7 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -1863,7 +1863,7 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -1915,7 +1915,7 @@ namespace AttributeTest
         [Fact]
         public void TestAttributeStringForEnumTypedConstant()
         {
-            var source = CreateCompilationWithMscorlib(@"
+            var source = CreateStandardCompilation(@"
 using System;
 namespace AttributeTest
 {
@@ -2001,7 +2001,7 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -2044,7 +2044,7 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -2088,7 +2088,7 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -2133,7 +2133,7 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -2177,7 +2177,7 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -2379,7 +2379,7 @@ class B
         typeof(C<>).GetGenericArguments()[0].GetCustomAttributes(false);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -2435,7 +2435,7 @@ public class Program
         
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -2477,7 +2477,7 @@ class Program
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -2504,19 +2504,19 @@ class Program
 
             var ref1 = MetadataReference.CreateFromStream(metadataStream1);
 
-            var metadataStream2 = CSharpCompilation.Create("foo.dll", references: new[] { MscorlibRef, ref1 },
+            var metadataStream2 = CSharpCompilation.Create("goo.dll", references: new[] { MscorlibRef, ref1 },
                 syntaxTrees: new[] {
                     SyntaxFactory.ParseSyntaxTree(
                         "public class Ca : System.Attribute { public Ca(object o) { } } " +
                         "[Ca(Bar.Baz)]" +
-                        "public class Foo { }") }).EmitToStream(options: new EmitOptions(metadataOnly: true));
+                        "public class Goo { }") }).EmitToStream(options: new EmitOptions(metadataOnly: true));
 
             var ref2 = MetadataReference.CreateFromStream(metadataStream2);
 
             var compilation = CSharpCompilation.Create("moo.dll", references: new[] { MscorlibRef, ref1, ref2 });
 
-            var foo = compilation.GetTypeByMetadataName("Foo");
-            var ca = foo.GetAttributes().First().CommonConstructorArguments.First();
+            var goo = compilation.GetTypeByMetadataName("Goo");
+            var ca = goo.GetAttributes().First().CommonConstructorArguments.First();
 
             Assert.Equal("Bar", ca.Type.Name);
         }
@@ -2573,7 +2573,7 @@ public class A : Attribute
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -2626,12 +2626,12 @@ class A : Attribute { }
 partial class Program
 {
     [A] 
-    static partial void Foo();
-    static partial void Foo() { }
+    static partial void Goo();
+    static partial void Goo() { }
 
     static void Main()
     {
-        Console.WriteLine(((Action) Foo).Method.GetCustomAttributesData().Count);
+        Console.WriteLine(((Action) Goo).Method.GetCustomAttributesData().Count);
     }
 }
 ";
@@ -2654,7 +2654,7 @@ partial class Program
 {
     [A1]
     [return: B1]
-    static partial void Foo<[C1] T, [D1] U>([E1]int x);
+    static partial void Goo<[C1] T, [D1] U>([E1]int x);
 }
 ";
 
@@ -2672,28 +2672,28 @@ partial class Program
 {
     [A2]
     [return: B2]
-    static partial void Foo<[C2] U, [D2] T>([E2]int y) { }
+    static partial void Goo<[C2] U, [D2] T>([E2]int y) { }
 
     static void Main()
     {}
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(new[] { source1, source2 }, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(new[] { source1, source2 }, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var programClass = m.GlobalNamespace.GetTypeMember("Program");
-                var fooMethod = (MethodSymbol)programClass.GetMember("Foo");
+                var gooMethod = (MethodSymbol)programClass.GetMember("Goo");
 
-                TestAttributeOnPartialMethodHelper(m, fooMethod);
+                TestAttributeOnPartialMethodHelper(m, gooMethod);
             };
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null, expectedOutput: "");
         }
 
-        private void TestAttributeOnPartialMethodHelper(ModuleSymbol m, MethodSymbol fooMethod)
+        private void TestAttributeOnPartialMethodHelper(ModuleSymbol m, MethodSymbol gooMethod)
         {
             var a1Class = m.GlobalNamespace.GetTypeMember("A1");
             var a2Class = m.GlobalNamespace.GetTypeMember("A2");
@@ -2706,21 +2706,21 @@ partial class Program
             var e1Class = m.GlobalNamespace.GetTypeMember("E1");
             var e2Class = m.GlobalNamespace.GetTypeMember("E2");
 
-            Assert.Equal(1, fooMethod.GetAttributes(a1Class).Count());
-            Assert.Equal(1, fooMethod.GetAttributes(a2Class).Count());
+            Assert.Equal(1, gooMethod.GetAttributes(a1Class).Count());
+            Assert.Equal(1, gooMethod.GetAttributes(a2Class).Count());
 
-            Assert.Equal(1, fooMethod.GetReturnTypeAttributes().Where(a => a.AttributeClass == b1Class).Count());
-            Assert.Equal(1, fooMethod.GetReturnTypeAttributes().Where(a => a.AttributeClass == b2Class).Count());
+            Assert.Equal(1, gooMethod.GetReturnTypeAttributes().Where(a => a.AttributeClass == b1Class).Count());
+            Assert.Equal(1, gooMethod.GetReturnTypeAttributes().Where(a => a.AttributeClass == b2Class).Count());
 
-            var typeParam1 = fooMethod.TypeParameters[0];
+            var typeParam1 = gooMethod.TypeParameters[0];
             Assert.Equal(1, typeParam1.GetAttributes(c1Class).Count());
             Assert.Equal(1, typeParam1.GetAttributes(c2Class).Count());
 
-            var typeParam2 = fooMethod.TypeParameters[1];
+            var typeParam2 = gooMethod.TypeParameters[1];
             Assert.Equal(1, typeParam2.GetAttributes(d1Class).Count());
             Assert.Equal(1, typeParam2.GetAttributes(d2Class).Count());
 
-            var param = fooMethod.Parameters[0];
+            var param = gooMethod.Parameters[0];
             Assert.Equal(1, param.GetAttributes(e1Class).Count());
             Assert.Equal(1, param.GetAttributes(e2Class).Count());
         }
@@ -2748,7 +2748,7 @@ class C
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(new[] { source1, source2 }, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(new[] { source1, source2 }, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -2784,7 +2784,7 @@ class C
     public static void Main() {}
 }";
 
-            var compilation = CreateCompilationWithMscorlib(new[] { source1, source2 }, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(new[] { source1, source2 }, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -2821,7 +2821,7 @@ public class GClass<T> where T : Attribute
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -2859,7 +2859,7 @@ class C
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -2917,7 +2917,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -2979,7 +2979,7 @@ public class Test
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -3037,7 +3037,7 @@ public struct S
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             var global = comp.SourceModule.GlobalNamespace;
             var typesym = global.GetMember("S") as NamedTypeSymbol;
             Assert.NotNull(typesym);
@@ -3091,7 +3091,7 @@ public class C5 {}
 public class C6 {}
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -3324,13 +3324,13 @@ class D : C
 }
 ";
 
-            var c1 = CreateCompilationWithMscorlib(lib1);
+            var c1 = CreateStandardCompilation(lib1);
             var r1 = c1.EmitToImageReference();
 
-            var c2 = CreateCompilationWithMscorlib(lib2, references: new[] { r1 });
+            var c2 = CreateStandardCompilation(lib2, references: new[] { r1 });
             var r2 = c2.EmitToImageReference();
 
-            var cm = CreateCompilationWithMscorlib(main, new[] { r2 });
+            var cm = CreateStandardCompilation(main, new[] { r2 });
             cm.VerifyDiagnostics();
 
             var model = cm.GetSemanticModel(cm.SyntaxTrees[0]);
@@ -3532,7 +3532,7 @@ class A
         [Fact]
         public void AttributeNamedArgumentErrors1()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 using System;
 [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
 class XAttribute : Attribute
@@ -3601,7 +3601,7 @@ static class AttributeMod
 {
     [Derived('Q')]
     [Derived('C')]
-    public class Foo
+    public class Goo
     {
     }
     [BaseAttribute(1)]
@@ -3613,7 +3613,7 @@ static class AttributeMod
             var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilationWithMscorlib(source, references, options: opt);
+            var compilation = CreateStandardCompilation(source, references, options: opt);
 
             compilation.VerifyDiagnostics(
                 // (4,2): error CS0579: Duplicate 'BaseAttribute' attribute
@@ -3655,7 +3655,7 @@ class Class3 { }
 class Class4 { }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (10,2): error CS1614: 'X' is ambiguous between 'X' and 'XAttribute'; use either '@X' or 'XAttribute'
@@ -3682,7 +3682,7 @@ class Class2 { }
 class Class3 { }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (13,2): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
@@ -3716,7 +3716,7 @@ class X
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (13,8): error CS0416: 'T': an attribute argument cannot use type parameters
@@ -3765,7 +3765,7 @@ public class MainClass
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics();
         }
 
@@ -3785,7 +3785,7 @@ class X
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (6,2): warning CS0657: 'method' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
@@ -3804,7 +3804,7 @@ class X
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics(/*CS0657, CS0246*/);
         }
@@ -3825,7 +3825,7 @@ class A
 class B
 {
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics(
                 // (4,6): error CS0592: Attribute 'AttributeUsage' is not valid on this declaration type. It is only valid on 'class' declarations.
                 Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "AttributeUsage").WithArguments("AttributeUsage", "class").WithLocation(4, 6),
@@ -3854,7 +3854,7 @@ public class Test
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (3,39): error CS0643: 'AllowMultiple' duplicate named attribute argument
@@ -3871,7 +3871,7 @@ public class Test
 using System;
 [AttributeUsage(null)]
 public class Att1 : Attribute { }
-public class Foo
+public class Goo
 
 
 
@@ -3882,7 +3882,7 @@ public class Foo
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("1", "<null>", "System.AttributeTargets"));
@@ -3900,7 +3900,7 @@ using System;
 [AttributeUsage(null)]
 public class Attr : Attribute { }
 
-public class Foo
+public class Goo
 {
     public static void Main()
     {
@@ -3908,7 +3908,7 @@ public class Foo
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,17): error CS1503: Argument 1: cannot convert from '<null>' to 'System.AttributeTargets'
@@ -3934,7 +3934,7 @@ class B : Attribute
             var source2 =
 @"[module: B]";
 
-            var compilation = CreateCompilationWithMscorlib(new[] { source1, source2 });
+            var compilation = CreateStandardCompilation(new[] { source1, source2 });
             compilation.VerifyDiagnostics(
                 // (2,10): error CS0592: Attribute 'A' is not valid on this declaration type. It is only valid on 'class' declarations.
                 Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "A").WithArguments("A", "class").WithLocation(2, 10),
@@ -3962,7 +3962,7 @@ class Gen<[A] T> {}
             var source2 =
 @"class Gen2<[B] T> {}";
 
-            var compilation = CreateCompilationWithMscorlib(new[] { source1, source2 });
+            var compilation = CreateStandardCompilation(new[] { source1, source2 });
             compilation.VerifyDiagnostics(
                 // (11,12): error CS0592: Attribute 'A' is not valid on this declaration type. It is only valid on 'class' declarations.
                 // class Gen<[A] T> {}
@@ -3994,7 +3994,7 @@ partial class C
 partial class C
 {
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics(
                 // (10,2): error CS0592: Attribute 'A' is not valid on this declaration type. It is only valid on 'struct' declarations.
                 Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "A").WithArguments("A", "struct").WithLocation(10, 2),
@@ -4023,7 +4023,7 @@ partial class Gen<[A] T>
 partial class Gen<[B] T>
 {
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics(
                 // (11,20): error CS0592: Attribute 'A' is not valid on this declaration type. It is only valid on 'struct' declarations.
                 // partial class Gen<[A] T>
@@ -4057,7 +4057,7 @@ class F
   public int test;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics(
                 // (16,6): error CS0120: An object reference is required for the non-static field, method, or property 'F.ProtectionLevel'
                 //   [A(ProtectionLevel.Privacy)]
@@ -4080,7 +4080,7 @@ using System;
 [A] class C { }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
     // (3,2): error CS0592: Attribute 'A' is not valid on this declaration type. It is only valid on 'assembly, module, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter' declarations.
     // [A] class C { }
     Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "A").WithArguments("A", "assembly, module, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter")
@@ -4096,7 +4096,7 @@ using System;
 [AttributeUsage(AttributeTargets.Assembly)]
 class Attr: Attribute { public Attr(){} }";
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics(
                 // (3,10): error CS0592: Attribute 'Attr' is not valid on this declaration type. It is only valid on 'assembly' declarations.
                 Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Attr").WithArguments("Attr", "assembly"));
@@ -4129,7 +4129,7 @@ class A : Attribute
     public A(object x) { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics(
                 // (3,16): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [A(new int[1] {Program.f})]
@@ -4166,7 +4166,7 @@ class A : Attribute
     public A(object x) { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics(
                 // (4,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [A(new int[][] { new int[] { 1 } })]
@@ -4194,7 +4194,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics(
                 // (8,2): error CS0181: Attribute constructor parameter 'x' has type 'int[][*,*]', which is not a valid attribute parameter type
                 // [My]
@@ -4251,7 +4251,7 @@ public class C<T>
     public enum E2 { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics(
                 // (14,12): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [A(X = default(E))]
@@ -4272,7 +4272,7 @@ class Program
     public static void Main() {}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics(
                 // (2,2): error CS0246: The type or namespace name 'varAttribute' could not be found (are you missing a using directive or an assembly reference?)
                 // [var()]
@@ -4312,7 +4312,7 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics(
                 // (7,27): error CS1016: Named attribute argument expected
                 //     [A(3, z: 5, X = 6, y: 1)]
@@ -4357,7 +4357,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (11,8): error CS1503: Argument 1: cannot convert from 'method group' to 'int'
@@ -4400,7 +4400,7 @@ namespace TestNamespace_01
     public class Test2 { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (23,6): error CS1614: 'Description' is ambiguous between 'ValidWithoutSuffix.Description' and 'ValidWithSuffix.DescriptionAttribute'; use either '@Description' or 'DescriptionAttribute'
@@ -4444,7 +4444,7 @@ namespace TestNamespace_02
     public class Test2 { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (30,6): error CS0104: 'DescriptionAttribute' is an ambiguous reference between 'ValidWithSuffix.DescriptionAttribute' and 'ValidWithSuffix_And_ValidWithoutSuffix.DescriptionAttribute'
@@ -4488,7 +4488,7 @@ namespace TestNamespace_03
     public class Test2 { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics();
         }
@@ -4538,7 +4538,7 @@ namespace TestNamespace_04
     public class Test2 { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (36,6): error CS0104: 'Description' is an ambiguous reference between 'ValidWithSuffix_And_ValidWithoutSuffix.Description' and 'ValidWithoutSuffix.Description'
@@ -4581,7 +4581,7 @@ namespace TestNamespace_05
     public class Test2 { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (23,6): error CS0616: 'InvalidWithoutSuffix.Description' is not an attribute class
@@ -4628,7 +4628,7 @@ namespace TestNamespace_06
     public class Test2 { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (27,6): error CS0104: 'Description' is an ambiguous reference between 'InvalidWithSuffix.DescriptionAttribute' and 'InvalidWithSuffix_And_InvalidWithoutSuffix.DescriptionAttribute'
@@ -4675,7 +4675,7 @@ namespace TestNamespace_07
     public class Test2 { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (30,6): error CS0616: 'InvalidWithSuffix_And_InvalidWithoutSuffix.DescriptionAttribute' is not an attribute class
@@ -4731,7 +4731,7 @@ namespace TestNamespace_08
     public class Test2 { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (36,6): error CS0104: 'Description' is an ambiguous reference between 'InvalidWithSuffix_And_InvalidWithoutSuffix.Description' and 'InvalidWithoutSuffix.Description' 
@@ -4782,7 +4782,7 @@ namespace TestNamespace_09
     public class Test2 { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (31,6): error CS0104: 'Description' is an ambiguous reference between 'InvalidWithSuffix_But_ValidWithoutSuffix.Description' and 'InvalidWithoutSuffix_But_ValidWithSuffix.Description'
@@ -4822,7 +4822,7 @@ namespace TestNamespace_10
     public class Test { public static void Main() {} }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (23,6): error CS0104: 'Description' is an ambiguous reference between 'InvalidWithoutSuffix.Description' and 'ValidWithoutSuffix.Description'
@@ -4862,7 +4862,7 @@ namespace TestNamespace_11
     public class Test2 { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (23,6): error CS0104: 'Description' is an ambiguous reference between 'InvalidWithSuffix.DescriptionAttribute' and 'ValidWithSuffix.DescriptionAttribute'
@@ -4909,7 +4909,7 @@ namespace TestNamespace_12
     public class Test2 { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (30,6): error CS0104: 'DescriptionAttribute' is an ambiguous reference between 'InvalidWithSuffix.DescriptionAttribute' and 'InvalidWithoutSuffix_But_ValidWithSuffix.DescriptionAttribute'
@@ -4929,7 +4929,7 @@ using AAttribute = A2;
 class A1 : System.Attribute { }
 class A2 : System.Attribute { }
 [A]class C { }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (5,2): error CS1614: 'A' is ambiguous between 'A2' and 'A1'; use either '@A' or 'AAttribute'
                 Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "A").WithArguments("A", "A1", "A2").WithLocation(5, 2));
         }
@@ -4954,7 +4954,7 @@ class C
         return null;
     }
 }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (8,16): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new B()").WithLocation(8, 16),
                 // (10,12): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
@@ -4975,7 +4975,7 @@ public class A : Attribute
 [A(new object[] { default(E), default(E) })]
 class C<T, U> { public enum E {} }";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,31): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [A(new object[] { default(E), default(E) })]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(E)").WithLocation(7, 31),
@@ -4995,7 +4995,7 @@ public class A : Attribute
   const decimal y = new decimal();
 }";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (2,8): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [A(X = new decimal())]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new decimal()").WithLocation(2, 8));
@@ -5013,7 +5013,7 @@ partial class C<[A][A] T> { }
 ";
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilationWithMscorlib(source, null, options: opt);
+            var compilation = CreateStandardCompilation(source, null, options: opt);
 
             compilation.VerifyDiagnostics(
                 // (4,2): error CS0579: Duplicate 'A' attribute
@@ -5045,7 +5045,7 @@ class C
     static void Main() { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (11,8): error CS0103: The name 'qq' does not exist in the current context
@@ -5090,7 +5090,7 @@ class C
     static void Main() { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (11,15): error CS0246: The type or namespace name 'T' could not be found (are you missing a using directive or an assembly reference?)
@@ -5122,16 +5122,16 @@ partial class C
 {
     [return: B]
     [A]
-    static partial void Foo();
+    static partial void Goo();
     
     [return: B]
     [A]
-    static partial void Foo() { }
+    static partial void Goo() { }
 }
 ";
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilationWithMscorlib(source, null, options: opt);
+            var compilation = CreateStandardCompilation(source, null, options: opt);
 
             compilation.VerifyDiagnostics(
                 // error CS0579: Duplicate 'A' attribute
@@ -5149,54 +5149,54 @@ class A : System.Attribute { }
 
 partial class C
 {
-    static partial void Foo<[A] T>();
-    static partial void Foo<[A] T>() { }
+    static partial void Goo<[A] T>();
+    static partial void Goo<[A] T>() { }
 
     // partial method without implementation, but another method with same name
-    static partial void Foo2<[A] T>();
-    static void Foo2<[A] T>() { }
+    static partial void Goo2<[A] T>();
+    static void Goo2<[A] T>() { }
 
     // partial method without implementation, but another member with same name
-    static partial void Foo3<[A] T>();
-    private int Foo3;
+    static partial void Goo3<[A] T>();
+    private int Goo3;
 
     // partial method without implementation
-    static partial void Foo4<[A][A] T>();
+    static partial void Goo4<[A][A] T>();
 
     // partial methods differing by signature
-    static partial void Foo5<[A] T>(int x);
-    static partial void Foo5<[A] T>();
+    static partial void Goo5<[A] T>(int x);
+    static partial void Goo5<[A] T>();
 
     // partial method without defining declaration
-    static partial void Foo6<[A][A] T>() { }
+    static partial void Goo6<[A][A] T>() { }
 
 }
 ";
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilationWithMscorlib(source, null, options: opt);
+            var compilation = CreateStandardCompilation(source, null, options: opt);
             compilation.VerifyDiagnostics(
-                // (25,25): error CS0759: No defining declaration found for implementing declaration of partial method 'C.Foo6<T>()'
-                //     static partial void Foo6<[A][A] T>() { }
-                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "Foo6").WithArguments("C.Foo6<T>()").WithLocation(25, 25),
-                // (11,17): error CS0111: Type 'C' already defines a member called 'Foo2' with the same parameter types
-                //     static void Foo2<[A] T>() { }
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Foo2").WithArguments("Foo2", "C").WithLocation(11, 17),
-                // (15,17): error CS0102: The type 'C' already contains a definition for 'Foo3'
-                //     private int Foo3;
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Foo3").WithArguments("C", "Foo3").WithLocation(15, 17),
+                // (25,25): error CS0759: No defining declaration found for implementing declaration of partial method 'C.Goo6<T>()'
+                //     static partial void Goo6<[A][A] T>() { }
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "Goo6").WithArguments("C.Goo6<T>()").WithLocation(25, 25),
+                // (11,17): error CS0111: Type 'C' already defines a member called 'Goo2' with the same parameter types
+                //     static void Goo2<[A] T>() { }
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Goo2").WithArguments("Goo2", "C").WithLocation(11, 17),
+                // (15,17): error CS0102: The type 'C' already contains a definition for 'Goo3'
+                //     private int Goo3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Goo3").WithArguments("C", "Goo3").WithLocation(15, 17),
                 // (18,34): error CS0579: Duplicate 'A' attribute
-                //     static partial void Foo4<[A][A] T>();
+                //     static partial void Goo4<[A][A] T>();
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A").WithArguments("A").WithLocation(18, 34),
                 // (25,34): error CS0579: Duplicate 'A' attribute
-                //     static partial void Foo6<[A][A] T>() { }
+                //     static partial void Goo6<[A][A] T>() { }
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A").WithArguments("A").WithLocation(25, 34),
                 // (7,30): error CS0579: Duplicate 'A' attribute
-                //     static partial void Foo<[A] T>() { }
+                //     static partial void Goo<[A] T>() { }
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A").WithArguments("A").WithLocation(7, 30),
-                // (15,17): warning CS0169: The field 'C.Foo3' is never used
-                //     private int Foo3;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "Foo3").WithArguments("C.Foo3").WithLocation(15, 17));
+                // (15,17): warning CS0169: The field 'C.Goo3' is never used
+                //     private int Goo3;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Goo3").WithArguments("C.Goo3").WithLocation(15, 17));
         }
 
         [WorkItem(542625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542625")]
@@ -5208,54 +5208,54 @@ class A : System.Attribute { }
 
 partial class C
 {
-    static partial void Foo([param: A]int y);
-    static partial void Foo([A] int y) { }
+    static partial void Goo([param: A]int y);
+    static partial void Goo([A] int y) { }
 
     // partial method without implementation, but another method with same name
-    static partial void Foo2([A] int y);
-    static void Foo2([A] int y) { }
+    static partial void Goo2([A] int y);
+    static void Goo2([A] int y) { }
 
     // partial method without implementation, but another member with same name
-    static partial void Foo3([A] int y);
-    private int Foo3;
+    static partial void Goo3([A] int y);
+    private int Goo3;
 
     // partial method without implementation
-    static partial void Foo4([A][param: A] int y);
+    static partial void Goo4([A][param: A] int y);
 
     // partial methods differing by signature
-    static partial void Foo5([A] int y);
-    static partial void Foo5([A] int y, int z);
+    static partial void Goo5([A] int y);
+    static partial void Goo5([A] int y, int z);
 
     // partial method without defining declaration
-    static partial void Foo6([A][A] int y) { }
+    static partial void Goo6([A][A] int y) { }
 }
 ";
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilationWithMscorlib(source, null, options: opt);
+            var compilation = CreateStandardCompilation(source, null, options: opt);
 
             compilation.VerifyDiagnostics(
-                // (25,25): error CS0759: No defining declaration found for implementing declaration of partial method 'C.Foo6(int)'
-                //     static partial void Foo6([A][A] int y) { }
-                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "Foo6").WithArguments("C.Foo6(int)").WithLocation(25, 25),
-                // (11,17): error CS0111: Type 'C' already defines a member called 'Foo2' with the same parameter types
-                //     static void Foo2([A] int y) { }
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Foo2").WithArguments("Foo2", "C").WithLocation(11, 17),
-                // (15,17): error CS0102: The type 'C' already contains a definition for 'Foo3'
-                //     private int Foo3;
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Foo3").WithArguments("C", "Foo3").WithLocation(15, 17),
+                // (25,25): error CS0759: No defining declaration found for implementing declaration of partial method 'C.Goo6(int)'
+                //     static partial void Goo6([A][A] int y) { }
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "Goo6").WithArguments("C.Goo6(int)").WithLocation(25, 25),
+                // (11,17): error CS0111: Type 'C' already defines a member called 'Goo2' with the same parameter types
+                //     static void Goo2([A] int y) { }
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Goo2").WithArguments("Goo2", "C").WithLocation(11, 17),
+                // (15,17): error CS0102: The type 'C' already contains a definition for 'Goo3'
+                //     private int Goo3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Goo3").WithArguments("C", "Goo3").WithLocation(15, 17),
                 // (18,41): error CS0579: Duplicate 'A' attribute
-                //     static partial void Foo4([A][param: A] int y);
+                //     static partial void Goo4([A][param: A] int y);
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A").WithArguments("A").WithLocation(18, 41),
                 // (25,34): error CS0579: Duplicate 'A' attribute
-                //     static partial void Foo6([A][A] int y) { }
+                //     static partial void Goo6([A][A] int y) { }
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A").WithArguments("A").WithLocation(25, 34),
                 // (6,37): error CS0579: Duplicate 'A' attribute
-                //     static partial void Foo([param: A]int y);
+                //     static partial void Goo([param: A]int y);
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A").WithArguments("A").WithLocation(6, 37),
-                // (15,17): warning CS0169: The field 'C.Foo3' is never used
-                //     private int Foo3;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "Foo3").WithArguments("C.Foo3").WithLocation(15, 17));
+                // (15,17): warning CS0169: The field 'C.Goo3' is never used
+                //     private int Goo3;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Goo3").WithArguments("C.Goo3").WithLocation(15, 17));
         }
 
         [Fact]
@@ -5284,7 +5284,7 @@ struct S
 {
     int a, b, c;
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(542662, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542662")]
@@ -5298,17 +5298,17 @@ using System;
 class A : Attribute { }
 partial class Program
 {
-    static partial void Foo(int x);
+    static partial void Goo(int x);
     [A]
-    static partial void Foo(int x) { }
+    static partial void Goo(int x) { }
  
-    static partial void Foo();
+    static partial void Goo();
     [A]
-    static partial void Foo() { }
+    static partial void Goo() { }
  
     static void Main()
     {
-        Console.WriteLine(((Action) Foo).Method.GetCustomAttributesData().Count);
+        Console.WriteLine(((Action) Goo).Method.GetCustomAttributesData().Count);
     }
 }
 ";
@@ -5325,20 +5325,20 @@ class A : System.Attribute { }
  
 partial class C
 {
-    static partial void Foo<T,[A] S>();
-    static partial void Foo<[A]>() { }
+    static partial void Goo<T,[A] S>();
+    static partial void Goo<[A]>() { }
 }";
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilationWithMscorlib(source, null, options: opt);
+            var compilation = CreateStandardCompilation(source, null, options: opt);
 
             compilation.VerifyDiagnostics(
                 // (7,32): error CS1001: Identifier expected
-                //     static partial void Foo<[A]>() { }
+                //     static partial void Goo<[A]>() { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ">"),
-                // (7,25): error CS0759: No defining declaration found for implementing declaration of partial method 'C.Foo<>()'
-                //     static partial void Foo<[A]>() { }
-                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "Foo").WithArguments("C.Foo<>()"));
+                // (7,25): error CS0759: No defining declaration found for implementing declaration of partial method 'C.Goo<>()'
+                //     static partial void Goo<[A]>() { }
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "Goo").WithArguments("C.Goo<>()"));
         }
 
         [WorkItem(542909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542909")]
@@ -5365,7 +5365,7 @@ class B2 : A
 class C
 {
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(542899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542899")]
@@ -5385,7 +5385,7 @@ using EnterpriseLibraryExtensions;
 
 [assembly: ConfigurationDesignManager(typeof(ExtensionDesignManager))]
 ";
-            var compilation = CreateCompilationWithMscorlib(new string[] { source, source2 });
+            var compilation = CreateStandardCompilation(new string[] { source, source2 });
             compilation.GetDiagnostics();
         }
 
@@ -5399,7 +5399,7 @@ class Gen<T>
 {
     [TypeAttribute(typeof(L1.L2.L3<>.L4<>))] public T Fld6;
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             Assert.NotEmpty(compilation.GetDiagnostics());
 
@@ -5434,7 +5434,7 @@ class B : Attribute
     internal Type InternalField; // CS0649
 }";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
 
             comp.VerifyDiagnostics(
                 // (7,17): warning CS0649: Field 'B.PublicField' is never assigned to, and will always have its default value null
@@ -5475,7 +5475,7 @@ class A : Attribute
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
 
             comp.VerifyDiagnostics(
                 // (13,8): error CS0617: 'PrivateField' is not a valid named attribute argument. Named attribute arguments must be fields which are not readonly, static, or const, or read-write properties which are public and not static.
@@ -5502,7 +5502,7 @@ class A : Attribute
     public object X;
 }";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
 
             comp.VerifyDiagnostics(
                 // (4,8): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
@@ -5522,7 +5522,7 @@ class A : Attribute
 {
     public A(int x) { }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (3,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [A((int)(object)"ABC")]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"(int)(object)""ABC""").WithLocation(3, 4));
@@ -5547,7 +5547,7 @@ class B : Attribute
     public B(object[] x) { }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (3,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [A((object[])(object)( new [] { 1 }))]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "(object[])(object)( new [] { 1 })").WithLocation(3, 4),
@@ -5591,7 +5591,7 @@ class C<T>
     public enum E { V }
 }";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
 
             comp.VerifyDiagnostics(
                 // (11,12): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
@@ -5653,7 +5653,7 @@ class X
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (14,9): error CS0655: 'd' is not a valid named attribute argument because it is not a valid attribute parameter type
                 // [myAttr(d = () => { })]
                 Diagnostic(ErrorCode.ERR_BadNamedAttributeArgumentType, "d").WithArguments("d").WithLocation(14, 9));
@@ -5667,13 +5667,13 @@ class X
 using System;
 
 [AttributeUsage(AttributeTargets.All)]
-public class Foo : Attribute
+public class Goo : Attribute
 {
-    public Foo(int sName) { }
+    public Goo(int sName) { }
 }
 
 public class Class1 {
-    [field: Foo(((System.Func<int>)(() => 5))())]
+    [field: Goo(((System.Func<int>)(() => 5))())]
     public event EventHandler Click;
 
     public static void Main()
@@ -5682,9 +5682,9 @@ public class Class1 {
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (11,17): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                //     [field: Foo(((System.Func<int>)(() => 5))())]
+                //     [field: Goo(((System.Func<int>)(() => 5))())]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "((System.Func<int>)(() => 5))()"),
                 // (12,31): warning CS0067: The event 'Class1.Click' is never used
                 //     public event EventHandler Click;
@@ -5708,7 +5708,7 @@ namespace System
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (4,6): error CS0616: 'System.Runtime.InteropServices.DllImportAttribute' is not an attribute class
                 //     [DllImport] // Error
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "DllImport").WithArguments("System.Runtime.InteropServices.DllImportAttribute"),
@@ -5779,9 +5779,9 @@ public class MyAttribute2 : Attribute
 
 public class Test
 {
-	public void foo([MyAttribute2(Types = new Type[
+	public void goo([MyAttribute2(Types = new Type[
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             Assert.NotEmpty(compilation.GetDiagnostics());
         }
@@ -5800,7 +5800,7 @@ class A : Attribute
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,24): error CS1503: Argument 1: cannot convert from 'method group' to 'int'
                 //     delegate void F([A(Equals)] int x);
                 Diagnostic(ErrorCode.ERR_BadArgType, "Equals").WithArguments("1", "method group", "int"));
@@ -5818,7 +5818,7 @@ class System : Attribute
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (2,7): warning CS0437: The type 'System' in '' conflicts with the imported namespace 'System' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
@@ -5849,8 +5849,8 @@ public class X: Attribute
 {
 }
 ";
-            var comp1 = CreateCompilationWithMscorlib(source2, assemblyName: "Temp0").ToMetadataReference();
-            CreateCompilationWithMscorlib(source, references: new[] { comp1 }).VerifyDiagnostics(
+            var comp1 = CreateStandardCompilation(source2, assemblyName: "Temp0").ToMetadataReference();
+            CreateStandardCompilation(source, references: new[] { comp1 }).VerifyDiagnostics(
                 // (2,12): error CS0616: 'X' is not an attribute class
                 // [assembly: X]
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "X").WithArguments("X"));
@@ -5875,9 +5875,9 @@ class Y
 {
 }
 ";
-            comp1 = CreateCompilationWithMscorlib(source2, assemblyName: "Temp1").ToMetadataReference();
+            comp1 = CreateStandardCompilation(source2, assemblyName: "Temp1").ToMetadataReference();
             var comp2 = CreateCompilation(source3, assemblyName: "Temp2").ToMetadataReference();
-            var comp3 = CreateCompilationWithMscorlib(source4, references: new[] { comp1, comp2 });
+            var comp3 = CreateStandardCompilation(source4, references: new[] { comp1, comp2 });
             comp3.VerifyDiagnostics(
                 // (2,2): error CS0434: The namespace 'X' in 'Temp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with the type 'X' in 'Temp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 // [X]
@@ -5890,7 +5890,7 @@ class X
 {
 }
 ";
-            comp3 = CreateCompilationWithMscorlib(source5, references: new[] { comp1, comp2 });
+            comp3 = CreateStandardCompilation(source5, references: new[] { comp1, comp2 });
             comp3.VerifyDiagnostics(
                 // (2,2): error CS0616: 'X' is not an attribute class
                 // [X]
@@ -5917,7 +5917,7 @@ namespace X
 {
 }
 ";
-            comp3 = CreateCompilationWithMscorlib(source6, references: new[] { comp1, comp2 });
+            comp3 = CreateStandardCompilation(source6, references: new[] { comp1, comp2 });
             comp3.VerifyDiagnostics(
                 // (3,7): error CS0101: The namespace '<global namespace>' already contains a definition for 'X'
                 // class X
@@ -5926,13 +5926,13 @@ namespace X
             // Multiple from PE, one from Source with alias
             var source7 = @"
 using System;
-using X = Foo;
+using X = Goo;
 [X]
-class Foo: Attribute
+class Goo: Attribute
 {
 }
 ";
-            comp3 = CreateCompilationWithMscorlib(source7, references: new[] { comp1, comp2 });
+            comp3 = CreateStandardCompilation(source7, references: new[] { comp1, comp2 });
             comp3.VerifyDiagnostics(
                 // (4,2): error CS0576: Namespace '<global namespace>' contains a definition conflicting with alias 'X'
                 // [X]
@@ -5960,7 +5960,7 @@ public class IA
 	}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics(
                 // (6,3): error CS0579: Duplicate 'IndexerName' attribute
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "IndexerName").WithArguments("IndexerName"));
@@ -5990,7 +5990,7 @@ public class IA
     ret
   }
 }";
-            var reference1 = CompileIL(source1, appendDefaultHeader: false);
+            var reference1 = CompileIL(source1, prependDefaultHeader: false);
             var source2 =
 @"class C
 {
@@ -5999,7 +5999,7 @@ public class IA
         o.M();
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            var compilation = CreateStandardCompilation(source2, new[] { reference1 });
             compilation.VerifyDiagnostics();
             var assembly = compilation.Assembly;
             Assert.Equal(assembly.GetAttributes().Length, 0);
@@ -6032,7 +6032,7 @@ public class IA
     ret
   }
 }";
-            var reference1 = CompileIL(source1, appendDefaultHeader: false);
+            var reference1 = CompileIL(source1, prependDefaultHeader: false);
             var source2 =
 @"class C
 {
@@ -6041,7 +6041,7 @@ public class IA
         o.M();
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            var compilation = CreateStandardCompilation(source2, new[] { reference1 });
             compilation.VerifyDiagnostics(); // we now recognize the extension method even without the assembly-level attribute
 
             var assembly = compilation.Assembly;
@@ -6075,7 +6075,7 @@ public class IA
     ret
   }
 }";
-            var reference1 = CompileIL(source1, appendDefaultHeader: false);
+            var reference1 = CompileIL(source1, prependDefaultHeader: false);
             var source2 =
 @"class C
 {
@@ -6084,7 +6084,7 @@ public class IA
         o.M();
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            var compilation = CreateStandardCompilation(source2, new[] { reference1 });
             compilation.VerifyDiagnostics(
                 // (5,11): error CS1061: 'object' does not contain a definition for 'M' and no extension method 'M' accepting a 
                 // first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
@@ -6121,7 +6121,7 @@ public class IA
     ret
   }
 }";
-            var reference1 = CompileIL(source1, appendDefaultHeader: false);
+            var reference1 = CompileIL(source1, prependDefaultHeader: false);
             var source2 =
 @"class C
 {
@@ -6131,7 +6131,7 @@ public class IA
         A.M(1, 2, 3, 4);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source2, new[] { reference1 });
+            var compilation = CreateStandardCompilation(source2, new[] { reference1 });
             compilation.VerifyDiagnostics();
 
             var method = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<PEMethodSymbol>("M");
@@ -6153,7 +6153,7 @@ public class IA
 {
 }
 
-.class public abstract auto ansi sealed Library1.Foo
+.class public abstract auto ansi sealed Library1.Goo
        extends [mscorlib]System.Object
 {
   .custom instance void [FSharp.Core]Microsoft.FSharp.Core.CompilationMappingAttribute::.ctor(valuetype [FSharp.Core]Microsoft.FSharp.Core.SourceConstructFlags) = ( 01 00 07 00 00 00 00 00 ) 
@@ -6166,15 +6166,15 @@ public class IA
     IL_0002:  ldc.i4.1
     IL_0003:  add
     IL_0004:  ret
-  } // end of method Foo::inc
+  } // end of method Goo::inc
 
-} // end of class Library1.Foo
+} // end of class Library1.Goo
 ";
-            var reference1 = CompileIL(source1, appendDefaultHeader: false);
+            var reference1 = CompileIL(source1, prependDefaultHeader: false);
 
-            var compilation = CreateCompilationWithMscorlib("", new[] { reference1 });
+            var compilation = CreateStandardCompilation("", new[] { reference1 });
 
-            var type = compilation.GetTypeByMetadataName("Library1.Foo");
+            var type = compilation.GetTypeByMetadataName("Library1.Goo");
             Assert.Equal(0, type.GetAttributes()[0].ConstructorArguments.Count());
         }
 
@@ -6198,7 +6198,7 @@ class Program
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (12,6): error CS1614: 'Action' is ambiguous between 'A.ActionAttribute' and 'A.ActionAttribute'; use either '@Action' or 'ActionAttribute'
                 //     [Action]
                 Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "Action").WithArguments("Action", "A.ActionAttribute", "A.ActionAttribute"));
@@ -6224,7 +6224,7 @@ class Program
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (12,6): error CS1614: 'Action' is ambiguous between 'A.ActionAttribute' and 'A.ActionAttribute'; use either '@Action' or 'ActionAttribute'
                 //     [Action]
                 Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "Action").WithArguments("Action", "A.ActionAttribute", "A.ActionAttribute"));
@@ -6372,7 +6372,7 @@ public class ArrayOrObjectAttribute : Attribute
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,6): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [ArrayOnlyAttribute(new string[] { "A" })] //error
@@ -6451,7 +6451,7 @@ public class ParamArrayOrObjectAttribute : Attribute
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,6): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [ParamArrayOnlyAttribute(new string[] { "A" })] //error
@@ -6539,7 +6539,7 @@ public class StringOrObjectAttribute : Attribute
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,6): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [ObjectOnlyAttribute(new string[] { "A" })] //error
@@ -6616,7 +6616,7 @@ public class ArrayOrObjectAttribute : Attribute
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
@@ -6688,7 +6688,7 @@ public class ParamArrayOrObjectAttribute : Attribute
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
@@ -6769,7 +6769,7 @@ public class IntOrObjectAttribute : Attribute
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
@@ -6839,7 +6839,7 @@ public class Test
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
@@ -6883,7 +6883,7 @@ public class TestAttribute : Attribute
 class Target<T>
 {}";
 
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Target");
@@ -6893,7 +6893,7 @@ class Target<T>
             Assert.True(((INamedTypeSymbol)typeInAttribute).IsUnboundGenericType);
             Assert.Equal("Target<>", typeInAttribute.ToTestDisplayString());
 
-            var comp2 = CreateCompilationWithMscorlib("", new[] { comp.EmitToImageReference() });
+            var comp2 = CreateStandardCompilation("", new[] { comp.EmitToImageReference() });
             type = comp2.GlobalNamespace.GetMember<NamedTypeSymbol>("Target");
 
             Assert.IsAssignableFrom<PENamedTypeSymbol>(type);
@@ -6912,7 +6912,7 @@ public class CTest
 {}
 ";
 
-            var compilation1 = CreateCompilationWithMscorlib(source1, assemblyName: "Bug1020038");
+            var compilation1 = CreateStandardCompilation(source1, assemblyName: "Bug1020038");
 
             var source2 = @"
 class CAttr : System.Attribute
@@ -6925,7 +6925,7 @@ class Test
 {}
 ";
 
-            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { new CSharpCompilationReference(compilation1) });
+            var compilation2 = CreateStandardCompilation(source2, new[] { new CSharpCompilationReference(compilation1) });
 
             CompileAndVerify(compilation2, symbolValidator: (m) =>
             {
@@ -6944,7 +6944,7 @@ class Test
 {}
 ";
 
-            var compilation3 = CreateCompilationWithMscorlib(source3, new[] { new CSharpCompilationReference(compilation1) });
+            var compilation3 = CreateStandardCompilation(source3, new[] { new CSharpCompilationReference(compilation1) });
 
             CompileAndVerify(compilation3, symbolValidator: (m) =>
             {
@@ -6965,7 +6965,7 @@ class C<T>
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll);
 
             CompileAndVerify(compilation, symbolValidator: (m) =>
             {
@@ -6994,7 +6994,7 @@ public static class LanguageNames
     public const xyz CSharp = ""C#"";
 }
 ";
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll);
             compilation1.VerifyDiagnostics(
     // (10,18): error CS0246: The type or namespace name 'xyz' could not be found (are you missing a using directive or an assembly reference?)
     //     public const xyz CSharp = "C#";
@@ -7008,7 +7008,7 @@ internal sealed class CSharpCompilerDiagnosticAnalyzer
 {}
 ";
 
-            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { new CSharpCompilationReference(compilation1) }, options: TestOptions.DebugDll, assemblyName: "Test.dll");
+            var compilation2 = CreateStandardCompilation(source2, new[] { new CSharpCompilationReference(compilation1) }, options: TestOptions.DebugDll, assemblyName: "Test.dll");
             Assert.Same(compilation1.Assembly, compilation2.SourceModule.ReferencedAssemblySymbols[1]);
             compilation2.VerifyDiagnostics();
 

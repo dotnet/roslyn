@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Internal.Log
@@ -19,23 +20,41 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         public static KeyValueLogMessage Create(Action<Dictionary<string, object>> propertySetter)
         {
             var logMessage = s_pool.Allocate();
-            logMessage.Construct(propertySetter);
+            logMessage.Construct(LogType.Trace, propertySetter);
 
             return logMessage;
         }
 
+        public static KeyValueLogMessage Create(LogType kind)
+        {
+            return Create(kind, propertySetter: null);
+        }
+
+        public static KeyValueLogMessage Create(LogType kind, Action<Dictionary<string, object>> propertySetter)
+        {
+            var logMessage = s_pool.Allocate();
+            logMessage.Construct(kind, propertySetter);
+
+            return logMessage;
+        }
+
+        private LogType _kind;
         private Dictionary<string, object> _map;
         private Action<Dictionary<string, object>> _propertySetter;
 
         private KeyValueLogMessage()
         {
             // prevent it from being created directly
+            _kind = LogType.Trace;
         }
 
-        private void Construct(Action<Dictionary<string, object>> propertySetter)
+        private void Construct(LogType kind, Action<Dictionary<string, object>> propertySetter)
         {
+            _kind = kind;
             _propertySetter = propertySetter;
         }
+
+        public LogType Kind => _kind;
 
         public bool ContainsProperty
         {
@@ -84,5 +103,21 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 _propertySetter(_map);
             }
         }
+    }
+
+    /// <summary>
+    /// Type of log it is making.
+    /// </summary>
+    internal enum LogType
+    {
+        /// <summary>
+        /// Log some traces of an activity (default)
+        /// </summary>
+        Trace,
+
+        /// <summary>
+        /// Log an user explicit action
+        /// </summary>
+        UserAction,
     }
 }

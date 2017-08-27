@@ -1,34 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <TargetNetFX20>true</TargetNetFX20>
   </PropertyGroup>
-  <Import Project="..\..\..\..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{76242A2D-2600-49DD-8C15-FEA07ECB1842}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider</AssemblyName>
+    <TargetFramework>net20</TargetFramework>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Core\Source\Concord\Concord.csproj">
-      <Project>{5002636a-fe8d-40bf-8818-ab513a2194fa}</Project>
-      <Name>Concord</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Core\Source\ResultProvider\NetFX20\ResultProvider.NetFX20.csproj">
-      <Project>{BEDC5A4A-809E-4017-9CFD-6C8D4E1847F0}</Project>
-      <Name>ResultProvider.NetFX20</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\Tools\Source\CompilerGeneratorTools\DeployCompilerGeneratorToolsRuntime\DeployCompilerGeneratorToolsRuntime.csproj">
-      <Project>{6da08f12-32f2-4dd9-bbad-982eb71a2c9b}</Project>
-      <Name>DeployCompilerGeneratorToolsRuntime</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Core\Source\ResultProvider\NetFX20\ResultProvider.NetFX20.csproj" />
   </ItemGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\..\..\Compilers\VisualBasic\Portable\Scanner\CharacterInfo.vb">
@@ -46,14 +33,14 @@
     <Compile Include="..\..\..\..\..\Compilers\VisualBasic\Portable\Syntax\SyntaxKindFacts.vb">
       <Link>Compiler\Syntax\SyntaxKindFacts.vb</Link>
     </Compile>
-    <SyntaxGetTextDefinition Include="..\..\..\..\..\Compilers\VisualBasic\Portable\Syntax\Syntax.xml">
-      <Link>Compiler\Syntax\Syntax.xml</Link>
-      <SubType>Designer</SubType>
-    </SyntaxGetTextDefinition>
-    <Compile Include="$(IntermediateOutputPath)Syntax.xml.Generated.vb" />
+    <Compile Include="..\Generated\Syntax.xml.GetText.Generated.vb">
+      <Link>Generated\Syntax.xml.GetText.Generated.vb</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine" Version="$(MicrosoftVisualStudioDebuggerEngineVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata" Version="$(MicrosoftVisualStudioDebuggerMetadataVersion)" />
+    <PackageReference Include="Microsoft.NetFX20" Version="$(MicrosoftNetFX20Version)" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />

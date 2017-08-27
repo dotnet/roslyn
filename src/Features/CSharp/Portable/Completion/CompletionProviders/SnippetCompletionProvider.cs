@@ -1,7 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -139,13 +140,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 snippets = snippets.Where(snippet => snippet.Shortcut.StartsWith("#", StringComparison.Ordinal));
             }
             var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return snippets.Select(snippet => CommonCompletionItem.Create(
-                displayText: isPreProcessorContext ? snippet.Shortcut.Substring(1) : snippet.Shortcut,
-                sortText: isPreProcessorContext ? snippet.Shortcut.Substring(1) : snippet.Shortcut,
-                description: (snippet.Title + Environment.NewLine + snippet.Description).ToSymbolDisplayParts(),
-                glyph: Glyph.Snippet,
-                shouldFormatOnCommit: service.ShouldFormatSnippet(snippet),
-                rules: isTupleContext ? s_tupleRules : CompletionItemRules.Default)).ToList();
+
+            return snippets.Select(snippet =>
+            {
+                var rules = isTupleContext ? s_tupleRules : CompletionItemRules.Default;
+                rules = rules.WithFormatOnCommit(service.ShouldFormatSnippet(snippet));
+
+                return CommonCompletionItem.Create(
+                                displayText: isPreProcessorContext ? snippet.Shortcut.Substring(1) : snippet.Shortcut,
+                                sortText: isPreProcessorContext ? snippet.Shortcut.Substring(1) : snippet.Shortcut,
+                                description: (snippet.Title + Environment.NewLine + snippet.Description).ToSymbolDisplayParts(),
+                                glyph: Glyph.Snippet,
+                                rules: rules);
+            }).ToImmutableArray();
         }
     }
 }

@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         private class ServerDirectStream : Stream
         {
-            // 128KB buffer size
-            private const int BUFFERSIZE = 128 * 1024;
+            // 12KB buffer size
+            private const int BUFFERSIZE = 12 * 1024;
 
             private readonly string _name;
             private readonly NamedPipeServerStream _pipe;

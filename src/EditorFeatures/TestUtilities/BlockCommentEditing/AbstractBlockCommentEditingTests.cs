@@ -24,11 +24,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BlockCommentEditing
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService);
 
-        protected abstract Task<TestWorkspace> CreateTestWorkspaceAsync(string initialMarkup);
+        protected abstract TestWorkspace CreateTestWorkspace(string initialMarkup);
 
-        protected async Task VerifyAsync(string initialMarkup, string expectedMarkup)
+        protected void Verify(string initialMarkup, string expectedMarkup)
         {
-            using (var workspace = await CreateTestWorkspaceAsync(initialMarkup))
+            using (var workspace = CreateTestWorkspace(initialMarkup))
             {
                 var testDocument = workspace.Documents.Single();
                 var view = testDocument.GetTextView();
@@ -50,7 +50,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BlockCommentEditing
             }
         }
 
-        protected Task VerifyTabsAsync(string initialMarkup, string expectedMarkup) => VerifyAsync(ReplaceTabTags(initialMarkup), ReplaceTabTags(expectedMarkup));
+        protected void VerifyTabs(string initialMarkup, string expectedMarkup) 
+            => Verify(ReplaceTabTags(initialMarkup), ReplaceTabTags(expectedMarkup));
 
         private string ReplaceTabTags(string markup) => markup.Replace("<tab>", "\t");
 

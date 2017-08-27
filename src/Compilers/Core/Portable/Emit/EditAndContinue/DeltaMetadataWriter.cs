@@ -9,6 +9,7 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using Microsoft.Cci;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 
@@ -50,19 +51,20 @@ namespace Microsoft.CodeAnalysis.Emit
             DefinitionMap definitionMap,
             SymbolChanges changes,
             CancellationToken cancellationToken)
-            : base(metadata: MakeTablesBuilder(previousGeneration), 
-                   debugMetadataOpt: (context.Module.EmitOptions.DebugInformationFormat == DebugInformationFormat.PortablePdb) ? new MetadataBuilder() : null, 
+            : base(metadata: MakeTablesBuilder(previousGeneration),
+                   debugMetadataOpt: (context.Module.DebugInformationFormat == DebugInformationFormat.PortablePdb) ? new MetadataBuilder() : null,
                    dynamicAnalysisDataWriterOpt: null,
                    context: context,
                    messageProvider: messageProvider,
-                   allowMissingMethodBodies: false, 
+                   metadataOnly: false,
                    deterministic: false,
+                   emitTestCoverageData: false,
                    cancellationToken: cancellationToken)
         {
             Debug.Assert(previousGeneration != null);
             Debug.Assert(encId != default(Guid));
             Debug.Assert(encId != previousGeneration.EncId);
-            Debug.Assert(context.Module.EmitOptions.DebugInformationFormat != DebugInformationFormat.Embedded);
+            Debug.Assert(context.Module.DebugInformationFormat != DebugInformationFormat.Embedded);
 
             _previousGeneration = previousGeneration;
             _encId = encId;
@@ -132,8 +134,6 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal EmitBaseline GetDelta(EmitBaseline baseline, Compilation compilation, Guid encId, MetadataSizes metadataSizes)
         {
-            var moduleBuilder = (CommonPEModuleBuilder)this.module;
-
             var addedOrChangedMethodsByIndex = new Dictionary<int, AddedOrChangedMethodInfo>();
             foreach (var pair in _addedOrChangedMethods)
             {
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             var previousTableSizes = _previousGeneration.TableEntriesAdded;
-            var deltaTableSizes = this.GetDeltaTableSizes(metadataSizes.RowCounts);
+            var deltaTableSizes = GetDeltaTableSizes(metadataSizes.RowCounts);
             var tableSizes = new int[MetadataTokens.TableCount];
 
             for (int i = 0; i < tableSizes.Length; i++)
@@ -151,11 +151,11 @@ namespace Microsoft.CodeAnalysis.Emit
 
             // If the previous generation is 0 (metadata) get the synthesized members from the current compilation's builder,
             // otherwise members from the current compilation have already been merged into the baseline.
-            var synthesizedMembers = (baseline.Ordinal == 0) ? moduleBuilder.GetSynthesizedMembers() : baseline.SynthesizedMembers;
+            var synthesizedMembers = (baseline.Ordinal == 0) ? module.GetSynthesizedMembers() : baseline.SynthesizedMembers;
 
             return baseline.With(
                 compilation,
-                moduleBuilder,
+                module,
                 baseline.Ordinal + 1,
                 encId,
                 typesAdded: AddRange(_previousGeneration.TypesAdded, _typeDefs.GetAdded()),
@@ -175,10 +175,11 @@ namespace Microsoft.CodeAnalysis.Emit
                 userStringStreamLengthAdded: metadataSizes.GetAlignedHeapSize(HeapIndex.UserString) + _previousGeneration.UserStringStreamLengthAdded,
                 // Guid stream accumulates on the GUID heap unlike other heaps, so the previous generations are already included.
                 guidStreamLengthAdded: metadataSizes.HeapSizes[(int)HeapIndex.Guid],
-                anonymousTypeMap: ((IPEDeltaAssemblyBuilder)moduleBuilder).GetAnonymousTypeMap(),
+                anonymousTypeMap: ((IPEDeltaAssemblyBuilder)module).GetAnonymousTypeMap(),
                 synthesizedMembers: synthesizedMembers,
                 addedOrChangedMethods: AddRange(_previousGeneration.AddedOrChangedMethods, addedOrChangedMethodsByIndex, replace: true),
-                debugInformationProvider: baseline.DebugInformationProvider);
+                debugInformationProvider: baseline.DebugInformationProvider,
+                localSignatureProvider: baseline.LocalSignatureProvider);
         }
 
         private static IReadOnlyDictionary<K, V> AddRange<K, V>(IReadOnlyDictionary<K, V> previous, IReadOnlyDictionary<K, V> current, bool replace = false)
@@ -216,9 +217,9 @@ namespace Microsoft.CodeAnalysis.Emit
             foreach (var def in _methodDefs.GetRows())
             {
                 // The debugger tries to remap all modified methods, which requires presence of sequence points.
-                if (!_methodDefs.IsAddedNotChanged(def) && (def.GetBody(this.Context)?.HasAnySequencePoints ?? false))
+                if (!_methodDefs.IsAddedNotChanged(def) && def.GetBody(Context)?.SequencePoints.Length > 0)
                 {
-                    methods.Add(MetadataTokens.MethodDefinitionHandle((int)_methodDefs[def]));
+                    methods.Add(MetadataTokens.MethodDefinitionHandle(_methodDefs[def]));
                 }
             }
         }
@@ -486,7 +487,7 @@ namespace Microsoft.CodeAnalysis.Emit
             var ok = _typeDefs.TryGetValue(typeDef, out typeIndex);
             Debug.Assert(ok);
 
-            foreach (var eventDef in typeDef.Events)
+            foreach (var eventDef in typeDef.GetEvents(this.Context))
             {
                 int eventMapIndex;
                 if (!_eventMap.TryGetValue(typeIndex, out eventMapIndex))
@@ -661,23 +662,19 @@ namespace Microsoft.CodeAnalysis.Emit
             }
             else
             {
-                localSignatureHandle = default(StandaloneSignatureHandle);
+                localSignatureHandle = default;
             }
 
-            var method = body.MethodDefinition;
-            if (!method.IsImplicitlyDeclared)
-            {
-                var info = new AddedOrChangedMethodInfo(
-                    body.MethodId,
-                    encInfos.ToImmutable(),
-                    body.LambdaDebugInfo,
-                    body.ClosureDebugInfo,
-                    body.StateMachineTypeName,
-                    body.StateMachineHoistedLocalSlots,
-                    body.StateMachineAwaiterSlots);
+            var info = new AddedOrChangedMethodInfo(
+                body.MethodId,
+                encInfos.ToImmutable(),
+                body.LambdaDebugInfo,
+                body.ClosureDebugInfo,
+                body.StateMachineTypeName,
+                body.StateMachineHoistedLocalSlots,
+                body.StateMachineAwaiterSlots);
 
-                _addedOrChangedMethods.Add(method, info);
-            }
+            _addedOrChangedMethods.Add(body.MethodDefinition, info);
 
             encInfos.Free();
             return localSignatureHandle;

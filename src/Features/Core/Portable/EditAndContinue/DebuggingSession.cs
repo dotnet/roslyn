@@ -18,9 +18,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _initialSolution = initialSolution;
         }
 
-        internal Solution InitialSolution
-        {
-            get { return _initialSolution; }
-        }
+        internal Solution InitialSolution => _initialSolution;
     }
 }

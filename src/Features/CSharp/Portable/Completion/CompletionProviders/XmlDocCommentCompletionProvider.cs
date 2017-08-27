@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var names = new HashSet<string>(new[] { SummaryTagName, RemarksTagName, ExampleTagName, CompletionListTagName });
 
-            RemoveExistingTags(parentTrivia, names, (x) => x.StartTag.Name.LocalName.ValueText);
+            RemoveExistingTags(parentTrivia, names, x => x.StartTag.Name.LocalName.ValueText);
 
             return names.Select(GetItem);
         }
@@ -157,8 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 foreach (var node in parentTrivia.Content)
                 {
-                    var element = node as XmlElementSyntax;
-                    if (element != null)
+                    if (node is XmlElementSyntax element)
                     {
                         names.Remove(selector(element));
                     }
@@ -168,19 +167,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private IEnumerable<CompletionItem> GetTagsForSymbol(ISymbol symbol, DocumentationCommentTriviaSyntax trivia)
         {
-            if (symbol is IMethodSymbol)
+            if (symbol is IMethodSymbol method)
             {
-                return GetTagsForMethod((IMethodSymbol)symbol, trivia);
+                return GetTagsForMethod(method, trivia);
             }
 
-            if (symbol is IPropertySymbol)
+            if (symbol is IPropertySymbol property)
             {
-                return GetTagsForProperty((IPropertySymbol)symbol, trivia);
+                return GetTagsForProperty(property, trivia);
             }
 
-            if (symbol is INamedTypeSymbol)
+            if (symbol is INamedTypeSymbol namedType)
             {
-                return GetTagsForType((INamedTypeSymbol)symbol, trivia);
+                return GetTagsForType(namedType, trivia);
             }
 
             return SpecializedCollections.EmptyEnumerable<CompletionItem>();
@@ -251,8 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             foreach (var node in trivia.Content)
             {
-                var element = node as XmlElementSyntax;
-                if (element != null && !element.StartTag.IsMissing && !element.EndTag.IsMissing)
+                if (node is XmlElementSyntax element && !element.StartTag.IsMissing && !element.EndTag.IsMissing)
                 {
                     var startTag = element.StartTag;
 

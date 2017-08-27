@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -204,8 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeReadFrom);
             }
 
-
-            using (var reader = StreamObjectReader.TryGetReader(stream, knownObjects: GetDeserializationObjectData(), binder: s_defaultBinder, cancellationToken: cancellationToken))
+            using (var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken))
             {
                 if (reader == null)
                 {
@@ -217,70 +217,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override ObjectData GetSerializationObjectData()
-        {
-            return GetDeserializationObjectData();
-        }
-
-        private static ObjectData s_serializationObjectData;
-
-        private static ObjectData GetDeserializationObjectData()
-        {
-            if (s_serializationObjectData == null)
-            {
-                var data = new ObjectData(
-                    // known assemblies names and types (not in generated list)
-                    new object[] {
-                        typeof(object).GetTypeInfo().Assembly.FullName, // mscorlib
-                        typeof(Microsoft.CodeAnalysis.DiagnosticInfo).GetTypeInfo().Assembly.FullName, // Roslyn.Compilers
-                        typeof(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode).GetTypeInfo().Assembly.FullName, // Roslyn.Compilers.CSharp 
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithTrivia),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.MissingTokenWithTrivia),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxIdentifier),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxIdentifierExtended),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxIdentifierWithTrailingTrivia),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxIdentifierWithTrivia),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithValue<string>),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithValueAndTrivia<string>),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithValue<int>),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithValueAndTrivia<int>),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithValue<long>),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithValueAndTrivia<long>),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithValue<double>),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken.SyntaxTokenWithValueAndTrivia<double>),
-                        typeof(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxTrivia),
-                        typeof(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList.WithManyChildren),
-                        typeof(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList.WithThreeChildren),
-                        typeof(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList.WithTwoChildren)
-                    }
-                    .Concat(
-                        Syntax.InternalSyntax.SyntaxFactory.GetNodeTypes()) // known types (generated)
-                    .Concat(
-                        Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.GetWellKnownTokens()) // known tokens
-                    .Concat(
-                        Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.GetWellKnownTrivia()) // known trivia
-                    .Concat(
-                        new object[] {   // other
-                            " ",
-                            typeof(Microsoft.CodeAnalysis.SyntaxAnnotation),
-                            typeof(Microsoft.CodeAnalysis.DiagnosticInfo),
-                            typeof(Microsoft.CodeAnalysis.CSharp.SyntaxDiagnosticInfo), // serialization names & types
-                            typeof(Microsoft.CodeAnalysis.CSharp.MessageProvider),
-                            "messageProvider",
-                            "errorCode",
-                            "argumentCount",
-                            "offset",
-                            "width",
-                        })
-                    .ToImmutableArray());
-
-                System.Threading.Interlocked.CompareExchange(ref s_serializationObjectData, data, null);
-            }
-
-            return s_serializationObjectData;
-        }
 #endregion
 
         /// <summary>

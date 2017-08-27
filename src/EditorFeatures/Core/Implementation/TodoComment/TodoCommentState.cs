@@ -1,8 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.SolutionCrawler.State;
 using Roslyn.Utilities;
@@ -15,13 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
         {
             private const string FormatVersion = "1";
 
-            protected override string StateName
-            {
-                get
-                {
-                    return "<TodoComments>";
-                }
-            }
+            protected override string StateName => "<TodoComments>";
 
             protected override int GetCount(Data data)
             {
@@ -30,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
             protected override Data TryGetExistingData(Stream stream, Document value, CancellationToken cancellationToken)
             {
-                using (var reader = StreamObjectReader.TryGetReader(stream))
+                using (var reader = ObjectReader.TryGetReader(stream))
                 {
                     if (reader != null)
                     {
@@ -53,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
             protected override void WriteTo(Stream stream, Data data, CancellationToken cancellationToken)
             {
-                using (var writer = new StreamObjectWriter(stream, cancellationToken: cancellationToken))
+                using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
                 {
                     writer.WriteString(FormatVersion);
                     data.TextVersion.WriteTo(writer);

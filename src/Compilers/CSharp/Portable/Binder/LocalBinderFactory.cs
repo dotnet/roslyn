@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
@@ -223,12 +224,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var oldMethod = _containingMemberOrLambda;
                 _containingMemberOrLambda = match;
-
-                var parameterBinder = _enclosing.WithContainingMemberOrLambda(match).WithAdditionalFlags(BinderFlags.ParameterDefaultValue);
-                foreach (var parameter in node.ParameterList.Parameters)
-                {
-                    Visit(parameter.Default, parameterBinder);
-                }
 
                 if (body != null)
                 {

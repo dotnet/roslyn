@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -82,13 +82,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 }
             }
 
-            public override string EquivalenceKey
-            {
-                get
-                {
-                    return _equivalenceKey;
-                }
-            }
+            public override string EquivalenceKey => _equivalenceKey;
         }
 
         private class GenerateTypeCodeActionWithOption : CodeActionWithOptions
@@ -104,21 +98,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 _state = state;
             }
 
-            public override string Title
-            {
-                get
-                {
-                    return FeaturesResources.Generate_new_type;
-                }
-            }
+            public override string Title => FeaturesResources.Generate_new_type;
 
-            public override string EquivalenceKey
-            {
-                get
-                {
-                    return _state.Name;
-                }
-            }
+            public override string EquivalenceKey => _state.Name;
 
             public override object GetOptions(CancellationToken cancellationToken)
             {
@@ -199,8 +181,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             {
                 IEnumerable<CodeActionOperation> operations = null;
 
-                var generateTypeOptions = options as GenerateTypeOptionsResult;
-                if (generateTypeOptions != null && !generateTypeOptions.IsCancelled)
+                if (options is GenerateTypeOptionsResult generateTypeOptions && !generateTypeOptions.IsCancelled)
                 {
                     var semanticDocument = await SemanticDocument.CreateAsync(_document, cancellationToken).ConfigureAwait(false);
                     var editor = new Editor(_service, semanticDocument, _state, true, generateTypeOptions, cancellationToken);

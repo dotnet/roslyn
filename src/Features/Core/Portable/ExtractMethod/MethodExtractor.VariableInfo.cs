@@ -103,15 +103,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 _variableSymbol.AddIdentifierTokenAnnotationPair(annotations, cancellationToken);
             }
 
-            public string Name
-            {
-                get { return _variableSymbol.Name; }
-            }
+            public string Name => _variableSymbol.Name;
 
-            public bool OriginalTypeHadAnonymousTypeOrDelegate
-            {
-                get { return _variableSymbol.OriginalTypeHadAnonymousTypeOrDelegate; }
-            }
+            public bool OriginalTypeHadAnonymousTypeOrDelegate => _variableSymbol.OriginalTypeHadAnonymousTypeOrDelegate;
 
             public ITypeSymbol GetVariableType(SemanticDocument document)
             {

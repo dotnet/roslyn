@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,13 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryCast
                 return GetCastNode(root, model, diagnostic.Location.SourceSpan, cancellationToken);
             }
 
-            protected override bool NeedsParentFixup
-            {
-                get
-                {
-                    return true;
-                }
-            }
+            protected override bool NeedsParentFixup => true;
 
             protected override async Task<Document> AddSimplifyAnnotationsAsync(Document document, SyntaxNode nodeToSimplify, CancellationToken cancellationToken)
             {

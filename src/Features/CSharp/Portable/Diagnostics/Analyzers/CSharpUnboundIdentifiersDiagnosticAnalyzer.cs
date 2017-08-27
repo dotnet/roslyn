@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -18,13 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics
 
         private static readonly ImmutableArray<SyntaxKind> s_kindsOfInterest = ImmutableArray.Create(SyntaxKind.IncompleteMember, SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression);
 
-        protected override ImmutableArray<SyntaxKind> SyntaxKindsOfInterest
-        {
-            get
-            {
-                return s_kindsOfInterest;
-            }
-        }
+        protected override ImmutableArray<SyntaxKind> SyntaxKindsOfInterest => s_kindsOfInterest;
 
         protected override DiagnosticDescriptor DiagnosticDescriptor => GetDiagnosticDescriptor(NameNotInContext, _nameNotInContextMessageFormat);
 

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.GetNode(_tree.GetRoot(cancellationToken));
                 }
 
-                public async override Task<SyntaxNode> GetSyntaxAsync(CancellationToken cancellationToken = default(CancellationToken))
+                public async override Task<SyntaxNode> GetSyntaxAsync(CancellationToken cancellationToken = default)
                 {
                     var root = await _tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
                     return this.GetNode(root);

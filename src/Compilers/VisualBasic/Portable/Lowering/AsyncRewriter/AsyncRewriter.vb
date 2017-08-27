@@ -5,6 +5,7 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -289,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                          hasLambdas:=hasLambdas,
                                          symbolsCapturedWithoutCopyCtor:=symbolsCapturedWithoutCtor,
                                          flags:=rewritingFlags,
-                                         instrumenter:=Instrumenter.NoOp, ' Do not instrument anything during this rewrite 
+                                         instrumenterOpt:=Nothing, ' Do not instrument anything during this rewrite 
                                          currentMethod:=currentMethod)
         End Function
 

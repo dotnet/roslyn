@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
@@ -13,7 +13,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 #Region "GetStartPoint() tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint_MustOverride1() As Task
+        Public Sub TestGetStartPoint_MustOverride1()
             Dim code =
 <Code>
 MustInherit Class C
@@ -21,7 +21,7 @@ MustInherit Class C
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -42,10 +42,10 @@ End Class
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=25, lineLength:=24)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=25, lineLength:=24)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint_MustOverride2() As Task
+        Public Sub TestGetStartPoint_MustOverride2()
             Dim code =
 <Code>
 MustInherit Class C
@@ -54,7 +54,7 @@ MustInherit Class C
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=25, lineLength:=31)),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -75,11 +75,11 @@ End Class
                      TextPoint(line:=3, lineOffset:=5, absoluteOffset:=57, lineLength:=24)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=25, lineLength:=31)))
-        End Function
+        End Sub
 
         <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint_DeclareFunction_WithoutAttribute() As Task
+        Public Sub TestGetStartPoint_DeclareFunction_WithoutAttribute()
             Dim code =
 <Code>
 Public Class C1
@@ -87,7 +87,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -108,11 +108,11 @@ End Class
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=59)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=59)))
-        End Function
+        End Sub
 
         <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint_DeclareFunction_WithAttribute() As Task
+        Public Sub TestGetStartPoint_DeclareFunction_WithAttribute()
             Dim code =
 <Code>
 Public Class C1
@@ -121,7 +121,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=31)),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -142,11 +142,11 @@ End Class
                      TextPoint(line:=3, lineOffset:=5, absoluteOffset:=53, lineLength:=59)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=31)))
-        End Function
+        End Sub
 
         <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint_DeclareSub_WithoutAttribute() As Task
+        Public Sub TestGetStartPoint_DeclareSub_WithoutAttribute()
             Dim code =
 <Code>
 Public Class C1
@@ -154,7 +154,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -175,11 +175,11 @@ End Class
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=47)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=47)))
-        End Function
+        End Sub
 
         <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint_DeclareSub_WithAttribute() As Task
+        Public Sub TestGetStartPoint_DeclareSub_WithAttribute()
             Dim code =
 <Code>
 Public Class C1
@@ -188,7 +188,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=31)),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -209,14 +209,14 @@ End Class
                      TextPoint(line:=3, lineOffset:=5, absoluteOffset:=53, lineLength:=47)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=2, lineOffset:=5, absoluteOffset:=21, lineLength:=31)))
-        End Function
+        End Sub
 
 #End Region
 
 #Region "GetEndPoint() tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint_MustOverride1() As Task
+        Public Sub TestGetEndPoint_MustOverride1()
             Dim code =
 <Code>
 MustInherit Class C
@@ -224,7 +224,7 @@ MustInherit Class C
 End Class
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -245,10 +245,10 @@ End Class
                      TextPoint(line:=2, lineOffset:=25, absoluteOffset:=45, lineLength:=24)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=2, lineOffset:=25, absoluteOffset:=45, lineLength:=24)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint_MustOverride2() As Task
+        Public Sub TestGetEndPoint_MustOverride2()
             Dim code =
 <Code>
 MustInherit Class C
@@ -257,7 +257,7 @@ MustInherit Class C
 End Class
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      TextPoint(line:=2, lineOffset:=32, absoluteOffset:=52, lineLength:=31)),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -278,11 +278,11 @@ End Class
                      TextPoint(line:=3, lineOffset:=25, absoluteOffset:=77, lineLength:=24)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=3, lineOffset:=25, absoluteOffset:=77, lineLength:=24)))
-        End Function
+        End Sub
 
         <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint_DeclareFunction_WithoutAttribute() As Task
+        Public Sub TestGetEndPoint_DeclareFunction_WithoutAttribute()
             Dim code =
 <Code>
 Public Class C1
@@ -290,7 +290,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -311,11 +311,11 @@ End Class
                      TextPoint(line:=2, lineOffset:=60, absoluteOffset:=76, lineLength:=59)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=2, lineOffset:=60, absoluteOffset:=76, lineLength:=59)))
-        End Function
+        End Sub
 
         <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint_DeclareFunction_WithAttribute() As Task
+        Public Sub TestGetEndPoint_DeclareFunction_WithAttribute()
             Dim code =
 <Code>
 Public Class C1
@@ -324,7 +324,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      TextPoint(line:=2, lineOffset:=32, absoluteOffset:=48, lineLength:=31)),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -345,11 +345,11 @@ End Class
                      TextPoint(line:=3, lineOffset:=60, absoluteOffset:=108, lineLength:=59)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=3, lineOffset:=60, absoluteOffset:=108, lineLength:=59)))
-        End Function
+        End Sub
 
         <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint_DeclareSub_WithoutAttribute() As Task
+        Public Sub TestGetEndPoint_DeclareSub_WithoutAttribute()
             Dim code =
 <Code>
 Public Class C1
@@ -357,7 +357,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -378,11 +378,11 @@ End Class
                      TextPoint(line:=2, lineOffset:=45, absoluteOffset:=61, lineLength:=44)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=2, lineOffset:=45, absoluteOffset:=61, lineLength:=44)))
-        End Function
+        End Sub
 
         <WorkItem(1839, "https://github.com/dotnet/roslyn/issues/1839")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint_DeclareSub_WithAttribute() As Task
+        Public Sub TestGetEndPoint_DeclareSub_WithAttribute()
             Dim code =
 <Code>
 Public Class C1
@@ -391,7 +391,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      TextPoint(line:=2, lineOffset:=32, absoluteOffset:=48, lineLength:=31)),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -412,14 +412,14 @@ End Class
                      TextPoint(line:=3, lineOffset:=45, absoluteOffset:=93, lineLength:=44)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=3, lineOffset:=45, absoluteOffset:=93, lineLength:=44)))
-        End Function
+        End Sub
 
 #End Region
 
 #Region "Access tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess1() As Task
+        Public Sub TestAccess1()
             Dim code =
     <Code>
 Class C
@@ -429,11 +429,11 @@ Class C
 End Class
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
-        End Function
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess2() As Task
+        Public Sub TestAccess2()
             Dim code =
     <Code>
 Class C
@@ -443,11 +443,11 @@ Class C
 End Class
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
-        End Function
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess3() As Task
+        Public Sub TestAccess3()
             Dim code =
     <Code>
 Class C
@@ -457,11 +457,11 @@ Class C
 End Class
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProtected)
-        End Function
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProtected)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess4() As Task
+        Public Sub TestAccess4()
             Dim code =
     <Code>
 Class C
@@ -471,11 +471,11 @@ Class C
 End Class
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
-        End Function
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess5() As Task
+        Public Sub TestAccess5()
             Dim code =
     <Code>
 Class C
@@ -485,11 +485,11 @@ Class C
 End Class
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
-        End Function
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess6() As Task
+        Public Sub TestAccess6()
             Dim code =
     <Code>
 Class C
@@ -499,11 +499,11 @@ Class C
 End Class
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
-        End Function
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess7() As Task
+        Public Sub TestAccess7()
             Dim code =
 <Code>
 Interface I
@@ -511,15 +511,15 @@ Interface I
 End Interface
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
-        End Function
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
+        End Sub
 
 #End Region
 
 #Region "Attribute Tests"
         <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPropertyGetAttribute_WithNoSet() As Task
+        Public Sub TestPropertyGetAttribute_WithNoSet()
             Dim code =
 <Code>
 Public Class Class1
@@ -532,12 +532,12 @@ Public Class Class1
 End Class
 </Code>
 
-            Await TestAttributes(code, IsElement("Obsolete"))
-        End Function
+            TestAttributes(code, IsElement("Obsolete"))
+        End Sub
 
         <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPropertySetAttribute_WithNoGet() As Task
+        Public Sub TestPropertySetAttribute_WithNoGet()
             Dim code =
 <Code>
 Public Class Class1
@@ -550,12 +550,12 @@ Public Class Class1
 End Class
 </Code>
 
-            Await TestAttributes(code, IsElement("Obsolete"))
-        End Function
+            TestAttributes(code, IsElement("Obsolete"))
+        End Sub
 
         <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPropertySetAttribute_WithGet() As Task
+        Public Sub TestPropertySetAttribute_WithGet()
             Dim code =
 <Code>
 Public Class Class1
@@ -572,12 +572,12 @@ Public Class Class1
 End Class
 </Code>
 
-            Await TestAttributes(code, IsElement("Obsolete"))
-        End Function
+            TestAttributes(code, IsElement("Obsolete"))
+        End Sub
 
         <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPropertyGetAttribute_WithSet() As Task
+        Public Sub TestPropertyGetAttribute_WithSet()
             Dim code =
 <Code>
 Public Class Class1
@@ -594,12 +594,12 @@ Public Class Class1
 End Class
 </Code>
 
-            Await TestAttributes(code, IsElement("Obsolete"))
-        End Function
+            TestAttributes(code, IsElement("Obsolete"))
+        End Sub
 
         <WorkItem(2356, "https://github.com/dotnet/roslyn/issues/2356")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAttribute_1() As Task
+        Public Sub TestAttribute_1()
             Dim code =
 <Code>
 Class Program
@@ -610,70 +610,70 @@ Class Program
 End Class
 </Code>
 
-            Await TestAttributes(code, IsElement("Obsolete"))
-        End Function
+            TestAttributes(code, IsElement("Obsolete"))
+        End Sub
 #End Region
 
 #Region "CanOverride tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestCanOverride1() As Task
+        Public Sub TestCanOverride1()
             Dim code =
 <Code>
 MustInherit Class C
-    MustOverride Sub $$Foo()
+    MustOverride Sub $$Goo()
 End Class
 </Code>
 
-            Await TestCanOverride(code, True)
-        End Function
+            TestCanOverride(code, True)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestCanOverride2() As Task
+        Public Sub TestCanOverride2()
             Dim code =
 <Code>
 Interface I
-    Sub $$Foo()
+    Sub $$Goo()
 End Interface
 </Code>
 
-            Await TestCanOverride(code, True)
-        End Function
+            TestCanOverride(code, True)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestCanOverride3() As Task
+        Public Sub TestCanOverride3()
             Dim code =
 <Code>
 Class C
-    Protected Overridable Sub $$Foo()
+    Protected Overridable Sub $$Goo()
 
     End Sub
 End Class
 </Code>
 
-            Await TestCanOverride(code, True)
-        End Function
+            TestCanOverride(code, True)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestCanOverride4() As Task
+        Public Sub TestCanOverride4()
             Dim code =
 <Code>
 Class C
-    Protected Sub $$Foo()
+    Protected Sub $$Goo()
 
     End Sub
 End Class
 </Code>
 
-            Await TestCanOverride(code, False)
-        End Function
+            TestCanOverride(code, False)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestCanOverride5() As Task
+        Public Sub TestCanOverride5()
             Dim code =
 <Code>
 Class B
-    Protected Overridable Sub Foo()
+    Protected Overridable Sub Goo()
 
     End Sub
 End Class
@@ -681,21 +681,21 @@ End Class
 Class C
     Inherits B
 
-    Protected Overrides Sub $$Foo()
+    Protected Overrides Sub $$Goo()
 
     End Sub
 End Class
 </Code>
 
-            Await TestCanOverride(code, True)
-        End Function
+            TestCanOverride(code, True)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestCanOverride6() As Task
+        Public Sub TestCanOverride6()
             Dim code =
 <Code>
 Class B
-    Protected Overridable Sub Foo()
+    Protected Overridable Sub Goo()
 
     End Sub
 End Class
@@ -703,14 +703,14 @@ End Class
 Class C
     Inherits B
 
-    Protected NotOverridable Overrides Sub $$Foo()
+    Protected NotOverridable Overrides Sub $$Goo()
 
     End Sub
 End Class
 </Code>
 
-            Await TestCanOverride(code, False)
-        End Function
+            TestCanOverride(code, False)
+        End Sub
 
 #End Region
 
@@ -718,7 +718,7 @@ End Class
 
         <WorkItem(1843, "https://github.com/dotnet/roslyn/issues/1843")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFunctionKind_Constructor() As Task
+        Public Sub TestFunctionKind_Constructor()
             Dim code =
 <Code>
 Public Class C1
@@ -729,11 +729,11 @@ Public Class C1
 End Clas
 </Code>
 
-            Await TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionConstructor)
-        End Function
+            TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionConstructor)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFunctionKind_Destructor() As Task
+        Public Sub TestFunctionKind_Destructor()
             Dim code =
 <Code>
 Public Class C1
@@ -745,11 +745,11 @@ Public Class C1
 End Clas
 </Code>
 
-            Await TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionDestructor)
-        End Function
+            TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionDestructor)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFunctionKind_Sub() As Task
+        Public Sub TestFunctionKind_Sub()
             Dim code =
 <Code>
 Public Class C1
@@ -760,11 +760,11 @@ Public Class C1
 End Clas
 </Code>
 
-            Await TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionSub)
-        End Function
+            TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionSub)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFunctionKind_Function() As Task
+        Public Sub TestFunctionKind_Function()
             Dim code =
 <Code>
 Public Class C1
@@ -775,11 +775,11 @@ Public Class C1
 End Clas
 </Code>
 
-            Await TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionFunction)
-        End Function
+            TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionFunction)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFunctionKind_DeclareSub() As Task
+        Public Sub TestFunctionKind_DeclareSub()
             Dim code =
 <Code>
 Public Class C1
@@ -789,11 +789,11 @@ Public Class C1
 End Clas
 </Code>
 
-            Await TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionSub)
-        End Function
+            TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionSub)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFunctionKind_DeclareFunction() As Task
+        Public Sub TestFunctionKind_DeclareFunction()
             Dim code =
 <Code>
 Public Class C1
@@ -803,11 +803,11 @@ Public Class C1
 End Clas
 </Code>
 
-            Await TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionFunction)
-        End Function
+            TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionFunction)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFunctionKind__Operator() As Task
+        Public Sub TestFunctionKind__Operator()
             Dim code =
 <Code>
 Imports System
@@ -818,11 +818,11 @@ Class C
 End Class
 </Code>
 
-            Await TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionOperator)
-        End Function
+            TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionOperator)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFunctionKind_Conversion() As Task
+        Public Sub TestFunctionKind_Conversion()
             Dim code =
 <Code>
 Imports System
@@ -833,71 +833,71 @@ Class C
 End Class
 </Code>
 
-            Await TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionOperator)
-        End Function
+            TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionOperator)
+        End Sub
 
 #End Region
 
 #Region "MustImplement tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestMustImplement1() As Task
+        Public Sub TestMustImplement1()
             Dim code =
 <Code>
 MustInherit Class C
-    MustOverride Sub $$Foo()
+    MustOverride Sub $$Goo()
 End Class
 </Code>
 
-            Await TestMustImplement(code, True)
-        End Function
+            TestMustImplement(code, True)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestMustImplement2() As Task
+        Public Sub TestMustImplement2()
             Dim code =
 <Code>
 Interface I
-    Sub $$Foo()
+    Sub $$Goo()
 End Interface
 </Code>
 
-            Await TestMustImplement(code, True)
-        End Function
+            TestMustImplement(code, True)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestMustImplement3() As Task
+        Public Sub TestMustImplement3()
             Dim code =
 <Code>
 Class C
-    Protected Overridable Sub $$Foo()
+    Protected Overridable Sub $$Goo()
 
     End Sub
 End Class
 </Code>
 
-            Await TestMustImplement(code, False)
-        End Function
+            TestMustImplement(code, False)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestMustImplement4() As Task
+        Public Sub TestMustImplement4()
             Dim code =
 <Code>
 Class C
-    Protected Sub $$Foo()
+    Protected Sub $$Goo()
 
     End Sub
 End Class
 </Code>
 
-            Await TestMustImplement(code, False)
-        End Function
+            TestMustImplement(code, False)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestMustImplement5() As Task
+        Public Sub TestMustImplement5()
             Dim code =
 <Code>
 Class B
-    Protected Overridable Sub Foo()
+    Protected Overridable Sub Goo()
 
     End Sub
 End Class
@@ -905,21 +905,21 @@ End Class
 Class C
     Inherits B
 
-    Protected Overrides Sub $$Foo()
+    Protected Overrides Sub $$Goo()
 
     End Sub
 End Class
 </Code>
 
-            Await TestMustImplement(code, False)
-        End Function
+            TestMustImplement(code, False)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestMustImplement6() As Task
+        Public Sub TestMustImplement6()
             Dim code =
 <Code>
 Class B
-    Protected Overridable Sub Foo()
+    Protected Overridable Sub Goo()
 
     End Sub
 End Class
@@ -927,45 +927,45 @@ End Class
 Class C
     Inherits B
 
-    Protected NotOverridable Overrides Sub $$Foo()
+    Protected NotOverridable Overrides Sub $$Goo()
 
     End Sub
 End Class
 </Code>
 
-            Await TestMustImplement(code, False)
-        End Function
+            TestMustImplement(code, False)
+        End Sub
 
 #End Region
 
 #Region "Name tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName1() As Task
+        Public Sub TestName1()
             Dim code =
 <Code>
 Class C
-    MustOverride Sub $$Foo()
+    MustOverride Sub $$Goo()
 End Class
 </Code>
 
-            Await TestName(code, "Foo")
-        End Function
+            TestName(code, "Goo")
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName_NoParens() As Task
+        Public Sub TestName_NoParens()
             Dim code =
 <Code>
 Class C
-    Sub $$Foo
+    Sub $$Goo
 End Class
 </Code>
 
-            Await TestName(code, "Foo")
-        End Function
+            TestName(code, "Goo")
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName_Constructor1() As Task
+        Public Sub TestName_Constructor1()
             Dim code =
 <Code>
 Class C
@@ -974,11 +974,11 @@ Class C
 End Class
 </Code>
 
-            Await TestName(code, "New")
-        End Function
+            TestName(code, "New")
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName_Constructor2() As Task
+        Public Sub TestName_Constructor2()
             Dim code =
 <Code>
 Class C
@@ -986,11 +986,11 @@ Class C
 End Class
 </Code>
 
-            Await TestName(code, "New")
-        End Function
+            TestName(code, "New")
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName_Operator1() As Task
+        Public Sub TestName_Operator1()
             Dim code =
 <Code>
 Class C
@@ -999,11 +999,11 @@ Class C
 End Class
 </Code>
 
-            Await TestName(code, "CType")
-        End Function
+            TestName(code, "CType")
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName_Operator2() As Task
+        Public Sub TestName_Operator2()
             Dim code =
 <Code>
 Class C
@@ -1011,11 +1011,11 @@ Class C
 End Class
 </Code>
 
-            Await TestName(code, "CType")
-        End Function
+            TestName(code, "CType")
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestName_Operator3() As Task
+        Public Sub TestName_Operator3()
             Dim code =
 <Code>
 Class C
@@ -1024,8 +1024,8 @@ Class C
 End Class
 </Code>
 
-            Await TestName(code, "*")
-        End Function
+            TestName(code, "*")
+        End Sub
 
 #End Region
 
@@ -1033,7 +1033,7 @@ End Class
 
         <WorkItem(2355, "https://github.com/dotnet/roslyn/issues/2355")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestDeclareSubKind() As Task
+        Public Sub TestDeclareSubKind()
             Dim code =
 <Code>
 Public Class Class1 
@@ -1041,12 +1041,12 @@ Public Declare Sub $$f1 Lib "MyLib.dll" ()
 End Class 
 </Code>
 
-            Await TestKind(code, EnvDTE.vsCMElement.vsCMElementDeclareDecl)
-        End Function
+            TestKind(code, EnvDTE.vsCMElement.vsCMElementDeclareDecl)
+        End Sub
 
         <WorkItem(2355, "https://github.com/dotnet/roslyn/issues/2355")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestDeclareFunctionKind() As Task
+        Public Sub TestDeclareFunctionKind()
             Dim code =
 <Code>
 Public Class Class1 
@@ -1054,12 +1054,12 @@ Public Declare Function f2$$ Lib "MyLib.dll" () As Integer
 End Class 
 </Code>
 
-            Await TestKind(code, EnvDTE.vsCMElement.vsCMElementDeclareDecl)
-        End Function
+            TestKind(code, EnvDTE.vsCMElement.vsCMElementDeclareDecl)
+        End Sub
 
         <WorkItem(2355, "https://github.com/dotnet/roslyn/issues/2355")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestSubKind() As Task
+        Public Sub TestSubKind()
             Dim code =
 <Code>
 Public Class Class1 
@@ -1068,245 +1068,245 @@ Public Class Class1
 End Class 
 </Code>
 
-            Await TestKind(code, EnvDTE.vsCMElement.vsCMElementFunction)
-        End Function
+            TestKind(code, EnvDTE.vsCMElement.vsCMElementFunction)
+        End Sub
 #End Region
 
 #Region "OverrideKind tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestOverrideKind_Abstract() As Task
+        Public Sub TestOverrideKind_Abstract()
             Dim code =
 <Code>
 MustInherit Class C
-    Protected MustOverride Sub $$Foo()
+    Protected MustOverride Sub $$Goo()
 End Class
 </Code>
 
-            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract)
-        End Function
+            TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestOverrideKind_Virtual() As Task
+        Public Sub TestOverrideKind_Virtual()
             Dim code =
 <Code>
 Class C
-    Protected Overridable Sub $$Foo()
+    Protected Overridable Sub $$Goo()
     End Sub
 End Class
 </Code>
 
-            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindVirtual)
-        End Function
+            TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindVirtual)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestOverrideKind_Sealed() As Task
+        Public Sub TestOverrideKind_Sealed()
             Dim code =
 <Code>
 Class C
-    Protected NotOverridable Sub $$Foo()
+    Protected NotOverridable Sub $$Goo()
     End Sub
 End Class
 </Code>
 
-            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindSealed)
-        End Function
+            TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindSealed)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestOverrideKind_Override() As Task
+        Public Sub TestOverrideKind_Override()
             Dim code =
 <Code>
 MustInherit Class B
-    Protected MustOverride Sub Foo()
+    Protected MustOverride Sub Goo()
 End Class
 
 Class C
     Inherits B
 
-    Protected Overrides Sub $$Foo()
+    Protected Overrides Sub $$Goo()
     End Sub
 End Class
 </Code>
 
-            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindOverride)
-        End Function
+            TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindOverride)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestOverrideKind_New() As Task
+        Public Sub TestOverrideKind_New()
             Dim code =
 <Code>
 MustInherit Class B
-    Protected MustOverride Sub Foo()
+    Protected MustOverride Sub Goo()
 End Class
 
 Class C
     Inherits B
 
-    Protected Shadows Sub $$Foo()
+    Protected Shadows Sub $$Goo()
     End Sub
 End Class
 </Code>
 
-            Await TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNew)
-        End Function
+            TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNew)
+        End Sub
 
 #End Region
 
 #Region "Prototype tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_UniqueSignature() As Task
+        Public Sub TestPrototype_UniqueSignature()
             Dim code =
 <Code>
 Namespace N
     Class C
-        Sub $$Foo()
+        Sub $$Goo()
         End Sub
     End Class
 End Namespace
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeUniqueSignature, "M:N.C.Foo")
-        End Function
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeUniqueSignature, "M:N.C.Goo")
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_FullName() As Task
+        Public Sub TestPrototype_FullName()
             Dim code =
 <Code>
 Namespace N
     Class C
-        Sub $$Foo()
+        Sub $$Goo()
         End Sub
     End Class
 End Namespace
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "N.C.Foo()")
-        End Function
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "N.C.Goo()")
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_ClassName() As Task
+        Public Sub TestPrototype_ClassName()
             Dim code =
 <Code>
 Namespace N
     Class C
-        Sub $$Foo()
+        Sub $$Goo()
         End Sub
     End Class
 End Namespace
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "C.Foo()")
-        End Function
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "C.Goo()")
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_Type1() As Task
+        Public Sub TestPrototype_Type1()
             Dim code =
 <Code>
 Namespace N
     Class C
-        Sub $$Foo()
+        Sub $$Goo()
         End Sub
     End Class
 End Namespace
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeType, "Foo()")
-        End Function
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeType, "Goo()")
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPrototype_Type2() As Task
+        Public Sub TestPrototype_Type2()
             Dim code =
 <Code>
 Namespace N
     Class C
-        Function $$Foo() As Integer
+        Function $$Goo() As Integer
         End Function
     End Class
 End Namespace
 </Code>
 
-            Await TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeType, "Foo() As Integer")
-        End Function
+            TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeType, "Goo() As Integer")
+        End Sub
 
 #End Region
 
 #Region "Type tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestType1() As Task
+        Public Sub TestType1()
             Dim code =
 <Code>
 Class C
-    Sub $$Foo()
+    Sub $$Goo()
     End Sub
 End Class
 </Code>
 
-            Await TestTypeProp(code,
+            TestTypeProp(code,
                          New CodeTypeRefData With {
                              .AsString = "Void",
                              .AsFullName = "System.Void",
                              .CodeTypeFullName = "System.Void",
                              .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefVoid
                          })
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestType2() As Task
+        Public Sub TestType2()
             Dim code =
 <Code>
 Class C
-    Function $$Foo$()
+    Function $$Goo$()
     End Function
 End Class
 </Code>
 
-            Await TestTypeProp(code,
+            TestTypeProp(code,
                          New CodeTypeRefData With {
                              .AsString = "String",
                              .AsFullName = "System.String",
                              .CodeTypeFullName = "System.String",
                              .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefString
                          })
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestType3() As Task
+        Public Sub TestType3()
             Dim code =
 <Code>
 Class C
-    Function $$Foo() As String
+    Function $$Goo() As String
     End Function
 End Class
 </Code>
 
-            Await TestTypeProp(code,
+            TestTypeProp(code,
                          New CodeTypeRefData With {
                              .AsString = "String",
                              .AsFullName = "System.String",
                              .CodeTypeFullName = "System.String",
                              .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefString
                          })
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestType4() As Task
+        Public Sub TestType4()
             Dim code =
 <Code>
 MustInherit Class C
-    MustOverride Function $$Foo() As String
+    MustOverride Function $$Goo() As String
 End Class
 </Code>
 
-            Await TestTypeProp(code,
+            TestTypeProp(code,
                          New CodeTypeRefData With {
                              .AsString = "String",
                              .AsFullName = "System.String",
                              .CodeTypeFullName = "System.String",
                              .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefString
                          })
-        End Function
+        End Sub
 
 #End Region
 
@@ -1994,7 +1994,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Function $$Foo() As Integer
+    Function $$Goo() As Integer
         Throw New NotImplementedException()
     End Function
 End Class
@@ -2003,7 +2003,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Public Function Foo() As Integer
+    Public Function Goo() As Integer
         Throw New NotImplementedException()
     End Function
 End Class
@@ -2017,7 +2017,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Public Function $$Foo() As Integer
+    Public Function $$Goo() As Integer
         Throw New NotImplementedException()
     End Function
 End Class
@@ -2026,7 +2026,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Friend Function Foo() As Integer
+    Friend Function Goo() As Integer
         Throw New NotImplementedException()
     End Function
 End Class
@@ -2040,7 +2040,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Protected Friend Function $$Foo() As Integer
+    Protected Friend Function $$Goo() As Integer
         Throw New NotImplementedException()
     End Function
 End Class
@@ -2049,7 +2049,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Public Function Foo() As Integer
+    Public Function Goo() As Integer
         Throw New NotImplementedException()
     End Function
 End Class
@@ -2063,7 +2063,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Public Function $$Foo() As Integer
+    Public Function $$Goo() As Integer
         Throw New NotImplementedException()
     End Function
 End Class
@@ -2072,7 +2072,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Protected Friend Function Foo() As Integer
+    Protected Friend Function Goo() As Integer
         Throw New NotImplementedException()
     End Function
 End Class
@@ -2086,7 +2086,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Public Function $$Foo() As Integer
+    Public Function $$Goo() As Integer
         Throw New NotImplementedException()
     End Function
 End Class
@@ -2095,7 +2095,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Function Foo() As Integer
+    Function Goo() As Integer
         Throw New NotImplementedException()
     End Function
 End Class
@@ -2109,14 +2109,14 @@ End Class
             Dim code =
 <Code>
 Interface C
-    Function $$Foo() As Integer
+    Function $$Goo() As Integer
 End Class
 </Code>
 
             Dim expected =
 <Code>
 Interface C
-    Function Foo() As Integer
+    Function Goo() As Integer
 End Class
 </Code>
 
@@ -2128,14 +2128,14 @@ End Class
             Dim code =
 <Code>
 Interface C
-    Function $$Foo() As Integer
+    Function $$Goo() As Integer
 End Class
 </Code>
 
             Dim expected =
 <Code>
 Interface C
-    Function Foo() As Integer
+    Function Goo() As Integer
 End Class
 </Code>
 
@@ -2151,7 +2151,7 @@ End Class
             Dim code =
 <Code>
 MustInherit Class C
-    Overridable Sub $$Foo()
+    Overridable Sub $$Goo()
 
     End Sub
 End Class
@@ -2160,7 +2160,7 @@ End Class
             Dim expected =
 <Code>
 MustInherit Class C
-    Overridable Sub Foo()
+    Overridable Sub Goo()
 
     End Sub
 End Class
@@ -2174,7 +2174,7 @@ End Class
             Dim code =
 <Code>
 MustInherit Class C
-    Overridable Sub $$Foo()
+    Overridable Sub $$Goo()
 
     End Sub
 End Class
@@ -2183,7 +2183,7 @@ End Class
             Dim expected =
 <Code>
 MustInherit Class C
-    Sub Foo()
+    Sub Goo()
 
     End Sub
 End Class
@@ -2197,14 +2197,14 @@ End Class
             Dim code =
 <Code>
 MustInherit Class C
-    MustOverride Sub $$Foo()
+    MustOverride Sub $$Goo()
 End Class
 </Code>
 
             Dim expected =
 <Code>
 MustInherit Class C
-    Overridable Sub Foo()
+    Overridable Sub Goo()
 
     End Sub
 End Class
@@ -2222,7 +2222,7 @@ End Class
             Dim code =
 <Code>
 MustInherit Class C
-    Overridable Sub $$Foo()
+    Overridable Sub $$Goo()
 
     End Sub
 End Class
@@ -2231,7 +2231,7 @@ End Class
             Dim expected =
 <Code>
 MustInherit Class C
-    MustOverride Sub Foo()
+    MustOverride Sub Goo()
 End Class
 </Code>
 
@@ -2243,7 +2243,7 @@ End Class
             Dim code =
 <Code>
 MustInherit Class C
-    Overridable Sub $$Foo()
+    Overridable Sub $$Goo()
 
     End Sub
 End Class
@@ -2252,7 +2252,7 @@ End Class
             Dim expected =
 <Code>
 MustInherit Class C
-    Sub Foo()
+    Sub Goo()
 
     End Sub
 End Class
@@ -2266,14 +2266,14 @@ End Class
             Dim code =
 <Code>
 MustInherit Class C
-    MustOverride Sub $$Foo()
+    MustOverride Sub $$Goo()
 End Class
 </Code>
 
             Dim expected =
 <Code>
 MustInherit Class C
-    MustOverride Sub Foo()
+    MustOverride Sub Goo()
 End Class
 </Code>
 
@@ -2289,7 +2289,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Function $$Foo() As Integer
+    Function $$Goo() As Integer
         Throw New NotImplementedException()
     End Function
 End Class
@@ -2298,7 +2298,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Shared Function Foo() As Integer
+    Shared Function Goo() As Integer
         Throw New NotImplementedException()
     End Function
 End Class
@@ -2312,7 +2312,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Shared Function $$Foo() As Integer
+    Shared Function $$Goo() As Integer
         Throw New NotImplementedException()
     End Function
 End Class
@@ -2321,7 +2321,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Function Foo() As Integer
+    Function Goo() As Integer
         Throw New NotImplementedException()
     End Function
 End Class
@@ -2339,7 +2339,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Sub $$Foo()
+    Sub $$Goo()
     End Sub
 End Class
 </Code>
@@ -2364,7 +2364,7 @@ End Class
             Dim code =
 <Code>
 MustInherit Class C
-    Sub $$Foo()
+    Sub $$Goo()
 
     End Sub
 End Class
@@ -2373,7 +2373,7 @@ End Class
             Dim expected =
 <Code>
 MustInherit Class C
-    Sub Foo()
+    Sub Goo()
 
     End Sub
 End Class
@@ -2387,7 +2387,7 @@ End Class
             Dim code =
 <Code>
 MustInherit Class C
-    Sub $$Foo()
+    Sub $$Goo()
 
     End Sub
 End Class
@@ -2396,7 +2396,7 @@ End Class
             Dim expected =
 <Code>
 MustInherit Class C
-    MustOverride Sub Foo()
+    MustOverride Sub Goo()
 End Class
 </Code>
 
@@ -2408,14 +2408,14 @@ End Class
             Dim code =
 <Code>
 MustInherit Class C
-    MustOverride Sub $$Foo()
+    MustOverride Sub $$Goo()
 End Class
 </Code>
 
             Dim expected =
 <Code>
 MustInherit Class C
-    Sub Foo()
+    Sub Goo()
 
     End Sub
 End Class
@@ -2433,7 +2433,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Sub $$Foo()
+    Sub $$Goo()
         Dim i As Integer
     End Sub
 End Class
@@ -2442,7 +2442,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim i As Integer
     End Sub
 End Class
@@ -2456,7 +2456,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Sub $$Foo()
+    Sub $$Goo()
         Dim i As Integer
     End Sub
 End Class
@@ -2465,7 +2465,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Function Foo() As Integer
+    Function Goo() As Integer
         Dim i As Integer
     End Function
 End Class
@@ -2479,7 +2479,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Function $$Foo() As System.Int32
+    Function $$Goo() As System.Int32
         Dim i As Integer
     End Function
 End Class
@@ -2488,7 +2488,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Function Foo() As String
+    Function Goo() As String
         Dim i As Integer
     End Function
 End Class
@@ -2502,7 +2502,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Function $$Foo() As System.Int32
+    Function $$Goo() As System.Int32
         Dim i As Integer
     End Function
 End Class
@@ -2511,7 +2511,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim i As Integer
     End Sub
 End Class
@@ -2525,14 +2525,14 @@ End Class
             Dim code =
 <Code>
 MustInherit Class C
-    MustOverride Function $$Foo() As System.Int32
+    MustOverride Function $$Goo() As System.Int32
 End Class
 </Code>
 
             Dim expected =
 <Code>
 MustInherit Class C
-    MustOverride Sub Foo()
+    MustOverride Sub Goo()
 End Class
 </Code>
 
@@ -2544,14 +2544,14 @@ End Class
             Dim code =
 <Code>
 MustInherit Class C
-    MustOverride Sub $$Foo()
+    MustOverride Sub $$Goo()
 End Class
 </Code>
 
             Dim expected =
 <Code>
 MustInherit Class C
-    MustOverride Function Foo() As Integer
+    MustOverride Function Goo() As Integer
 End Class
 </Code>
 
@@ -2662,7 +2662,7 @@ End Class
 #Region "PartialMethodExtender"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPartialMethodExtender_IsPartial1() As Task
+        Public Sub TestPartialMethodExtender_IsPartial1()
             Dim code =
 <Code>
 Partial Public Class Class2
@@ -2677,11 +2677,11 @@ Partial Public Class Class2
 End Class
 </Code>
 
-            Await TestPartialMethodExtender_IsPartial(code, False)
-        End Function
+            TestPartialMethodExtender_IsPartial(code, False)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPartialMethodExtender_IsPartial2() As Task
+        Public Sub TestPartialMethodExtender_IsPartial2()
             Dim code =
 <Code>
 Partial Public Class Class2
@@ -2696,11 +2696,11 @@ Partial Public Class Class2
 End Class
 </Code>
 
-            Await TestPartialMethodExtender_IsPartial(code, True)
-        End Function
+            TestPartialMethodExtender_IsPartial(code, True)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPartialMethodExtender_IsPartial3() As Task
+        Public Sub TestPartialMethodExtender_IsPartial3()
             Dim code =
 <Code>
 Partial Public Class Class2
@@ -2715,11 +2715,11 @@ Partial Public Class Class2
 End Class
 </Code>
 
-            Await TestPartialMethodExtender_IsPartial(code, True)
-        End Function
+            TestPartialMethodExtender_IsPartial(code, True)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPartialMethodExtender_IsDeclaration1() As Task
+        Public Sub TestPartialMethodExtender_IsDeclaration1()
             Dim code =
 <Code>
 Partial Public Class Class2
@@ -2734,11 +2734,11 @@ Partial Public Class Class2
 End Class
 </Code>
 
-            Await TestPartialMethodExtender_IsDeclaration(code, False)
-        End Function
+            TestPartialMethodExtender_IsDeclaration(code, False)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPartialMethodExtender_IsDeclaration2() As Task
+        Public Sub TestPartialMethodExtender_IsDeclaration2()
             Dim code =
 <Code>
 Partial Public Class Class2
@@ -2753,11 +2753,11 @@ Partial Public Class Class2
 End Class
 </Code>
 
-            Await TestPartialMethodExtender_IsDeclaration(code, True)
-        End Function
+            TestPartialMethodExtender_IsDeclaration(code, True)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestPartialMethodExtender_IsDeclaration3() As Task
+        Public Sub TestPartialMethodExtender_IsDeclaration3()
             Dim code =
 <Code>
 Partial Public Class Class2
@@ -2772,71 +2772,71 @@ Partial Public Class Class2
 End Class
 </Code>
 
-            Await TestPartialMethodExtender_IsDeclaration(code, False)
-        End Function
+            TestPartialMethodExtender_IsDeclaration(code, False)
+        End Sub
 
 #End Region
 
 #Region "Overloads Tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestIsOverloaded1() As Task
+        Public Sub TestIsOverloaded1()
             Dim code =
 <Code>
 Class C
-    Sub $$Foo(x As C)
+    Sub $$Goo(x As C)
     End Sub
 End Class
 </Code>
-            Await TestIsOverloaded(code, False)
-        End Function
+            TestIsOverloaded(code, False)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestIsOverloaded2() As Task
+        Public Sub TestIsOverloaded2()
             Dim code =
 <Code>
 Class C
-    Sub Foo()
+    Sub Goo()
     End Sub
 
-    Sub $$Foo(x As C)
+    Sub $$Goo(x As C)
     End Sub
 End Class
 </Code>
-            Await TestIsOverloaded(code, True)
-        End Function
+            TestIsOverloaded(code, True)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestOverloads1() As Task
+        Public Sub TestOverloads1()
             Dim code =
 <Code>
 Class C
-    Sub $$Foo()
+    Sub $$Goo()
     End Sub
 
-    Sub Foo(x As C)
-    End Sub
-End Class
-
-</Code>
-            Await TestOverloadsUniqueSignatures(code, "M:C.Foo", "M:C.Foo(C)")
-        End Function
-
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestOverloads2() As Task
-            Dim code =
-<Code>
-Class C
-    Sub $$Foo()
+    Sub Goo(x As C)
     End Sub
 End Class
 
 </Code>
-            Await TestOverloadsUniqueSignatures(code, "M:C.Foo")
-        End Function
+            TestOverloadsUniqueSignatures(code, "M:C.Goo", "M:C.Goo(C)")
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestOverloads3() As Task
+        Public Sub TestOverloads2()
+            Dim code =
+<Code>
+Class C
+    Sub $$Goo()
+    End Sub
+End Class
+
+</Code>
+            TestOverloadsUniqueSignatures(code, "M:C.Goo")
+        End Sub
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestOverloads3()
             Dim code =
 <Code>
 Class C
@@ -2844,8 +2844,8 @@ Class C
     End Operator
 End Class
 </Code>
-            Await TestOverloadsUniqueSignatures(code, "M:C.op_Multiply(System.Int32,C)")
-        End Function
+            TestOverloadsUniqueSignatures(code, "M:C.op_Multiply(System.Int32,C)")
+        End Sub
 
 #End Region
 
@@ -2853,7 +2853,7 @@ End Class
 
         <WorkItem(1147885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147885")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestParameterNameWithEscapeCharacters() As Task
+        Public Sub TestParameterNameWithEscapeCharacters()
             Dim code =
 <Code>
 Class C
@@ -2861,12 +2861,12 @@ Class C
     End Sub
 End Class
 </Code>
-            Await TestAllParameterNames(code, "[integer]")
-        End Function
+            TestAllParameterNames(code, "[integer]")
+        End Sub
 
         <WorkItem(1147885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147885")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestParameterNameWithEscapeCharacters_2() As Task
+        Public Sub TestParameterNameWithEscapeCharacters_2()
             Dim code =
 <Code>
 Class C
@@ -2874,8 +2874,8 @@ Class C
     End Sub
 End Class
 </Code>
-            Await TestAllParameterNames(code, "[integer]", "[string]")
-        End Function
+            TestAllParameterNames(code, "[integer]", "[string]")
+        End Sub
 
 #End Region
 

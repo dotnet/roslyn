@@ -33,6 +33,34 @@ namespace Microsoft.CodeAnalysis.Completion
             return false;
         }
 
+        public static bool ShouldBeFilteredOutOfCompletionList(
+            CompletionItem item,
+            ImmutableDictionary<CompletionItemFilter, bool> filterState)
+        {
+            if (filterState == null)
+            {
+                // No filtering.  The item is not filtered out.
+                return false;
+            }
+
+            foreach (var filter in AllFilters)
+            {
+                // only consider filters that match the item
+                var matches = filter.Matches(item);
+                if (matches)
+                {
+                    // if the specific filter is enabled then it is not filtered out
+                    if (filterState.TryGetValue(filter, out var enabled) && enabled)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            // The item was filtered out.
+            return true;
+        }
+
         public static readonly CompletionItemFilter NamespaceFilter = new CompletionItemFilter(FeaturesResources.Namespaces, CompletionTags.Namespace, 'n');
         public static readonly CompletionItemFilter ClassFilter = new CompletionItemFilter(FeaturesResources.Classes, CompletionTags.Class, 'c');
         public static readonly CompletionItemFilter ModuleFilter = new CompletionItemFilter(FeaturesResources.Modules, CompletionTags.Module, 'u');

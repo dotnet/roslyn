@@ -11,7 +11,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         public static CompletionItem Create(
             string displayText,
-            Glyph? glyph,
             DeclarationModifiers modifiers,
             int line,
             ISymbol symbol,
@@ -26,8 +25,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
-                symbol: symbol,
-                glyph: glyph,
+                symbols: ImmutableArray.Create(symbol),
                 contextPosition: descriptionPosition,
                 properties: props,
                 rules: rules);
@@ -46,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return modifiers;
             }
 
-            return default(DeclarationModifiers);
+            return default;
         }
 
         public static int GetLine(CompletionItem item)

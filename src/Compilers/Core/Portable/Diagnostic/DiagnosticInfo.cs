@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
     /// provide access to additional information about the error, such as what symbols were involved in the ambiguity.
     /// </remarks>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal class DiagnosticInfo : IFormattable, IObjectWritable, IObjectReadable, IMessageSerializable
+    internal class DiagnosticInfo : IFormattable, IObjectWritable, IMessageSerializable
     {
         private readonly CommonMessageProvider _messageProvider;
         private readonly int _errorCode;
@@ -32,6 +32,11 @@ namespace Microsoft.CodeAnalysis
         // Mark compiler errors as non-configurable to ensure they can never be suppressed or filtered.
         private static readonly ImmutableArray<string> s_compilerErrorCustomTags = ImmutableArray.Create(WellKnownDiagnosticTags.Compiler, WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.NotConfigurable);
         private static readonly ImmutableArray<string> s_compilerNonErrorCustomTags = ImmutableArray.Create(WellKnownDiagnosticTags.Compiler, WellKnownDiagnosticTags.Telemetry);
+
+        static DiagnosticInfo()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(DiagnosticInfo), r => new DiagnosticInfo(r));
+        }
 
         // Only the compiler creates instances.
         internal DiagnosticInfo(CommonMessageProvider messageProvider, int errorCode)
@@ -155,16 +160,6 @@ namespace Microsoft.CodeAnalysis
                     writer.WriteString(arg.ToString());
                 }
             }
-        }
-
-        Func<ObjectReader, object> IObjectReadable.GetReader()
-        {
-            return this.GetReader();
-        }
-
-        protected virtual Func<ObjectReader, object> GetReader()
-        {
-            return (r) => new DiagnosticInfo(r);
         }
 
         protected DiagnosticInfo(ObjectReader reader)

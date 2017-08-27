@@ -272,7 +272,7 @@ End Class
             Dim exeModule = ModuleInstance.Create(exeBytes, symReader)
             Dim runtime = CreateRuntimeInstance(exeModule, {MscorlibRef})
             Dim evalContext = CreateMethodContext(runtime, "C.Main")
-            Dim compContext = evalContext.CreateCompilationContext(SyntaxHelpers.ParseDebuggerExpression("Nothing", consumeFullText:=True)) ' Used to throw.
+            Dim compContext = evalContext.CreateCompilationContext(withSyntax:=True) ' Used to throw.
 
             Dim rootNamespace As NamespaceSymbol = Nothing
             Dim currentNamespace As NamespaceSymbol = Nothing
@@ -308,7 +308,7 @@ End Class
             Dim exeModule = ModuleInstance.Create(exeBytes, symReader)
             Dim runtime = CreateRuntimeInstance(exeModule, {MscorlibRef})
             Dim evalContext = CreateMethodContext(runtime, "C.Main")
-            Dim compContext = evalContext.CreateCompilationContext(SyntaxHelpers.ParseDebuggerExpression("Nothing", consumeFullText:=True)) ' Used to throw.
+            Dim compContext = evalContext.CreateCompilationContext(withSyntax:=True) ' Used to throw.
 
             Dim rootNamespace As NamespaceSymbol = Nothing
             Dim currentNamespace As NamespaceSymbol = Nothing
@@ -446,7 +446,6 @@ End Namespace
                     GetImports(
                         runtime,
                         "root.N.C.M",
-                        GetExpressionStatement(comp),
                         rootNamespace,
                         currentNamespace,
                         typesAndNamespaces,
@@ -502,7 +501,6 @@ End Namespace
                         GetImports(
                             runtime,
                             "N.C.M",
-                            GetExpressionStatement(comp),
                             rootNamespace,
                             currentNamespace,
                             typesAndNamespaces,
@@ -567,7 +565,6 @@ End Namespace
                     GetImports(
                         runtime,
                         "root.N.C.M",
-                        GetExpressionStatement(comp),
                         rootNamespace,
                         currentNamespace,
                         typesAndNamespaces,
@@ -636,14 +633,9 @@ IL_000a:  ret
 ")
         End Sub
 
-        Private Shared Function GetExpressionStatement(compilation As Compilation) As ExpressionStatementSyntax
-            Return DirectCast(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType(Of InvocationExpressionSyntax).Single().Parent, ExpressionStatementSyntax)
-        End Function
-
         Private Shared Sub GetImports(
             runtime As RuntimeInstance,
             methodName As String,
-            syntax As ExpressionStatementSyntax,
             <Out> ByRef rootNamespace As NamespaceSymbol,
             <Out> ByRef currentNamespace As NamespaceSymbol,
             <Out> ByRef typesAndNamespaces As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition),
@@ -651,7 +643,7 @@ IL_000a:  ret
             <Out> ByRef xmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition))
 
             Dim evalContext = CreateMethodContext(runtime, methodName)
-            Dim compContext = evalContext.CreateCompilationContext(syntax)
+            Dim compContext = evalContext.CreateCompilationContext(withSyntax:=True)
 
             GetImports(compContext, rootNamespace, currentNamespace, typesAndNamespaces, aliases, xmlNamespaces)
         End Sub

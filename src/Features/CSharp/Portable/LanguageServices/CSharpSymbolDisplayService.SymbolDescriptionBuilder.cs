@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Threading;
@@ -78,17 +78,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 ISymbol symbol)
             {
                 // Actually check for C# symbol types here.  
-                if (symbol is IParameterSymbol)
+                if (symbol is IParameterSymbol parameter)
                 {
-                    return GetInitializerSourcePartsAsync((IParameterSymbol)symbol);
+                    return GetInitializerSourcePartsAsync(parameter);
                 }
-                else if (symbol is ILocalSymbol)
+                else if (symbol is ILocalSymbol local)
                 {
-                    return GetInitializerSourcePartsAsync((ILocalSymbol)symbol);
+                    return GetInitializerSourcePartsAsync(local);
                 }
-                else if (symbol is IFieldSymbol)
+                else if (symbol is IFieldSymbol field)
                 {
-                    return GetInitializerSourcePartsAsync((IFieldSymbol)symbol);
+                    return GetInitializerSourcePartsAsync(field);
                 }
 
                 return SpecializedTasks.EmptyImmutableArray<SymbolDisplayPart>();
@@ -151,9 +151,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 foreach (var syntaxRef in symbol.DeclaringSyntaxReferences)
                 {
                     var syntax = await syntaxRef.GetSyntaxAsync(this.CancellationToken).ConfigureAwait(false);
-                    if (syntax is T)
+                    if (syntax is T tSyntax)
                     {
-                        return (T)syntax;
+                        return tSyntax;
                     }
                 }
 
@@ -183,15 +183,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                     method.ToAwaitableParts(SyntaxFacts.GetText(SyntaxKind.AwaitKeyword), "x", semanticModel, position));
             }
 
-            protected override SymbolDisplayFormat MinimallyQualifiedFormat
-            {
-                get { return s_minimallyQualifiedFormat; }
-            }
+            protected override SymbolDisplayFormat MinimallyQualifiedFormat => s_minimallyQualifiedFormat;
 
-            protected override SymbolDisplayFormat MinimallyQualifiedFormatWithConstants
-            {
-                get { return s_minimallyQualifiedFormatWithConstants; }
-            }
+            protected override SymbolDisplayFormat MinimallyQualifiedFormatWithConstants => s_minimallyQualifiedFormatWithConstants;
         }
     }
 }

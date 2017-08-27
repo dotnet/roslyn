@@ -12,6 +12,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
@@ -83,9 +84,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(attributeConstructor);
         }
 
-        public sealed override IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes()
+        public sealed override IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes(bool isRefAssembly)
         {
-            return SourceModule.ContainingSourceAssembly.GetCustomAttributesToEmit(this.CompilationState, emittingAssemblyAttributesInNetModule: OutputKind.IsNetModule());
+            return SourceModule.ContainingSourceAssembly
+                .GetCustomAttributesToEmit(this.CompilationState, isRefAssembly, emittingAssemblyAttributesInNetModule: OutputKind.IsNetModule());
         }
 
         public sealed override IEnumerable<Cci.SecurityAttribute> GetSourceAssemblySecurityAttributes()
@@ -329,7 +331,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// <summary>
         /// Override the dynamic operation context type for all dynamic calls in the module.
         /// </summary>
-        internal virtual NamedTypeSymbol DynamicOperationContextType => null;
+        internal virtual NamedTypeSymbol GetDynamicOperationContextType(NamedTypeSymbol contextType)
+        {
+            return contextType;
+        }
 
         internal virtual VariableSlotAllocator TryCreateVariableSlotAllocator(MethodSymbol method, MethodSymbol topLevelMethod, DiagnosticBag diagnostics)
         {
@@ -355,9 +360,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return false;
         }
 
-        internal sealed override ImmutableArray<Cci.INamespaceTypeDefinition> GetAnonymousTypes()
+        internal sealed override ImmutableArray<Cci.INamespaceTypeDefinition> GetAnonymousTypes(EmitContext context)
         {
-            if (EmitOptions.EmitMetadataOnly)
+            if (context.MetadataOnly)
             {
                 return ImmutableArray<Cci.INamespaceTypeDefinition>.Empty;
             }
@@ -791,7 +796,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 Debug.Assert(!needDeclaration);
                 namedTypeSymbol = namedTypeSymbol.TupleUnderlyingType;
-                CheckTupleUnderlying(namedTypeSymbol, syntaxNodeOpt, diagnostics);
+                CheckTupleUnderlyingType(namedTypeSymbol, syntaxNodeOpt, diagnostics);
             }
 
             // Substitute error types with a special singleton object.
@@ -892,21 +897,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return namedTypeSymbol;
         }
 
-        private void CheckTupleUnderlying(NamedTypeSymbol namedTypeSymbol, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        private void CheckTupleUnderlyingType(NamedTypeSymbol namedTypeSymbol, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
             // check that underlying type of a ValueTuple is indeed a value type (or error)
             // this should never happen, in theory,
             // but if it does happen we should make it a failure.
             // NOTE: declaredBase could be null for interfaces
             var declaredBase = namedTypeSymbol.BaseTypeNoUseSiteDiagnostics;
-            if (declaredBase == null || declaredBase.SpecialType != SpecialType.System_ValueType)
+            if ((object)declaredBase != null && declaredBase.SpecialType == SpecialType.System_ValueType)
             {
-                // Try to decrease noise by not complaining about the same type over and over again.
-                if (_reportedErrorTypesMap.Add(namedTypeSymbol))
+                return;
+            }
+
+            // Try to decrease noise by not complaining about the same type over and over again.
+            if (!_reportedErrorTypesMap.Add(namedTypeSymbol))
+            {
+                return;
+            }
+
+            var location = syntaxNodeOpt == null ? NoLocation.Singleton : syntaxNodeOpt.Location;
+            if ((object)declaredBase != null)
+            {
+                var diagnosticInfo = declaredBase.GetUseSiteDiagnostic();
+                if (diagnosticInfo != null && diagnosticInfo.Severity == DiagnosticSeverity.Error)
                 {
-                    diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_PredefinedValueTupleTypeMustBeStruct, namedTypeSymbol.MetadataName), syntaxNodeOpt == null ? NoLocation.Singleton : syntaxNodeOpt.Location));
+                    diagnostics.Add(diagnosticInfo, location);
+                    return;
                 }
             }
+
+            diagnostics.Add(
+                new CSDiagnostic(
+                    new CSDiagnosticInfo(ErrorCode.ERR_PredefinedValueTupleTypeMustBeStruct, namedTypeSymbol.MetadataName),
+                    location));
         }
 
         public static bool IsGenericType(NamedTypeSymbol toCheck)

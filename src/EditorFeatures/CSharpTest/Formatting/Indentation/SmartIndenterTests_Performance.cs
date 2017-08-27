@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         // TODO: Author this as a performance test.
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
-        public async Task RegionPerformance()
+        public void RegionPerformance()
         {
             var code =
             #region very long sample code
@@ -2207,7 +2207,7 @@ class Program
 ";
             #endregion
 
-            await AssertSmartIndentAsync(
+            AssertSmartIndent(
                 code,
                 expectedIndentation: 4);
         }

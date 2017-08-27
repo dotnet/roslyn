@@ -6,7 +6,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Roslyn.Utilities
+namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// Helpers to create temporary streams backed by pooled memory
@@ -15,10 +15,14 @@ namespace Roslyn.Utilities
     {
         private const int ChunkSize = SharedPools.ByteBufferSize;
 
-        internal static PooledStream CreateReadableStream(byte[] bytes, CancellationToken cancellationToken)
+        internal static PooledStream CreateReadableStream(byte[] bytes)
+            => CreateReadableStream(bytes, bytes.Length);
+
+
+        internal static PooledStream CreateReadableStream(byte[] bytes, int length)
         {
             var stream = CreateWritableStream();
-            stream.Write(bytes, 0, bytes.Length);
+            stream.Write(bytes, 0, length);
 
             stream.Position = 0;
             return stream;
@@ -153,20 +157,11 @@ namespace Roslyn.Utilities
                 }
             }
 
-            public override bool CanRead
-            {
-                get { return true; }
-            }
+            public override bool CanRead => true;
 
-            public override bool CanSeek
-            {
-                get { return true; }
-            }
+            public override bool CanSeek => true;
 
-            public override bool CanWrite
-            {
-                get { return false; }
-            }
+            public override bool CanWrite => false;
 
             public override void Flush()
             {
@@ -350,10 +345,7 @@ namespace Roslyn.Utilities
                 // we don't re-allocate as much.
             }
 
-            public override bool CanWrite
-            {
-                get { return true; }
-            }
+            public override bool CanWrite => true;
 
             public override long Position
             {

@@ -12,9 +12,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
     [Guid(Guids.RoslynLibraryIdString)]
     internal partial class LibraryManager : AbstractLibraryManager
     {
-        public LibraryManager(IServiceProvider serviceProvider)
+        private readonly Workspace _workspace;
+
+        public LibraryManager(Workspace workspace, IServiceProvider serviceProvider)
             : base(Guids.RoslynLibraryId, serviceProvider)
         {
+            _workspace = workspace;
         }
 
         public override uint GetLibraryFlags()

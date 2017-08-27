@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -75,23 +75,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         protected string GetNewLineCharacter(SourceText text)
         {
             return _editorOptionsFactoryService.GetEditorOptions(text).GetNewLineCharacter();
-        }
-
-        protected int GetTabSize(SourceText text)
-        {
-            var snapshot = text.FindCorrespondingEditorTextSnapshot();
-            return GetTabSize(snapshot);
-        }
-
-        protected int GetTabSize(ITextSnapshot snapshot)
-        {
-            if (snapshot == null)
-            {
-                throw new ArgumentNullException(nameof(snapshot));
-            }
-
-            var textBuffer = snapshot.TextBuffer;
-            return _editorOptionsFactoryService.GetOptions(textBuffer).GetTabSize();
         }
 
         protected SyntaxToken GetTokenWithoutAnnotation(SyntaxToken current, Func<SyntaxToken, SyntaxToken> nextTokenGetter)
@@ -521,7 +504,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             // Save the node keys.
             var nodeKeyValidation = new NodeKeyValidation();
-            foreach (var project in workspace.ProjectTracker.ImmutableProjects)
+            foreach (var project in workspace.DeferredState.ProjectTracker.ImmutableProjects)
             {
                 nodeKeyValidation.AddProject(project);
             }
@@ -552,14 +535,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public abstract string GetExternalSymbolName(ISymbol symbol);
         public abstract string GetExternalSymbolFullName(ISymbol symbol);
 
-        public VirtualTreePoint? GetStartPoint(SyntaxNode node, EnvDTE.vsCMPart? part)
+        public VirtualTreePoint? GetStartPoint(SyntaxNode node, OptionSet options, EnvDTE.vsCMPart? part)
         {
-            return _nodeLocator.GetStartPoint(node, part);
+            return _nodeLocator.GetStartPoint(node, options, part);
         }
 
-        public VirtualTreePoint? GetEndPoint(SyntaxNode node, EnvDTE.vsCMPart? part)
+        public VirtualTreePoint? GetEndPoint(SyntaxNode node, OptionSet options, EnvDTE.vsCMPart? part)
         {
-            return _nodeLocator.GetEndPoint(node, part);
+            return _nodeLocator.GetEndPoint(node, options, part);
         }
 
         public abstract EnvDTE.vsCMAccess GetAccess(ISymbol symbol);
@@ -600,7 +583,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
         }
 
-        protected bool TryGetElementFromSource(CodeModelState state, Project project, ITypeSymbol typeSymbol, out EnvDTE.CodeElement element)
+        protected bool TryGetElementFromSource(
+            CodeModelState state, Project project, ITypeSymbol typeSymbol, out EnvDTE.CodeElement element)
         {
             element = null;
 
@@ -629,7 +613,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     {
                         var document = project.GetDocument(location.SourceTree);
 
-                        if (document.IsGeneratedCode() == false)
+                        if (!document.IsGeneratedCode(CancellationToken.None))
                         {
                             chosenLocation = location;
                             chosenDocumentId = document.Id;
@@ -879,9 +863,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             {
                 typeSymbol = GetSpecialType((EnvDTE.vsCMTypeRef)type, semanticModel.Compilation);
             }
-            else if (type is string)
+            else if (type is string s)
             {
-                typeSymbol = GetTypeSymbolFromPartialName((string)type, semanticModel, position);
+                typeSymbol = GetTypeSymbolFromPartialName(s, semanticModel, position);
             }
             else
             {
@@ -991,9 +975,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             int result;
 
-            if (position is int)
+            if (position is int i)
             {
-                result = (int)position;
+                result = i;
             }
             else if (position is EnvDTE.CodeElement)
             {
@@ -1011,9 +995,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 result = getIndexInContainer(containerNode, child => child == positionNode);
             }
-            else if (position is string)
+            else if (position is string name)
             {
-                var name = (string)position;
                 result = getIndexInContainer(containerNode, child => GetName(child) == name);
             }
             else if (position == null || position == Type.Missing)

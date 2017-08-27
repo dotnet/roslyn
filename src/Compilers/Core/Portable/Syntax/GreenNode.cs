@@ -7,13 +7,14 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal abstract class GreenNode : IObjectWritable, IObjectReadable
+    internal abstract class GreenNode : IObjectWritable
     {
         private string GetDebuggerDisplay()
         {
@@ -450,23 +451,16 @@ namespace Microsoft.CodeAnalysis
             if (hasDiagnostics || hasAnnotations)
             {
                 kindBits |= ExtendedSerializationInfoMask;
-            }
-
-            writer.WriteUInt16(kindBits);
-
-            if (hasDiagnostics || hasAnnotations)
-            {
+                writer.WriteUInt16(kindBits);
                 writer.WriteValue(hasDiagnostics ? this.GetDiagnostics() : null);
                 writer.WriteValue(hasAnnotations ? this.GetAnnotations() : null);
             }
+            else
+            {
+                writer.WriteUInt16(kindBits);
+            }
         }
 
-        Func<ObjectReader, object> IObjectReadable.GetReader()
-        {
-            return this.GetReader();
-        }
-
-        internal abstract Func<ObjectReader, object> GetReader();
         #endregion
 
         #region Annotations 
@@ -660,9 +654,9 @@ namespace Microsoft.CodeAnalysis
             while (stack.Count > 0)
             {
                 var current = stack.Pop();
-                var currentNode = current.Item1;
-                var currentLeading = current.Item2;
-                var currentTrailing = current.Item3;
+                var currentNode = current.node;
+                var currentLeading = current.leading;
+                var currentTrailing = current.trailing;
 
                 if (currentNode.IsToken)
                 {

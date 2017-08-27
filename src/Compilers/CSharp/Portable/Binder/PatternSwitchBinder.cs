@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -37,19 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool HasPatternSwitchSyntax(SwitchStatementSyntax switchSyntax)
-        {
-            foreach (var section in switchSyntax.Sections)
-            {
-                if (section.Labels.Any(SyntaxKind.CasePatternSwitchLabel))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         internal override BoundStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
             // If it is a valid C# 6 switch statement, we use the old binder to bind it.
@@ -64,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundPatternSwitchLabel defaultLabel;
             bool isComplete;
             ImmutableArray<BoundPatternSwitchSection> switchSections =
-                BindPatternSwitchSections(boundSwitchExpression, node.Sections, originalBinder, out defaultLabel, out isComplete, diagnostics);
+                BindPatternSwitchSections(originalBinder, out defaultLabel, out isComplete, diagnostics);
             var locals = GetDeclaredLocalsForScope(node);
             var functions = GetDeclaredLocalFunctionsForScope(node);
             return new BoundPatternSwitchStatement(
@@ -93,9 +81,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics: diagnostics);
         }
 
+        /// <summary>
+        /// Bind the pattern switch labels, reporting in the process which cases are subsumed. The strategy,
+        /// implemented with the help of <see cref="SubsumptionDiagnosticBuilder"/>, is to start with an empty
+        /// decision tree, and for each case we visit the decision tree to see if the case is subsumed. If it
+        /// is, we report an error. If it is not subsumed and there is no guard expression, we then add it to
+        /// the decision tree.
+        /// </summary>
         private ImmutableArray<BoundPatternSwitchSection> BindPatternSwitchSections(
-            BoundExpression boundSwitchExpression,
-            SyntaxList<SwitchSectionSyntax> sections,
             Binder originalBinder,
             out BoundPatternSwitchLabel defaultLabel,
             out bool isComplete,
@@ -108,11 +101,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Bind match sections
             var boundPatternSwitchSectionsBuilder = ArrayBuilder<BoundPatternSwitchSection>.GetInstance();
-            SubsumptionDiagnosticBuilder subsumption = new SubsumptionDiagnosticBuilder(ContainingMemberOrLambda, this.Conversions, boundSwitchExpression);
-            foreach (var sectionSyntax in sections)
+            SubsumptionDiagnosticBuilder subsumption = new SubsumptionDiagnosticBuilder(ContainingMemberOrLambda, SwitchSyntax, this.Conversions, SwitchGoverningExpression);
+            foreach (var sectionSyntax in SwitchSyntax.Sections)
             {
                 boundPatternSwitchSectionsBuilder.Add(BindPatternSwitchSection(
-                    boundSwitchExpression, sectionSyntax, originalBinder, ref defaultLabel, ref someValueMatched, subsumption, diagnostics));
+                    SwitchGoverningExpression, sectionSyntax, originalBinder, ref defaultLabel, ref someValueMatched, subsumption, diagnostics));
             }
 
             isComplete = defaultLabel != null || subsumption.IsComplete || someValueMatched;
@@ -186,6 +179,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, node.Location, pattern.ConstantValue.GetValueToDisplay() ?? label.Name);
                             hasErrors = true;
+                        }
+
+                        if (caseLabelSyntax.Value.Kind() == SyntaxKind.DefaultLiteralExpression)
+                        {
+                            diagnostics.Add(ErrorCode.WRN_DefaultInSwitch, caseLabelSyntax.Value.Location);
                         }
 
                         // Until we've determined whether or not the switch label is reachable, we assume it

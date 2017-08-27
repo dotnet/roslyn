@@ -5,6 +5,7 @@ Imports System.Diagnostics
 Imports System.Linq
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -4026,12 +4027,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return MethodConversionKind.Error_ByRefByValMismatch
             End If
 
-            Return ClassifyMethodConversionBasedOnReturnType(returnTypeOfConvertFromMethod, returnTypeOfConvertToMethod, useSiteDiagnostics)
+            Return ClassifyMethodConversionBasedOnReturnType(returnTypeOfConvertFromMethod, returnTypeOfConvertToMethod, convertFromMethodIsByRef, useSiteDiagnostics)
         End Function
 
         Public Shared Function ClassifyMethodConversionBasedOnReturnType(
             returnTypeOfConvertFromMethod As TypeSymbol,
             returnTypeOfConvertToMethod As TypeSymbol,
+            isRefReturning As Boolean,
             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
         ) As MethodConversionKind
             Debug.Assert(returnTypeOfConvertFromMethod IsNot Nothing)
@@ -4062,8 +4064,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim typeConversion As ConversionKind = ClassifyConversion(returnTypeOfConvertFromMethod, returnTypeOfConvertToMethod, useSiteDiagnostics).Key
 
-            Dim result As MethodConversionKind
+            If isRefReturning AndAlso Not IsIdentityConversion(typeConversion) Then
+                Return MethodConversionKind.Error_ReturnTypeMismatch
+            End If
 
+            Dim result As MethodConversionKind
             If IsNarrowingConversion(typeConversion) Then
                 result = MethodConversionKind.ReturnIsWidening
 
@@ -4240,7 +4245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(conversion.Operand.IsNothingLiteral() OrElse conversion.Operand.Kind = BoundKind.Lambda)
                 methodConversion = MethodConversionKind.Identity
             Else
-                methodConversion = ClassifyMethodConversionBasedOnReturnType(operandType, conversion.Type, useSiteDiagnostics)
+                methodConversion = ClassifyMethodConversionBasedOnReturnType(operandType, conversion.Type, isRefReturning:=False, useSiteDiagnostics:=useSiteDiagnostics)
             End If
 
             Return DetermineDelegateRelaxationLevel(methodConversion)

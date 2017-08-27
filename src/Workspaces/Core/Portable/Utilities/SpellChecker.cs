@@ -10,58 +10,57 @@ using Microsoft.CodeAnalysis.Utilities;
 
 namespace Roslyn.Utilities
 {
-    internal class SpellChecker
+    internal class SpellChecker : IObjectWritable, IChecksummedObject
     {
-        private const string SerializationFormat = "2";
+        private const string SerializationFormat = "3";
 
-        public VersionStamp Version { get; }
+        public Checksum Checksum { get; }
         private readonly BKTree _bkTree;
 
-        public SpellChecker(VersionStamp version, BKTree bKTree)
+        public SpellChecker(Checksum checksum, BKTree bKTree)
         {
-            Version = version;
+            Checksum = checksum;
             _bkTree = bKTree;
         }
 
-        public SpellChecker(VersionStamp version, IEnumerable<StringSlice> corpus) 
-            : this(version, BKTree.Create(corpus))
+        public SpellChecker(Checksum checksum, IEnumerable<StringSlice> corpus)
+            : this(checksum, BKTree.Create(corpus))
         {
         }
 
         public IList<string> FindSimilarWords(string value)
-        {
-            return FindSimilarWords(value, substringsAreSimilar: false);
-        }
+            => FindSimilarWords(value, substringsAreSimilar: false);
 
         public IList<string> FindSimilarWords(string value, bool substringsAreSimilar)
         {
             var result = _bkTree.Find(value, threshold: null);
 
-            using (var spellChecker = new WordSimilarityChecker(value, substringsAreSimilar))
-            {
-                return result.Where(spellChecker.AreSimilar).ToArray();
-            }
+            var checker = WordSimilarityChecker.Allocate(value, substringsAreSimilar);
+            var array = result.Where(checker.AreSimilar).ToArray();
+            checker.Free();
+
+            return array;
         }
 
-        internal void WriteTo(ObjectWriter writer)
+        void IObjectWritable.WriteTo(ObjectWriter writer)
         {
             writer.WriteString(SerializationFormat);
-            Version.WriteTo(writer);
+            Checksum.WriteTo(writer);
             _bkTree.WriteTo(writer);
         }
 
-        internal static SpellChecker ReadFrom(ObjectReader reader)
+        internal static SpellChecker TryReadFrom(ObjectReader reader)
         {
             try
             {
                 var formatVersion = reader.ReadString();
                 if (string.Equals(formatVersion, SerializationFormat, StringComparison.Ordinal))
                 {
-                    var version = VersionStamp.ReadFrom(reader);
+                    var checksum = Checksum.ReadFrom(reader);
                     var bkTree = BKTree.ReadFrom(reader);
                     if (bkTree != null)
                     {
-                        return new SpellChecker(version, bkTree);
+                        return new SpellChecker(checksum, bkTree);
                     }
                 }
             }
@@ -74,7 +73,7 @@ namespace Roslyn.Utilities
         }
     }
 
-    internal class WordSimilarityChecker : IDisposable
+    internal class WordSimilarityChecker
     {
         private struct CacheResult
         {
@@ -97,16 +96,37 @@ namespace Roslyn.Utilities
 
         private string _source;
         private EditDistance _editDistance;
-        private readonly int _threshold;
+        private int _threshold;
 
         /// <summary>
         /// Whether or words should be considered similar if one is contained within the other
         /// (regardless of edit distance).  For example if is true then IService would be considered
         /// similar to IServiceFactory despite the edit distance being quite high at 7.
         /// </summary>
-        private readonly bool _substringsAreSimilar;
+        private bool _substringsAreSimilar;
 
-        public WordSimilarityChecker(string text, bool substringsAreSimilar)
+        private static readonly object s_poolGate = new object();
+        private static readonly Stack<WordSimilarityChecker> s_pool = new Stack<WordSimilarityChecker>();
+
+        public static WordSimilarityChecker Allocate(string text, bool substringsAreSimilar)
+        {
+            WordSimilarityChecker checker;
+            lock (s_poolGate)
+            {
+                checker = s_pool.Count > 0
+                    ? s_pool.Pop()
+                    : new WordSimilarityChecker();
+            }
+
+            checker.Initialize(text, substringsAreSimilar);
+            return checker;
+        }
+
+        private WordSimilarityChecker()
+        {
+        }
+
+        private void Initialize(string text, bool substringsAreSimilar)
         {
             _source = text ?? throw new ArgumentNullException(nameof(text));
             _threshold = GetThreshold(_source);
@@ -114,29 +134,31 @@ namespace Roslyn.Utilities
             _substringsAreSimilar = substringsAreSimilar;
         }
 
-        public void Dispose()
+        public void Free()
         {
             _editDistance?.Dispose();
+            _source = null;
             _editDistance = null;
+            _lastAreSimilarResult = default;
+            lock (s_poolGate)
+            {
+                s_pool.Push(this);
+            }
         }
 
         public static bool AreSimilar(string originalText, string candidateText)
-        {
-            return AreSimilar(originalText, candidateText, substringsAreSimilar: false);
-        }
+            => AreSimilar(originalText, candidateText, substringsAreSimilar: false);
 
         public static bool AreSimilar(string originalText, string candidateText, bool substringsAreSimilar)
-        {
-            return AreSimilar(originalText, candidateText, substringsAreSimilar, out var unused);
-        }
+            => AreSimilar(originalText, candidateText, substringsAreSimilar, out var unused);
 
         public static bool AreSimilar(string originalText, string candidateText, out double similarityWeight)
         {
             return AreSimilar(
-                originalText, candidateText, 
+                originalText, candidateText,
                 substringsAreSimilar: false, similarityWeight: out similarityWeight);
         }
-        
+
         /// <summary>
         /// Returns true if 'originalText' and 'candidateText' are likely a misspelling of each other.
         /// Returns false otherwise.  If it is a likely misspelling a similarityWeight is provided
@@ -144,21 +166,18 @@ namespace Roslyn.Utilities
         /// </summary>
         public static bool AreSimilar(string originalText, string candidateText, bool substringsAreSimilar, out double similarityWeight)
         {
-            using (var checker = new WordSimilarityChecker(originalText, substringsAreSimilar))
-            {
-                return checker.AreSimilar(candidateText, out similarityWeight);
-            }
+            var checker = Allocate(originalText, substringsAreSimilar);
+            var result = checker.AreSimilar(candidateText, out similarityWeight);
+            checker.Free();
+
+            return result;
         }
 
         internal static int GetThreshold(string value)
-        {
-            return value.Length <= 4 ? 1 : 2;
-        }
+            => value.Length <= 4 ? 1 : 2;
 
         public bool AreSimilar(string candidateText)
-        {
-            return AreSimilar(candidateText, out var similarityWeight);
-        }
+            => AreSimilar(candidateText, out var similarityWeight);
 
         public bool AreSimilar(string candidateText, out double similarityWeight)
         {

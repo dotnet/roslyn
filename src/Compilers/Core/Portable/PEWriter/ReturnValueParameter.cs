@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeGen;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
@@ -25,7 +26,7 @@ namespace Microsoft.Cci
 
         private readonly IMethodDefinition _containingMethod;
 
-        public IMetadataConstant Constant
+        public MetadataConstant Constant
         {
             get { return null; }
         }
@@ -40,7 +41,7 @@ namespace Microsoft.Cci
             get { return _containingMethod.ReturnValueCustomModifiers; }
         }
 
-        public IMetadataConstant GetDefaultValue(EmitContext context)
+        public MetadataConstant GetDefaultValue(EmitContext context)
         {
             return null;
         }

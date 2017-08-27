@@ -38,15 +38,9 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             get { return (HostServices)_exportProvider; }
         }
 
-        internal IMefHostExportProvider HostExportProvider
-        {
-            get { return _exportProvider; }
-        }
+        internal IMefHostExportProvider HostExportProvider => _exportProvider;
 
-        public override Workspace Workspace
-        {
-            get { return _workspace; }
-        }
+        public override Workspace Workspace => _workspace;
 
         public override TWorkspaceService GetService<TWorkspaceService>()
         {
@@ -56,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             }
             else
             {
-                return default(TWorkspaceService);
+                return default;
             }
         }
 
@@ -110,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             }
 
             // no service.
-            return default(Lazy<IWorkspaceService, WorkspaceServiceMetadata>);
+            return default;
         }
 
         private static bool TryGetServiceByLayer(string layer, IEnumerable<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services, out Lazy<IWorkspaceService, WorkspaceServiceMetadata> service)

@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var reportedError = false;
 
                 // Add language specific analyzers.
-                foreach (var language in analyzerTypeNameMap.Keys)
+                foreach (var (language, _) in analyzerTypeNameMap)
                 {
                     if (language == null)
                     {

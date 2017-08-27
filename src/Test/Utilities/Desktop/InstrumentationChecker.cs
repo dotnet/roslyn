@@ -7,6 +7,7 @@ using System.Text;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -82,22 +83,22 @@ namespace Microsoft.CodeAnalysis.Runtime
     public static class Instrumentation
     {
         private static bool[][] _payloads;
-        private static int[] _fileIndices;
+        private static int[][] _fileIndices;
         private static System.Guid _mvid;
 
-        public static bool[] CreatePayload(System.Guid mvid, int methodIndex, int fileIndex, ref bool[] payload, int payloadLength)
+        public static bool[] CreatePayload(System.Guid mvid, int methodIndex, int[] fileIndices, ref bool[] payload, int payloadLength)
         {
             if (_mvid != mvid)
             {
                 _payloads = new bool[100][];
-                _fileIndices = new int[100];
+                _fileIndices = new int[100][];
                 _mvid = mvid;
             }
 
             if (System.Threading.Interlocked.CompareExchange(ref payload, new bool[payloadLength], null) == null)
             {
                 _payloads[methodIndex] = payload;
-                _fileIndices[methodIndex] = fileIndex;
+                _fileIndices[methodIndex] = fileIndices;
                 return payload;
             }
 
@@ -117,7 +118,10 @@ namespace Microsoft.CodeAnalysis.Runtime
                 if (payload != null)
                 {
                     Console.WriteLine(""Method "" + i.ToString());
-                    Console.WriteLine(""File "" + _fileIndices[i].ToString());
+                    for (int j = 0; j < _fileIndices[i].Length; j++)
+                    {
+                        Console.WriteLine(""File "" + _fileIndices[i][j].ToString());
+                    }
                     for (int j = 0; j < payload.Length; j++)
                     {
                         Console.WriteLine(payload[j]);
@@ -125,6 +129,11 @@ namespace Microsoft.CodeAnalysis.Runtime
                     }
                 }
             }
+        }
+
+        public static bool[] CreatePayload(System.Guid mvid, int methodIndex, int fileIndex, ref bool[] payload, int payloadLength)
+        {
+            return CreatePayload(mvid, methodIndex, new[] { fileIndex }, ref payload, payloadLength);
         }
     }
 }
@@ -210,19 +219,22 @@ Namespace Microsoft.CodeAnalysis.Runtime
     Public Class Instrumentation
 
         Private Shared _payloads As Boolean()()
-        Private Shared _fileIndices As Integer()
+        Private Shared _fileIndices As Integer()()
         Private Shared _mvid As System.Guid
 
-        Public Shared Function CreatePayload(mvid As System.Guid, methodIndex As Integer, fileIndex As Integer, ByRef payload As Boolean(), payloadLength As Integer) As Boolean()
+        Public Shared Function CreatePayload(mvid As System.Guid, methodIndex As Integer, fileIndices As Integer(), ByRef payload As Boolean(), payloadLength As Integer) As Boolean()
             If _mvid <> mvid Then
                 _payloads = New Boolean(100)() {}
-                _fileIndices = New Integer(100) {}
+                _fileIndices = New Integer(100)() {}
                 _mvid = mvid
             End If
 
-            If System.Threading.Interlocked.CompareExchange(payload, new Boolean(payloadLength - 1) {}, Nothing) Is Nothing Then
+            If System.Threading.Interlocked.CompareExchange(payload, new Boolean(payloadLength - 1) {}, Nothing) Is Nothing Then    
+                If _payloads(methodIndex) IsNot Nothing Then
+                    Throw New System.ArgumentException(""Overwriting existing payload array."")
+                End If
                 _payloads(methodIndex) = payload
-                _fileIndices(methodIndex) = fileIndex
+                _fileIndices(methodIndex) = fileIndices
                 Return payload
             End If
 
@@ -238,7 +250,9 @@ Namespace Microsoft.CodeAnalysis.Runtime
                 Dim payload As Boolean() = _payloads(i)
                 if payload IsNot Nothing
                     System.Console.WriteLine(""Method "" & i.ToString())
-                    System.Console.WriteLine(""File "" & _fileIndices(i).ToString())
+                    For j As Integer = 0 To _fileIndices(i).Length - 1
+                        System.Console.WriteLine(""File "" & _fileIndices(i)(j).ToString())
+                    Next
                     For j As Integer = 0 To payload.Length - 1
                         System.Console.WriteLine(payload(j))
                         payload(j) = False
@@ -246,6 +260,10 @@ Namespace Microsoft.CodeAnalysis.Runtime
                 End If
             Next
         End Sub
+
+        Public Shared Function CreatePayload(mvid As System.Guid, methodIndex As Integer, fileIndex As Integer, ByRef payload As Boolean(), payloadLength As Integer) As Boolean()
+            Return CreatePayload(mvid, methodIndex, { fileIndex }, payload, payloadLength)
+        End Function
     End Class
 End Namespace
 ";

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -55,9 +55,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
                     case SymbolKind.Property:
                         return new WrappedPropertySymbol((IPropertySymbol)m, canImplementImplicitly, docCommentFormattingService);
-                }
 
-                throw ExceptionUtilities.Unreachable;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(m.Kind);
+                }
             }
 
             public bool IsAnonymousType => _symbol.IsAnonymousType;
@@ -117,13 +118,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 return _members;
             }
 
-            public IEnumerable<string> MemberNames
-            {
-                get
-                {
-                    throw new NotImplementedException();
-                }
-            }
+            public IEnumerable<string> MemberNames => throw new NotImplementedException();
 
             public override ImmutableArray<ISymbol> GetMembers(string name)
             {

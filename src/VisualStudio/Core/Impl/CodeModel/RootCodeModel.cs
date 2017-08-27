@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.IO;
@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> GetFileCodeModel(object location)
         {
-            if (location is string)
+            if (location is string locationString)
             {
                 var vsProject = _parentHandle.Value;
                 var vsProjectItems = vsProject.ProjectItems;
@@ -53,8 +53,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 {
                     throw Exceptions.ThrowEFail();
                 }
-
-                var locationString = (string)location;
 
                 var project = GetProject();
                 var projectDirectory = Path.GetDirectoryName(project.FilePath);
@@ -82,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     vsProjectItems.AddFromFile(absoluteFilePath);
                 }
 
-                var hostProject = ((VisualStudioWorkspaceImpl)Workspace).ProjectTracker.GetProject(_projectId);
+                var hostProject = ((VisualStudioWorkspaceImpl)Workspace).DeferredState.ProjectTracker.GetProject(_projectId);
                 var projectCodeModel = ((IProjectCodeModelProvider)hostProject).ProjectCodeModel;
 
                 return projectCodeModel.GetOrCreateFileCodeModel(absoluteFilePath);

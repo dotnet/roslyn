@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
             => new ArrowExpressionClauseStructureProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestArrowExpressionClause1()
+        public async Task TestArrowExpressionClause_Method1()
         {
             await VerifyBlockSpansAsync(
 @"
@@ -24,6 +24,39 @@ class C
     {|hintspan:void M(){|textspan: $$=> expression
         ? trueCase
         : falseCase;|}|};
+}
+",
+                Region("textspan", "hintspan", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestArrowExpressionClause_Property1()
+        {
+            await VerifyBlockSpansAsync(
+@"
+class C
+{
+    {|hintspan:int M{|textspan: $$=> expression
+        ? trueCase
+        : falseCase;|}|};
+}
+",
+                Region("textspan", "hintspan", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestArrowExpressionClause_LocalFunction()
+        {
+            await VerifyBlockSpansAsync(
+@"
+class C
+{
+    void M()
+    {
+        {|hintspan:void F(){|textspan: $$=> expression
+            ? trueCase
+            : falseCase;|}|};
+    }
 }
 ",
                 Region("textspan", "hintspan", CSharpStructureHelpers.Ellipsis, autoCollapse: false));

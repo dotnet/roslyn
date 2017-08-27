@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
 using System.IO;
@@ -19,11 +19,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         public void BindToProject(ICSharpProjectRoot projectRoot, IVsHierarchy hierarchy)
         {
             var projectName = Path.GetFileName(projectRoot.GetFullProjectName()); // GetFullProjectName returns the path to the project file w/o the extension?
-            Workspace.ProjectTracker.TryDisconnectExistingDeferredProject(hierarchy, projectName);
+
+            var projectTracker = Workspace.GetProjectTrackerAndInitializeIfNecessary(SystemServiceProvider);
+
+            projectTracker.TryDisconnectExistingDeferredProject(hierarchy, projectName);
 
             var project = new CSharpProjectShimWithServices(
                 projectRoot,
-                this.Workspace.ProjectTracker,
+                projectTracker,
                 id => new ProjectExternalErrorReporter(id, "CS", this.SystemServiceProvider),
                 projectName,
                 hierarchy,

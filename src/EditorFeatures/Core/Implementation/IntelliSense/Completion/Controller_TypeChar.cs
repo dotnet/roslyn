@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 {
                     // First create the session that represents that we now have a potential
                     // completion list.  Then tell it to start computing.
-                    StartNewModelComputation(completionService, trigger, filterItems: true, dismissIfEmptyAllowed: true);
+                    StartNewModelComputation(completionService, trigger);
                     return;
                 }
                 else
@@ -179,11 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     }
 
                     // Now filter whatever result we have.
-                    sessionOpt.FilterModel(
-                        CompletionFilterReason.TypeChar,
-                        recheckCaretPosition: false,
-                        dismissIfEmptyAllowed: true,
-                        filterState: null);
+                    sessionOpt.FilterModel(CompletionFilterReason.Insertion, filterState: null);
                 }
                 else
                 {
@@ -206,10 +202,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     {
                         // Known to be a filter character for the currently selected item.  So just 
                         // filter the session.
-                        sessionOpt.FilterModel(CompletionFilterReason.TypeChar,
-                            recheckCaretPosition: false,
-                            dismissIfEmptyAllowed: true,
-                            filterState: null);
+
+                        sessionOpt.FilterModel(CompletionFilterReason.Insertion, filterState: null);
                         return;
                     }
 
@@ -230,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     if (isTextuallyTriggered)
                     {
                         StartNewModelComputation(
-                            completionService, trigger, filterItems: true, dismissIfEmptyAllowed: true);
+                            completionService, trigger);
                         return;
                     }
                 }
@@ -264,18 +258,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         private Document GetDocument()
         {
-            return this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            // Documents can be closed while we are computing in the background.
+            // This can only be called from the foreground.
+            AssertIsForeground();
+
+            // Crash if we don't find a document, we're already in a bad state.
+            var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            Contract.ThrowIfNull(document, nameof(document));
+            return document;
         }
 
-        private CompletionHelper GetCompletionHelper()
+        private CompletionHelper GetCompletionHelper(Document document)
         {
-            var document = GetDocument();
-            if (document != null)
-            {
-                return CompletionHelper.GetHelper(document);
-            }
-
-            return null;
+            return CompletionHelper.GetHelper(document);
         }
 
         private bool IsTextualTriggerCharacter(CompletionService completionService, char ch, OptionSet options)

@@ -17,13 +17,7 @@ namespace Roslyn.Utilities
                 {
                 }
 
-                public new T Current
-                {
-                    get
-                    {
-                        throw new InvalidOperationException();
-                    }
-                }
+                public new T Current => throw new InvalidOperationException();
 
                 public void Dispose()
                 {

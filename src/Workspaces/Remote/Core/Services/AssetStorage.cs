@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -22,11 +23,13 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly TimeSpan _cleanupIntervalTimeSpan;
         private readonly TimeSpan _purgeAfterTimeSpan;
 
-        private readonly ConcurrentDictionary<int, AssetSource> _assetSources =
-            new ConcurrentDictionary<int, AssetSource>(concurrencyLevel: 4, capacity: 10);
+        private readonly ConcurrentDictionary<Checksum, Entry> _globalAssets =
+            new ConcurrentDictionary<Checksum, Entry>(concurrencyLevel: 4, capacity: 10);
 
         private readonly ConcurrentDictionary<Checksum, Entry> _assets =
             new ConcurrentDictionary<Checksum, Entry>(concurrencyLevel: 4, capacity: 10);
+
+        private volatile AssetSource _assetSource;
 
         public AssetStorage()
         {
@@ -41,26 +44,19 @@ namespace Microsoft.CodeAnalysis.Remote
             Task.Run(CleanAssetsAsync, CancellationToken.None);
         }
 
-        public AssetSource TryGetAssetSource(int sessionId)
+        public AssetSource AssetSource
         {
-            AssetSource source;
-            if (_assetSources.TryGetValue(sessionId, out source))
-            {
-                return source;
-            }
-
-            return null;
+            get { return _assetSource; }
         }
 
-        public void RegisterAssetSource(int sessionId, AssetSource assetSource)
+        public void SetAssetSource(AssetSource assetSource)
         {
-            Contract.ThrowIfFalse(_assetSources.TryAdd(sessionId, assetSource));
+            _assetSource = assetSource;
         }
 
-        public void UnregisterAssetSource(int sessionId)
+        public bool TryAddGlobalAsset(Checksum checksum, object value)
         {
-            AssetSource dummy;
-            _assetSources.TryRemove(sessionId, out dummy);
+            return _globalAssets.TryAdd(checksum, new Entry(value));
         }
 
         public bool TryAddAsset(Checksum checksum, object value)
@@ -68,13 +64,27 @@ namespace Microsoft.CodeAnalysis.Remote
             return _assets.TryAdd(checksum, new Entry(value));
         }
 
+        public IEnumerable<T> GetGlobalAssetsOfType<T>(CancellationToken cancellationToken)
+        {
+            foreach (var asset in _globalAssets)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var value = asset.Value.Object;
+                if (value is T tValue)
+                {
+                    yield return tValue;
+                }
+            }
+        }
+
         public bool TryGetAsset<T>(Checksum checksum, out T value)
         {
             value = default(T);
             using (Logger.LogBlock(FunctionId.AssetStorage_TryGetAsset, Checksum.GetChecksumLogInfo, checksum, CancellationToken.None))
             {
-                Entry entry;
-                if (!_assets.TryGetValue(checksum, out entry))
+                if (!_globalAssets.TryGetValue(checksum, out var entry) &&
+                    !_assets.TryGetValue(checksum, out entry))
                 {
                     return false;
                 }
@@ -118,8 +128,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
 
                     // If it fails, we'll just leave it in the asset pool.
-                    Entry entry;
-                    _assets.TryRemove(kvp.Key, out entry);
+                    _assets.TryRemove(kvp.Key, out var entry);
                 }
             }
         }

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -447,7 +447,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     var item = GetItem(index)?.Primary;
                     if (item == null)
                     {
-                        expandedContent = default(FrameworkElement);
+                        expandedContent = default;
                         return false;
                     }
 
@@ -460,13 +460,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     var item = GetItem(index)?.Primary;
                     if (item == null)
                     {
-                        content = default(string);
+                        content = default;
                         return false;
                     }
 
                     if (string.IsNullOrWhiteSpace(item.Description))
                     {
-                        content = default(string);
+                        content = default;
                         return false;
                     }
 
@@ -504,32 +504,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 // unused ones                    
                 public bool TryCreateColumnContent(int index, string columnName, bool singleColumnView, out FrameworkElement content)
                 {
-                    content = default(FrameworkElement);
+                    content = default;
                     return false;
                 }
 
                 public bool TryCreateImageContent(int index, string columnName, bool singleColumnView, out ImageMoniker content)
                 {
-                    content = default(ImageMoniker);
+                    content = default;
                     return false;
                 }
 
                 public bool TryCreateStringContent(int index, string columnName, bool truncatedText, bool singleColumnView, out string content)
                 {
-                    content = default(string);
+                    content = default;
                     return false;
                 }
 
                 public bool TryCreateToolTip(int index, string columnName, out object toolTip)
                 {
-                    toolTip = default(object);
+                    toolTip = default;
                     return false;
                 }
 
                 // remove this once we moved to new drop
                 public bool TryCreateStringContent(int index, string columnName, bool singleColumnView, out string content)
                 {
-                    content = default(string);
+                    content = default;
                     return false;
                 }
 

@@ -3,6 +3,8 @@
 
 
 <!-- 
+ To re-generate source from this file, run build/scripts/generate-compiler-code.cmd
+
  Important things to know about reference types, value types, and nulls.
 
  By default, all fields of reference type are checked (in debug) to be non-null.
@@ -117,7 +119,7 @@
     <Field Name="Symbols" Type="ImmutableArray&lt;Symbol&gt;"/>
 
     <!-- Any child bound nodes that we need to preserve are put here. -->
-    <Field Name="ChildBoundNodes" Type="ImmutableArray&lt;BoundNode&gt;"/>
+    <Field Name="ChildBoundNodes" Type="ImmutableArray&lt;BoundExpression&gt;"/>
   </Node>
 
   <!-- This node is used when we can't create a real statement because things are too broken. -->
@@ -255,15 +257,6 @@
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Operand" Type="BoundExpression"/>
-    
-    <!-- 
-      Normal address-of operators can only operate on non-moveable variables. 
-      Fixed statement address-of operators (note: only applies to the top-level
-      expression in the initializer, not nested expressions) can only operate
-      on moveable variables.  This flag indicates which sort of address-of
-      operator we're dealing with.
-      -->
-    <Field Name="IsFixedStatementAddressOf" Type="bool"/>
   </Node>
   <Node Name="BoundPointerIndirectionOperator" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
@@ -392,29 +385,9 @@
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
-    <Field Name="Left" Type="BoundTupleExpression"/>
-    <Field Name="Right" Type="BoundExpression"/>
-
-    <Field Name="DeconstructSteps" Type="ImmutableArray&lt;BoundDeconstructionDeconstructStep&gt;" Null="disallow" SkipInVisitor="true" />
-    <Field Name="ConversionSteps" Type="ImmutableArray&lt;BoundDeconstructionAssignmentStep&gt;" Null="disallow" SkipInVisitor="true"/>
-    <Field Name="AssignmentSteps" Type="ImmutableArray&lt;BoundDeconstructionAssignmentStep&gt;" Null="disallow" SkipInVisitor="true"/>
-    <Field Name="ConstructionStepsOpt" Type="ImmutableArray&lt;BoundDeconstructionConstructionStep&gt;" Null="allow" SkipInVisitor="true"/>
-  </Node>
-
-  <Node Name="BoundDeconstructionDeconstructStep" Base="BoundNode">
-    <Field Name="DeconstructInvocationOpt" Type="BoundExpression" Null="allow"/>
-    <Field Name="InputPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
-    <Field Name="OutputPlaceholders" Type="ImmutableArray&lt;BoundDeconstructValuePlaceholder&gt;" Null="disallow"/>
-  </Node>
-
-  <Node Name="BoundDeconstructionAssignmentStep" Base="BoundNode">
-    <Field Name="Assignment" Type="BoundAssignmentOperator" Null="disallow"/>
-    <Field Name="OutputPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
-  </Node>
-
-  <Node Name="BoundDeconstructionConstructionStep" Base="BoundNode">
-    <Field Name="Construct" Type="BoundExpression" Null="disallow"/>
-    <Field Name="OutputPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
+    <Field Name="Left" Type="BoundTupleExpression" Null="disallow"/>
+    <Field Name="Right" Type="BoundConversion" Null="disallow"/>
+    <Field Name="IsUsed" Type="Boolean" Null="NotApplicable"/>
   </Node>
 
   <Node Name="BoundNullCoalescingOperator" Base="BoundExpression">
@@ -538,7 +511,9 @@
     <Field Name="GetFieldFromHandle" Type="MethodSymbol" Null="allow"/>
   </Node>
 
-  <Node Name="BoundDefaultOperator" Base="BoundExpression">
+  <Node Name="BoundDefaultExpression" Base="BoundExpression">
+    <!-- Type is null in the case of a default literal, and non-null for default(T). -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
   </Node>
 
@@ -1218,6 +1193,9 @@
     <Field Name="InvokedAsExtensionMethod" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+    
+    <!-- BinderOpt is added as a temporary solution for IOperation implementation and should probably be removed in the future -->
+    <Field Name="BinderOpt" Type="Binder" Null="allow"/>
   </Node>
 
   <Node Name="BoundEventAssignmentOperator" Base="BoundExpression">
@@ -1263,6 +1241,9 @@
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
     <Field Name="InitializerExpressionOpt" Type="BoundExpression" Null="allow"/>
+
+    <!-- BinderOpt is added as a temporary solution for IOperation implementation and should probably be removed in the future -->
+    <Field Name="BinderOpt" Type="Binder" Null="allow"/>
   </Node>
   
 
@@ -1287,6 +1268,9 @@
     -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
     <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
+
+    <!-- Which argument names were inferred (as opposed to explicitly provided)? -->
+    <Field Name="InferredNamesOpt" Type="ImmutableArray&lt;bool&gt;" Null="allow"/>
   </Node>
 
   <!-- 
@@ -1410,11 +1394,22 @@
   
     <Field Name="InitializerExpressionOpt" Type="BoundExpression" Null="allow"/>
   </Node>
-  
+
   <Node Name="BoundDelegateCreationExpression" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
+    <!-- Argument is one of the following:
+         1. A method group (before local lowering only). If the method is nonstatic or
+            converted as an extension method, the method group contains a receiver
+            expression (mg.ReceiverOpt) for the created delegate; or
+         2. A value of type dynamic (before local lowering only); or
+         3. A bound lambda (before lambda lowering only); or
+         4. A value of a delegate type with MethodOpt == null; or
+         5. The receiver of the method being converted to a delegate (after local lowering).
+            It may be a BoundTypeExpression if the method is static and not converted as an
+            extension method.
+         -->
     <Field Name="Argument" Type="BoundExpression"/>
     <Field Name="MethodOpt" Type="MethodSymbol" Null="allow"/>
     <Field Name="IsExtensionMethod" Type="bool"/>
@@ -1494,6 +1489,10 @@
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
     <Field Name="Expanded" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
+
+    <!-- BinderOpt and UseSetterForDefaultArgumentGeneration are added as a temporary solution for IOperation implementation and should probably be removed in the future -->
+    <Field Name="BinderOpt" Type="Binder" Null="allow"/>
+    <Field Name="UseSetterForDefaultArgumentGeneration" Type="bool"/>
   </Node>
 
   <Node Name="BoundDynamicIndexerAccess" Base="BoundExpression">
@@ -1606,29 +1605,24 @@
     <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
   </Node>
 
-  <!-- The node is transformed into BoundLocal or BoundFieldAccess after inference -->
-  <Node Name="OutVariablePendingInference" Base="BoundExpression">
+  <AbstractNode Name="VariablePendingInference" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
     <!-- A local symbol or a field symbol representing the variable -->
     <Field Name="VariableSymbol" Type="Symbol"/>
     <!-- A field receiver when VariableSymbol is a field -->
     <Field Name="ReceiverOpt" Type="BoundExpression" Null="allow"/>
-  </Node>
+  </AbstractNode>
+
+  <!-- The node is transformed into BoundLocal or BoundFieldAccess after inference -->
+  <Node Name="OutVariablePendingInference" Base="VariablePendingInference" />
+
+  <!-- The node is transformed into BoundLocal or BoundFieldAccess after inference -->
+  <Node Name="DeconstructionVariablePendingInference" Base="VariablePendingInference" />
 
   <!-- The node is transformed into BoundDeconstructValuePlaceholder after inference -->
   <Node Name="OutDeconstructVarPendingInference" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
-  </Node>
-
-  <!-- The node is transformed into BoundLocal or BoundFieldAccess after inference -->
-  <Node Name="DeconstructionVariablePendingInference" Base="BoundExpression">
-    <!-- Type is not significant for this node type; always null -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
-    <!-- A local symbol or a field symbol representing the variable -->
-    <Field Name="VariableSymbol" Type="Symbol"/>
-    <!-- A field receiver when VariableSymbol is a field -->
-    <Field Name="ReceiverOpt" Type="BoundExpression" Null="allow"/>
   </Node>
 </Tree>

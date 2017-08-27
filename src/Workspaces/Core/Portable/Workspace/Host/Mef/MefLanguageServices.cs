@@ -31,15 +31,9 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                     .Where(lz => lz.Metadata.Language == language).ToImmutableArray();
         }
 
-        public override HostWorkspaceServices WorkspaceServices
-        {
-            get { return _workspaceServices; }
-        }
+        public override HostWorkspaceServices WorkspaceServices => _workspaceServices;
 
-        public override string Language
-        {
-            get { return _language; }
-        }
+        public override string Language => _language;
 
         public bool HasServices
         {
@@ -54,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             }
             else
             {
-                return default(TLanguageService);
+                return default;
             }
         }
 
@@ -107,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             }
 
             // no service
-            return default(Lazy<ILanguageService, LanguageServiceMetadata>);
+            return default;
         }
 
         private static bool TryGetServiceByLayer(string layer, IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> services, out Lazy<ILanguageService, LanguageServiceMetadata> service)

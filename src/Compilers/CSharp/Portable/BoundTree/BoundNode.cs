@@ -88,8 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var syntax = Syntax;
-                return syntax == null ? null : syntax.SyntaxTree;
+                return Syntax?.SyntaxTree;
             }
         }
 
@@ -164,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #endif
 
-        private string GetDebuggerDisplay()
+        internal string GetDebuggerDisplay()
         {
             var result = GetType().Name;
             if (Syntax != null)

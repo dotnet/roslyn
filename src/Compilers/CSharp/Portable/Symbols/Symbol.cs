@@ -8,10 +8,9 @@ using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -385,6 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///   the "value" parameter for a property setter,
         ///   the parameters on indexer accessor methods (not on the indexer itself),
         ///   methods in anonymous types,
+        ///   anonymous functions
         /// </summary>
         public virtual bool IsImplicitlyDeclared
         {
@@ -754,7 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return $"{this.Kind} {this.ToDisplayString(SymbolDisplayFormat.TestFormat)}";
         }
 
-        internal void AddDeclarationDiagnostics(DiagnosticBag diagnostics)
+        internal virtual void AddDeclarationDiagnostics(DiagnosticBag diagnostics)
         {
             if (!diagnostics.IsEmptyWithoutResolution)
             {
@@ -1019,21 +1019,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var data = this.ObsoleteAttributeData;
-                if (data == null)
+                switch (ObsoleteKind)
                 {
-                    return ThreeState.False;
-                }
-                else if (data.IsUninitialized)
-                {
-                    return ThreeState.Unknown;
-                }
-                else
-                {
-                    return ThreeState.True;
+                    case ObsoleteAttributeKind.None:
+                    case ObsoleteAttributeKind.Experimental:
+                        return ThreeState.False;
+                    case ObsoleteAttributeKind.Uninitialized:
+                        return ThreeState.Unknown;
+                    default:
+                        return ThreeState.True;
                 }
             }
         }
+
+        internal ObsoleteAttributeKind ObsoleteKind
+        {
+            get
+            {
+                var data = this.ObsoleteAttributeData;
+                return (data == null) ? ObsoleteAttributeKind.None : data.Kind;
+            }
+        }
+
 
         /// <summary>
         /// Returns data decoded from <see cref="ObsoleteAttribute"/> attribute or null if there is no <see cref="ObsoleteAttribute"/> attribute.
@@ -1087,6 +1094,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             SymbolDisplayFormat format = null)
         {
             return SymbolDisplay.ToMinimalDisplayParts(this, semanticModel, position, format);
+        }
+
+        internal static void ReportErrorIfHasConstraints(
+            SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, DiagnosticBag diagnostics)
+        {
+            if (constraintClauses.Count > 0)
+            {
+                diagnostics.Add(
+                    ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl,
+                    constraintClauses[0].WhereKeyword.GetLocation());
+            }
+        }
+
+        internal static void CheckForBlockAndExpressionBody(
+            CSharpSyntaxNode block,
+            CSharpSyntaxNode expression,
+            CSharpSyntaxNode syntax,
+            DiagnosticBag diagnostics)
+        {
+            if (block != null && expression != null)
+            {
+                diagnostics.Add(ErrorCode.ERR_BlockBodyAndExpressionBody, syntax.GetLocation());
+            }
         }
 
         #region ISymbol Members

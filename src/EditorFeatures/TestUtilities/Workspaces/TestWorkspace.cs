@@ -1,9 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
@@ -12,20 +14,20 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
     public partial class TestWorkspace : Workspace
     {
-        public const string WorkspaceName = TestWorkspaceName.Name;
-
         public ExportProvider ExportProvider { get; }
 
         public bool CanApplyChangeDocument { get; set; }
@@ -41,12 +43,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private readonly BackgroundParser _backgroundParser;
 
         public TestWorkspace()
-            : this(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, WorkspaceName)
+            : this(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, WorkspaceKind.Test)
         {
         }
 
         public TestWorkspace(ExportProvider exportProvider, string workspaceKind = null, bool disablePartialSolutions = true)
-            : base(MefV1HostServices.Create(exportProvider.AsExportProvider()), workspaceKind ?? WorkspaceName)
+            : base(MefV1HostServices.Create(exportProvider.AsExportProvider()), workspaceKind ?? WorkspaceKind.Test)
         {
             ResetThreadAffinity();
 
@@ -142,15 +144,36 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 document.CloseTextView();
             }
 
-            var exceptions = ExportProvider.GetExportedValue<TestExtensionErrorHandler>().GetExceptions();
+            var exceptions = Flatten(ExportProvider.GetExportedValue<TestExtensionErrorHandler>().GetExceptions());
 
-            if (exceptions.Count == 1)
+            if (exceptions.Count > 0)
             {
-                throw exceptions.Single();
-            }
-            else if (exceptions.Count > 1)
-            {
-                throw new AggregateException(exceptions);
+                var messageBuilder = new StringBuilder();
+                messageBuilder.AppendLine(
+$@"{exceptions.Count} exception(s) were thrown during test.
+Note: exceptions may have been thrown by another test running concurrently with
+this test.  This can happen with any tests that share the same ExportProvider.
+Examining individual exception stacks may help reveal the original test and source 
+of the problem.");
+
+                messageBuilder.AppendLine();
+                for (int i = 0; i < exceptions.Count; i++)
+                {
+                    var exception = exceptions[i];
+                    messageBuilder.AppendLine($"Exception {i}:");
+                    messageBuilder.AppendLine(exception.ToString());
+                    messageBuilder.AppendLine();
+                }
+
+                var message = messageBuilder.ToString();
+                if (exceptions.Count == 1)
+                {
+                    throw new Exception(message, exceptions[0]);
+                }
+                else
+                {
+                    throw new AggregateException(message, exceptions);
+                }
             }
 
             if (SynchronizationContext.Current != null)
@@ -165,6 +188,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             base.Dispose(finalize);
         }
+
+        private static IList<Exception> Flatten(ICollection<Exception> exceptions)
+        {
+            var aggregate = new AggregateException(exceptions);
+            return aggregate.Flatten().InnerExceptions
+                .Select(UnwrapException)
+                .Where(ex => !(ex is JoinableTaskContextException))
+                .ToList();
+        }
+
+        private static Exception UnwrapException(Exception ex)
+            => ex is TargetInvocationException targetEx ? (targetEx.InnerException ?? targetEx) : ex;
 
         internal void AddTestSolution(TestHostSolution solution)
         {
@@ -210,13 +245,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             base.OnDocumentOpened(documentId, textContainer, isCurrentContext);
         }
-
-        public void OnDocumentClosed(DocumentId documentId)
-        {
-            var testDocument = this.GetTestDocument(documentId);
-            this.OnDocumentClosed(documentId, testDocument.Loader);
-        }
-
+        
         public new void OnParseOptionsChanged(ProjectId projectId, ParseOptions parseOptions)
         {
             base.OnParseOptionsChanged(projectId, parseOptions);
@@ -370,22 +399,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         ///  {
         ///      public void M1()
         ///      {
-        ///          {|S1:int [|abc[|d$$ef|]|] = foo;|}
-        ///          int y = foo;
-        ///          {|S2:int [|def|] = foo;|}
+        ///          {|S1:int [|abc[|d$$ef|]|] = goo;|}
+        ///          int y = goo;
+        ///          {|S2:int [|def|] = goo;|}
         ///          int z = {|S3:123|} + {|S4:456|} + {|S5:789|};
         ///      }
         ///  }
         /// 
         /// The resulting projection buffer (with unnamed span markup preserved) would look like:
-        ///  ABC [|DEF|] [|GHI[|JKL|]|]int [|abc[|d$$ef|]|] = foo; [|MNOint [|def|] = foo;PQR S$$TU|] 456789123
+        ///  ABC [|DEF|] [|GHI[|JKL|]|]int [|abc[|d$$ef|]|] = goo; [|MNOint [|def|] = goo;PQR S$$TU|] 456789123
         /// 
         /// The union of unnamed spans from the surface buffer markup and each of the projected 
         /// spans is sorted as it would have been sorted by MarkupTestFile had it parsed the entire
         /// projection buffer as one file, which it would do in a stack-based manner. In our example,
         /// the order of the unnamed spans would be as follows:
         /// 
-        ///  ABC [|DEF|] [|GHI[|JKL|]|]int [|abc[|d$$ef|]|] = foo; [|MNOint [|def|] = foo;PQR S$$TU|] 456789123
+        ///  ABC [|DEF|] [|GHI[|JKL|]|]int [|abc[|d$$ef|]|] = goo; [|MNOint [|def|] = goo;PQR S$$TU|] 456789123
         ///       -----1       -----2            -------4                    -----6
         ///               ------------3     --------------5         --------------------------------7
         /// </summary>
@@ -399,11 +428,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         /// <returns></returns>
         public TestHostDocument CreateProjectionBufferDocument(string markup, IList<TestHostDocument> baseDocuments, string languageName, string path = "projectionbufferdocumentpath", ProjectionBufferOptions options = ProjectionBufferOptions.None, IProjectionEditResolver editResolver = null)
         {
-            IList<object> projectionBufferSpans;
-            Dictionary<string, IList<TextSpan>> mappedSpans;
-            int? mappedCaretLocation;
-
-            GetSpansAndCaretFromSurfaceBufferMarkup(markup, baseDocuments, out projectionBufferSpans, out mappedSpans, out mappedCaretLocation);
+            GetSpansAndCaretFromSurfaceBufferMarkup(markup, baseDocuments,
+                out var projectionBufferSpans, out Dictionary<string, ImmutableArray<TextSpan>> mappedSpans, out var mappedCaretLocation);
 
             var projectionBufferFactory = this.GetService<IProjectionBufferFactoryService>();
             var projectionBuffer = projectionBufferFactory.CreateProjectionBuffer(editResolver, projectionBufferSpans, options);
@@ -411,27 +437,31 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             // Add in mapped spans from each of the base documents
             foreach (var document in baseDocuments)
             {
-                mappedSpans[string.Empty] = mappedSpans.ContainsKey(string.Empty) ? mappedSpans[string.Empty] : new List<TextSpan>();
+                mappedSpans[string.Empty] = mappedSpans.ContainsKey(string.Empty) 
+                    ? mappedSpans[string.Empty] 
+                    : ImmutableArray<TextSpan>.Empty;
                 foreach (var span in document.SelectedSpans)
                 {
                     var snapshotSpan = span.ToSnapshotSpan(document.TextBuffer.CurrentSnapshot);
                     var mappedSpan = projectionBuffer.CurrentSnapshot.MapFromSourceSnapshot(snapshotSpan).Single();
-                    mappedSpans[string.Empty].Add(mappedSpan.ToTextSpan());
+                    mappedSpans[string.Empty] = mappedSpans[string.Empty].Add(mappedSpan.ToTextSpan());
                 }
 
                 // Order unnamed spans as they would be ordered by the normal span finding 
                 // algorithm in MarkupTestFile
-                mappedSpans[string.Empty] = mappedSpans[string.Empty].OrderBy(s => s.End).ThenBy(s => -s.Start).ToList();
+                mappedSpans[string.Empty] = mappedSpans[string.Empty].OrderBy(s => s.End).ThenBy(s => -s.Start).ToImmutableArray();
 
                 foreach (var kvp in document.AnnotatedSpans)
                 {
-                    mappedSpans[kvp.Key] = mappedSpans.ContainsKey(kvp.Key) ? mappedSpans[kvp.Key] : new List<TextSpan>();
+                    mappedSpans[kvp.Key] = mappedSpans.ContainsKey(kvp.Key)
+                        ? mappedSpans[kvp.Key] 
+                        : ImmutableArray<TextSpan>.Empty;
 
                     foreach (var span in kvp.Value)
                     {
                         var snapshotSpan = span.ToSnapshotSpan(document.TextBuffer.CurrentSnapshot);
                         var mappedSpan = projectionBuffer.CurrentSnapshot.MapFromSourceSnapshot(snapshotSpan).Single();
-                        mappedSpans[kvp.Key].Add(mappedSpan.ToTextSpan());
+                        mappedSpans[kvp.Key] = mappedSpans[kvp.Key].Add(mappedSpan.ToTextSpan());
                     }
                 }
             }
@@ -450,16 +480,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return projectionDocument;
         }
 
-        private void GetSpansAndCaretFromSurfaceBufferMarkup(string markup, IList<TestHostDocument> baseDocuments, out IList<object> projectionBufferSpans, out Dictionary<string, IList<TextSpan>> mappedMarkupSpans, out int? mappedCaretLocation)
+        private void GetSpansAndCaretFromSurfaceBufferMarkup(
+            string markup, IList<TestHostDocument> baseDocuments, 
+            out IList<object> projectionBufferSpans,
+            out Dictionary<string, ImmutableArray<TextSpan>> mappedMarkupSpans, out int? mappedCaretLocation)
         {
-            IDictionary<string, IList<TextSpan>> markupSpans;
             projectionBufferSpans = new List<object>();
             var projectionBufferSpanStartingPositions = new List<int>();
             mappedCaretLocation = null;
-            string inertText;
-            int? markupCaretLocation;
 
-            MarkupTestFile.GetPositionAndSpans(markup, out inertText, out markupCaretLocation, out markupSpans);
+            MarkupTestFile.GetPositionAndSpans(markup,
+                out var inertText, out int? markupCaretLocation, out var markupSpans);
 
             var namedSpans = markupSpans.Where(kvp => kvp.Key != string.Empty);
             var sortedAndNamedSpans = namedSpans.OrderBy(kvp => kvp.Value.Single().Start)
@@ -546,13 +577,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             MapMarkupSpans(markupSpans, out mappedMarkupSpans, projectionBufferSpans, projectionBufferSpanStartingPositions);
         }
 
-        private void MapMarkupSpans(IDictionary<string, IList<TextSpan>> markupSpans, out Dictionary<string, IList<TextSpan>> mappedMarkupSpans, IList<object> projectionBufferSpans, IList<int> projectionBufferSpanStartingPositions)
+        private void MapMarkupSpans(
+            IDictionary<string, ImmutableArray<TextSpan>> markupSpans,
+            out Dictionary<string, ImmutableArray<TextSpan>> mappedMarkupSpans,
+            IList<object> projectionBufferSpans, IList<int> projectionBufferSpanStartingPositions)
         {
-            mappedMarkupSpans = new Dictionary<string, IList<TextSpan>>();
+            var tempMappedMarkupSpans = new Dictionary<string, ArrayBuilder<TextSpan>>();
 
             foreach (string key in markupSpans.Keys)
             {
-                mappedMarkupSpans[key] = new List<TextSpan>();
+                tempMappedMarkupSpans[key] = ArrayBuilder<TextSpan>.GetInstance();
                 foreach (var markupSpan in markupSpans[key])
                 {
                     var positionInMarkup = 0;
@@ -564,9 +598,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                     foreach (var projectionSpan in projectionBufferSpans)
                     {
-                        var text = projectionSpan as string;
 
-                        if (text != null)
+                        if (projectionSpan is string text)
                         {
                             if (spanStartLocation == null && positionInMarkup <= markupSpanStart && markupSpanStart <= positionInMarkup + text.Length)
                             {
@@ -587,22 +620,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                         spanIndex++;
                     }
 
-                    mappedMarkupSpans[key].Add(new TextSpan(spanStartLocation.Value, spanEndLocationExclusive.Value - spanStartLocation.Value));
+                    tempMappedMarkupSpans[key].Add(new TextSpan(spanStartLocation.Value, spanEndLocationExclusive.Value - spanStartLocation.Value));
                 }
             }
+
+            mappedMarkupSpans = tempMappedMarkupSpans.ToDictionary(
+                kvp => kvp.Key, kvp => kvp.Value.ToImmutableAndFree());
         }
 
         public override void OpenDocument(DocumentId documentId, bool activate = true)
         {
-            OnDocumentOpened(documentId, this.CurrentSolution.GetDocument(documentId).GetTextAsync().Result.Container);
+            var testDocument = this.GetTestDocument(documentId);
+            OnDocumentOpened(documentId, testDocument.GetOpenTextContainer());
         }
 
         public override void CloseDocument(DocumentId documentId)
         {
-            var currentDoc = this.CurrentSolution.GetDocument(documentId);
-
-            OnDocumentClosed(documentId,
-                TextLoader.From(TextAndVersion.Create(currentDoc.GetTextAsync().Result, currentDoc.GetTextVersionAsync().Result)));
+            var testDocument = this.GetTestDocument(documentId);
+            this.OnDocumentClosed(documentId, testDocument.Loader);
         }
 
         public void ChangeDocument(DocumentId documentId, SourceText text)

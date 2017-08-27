@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
@@ -123,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _boundBody = boundBody;
             }
 
-            _methodBodySyntaxOpt = (method as SourceMethodSymbol)?.BodySyntax;
+            _methodBodySyntaxOpt = (method as SourceMemberMethodSymbol)?.BodySyntax;
         }
 
         private bool IsDebugPlus()
@@ -158,8 +159,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             id: new LocalDebugId(syntaxOffset, ordinal: 0),
                             pdbAttributes: localSymbol.SynthesizedKind.PdbAttributes(),
                             constraints: slotConstraints,
-                            dynamicTransformFlags: ImmutableArray<TypedConstant>.Empty,
-                            tupleElementNames: ImmutableArray<TypedConstant>.Empty,
+                            dynamicTransformFlags: ImmutableArray<bool>.Empty,
+                            tupleElementNames: ImmutableArray<string>.Empty,
                             isSlotReusable: false);
                     }
                     else

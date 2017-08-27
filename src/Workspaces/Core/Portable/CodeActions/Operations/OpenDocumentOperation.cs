@@ -19,10 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             _activate = activateIfAlreadyOpen;
         }
 
-        public DocumentId DocumentId
-        {
-            get { return _documentId; }
-        }
+        public DocumentId DocumentId => _documentId;
 
         public override void Apply(Workspace workspace, CancellationToken cancellationToken)
         {

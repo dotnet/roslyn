@@ -2,9 +2,8 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Serialization;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -30,12 +29,12 @@ namespace Microsoft.CodeAnalysis
         {
             using (Logger.LogBlock(FunctionId.DocumentState_ComputeChecksumsAsync, FilePath, cancellationToken))
             {
-                var textTask = GetTextAsync(cancellationToken);
+                var textAndVersionTask = GetTextAndVersionAsync(cancellationToken);
 
                 var serializer = new Serializer(solutionServices.Workspace);
 
                 var infoChecksum = serializer.CreateChecksum(Info.Attributes, cancellationToken);
-                var textChecksum = serializer.CreateChecksum(await textTask.ConfigureAwait(false), cancellationToken);
+                var textChecksum = serializer.CreateChecksum((await textAndVersionTask.ConfigureAwait(false)).Text, cancellationToken);
 
                 return new DocumentStateChecksums(infoChecksum, textChecksum);
             }

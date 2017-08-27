@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SuggestionTags
 {
     public class SuggestionTagProducerTests
     {
-        private readonly DiagnosticTagProducer<SuggestionTag> _producer = new DiagnosticTagProducer<SuggestionTag>();
+        private readonly DiagnosticTagProducer<DiagnosticsSuggestionTaggerProvider> _producer = new DiagnosticTagProducer<DiagnosticsSuggestionTaggerProvider>();
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SuggestionTags)]
         public async Task SuggestionTagTest1()
@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SuggestionTags
             Assert.Equal(spansAndSelection.selection, spansAndSelection.spans.Single().Span.Span.ToTextSpan());
         }
 
-        private async Task<(ImmutableArray<ITagSpan<SuggestionTag>> spans, TextSpan selection)> GetTagSpansAndSelectionAsync(string content)
+        private async Task<(ImmutableArray<ITagSpan<IErrorTag>> spans, TextSpan selection)> GetTagSpansAndSelectionAsync(string content)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(content))
+            using (var workspace = TestWorkspace.CreateCSharp(content))
             {
                 var analyzerMap = new Dictionary<string, DiagnosticAnalyzer[]>()
                 {

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -54,10 +54,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var expressionSymbol = semanticModel.GetSymbolInfo(expression, cancellationToken).GetAnySymbol();
-            if (expressionSymbol is INamedTypeSymbol)
+            // goo?[$$]
+            if (expressionSymbol is INamedTypeSymbol namedType)
             {
-                // foo?[$$]
-                var namedType = (INamedTypeSymbol)expressionSymbol;
                 if (namedType.ConstructedFrom.SpecialType == SpecialType.System_Nullable_T &&
                     expression.IsKind(SyntaxKind.NullableType) &&
                     expression.IsChildNode<ArrayTypeSyntax>(a => a.ElementType))
@@ -112,8 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         {
             if (openBracket.Parent is BracketedArgumentListSyntax)
             {
-                var conditional = expression.Parent as ConditionalAccessExpressionSyntax;
-                if (conditional != null)
+                if (expression.Parent is ConditionalAccessExpressionSyntax conditional)
                 {
                     return TextSpan.FromBounds(conditional.Span.Start, openBracket.FullSpan.End);
                 }
@@ -206,11 +204,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return false;
             }
 
-            if (expressionType is IErrorTypeSymbol)
+            if (expressionType is IErrorTypeSymbol errorType)
             {
                 // If `expression` is a QualifiedNameSyntax then GetTypeInfo().Type won't have any CandidateSymbols, so
                 // we should then fall back to getting the actual symbol for the expression.
-                expressionType = (expressionType as IErrorTypeSymbol).CandidateSymbols.FirstOrDefault().GetSymbolType()
+                expressionType = errorType.CandidateSymbols.FirstOrDefault().GetSymbolType()
                     ?? semanticModel.GetSymbolInfo(expression).GetAnySymbol().GetSymbolType();
             }
 
@@ -303,13 +301,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 }
 
                 identifier = null;
-                openBrace = default(SyntaxToken);
+                openBrace = default;
                 return false;
             }
         }
 
         /// Error tolerance case for
-        ///     "foo[$$]" or "foo?[$$]"
+        ///     "goo[$$]" or "goo?[$$]"
         /// which is parsed as an ArrayTypeSyntax variable declaration instead of an ElementAccessExpression  
         private static class IncompleteElementAccessExpression
         {
@@ -343,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 }
 
                 identifier = null;
-                openBrace = default(SyntaxToken);
+                openBrace = default;
                 return false;
             }
         }
@@ -373,14 +371,18 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             {
                 if (CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out ElementBindingExpressionSyntax elementBindingExpression))
                 {
-                    identifier = ((ConditionalAccessExpressionSyntax)elementBindingExpression.Parent).Expression;
+                    // Find the first conditional access expression that starts left of our open bracket
+                    var conditionalAccess = elementBindingExpression.FirstAncestorOrSelf<ConditionalAccessExpressionSyntax>(
+                        c => c.SpanStart < elementBindingExpression.SpanStart);
+
+                    identifier = conditionalAccess.Expression;
                     openBrace = elementBindingExpression.ArgumentList.OpenBracketToken;
 
                     return true;
                 }
 
                 identifier = null;
-                openBrace = default(SyntaxToken);
+                openBrace = default;
                 return false;
             }
         }

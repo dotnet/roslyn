@@ -28,17 +28,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             string code, int position,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
-            int? glyph, int? matchPriority)
+            int? glyph, int? matchPriority, bool? hasSuggestionItem)
         {
-            await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority);
-            await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority);
+            await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem);
+            await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem);
 
             // Items cannot be partially written if we're checking for their absence,
             // or if we're verifying that the list will show up (without specifying an actual item)
             if (!checkForAbsence && expectedItemOrNull != null)
             {
-                await VerifyAtPosition_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority);
-                await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority);
+                await VerifyAtPosition_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem);
+                await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem);
             }
         }
 
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         public async Task NameCref()
         {
             var text = @"using System;
-namespace Foo
+namespace Goo
 {
     /// <see cref=""$$""/> 
     class Program
@@ -60,32 +60,32 @@ namespace Foo
         public async Task QualifiedCref()
         {
             var text = @"using System;
-namespace Foo
+namespace Goo
 {
 
     class Program
     {
         /// <see cref=""Program.$$""/> 
-        void foo() { }
+        void goo() { }
     }
 }";
-            await VerifyItemExistsAsync(text, "foo");
+            await VerifyItemExistsAsync(text, "goo");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CrefArgumentList()
         {
             var text = @"using System;
-namespace Foo
+namespace Goo
 {
 
     class Program
     {
-        /// <see cref=""Program.foo($$""/> 
-        void foo(int i) { }
+        /// <see cref=""Program.goo($$""/> 
+        void goo(int i) { }
     }
 }";
-            await VerifyItemIsAbsentAsync(text, "foo(int)");
+            await VerifyItemIsAbsentAsync(text, "goo(int)");
             await VerifyItemExistsAsync(text, "int");
         }
 
@@ -93,13 +93,13 @@ namespace Foo
         public async Task CrefTypeParameterInArgumentList()
         {
             var text = @"using System;
-namespace Foo
+namespace Goo
 {
 
     class Program<T>
     {
-        /// <see cref=""Program{Q}.foo($$""/> 
-        void foo(T i) { }
+        /// <see cref=""Program{Q}.goo($$""/> 
+        void goo(T i) { }
     }
 }";
             await VerifyItemExistsAsync(text, "Q");
@@ -109,7 +109,7 @@ namespace Foo
         public async Task PrivateMember()
         {
             var text = @"using System;
-namespace Foo
+namespace Goo
 {
     /// <see cref=""C.$$""/> 
     class Program<T>
@@ -129,7 +129,7 @@ namespace Foo
         public async Task AfterSingleQuote()
         {
             var text = @"using System;
-namespace Foo
+namespace Goo
 {
     /// <see cref='$$'/> 
     class Program
@@ -174,7 +174,7 @@ class C
         public async Task ShowTypeParameterNames()
         {
             var text = @"/// <see cref=""C$$""/>
-class C<TFoo>
+class C<TGoo>
 {
     void M(int x) { }
     void M(long x) { }
@@ -182,7 +182,7 @@ class C<TFoo>
 }
 
 ";
-            await VerifyItemExistsAsync(text, "C{TFoo}");
+            await VerifyItemExistsAsync(text, "C{TGoo}");
         }
 
         [WorkItem(531156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531156")]
@@ -394,22 +394,22 @@ class C { }
         {
             var text = @"
 using System.Collections.Generic;
-/// <see cref=""foo$$""/>
+/// <see cref=""goo$$""/>
 class C 
 { 
-    public void foo(int x) { }
+    public void goo(int x) { }
 }
 ";
 
             var expected = @"
 using System.Collections.Generic;
-/// <see cref=""foo(""/>
+/// <see cref=""goo(""/>
 class C 
 { 
-    public void foo(int x) { }
+    public void goo(int x) { }
 }
 ";
-            await VerifyProviderCommitAsync(text, "foo(int)", expected, '(', "foo");
+            await VerifyProviderCommitAsync(text, "goo(int)", expected, '(', "goo");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -420,7 +420,7 @@ class C
 class C
 {
 }";
-            using (var workspace = await TestWorkspace.CreateAsync(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }))
+            using (var workspace = TestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }))
             {
                 var called = false;
                 var provider = new CrefCompletionProvider(testSpeculativeNodeCallbackOpt: n =>
@@ -438,7 +438,7 @@ class C
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
                 var service = CreateCompletionService(workspace,
                     ImmutableArray.Create<CompletionProvider>(provider));
-                var completionList = await GetCompletionListAsync(service, document, hostDocument.CursorPosition.Value, CompletionTrigger.Default);
+                var completionList = await GetCompletionListAsync(service, document, hostDocument.CursorPosition.Value, CompletionTrigger.Invoke);
 
                 Assert.True(called);
             }
@@ -453,7 +453,7 @@ using System;
 /// <see cref=""$$""/>
 class C 
 { 
-    public void foo(int x) { }
+    public void goo(int x) { }
 }
 ";
 

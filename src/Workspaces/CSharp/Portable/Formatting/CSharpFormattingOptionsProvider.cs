@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             CSharpFormattingOptions.IndentBlock,
             CSharpFormattingOptions.IndentSwitchSection,
             CSharpFormattingOptions.IndentSwitchCaseSection,
+            CSharpFormattingOptions.IndentSwitchCaseSectionWhenBlock,
             CSharpFormattingOptions.LabelPositioning,
             CSharpFormattingOptions.WrappingPreserveSingleLine,
             CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine,

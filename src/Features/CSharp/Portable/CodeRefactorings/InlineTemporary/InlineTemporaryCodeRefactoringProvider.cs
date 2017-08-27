@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -69,9 +69,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 return;
             }
 
-            if (variableDeclarator.Initializer.Kind() == SyntaxKind.RefExpression)
+            if (variableDeclaration.Type.Kind() == SyntaxKind.RefType)
             {
-                // TODO: inlining byref temps is NYI
+                // TODO: inlining ref returns:
+                // https://github.com/dotnet/roslyn/issues/17132
                 return;
             }
 
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             context.RegisterRefactoring(
                 new MyCodeAction(
                     CSharpFeaturesResources.Inline_temporary_variable,
-                    (c) => this.InlineTemporaryAsync(document, variableDeclarator, c)));
+                    c => this.InlineTemporaryAsync(document, variableDeclarator, c)));
         }
 
         private async Task<IEnumerable<ReferenceLocation>> GetReferencesAsync(
@@ -319,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
         private SyntaxTriviaList GetTriviaToPreserve(SyntaxTriviaList syntaxTriviaList)
         {
-            return ShouldPreserve(syntaxTriviaList) ? syntaxTriviaList : default(SyntaxTriviaList);
+            return ShouldPreserve(syntaxTriviaList) ? syntaxTriviaList : default;
         }
 
         private static bool ShouldPreserve(SyntaxTriviaList trivia)
@@ -554,8 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             }
 
             // Replace the conflicting inlined nodes with the original nodes annotated with conflict annotation.
-            Func<SyntaxNode, SyntaxNode, SyntaxNode> conflictAnnotationAdder =
-                (SyntaxNode oldNode, SyntaxNode newNode) =>
+            SyntaxNode conflictAnnotationAdder(SyntaxNode oldNode, SyntaxNode newNode) =>
                     newNode.WithAdditionalAnnotations(ConflictAnnotation.Create(CSharpFeaturesResources.Conflict_s_detected));
 
             return await inlinedDocument.ReplaceNodesAsync(replacementNodesWithChangedSemantics.Keys, conflictAnnotationAdder, cancellationToken).ConfigureAwait(false);

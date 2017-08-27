@@ -3,16 +3,17 @@
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.QualifyMemberAccess
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QualifyMemberAccess
     Partial Public Class QualifyMemberAccessTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(New VisualBasicQualifyMemberAccessDiagnosticAnalyzer(), New VisualBasicQualifyMemberAccessCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (New VisualBasicQualifyMemberAccessDiagnosticAnalyzer(),
+                    New VisualBasicQualifyMemberAccessCodeFixProvider())
         End Function
 
         Private Function TestAsyncWithOption(code As String, expected As String, opt As PerLanguageOption(Of CodeStyleOption(Of Boolean))) As Task
@@ -20,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QualifyMemberAcces
         End Function
 
         Private Function TestAsyncWithOptionAndNotification(code As String, expected As String, opt As PerLanguageOption(Of CodeStyleOption(Of Boolean)), notification As NotificationOption) As Task
-            Return TestAsync(code, expected, options:=[Option](opt, True, notification))
+            Return TestInRegularAndScriptAsync(code, expected, options:=[Option](opt, True, notification))
         End Function
 
         Private Function TestMissingAsyncWithOption(code As String, opt As PerLanguageOption(Of CodeStyleOption(Of Boolean))) As Task
@@ -28,7 +29,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QualifyMemberAcces
         End Function
 
         Private Function TestMissingAsyncWithOptionAndNotification(code As String, opt As PerLanguageOption(Of CodeStyleOption(Of Boolean)), notification As NotificationOption) As Task
-            Return TestMissingAsync(code, options:=[Option](opt, True, notification))
+            Return TestMissingInRegularAndScriptAsync(code,
+                New TestParameters(options:=[Option](opt, True, notification)))
         End Function
 
         <WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")>
@@ -462,5 +464,102 @@ CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Warning)
 CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Error)
         End Function
 
+        <WorkItem(17711, "https://github.com/dotnet/roslyn/issues/17711")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function DoNotReportToQualify_IfMyBaseQualificationOnField() As Task
+            Await TestMissingAsyncWithOption("
+Class Base
+    Protected Field As Integer
+End Class
+Class Derived
+    Inherits Base
+    Sub M()
+        [|MyBase.Field|] = 0
+    End Sub
+End Class
+",
+CodeStyleOptions.QualifyFieldAccess)
+        End Function
+
+        <WorkItem(17711, "https://github.com/dotnet/roslyn/issues/17711")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function DoNotReportToQualify_IfMyClassQualificationOnField() As Task
+            Await TestMissingAsyncWithOption("
+Class C
+    Private ReadOnly Field As Integer
+    Sub M()
+        [|MyClass.Field|] = 0
+    End Sub
+End Class
+",
+CodeStyleOptions.QualifyFieldAccess)
+        End Function
+
+        <WorkItem(17711, "https://github.com/dotnet/roslyn/issues/17711")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function DoNotReportToQualify_IfMyBaseQualificationOnProperty() As Task
+            Await TestMissingAsyncWithOption("
+Class Base
+    Protected Overridable ReadOnly Property P As Integer
+End Class
+Class Derived
+    Inherits Base
+    Protected Overrides ReadOnly Property P As Integer
+        Get
+            Return [|MyBase.P|]
+        End Get
+End Class
+",
+CodeStyleOptions.QualifyPropertyAccess)
+        End Function
+
+        <WorkItem(17711, "https://github.com/dotnet/roslyn/issues/17711")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function DoNotReportToQualify_IfMyClassQualificationOnProperty() As Task
+            Await TestMissingAsyncWithOption("
+Class C
+    Dim i As Integer
+    Protected Overridable ReadOnly Property P As Integer
+    Sub M()
+        Me.i = [|MyClass.P|]
+    End Sub
+End Class
+",
+CodeStyleOptions.QualifyPropertyAccess)
+        End Function
+
+        <WorkItem(17711, "https://github.com/dotnet/roslyn/issues/17711")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function DoNotReportToQualify_IfMyBaseQualificationOnMethod() As Task
+            Await TestMissingAsyncWithOption("
+Class Base
+    Protected Overridable Sub M
+    End Sub
+End Class
+Class Derived
+    Inherits Base
+    Protected Overrides Sub M()
+        Get
+            Return [|MyBase.M|]()
+        End Get
+End Class
+",
+CodeStyleOptions.QualifyMethodAccess)
+        End Function
+
+        <WorkItem(17711, "https://github.com/dotnet/roslyn/issues/17711")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function DoNotReportToQualify_IfMyClassQualificationOnMethod() As Task
+            Await TestMissingAsyncWithOption("
+Class C
+    Protected Overridable Sub M()
+    End Sub
+    Sub M2()
+        [|MyClass.M|]()
+    End Sub
+End Class
+",
+CodeStyleOptions.QualifyMethodAccess)
+        End Function
     End Class
 End Namespace

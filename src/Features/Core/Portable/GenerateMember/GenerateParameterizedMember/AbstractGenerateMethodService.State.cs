@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,13 +39,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             {
                 // Cases that we deal with currently:
                 //
-                // 1) expr.Foo
-                // 2) expr->Foo
-                // 3) Foo
-                // 4) expr.Foo()
-                // 5) expr->Foo()
-                // 6) Foo()
-                // 7) ReturnType Explicit.Interface.Foo()
+                // 1) expr.Goo
+                // 2) expr->Goo
+                // 3) Goo
+                // 4) expr.Goo()
+                // 5) expr->Goo()
+                // 6) Goo()
+                // 7) ReturnType Explicit.Interface.Goo()
                 //
                 // In the first 3 invocationExpressionOpt will be null and we'll have to infer a
                 // delegate type in order to figure out the right method signature to generate. In
@@ -150,7 +151,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 }
                 else
                 {
-                    var typeInference = document.Project.LanguageServices.GetService<ITypeInferenceService>();
+                    var typeInference = document.Document.GetLanguageService<ITypeInferenceService>();
                     var delegateType = typeInference.InferDelegateType(semanticModel, this.SimpleNameOrMemberAccessExpression, cancellationToken);
                     if (delegateType != null && delegateType.DelegateInvokeMethod != null)
                     {
@@ -160,7 +161,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     {
                         // We don't have and invocation expression or a delegate, but we may have a special expression without parenthesis.  Lets see
                         // if the type inference service can directly infer the type for our expression.
-                        var expressionType = service.CanGenerateMethodForSimpleNameOrMemberAccessExpression(typeInference, semanticModel, this.SimpleNameOrMemberAccessExpression, cancellationToken);
+                        var expressionType = service.DetermineReturnTypeForSimpleNameOrMemberAccessExpression(typeInference, semanticModel, this.SimpleNameOrMemberAccessExpression, cancellationToken);
                         if (expressionType == null)
                         {
                             return false;
@@ -212,17 +213,19 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 return true;
             }
 
-            private static IMethodSymbol CreateMethodSymbolWithReturnType(ITypeSymbol expressionType)
+            private static IMethodSymbol CreateMethodSymbolWithReturnType(
+                ITypeSymbol expressionType)
             {
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                    attributes: SpecializedCollections.EmptyList<AttributeData>(),
-                    accessibility: default(Accessibility),
-                    modifiers: default(DeclarationModifiers),
+                    attributes: ImmutableArray<AttributeData>.Empty,
+                    accessibility: default,
+                    modifiers: default,
                     returnType: expressionType,
-                    explicitInterfaceSymbol: null,
+                    returnsByRef: false,
+                    explicitInterfaceImplementations: default,
                     name: null,
-                    typeParameters: SpecializedCollections.EmptyList<ITypeParameterSymbol>(),
-                    parameters: SpecializedCollections.EmptyList<IParameterSymbol>());
+                    typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
+                    parameters: ImmutableArray<IParameterSymbol>.Empty);
             }
         }
     }

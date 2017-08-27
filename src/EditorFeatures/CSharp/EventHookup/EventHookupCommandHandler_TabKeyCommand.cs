@@ -1,7 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -273,18 +274,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             var syntaxFactory = document.Project.LanguageServices.GetService<SyntaxGenerator>();
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                attributes: null,
+                attributes: default(ImmutableArray<AttributeData>),
                 accessibility: Accessibility.Private,
                 modifiers: new DeclarationModifiers(isStatic: eventHookupExpression.IsInStaticContext()),
                 returnType: delegateType.DelegateInvokeMethod.ReturnType,
-                explicitInterfaceSymbol: null,
+                returnsByRef: delegateType.DelegateInvokeMethod.ReturnsByRef,
+                explicitInterfaceImplementations: default,
                 name: eventHandlerMethodName,
-                typeParameters: null,
+                typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
                 parameters: delegateType.DelegateInvokeMethod.Parameters,
-                statements: new List<SyntaxNode>
-                    {
-                        CodeGenerationHelpers.GenerateThrowStatement(syntaxFactory, document, "System.NotImplementedException", cancellationToken)
-                    });
+                statements: ImmutableArray.Create(
+                    CodeGenerationHelpers.GenerateThrowStatement(syntaxFactory, document, "System.NotImplementedException", cancellationToken)));
         }
 
         private void BeginInlineRename(Workspace workspace, ITextView textView, ITextBuffer subjectBuffer, int plusEqualTokenEndPosition, CancellationToken cancellationToken)

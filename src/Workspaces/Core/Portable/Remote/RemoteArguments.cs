@@ -1,99 +1,21 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    #region Common Arguments
-
-    /// <summary>
-    /// Arguments to pass from client to server when performing operations
-    /// </summary>
-    internal class SerializableProjectId : IEquatable<SerializableProjectId>
-    {
-        public Guid Id;
-        public string DebugName;
-
-        public override int GetHashCode()
-            => Hash.Combine(Id.GetHashCode(), DebugName.GetHashCode());
-
-        public override bool Equals(object obj)
-            => Equals(obj as SerializableProjectId);
-
-        public bool Equals(SerializableProjectId obj)
-            => obj != null && Id.Equals(obj.Id) && DebugName.Equals(obj.DebugName);
-
-        public static SerializableProjectId Dehydrate(ProjectId id)
-        {
-            return new SerializableProjectId { Id = id.Id, DebugName = id.DebugName };
-        }
-
-        public ProjectId Rehydrate()
-        {
-            return ProjectId.CreateFromSerialized(Id, DebugName);
-        }
-    }
-
-    internal class SerializableDocumentId
-    {
-        public SerializableProjectId ProjectId;
-        public Guid Id;
-        public string DebugName;
-
-        public static SerializableDocumentId Dehydrate(Document document)
-        {
-            return Dehydrate(document.Id);
-        }
-
-        public static SerializableDocumentId Dehydrate(DocumentId id)
-        {
-            return new SerializableDocumentId
-            {
-                ProjectId = SerializableProjectId.Dehydrate(id.ProjectId),
-                Id = id.Id,
-                DebugName = id.DebugName
-            };
-        }
-
-        public DocumentId Rehydrate()
-        {
-            return DocumentId.CreateFromSerialized(
-                ProjectId.Rehydrate(), Id, DebugName);
-        }
-    }
-
-    internal class SerializableTextSpan
-    {
-        public int Start;
-        public int Length;
-
-        public static SerializableTextSpan Dehydrate(TextSpan textSpan)
-        {
-            return new SerializableTextSpan { Start = textSpan.Start, Length = textSpan.Length };
-        }
-
-        public TextSpan Rehydrate()
-        {
-            return new TextSpan(Start, Length);
-        }
-    }
-
-    #endregion
-
     #region FindReferences
 
     internal class SerializableSymbolAndProjectId : IEquatable<SerializableSymbolAndProjectId>
     {
         public string SymbolKeyData;
-        public SerializableProjectId ProjectId;
+        public ProjectId ProjectId;
 
         public override int GetHashCode()
             => Hash.Combine(SymbolKeyData, ProjectId.GetHashCode());
@@ -118,29 +40,46 @@ namespace Microsoft.CodeAnalysis.Remote
             return new SerializableSymbolAndProjectId
             {
                 SymbolKeyData = symbolAndProjectId.Symbol.GetSymbolKey().ToString(),
-                ProjectId = SerializableProjectId.Dehydrate(symbolAndProjectId.ProjectId)
+                ProjectId = symbolAndProjectId.ProjectId
             };
         }
 
-        public async Task<SymbolAndProjectId> RehydrateAsync(
+        public async Task<SymbolAndProjectId?> TryRehydrateAsync(
             Solution solution, CancellationToken cancellationToken)
         {
-            var projectId = ProjectId.Rehydrate();
+            var projectId = ProjectId;
             var project = solution.GetProject(projectId);
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var symbol = SymbolKey.Resolve(SymbolKeyData, compilation, cancellationToken: cancellationToken).GetAnySymbol();
-            Debug.Assert(symbol != null, "We should always be able to resolve a symbol back on the host side.");
+
+            // The server and client should both be talking about the same compilation.  As such
+            // locations in symbols are save to resolve as we rehydrate the SymbolKey.
+            var symbol = SymbolKey.Resolve(
+                SymbolKeyData, compilation, resolveLocations: true, cancellationToken: cancellationToken).GetAnySymbol();
+
+            if (symbol == null)
+            {
+                try
+                {
+                    throw new InvalidOperationException(
+                        $"We should always be able to resolve a symbol back on the host side:\r\n{SymbolKeyData}");
+                }
+                catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
+                {
+                    return null;
+                }
+            }
+
             return new SymbolAndProjectId(symbol, projectId);
         }
     }
 
     internal class SerializableReferenceLocation
     {
-        public SerializableDocumentId Document { get; set; }
+        public DocumentId Document { get; set; }
 
         public SerializableSymbolAndProjectId Alias { get; set; }
 
-        public SerializableTextSpan Location { get; set; }
+        public TextSpan Location { get; set; }
 
         public bool IsImplicit { get; set; }
 
@@ -153,9 +92,9 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return new SerializableReferenceLocation
             {
-                Document = SerializableDocumentId.Dehydrate(referenceLocation.Document),
+                Document = referenceLocation.Document.Id,
                 Alias = SerializableSymbolAndProjectId.Dehydrate(referenceLocation.Alias, referenceLocation.Document),
-                Location = SerializableTextSpan.Dehydrate(referenceLocation.Location.SourceSpan),
+                Location = referenceLocation.Location.SourceSpan,
                 IsImplicit = referenceLocation.IsImplicit,
                 IsWrittenTo = referenceLocation.IsWrittenTo,
                 CandidateReason = referenceLocation.CandidateReason
@@ -165,13 +104,13 @@ namespace Microsoft.CodeAnalysis.Remote
         public async Task<ReferenceLocation> RehydrateAsync(
             Solution solution, CancellationToken cancellationToken)
         {
-            var document = solution.GetDocument(this.Document.Rehydrate());
+            var document = solution.GetDocument(this.Document);
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var aliasSymbol = await RehydrateAliasAsync(solution, cancellationToken).ConfigureAwait(false);
             return new ReferenceLocation(
                 document,
                 aliasSymbol,
-                CodeAnalysis.Location.Create(syntaxTree, Location.Rehydrate()),
+                CodeAnalysis.Location.Create(syntaxTree, Location),
                 isImplicit: IsImplicit,
                 isWrittenTo: IsWrittenTo,
                 candidateReason: CandidateReason);
@@ -185,82 +124,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 return null;
             }
 
-            var symbolAndProjectId = await Alias.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
-            return symbolAndProjectId.Symbol as IAliasSymbol;
-        }
-    }
-
-    #endregion
-
-    #region SymbolSearch
-
-    internal class SerializablePackageWithTypeResult
-    {
-        public string PackageName;
-        public string TypeName;
-        public string Version;
-        public int Rank;
-        public string[] ContainingNamespaceNames;
-
-        public static SerializablePackageWithTypeResult Dehydrate(PackageWithTypeResult result)
-        {
-            return new SerializablePackageWithTypeResult
-            {
-                PackageName = result.PackageName,
-                TypeName = result.TypeName,
-                Version = result.Version,
-                Rank = result.Rank,
-                ContainingNamespaceNames = result.ContainingNamespaceNames.ToArray(),
-            };
-        }
-
-        public PackageWithTypeResult Rehydrate()
-        {
-            return new PackageWithTypeResult(
-                PackageName, TypeName, Version, Rank, ContainingNamespaceNames);
-        }
-    }
-
-    internal class SerializablePackageWithAssemblyResult
-    {
-        public string PackageName;
-        public string Version;
-        public int Rank;
-
-        public static SerializablePackageWithAssemblyResult Dehydrate(PackageWithAssemblyResult result)
-        {
-            return new SerializablePackageWithAssemblyResult
-            {
-                PackageName = result.PackageName,
-                Version = result.Version,
-                Rank = result.Rank,
-            };
-        }
-
-        public PackageWithAssemblyResult Rehydrate()
-            => new PackageWithAssemblyResult(PackageName, Version, Rank);
-    }
-
-    internal class SerializableReferenceAssemblyWithTypeResult
-    {
-        public string AssemblyName;
-        public string TypeName;
-        public string[] ContainingNamespaceNames;
-
-        public static SerializableReferenceAssemblyWithTypeResult Dehydrate(
-            ReferenceAssemblyWithTypeResult result)
-        {
-            return new SerializableReferenceAssemblyWithTypeResult
-            {
-                ContainingNamespaceNames = result.ContainingNamespaceNames.ToArray(),
-                AssemblyName = result.AssemblyName,
-                TypeName = result.TypeName
-            };
-        }
-
-        public ReferenceAssemblyWithTypeResult Rehydrate()
-        {
-            return new ReferenceAssemblyWithTypeResult(AssemblyName, TypeName, ContainingNamespaceNames);
+            var symbolAndProjectId = await Alias.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+            return symbolAndProjectId.GetValueOrDefault().Symbol as IAliasSymbol;
         }
     }
 

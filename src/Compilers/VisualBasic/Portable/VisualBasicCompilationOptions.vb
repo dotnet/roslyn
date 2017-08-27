@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.PooledObjects
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
@@ -23,6 +24,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' The assemblies emitted by the expression compiler should never contain embedded declarations -
         ' those should come from the user's code.
         Private _suppressEmbeddedDeclarations As Boolean
+
+        Private _ignoreCorLibraryDuplicatedTypes As Boolean
 
         ''' <summary>
         ''' Initializes a new instance of the VisualBasicCompilationOptions type with various options.
@@ -123,14 +126,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 assemblyIdentityComparer:=assemblyIdentityComparer,
                 strongNameProvider:=strongNameProvider,
                 metadataImportOptions:=MetadataImportOptions.Public,
-                referencesSupersedeLowerVersions:=False)
+                referencesSupersedeLowerVersions:=False,
+                ignoreCorLibraryDuplicatedTypes:=False)
 
         End Sub
 
-        Friend Sub New(
+        Private Sub New(
             outputKind As OutputKind,
             reportSuppressedDiagnostics As Boolean,
-            ModuleName As String,
+            moduleName As String,
             mainTypeName As String,
             scriptClassName As String,
             globalImports As IEnumerable(Of GlobalImport),
@@ -162,12 +166,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             assemblyIdentityComparer As AssemblyIdentityComparer,
             strongNameProvider As StrongNameProvider,
             metadataImportOptions As MetadataImportOptions,
-            referencesSupersedeLowerVersions As Boolean)
+            referencesSupersedeLowerVersions As Boolean,
+            ignoreCorLibraryDuplicatedTypes As Boolean)
 
             MyBase.New(
                 outputKind:=outputKind,
                 reportSuppressedDiagnostics:=reportSuppressedDiagnostics,
-                moduleName:=ModuleName,
+                moduleName:=moduleName,
                 mainTypeName:=mainTypeName,
                 scriptClassName:=scriptClassName,
                 cryptoKeyContainer:=cryptoKeyContainer,
@@ -202,12 +207,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _embedVbCoreRuntime = embedVbCoreRuntime
             _suppressEmbeddedDeclarations = suppressEmbeddedDeclarations
             _parseOptions = parseOptions
+            _ignoreCorLibraryDuplicatedTypes = ignoreCorLibraryDuplicatedTypes
 
             Debug.Assert(Not (_embedVbCoreRuntime AndAlso _suppressEmbeddedDeclarations),
                          "_embedVbCoreRuntime and _suppressEmbeddedDeclarations are mutually exclusive")
         End Sub
 
-        Private Sub New(other As VisualBasicCompilationOptions)
+        Friend Sub New(other As VisualBasicCompilationOptions)
             MyClass.New(
                 outputKind:=other.OutputKind,
                 reportSuppressedDiagnostics:=other.ReportSuppressedDiagnostics,
@@ -243,7 +249,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 strongNameProvider:=other.StrongNameProvider,
                 metadataImportOptions:=other.MetadataImportOptions,
                 referencesSupersedeLowerVersions:=other.ReferencesSupersedeLowerVersions,
-                publicSign:=other.PublicSign)
+                publicSign:=other.PublicSign,
+                ignoreCorLibraryDuplicatedTypes:=other.IgnoreCorLibraryDuplicatedTypes)
         End Sub
 
         Public Overrides ReadOnly Property Language As String
@@ -356,6 +363,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property SuppressEmbeddedDeclarations As Boolean
             Get
                 Return _suppressEmbeddedDeclarations
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Gets the setting to ignore corlib types when duplicates are found.
+        ''' </summary>
+        Friend ReadOnly Property IgnoreCorLibraryDuplicatedTypes As Boolean
+            Get
+                Return _ignoreCorLibraryDuplicatedTypes
             End Get
         End Property
 
@@ -606,6 +622,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
+        ''' Creates a new VisualBasicCompilationOptions instance with different ignoreCorLibraryDuplicatedTypes setting specified.
+        ''' </summary>
+        ''' <param name="ignoreCorLibraryDuplicatedTypes">The ignoreCorLibraryDuplicatedTypes setting. </param>
+        ''' <remarks>Only expected to be called from the expression compiler and interactive.</remarks>
+        Friend Function WithIgnoreCorLibraryDuplicatedTypes(ignoreCorLibraryDuplicatedTypes As Boolean) As VisualBasicCompilationOptions
+            If ignoreCorLibraryDuplicatedTypes = _ignoreCorLibraryDuplicatedTypes Then
+                Return Me
+            End If
+
+            Return New VisualBasicCompilationOptions(Me) With {._ignoreCorLibraryDuplicatedTypes = ignoreCorLibraryDuplicatedTypes}
+        End Function
+
+        ''' <summary>
         ''' Creates a new VisualBasicCompilationOptions instance with a different cryptography key container specified
         ''' </summary>
         ''' <param name="name">The name of the cryptography key container. </param>        
@@ -624,6 +653,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="path">The cryptography key file path. </param>        
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the cryptography key path is different; otherwise current instance.</returns>        
         Public Shadows Function WithCryptoKeyFile(path As String) As VisualBasicCompilationOptions
+            If String.IsNullOrEmpty(path) Then
+                path = Nothing
+            End If
+
             If String.Equals(path, Me.CryptoKeyFile, StringComparison.Ordinal) Then
                 Return Me
             End If
@@ -706,6 +739,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.WithReportSuppressedDiagnostics(reportSuppressedDiagnostics)
         End Function
 
+        Friend Overrides Function CommonWithMetadataImportOptions(value As MetadataImportOptions) As CompilationOptions
+            Return WithMetadataImportOptions(value)
+        End Function
+
         <Obsolete>
         Protected Overrides Function CommonWithFeatures(features As ImmutableArray(Of String)) As CompilationOptions
             Throw New NotImplementedException()
@@ -775,7 +812,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New VisualBasicCompilationOptions(Me) With {.OptimizationLevel = value}
         End Function
 
-        Friend Function WithMetadataImportOptions(value As MetadataImportOptions) As VisualBasicCompilationOptions
+        Friend Shadows Function WithMetadataImportOptions(value As MetadataImportOptions) As VisualBasicCompilationOptions
             If value = Me.MetadataImportOptions Then
                 Return Me
             End If
@@ -885,6 +922,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Sub ValidateOptions(builder As ArrayBuilder(Of Diagnostic))
             ValidateOptions(builder, MessageProvider.Instance)
 
+            If ParseOptions IsNot Nothing Then
+                builder.AddRange(ParseOptions.Errors)
+            End If
+
             If Me.EmbedVbCoreRuntime AndAlso Me.OutputKind.IsNetModule() Then
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_VBCoreNetModuleConflict))
             End If
@@ -953,6 +994,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    Me.OptionCompareText = other.OptionCompareText AndAlso
                    Me.EmbedVbCoreRuntime = other.EmbedVbCoreRuntime AndAlso
                    Me.SuppressEmbeddedDeclarations = other.SuppressEmbeddedDeclarations AndAlso
+                   Me.IgnoreCorLibraryDuplicatedTypes = other.IgnoreCorLibraryDuplicatedTypes AndAlso
                    If(Me.ParseOptions Is Nothing, other.ParseOptions Is Nothing, Me.ParseOptions.Equals(other.ParseOptions))
         End Function
 
@@ -980,7 +1022,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    Hash.Combine(Me.OptionCompareText,
                    Hash.Combine(Me.EmbedVbCoreRuntime,
                    Hash.Combine(Me.SuppressEmbeddedDeclarations,
-                   Hash.Combine(Me.ParseOptions, 0))))))))))
+                   Hash.Combine(Me.IgnoreCorLibraryDuplicatedTypes,
+                   Hash.Combine(Me.ParseOptions, 0)))))))))))
         End Function
 
         Friend Overrides Function FilterDiagnostic(diagnostic As Diagnostic) As Diagnostic
@@ -1181,7 +1224,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 assemblyIdentityComparer:=assemblyIdentityComparer,
                 strongNameProvider:=strongNameProvider,
                 metadataImportOptions:=MetadataImportOptions.Public,
-                referencesSupersedeLowerVersions:=False)
+                referencesSupersedeLowerVersions:=False,
+                ignoreCorLibraryDuplicatedTypes:=False)
 
         End Sub
 

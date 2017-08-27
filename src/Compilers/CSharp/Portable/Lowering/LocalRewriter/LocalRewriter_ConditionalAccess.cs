@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return RewriteConditionalAccess(node, used: true);
         }
 
+        public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
         // null when currently enclosing conditional access node
         // is not supposed to be lowered.
         private BoundExpression _currentConditionalAccessTarget;
@@ -147,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         node.Syntax,
                         loweredReceiver,
                         receiverType.IsNullableType() ?
-                                 GetNullableMethod(node.Syntax, loweredReceiver.Type, SpecialMember.System_Nullable_T_get_HasValue) :
+                                 UnsafeGetNullableMethod(node.Syntax, loweredReceiver.Type, SpecialMember.System_Nullable_T_get_HasValue) :
                                  null,
                         loweredAccessExpression,
                         null,

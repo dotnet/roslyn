@@ -75,6 +75,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
                 // start remote host
                 EnableRemoteHostClientService();
+
+                Workspace.AdviseSolutionEvents((IVsSolution)GetService(typeof(SVsSolution)));
             }
 
             // Ensure services that must be created on the UI thread have been.
@@ -94,6 +96,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             _packageInstallerService?.Connect(this.RoslynLanguageName);
             _symbolSearchService?.Connect(this.RoslynLanguageName);
+
+            HACK_AbstractCreateServicesOnUiThread.CreateServicesOnUIThread(ComponentModel, RoslynLanguageName);
         }
 
         protected abstract VisualStudioWorkspaceImpl CreateWorkspace();
@@ -159,8 +163,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var shell = (IVsShell)this.GetService(typeof(SVsShell));
 
-            object result;
-            if (ErrorHandler.Succeeded(shell.GetProperty((int)__VSSPROPID.VSSPROPID_IsInCommandLineMode, out result)))
+            if (ErrorHandler.Succeeded(shell.GetProperty((int)__VSSPROPID.VSSPROPID_IsInCommandLineMode, out var result)))
             {
                 return (bool)result;
             }

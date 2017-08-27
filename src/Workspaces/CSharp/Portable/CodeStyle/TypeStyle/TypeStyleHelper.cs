@@ -190,35 +190,43 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             ITypeSymbol typeInDeclaration, 
             ITypeSymbol containingType)
         {
-            var returnType = methodSymbol.ReturnType;
+            var returnType = UnwrapTupleType(methodSymbol.ReturnType);
 
-            if (typeInDeclaration?.GetTypeArguments().Length > 0 ||
+            if (UnwrapTupleType(typeInDeclaration)?.GetTypeArguments().Length > 0 ||
                 containingType.GetTypeArguments().Length > 0)
             {
-                return containingType.Name.Equals(returnType.Name);
+                return UnwrapTupleType(containingType).Name.Equals(returnType.Name);
             }
             else
             {
-                return containingType.Equals(returnType);
+                return UnwrapTupleType(containingType).Equals(returnType);
             }
+        }
+
+        private static ITypeSymbol UnwrapTupleType(ITypeSymbol symbol)
+        {
+            if (symbol is null)
+                return null;
+
+            if (!(symbol is INamedTypeSymbol namedTypeSymbol))
+                return symbol;
+
+            return namedTypeSymbol.TupleUnderlyingType ?? symbol;
         }
 
         private static ExpressionSyntax GetRightmostInvocationExpression(ExpressionSyntax node)
         {
-            var awaitExpression = node as AwaitExpressionSyntax;
-            if (awaitExpression != null && awaitExpression.Expression != null)
+            if (node is AwaitExpressionSyntax awaitExpression && awaitExpression.Expression != null)
             {
                 return GetRightmostInvocationExpression(awaitExpression.Expression);
             }
 
-            var invocationExpression = node as InvocationExpressionSyntax;
-            if (invocationExpression != null && invocationExpression.Expression != null)
+            if (node is InvocationExpressionSyntax invocationExpression && invocationExpression.Expression != null)
             {
                 return GetRightmostInvocationExpression(invocationExpression.Expression);
             }
 
-            var conditional = node as ConditionalAccessExpressionSyntax;
-            if (conditional != null)
+            if (node is ConditionalAccessExpressionSyntax conditional)
             {
                 return GetRightmostInvocationExpression(conditional.WhenNotNull);
             }

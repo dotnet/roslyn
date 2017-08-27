@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public readonly CSharpCompilation Compilation;
 
-        public LambdaFrame StaticLambdaFrame;
+        public SynthesizedClosureEnvironment StaticLambdaFrame;
 
         /// <summary>
         /// A graph of method->method references for this(...) constructor initializers.
@@ -100,13 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var moduleBuilder = this.ModuleBuilderOpt;
-                if (moduleBuilder == null)
-                {
-                    return null;
-                }
-
-                return moduleBuilder.DynamicOperationContextType ?? this.Type;
+                return this.ModuleBuilderOpt?.GetDynamicOperationContextType(this.Type);
             }
         }
 

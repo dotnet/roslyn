@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -39,12 +39,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     case OperationKind.MoveType:
                         return string.Format(FeaturesResources.Move_type_to_0, _fileName);
                     case OperationKind.RenameType:
-                        return string.Format(FeaturesResources.Rename_type_to_0, _state.DocumentName);
+                        return string.Format(FeaturesResources.Rename_type_to_0, _state.DocumentNameWithoutExtension);
                     case OperationKind.RenameFile:
                         return string.Format(FeaturesResources.Rename_file_to_0, _fileName);
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(_operationKind);
                 }
-
-                throw ExceptionUtilities.Unreachable;
             }
 
             public override string Title => _title;
@@ -65,9 +65,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                         return new RenameTypeEditor(_service, _state, _fileName, cancellationToken);
                     case OperationKind.RenameFile:
                         return new RenameFileEditor(_service, _state, _fileName, cancellationToken);
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(_operationKind);
                 }
-
-                throw ExceptionUtilities.Unreachable;
             }
 
             internal override bool PerformFinalApplicabilityCheck => true;

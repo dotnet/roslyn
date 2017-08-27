@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis
         protected static ValueSource<TextAndVersion> CreateStrongText(TextLoader loader, DocumentId documentId, SolutionServices services, bool reportInvalidDataException)
         {
             return new AsyncLazy<TextAndVersion>(
-                asynchronousComputeFunction: c => LoadTextAsync(loader, documentId, services, reportInvalidDataException, c), 
+                asynchronousComputeFunction: c => LoadTextAsync(loader, documentId, services, reportInvalidDataException, c),
                 synchronousComputeFunction: c => LoadTextSynchronously(loader, documentId, services, reportInvalidDataException, c),
                 cacheResult: true);
         }
@@ -259,8 +259,7 @@ namespace Microsoft.CodeAnalysis
         public bool TryGetTextVersion(out VersionStamp version)
         {
             // try fast path first
-            var versionable = this.textAndVersionSource as ITextVersionable;
-            if (versionable != null)
+            if (this.textAndVersionSource is ITextVersionable versionable)
             {
                 return versionable.TryGetTextVersion(out version);
             }
@@ -272,7 +271,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                version = default(VersionStamp);
+                version = default;
                 return false;
             }
         }
@@ -284,7 +283,12 @@ namespace Microsoft.CodeAnalysis
                 return sourceTextOpt;
             }
 
-            var textAndVersion = await this.textAndVersionSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            if (TryGetText(out var text))
+            {
+                return text;
+            }
+
+            var textAndVersion = await GetTextAndVersionAsync(cancellationToken).ConfigureAwait(false);
             return textAndVersion.Text;
         }
 
@@ -308,15 +312,8 @@ namespace Microsoft.CodeAnalysis
                 return version;
             }
 
-            if (this.textAndVersionSource.TryGetValue(out var textAndVersion))
-            {
-                return textAndVersion.Version;
-            }
-            else
-            {
-                textAndVersion = await this.textAndVersionSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                return textAndVersion.Version;
-            }
+            var textAndVersion = await GetTextAndVersionAsync(cancellationToken).ConfigureAwait(false);
+            return textAndVersion.Version;
         }
 
         public TextDocumentState UpdateText(TextAndVersion newTextAndVersion, PreservationMode mode)
@@ -370,6 +367,18 @@ namespace Microsoft.CodeAnalysis
                 sourceTextOpt: null,
                 textAndVersionSource: newTextSource,
                 lazyChecksums: null);
+        }
+
+        private async Task<TextAndVersion> GetTextAndVersionAsync(CancellationToken cancellationToken)
+        {
+            if (this.textAndVersionSource.TryGetValue(out var textAndVersion))
+            {
+                return textAndVersion;
+            }
+            else
+            {
+                return await this.textAndVersionSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            }
         }
 
         private VersionStamp GetNewerVersion()

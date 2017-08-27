@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal abstract class SourceDelegateMethodSymbol : SourceMethodSymbol
+    internal abstract class SourceDelegateMethodSymbol : SourceMemberMethodSymbol
     {
         private ImmutableArray<ParameterSymbol> _parameters;
         private readonly TypeSymbol _returnType;
@@ -135,6 +136,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraintClauses
+            => ImmutableArray<TypeParameterConstraintClause>.Empty;
+
         public sealed override TypeSymbol ReturnType
         {
             get
@@ -245,7 +249,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this.refKind = refKind;
 
                 SyntaxToken arglistToken;
-                var parameters = ParameterHelpers.MakeParameters(binder, this, syntax.ParameterList, true, out arglistToken, diagnostics, false);
+                var parameters = ParameterHelpers.MakeParameters(
+                    binder, this, syntax.ParameterList, out arglistToken,
+                    allowRefOrOut: true,
+                    allowThis: false,
+                    diagnostics: diagnostics);
+
                 if (arglistToken.Kind() == SyntaxKind.ArgListKeyword)
                 {
                     // This is a parse-time error in the native compiler; it is a semantic analysis error in Roslyn.
@@ -350,12 +359,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 InitializeParameters(parameters.ToImmutableAndFree());
             }
 
-            protected override SourceMethodSymbol BoundAttributesSource
+            protected override SourceMemberMethodSymbol BoundAttributesSource
             {
                 get
                 {
                     // copy return attributes from InvokeMethod
-                    return (SourceMethodSymbol)((SourceNamedTypeSymbol)this.ContainingSymbol).DelegateInvokeMethod;
+                    return (SourceMemberMethodSymbol)((SourceNamedTypeSymbol)this.ContainingSymbol).DelegateInvokeMethod;
                 }
             }
 

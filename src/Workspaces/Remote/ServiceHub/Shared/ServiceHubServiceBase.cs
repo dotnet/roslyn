@@ -5,7 +5,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Execution;
+using Microsoft.VisualStudio.LanguageServices.Remote;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -17,21 +18,34 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         private static int s_instanceId;
 
-        private readonly int _instanceId;
-        private readonly CancellationTokenSource _cancellationTokenSource;
+        private readonly CancellationTokenSource _shutdownCancellationSource;
+
+        protected readonly int InstanceId;
 
         protected readonly JsonRpc Rpc;
         protected readonly TraceSource Logger;
         protected readonly AssetStorage AssetStorage;
-        protected readonly CancellationToken CancellationToken;
+        protected readonly CancellationToken ShutdownCancellationToken;
 
-        private int _sessionId;
-        private Checksum _solutionChecksumOpt;
+        /// <summary>
+        /// PinnedSolutionInfo.ScopeId. scope id of the solution. caller and callee share this id which one
+        /// can use to find matching caller and callee while exchanging data
+        /// 
+        /// PinnedSolutionInfo.FromPrimaryBranch Marks whether the solution checksum it got is for primary branch or not 
+        /// 
+        /// this flag will be passed down to solution controller to help
+        /// solution service's cache policy. for more detail, see <see cref="SolutionService"/>
+        /// 
+        /// PinnedSolutionInfo.SolutionChecksum indicates solution this connection belong to
+        /// </summary>
+        private PinnedSolutionInfo _solutionInfo;
+
         private RoslynServices _lazyRoslynServices;
 
+        [Obsolete("For backward compatibility. this will be removed once all callers moved to new ctor")]
         protected ServiceHubServiceBase(Stream stream, IServiceProvider serviceProvider)
         {
-            _instanceId = Interlocked.Add(ref s_instanceId, 1);
+            InstanceId = Interlocked.Add(ref s_instanceId, 1);
 
             // in unit test, service provider will return asset storage, otherwise, use the default one
             AssetStorage = (AssetStorage)serviceProvider.GetService(typeof(AssetStorage)) ?? AssetStorage.Default;
@@ -39,14 +53,37 @@ namespace Microsoft.CodeAnalysis.Remote
             Logger = (TraceSource)serviceProvider.GetService(typeof(TraceSource));
             Logger.TraceInformation($"{DebugInstanceString} Service instance created");
 
-            _cancellationTokenSource = new CancellationTokenSource();
-            CancellationToken = _cancellationTokenSource.Token;
+            _shutdownCancellationSource = new CancellationTokenSource();
+            ShutdownCancellationToken = _shutdownCancellationSource.Token;
 
             Rpc = JsonRpc.Attach(stream, this);
+            Rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
+
             Rpc.Disconnected += OnRpcDisconnected;
         }
 
-        protected string DebugInstanceString => $"{GetType()} ({_instanceId})";
+        protected ServiceHubServiceBase(IServiceProvider serviceProvider, Stream stream)
+        {
+            InstanceId = Interlocked.Add(ref s_instanceId, 1);
+
+            // in unit test, service provider will return asset storage, otherwise, use the default one
+            AssetStorage = (AssetStorage)serviceProvider.GetService(typeof(AssetStorage)) ?? AssetStorage.Default;
+
+            Logger = (TraceSource)serviceProvider.GetService(typeof(TraceSource));
+            Logger.TraceInformation($"{DebugInstanceString} Service instance created");
+
+            _shutdownCancellationSource = new CancellationTokenSource();
+            ShutdownCancellationToken = _shutdownCancellationSource.Token;
+
+            // due to this issue - https://github.com/dotnet/roslyn/issues/16900#issuecomment-277378950
+            // all sub type must explicitly start JsonRpc once everything is
+            // setup
+            Rpc = new JsonRpc(new JsonRpcMessageHandler(stream, stream), this);
+            Rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
+            Rpc.Disconnected += OnRpcDisconnected;
+        }
+
+        protected string DebugInstanceString => $"{GetType()} ({InstanceId})";
 
         protected RoslynServices RoslynServices
         {
@@ -54,23 +91,24 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 if (_lazyRoslynServices == null)
                 {
-                    _lazyRoslynServices = new RoslynServices(_sessionId, AssetStorage);
+                    _lazyRoslynServices = new RoslynServices(_solutionInfo.ScopeId, AssetStorage);
                 }
 
                 return _lazyRoslynServices;
             }
         }
 
-        protected Task<Solution> GetSolutionAsync()
+        protected Task<Solution> GetSolutionAsync(CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(_solutionChecksumOpt);
-            return RoslynServices.SolutionService.GetSolutionAsync(_solutionChecksumOpt, CancellationToken);
+            Contract.ThrowIfNull(_solutionInfo);
+
+            return GetSolutionAsync(RoslynServices, _solutionInfo, cancellationToken);
         }
 
-        protected Task<Solution> GetSolutionWithSpecificOptionsAsync(OptionSet options)
+        protected Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(_solutionChecksumOpt);
-            return RoslynServices.SolutionService.GetSolutionAsync(_solutionChecksumOpt, options, CancellationToken);
+            var localRoslynService = new RoslynServices(solutionInfo.ScopeId, AssetStorage);
+            return GetSolutionAsync(localRoslynService, solutionInfo, cancellationToken);
         }
 
         protected virtual void Dispose(bool disposing)
@@ -80,23 +118,21 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected void LogError(string message)
         {
-            Logger.TraceEvent(TraceEventType.Error, 0, $"{DebugInstanceString} : " + message);
+            Log(TraceEventType.Error, message);
         }
 
-        public virtual void Initialize(int sessionId, byte[] solutionChecksum)
+        public virtual void Initialize(PinnedSolutionInfo info)
         {
-            // set session related information
-            _sessionId = sessionId;
-
-            if (solutionChecksum != null)
-            {
-                _solutionChecksumOpt = new Checksum(solutionChecksum);
-            }
+            // set pinned solution info
+            _lazyRoslynServices = null;
+            _solutionInfo = info;
         }
 
         public void Dispose()
         {
             Rpc.Dispose();
+            _shutdownCancellationSource.Dispose();
+
             Dispose(false);
 
             Logger.TraceInformation($"{DebugInstanceString} Service instance disposed");
@@ -107,17 +143,31 @@ namespace Microsoft.CodeAnalysis.Remote
             // do nothing
         }
 
+        protected void Log(TraceEventType errorType, string message)
+        {
+            Logger.TraceEvent(errorType, 0, $"{DebugInstanceString} : " + message);
+        }
+
         private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
         {
             // raise cancellation
-            _cancellationTokenSource.Cancel();
+            _shutdownCancellationSource.Cancel();
 
             OnDisconnected(e);
 
             if (e.Reason != DisconnectedReason.Disposed)
             {
-                LogError($"Client stream disconnected unexpectedly: {e.Exception?.GetType().Name} {e.Exception?.Message}");
+                // this is common for us since we close connection forcefully when operation
+                // is cancelled. use Warning level so that by default, it doesn't write out to
+                // servicehub\log files. one can still make this to write logs by opting in.
+                Log(TraceEventType.Warning, $"Client stream disconnected unexpectedly: {e.Exception?.GetType().Name} {e.Exception?.Message}");
             }
+        }
+
+        private static Task<Solution> GetSolutionAsync(RoslynServices roslynService, PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
+        {
+            var solutionController = (ISolutionController)roslynService.SolutionService;
+            return solutionController.GetSolutionAsync(solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, cancellationToken);
         }
     }
 }

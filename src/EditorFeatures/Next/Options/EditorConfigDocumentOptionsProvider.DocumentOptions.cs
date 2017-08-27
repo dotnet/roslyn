@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 _errorLogger = errorLogger;
             }
 
-            public bool TryGetDocumentOption(Document document, OptionKey option, out object value)
+            public bool TryGetDocumentOption(Document document, OptionKey option, OptionSet underlyingOptions, out object value)
             {
-                var editorConfigPersistence = option.Option.StorageLocations.OfType<EditorConfigStorageLocation>().SingleOrDefault();
+                var editorConfigPersistence = option.Option.StorageLocations.OfType<IEditorConfigStorageLocation>().SingleOrDefault();
                 if (editorConfigPersistence == null)
                 {
                     value = null;
@@ -32,7 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 var allRawConventions = _codingConventionSnapshot.AllRawConventions;
                 try
                 {
-                    return editorConfigPersistence.TryParseReadonlyDictionary(allRawConventions, option.Option.Type, out value);
+                    var underlyingOption = underlyingOptions.GetOption(option);
+                    return editorConfigPersistence.TryGetOption(underlyingOption, allRawConventions, option.Option.Type, out value);
                 }
                 catch (Exception ex)
                 {

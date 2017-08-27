@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             Contract.ThrowIfTrue(startToken.RawKind == 0);
             Contract.ThrowIfTrue(endToken.RawKind == 0);
 
-            this.BaseToken = default(SyntaxToken);
+            this.BaseToken = default;
             this.TextSpan = textSpan;
 
             this.Option = option;

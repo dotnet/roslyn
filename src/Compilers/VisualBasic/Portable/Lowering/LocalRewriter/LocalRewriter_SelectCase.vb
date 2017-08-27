@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -71,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If instrument Then
                 ' Add select case begin sequence point
-                Dim prologue As BoundStatement = _instrumenter.CreateSelectStatementPrologue(node)
+                Dim prologue As BoundStatement = _instrumenterOpt.CreateSelectStatementPrologue(node)
                 If prologue IsNot Nothing Then
                     statementBuilder.Add(prologue)
                 End If
@@ -139,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim epilogue As BoundStatement = endSelectResumeLabel
             If instrument Then
                 ' Add End Select sequence point
-                epilogue = _instrumenter.InstrumentSelectStatementEpilogue(node, epilogue)
+                epilogue = _instrumenterOpt.InstrumentSelectStatementEpilogue(node, epilogue)
             End If
 
             If epilogue IsNot Nothing Then
@@ -289,14 +290,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Case Else statement needs a sequence point
                 If instrument Then
-                    rewrittenStatement = _instrumenter.InstrumentCaseElseBlock(curCaseBlock, rewrittenBody)
+                    rewrittenStatement = _instrumenterOpt.InstrumentCaseElseBlock(curCaseBlock, rewrittenBody)
                 Else
                     rewrittenStatement = rewrittenBody
                 End If
             Else
                 Debug.Assert(curCaseBlock.Syntax.Kind = SyntaxKind.CaseBlock)
                 If instrument Then
-                    rewrittenCaseCondition = _instrumenter.InstrumentSelectStatementCaseCondition(selectStatement, rewrittenCaseCondition, _currentMethodOrLambda, lazyConditionalBranchLocal)
+                    rewrittenCaseCondition = _instrumenterOpt.InstrumentSelectStatementCaseCondition(selectStatement, rewrittenCaseCondition, _currentMethodOrLambda, lazyConditionalBranchLocal)
                 End If
 
                 ' EnC: We need to insert a hidden sequence point to handle function remapping in case 

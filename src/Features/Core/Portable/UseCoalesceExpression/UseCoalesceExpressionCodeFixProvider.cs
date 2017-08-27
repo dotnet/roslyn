@@ -34,22 +34,29 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             return SpecializedTasks.EmptyTask;
         }
 
-        protected override Task FixAllAsync(
+        protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var expressionTypeOpt = semanticModel.Compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                ApplyEdit(editor, syntaxFacts, diagnostic);
+                ApplyEdit(
+                    editor, semanticModel, expressionTypeOpt,
+                    syntaxFacts, semanticFacts,
+                    diagnostic, cancellationToken);
             }
-
-            return SpecializedTasks.EmptyTask;
         }
 
-        private static void ApplyEdit(SyntaxEditor editor, ISyntaxFactsService syntaxFacts, Diagnostic diagnostic)
+        private static void ApplyEdit(
+            SyntaxEditor editor, SemanticModel semanticModel, INamedTypeSymbol expressionTypeOpt,
+            ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts,
+            Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var root = editor.OriginalRoot;
             var conditionalExpression = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
@@ -66,8 +73,15 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                         c, out var currentCondition, out var currentWhenTrue, out var currentWhenFalse);
 
                     var coalesceExpression = GetCoalesceExpression(
-                        syntaxFacts, g, whenPart, whenTrue, conditionalPartLow, 
+                        syntaxFacts, g, whenPart, whenTrue, conditionalPartLow,
                         currentWhenTrue, currentWhenFalse);
+
+                    if (semanticFacts.IsInExpressionTree(
+                            semanticModel, conditionalExpression, expressionTypeOpt, cancellationToken))
+                    {
+                        coalesceExpression = coalesceExpression.WithAdditionalAnnotations(
+                            WarningAnnotation.Create(FeaturesResources.Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime));
+                    }
 
                     return coalesceExpression.WithAdditionalAnnotations(Formatter.Annotation);
                 });

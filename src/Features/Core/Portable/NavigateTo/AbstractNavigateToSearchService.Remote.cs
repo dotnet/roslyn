@@ -1,10 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Remote;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
@@ -15,16 +19,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             var solution = document.Project.Solution;
 
-            using (var session = await client.CreateCodeAnalysisServiceSessionAsync(
-                solution, cancellationToken).ConfigureAwait(false))
-            {
-                var serializableResults = await session.InvokeAsync<SerializableNavigateToSearchResult[]>(
-                    nameof(IRemoteNavigateToSearchService.SearchDocumentAsync),
-                    SerializableDocumentId.Dehydrate(document),
-                    searchPattern).ConfigureAwait(false);
+            var serializableResults = await client.TryRunCodeAnalysisRemoteAsync<IList<SerializableNavigateToSearchResult>>(
+                solution, nameof(IRemoteNavigateToSearchService.SearchDocumentAsync),
+                new object[] { document.Id, searchPattern }, cancellationToken).ConfigureAwait(false);
 
-                return serializableResults.Select(r => r.Rehydrate(solution)).ToImmutableArray();
-            }
+            return serializableResults.SelectAsArray(r => r.Rehydrate(solution));
         }
 
         private async Task<ImmutableArray<INavigateToSearchResult>> SearchProjectInRemoteProcessAsync(
@@ -32,27 +31,22 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             var solution = project.Solution;
 
-            using (var session = await client.CreateCodeAnalysisServiceSessionAsync(
-                solution, cancellationToken).ConfigureAwait(false))
-            {
-                var serializableResults = await session.InvokeAsync<SerializableNavigateToSearchResult[]>(
-                    nameof(IRemoteNavigateToSearchService.SearchProjectAsync),
-                    SerializableProjectId.Dehydrate(project.Id),
-                    searchPattern).ConfigureAwait(false);
+            var serializableResults = await client.TryRunCodeAnalysisRemoteAsync<IList<SerializableNavigateToSearchResult>>(
+                solution, nameof(IRemoteNavigateToSearchService.SearchProjectAsync),
+                new object[] { project.Id, searchPattern }, cancellationToken).ConfigureAwait(false);
 
-                return serializableResults.Select(r => r.Rehydrate(solution)).ToImmutableArray();
-            }
+            return serializableResults.SelectAsArray(r => r.Rehydrate(solution));
         }
 
-        private static async Task<RemoteHostClient> GetRemoteHostClientAsync(Project project, CancellationToken cancellationToken)
+        private static async Task<RemoteHostClient> TryGetRemoteHostClientAsync(Project project, CancellationToken cancellationToken)
         {
-            var outOfProcessAllowed = project.Solution.Workspace.Options.GetOption(NavigateToOptions.OutOfProcessAllowed);
-            if (!outOfProcessAllowed)
+            // This service is only defined for C# and VB, but we'll be a bit paranoid.
+            if (!RemoteSupportedLanguages.IsSupported(project.Language))
             {
                 return null;
             }
 
-            return await project.Solution.Workspace.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            return await project.Solution.Workspace.TryGetRemoteHostClientAsync(RemoteFeatureOptions.NavigateToEnabled, cancellationToken).ConfigureAwait(false);
         }
     }
 }

@@ -1,10 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.GenerateType;
@@ -507,45 +508,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
 
         private Project _previouslyPopulatedProject = null;
         private List<DocumentSelectItem> _previouslyPopulatedDocumentList = null;
-        public IEnumerable<DocumentSelectItem> DocumentList
+
+        public IEnumerable<DocumentSelectItem> GetDocumentList(CancellationToken cancellationToken)
         {
-            get
+            if (_previouslyPopulatedProject == _selectedProject)
             {
-                if (_previouslyPopulatedProject == _selectedProject)
-                {
-                    return _previouslyPopulatedDocumentList;
-                }
-
-                _previouslyPopulatedProject = _selectedProject;
-                _previouslyPopulatedDocumentList = new List<DocumentSelectItem>();
-
-                // Check for the current project
-                if (_selectedProject == _document.Project)
-                {
-                    // populate the current document
-                    _previouslyPopulatedDocumentList.Add(new DocumentSelectItem(_document, "<Current File>"));
-
-                    // Set the initial selected Document
-                    this.SelectedDocument = _document;
-
-                    // Populate the rest of the documents for the project
-                    _previouslyPopulatedDocumentList.AddRange(_document.Project.Documents
-                        .Where(d => d != _document && !d.IsGeneratedCode())
-                        .Select(d => new DocumentSelectItem(d)));
-                }
-                else
-                {
-                    _previouslyPopulatedDocumentList.AddRange(_selectedProject.Documents
-                        .Where(d => !d.IsGeneratedCode())
-                        .Select(d => new DocumentSelectItem(d)));
-
-                    this.SelectedDocument = _selectedProject.Documents.FirstOrDefault();
-                }
-
-                this.IsExistingFileEnabled = _previouslyPopulatedDocumentList.Count == 0 ? false : true;
-                this.IsNewFile = this.IsExistingFileEnabled ? this.IsNewFile : true;
                 return _previouslyPopulatedDocumentList;
             }
+
+            _previouslyPopulatedProject = _selectedProject;
+            _previouslyPopulatedDocumentList = new List<DocumentSelectItem>();
+
+            // Check for the current project
+            if (_selectedProject == _document.Project)
+            {
+                // populate the current document
+                _previouslyPopulatedDocumentList.Add(new DocumentSelectItem(_document, "<Current File>"));
+
+                // Set the initial selected Document
+                this.SelectedDocument = _document;
+
+                // Populate the rest of the documents for the project
+                _previouslyPopulatedDocumentList.AddRange(_document.Project.Documents
+                    .Where(d => d != _document && !d.IsGeneratedCode(cancellationToken))
+                    .Select(d => new DocumentSelectItem(d)));
+            }
+            else
+            {
+                _previouslyPopulatedDocumentList.AddRange(_selectedProject.Documents
+                    .Where(d => !d.IsGeneratedCode(cancellationToken))
+                    .Select(d => new DocumentSelectItem(d)));
+
+                this.SelectedDocument = _selectedProject.Documents.FirstOrDefault();
+            }
+
+            this.IsExistingFileEnabled = _previouslyPopulatedDocumentList.Count == 0 ? false : true;
+            this.IsNewFile = this.IsExistingFileEnabled ? this.IsNewFile : true;
+            return _previouslyPopulatedDocumentList;
         }
 
         private bool _isExistingFileEnabled = true;

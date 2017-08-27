@@ -24,19 +24,13 @@ namespace Microsoft.CodeAnalysis
             _candidateReason = candidateReason;
         }
 
-        public ISymbol Symbol
-        {
-            get { return _symbol; }
-        }
+        public ISymbol Symbol => _symbol;
 
         public ImmutableArray<ISymbol> CandidateSymbols
         {
             get { return _candidateSymbols.NullToEmpty(); }
         }
 
-        public CandidateReason CandidateReason
-        {
-            get { return _candidateReason; }
-        }
+        public CandidateReason CandidateReason => _candidateReason;
     }
 }

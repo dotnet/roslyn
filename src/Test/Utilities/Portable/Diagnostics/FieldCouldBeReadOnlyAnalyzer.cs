@@ -38,9 +38,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                      compilationContext.RegisterOperationBlockStartAction(
                          (operationBlockContext) =>
                          {
-                             IMethodSymbol containingMethod = operationBlockContext.OwningSymbol as IMethodSymbol;
 
-                             if (containingMethod != null)
+                             if (operationBlockContext.OwningSymbol is IMethodSymbol containingMethod)
                              {
                                  bool inConstructor = containingMethod.MethodKind == MethodKind.Constructor;
                                  ITypeSymbol staticConstructorType = containingMethod.MethodKind == MethodKind.StaticConstructor ? containingMethod.ContainingType : null;
@@ -59,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                      (operationContext) =>
                                      {
                                          IInvocationExpression invocation = (IInvocationExpression)operationContext.Operation;
-                                         foreach (IArgument argument in invocation.ArgumentsInParameterOrder)
+                                         foreach (IArgument argument in invocation.ArgumentsInEvaluationOrder)
                                          {
                                              if (argument.Parameter.RefKind == RefKind.Out || argument.Parameter.RefKind == RefKind.Ref)
                                              {

@@ -126,13 +126,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             public static readonly NullReporter Instance = new NullReporter();
 
-            public bool InProgress
-            {
-                get
-                {
-                    return false;
-                }
-            }
+            public bool InProgress => false;
 
             public event EventHandler Started
             {

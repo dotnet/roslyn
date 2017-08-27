@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -41,17 +41,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
         {
             int elementIndex = -1;
 
-            if (index is string)
+            if (index is string elementName)
             {
-                var elementName = (string)index;
                 if (TryGetItemByName(elementName, out element))
                 {
                     return VSConstants.S_OK;
                 }
             }
-            else if (index is int)
+            else if (index is int i)
             {
-                elementIndex = (int)index - 1;
+                elementIndex = i - 1;
                 if (elementIndex >= 0 && TryGetItemByIndex(elementIndex, out element))
                 {
                     return VSConstants.S_OK;

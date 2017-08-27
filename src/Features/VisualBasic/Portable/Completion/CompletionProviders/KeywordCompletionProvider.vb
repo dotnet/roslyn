@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports System.Collections.Immutable
@@ -38,8 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 description:=keyword.DescriptionFactory(CancellationToken.None),
                 glyph:=Glyph.Keyword,
                 tags:=s_Tags,
-                matchPriority:=keyword.MatchPriority,
-                rules:=rules)
+                rules:=rules.WithMatchPriority(keyword.MatchPriority))
         End Function
 
         Private Shared Function GetKeywordRecommenders() As ImmutableArray(Of IKeywordRecommender(Of VisualBasicSyntaxContext))

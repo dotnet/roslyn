@@ -5,12 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using Microsoft.CodeAnalysis.Shared.Options;
-using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.VisualStudio.Composition;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
@@ -24,8 +21,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             var types = new[]
             {
                 // ROSLYN
-                typeof(Microsoft.CodeAnalysis.Editor.Implementation.Workspaces.WorkspaceTaskSchedulerFactoryFactory),
-                typeof(Microsoft.CodeAnalysis.Host.WorkspaceTaskSchedulerFactoryFactory),
+                typeof(Microsoft.CodeAnalysis.Editor.Implementation.Workspaces.EditorTaskSchedulerFactory),
+                typeof(Microsoft.CodeAnalysis.Host.WorkspaceTaskSchedulerFactory),
                 typeof(Microsoft.CodeAnalysis.Formatting.Rules.DefaultFormattingRuleFactoryServiceFactory),
                 typeof(Microsoft.CodeAnalysis.Host.PersistentStorageServiceFactory),
                 typeof(Microsoft.CodeAnalysis.Text.Implementation.TextBufferFactoryService.TextBufferCloneServiceFactory),
@@ -36,13 +33,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(Solution), // ServicesCore
                 typeof(Microsoft.CodeAnalysis.Options.GlobalOptionService),
                 typeof(Microsoft.CodeAnalysis.Options.OptionServiceFactory),
-                typeof(Microsoft.CodeAnalysis.Options.Providers.ExportedOptionProvider),
                 typeof(Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent.SmartIndentProvider),
                 typeof(Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification.ForegroundNotificationService),
                 typeof(Microsoft.CodeAnalysis.Editor.UnitTests.TestOptionsServiceFactory),
-                typeof(SymbolMapping.SymbolMappingServiceFactory),
+                typeof(DefaultSymbolMappingService),
                 typeof(TestWaitIndicator),
-                typeof(TestExtensionErrorHandler)
+                typeof(TestExtensionErrorHandler),
+                typeof(TestExportJoinableTaskContext) // Needed by editor components, but not actually exported anywhere else
             };
 
             return types//.Concat(TestHelpers.GetAllTypesWithStaticFieldsImplementingType(typeof(InternalSolutionCrawlerOptions).Assembly, typeof(Microsoft.CodeAnalysis.Options.IOption)))

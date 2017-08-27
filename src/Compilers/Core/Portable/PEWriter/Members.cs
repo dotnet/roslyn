@@ -3,13 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
-using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
@@ -76,7 +75,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// A list of methods that are associated with the event.
         /// </summary>
-        IEnumerable<IMethodReference> Accessors { get; }
+        IEnumerable<IMethodReference> GetAccessors(EmitContext context);
 
         /// <summary>
         /// The method used to add a handler to the event.
@@ -119,7 +118,7 @@ namespace Microsoft.Cci
         /// The compile time value of the field. This value should be used directly in IL, rather than a reference to the field.
         /// If the field does not have a valid compile time value, Dummy.Constant is returned.
         /// </summary>
-        IMetadataConstant GetCompileTimeValue(EmitContext context);
+        MetadataConstant GetCompileTimeValue(EmitContext context);
 
         /// <summary>
         /// Mapped field data, or null if the field is not mapped.
@@ -229,7 +228,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The compile time value of the definition, if it is a local constant.
         /// </summary>
-        IMetadataConstant CompileTimeValue
+        MetadataConstant CompileTimeValue
         {
             get;
         }
@@ -273,12 +272,12 @@ namespace Microsoft.Cci
         /// <summary>
         /// The synthesized dynamic attributes of the local definition if any, or empty.
         /// </summary>
-        ImmutableArray<TypedConstant> DynamicTransformFlags { get; }
+        ImmutableArray<bool> DynamicTransformFlags { get; }
 
         /// <summary>
         /// The tuple element names of the local definition if any, or empty.
         /// </summary>
-        ImmutableArray<TypedConstant> TupleElementNames { get; }
+        ImmutableArray<string> TupleElementNames { get; }
 
         /// <summary>
         /// The type of the local.
@@ -311,69 +310,10 @@ namespace Microsoft.Cci
     }
 
     /// <summary>
-    /// Represents additional info needed by async method implementation methods 
-    /// (MoveNext() methods) to properly emit necessary PDB data for async debugging.
-    /// </summary>
-    internal class AsyncMethodBodyDebugInfo
-    {
-        /// <summary>
-        ///  Original async method transformed into MoveNext() 
-        /// </summary>
-        public readonly IMethodDefinition KickoffMethod;
-
-        /// <summary> 
-        /// IL offset of catch handler or -1 
-        /// </summary>
-        public readonly int CatchHandlerOffset;
-
-        /// <summary> 
-        /// Set of IL offsets where await operators yield control
-        ///  </summary>
-        public readonly ImmutableArray<int> YieldOffsets;
-
-        /// <summary> 
-        /// Set of IL offsets where await operators are to be resumed 
-        /// </summary>
-        public readonly ImmutableArray<int> ResumeOffsets;
-
-        public AsyncMethodBodyDebugInfo(
-            IMethodDefinition kickoffMethod,
-            int catchHandlerOffset,
-            ImmutableArray<int> yieldOffsets,
-            ImmutableArray<int> resumeOffsets)
-        {
-            Debug.Assert(!yieldOffsets.IsDefault && !resumeOffsets.IsDefault && yieldOffsets.Length == resumeOffsets.Length);
-
-            this.KickoffMethod = kickoffMethod;
-            this.CatchHandlerOffset = catchHandlerOffset;
-            this.YieldOffsets = yieldOffsets;
-            this.ResumeOffsets = resumeOffsets;
-        }
-    }
-
-    /// <summary>
     /// A metadata (IL) level representation of the body of a method or of a property/event accessor.
     /// </summary>
     internal interface IMethodBody
     {
-        /// <summary>
-        /// Calls the visitor.Visit(T) method where T is the most derived object model node interface type implemented by the concrete type
-        /// of the object implementing IDoubleDispatcher. The dispatch method does not invoke Dispatch on any child objects. If child traversal
-        /// is desired, the implementations of the Visit methods should do the subsequent dispatching.
-        /// </summary>
-        void Dispatch(MetadataVisitor visitor);
-
-        ///// <summary>
-        ///// Returns the IL operation that is located at the given offset. If no operation exists the given offset, Dummy.Operation is returned.
-        ///// The offset of the operation that follows the operation at the given offset is returned as the value of the second parameter.
-        ///// If the given offset is invalid, or is the offset of the last operation in the method body, offsetOfNextOperation will be set to -1.
-        ///// </summary>
-        ///// <param name="offset">The offset of the operation to be returned by this method.</param>
-        ///// <param name="offsetOfNextOperation">The offset of the operation that follows the one returned by this method. If no such operation exists, the value is -1.</param>
-        // IOperation GetOperationAt(int offset, out int offsetOfNextOperation);
-        //// ^ requires 0 <= offset;
-        //// ^ ensures offsetOfNextOperation == -1 || offsetOfNextOperation > offset;
-
         /// <summary>
         /// A list exception data within the method body IL.
         /// </summary>
@@ -400,9 +340,9 @@ namespace Microsoft.Cci
         IMethodDefinition MethodDefinition { get; }
 
         /// <summary>
-        /// Debugging information associated with an async method to support EE.
+        /// Debugging information associated with a MoveNext method of a state machine.
         /// </summary>
-        AsyncMethodBodyDebugInfo AsyncDebugInfo { get; }
+        StateMachineMoveNextBodyDebugInfo MoveNextBodyInfo { get; }
 
         /// <summary>
         /// The maximum number of elements on the evaluation stack during the execution of the method.
@@ -410,8 +350,7 @@ namespace Microsoft.Cci
         ushort MaxStack { get; }
 
         ImmutableArray<byte> IL { get; }
-        bool HasAnySequencePoints { get; }
-        void GetSequencePoints(ArrayBuilder<SequencePoint> builder);
+        ImmutableArray<SequencePoint> SequencePoints { get; }
 
         /// <summary>
         /// Returns true if there is at least one dynamic local within the MethodBody
@@ -654,7 +593,7 @@ namespace Microsoft.Cci
         /// A compile time constant value that should be supplied as the corresponding argument value by callers that do not explicitly specify an argument value for this parameter.
         /// Null if the parameter doesn't have default value.
         /// </summary>
-        IMetadataConstant GetDefaultValue(EmitContext context);
+        MetadataConstant GetDefaultValue(EmitContext context);
 
         /// <summary>
         /// True if the parameter has a default value that should be supplied as the argument value by a caller for which the argument value has not been explicitly specified.
@@ -713,12 +652,12 @@ namespace Microsoft.Cci
         /// <summary>
         /// A list of methods that are associated with the property.
         /// </summary>
-        IEnumerable<IMethodReference> Accessors { get; }
+        IEnumerable<IMethodReference> GetAccessors(EmitContext context);
 
         /// <summary>
         /// A compile time constant value that provides the default value for the property. (Who uses this and why?)
         /// </summary>
-        IMetadataConstant DefaultValue
+        MetadataConstant DefaultValue
         {
             get;
             // ^ requires this.HasDefaultValue;
@@ -977,6 +916,33 @@ namespace Microsoft.Cci
 
             return !methodDef.IsAbstract && !methodDef.IsExternal &&
                 (methodDef.ContainingTypeDefinition == null || !methodDef.ContainingTypeDefinition.IsComObject);
+        }
+
+        /// <summary>
+        /// When emitting ref assemblies, some members will not be included.
+        /// </summary>
+        public static bool ShouldInclude(this ITypeDefinitionMember member, EmitContext context)
+        {
+            if (context.IncludePrivateMembers)
+            {
+                return true;
+            }
+
+            var method = member as IMethodDefinition;
+            if (method != null && method.IsVirtual)
+            {
+                return true;
+            }
+
+            switch (member.Visibility)
+            {
+                case TypeMemberVisibility.Private:
+                    return context.IncludePrivateMembers;
+                case TypeMemberVisibility.Assembly:
+                case TypeMemberVisibility.FamilyAndAssembly:
+                    return context.IncludePrivateMembers || context.Module.SourceAssemblyOpt?.InternalsAreVisible == true;
+            }
+            return true;
         }
     }
 }

@@ -330,6 +330,24 @@
   <data name="PdbStreamUnexpectedWhenEmbedding" xml:space="preserve">
     <value>PDB stream should not be given when embedding PDB into the PE stream.</value>
   </data>
+  <data name="PdbStreamUnexpectedWhenEmittingMetadataOnly" xml:space="preserve">
+    <value>PDB stream should not be given when emitting metadata only.</value>
+  </data>
+  <data name="MetadataPeStreamUnexpectedWhenEmittingMetadataOnly" xml:space="preserve">
+    <value>Metadata PE stream should not be given when emitting metadata only.</value>
+  </data>
+  <data name="IncludingPrivateMembersUnexpectedWhenEmittingToMetadataPeStream" xml:space="preserve">
+    <value>Including private members should not be used when emitting to the secondary assembly output.</value>
+  </data>
+  <data name="MustIncludePrivateMembersUnlessRefAssembly" xml:space="preserve">
+    <value>Must include private members unless emitting a ref assembly.</value>
+  </data>
+  <data name="EmbeddingPdbUnexpectedWhenEmittingMetadata" xml:space="preserve">
+    <value>Embedding PDB is not allowed when emitting metadata.</value>
+  </data>
+  <data name="CannotTargetNetModuleWhenEmittingRefAssembly" xml:space="preserve">
+    <value>Cannot target net module when emitting ref assembly.</value>
+  </data>
   <data name="InvalidHash" xml:space="preserve">
     <value>Invalid hash.</value>
   </data>
@@ -465,10 +483,13 @@
     <value>Invalid data at offset {0}: {1}{2}*{3}{4}</value>
   </data>
   <data name="SymWriterNotDeterministic" xml:space="preserve">
-    <value>Windows PDB writer doesn't support deterministic compilation -- could not find Microsoft.DiaSymReader.Native.{0}.dll</value>
+    <value>Windows PDB writer doesn't support deterministic compilation: '{0}'</value>
   </data>
-  <data name="SymWriterNotAvailable" xml:space="preserve">
-    <value>Windows PDB writer is not available -- could not find Microsoft.DiaSymReader.Native.{0}.dll</value>
+  <data name="SymWriterOlderVersionThanRequired" xml:space="preserve">
+    <value>The version of Windows PDB writer is older than required: '{0}'</value>
+  </data>
+  <data name="SymWriterDoesNotSupportSourceLink" xml:space="preserve">
+    <value>Windows PDB writer doesn't support SourceLink feature: '{0}'</value>
   </data>
   <data name="RuleSetBadAttributeValue" xml:space="preserve">
     <value>The attribute {0} has an invalid value of {1}.</value>
@@ -561,9 +582,6 @@
   <data name="IOperationFeatureDisabled" xml:space="preserve">
     <value>Feature 'IOperation' is disabled.</value>
   </data>
-  <data name="SourceLinkRequiresPortablePdb" xml:space="preserve">
-    <value>Source Link embedding is only supported when emitting Portable PDB.</value>
-  </data>
   <data name="UnrecognizedResourceFileFormat" xml:space="preserve">
     <value>Unrecognized resource file format.</value>
   </data>
@@ -573,8 +591,8 @@
   <data name="StreamIsTooLong" xml:space="preserve">
     <value>Stream is too long.</value>
   </data>
-  <data name="EmbeddedTextsRequirePortablePdb" xml:space="preserve">
-    <value>Embedded texts are only supported when emitting Portable PDB.</value>
+  <data name="EmbeddedTextsRequirePdb" xml:space="preserve">
+    <value>Embedded texts are only supported when emitting a PDB.</value>
   </data>
   <data name="TheStreamCannotBeWrittenTo" xml:space="preserve">
     <value>The stream cannot be written to.</value>
@@ -593,5 +611,8 @@
   </data>
   <data name="Stream_contains_invalid_data" xml:space="preserve">
     <value>Stream contains invalid data</value>
+  </data>
+  <data name="InvalidDiagnosticSpanReported" xml:space="preserve">
+    <value>Reported diagnostic '{0}' has a source location '{1}' in file '{2}', which is outside of the given file.</value>
   </data>
 </root>

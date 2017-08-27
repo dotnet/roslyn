@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit.NoPia;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
@@ -19,7 +20,6 @@ namespace Microsoft.CodeAnalysis.Emit
     {
         internal readonly DebugDocumentsBuilder DebugDocumentsBuilder;
         internal readonly IEnumerable<ResourceDescription> ManifestResources;
-        internal readonly EmitOptions EmitOptions;
         internal readonly Cci.ModulePropertiesForSerialization SerializationProperties;
         internal readonly OutputKind OutputKind;
         internal IEnumerable<Cci.IWin32Resource> Win32Resources;
@@ -41,6 +41,8 @@ namespace Microsoft.CodeAnalysis.Emit
         // Only set when running tests to allow realized IL for a given method to be looked up by method.
         internal ConcurrentDictionary<IMethodSymbol, CompilationTestData.MethodData> TestData { get; private set; }
 
+        internal readonly DebugInformationFormat DebugInformationFormat;
+
         public CommonPEModuleBuilder(
             IEnumerable<ResourceDescription> manifestResources,
             EmitOptions emitOptions,
@@ -49,16 +51,15 @@ namespace Microsoft.CodeAnalysis.Emit
             Compilation compilation)
         {
             Debug.Assert(manifestResources != null);
-            Debug.Assert(emitOptions != null);
             Debug.Assert(serializationProperties != null);
             Debug.Assert(compilation != null);
 
-            EmitOptions = emitOptions;
             ManifestResources = manifestResources;
             DebugDocumentsBuilder = new DebugDocumentsBuilder(compilation.Options.SourceReferenceResolver, compilation.IsCaseSensitive);
             OutputKind = outputKind;
             SerializationProperties = serializationProperties;
             _methodBodyMap = new ConcurrentDictionary<IMethodSymbol, Cci.IMethodBody>(ReferenceEqualityComparer.Instance);
+            DebugInformationFormat = emitOptions.DebugInformationFormat;
         }
 
         /// <summary>
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal abstract Cci.ITypeReference Translate(ITypeSymbol symbol, SyntaxNode syntaxOpt, DiagnosticBag diagnostics);
         internal abstract Cci.IMethodReference Translate(IMethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration);
         internal abstract bool SupportsPrivateImplClass { get; }
-        internal abstract ImmutableArray<Cci.INamespaceTypeDefinition> GetAnonymousTypes();
+        internal abstract ImmutableArray<Cci.INamespaceTypeDefinition> GetAnonymousTypes(EmitContext context);
         internal abstract Compilation CommonCompilation { get; }
         internal abstract IModuleSymbol CommonSourceModule { get; }
         internal abstract IAssemblySymbol CommonCorLibrary { get; }
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal abstract ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> GetSynthesizedMembers();
         internal abstract CommonEmbeddedTypesManager CommonEmbeddedTypesManagerOpt { get; }
         internal abstract Cci.ITypeReference EncTranslateType(ITypeSymbol type, DiagnosticBag diagnostics);
-        public abstract IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes();
+        public abstract IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes(bool isRefAssembly);
         public abstract IEnumerable<Cci.SecurityAttribute> GetSourceAssemblySecurityAttributes();
         public abstract IEnumerable<Cci.ICustomAttribute> GetSourceModuleAttributes();
         internal abstract Cci.ICustomAttribute SynthesizeAttribute(WellKnownMember attributeConstructor);
@@ -247,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Emit
             uint token = _referencesInILMap.GetOrAddTokenFor(symbol, out added);
             if (added)
             {
-                ReferenceDependencyWalker.VisitReference(symbol, new EmitContext(this, syntaxNode, diagnostics));
+                ReferenceDependencyWalker.VisitReference(symbol, new EmitContext(this, syntaxNode, diagnostics, metadataOnly: false, includePrivateMembers: true));
             }
             return token;
         }
@@ -499,7 +500,7 @@ namespace Microsoft.CodeAnalysis.Emit
             VisitTopLevelType(noPiaIndexer, _rootModuleType);
             yield return _rootModuleType;
 
-            foreach (var type in this.GetAnonymousTypes())
+            foreach (var type in this.GetAnonymousTypes(context))
             {
                 AddTopLevelType(names, type);
                 VisitTopLevelType(noPiaIndexer, type);

@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -122,11 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (Interlocked.CompareExchange(ref _fixedSize, size, FixedSizeNotInitialized) == FixedSizeNotInitialized)
                     {
                         this.AddDeclarationDiagnostics(diagnostics);
-                        if (state.NotePartComplete(CompletionPart.FixedSize))
-                        {
-                            // FixedSize is the last completion part for fields.
-                            DeclaringCompilation.SymbolDeclaredEvent(this);
-                        }
+                        state.NotePartComplete(CompletionPart.FixedSize);
                     }
 
                     diagnostics.Free();

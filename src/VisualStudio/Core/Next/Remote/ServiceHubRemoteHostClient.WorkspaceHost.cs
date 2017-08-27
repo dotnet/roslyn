@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
@@ -16,7 +17,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private class WorkspaceHost : ForegroundThreadAffinitizedObject, IVisualStudioWorkspaceHost, IVisualStudioWorkingFolder
         {
             private readonly VisualStudioWorkspaceImpl _workspace;
-            private readonly RemoteHostClient _client;
+
+            /// <summary>
+            /// The current session we have open to the remote host.  Only accessible from the
+            /// UI thread.
+            /// </summary>
+            private readonly KeepAliveSession _session;
 
             // We have to capture the solution ID because otherwise we won't know
             // what is is when we get told about OnSolutionRemoved.  If we try
@@ -24,52 +30,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // gone.
             private SolutionId _currentSolutionId;
 
-            public WorkspaceHost(
-                VisualStudioWorkspaceImpl workspace,
-                RemoteHostClient client)
+            public WorkspaceHost(VisualStudioWorkspaceImpl workspace, KeepAliveSession session)
             {
                 _workspace = workspace;
-                _client = client;
                 _currentSolutionId = workspace.CurrentSolution.Id;
-            }
-
-            public Task InitializeAsync()
-            {
-                // Ensure that we populate the remote service with the initial state of
-                // the workspace's solution.
-                return RegisterPrimarySolutionAsync();
+                _session = session;
             }
 
             public void OnAfterWorkingFolderChange()
             {
                 this.AssertIsForeground();
-                RegisterPrimarySolutionAsync().Wait();
+                RegisterPrimarySolution();
             }
 
             public void OnSolutionAdded(SolutionInfo solutionInfo)
             {
                 this.AssertIsForeground();
-                RegisterPrimarySolutionAsync().Wait();
+                RegisterPrimarySolution();
             }
 
-            private async Task RegisterPrimarySolutionAsync()
+            private void RegisterPrimarySolution()
             {
+                this.AssertIsForeground();
                 _currentSolutionId = _workspace.CurrentSolution.Id;
                 var solutionId = _currentSolutionId;
 
-                using (var session = await _client.CreateServiceSessionAsync(WellKnownRemoteHostServices.RemoteHostService, _workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false))
-                {
-                    await session.InvokeAsync(
-                        WellKnownRemoteHostServices.RemoteHostService_PersistentStorageService_RegisterPrimarySolutionId,
-                        solutionId.Id.ToByteArray(),
-                        solutionId.DebugName).ConfigureAwait(false);
+                var storageLocation = _workspace.DeferredState?.ProjectTracker.GetWorkingFolderPath(_workspace.CurrentSolution);
 
-                    await session.InvokeAsync(
-                        WellKnownRemoteHostServices.RemoteHostService_PersistentStorageService_UpdateSolutionIdStorageLocation,
-                        solutionId.Id.ToByteArray(),
-                        solutionId.DebugName,
-                        _workspace.ProjectTracker.GetWorkingFolderPath(_workspace.CurrentSolution)).ConfigureAwait(false);
-                }
+                _session.TryInvokeAsync(
+                    nameof(IRemoteHostService.RegisterPrimarySolutionId),
+                    new object[] { solutionId, storageLocation }, CancellationToken.None).Wait(CancellationToken.None);
             }
 
             public void OnBeforeWorkingFolderChange()
@@ -79,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _currentSolutionId = _workspace.CurrentSolution.Id;
                 var solutionId = _currentSolutionId;
 
-                UnregisterPrimarySolutionAsync(solutionId, synchronousShutdown: true).Wait();
+                UnregisterPrimarySolution(solutionId, synchronousShutdown: true);
             }
 
             public void OnSolutionRemoved()
@@ -91,21 +81,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var solutionId = _currentSolutionId;
                 _currentSolutionId = null;
 
-                UnregisterPrimarySolutionAsync(solutionId, synchronousShutdown: false).Wait();
+                UnregisterPrimarySolution(solutionId, synchronousShutdown: false);
             }
 
-            private async Task UnregisterPrimarySolutionAsync(
+            private void UnregisterPrimarySolution(
                 SolutionId solutionId, bool synchronousShutdown)
             {
-                using (var session = await _client.CreateServiceSessionAsync(WellKnownRemoteHostServices.RemoteHostService, _workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false))
-                {
-                    // ask remote host to sync initial asset
-                    await session.InvokeAsync(
-                        WellKnownRemoteHostServices.RemoteHostService_PersistentStorageService_UnregisterPrimarySolutionId,
-                        solutionId.Id.ToByteArray(),
-                        solutionId.DebugName,
-                        synchronousShutdown).ConfigureAwait(false);
-                }
+                _session.TryInvokeAsync(
+                    nameof(IRemoteHostService.UnregisterPrimarySolutionId),
+                    new object[] { solutionId, synchronousShutdown },
+                    CancellationToken.None).Wait(CancellationToken.None);
             }
 
             public void ClearSolution() { }

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 @"using System.Linq;
 class C
 {
-    static void Foo()
+    static void Goo()
     {
         var q = Enumerable.Range(1, 100).Where(x =>
         {
@@ -30,7 +30,7 @@ class C
 }
 ";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var spans = await GetSpansFromWorkspaceAsync(workspace);
 
@@ -46,7 +46,7 @@ class C
 @"using System.Linq;
 class C
 {
-    static void Foo()
+    static void Goo()
     {
         var q = Enumerable.Range(1, 100).Where((x) =>
         {
@@ -56,7 +56,7 @@ class C
 }
 ";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var spans = await GetSpansFromWorkspaceAsync(workspace);
 
@@ -72,7 +72,7 @@ class C
 @"using System.Linq;
 class C
 {
-    static void Foo()
+    static void Goo()
     {
         var q = Enumerable.Range(1, 100).Where(delegate (int x)
         {
@@ -82,7 +82,7 @@ class C
 }
 ";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var spans = await GetSpansFromWorkspaceAsync(workspace);
 

@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class PatternMatchingTestBase : CSharpTestBase
     {
         #region helpers
+        protected static readonly MetadataReference[] s_valueTupleRefs = new[] { SystemRuntimeFacadeRef, ValueTupleRef };
+
         protected IEnumerable<SingleVariableDesignationSyntax> GetPatternDeclarations(SyntaxTree tree, string v)
         {
             return GetPatternDeclarations(tree).Where(d => d.Identifier.ValueText == v);
@@ -47,6 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         protected static void VerifyModelForDeclarationPattern(SemanticModel model, SingleVariableDesignationSyntax decl, params IdentifierNameSyntax[] references)
+        {
+            VerifyModelForDeclarationPattern(model, decl, false, references);
+        }
+
+        protected static void VerifyModelForDeclarationPatternWithoutDataFlow(SemanticModel model, SingleVariableDesignationSyntax decl, params IdentifierNameSyntax[] references)
         {
             VerifyModelForDeclarationPattern(model, decl, false, references);
         }
@@ -90,12 +97,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Assert.Equal(type, model.GetSymbolInfo(decl.Type).Symbol);
             }
 
+            AssertTypeInfo(model, decl.Type, type);
+
             foreach (var reference in references)
             {
                 Assert.Same(symbol, model.GetSymbolInfo(reference).Symbol);
                 Assert.Same(symbol, model.LookupSymbols(reference.SpanStart, name: designation.Identifier.ValueText).Single());
                 Assert.True(model.LookupNames(reference.SpanStart).Contains(designation.Identifier.ValueText));
             }
+        }
+
+        private static void AssertTypeInfo(SemanticModel model, TypeSyntax typeSyntax, TypeSymbol expectedType)
+        {
+            TypeInfo typeInfo = model.GetTypeInfo(typeSyntax);
+            Assert.Equal(expectedType, typeInfo.Type);
+            Assert.Equal(expectedType, typeInfo.ConvertedType);
+            Assert.Equal(typeInfo, ((CSharpSemanticModel)model).GetTypeInfo(typeSyntax));
+            Assert.True(model.GetConversion(typeSyntax).IsIdentity);
         }
 
         protected static void VerifyModelForDeclarationPatternDuplicateInSameScope(SemanticModel model, SingleVariableDesignationSyntax designation)
@@ -114,6 +132,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 Assert.Equal(type, model.GetSymbolInfo(decl.Type).Symbol);
             }
+
+            AssertTypeInfo(model, decl.Type, type);
+        }
+
+        protected static void VerifyNotAPatternField(SemanticModel model, IdentifierNameSyntax reference)
+        {
+            var symbol = model.GetSymbolInfo(reference).Symbol;
+
+            Assert.NotEqual(SymbolKind.Field, symbol.Kind);
+
+            Assert.Same(symbol, model.LookupSymbols(reference.SpanStart, name: reference.Identifier.ValueText).Single());
+            Assert.True(model.LookupNames(reference.SpanStart).Contains(reference.Identifier.ValueText));
         }
 
         protected static void VerifyNotAPatternLocal(SemanticModel model, IdentifierNameSyntax reference)
@@ -195,6 +225,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 Assert.Equal(local.Type, model.GetSymbolInfo(typeSyntax).Symbol);
             }
+
+            AssertTypeInfo(model, decl.Type, local.Type);
 
             var declarator = designation.Ancestors().OfType<VariableDeclaratorSyntax>().FirstOrDefault();
             var inFieldDeclaratorArgumentlist = declarator != null && declarator.Parent.Parent.Kind() != SyntaxKind.LocalDeclarationStatement &&
@@ -282,6 +314,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(model.GetSymbolInfo(designation).Symbol);
             Assert.Null(model.GetTypeInfo(designation).Type);
             Assert.Null(model.GetDeclaredSymbol(designation));
+
+            var symbol = (Symbol)model.GetDeclaredSymbol(designation);
+
+            TypeInfo typeInfo = model.GetTypeInfo(decl.Type);
+
+            if ((object)symbol != null)
+            {
+                Assert.Equal(symbol.GetTypeOrReturnType(), typeInfo.Type);
+                Assert.Equal(symbol.GetTypeOrReturnType(), typeInfo.ConvertedType);
+            }
+            else
+            {
+                Assert.Equal(SymbolKind.ErrorType, typeInfo.Type.Kind);
+                Assert.Equal(SymbolKind.ErrorType, typeInfo.ConvertedType.Kind);
+            }
+
+            Assert.Equal(typeInfo, ((CSharpSemanticModel)model).GetTypeInfo(decl.Type));
+            Assert.True(model.GetConversion(decl.Type).IsIdentity);
+
             VerifyModelNotSupported(model, references);
         }
 
@@ -294,6 +345,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Assert.DoesNotContain(reference.Identifier.ValueText, model.LookupNames(reference.SpanStart));
                 Assert.True(((TypeSymbol)model.GetTypeInfo(reference).Type).IsErrorType());
             }
+        }
+
+        protected static void AssertNoGlobalStatements(SyntaxTree tree)
+        {
+            Assert.Empty(tree.GetRoot().DescendantNodes().OfType<GlobalStatementSyntax>());
         }
 
         #endregion helpers

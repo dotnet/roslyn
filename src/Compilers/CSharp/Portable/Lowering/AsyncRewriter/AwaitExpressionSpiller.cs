@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Semantics;
 using Roslyn.Utilities;
 
@@ -137,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (local.Type.IsRestrictedType())
                 {
-                    diagnostics.Add(ErrorCode.ERR_ByRefTypeAndAwait, local.Locations[0], local.Type.ToDisplayString());
+                    diagnostics.Add(ErrorCode.ERR_ByRefTypeAndAwait, local.Locations[0], local.Type);
                 }
 
                 _locals.Add(local);
@@ -590,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundSpillSequenceBuilder builder = null;
             var expr = VisitExpression(ref builder, node.Operand);
-            return UpdateExpression(builder, node.Update(expr, node.IsFixedStatementAddressOf, node.Type));
+            return UpdateExpression(builder, node.Update(expr, node.Type));
         }
 
         public override BoundNode VisitArgListOperator(BoundArgListOperator node)
@@ -772,26 +773,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static RefKind ReceiverSpillRefKind(BoundExpression receiver)
         {
-            if (!receiver.Type.IsReferenceType)
-            {
-                switch (receiver.Kind)
-                {
-                    case BoundKind.Parameter:
-                    case BoundKind.Local:
-                    case BoundKind.ArrayAccess:
-                    case BoundKind.ThisReference:
-                    case BoundKind.BaseReference:
-                    case BoundKind.PointerIndirectionOperator:
-                    case BoundKind.RefValueOperator:
-                    case BoundKind.FieldAccess:
-                        return RefKind.Ref;
-
-                    case BoundKind.Call:
-                        return ((BoundCall)receiver).Method.RefKind;
-                }
-            }
-
-            return RefKind.None;
+            return LocalRewriter.WouldBeAssignableIfUsedAsMethodReceiver(receiver) ? 
+                RefKind.Ref : 
+                RefKind.None;
         }
 
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
@@ -856,9 +840,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitMethodGroup(BoundMethodGroup node)
         {
-            BoundSpillSequenceBuilder builder = null;
-            var receiver = VisitExpression(ref builder, node.ReceiverOpt);
-            return UpdateExpression(builder, node.Update(node.TypeArgumentsOpt, node.Name, node.Methods, node.LookupSymbolOpt, node.LookupError, node.Flags, receiver, node.ResultKind));
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
@@ -1060,7 +1042,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.InitializerExpressionOpt == null);
             BoundSpillSequenceBuilder builder = null;
             var arguments = this.VisitExpressionList(ref builder, node.Arguments, node.ArgumentRefKindsOpt);
-            return UpdateExpression(builder, node.Update(node.Constructor, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ConstantValueOpt, node.InitializerExpressionOpt, node.Type));
+            return UpdateExpression(builder, node.Update(node.Constructor, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ConstantValueOpt, node.InitializerExpressionOpt, node.BinderOpt, node.Type));
         }
 
         public override BoundNode VisitPointerElementAccess(BoundPointerElementAccess node)

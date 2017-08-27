@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
@@ -120,12 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 Debug.Assert(!this.IsFixed, "Subclasses representing fixed fields must override");
-                if (state.NotePartComplete(CompletionPart.FixedSize))
-                {
-                    // FixedSize is the last completion part for fields.
-                    DeclaringCompilation.SymbolDeclaredEvent(this);
-                }
-
+                state.NotePartComplete(CompletionPart.FixedSize);
                 return 0;
             }
         }
@@ -244,12 +240,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         GetFieldType(ConsList<FieldSymbol>.Empty);
                         break;
 
-                    case CompletionPart.ConstantValue:
-                        GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false);
-                        break;
-
                     case CompletionPart.FixedSize:
                         int discarded = this.FixedSize;
+                        break;
+
+                    case CompletionPart.ConstantValue:
+                        GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false);
                         break;
 
                     case CompletionPart.None:
@@ -458,6 +454,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         else if (fieldSyntax.Declaration.Variables.Count > 1)
                         {
                             diagnosticsForFirstDeclarator.Add(ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclarator, typeSyntax.Location);
+                        }
+                        else if (this.IsConst && this.ContainingType.IsScriptClass)
+                        {
+                            // For const var in script, we won't try to bind the initializer (case below), as it can lead to an unbound recursion
+                            type = null;
                         }
                         else
                         {

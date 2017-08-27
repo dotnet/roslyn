@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentationComments;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -204,49 +205,49 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 {
                     AddDescriptionForDynamicType();
                 }
-                else if (symbol is IFieldSymbol)
+                else if (symbol is IFieldSymbol field)
                 {
-                    await AddDescriptionForFieldAsync((IFieldSymbol)symbol).ConfigureAwait(false);
+                    await AddDescriptionForFieldAsync(field).ConfigureAwait(false);
                 }
-                else if (symbol is ILocalSymbol)
+                else if (symbol is ILocalSymbol local)
                 {
-                    await AddDescriptionForLocalAsync((ILocalSymbol)symbol).ConfigureAwait(false);
+                    await AddDescriptionForLocalAsync(local).ConfigureAwait(false);
                 }
-                else if (symbol is IMethodSymbol)
+                else if (symbol is IMethodSymbol method)
                 {
-                    AddDescriptionForMethod((IMethodSymbol)symbol);
+                    AddDescriptionForMethod(method);
                 }
-                else if (symbol is ILabelSymbol)
+                else if (symbol is ILabelSymbol label)
                 {
-                    AddDescriptionForLabel((ILabelSymbol)symbol);
+                    AddDescriptionForLabel(label);
                 }
-                else if (symbol is INamedTypeSymbol)
+                else if (symbol is INamedTypeSymbol namedType)
                 {
-                    await AddDescriptionForNamedTypeAsync((INamedTypeSymbol)symbol).ConfigureAwait(false);
+                    await AddDescriptionForNamedTypeAsync(namedType).ConfigureAwait(false);
                 }
-                else if (symbol is INamespaceSymbol)
+                else if (symbol is INamespaceSymbol namespaceSymbol)
                 {
-                    AddDescriptionForNamespace((INamespaceSymbol)symbol);
+                    AddDescriptionForNamespace(namespaceSymbol);
                 }
-                else if (symbol is IParameterSymbol)
+                else if (symbol is IParameterSymbol parameter)
                 {
-                    await AddDescriptionForParameterAsync((IParameterSymbol)symbol).ConfigureAwait(false);
+                    await AddDescriptionForParameterAsync(parameter).ConfigureAwait(false);
                 }
-                else if (symbol is IPropertySymbol)
+                else if (symbol is IPropertySymbol property)
                 {
-                    AddDescriptionForProperty((IPropertySymbol)symbol);
+                    AddDescriptionForProperty(property);
                 }
-                else if (symbol is IRangeVariableSymbol)
+                else if (symbol is IRangeVariableSymbol rangeVariable)
                 {
-                    AddDescriptionForRangeVariable((IRangeVariableSymbol)symbol);
+                    AddDescriptionForRangeVariable(rangeVariable);
                 }
-                else if (symbol is ITypeParameterSymbol)
+                else if (symbol is ITypeParameterSymbol typeParameter)
                 {
-                    AddDescriptionForTypeParameter((ITypeParameterSymbol)symbol);
+                    AddDescriptionForTypeParameter(typeParameter);
                 }
-                else if (symbol is IAliasSymbol)
+                else if (symbol is IAliasSymbol alias)
                 {
-                    await AddDescriptionPartAsync(((IAliasSymbol)symbol).Target).ConfigureAwait(false);
+                    await AddDescriptionPartAsync(alias.Target).ConfigureAwait(false);
                 }
                 else
                 {
@@ -324,7 +325,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 }
 
                 var token = await _semanticModel.SyntaxTree.GetTouchingTokenAsync(_position, this.CancellationToken).ConfigureAwait(false);
-                if (token != default(SyntaxToken))
+                if (token != default)
                 {
                     var syntaxFactsService = this.Workspace.Services.GetLanguageServices(token.Language).GetService<ISyntaxFactsService>();
                     if (syntaxFactsService.IsAwaitKeyword(token))

@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -12,13 +11,14 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 using Moq;
 using Roslyn.Test.Utilities;
@@ -41,7 +41,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
     }
 }";
 
-            using (var workspace = await CreateWorkspaceAsync(LanguageNames.CSharp, code))
+            using (var workspace = CreateWorkspace(LanguageNames.CSharp, code))
             {
                 var analyzerType = typeof(CSharpUseExplicitTypeDiagnosticAnalyzer);
                 var analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType);
@@ -67,7 +67,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
     End Sub
 End Class";
 
-            using (var workspace = await CreateWorkspaceAsync(LanguageNames.VisualBasic, code))
+            using (var workspace = CreateWorkspace(LanguageNames.VisualBasic, code))
             {
                 // set option
                 workspace.Options = workspace.Options.WithChangedOption(CodeStyleOptions.PreferNullPropagation, LanguageNames.VisualBasic, new CodeStyleOption<bool>(false, NotificationOption.None));
@@ -91,7 +91,7 @@ End Class";
         {
             var code = @"class Test { void Method() { } }";
 
-            using (var workspace = await CreateWorkspaceAsync(LanguageNames.CSharp, code))
+            using (var workspace = CreateWorkspace(LanguageNames.CSharp, code))
             {
                 var analyzerType = typeof(MyAnalyzer);
 
@@ -133,21 +133,22 @@ End Class";
     }
 }";
 
-            using (var workspace = await CreateWorkspaceAsync(LanguageNames.CSharp, code))
+            using (var workspace = CreateWorkspace(LanguageNames.CSharp, code))
             {
                 var analyzerType = typeof(CSharpUseExplicitTypeDiagnosticAnalyzer);
                 var analyzerReference = new AnalyzerFileReference(analyzerType.Assembly.Location, new TestAnalyzerAssemblyLoader());
-                var mockAnalyzerService = CreateMockDiagnosticAnalyzerService(new[] { analyzerReference });
 
                 // add host analyzer as global assets
-                var snapshotService = workspace.Services.GetService<ISolutionSynchronizationService>();
+                var snapshotService = workspace.Services.GetService<IRemotableDataService>();
                 var assetBuilder = new CustomAssetBuilder(workspace);
 
-                foreach (var reference in mockAnalyzerService.GetHostAnalyzerReferences())
-                {
-                    var asset = assetBuilder.Build(reference, CancellationToken.None);
-                    snapshotService.AddGlobalAsset(reference, asset, CancellationToken.None);
-                }
+                var asset = assetBuilder.Build(analyzerReference, CancellationToken.None);
+                snapshotService.AddGlobalAsset(analyzerReference, asset, CancellationToken.None);
+
+                var client = await workspace.Services.GetService<IRemoteHostClientService>().TryGetRemoteHostClientAsync(CancellationToken.None);
+                await client.TryRunRemoteAsync(
+                    WellKnownRemoteHostServices.RemoteHostService, workspace.CurrentSolution,
+                    nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync), (object)(new Checksum[] { asset.Checksum }), CancellationToken.None);
 
                 // set option
                 workspace.Options = workspace.Options.WithChangedOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, new CodeStyleOption<bool>(false, NotificationOption.Suggestion));
@@ -155,9 +156,12 @@ End Class";
                 // run analysis
                 var project = workspace.CurrentSolution.Projects.First();
 
-                var executor = new VisualStudioDiagnosticAnalyzerExecutor(mockAnalyzerService, new MyUpdateSource(workspace));
-                var analyzerDriver = (await project.GetCompilationAsync()).WithAnalyzers(analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray());
-                var result = await executor.AnalyzeAsync(analyzerDriver, project, CancellationToken.None);
+                var executor = (ICodeAnalysisDiagnosticAnalyzerExecutor)new DiagnosticAnalyzerExecutor(new MyUpdateSource(workspace)).CreateService(workspace.Services);
+                var analyzerDriver = (await project.GetCompilationAsync()).WithAnalyzers(
+                        analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
+                        new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Options, project.Solution));
+
+                var result = await executor.AnalyzeAsync(analyzerDriver, project, forcedAnalysis: false, cancellationToken: CancellationToken.None);
 
                 var analyzerResult = result.AnalysisResult[analyzerDriver.Analyzers[0]];
 
@@ -169,36 +173,31 @@ End Class";
 
         private static async Task<DiagnosticAnalysisResult> AnalyzeAsync(TestWorkspace workspace, ProjectId projectId, Type analyzerType, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var diagnosticService = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
-            var executor = new VisualStudioDiagnosticAnalyzerExecutor(diagnosticService, new MyUpdateSource(workspace));
+            var executor = (ICodeAnalysisDiagnosticAnalyzerExecutor)new DiagnosticAnalyzerExecutor(new MyUpdateSource(workspace)).CreateService(workspace.Services);
 
             var analyzerReference = new AnalyzerFileReference(analyzerType.Assembly.Location, new TestAnalyzerAssemblyLoader());
             var project = workspace.CurrentSolution.GetProject(projectId).AddAnalyzerReference(analyzerReference);
 
-            var analyzerDriver = (await project.GetCompilationAsync()).WithAnalyzers(analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray());
-            var result = await executor.AnalyzeAsync(analyzerDriver, project, cancellationToken);
+            var analyzerDriver = (await project.GetCompilationAsync()).WithAnalyzers(
+                    analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
+                    new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Options, project.Solution));
+
+            var result = await executor.AnalyzeAsync(analyzerDriver, project, forcedAnalysis: true, cancellationToken: cancellationToken);
 
             return result.AnalysisResult[analyzerDriver.Analyzers[0]];
         }
 
-        private async Task<TestWorkspace> CreateWorkspaceAsync(string language, string code, ParseOptions options = null)
+        private TestWorkspace CreateWorkspace(string language, string code, ParseOptions options = null)
         {
             var workspace = (language == LanguageNames.CSharp) ?
-                await TestWorkspace.CreateCSharpAsync(code, parseOptions: options, exportProvider: TestHostServices.SharedExportProvider) :
-                await TestWorkspace.CreateVisualBasicAsync(code, parseOptions: options, exportProvider: TestHostServices.SharedExportProvider);
+                TestWorkspace.CreateCSharp(code, parseOptions: options, exportProvider: TestHostServices.SharedExportProvider) :
+                TestWorkspace.CreateVisualBasic(code, parseOptions: options, exportProvider: TestHostServices.SharedExportProvider);
 
             workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, true)
                                      .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.CSharp, true)
                                      .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.VisualBasic, true);
 
             return workspace;
-        }
-
-        private IDiagnosticAnalyzerService CreateMockDiagnosticAnalyzerService(IEnumerable<AnalyzerReference> references)
-        {
-            var mock = new Mock<IDiagnosticAnalyzerService>(MockBehavior.Strict);
-            mock.Setup(a => a.GetHostAnalyzerReferences()).Returns(references);
-            return mock.Object;
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]

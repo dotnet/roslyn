@@ -1,12 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -22,14 +21,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         [ImportingConstructor]
         public CommentTaskTokenSerializer(
-            VisualStudioWorkspaceImpl workspace)
+            VisualStudioWorkspace workspace,
+            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {
             _optionService = workspace.Services.GetService<IOptionService>();
 
-            _taskList = workspace.GetVsService<SVsTaskList, ITaskList>();
+            // The SVsTaskList may not be available or doesn't actually implement ITaskList
+            // in the "devenv /build" scenario
+            _taskList = serviceProvider.GetService(typeof(SVsTaskList)) as ITaskList;
+
+            // GetTaskTokenList is safe in the face of nulls
             _lastCommentTokenCache = GetTaskTokenList(_taskList);
 
-            // The SVsTaskList may not be available (e.g. during "devenv /build")
             if (_taskList != null)
             {
                 _taskList.PropertyChanged += OnPropertyChanged;

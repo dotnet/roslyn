@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CodeGen;
 using Cci = Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
@@ -80,19 +81,16 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 get { return _setter; }
             }
 
-            IEnumerable<Cci.IMethodReference> Cci.IPropertyDefinition.Accessors
+            IEnumerable<Cci.IMethodReference> Cci.IPropertyDefinition.GetAccessors(EmitContext context)
             {
-                get
+                if (_getter != null)
                 {
-                    if (_getter != null)
-                    {
-                        yield return _getter;
-                    }
+                    yield return _getter;
+                }
 
-                    if (_setter != null)
-                    {
-                        yield return _setter;
-                    }
+                if (_setter != null)
+                {
+                    yield return _setter;
                 }
             }
 
@@ -101,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 get { return false; }
             }
 
-            Cci.IMetadataConstant Cci.IPropertyDefinition.DefaultValue
+            MetadataConstant Cci.IPropertyDefinition.DefaultValue
             {
                 get { return null; }
             }

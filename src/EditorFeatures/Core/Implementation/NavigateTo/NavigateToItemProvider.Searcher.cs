@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -56,14 +56,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             {
                 try
                 {
-                    using (var navigateToSearch = Logger.LogBlock(FunctionId.NavigateTo_Search, _cancellationToken))
+                    using (var navigateToSearch = Logger.LogBlock(FunctionId.NavigateTo_Search, KeyValueLogMessage.Create(LogType.UserAction), _cancellationToken))
                     using (var asyncToken = _asyncListener.BeginAsyncOperation(GetType() + ".Search"))
                     {
                         _progress.AddItems(_solution.Projects.Count());
 
                         // Search each project with an independent threadpool task.
                         var searchTasks = _solution.Projects.Select(
-                            p => Task.Run(() => SearchAsync(p))).ToArray();
+                            p => Task.Run(() => SearchAsync(p), _cancellationToken)).ToArray();
 
                         await Task.WhenAll(searchTasks).ConfigureAwait(false);
                     }

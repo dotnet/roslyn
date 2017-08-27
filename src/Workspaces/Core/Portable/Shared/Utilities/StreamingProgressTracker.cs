@@ -27,10 +27,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             _updateActionOpt = updateActionOpt;
         }
 
-        public int CompletedItems => _completedItems;
-
-        public int TotalItems => _totalItems;
-
         public Task AddItemsAsync(int count)
         {
             Interlocked.Add(ref _totalItems, count);
@@ -40,13 +36,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public Task ItemCompletedAsync()
         {
             Interlocked.Increment(ref _completedItems);
-            return UpdateAsync();
-        }
-
-        public Task ClearAsync()
-        {
-            _totalItems = 0;
-            _completedItems = 0;
             return UpdateAsync();
         }
 

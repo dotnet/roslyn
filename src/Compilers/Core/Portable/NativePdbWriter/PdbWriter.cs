@@ -16,6 +16,7 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using OP = Microsoft.Cci.PdbLogger.PdbWriterOperation;
 using System.Security.Cryptography;
@@ -120,7 +121,8 @@ namespace Microsoft.Cci
             OpenMapTokensToSourceSpans,
             MapTokenToSourceSpan,
             CloseMapTokensToSourceSpans,
-            SetSource
+            SetSource,
+            SetSourceLinkData,
         }
 
         public bool LogOperation(PdbWriterOperation op)
@@ -298,15 +300,23 @@ namespace Microsoft.Cci
         {
             Debug.Assert(_metadataWriter != null);
 
-            bool isIterator = methodBody.StateMachineTypeName != null;
-            bool emitDebugInfo = isIterator || methodBody.HasAnySequencePoints;
+            // A state machine kickoff method doesn't have sequence points as it only contains generated code.
+            // We could avoid emitting debug info for it if the corresponding MoveNext method had no sequence points,
+            // but there is no real need for such optimization.
+            // 
+            // Special case a hidden entry point (#line hidden applied) that would otherwise have no debug info.
+            // This is to accomodate for a requirement of Windows PDB writer that the entry point method must have some debug information.
+            bool isKickoffMethod = methodBody.StateMachineTypeName != null;
+            bool emitDebugInfo = isKickoffMethod || !methodBody.SequencePoints.IsEmpty ||
+                methodBody.MethodDefinition == (Context.Module.DebugEntryPoint ?? Context.Module.PEEntryPoint);
 
             if (!emitDebugInfo)
             {
                 return;
             }
 
-            int methodToken = MetadataTokens.GetToken(_metadataWriter.GetMethodHandle(methodBody.MethodDefinition));
+            var methodHandle = (MethodDefinitionHandle)_metadataWriter.GetMethodHandle(methodBody.MethodDefinition);
+            int methodToken = MetadataTokens.GetToken(methodHandle);
 
             OpenMethod(methodToken, methodBody.MethodDefinition);
 
@@ -318,13 +328,10 @@ namespace Microsoft.Cci
                 this.DefineScopeLocals(localScopes[0], localSignatureHandleOpt);
             }
 
-            // NOTE: This is an attempt to match Dev10's apparent behavior.  For iterator methods (i.e. the method
-            // that appears in source, not the synthesized ones), Dev10 only emits the ForwardIterator and IteratorLocal
-            // custom debug info (e.g. there will be no information about the usings that were in scope).
-            if (!isIterator && methodBody.ImportScope != null)
+            if (!isKickoffMethod && methodBody.ImportScope != null)
             {
                 IMethodDefinition forwardToMethod;
-                if (customDebugInfoWriter.ShouldForwardNamespaceScopes(Context, methodBody, methodToken, out forwardToMethod))
+                if (customDebugInfoWriter.ShouldForwardNamespaceScopes(Context, methodBody, methodHandle, out forwardToMethod))
                 {
                     if (forwardToMethod != null)
                     {
@@ -339,20 +346,16 @@ namespace Microsoft.Cci
             }
 
             DefineLocalScopes(localScopes, localSignatureHandleOpt);
-            ArrayBuilder<Cci.SequencePoint> sequencePoints = ArrayBuilder<Cci.SequencePoint>.GetInstance();
-            methodBody.GetSequencePoints(sequencePoints);
-            EmitSequencePoints(sequencePoints);
-            sequencePoints.Free();
+            EmitSequencePoints(methodBody.SequencePoints);
 
-            AsyncMethodBodyDebugInfo asyncDebugInfo = methodBody.AsyncDebugInfo;
-            if (asyncDebugInfo != null)
+            if (methodBody.MoveNextBodyInfo is AsyncMoveNextBodyDebugInfo asyncMoveNextInfo)
             {
                 SetAsyncInfo(
                     methodToken,
-                    MetadataTokens.GetToken(_metadataWriter.GetMethodHandle(asyncDebugInfo.KickoffMethod)),
-                    asyncDebugInfo.CatchHandlerOffset,
-                    asyncDebugInfo.YieldOffsets,
-                    asyncDebugInfo.ResumeOffsets);
+                    MetadataTokens.GetToken(_metadataWriter.GetMethodHandle(asyncMoveNextInfo.KickoffMethod)),
+                    asyncMoveNextInfo.CatchHandlerOffset,
+                    asyncMoveNextInfo.YieldOffsets,
+                    asyncMoveNextInfo.ResumeOffsets);
             }
 
             var compilationOptions = Context.Module.CommonCompilation.Options;
@@ -365,7 +368,7 @@ namespace Microsoft.Cci
             bool emitEncInfo = compilationOptions.EnableEditAndContinue && _metadataWriter.IsFullMetadata;
 
             bool emitExternNamespaces;
-            byte[] blob = customDebugInfoWriter.SerializeMethodDebugInfo(Context, methodBody, methodToken, emitEncInfo, suppressNewCustomDebugInfo, out emitExternNamespaces);
+            byte[] blob = customDebugInfoWriter.SerializeMethodDebugInfo(Context, methodBody, methodHandle, emitEncInfo, suppressNewCustomDebugInfo, out emitExternNamespaces);
             if (blob != null)
             {
                 DefineCustomMetadata("MD2", blob);
@@ -591,7 +594,6 @@ namespace Microsoft.Cci
         {
             Debug.Assert(!(typeReference is IArrayTypeReference));
             Debug.Assert(!(typeReference is IPointerTypeReference));
-            Debug.Assert(!(typeReference is IManagedPointerTypeReference));
             Debug.Assert(!typeReference.IsTypeSpecification());
 
             var result = PooledStringBuilder.GetInstance();
@@ -718,7 +720,7 @@ namespace Microsoft.Cci
                 var signatureHandle = _metadataWriter.SerializeLocalConstantStandAloneSignature(scopeConstant);
                 if (!_metadataWriter.IsLocalNameTooLong(scopeConstant))
                 {
-                    DefineLocalConstant(scopeConstant.Name, scopeConstant.CompileTimeValue.Value, _metadataWriter.GetConstantTypeCode(scopeConstant), signatureHandle);
+                    DefineLocalConstant(scopeConstant.Name, scopeConstant.CompileTimeValue.Value, scopeConstant.CompileTimeValue.Type.TypeCode, signatureHandle);
                 }
             }
 
@@ -736,17 +738,25 @@ namespace Microsoft.Cci
 
         private const string SymWriterClsid = "0AE2DEB0-F901-478b-BB9F-881EE8066788";
 
-        private static bool s_MicrosoftDiaSymReaderNativeLoadFailed;
+        private const string LegacyDiaSymReaderModuleName = "diasymreader.dll";
+        private const string DiaSymReaderModuleName32 = "Microsoft.DiaSymReader.Native.x86.dll";
+        private const string DiaSymReaderModuleName64 = "Microsoft.DiaSymReader.Native.amd64.dll";
 
-        [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory)]
-        [DllImport("Microsoft.DiaSymReader.Native.x86.dll", EntryPoint = "CreateSymWriter")]
+        private static string s_MicrosoftDiaSymReaderNativeLoadFailure;
+
+        [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
+        [DllImport(DiaSymReaderModuleName32, EntryPoint = "CreateSymWriter")]
         private extern static void CreateSymWriter32(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symWriter);
 
-        [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory)]
-        [DllImport("Microsoft.DiaSymReader.Native.amd64.dll", EntryPoint = "CreateSymWriter")]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
+        [DllImport(DiaSymReaderModuleName64, EntryPoint = "CreateSymWriter")]
         private extern static void CreateSymWriter64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symWriter);
 
-        private static string PlatformId => (IntPtr.Size == 4) ? "x86" : "amd64";
+        private static string DiaSymReaderModuleName 
+            => (IntPtr.Size == 4) ? DiaSymReaderModuleName32 : DiaSymReaderModuleName64;
+
+        private static string LoadedDiaSymReaderModuleName
+            => s_MicrosoftDiaSymReaderNativeLoadFailure != null ? LegacyDiaSymReaderModuleName : DiaSymReaderModuleName;
 
         private static Type GetCorSymWriterSxSType()
         {
@@ -764,7 +774,7 @@ namespace Microsoft.Cci
             object symWriter = null;
 
             // First try to load an implementation from Microsoft.DiaSymReader.Native, which supports determinism.
-            if (!s_MicrosoftDiaSymReaderNativeLoadFailed)
+            if (s_MicrosoftDiaSymReaderNativeLoadFailure == null)
             {
                 try
                 {
@@ -778,9 +788,9 @@ namespace Microsoft.Cci
                         CreateSymWriter64(ref guid, out symWriter);
                     }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    s_MicrosoftDiaSymReaderNativeLoadFailed = true;
+                    s_MicrosoftDiaSymReaderNativeLoadFailure = e.Message;
                     symWriter = null;
                 }
             }
@@ -806,25 +816,25 @@ namespace Microsoft.Cci
                 }
                 catch (Exception)
                 {
-                    throw new NotSupportedException(string.Format(CodeAnalysisResources.SymWriterNotAvailable, PlatformId));
+                    throw new NotSupportedException(string.Format(CodeAnalysisResources.SymWriterOlderVersionThanRequired, LoadedDiaSymReaderModuleName));
                 }
 
                 // Correctness: If the stream is not specified or if it is non-empty the SymWriter appends data to it (provided it contains valid PDB)
                 // and the resulting PDB has Age = existing_age + 1.
                 _pdbStream = new ComMemoryStream();
 
-                if (_deterministic)
+                if (!_deterministic)
                 {
-                    if (!(symWriter is ISymUnmanagedWriter7))
-                    {
-                        throw new NotSupportedException(string.Format(CodeAnalysisResources.SymWriterNotDeterministic, PlatformId));
-                    }
-
-                    ((ISymUnmanagedWriter7)symWriter).InitializeDeterministic(new PdbMetadataWrapper(metadataWriter), _pdbStream);
+                    symWriter.Initialize(new PdbMetadataWrapper(metadataWriter), _fileName, _pdbStream, fullBuild: true);
+                }
+                else if (symWriter is ISymUnmanagedWriter8 symWriter8)
+                {
+                    symWriter8.InitializeDeterministic(new PdbMetadataWrapper(metadataWriter), _pdbStream);
                 }
                 else
                 {
-                    symWriter.Initialize(new PdbMetadataWrapper(metadataWriter), _fileName, _pdbStream, fullBuild: true);
+                    throw new NotSupportedException(s_MicrosoftDiaSymReaderNativeLoadFailure ??
+                        string.Format(CodeAnalysisResources.SymWriterNotDeterministic, LoadedDiaSymReaderModuleName));
                 }
 
                 _metadataWriter = metadataWriter;
@@ -847,7 +857,7 @@ namespace Microsoft.Cci
                 {
                     fixed (byte* hashPtr = &hash[0])
                     {
-                        ((ISymUnmanagedWriter7)_symWriter).UpdateSignatureByHashingContent(hashPtr, hash.Length);
+                        ((ISymUnmanagedWriter8)_symWriter).UpdateSignatureByHashingContent(hashPtr, hash.Length);
                     }
                 }
                 catch (Exception ex)
@@ -964,7 +974,7 @@ namespace Microsoft.Cci
                     try
                     {
                         var algorithmId = info.ChecksumAlgorithmId;
-                        var checksum = info.Checksum.ToArray();
+                        var checksum = ImmutableByteArrayInterop.DangerousGetUnderlyingArray(info.Checksum);
                         var checksumSize = (uint)checksum.Length;
                         writer.SetCheckSum(algorithmId, checksumSize, checksum);
                         if (_callLogger.LogOperation(OP.SetCheckSum))
@@ -980,8 +990,38 @@ namespace Microsoft.Cci
                     }
                 }
 
-                // embedded text not currently supported for native PDB and we should have validated that
-                Debug.Assert(info.EmbeddedTextBlob.IsDefault);
+                if (!info.EmbeddedTextBlob.IsDefault)
+                {
+                    try
+                    {
+                        uint blobSize = (uint)info.EmbeddedTextBlob.Length;
+
+                        writer.SetSource(blobSize, ImmutableByteArrayInterop.DangerousGetUnderlyingArray(info.EmbeddedTextBlob));
+
+                        if (_callLogger.LogOperation(OP.SetSource))
+                        {
+                            _callLogger.LogArgument(blobSize);
+
+                            // Since we only have embedded text for documents that have a computed checksum,
+                            // (otherwise we'd have raised ERR_EncodinglessSyntaxTree), we can rely on
+                            // having already logged the checksum (cryptographic hash) and skip writing the
+                            // entire embedded text to the log (which can be large).
+                            Debug.Assert(document.IsComputedChecksum);
+                            Debug.Assert(!info.Checksum.IsDefault);
+
+                            // We do, however, log the first 4 bytes which encode formatting that is not
+                            // included in the checksum.
+                            _callLogger.LogArgument(info.EmbeddedTextBlob[0]);
+                            _callLogger.LogArgument(info.EmbeddedTextBlob[1]);
+                            _callLogger.LogArgument(info.EmbeddedTextBlob[2]);
+                            _callLogger.LogArgument(info.EmbeddedTextBlob[3]);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new PdbWritingException(ex);
+                    }
+                }
             }
 
             return writer;
@@ -1102,7 +1142,7 @@ namespace Microsoft.Cci
             Array.Resize(ref _sequencePointEndColumns, newCapacity);
         }
 
-        private void EmitSequencePoints(ArrayBuilder<Cci.SequencePoint> sequencePoints)
+        private void EmitSequencePoints(ImmutableArray<SequencePoint> sequencePoints)
         {
             DebugSourceDocument document = null;
             ISymUnmanagedDocumentWriter symDocumentWriter = null;
@@ -1494,6 +1534,50 @@ namespace Microsoft.Cci
                         throw new PdbWritingException(ex);
                     }
                 }
+            }
+        }
+
+        public unsafe void EmbedSourceLink(Stream stream)
+        {
+            if (!(_symWriter is ISymUnmanagedWriter8 symWriter8))
+            {
+                throw new NotSupportedException(string.Format(CodeAnalysisResources.SymWriterDoesNotSupportSourceLink, LoadedDiaSymReaderModuleName));
+            }
+
+            try
+            {
+                var buffer = stream.ReadAllBytes();
+
+                fixed (byte* bufferPtr = buffer)
+                {
+                    byte b = 0;
+                    symWriter8.SetSourceLinkData((bufferPtr != null) ? bufferPtr : &b, buffer.Length);
+                }
+
+                if (_callLogger.LogOperation(OP.SetSourceLinkData))
+                {
+                    _callLogger.LogArgument(buffer);
+                }
+            }
+            catch (Exception e) when (!(e is OperationCanceledException))
+            {
+                throw new PdbWritingException(e);
+            }
+        }
+
+        /// <summary>
+        /// Write document entries for any embedded text document that does not yet have an entry.
+        /// </summary>
+        /// <remarks>
+        /// This is done after serializing method debug info to ensure that we embed all requested
+        /// text even if there are no correspodning sequence points.
+        /// </remarks>
+        public void WriteRemainingEmbeddedDocuments(IEnumerable<DebugSourceDocument> embeddedDocuments)
+        {
+            foreach (var document in embeddedDocuments)
+            {
+                Debug.Assert(!document.GetSourceInfo().EmbeddedTextBlob.IsDefault);
+                GetDocumentWriter(document);
             }
         }
 

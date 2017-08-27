@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
 Imports System.Threading
@@ -63,10 +63,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
                     Else
                         Return New StringLiteralCompletionSession(syntaxFactsService)
                     End If
-
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(openingBrace)
             End Select
-
-            Throw ExceptionUtilities.Unreachable
         End Function
     End Class
 End Namespace

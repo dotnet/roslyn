@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var parameter in lambdaSymbol.Parameters)
                 {
-                    if (originalBinder.CanAddLookupSymbolInfo(parameter, options, null))
+                    if (originalBinder.CanAddLookupSymbolInfo(parameter, options, result, null))
                     {
                         result.AddSymbol(parameter, parameter.Name, 0);
                     }
@@ -131,8 +131,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Local)
             {
-                // CS0412: 'X': a parameter or local variable cannot have the same name as a method type parameter
-                diagnostics.Add(ErrorCode.ERR_LocalSameNameAsTypeParam, newLocation, name);
+                // Error: A local or parameter named '{0}' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                diagnostics.Add(ErrorCode.ERR_LocalIllegallyOverrides, newLocation, name);
                 return true;
             }
 

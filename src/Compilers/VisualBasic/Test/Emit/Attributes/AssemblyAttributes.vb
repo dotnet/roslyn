@@ -7,6 +7,7 @@ Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -24,7 +25,7 @@ Public Class AssemblyAttributeTests
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyVersion("1.2.3.4")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -123,7 +124,7 @@ End Class
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyVersion("1.*")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -191,7 +192,7 @@ BC36976: The specified version string does not conform to the recommended format
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyFileVersion("1.2.3.4")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -208,7 +209,7 @@ End Class
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyFileVersion("65535.65535.65535.65535")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -225,7 +226,7 @@ End Class
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyFileVersion("1.2")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -242,7 +243,7 @@ End Class
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyFileVersion("1.2.*")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -263,7 +264,7 @@ BC42366: The specified version string does not conform to the recommended format
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyFileVersion("1.65536")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -284,7 +285,7 @@ BC42366: The specified version string does not conform to the recommended format
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyTitle("One Hundred Years Of Solitude")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -302,7 +303,7 @@ End Class
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyTitle(Nothing)>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -319,7 +320,7 @@ End Class
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyDescription("A classic of magical realist literature")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -655,7 +656,7 @@ BC42371: Referenced assembly 'en_UK, Version=0.0.0.0, Culture=en-UK, PublicKeyTo
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyCompany("MossBrain")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -681,7 +682,7 @@ End Class
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyProduct("Sound Cannon")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -713,7 +714,7 @@ End Structure
 <compilation>
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyTrademark("circle r")>
-Interface IFoo
+Interface IGoo
 
 End Interface
 ]]>
@@ -730,7 +731,7 @@ End Interface
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyInformationalVersion("1.2.3garbage")>
 Public Class C
- Friend Sub Foo()
+ Friend Sub Goo()
  End Sub
 End Class
 ]]>
@@ -1222,7 +1223,10 @@ End Class
         ' We should get only unique netmodule/assembly attributes here, duplicate ones should not be emitted.
         Dim expectedEmittedAttrsCount As Integer = expectedSrcAttrCount - expectedDuplicateAttrCount
 
-        Dim allEmittedAttrs = assembly.GetCustomAttributesToEmit(New ModuleCompilationState).Cast(Of VisualBasicAttributeData)()
+        Dim allEmittedAttrs = DirectCast(assembly, SourceAssemblySymbol).
+            GetAssemblyCustomAttributesToEmit(New ModuleCompilationState, emittingRefAssembly:=False, emittingAssemblyAttributesInNetModule:=False).
+            Cast(Of VisualBasicAttributeData)()
+
         Dim emittedAttrs = allEmittedAttrs.Where(Function(a) a.AttributeClass.Name.Equals(attrTypeName)).AsImmutable()
 
         Assert.Equal(expectedEmittedAttrsCount, emittedAttrs.Length)
@@ -1504,7 +1508,10 @@ End Class
             expectedDuplicateAttrCount:=1,
             attrTypeName:="AssemblyTitleAttribute")
 
-        Dim attrs = consoleappCompilation.Assembly.GetCustomAttributesToEmit(New ModuleCompilationState).Cast(Of VisualBasicAttributeData)()
+        Dim attrs = DirectCast(consoleappCompilation.Assembly, SourceAssemblySymbol).
+            GetAssemblyCustomAttributesToEmit(New ModuleCompilationState, emittingRefAssembly:=False, emittingAssemblyAttributesInNetModule:=False).
+            Cast(Of VisualBasicAttributeData)()
+
         For Each a In attrs
             Select Case a.AttributeClass.Name
                 Case "AssemblyTitleAttribute"

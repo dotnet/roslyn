@@ -1,59 +1,119 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class BlockSyntaxExtensions
     {
-        public static ArrowExpressionClauseSyntax TryConvertToExpressionBody(
-            this BlockSyntax block, ParseOptions options)
+        public static bool TryConvertToExpressionBody(
+            this BlockSyntax block, SyntaxKind declarationKind,
+            ParseOptions options, ExpressionBodyPreference preference,
+            out ArrowExpressionClauseSyntax arrowExpression,
+            out SyntaxToken semicolonToken)
         {
-            if ((options as CSharpParseOptions)?.LanguageVersion >= LanguageVersion.CSharp7)
+            if (preference != ExpressionBodyPreference.Never &&
+                block != null && block.Statements.Count == 1)
             {
-                if (block != null && block.Statements.Count == 1)
+                var version = ((CSharpParseOptions)options).LanguageVersion;
+                var acceptableVersion =
+                    version >= LanguageVersion.CSharp7 ||
+                    (version >= LanguageVersion.CSharp6 && IsSupportedInCSharp6(declarationKind));
+
+                if (acceptableVersion)
                 {
                     var firstStatement = block.Statements[0];
-                    var expression = TryGetExpression(firstStatement);
-                    if (expression != null)
+
+                    if (TryGetExpression(version, firstStatement, out var expression, out semicolonToken) &&
+                        MatchesPreference(expression, preference))
                     {
-                        return SyntaxFactory.ArrowExpressionClause(expression);
+                        arrowExpression = SyntaxFactory.ArrowExpressionClause(expression);
+
+                        // The close brace of the block may have important trivia on it (like 
+                        // comments or directives).  Preserve them on the semicolon when we
+                        // convert to an expression body.
+                        semicolonToken = semicolonToken.WithAppendedTrailingTrivia(
+                            block.CloseBraceToken.LeadingTrivia.Where(t => !t.IsWhitespaceOrEndOfLine()));
+                        return true;
                     }
                 }
             }
 
-            return null;
+            arrowExpression = null;
+            semicolonToken = default;
+            return false;
         }
 
-        private static ExpressionSyntax TryGetExpression(StatementSyntax firstStatement)
+        private static bool IsSupportedInCSharp6(SyntaxKind declarationKind)
         {
-            if (firstStatement.Kind() == SyntaxKind.ExpressionStatement)
+            switch (declarationKind)
             {
-                return ((ExpressionStatementSyntax)firstStatement).Expression;
+                case SyntaxKind.ConstructorDeclaration:
+                case SyntaxKind.DestructorDeclaration:
+                case SyntaxKind.AddAccessorDeclaration:
+                case SyntaxKind.RemoveAccessorDeclaration:
+                case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.SetAccessorDeclaration:
+                    return false;
             }
-            else if (firstStatement.Kind() == SyntaxKind.ReturnStatement)
+
+            return true;
+        }
+
+        public static bool MatchesPreference(
+            ExpressionSyntax expression, ExpressionBodyPreference preference)
+        {
+            if (preference == ExpressionBodyPreference.WhenPossible)
             {
-                var returnStatement = (ReturnStatementSyntax)firstStatement;
+                return true;
+            }
+
+            Contract.ThrowIfFalse(preference == ExpressionBodyPreference.WhenOnSingleLine);
+            return CSharpSyntaxFactsService.Instance.IsOnSingleLine(expression, fullSpan: false);
+        }
+
+        private static bool TryGetExpression(
+            LanguageVersion version, StatementSyntax firstStatement,
+            out ExpressionSyntax expression, out SyntaxToken semicolonToken)
+        {
+            if (firstStatement is ExpressionStatementSyntax exprStatement)
+            {
+                expression = exprStatement.Expression;
+                semicolonToken = exprStatement.SemicolonToken;
+                return true;
+            }
+            else if (firstStatement is ReturnStatementSyntax returnStatement)
+            {
                 if (returnStatement.Expression != null)
                 {
-                    // If there are any comments on the return keyword, move them to
+                    // If there are any comments or directives on the return keyword, move them to
                     // the expression.
-                    return firstStatement.GetLeadingTrivia().Any(t => t.IsSingleOrMultiLineComment())
+                    expression = firstStatement.GetLeadingTrivia().Any(t => t.IsDirective || t.IsSingleOrMultiLineComment())
                         ? returnStatement.Expression.WithLeadingTrivia(returnStatement.GetLeadingTrivia())
                         : returnStatement.Expression;
+                    semicolonToken = returnStatement.SemicolonToken;
+                    return true;
                 }
             }
-            else if (firstStatement.Kind() == SyntaxKind.ThrowStatement)
+            else if (firstStatement is ThrowStatementSyntax throwStatement)
             {
-                var throwStatement = (ThrowStatementSyntax)firstStatement;
-                if (throwStatement.Expression != null)
+                if (version >= LanguageVersion.CSharp7 && throwStatement.Expression != null)
                 {
-                    return SyntaxFactory.ThrowExpression(throwStatement.ThrowKeyword, throwStatement.Expression);
+                    expression = SyntaxFactory.ThrowExpression(throwStatement.ThrowKeyword, throwStatement.Expression);
+                    semicolonToken = throwStatement.SemicolonToken;
+                    return true;
                 }
             }
 
-            return null;
+            expression = null;
+            semicolonToken = default;
+            return false;
         }
     }
 }

@@ -219,13 +219,13 @@ Public Class SyntaxFactsTests
 
 Namespace NS1
     Module Module1
-        Delegate Sub DelFoo(xx As Integer)
-        Sub Foo(xx As Integer)
+        Delegate Sub DelGoo(xx As Integer)
+        Sub Goo(xx As Integer)
         End Sub
 
         Sub Main()
             Dim a1 = GetType(Integer)
-            Dim d As DelFoo = AddressOf Foo
+            Dim d As DelGoo = AddressOf Goo
             d.Invoke(xx:=1)
             Dim Obj Gen As New genClass(Of Integer)
         End Sub
@@ -1196,7 +1196,7 @@ Module Program
     Sub Main()
         Dim x As New Hashtable
         Dim y = x ! _
-        Foo
+        Goo
     End Sub
 End Module
 ]]>)
@@ -1214,4 +1214,43 @@ End Module
         Dim text = SyntaxFacts.GetText(SyntaxKind.BeginCDataToken)
         Assert.Equal("<![CDATA[", text)
     End Sub
+
+    <Theory>
+    <InlineData("x", "x")>
+    <InlineData("x.y", "y")>
+    <InlineData("x?.y", "y")>
+    <InlineData("Me.y", "y")>
+    <InlineData("M()", "M")>
+    <InlineData("x.M()", "M")>
+    <InlineData("TypeOf(x)", Nothing)>
+    <InlineData("GetType(x)", Nothing)>
+    <InlineData("-x", Nothing)>
+    <InlineData("x!y", "y")>
+    <InlineData("Me", Nothing)>
+    <InlineData("[Me]", "Me")>
+    <InlineData("x.Me", "Me")>
+    <InlineData("M()()", "M")>
+    <InlineData("New C()", Nothing)>
+    Public Sub TestTryGetInferredMemberName(source As String, expected As String)
+        Dim expr = SyntaxFactory.ParseExpression(source)
+        Dim actual = expr.TryGetInferredMemberName()
+        Assert.Equal(expected, actual)
+    End Sub
+
+    <Theory>
+    <InlineData("Item0", False)>
+    <InlineData("Item1", True)>
+    <InlineData("Item2", True)>
+    <InlineData("Item10", True)>
+    <InlineData("Rest", True)>
+    <InlineData("ToString", True)>
+    <InlineData("GetHashCode", True)>
+    <InlineData("item1", True)>
+    <InlineData("item01", False)>
+    <InlineData("item10", True)>
+    <InlineData("Alice", False)>
+    Public Sub TestIsReservedTupleElementName(elementName As String, isReserved As Boolean)
+        Assert.Equal(isReserved, SyntaxFacts.IsReservedTupleElementName(elementName))
+    End Sub
+
 End Class

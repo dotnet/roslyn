@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 if (!token1.HasTrailingTrivia && !token2.HasLeadingTrivia)
                 {
-                    return default(AnalysisResult);
+                    return default;
                 }
 
                 var result = default(AnalysisResult);
@@ -124,6 +124,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     {
                         result.HasSkippedOrDisabledText = true;
                     }
+                    else if (trivia.Kind() == SyntaxKind.ConflictMarkerTrivia)
+                    {
+                        result.HasConflictMarker = true;
+                    }
                     else
                     {
                         Contract.ThrowIfFalse(SyntaxFacts.IsPreprocessorDirective(trivia.Kind()));
@@ -201,6 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 internal bool HasSkippedTokens { get; set; }
                 internal bool HasSkippedOrDisabledText { get; set; }
 
+                internal bool HasConflictMarker { get; set; }
                 internal bool HasComments { get; set; }
                 internal bool HasPreprocessor { get; set; }
 

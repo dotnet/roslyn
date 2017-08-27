@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
     {
         internal class WithTwoChildren : SyntaxList
         {
+            static WithTwoChildren()
+            {
+                ObjectBinder.RegisterTypeReader(typeof(WithTwoChildren), r => new WithTwoChildren(r));
+            }
+
             private readonly GreenNode _child0;
             private readonly GreenNode _child1;
 
@@ -47,11 +52,6 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 base.WriteTo(writer);
                 writer.WriteValue(_child0);
                 writer.WriteValue(_child1);
-            }
-
-            internal override Func<ObjectReader, object> GetReader()
-            {
-                return r => new WithTwoChildren(r);
             }
 
             internal override GreenNode GetSlot(int index)

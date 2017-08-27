@@ -1,7 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition.Hosting;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -13,7 +14,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Storage;
@@ -25,12 +25,10 @@ using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.ProjectSystem;
 using VSLangProj;
 using VSLangProj140;
-using OLEServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 using OleInterop = Microsoft.VisualStudio.OLE.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -43,79 +41,60 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private static readonly IntPtr s_docDataExisting_Unknown = new IntPtr(-1);
         private const string AppCodeFolderName = "App_Code";
 
-        protected readonly IServiceProvider ServiceProvider;
-        private readonly IVsUIShellOpenDocument _shellOpenDocument;
-        private readonly IVsTextManager _textManager;
-
-        // Not readonly because it needs to be set in the derived class' constructor.
-        private VisualStudioProjectTracker _projectTracker;
-
         // document worker coordinator
         private ISolutionCrawlerRegistrationService _registrationService;
 
-        private readonly ForegroundThreadAffinitizedObject _foregroundObject = new ForegroundThreadAffinitizedObject();
+        /// <summary>
+        /// A <see cref="ForegroundThreadAffinitizedObject"/> to make assertions that stuff is on the right thread.
+        /// This is Lazy because it might be created on a background thread when nothing is initialized yet.
+        /// </summary>
+        private readonly Lazy<ForegroundThreadAffinitizedObject> _foregroundObject
+            = new Lazy<ForegroundThreadAffinitizedObject>(() => new ForegroundThreadAffinitizedObject());
 
-        public VisualStudioWorkspaceImpl(
-            SVsServiceProvider serviceProvider,
-            WorkspaceBackgroundWork backgroundWork)
+        /// <summary>
+        /// The <see cref="DeferredInitializationState"/> that consists of the <see cref="VisualStudioProjectTracker" />
+        /// and other UI-initialized types. It will be created as long as a single project has been created.
+        /// </summary>
+        internal DeferredInitializationState DeferredState { get; private set; }
+
+        public VisualStudioWorkspaceImpl(ExportProvider exportProvider)
             : base(
-                CreateHostServices(serviceProvider),
-                backgroundWork)
+                MefV1HostServices.Create(exportProvider),
+                backgroundWork: WorkspaceBackgroundWork.ParseAndCompile)
         {
-            this.ServiceProvider = serviceProvider;
-            _textManager = serviceProvider.GetService(typeof(SVsTextManager)) as IVsTextManager;
-            _shellOpenDocument = serviceProvider.GetService(typeof(SVsUIShellOpenDocument)) as IVsUIShellOpenDocument;
-
-            // Ensure the options factory services are initialized on the UI thread
-            this.Services.GetService<IOptionService>();
+            PrimaryWorkspace.Register(this);
         }
 
-        internal static HostServices CreateHostServices(SVsServiceProvider serviceProvider)
+        /// <summary>
+        /// Ensures the workspace is fully hooked up to the host by subscribing to all sorts of VS
+        /// UI thread affinitized events.
+        /// </summary>
+        internal VisualStudioProjectTracker GetProjectTrackerAndInitializeIfNecessary(IServiceProvider serviceProvider)
         {
-            var composition = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
-            return MefV1HostServices.Create(composition.DefaultExportProvider);
+            if (DeferredState == null)
+            {
+                _foregroundObject.Value.AssertIsForeground();
+                DeferredState = new DeferredInitializationState(this, serviceProvider);
+            }
+
+            return DeferredState.ProjectTracker;
         }
 
-        protected void InitializeStandardVisualStudioWorkspace(SVsServiceProvider serviceProvider, SaveEventsService saveEventsService)
-        {
-            var projectTracker = new VisualStudioProjectTracker(serviceProvider, this.Services);
-
-            // Ensure the document tracking service is initialized on the UI thread
-            var documentTrackingService = (VisualStudioDocumentTrackingService)this.Services.GetService<IDocumentTrackingService>();
-            var documentProvider = new DocumentProvider(projectTracker, serviceProvider, documentTrackingService);
-            var metadataReferenceProvider = this.Services.GetService<VisualStudioMetadataReferenceManager>();
-            var ruleSetFileProvider = this.Services.GetService<VisualStudioRuleSetManager>();
-            projectTracker.InitializeProviders(documentProvider, metadataReferenceProvider, ruleSetFileProvider);
-
-            this.SetProjectTracker(projectTracker);
-
-            var workspaceHost = new VisualStudioWorkspaceHost(this);
-            projectTracker.RegisterWorkspaceHost(workspaceHost);
-            projectTracker.StartSendingEventsToWorkspaceHost(workspaceHost);
-
-            saveEventsService.StartSendingSaveEvents();
-
-            // Ensure the options factory services are initialized on the UI thread
-            this.Services.GetService<IOptionService>();
-        }
-
-        /// <summary>NOTE: Call only from derived class constructor</summary>
-        protected void SetProjectTracker(VisualStudioProjectTracker projectTracker)
-        {
-            _projectTracker = projectTracker;
-        }
-
+        /// <summary>
+        /// A compatibility shim to ensure that F# and TypeScript continue to work after the deferred work goes in. This will be
+        /// removed once they move to calling <see cref="GetProjectTrackerAndInitializeIfNecessary"/>.
+        /// </summary>
         internal VisualStudioProjectTracker ProjectTracker
         {
             get
             {
-                return _projectTracker;
+                return GetProjectTrackerAndInitializeIfNecessary(ServiceProvider.GlobalProvider);
             }
         }
 
         internal void ClearReferenceCache()
         {
-            _projectTracker.MetadataReferenceProvider.ClearCache();
+            DeferredState?.ProjectTracker.MetadataReferenceProvider.ClearCache();
         }
 
         internal IVisualStudioHostDocument GetHostDocument(DocumentId documentId)
@@ -131,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal IVisualStudioHostProject GetHostProject(ProjectId projectId)
         {
-            return this.ProjectTracker.GetProject(projectId);
+            return DeferredState?.ProjectTracker.GetProject(projectId);
         }
 
         private bool TryGetHostProject(ProjectId projectId, out IVisualStudioHostProject project)
@@ -144,6 +123,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Microsoft.CodeAnalysis.Solution newSolution,
             IProgressTracker progressTracker)
         {
+            if (_foregroundObject.IsValueCreated && !_foregroundObject.Value.IsForeground())
+            {
+                throw new InvalidOperationException(ServicesVSResources.VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread);
+            }
+
             var projectChanges = newSolution.GetChanges(this.CurrentSolution).GetProjectChanges().ToList();
             var projectsToLoad = new HashSet<Guid>();
             foreach (var pc in projectChanges)
@@ -165,7 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (projectsToLoad.Any())
             {
-                var vsSolution4 = GetVsService(typeof(SVsSolution)) as IVsSolution4;
+                var vsSolution4 = (IVsSolution4)DeferredState.ServiceProvider.GetService(typeof(SVsSolution));
                 vsSolution4.EnsureProjectsAreLoaded(
                     (uint)projectsToLoad.Count,
                     projectsToLoad.ToArray(),
@@ -199,7 +183,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         internal override bool CanRenameFilesDuringCodeActions(CodeAnalysis.Project project)
+            => !IsCPSProject(project);
+
+        internal bool IsCPSProject(CodeAnalysis.Project project)
         {
+            _foregroundObject.Value.AssertIsForeground();
+
             if (this.TryGetHierarchy(project.Id, out var hierarchy))
             {
                 // Currently renaming files in CPS projects (i.e. .Net Core) doesn't work proprey.
@@ -207,10 +196,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // (despite the DTE interfaces being synchronous).  So Roslyn calls the methods
                 // expecting the changes to happen immediately.  Because they are deferred in CPS
                 // this causes problems. 
-                return !hierarchy.IsCapabilityMatch("CPS");
+                return hierarchy.IsCapabilityMatch("CPS");
             }
 
-            return true;
+            return false;
+        }
+
+        protected override bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, CodeAnalysis.Project project)
+        {
+            var parseOptionsService = project.LanguageServices.GetService<IParseOptionsService>();
+            if (parseOptionsService == null)
+            {
+                return false;
+            }
+
+            // Currently, only changes to the LanguageVersion of parse options are supported.
+            var newLanguageVersion = parseOptionsService.GetLanguageVersion(newOptions);
+            var updated = parseOptionsService.WithLanguageVersion(oldOptions, newLanguageVersion);
+
+            return newOptions == updated;
         }
 
         public override bool CanApplyChange(ApplyChangesKind feature)
@@ -229,6 +233,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 case ApplyChangesKind.AddAdditionalDocument:
                 case ApplyChangesKind.RemoveAdditionalDocument:
                 case ApplyChangesKind.ChangeAdditionalDocument:
+                case ApplyChangesKind.ChangeParseOptions:
                     return true;
 
                 default:
@@ -289,6 +294,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return analyzerReference.FullPath;
         }
 
+        protected override void ApplyParseOptionsChanged(ProjectId projectId, ParseOptions options)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            var parseOptionsService = CurrentSolution.GetProject(projectId).LanguageServices.GetService<IParseOptionsService>();
+            Contract.ThrowIfNull(parseOptionsService, nameof(parseOptionsService));
+
+            string newVersion = parseOptionsService.GetLanguageVersion(options);
+
+            GetProjectData(projectId, out var hostProject, out var hierarchy, out var project);
+            foreach (string configurationName in (object[])project.ConfigurationManager.ConfigurationRowNames)
+            {
+                switch (hostProject.Language)
+                {
+                    case LanguageNames.CSharp:
+                        var csharpProperties = (VSLangProj80.CSharpProjectConfigurationProperties3)project.ConfigurationManager
+                            .ConfigurationRow(configurationName).Item(1).Object;
+
+                        if (newVersion != csharpProperties.LanguageVersion)
+                        {
+                            csharpProperties.LanguageVersion = newVersion;
+                        }
+                        break;
+
+                    case LanguageNames.VisualBasic:
+                        throw new InvalidOperationException(ServicesVSResources.This_workspace_does_not_support_updating_Visual_Basic_parse_options);
+                }
+            }
+        }
+
         protected override void ApplyAnalyzerReferenceAdded(ProjectId projectId, AnalyzerReference analyzerReference)
         {
             if (projectId == null)
@@ -335,8 +378,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private string GetMetadataPath(MetadataReference metadataReference)
         {
-            var fileMetadata = metadataReference as PortableExecutableReference;
-            if (fileMetadata != null)
+            if (metadataReference is PortableExecutableReference fileMetadata)
             {
                 return fileMetadata.FilePath;
             }
@@ -434,7 +476,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var documentId = documentTrackingService.GetActiveDocument() ?? documentTrackingService.GetVisibleDocuments().FirstOrDefault();
                 if (documentId != null)
                 {
-                    var composition = (IComponentModel)ServiceProvider.GetService(typeof(SComponentModel));
+                    var composition = (IComponentModel)this.DeferredState.ServiceProvider.GetService(typeof(SComponentModel));
                     var exportProvider = composition.DefaultExportProvider;
                     var editorAdaptersService = exportProvider.GetExportedValue<IVsEditorAdaptersFactoryService>();
 
@@ -646,7 +688,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            using (var documentIdHint = _projectTracker.DocumentProvider.ProvideDocumentIdHint(filePath, documentId))
+            using (var documentIdHint = DeferredState.ProjectTracker.DocumentProvider.ProvideDocumentIdHint(filePath, documentId))
             {
                 return projectItems.AddFromFile(filePath);
             }
@@ -720,28 +762,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             CloseDocumentCore(documentId);
         }
-
-        public bool TryGetInfoBarData(out IVsWindowFrame frame, out IVsInfoBarUIFactory factory)
-        {
-            frame = null;
-            factory = null;
-            var monitorSelectionService = ServiceProvider.GetService(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
-
-            // We want to get whichever window is currently in focus (including toolbars) as we could have had an exception thrown from the error list or interactive window
-            if (monitorSelectionService != null &&
-               ErrorHandler.Succeeded(monitorSelectionService.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, out var value)))
-            {
-                frame = value as IVsWindowFrame;
-            }
-            else
-            {
-                return false;
-            }
-
-            factory = ServiceProvider.GetService(typeof(SVsInfoBarUIFactory)) as IVsInfoBarUIFactory;
-            return frame != null && factory != null;
-        }
-
+        
         public void OpenDocumentCore(DocumentId documentId, bool activate = true)
         {
             if (documentId == null)
@@ -749,7 +770,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(documentId));
             }
 
-            if (!_foregroundObject.IsForeground())
+            if (!_foregroundObject.Value.IsForeground())
             {
                 throw new InvalidOperationException(ServicesVSResources.This_workspace_only_supports_opening_documents_on_the_UI_thread);
             }
@@ -782,7 +803,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // document using its ItemId. Thus, we must use OpenDocumentViaProject, which only 
                 // depends on the file path.
 
-                return ErrorHandler.Succeeded(_shellOpenDocument.OpenDocumentViaProject(
+                return ErrorHandler.Succeeded(DeferredState.ShellOpenDocumentService.OpenDocumentViaProject(
                     document.FilePath,
                     VSConstants.LOGVIEWID.TextView_guid,
                     out var oleServiceProvider,
@@ -821,7 +842,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var document = this.GetHostDocument(documentId);
                 if (document != null)
                 {
-                    if (ErrorHandler.Succeeded(_shellOpenDocument.IsDocumentOpen(null, 0, document.FilePath, Guid.Empty, 0, out var uiHierarchy, null, out var frame, out var isOpen)))
+                    if (ErrorHandler.Succeeded(DeferredState.ShellOpenDocumentService.IsDocumentOpen(null, 0, document.FilePath, Guid.Empty, 0, out var uiHierarchy, null, out var frame, out var isOpen)))
                     {
                         // TODO: do we need save argument for CloseDocument?
                         frame.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave);
@@ -897,7 +918,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 if (sharedHierarchy.SetProperty(
                         (uint)VSConstants.VSITEMID.Root,
                         (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext,
-                        ProjectTracker.GetProject(documentId.ProjectId).ProjectSystemName) == VSConstants.S_OK)
+                        DeferredState.ProjectTracker.GetProject(documentId.ProjectId).ProjectSystemName) == VSConstants.S_OK)
                 {
                     // The ASP.NET 5 intellisense project is now updated.
                     return;
@@ -933,7 +954,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // Note that if there is a single head project and it's in the process of being unloaded
             // there might not be a host project.
-            var hostProject = LinkedFileUtilities.GetContextHostProject(sharedHierarchy, ProjectTracker);
+            var hostProject = LinkedFileUtilities.GetContextHostProject(sharedHierarchy, DeferredState.ProjectTracker);
             if (hostProject?.Hierarchy == sharedHierarchy)
             {
                 return;
@@ -971,6 +992,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             var hostDocument = GetHostDocument(documentId);
+            if (hostDocument == null)
+            {
+                // This can happen if the document was temporary and has since been closed/deleted.
+                return base.GetDocumentIdInCurrentContext(documentId);
+            }
+
             var itemId = hostDocument.GetItemId();
             if (itemId == (uint)VSConstants.VSITEMID.Nil)
             {
@@ -987,7 +1014,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             // This is a closed shared document, so we must determine the correct context.
-            var hostProject = LinkedFileUtilities.GetContextHostProject(sharedHierarchy, ProjectTracker);
+            var hostProject = LinkedFileUtilities.GetContextHostProject(sharedHierarchy, DeferredState.ProjectTracker);
             var matchingProject = CurrentSolution.GetProject(hostProject.Id);
             if (matchingProject == null || hostProject.Hierarchy == sharedHierarchy)
             {
@@ -1061,12 +1088,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // workspace is going away. unregister this workspace from work coordinator
             StopSolutionCrawler();
 
+            // We should consider calling this here. It is commented out because Solution event tracking was 
+            // moved from VisualStudioProjectTracker, which is never Dispose()'d.  Rather than risk the 
+            // UnadviseSolutionEvents causing another issue (calling into dead COM objects, etc), we'll just 
+            // continue to skip it for now.
+            // UnadviseSolutionEvents();
+
             base.Dispose(finalize);
         }
 
         public void EnsureEditableDocuments(IEnumerable<DocumentId> documents)
         {
-            var queryEdit = (IVsQueryEditQuerySave2)ServiceProvider.GetService(typeof(SVsQueryEditQuerySave));
+            var queryEdit = (IVsQueryEditQuerySave2)DeferredState.ServiceProvider.GetService(typeof(SVsQueryEditQuerySave));
 
             var fileNames = documents.Select(GetFilePath).ToArray();
 
@@ -1109,26 +1142,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             this.OnAdditionalDocumentTextLoaderChanged(documentId, vsDoc.Loader);
         }
 
-        public TInterface GetVsService<TService, TInterface>()
-            where TService : class
-            where TInterface : class
-        {
-            return this.ServiceProvider.GetService(typeof(TService)) as TInterface;
-        }
-
-        public object GetVsService(Type serviceType)
-        {
-            return ServiceProvider.GetService(serviceType);
-        }
-
-        public DTE GetVsDte()
-        {
-            return GetVsService<SDTE, DTE>();
-        }
-
         internal override bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
         {
-            _foregroundObject.AssertIsForeground();
+            _foregroundObject.Value.AssertIsForeground();
             if (!TryGetHierarchy(referencingProject, out var referencingHierarchy) ||
                 !TryGetHierarchy(referencedProject, out var referencedHierarchy))
             {
@@ -1143,8 +1159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             uint canAddProjectReference = (uint)__VSREFERENCEQUERYRESULT.REFERENCE_UNKNOWN;
             uint canBeReferenced = (uint)__VSREFERENCEQUERYRESULT.REFERENCE_UNKNOWN;
 
-            var referencingProjectFlavor3 = referencingHierarchy as IVsProjectFlavorReferences3;
-            if (referencingProjectFlavor3 != null)
+            if (referencingHierarchy is IVsProjectFlavorReferences3 referencingProjectFlavor3)
             {
                 if (ErrorHandler.Failed(referencingProjectFlavor3.QueryAddProjectReferenceEx(referencedHierarchy, ContextFlags, out canAddProjectReference, out var unused)))
                 {
@@ -1160,8 +1175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            var referencedProjectFlavor3 = referencedHierarchy as IVsProjectFlavorReferences3;
-            if (referencedProjectFlavor3 != null)
+            if (referencedHierarchy is IVsProjectFlavorReferences3 referencedProjectFlavor3)
             {
                 if (ErrorHandler.Failed(referencedProjectFlavor3.QueryCanBeReferencedEx(referencingHierarchy, ContextFlags, out canBeReferenced, out var unused)))
                 {
@@ -1188,7 +1202,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // In both directions things are still unknown.  Fallback to the reference manager
             // to make the determination here.
-            var referenceManager = GetVsService<SVsReferenceManager, IVsReferenceManager>();
+            var referenceManager = (IVsReferenceManager)DeferredState.ServiceProvider.GetService(typeof(SVsReferenceManager));
             if (referenceManager == null)
             {
                 // Couldn't get the reference manager.  Have to assume it's not allowed.
@@ -1301,7 +1315,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private void RegisterPrimarySolutionForPersistentStorage(
                 SolutionId solutionId)
             {
-                var service = _workspace.Services.GetService<IPersistentStorageService>() as PersistentStorageService;
+                var service = _workspace.Services.GetService<IPersistentStorageService>() as AbstractPersistentStorageService;
                 if (service == null)
                 {
                     return;
@@ -1313,7 +1327,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private void UnregisterPrimarySolutionForPersistentStorage(
                 SolutionId solutionId, bool synchronousShutdown)
             {
-                var service = _workspace.Services.GetService<IPersistentStorageService>() as PersistentStorageService;
+                var service = _workspace.Services.GetService<IPersistentStorageService>() as AbstractPersistentStorageService;
                 if (service == null)
                 {
                     return;
@@ -1455,7 +1469,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 var solutionId = _workspace.CurrentSolution.Id;
 
-                _workspace.ProjectTracker.UpdateSolutionProperties(solutionId);
+                _workspace.DeferredState.ProjectTracker.UpdateSolutionProperties(solutionId);
                 RegisterPrimarySolutionForPersistentStorage(solutionId);
             }
         }
