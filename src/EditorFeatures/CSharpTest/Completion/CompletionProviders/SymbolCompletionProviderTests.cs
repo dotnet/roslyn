@@ -9191,5 +9191,15 @@ class C
 ";
             await VerifyNoItemsExistAsync(markup);
         }
+
+        [WorkItem(420697, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=420697&_a=edit")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21766"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task DoNotCrashInExtensionWithExtensionBodiedMember()
+        {
+            var markup =
+@"public static class Extensions { public static T Get<T>(this object o) => $$}
+";
+            await VerifyItemExistsAsync(markup, "o");
+        }
     }
 }
