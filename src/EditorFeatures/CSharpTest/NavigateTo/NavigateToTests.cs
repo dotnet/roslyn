@@ -765,11 +765,11 @@ class C2
 
                 var descriptionItems = itemDisplay.DescriptionItems;
 
-                Action<string, string> assertDescription = (label, value) =>
+                void assertDescription(string label, string value)
                 {
                     var descriptionItem = descriptionItems.Single(i => i.Category.Single().Text == label);
                     Assert.Equal(value, descriptionItem.Details.Single().Text);
-                };
+                }
 
                 assertDescription("File:", w.Documents.Single().Name);
                 assertDescription("Line:", "3"); // one based line number

@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
-
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
@@ -16,10 +14,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Kind of binary operation.
         /// </summary>
-        BinaryOperationKind BinaryOperationKind { get; }
+        BinaryOperatorKind OperatorKind { get; }
+
         /// <summary>
         /// <code>true</code> if this assignment contains a 'lifted' binary operation.
         /// </summary>
         bool IsLifted { get; }
+
+        /// <summary>
+        /// <code>true</code> if overflow checking is performed for the arithmetic operation.
+        /// </summary>
+        bool IsChecked { get; }
     }
 }

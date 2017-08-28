@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Client;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
@@ -22,6 +23,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
     internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
     {
+        private enum GlobalNotificationState
+        {
+            NotStarted,
+            Started,
+            Finished
+        }
+
         private static int s_instanceId = 0;
 
         private readonly HubClient _hubClient;
@@ -30,6 +38,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private readonly JsonRpc _rpc;
         private readonly ReferenceCountedDisposable<RemotableDataJsonRpc> _remotableDataRpc;
+
+        /// <summary>
+        /// Lock for the <see cref="_globalNotificationsTask"/> task chain.  Each time we hear 
+        /// about a global operation starting or stopping (i.e. a build) we will '.ContinueWith'
+        /// this task chain with a new notification to the OOP side.  This way all the messages
+        /// are properly serialized and appera in the right order (i.e. we don't hear about a 
+        /// stop prior to hearing about the relevant start).
+        /// </summary>
+        private readonly object _globalNotificationsGate = new object();
+        private Task<GlobalNotificationState> _globalNotificationsTask = Task.FromResult(GlobalNotificationState.NotStarted);
 
         public static async Task<RemoteHostClient> CreateAsync(
             Workspace workspace, CancellationToken cancellationToken)
@@ -99,8 +117,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             HubClient hubClient,
             HostGroup hostGroup,
             ReferenceCountedDisposable<RemotableDataJsonRpc> remotableDataRpc,
-            Stream stream) :
-            base(workspace)
+            Stream stream) 
+            : base(workspace)
         {
             Contract.ThrowIfNull(remotableDataRpc);
 
@@ -139,6 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         protected override void OnStarted()
         {
+            RegisterGlobalOperationNotifications();
         }
 
         protected override void OnStopped()
@@ -148,9 +167,96 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // the other is external thing disconnecting remote host from us (ex, user killing OOP process).
             // the Disconnected event we subscribe is to detect #2 case. and this method is for #1 case. so when we are willingly disconnecting
             // we don't need the event, otherwise, Disconnected event will be called twice.
+            UnregisterGlobalOperationNotifications();
             _rpc.Disconnected -= OnRpcDisconnected;
             _rpc.Dispose();
             _remotableDataRpc.Dispose();
+        }
+
+        private void RegisterGlobalOperationNotifications()
+        {
+            var globalOperationService = this.Workspace.Services.GetService<IGlobalOperationNotificationService>();
+            if (globalOperationService != null)
+            {
+                globalOperationService.Started += OnGlobalOperationStarted;
+                globalOperationService.Stopped += OnGlobalOperationStopped;
+            }
+        }
+
+        private void UnregisterGlobalOperationNotifications()
+        {
+            var globalOperationService = this.Workspace.Services.GetService<IGlobalOperationNotificationService>();
+            if (globalOperationService != null)
+            {
+                globalOperationService.Started -= OnGlobalOperationStarted;
+                globalOperationService.Stopped -= OnGlobalOperationStopped;
+            }
+
+            Task localTask;
+            lock (_globalNotificationsGate)
+            {
+                // Unilaterally transition us to the finished state.  Once we're finished
+                // we cannot start or stop anymore.
+                _globalNotificationsTask = _globalNotificationsTask.ContinueWith(
+                    _ => GlobalNotificationState.Finished, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
+                localTask = _globalNotificationsTask;
+            }
+
+            // Have to wait for all the notifications to make it to the OOP side so we keep
+            // it in a consistent state.  Also, if we don't do this, our _rpc object will
+            // get disposed while we're remoting over the messages to the oop side.
+            localTask.Wait();
+        }
+
+        private void OnGlobalOperationStarted(object sender, EventArgs e)
+        {
+            lock (_globalNotificationsGate)
+            {
+                _globalNotificationsTask = _globalNotificationsTask.ContinueWith(
+                    continuation, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default).Unwrap();
+            }
+
+            async Task<GlobalNotificationState> continuation(Task<GlobalNotificationState> previousTask)
+            {
+                // Can only transition from NotStarted->Started.  If we hear about
+                // anything else, do nothing.
+                if (previousTask.Result != GlobalNotificationState.NotStarted)
+                {
+                    return previousTask.Result;
+                }
+
+                await _rpc.InvokeAsync(
+                    nameof(IRemoteHostService.OnGlobalOperationStarted), "").ConfigureAwait(false);
+
+                return GlobalNotificationState.Started;
+            }
+        }
+
+        private void OnGlobalOperationStopped(object sender, GlobalOperationEventArgs e)
+        {
+            lock (_globalNotificationsGate)
+            {
+                _globalNotificationsTask = _globalNotificationsTask.ContinueWith(
+                    continuation, CancellationToken.None,
+                    TaskContinuationOptions.None, TaskScheduler.Default).Unwrap();
+            }
+
+            async Task<GlobalNotificationState> continuation(Task<GlobalNotificationState> previousTask)
+            {
+                // Can only transition from Started->NotStarted.  If we hear about
+                // anything else, do nothing.
+                if (previousTask.Result != GlobalNotificationState.Started)
+                {
+                    return previousTask.Result;
+                }
+
+                await _rpc.InvokeAsync(
+                    nameof(IRemoteHostService.OnGlobalOperationStopped),
+                    e.Operations, e.Cancelled).ConfigureAwait(false);
+
+                // Mark that we're stopped now.
+                return GlobalNotificationState.NotStarted;
+            }
         }
 
         private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)

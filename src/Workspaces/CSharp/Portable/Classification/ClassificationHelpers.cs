@@ -105,9 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private static string GetClassificationForIdentifier(SyntaxToken token)
         {
-            var typeDeclaration = token.Parent as BaseTypeDeclarationSyntax;
 
-            if (typeDeclaration != null && typeDeclaration.Identifier == token)
+            if (token.Parent is BaseTypeDeclarationSyntax typeDeclaration && typeDeclaration.Identifier == token)
             {
                 return GetClassificationForTypeDeclarationIdentifier(token);
             }

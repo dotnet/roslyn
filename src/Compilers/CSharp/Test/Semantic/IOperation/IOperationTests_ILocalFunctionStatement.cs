@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -30,8 +30,8 @@ class C
 ILocalFunctionStatement (Local Function: System.Int32 Local(System.Int32 p1)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local(i ... }')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return x++;')
-      ReturnedValue: IIncrementExpression (UnaryOperandKind.IntegerPostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
-          Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+      ReturnedValue: IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
+          Target: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -56,8 +56,8 @@ class C
 ILocalFunctionStatement (Local Function: System.Int32 Local(System.Int32 p1)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local(i ... p1) => x++;')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '=> x++')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x++')
-      ReturnedValue: IIncrementExpression (UnaryOperandKind.IntegerPostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
-          Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+      ReturnedValue: IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
+          Target: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -82,8 +82,8 @@ class C
 ILocalFunctionStatement (Local Function: System.Int32 Local(System.Int32 x)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local(int x) => x++;')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '=> x++')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x++')
-      ReturnedValue: IIncrementExpression (UnaryOperandKind.IntegerPostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
-          Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+      ReturnedValue: IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
+          Target: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -113,7 +113,7 @@ class C
 ILocalFunctionStatement (Local Function: System.Int32 Local(System.Int32 y)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local(i ... ) => x + y;')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '=> x + y')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x + y')
-      ReturnedValue: IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + y')
+      ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + y')
           Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
           Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
 ";
@@ -144,7 +144,7 @@ class C
 ILocalFunctionStatement (Local Function: System.Int32 Local3(System.Int32 p1)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local3( ... Local2(p1);')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '=> x + Local2(p1)')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x + Local2(p1)')
-      ReturnedValue: IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + Local2(p1)')
+      ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + Local2(p1)')
           Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
           Right: IInvocationExpression (System.Int32 Local2(System.Int32 p1)) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Local2(p1)')
               Instance Receiver: null
@@ -180,7 +180,7 @@ ILocalFunctionStatement (Local Function: System.Int32 Local(System.Int32 p1)) (O
           Instance Receiver: null
           Arguments(1):
               IArgument (ArgumentKind.Explicit, Matching Parameter: p1) (OperationKind.Argument) (Syntax: 'x + p1')
-                IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + p1')
+                IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + p1')
                   Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
                   Right: IParameterReferenceExpression: p1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'p1')
                 InConversion: null
@@ -221,11 +221,11 @@ ILocalFunctionStatement (Local Function: System.Threading.Tasks.Task<System.Int3
               Instance Receiver: null
               Arguments(1):
                   IArgument (ArgumentKind.Explicit, Matching Parameter: millisecondsDelay) (OperationKind.Argument) (Syntax: '0')
-                    ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
                     InConversion: null
                     OutConversion: null
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return x + p1;')
-      ReturnedValue: IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + p1')
+      ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + p1')
           Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
           Right: IParameterReferenceExpression: p1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'p1')
 ";
@@ -281,8 +281,8 @@ class C
 ILocalFunctionStatement (Local Function: void F()) (OperationKind.LocalFunctionStatement) (Syntax: 'void F() => x++;')
   IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '=> x++')
     IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x++')
-      Expression: IIncrementExpression (UnaryOperandKind.IntegerPostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
-          Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+      Expression: IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
+          Target: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: '=> x++')
       ReturnedValue: null
 ";

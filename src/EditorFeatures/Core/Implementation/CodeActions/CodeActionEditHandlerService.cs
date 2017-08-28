@@ -54,8 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var applyChanges = op as ApplyChangesOperation;
-                if (applyChanges != null)
+                if (op is ApplyChangesOperation applyChanges)
                 {
                     var oldSolution = workspace.CurrentSolution;
                     var newSolution = applyChanges.ChangedSolution.WithMergedLinkedFileChangesAsync(oldSolution, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
@@ -69,8 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                     }
                 }
 
-                var previewOp = op as PreviewOperation;
-                if (previewOp != null)
+                if (op is PreviewOperation previewOp)
                 {
                     currentResult = SolutionPreviewResult.Merge(currentResult,
                         new SolutionPreviewResult(new SolutionPreviewItem(

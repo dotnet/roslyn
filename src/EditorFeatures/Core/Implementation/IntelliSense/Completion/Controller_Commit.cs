@@ -18,8 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
     {
         private CompletionProvider GetCompletionProvider(CompletionItem item)
         {
-            var completionService = this.GetCompletionService() as CompletionServiceWithProviders;
-            if (completionService != null)
+            if (this.GetCompletionService() is CompletionServiceWithProviders completionService)
             {
                 return completionService.GetProvider(item);
             }
@@ -68,8 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // We want to merge with any of our other programmatic edits (e.g. automatic brace completion)
                 transaction.MergePolicy = AutomaticCodeChangeMergePolicy.Instance;
 
-                var provider = GetCompletionProvider(item) as ICustomCommitCompletionProvider;
-                if (provider != null)
+                if (GetCompletionProvider(item) is ICustomCommitCompletionProvider provider)
                 {
                     provider.Commit(item, this.TextView, this.SubjectBuffer, model.TriggerSnapshot, commitChar);
                 }

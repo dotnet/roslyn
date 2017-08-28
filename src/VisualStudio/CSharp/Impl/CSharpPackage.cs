@@ -98,8 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         private void RegisterObjectBrowserLibraryManager()
         {
-            var objectManager = this.GetService(typeof(SVsObjectManager)) as IVsObjectManager2;
-            if (objectManager != null)
+            if (this.GetService(typeof(SVsObjectManager)) is IVsObjectManager2 objectManager)
             {
                 _libraryManager = new ObjectBrowserLibraryManager(this);
 
@@ -114,8 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         {
             if (_libraryManagerCookie != 0)
             {
-                var objectManager = this.GetService(typeof(SVsObjectManager)) as IVsObjectManager2;
-                if (objectManager != null)
+                if (this.GetService(typeof(SVsObjectManager)) is IVsObjectManager2 objectManager)
                 {
                     objectManager.UnregisterLibrary(_libraryManagerCookie);
                     _libraryManagerCookie = 0;

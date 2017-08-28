@@ -274,11 +274,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </remarks>
         Friend Function CanAddLookupSymbolInfo(sym As Symbol,
                                                     options As LookupOptions,
+                                                    nameSet As LookupSymbolsInfo,
                                                     accessThroughType As TypeSymbol) As Boolean
+            Debug.Assert(sym IsNot Nothing)
+
+            If Not nameSet.CanBeAdded(sym.Name) Then
+                Return False
+            End If
+
             Dim singleResult = CheckViability(sym, -1, options, accessThroughType, useSiteDiagnostics:=Nothing)
 
-            If sym IsNot Nothing AndAlso
-               (options And LookupOptions.MethodsOnly) <> 0 AndAlso
+            If (options And LookupOptions.MethodsOnly) <> 0 AndAlso
                sym.Kind <> SymbolKind.Method Then
                 Return False
             End If
@@ -524,7 +530,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Add names from the namespace
                 For Each sym In container.GetMembersUnordered()
                     ' UNDONE: filter by options
-                    If binder.CanAddLookupSymbolInfo(sym, options, Nothing) Then
+                    If binder.CanAddLookupSymbolInfo(sym, options, nameSet, Nothing) Then
                         nameSet.AddSymbol(sym, sym.Name, sym.GetArity())
                     End If
                 Next
@@ -2085,7 +2091,7 @@ ExitForFor:
                     ' validate them.
                     If TypeOf container Is NamedTypeSymbol Then
                         For Each sym In container.GetTypeMembersUnordered()
-                            If binder.CanAddLookupSymbolInfo(sym, options, accessThroughType) Then
+                            If binder.CanAddLookupSymbolInfo(sym, options, nameSet, accessThroughType) Then
                                 nameSet.AddSymbol(sym, sym.Name, sym.Arity)
                             End If
                         Next
@@ -2093,7 +2099,7 @@ ExitForFor:
                 ElseIf (options And LookupOptions.LabelsOnly) = 0 Then
                     ' Go through each member of the type.
                     For Each sym In container.GetMembersUnordered()
-                        If binder.CanAddLookupSymbolInfo(sym, options, accessThroughType) Then
+                        If binder.CanAddLookupSymbolInfo(sym, options, nameSet, accessThroughType) Then
                             nameSet.AddSymbol(sym, sym.Name, sym.GetArity())
                         End If
                     Next

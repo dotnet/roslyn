@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -47,8 +47,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IFieldInitializer (Field: C.s1 As System.Int32) (OperationKind.FieldInitializer) (Syntax: '= 1')
-  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-]]>.Value
+  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
@@ -65,7 +64,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IFieldInitializer (Field: C.i2 As System.Int32) (OperationKind.FieldInitializer) (Syntax: '= 2')
-  ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -83,8 +82,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IPropertyInitializer (Property: Property C.P1 As System.Int32) (OperationKind.PropertyInitializer) (Syntax: '= 1')
-  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-]]>.Value
+  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
@@ -102,8 +100,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IParameterInitializer (Parameter: [p1 As System.Int32 = 0]) (OperationKind.ParameterInitializer) (Syntax: '= 0')
-  ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-]]>.Value
+  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
 BC30642: 'Optional' and 'ParamArray' cannot be combined.
@@ -177,10 +174,10 @@ Class C
     End Function
 End Class]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
+Dim expectedOperationTree = <![CDATA[
 IFieldInitializer (Field: C.s1 As System.Int32) (OperationKind.FieldInitializer) (Syntax: '= 1 + F()')
-  IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
-    Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
+    Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     Right: IInvocationExpression (Function C.F() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F()')
         Instance Receiver: null
         Arguments(0)
@@ -203,10 +200,10 @@ Class C
     End Function
 End Class]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
+Dim expectedOperationTree = <![CDATA[
 IFieldInitializer (Field: C.i1 As System.Int32) (OperationKind.FieldInitializer) (Syntax: '= 1 + F()')
-  IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
-    Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
+    Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     Right: IInvocationExpression (Function C.F() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F()')
         Instance Receiver: null
         Arguments(0)
@@ -229,10 +226,10 @@ Class C
     End Function
 End Class]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
+Dim expectedOperationTree = <![CDATA[
 IPropertyInitializer (Property: Property C.P1 As System.Int32) (OperationKind.PropertyInitializer) (Syntax: '= 1 + F()')
-  IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
-    Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
+    Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     Right: IInvocationExpression (Function C.F() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F()')
         Instance Receiver: null
         Arguments(0)
@@ -258,8 +255,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IFieldInitializer (Field: C.s1 As System.Int32) (OperationKind.FieldInitializer) (Syntax: '= 1')
-  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-]]>.Value
+  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
@@ -281,7 +277,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IFieldInitializer (Field: C.i2 As System.Int32) (OperationKind.FieldInitializer) (Syntax: '= 2')
-  ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var local in this.LocalsMap)
                     {
-                        if (originalBinder.CanAddLookupSymbolInfo(local.Value, options, null))
+                        if (originalBinder.CanAddLookupSymbolInfo(local.Value, options, result, null))
                         {
                             result.AddSymbol(local.Value, local.Key, 0);
                         }
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var local in this.LocalFunctionsMap)
                     {
-                        if (originalBinder.CanAddLookupSymbolInfo(local.Value, options, null))
+                        if (originalBinder.CanAddLookupSymbolInfo(local.Value, options, result, null))
                         {
                             result.AddSymbol(local.Value, local.Key, 0);
                         }
