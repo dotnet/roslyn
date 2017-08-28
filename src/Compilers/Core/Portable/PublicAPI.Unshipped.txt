@@ -249,8 +249,8 @@ Microsoft.CodeAnalysis.Semantics.ICompoundAssignmentExpression.IsChecked.get -> 
 Microsoft.CodeAnalysis.Semantics.ICompoundAssignmentExpression.IsLifted.get -> bool
 Microsoft.CodeAnalysis.Semantics.ICompoundAssignmentExpression.OperatorKind.get -> Microsoft.CodeAnalysis.Semantics.BinaryOperatorKind
 Microsoft.CodeAnalysis.Semantics.IConditionalAccessExpression
-Microsoft.CodeAnalysis.Semantics.IConditionalAccessExpression.ConditionalInstance.get -> Microsoft.CodeAnalysis.IOperation
-Microsoft.CodeAnalysis.Semantics.IConditionalAccessExpression.ConditionalValue.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Semantics.IConditionalAccessExpression.Expression.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Semantics.IConditionalAccessExpression.WhenNotNull.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IConditionalAccessInstanceExpression
 Microsoft.CodeAnalysis.Semantics.IConditionalExpression
 Microsoft.CodeAnalysis.Semantics.IConditionalExpression.Condition.get -> Microsoft.CodeAnalysis.IOperation

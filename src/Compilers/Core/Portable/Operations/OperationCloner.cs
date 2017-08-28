@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IOperation VisitConditionalAccessExpression(IConditionalAccessExpression operation, object argument)
         {
-            return new ConditionalAccessExpression(Visit(operation.ConditionalValue), Visit(operation.ConditionalInstance), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new ConditionalAccessExpression(Visit(operation.WhenNotNull), Visit(operation.Expression), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitConditionalAccessInstanceExpression(IConditionalAccessInstanceExpression operation, object argument)

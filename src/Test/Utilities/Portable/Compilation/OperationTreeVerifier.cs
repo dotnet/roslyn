@@ -760,8 +760,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IConditionalAccessExpression));
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.ConditionalInstance, header: "Left");
-            Visit(operation.ConditionalValue, header: "Right");
+            Visit(operation.Expression, header: nameof(operation.Expression));
+            Visit(operation.WhenNotNull, header: nameof(operation.WhenNotNull));
         }
 
         public override void VisitConditionalAccessInstanceExpression(IConditionalAccessInstanceExpression operation)
