@@ -31,8 +31,10 @@ class C2 : C1
 }
 ";
             string expectedOperationTree = @"
-IPropertyReferenceExpression: System.Int32 C1.P1 { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'c2.P1')
-  Instance Receiver: ILocalReferenceExpression: c2 (OperationKind.LocalReferenceExpression, Type: C2) (Syntax: 'c2')
+ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'P1 = 1')
+  Left: IPropertyReferenceExpression: System.Int32 C1.P1 { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'P1')
+      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'P1')
+  Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
