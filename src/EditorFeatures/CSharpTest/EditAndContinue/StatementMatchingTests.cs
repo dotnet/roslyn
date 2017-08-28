@@ -863,6 +863,204 @@ F(a =>
             expected.AssertEqual(actual);
         }
 
+        [Fact]
+        public void LocalFunctions1()
+        {
+            var src1 = "object x(object a) => a; F(x);";
+            var src2 = "F(a => a);";
+
+            var match = GetMethodMatch(src1, src2);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "object x(object a) => a;", "a => a" },
+                { "F(x);", "F(a => a);" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void LocalFunctions2a()
+        {
+            var src1 = @"
+F(x => x + 1, 1, y => y + 1, delegate(int x) { return x; }, async u => u);
+";
+            var src2 = @"
+int localF1(int y) => y + 1;
+int localF2(int x) => x + 1;
+int localF3(int x) => x;
+int localF4(int u) => u;
+async int localF5(int u, int v) =>  u + v;
+F(localF1, localF2, G(), localF2, localF3, localF4, localF5);
+";
+
+            var match = GetMethodMatch(src1, src2);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "F(x => x + 1, 1, y => y + 1, delegate(int x) { return x; }, async u => u);", "F(localF1, localF2, G(), localF2, localF3, localF4, localF5);" },
+                { "x => x + 1", "int localF2(int x) => x + 1;" },
+                { "y => y + 1", "int localF1(int y) => y + 1;" },
+                { "delegate(int x) { return x; }", "int localF3(int x) => x;" },
+                { "async u => u", "int localF4(int u) => u;" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void LocalFunctions2b()
+        {
+            var src1 = @"
+F(delegate { return x; });
+";
+            var src2 = @"
+int localF() => x;
+F(localF);
+";
+
+            var match = GetMethodMatch(src1, src2);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "F(delegate { return x; });", "F(localF);" },
+                { "delegate { return x; }", "int localF() => x;" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void LocalFunctions3()
+        {
+            var src1 = @"
+a += async u => u;
+";
+            var src2 = @"
+object localF(object u) => u;
+a += localF;
+";
+
+            var match = GetMethodMatch(src1, src2);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "a += async u => u;", "a += localF;" },
+                { "async u => u", "object localF(object u) => u;" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void LocalFunctions4()
+        {
+            var src1 = @"int a() { int b() { int c() { int d() { return 0; }; }; return c(); }; return b(); }";
+            var src2 = @"int a() { int b() { int c() { int d() { return 0; }; }; return c(); }; return b(); }";
+
+            var matches = GetMethodMatches(src1, src2);
+            var actual = ToMatchingPairs(matches);
+
+            var expected = new MatchingPairs
+            {
+                { "int a() { int b() { int c() { int d() { return 0; }; }; return c(); }; return b(); }",
+                    "int a() { int b() { int c() { int d() { return 0; }; }; return c(); }; return b(); }" },
+                { "{ int b() { int c() { int d() { return 0; }; }; return c(); }; return b(); }",
+                    "{ int b() { int c() { int d() { return 0; }; }; return c(); }; return b(); }" },
+                { "int b() { int c() { int d() { return 0; }; }; return c(); }",
+                    "int b() { int c() { int d() { return 0; }; }; return c(); }" },
+                { "{ int c() { int d() { return 0; }; }; return c(); }",
+                    "{ int c() { int d() { return 0; }; }; return c(); }" },
+                { "int c() { int d() { return 0; }; }", "int c() { int d() { return 0; }; }" },
+                { "{ int d() { return 0; }; }", "{ int d() { return 0; }; }" },
+                { "int d() { return 0; }", "int d() { return 0; }" },
+                { "{ return 0; }", "{ return 0; }" },
+                { "return 0;", "return 0;" },
+                { "return c();", "return c();" },
+                { "return b();", "return b();" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void LocalFunctions5()
+        {
+            var src1 = @"
+void G6(int a)
+{ 
+    int G5(int c) => /*1*/d;
+    F(G5);
+
+    void G4()
+    {
+        void G1(int x) => x;
+        int G3(int w)
+        { 
+            int G2(int c) => /*2*/d;
+            return G2(w);
+        }
+        F(G3);
+        F(G1);
+    };
+    F(G4);
+};
+";
+
+            var src2 = @"
+void G6(int a)
+{ 
+    int G5(int c) => /*1*/d + 1;F(G5);
+
+    void G4()
+    {
+        int G3(int w)
+        { 
+            int G2(int c) => /*2*/d + 1; return G2(w);
+        }
+        F(G3); F(G1); int G6(int p) => p *2; F(G6);
+    };
+    F(G4);
+};
+";
+
+            var matches = GetMethodMatches(src1, src2);
+            var actual = ToMatchingPairs(matches);
+
+            var expected = new MatchingPairs
+            {
+                { "void G6(int a) {      int G5(int c) => /*1*/d;     F(G5);      void G4()     {         void G1(int x) => x;         int G3(int w)         {              int G2(int c) => /*2*/d;             return G2(w);         }         F(G3);         F(G1);     };     F(G4); }",
+                    "void G6(int a) {      int G5(int c) => /*1*/d + 1;F(G5);      void G4()     {         int G3(int w)         {              int G2(int c) => /*2*/d + 1; return G2(w);         }         F(G3); F(G1); int G6(int p) => p *2; F(G6);     };     F(G4); }" },
+                { "{      int G5(int c) => /*1*/d;     F(G5);      void G4()     {         void G1(int x) => x;         int G3(int w)         {              int G2(int c) => /*2*/d;             return G2(w);         }         F(G3);         F(G1);     };     F(G4); }",
+                    "{      int G5(int c) => /*1*/d + 1;F(G5);      void G4()     {         int G3(int w)         {              int G2(int c) => /*2*/d + 1; return G2(w);         }         F(G3); F(G1); int G6(int p) => p *2; F(G6);     };     F(G4); }" },
+                { "int G5(int c) => /*1*/d;", "int G5(int c) => /*1*/d + 1;" },
+                { "=> /*1*/d", "=> /*1*/d + 1" },
+                { "F(G5);", "F(G5);" },
+                { "void G4()     {         void G1(int x) => x;         int G3(int w)         {              int G2(int c) => /*2*/d;             return G2(w);         }         F(G3);         F(G1);     }",
+                    "void G4()     {         int G3(int w)         {              int G2(int c) => /*2*/d + 1; return G2(w);         }         F(G3); F(G1); int G6(int p) => p *2; F(G6);     }" },
+                { "{         void G1(int x) => x;         int G3(int w)         {              int G2(int c) => /*2*/d;             return G2(w);         }         F(G3);         F(G1);     }",
+                    "{         int G3(int w)         {              int G2(int c) => /*2*/d + 1; return G2(w);         }         F(G3); F(G1); int G6(int p) => p *2; F(G6);     }" },
+                { "void G1(int x) => x;", "int G6(int p) => p *2;" },
+                { "=> x", "=> p *2" },
+                { "int G3(int w)         {              int G2(int c) => /*2*/d;             return G2(w);         }",
+                    "int G3(int w)         {              int G2(int c) => /*2*/d + 1; return G2(w);         }" },
+                { "{              int G2(int c) => /*2*/d;             return G2(w);         }", "{              int G2(int c) => /*2*/d + 1; return G2(w);         }" },
+                { "int G2(int c) => /*2*/d;", "int G2(int c) => /*2*/d + 1;" },
+                { "=> /*2*/d", "=> /*2*/d + 1" },
+                { "return G2(w);", "return G2(w);" },
+                { "F(G3);", "F(G3);" },
+                { "F(G1);", "F(G1);" },
+                { "F(G4);", "F(G4);" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
         #endregion
 
         #region LINQ

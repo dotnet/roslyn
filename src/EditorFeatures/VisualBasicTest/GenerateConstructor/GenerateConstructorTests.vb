@@ -1239,8 +1239,7 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf),
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
-End Class</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+End Class</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(530003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")>
@@ -1453,8 +1452,7 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf),
     Public Sub New(y As Integer)
         Me.y = y
     End Sub
-End Class</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+End Class</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(897355, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897355")>

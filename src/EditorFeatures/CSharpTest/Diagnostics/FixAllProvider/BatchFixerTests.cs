@@ -147,7 +147,7 @@ class C
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(input, expected);
         }
 
         #endregion

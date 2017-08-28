@@ -92,6 +92,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         UpdatingStateMachineMethodAroundActiveStatement = 74,
         UpdatingStateMachineMethodMissingAttribute = 75,
 
+        SwitchBetweenLambdaAndLocalFunction = 76,
+
         // TODO: remove values below
         RUDE_EDIT_COMPLEX_QUERY_EXPRESSION = 0x103,
     }
