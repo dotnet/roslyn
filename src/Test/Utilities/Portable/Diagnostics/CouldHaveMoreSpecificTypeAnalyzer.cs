@@ -45,9 +45,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     compilationContext.RegisterOperationBlockStartAction(
                         (operationBlockContext) =>
                         {
-                            IMethodSymbol containingMethod = operationBlockContext.OwningSymbol as IMethodSymbol;
 
-                            if (containingMethod != null)
+                            if (operationBlockContext.OwningSymbol is IMethodSymbol containingMethod)
                             {
                                 Dictionary<ILocalSymbol, HashSet<INamedTypeSymbol>> localsSourceTypes = new Dictionary<ILocalSymbol, HashSet<INamedTypeSymbol>>();
 
@@ -101,8 +100,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                     {
                                         foreach (ILocalSymbol local in localsSourceTypes.Keys)
                                         {
-                                            INamedTypeSymbol mostSpecificSourceType;
-                                            if (HasMoreSpecificSourceType(local, local.Type, localsSourceTypes, out mostSpecificSourceType))
+                                            if (HasMoreSpecificSourceType(local, local.Type, localsSourceTypes, out var mostSpecificSourceType))
                                             {
                                                 Report(operationBlockEndContext, local, mostSpecificSourceType, LocalCouldHaveMoreSpecificTypeDescriptor);
                                             }
@@ -129,8 +127,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         {
                             foreach (IFieldSymbol field in fieldsSourceTypes.Keys)
                             {
-                                INamedTypeSymbol mostSpecificSourceType;
-                                if (HasMoreSpecificSourceType(field, field.Type, fieldsSourceTypes, out mostSpecificSourceType))
+                                if (HasMoreSpecificSourceType(field, field.Type, fieldsSourceTypes, out var mostSpecificSourceType))
                                 {
                                     Report(compilationEndContext, field, mostSpecificSourceType, FieldCouldHaveMoreSpecificTypeDescriptor);
                                 }
@@ -141,8 +138,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private static bool HasMoreSpecificSourceType<SymbolType>(SymbolType symbol, ITypeSymbol symbolType, Dictionary<SymbolType, HashSet<INamedTypeSymbol>> symbolsSourceTypes, out INamedTypeSymbol commonSourceType)
         {
-            HashSet<INamedTypeSymbol> sourceTypes;
-            if (symbolsSourceTypes.TryGetValue(symbol, out sourceTypes))
+            if (symbolsSourceTypes.TryGetValue(symbol, out var sourceTypes))
             {
                 commonSourceType = CommonType(sourceTypes);
                 if (commonSourceType != null && DerivesFrom(commonSourceType, (INamedTypeSymbol)symbolType))
@@ -239,7 +235,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             if (sourceType != null && targetType != null)
             {
-                HashSet<INamedTypeSymbol> symbolSourceTypes;
                 TypeKind targetTypeKind = targetType.TypeKind;
                 TypeKind sourceTypeKind = sourceType.TypeKind;
 
@@ -247,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 if ((targetTypeKind == sourceTypeKind && (targetTypeKind == TypeKind.Class || targetTypeKind == TypeKind.Interface)) ||
                     (targetTypeKind == TypeKind.Class && (sourceTypeKind == TypeKind.Structure || sourceTypeKind == TypeKind.Interface) && targetType.SpecialType == SpecialType.System_Object))
                 {
-                    if (!sourceTypes.TryGetValue(target, out symbolSourceTypes))
+                    if (!sourceTypes.TryGetValue(target, out var symbolSourceTypes))
                     {
                         symbolSourceTypes = new HashSet<INamedTypeSymbol>();
                         sourceTypes[target] = symbolSourceTypes;

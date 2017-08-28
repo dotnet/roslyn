@@ -646,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     }
                     else
                     {
-                        span = default(TextSpan);
+                        span = default;
                         return false;
                     }
 
@@ -987,9 +987,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return LambdaUtilities.IsLambda(node);
         }
 
-        internal override bool IsLambdaExpression(SyntaxNode node)
+        internal override bool IsNestedFunction(SyntaxNode node)
         {
-            return node is LambdaExpressionSyntax;
+            return node is LambdaExpressionSyntax || node is LocalFunctionStatementSyntax;
         }
 
         internal override bool TryGetLambdaBodies(SyntaxNode node, out SyntaxNode body1, out SyntaxNode body2)
@@ -1004,7 +1004,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal override IMethodSymbol GetLambdaExpressionSymbol(SemanticModel model, SyntaxNode lambdaExpression, CancellationToken cancellationToken)
         {
-            return (IMethodSymbol)model.GetEnclosingSymbol(((AnonymousFunctionExpressionSyntax)lambdaExpression).Body.SpanStart, cancellationToken);
+            var bodyExpression = LambdaUtilities.GetNestedFunctionBody(lambdaExpression);
+            return (IMethodSymbol)model.GetEnclosingSymbol(bodyExpression.SpanStart, cancellationToken);
         }
 
         internal override SyntaxNode GetContainingQueryExpression(SyntaxNode node)
@@ -1053,6 +1054,35 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 default:
                     return true;
             }
+        }
+
+        protected override void ReportLambdaSignatureRudeEdits(
+            SemanticModel oldModel,
+            SyntaxNode oldLambdaBody,
+            SemanticModel newModel,
+            SyntaxNode newLambdaBody,
+            List<RudeEditDiagnostic> diagnostics,
+            out bool hasErrors,
+            CancellationToken cancellationToken)
+        {
+            base.ReportLambdaSignatureRudeEdits(oldModel, oldLambdaBody, newModel, newLambdaBody, diagnostics, out hasErrors, cancellationToken);
+
+            if (IsLocalFunctionBody(oldLambdaBody) != IsLocalFunctionBody(newLambdaBody))
+            {
+                var newLambda = GetLambda(newLambdaBody);
+                diagnostics.Add(new RudeEditDiagnostic(
+                    RudeEditKind.SwitchBetweenLambdaAndLocalFunction,
+                    GetDiagnosticSpan(newLambda, EditKind.Update),
+                    newLambda,
+                    new[] { GetLambdaDisplayName(newLambda) }));
+                hasErrors = true;
+            }
+        }
+
+        private static bool IsLocalFunctionBody(SyntaxNode lambdaBody)
+        {
+            var lambda = LambdaUtilities.GetLambda(lambdaBody);
+            return lambda.Kind() == SyntaxKind.LocalFunctionStatement;
         }
 
         private static bool GroupBySignatureComparer(ImmutableArray<IParameterSymbol> oldParameters, ITypeSymbol oldReturnType, ImmutableArray<IParameterSymbol> newParameters, ITypeSymbol newReturnType)
@@ -1116,11 +1146,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             switch (kind)
             {
                 case SyntaxKind.CompilationUnit:
-                    return default(TextSpan);
+                    return default;
 
                 case SyntaxKind.GlobalStatement:
                     // TODO:
-                    return default(TextSpan);
+                    return default;
 
                 case SyntaxKind.ExternAliasDirective:
                 case SyntaxKind.UsingDirective:
@@ -2519,8 +2549,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 Debug.Assert(newNode.Parent.Parent is BasePropertyDeclarationSyntax);
 
                 ClassifyMethodBodyRudeUpdate(
-                    oldNode.Body,
-                    newNode.Body,
+                    (SyntaxNode)oldNode.Body ?? oldNode.ExpressionBody?.Expression,
+                    (SyntaxNode)newNode.Body ?? newNode.ExpressionBody?.Expression,
                     containingMethodOpt: null,
                     containingType: (TypeDeclarationSyntax)newNode.Parent.Parent.Parent);
             }
@@ -2546,8 +2576,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 }
 
                 ClassifyMethodBodyRudeUpdate(
-                    oldNode.Body,
-                    newNode.Body,
+                    (SyntaxNode)oldNode.Body ?? oldNode.ExpressionBody?.Expression,
+                    (SyntaxNode)newNode.Body ?? newNode.ExpressionBody?.Expression,
                     containingMethodOpt: null,
                     containingType: (TypeDeclarationSyntax)newNode.Parent);
             }
@@ -2555,8 +2585,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             private void ClassifyUpdate(DestructorDeclarationSyntax oldNode, DestructorDeclarationSyntax newNode)
             {
                 ClassifyMethodBodyRudeUpdate(
-                    oldNode.Body,
-                    newNode.Body,
+                    (SyntaxNode)oldNode.Body ?? oldNode.ExpressionBody?.Expression,
+                    (SyntaxNode)newNode.Body ?? newNode.ExpressionBody?.Expression,
                     containingMethodOpt: null,
                     containingType: (TypeDeclarationSyntax)newNode.Parent);
             }
@@ -3002,8 +3032,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             while (true)
             {
-                var statement = node as StatementSyntax;
-                if (statement != null)
+                if (node is StatementSyntax statement)
                 {
                     return statement;
                 }
@@ -3140,7 +3169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             diagnostics.Add(new RudeEditDiagnostic(
                 RudeEditKind.UpdateAroundActiveStatement,
-                default(TextSpan), // no span since the offending node is in the old syntax
+                default, // no span since the offending node is in the old syntax
                 oldCSharp7Syntax,
                 new[] { GetStatementDisplayName(oldCSharp7Syntax, EditKind.Update) }));
         }

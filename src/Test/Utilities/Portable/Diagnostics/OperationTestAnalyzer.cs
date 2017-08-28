@@ -538,8 +538,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
                          if (argument.ArgumentKind == ArgumentKind.ParamArray)
                          {
-                             IArrayCreationExpression arrayArgument = argument.Value as IArrayCreationExpression;
-                             if (arrayArgument != null)
+                             if (argument.Value is IArrayCreationExpression arrayArgument)
                              {
                                  var initializer = arrayArgument.Initializer;
                                  if (initializer != null)
@@ -1092,8 +1091,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      {
                          if (argument.Parameter.IsParams)
                          {
-                             IArrayCreationExpression arrayValue = argument.Value as IArrayCreationExpression;
-                             if (arrayValue != null)
+                             if (argument.Value is IArrayCreationExpression arrayValue)
                              {
                                  Optional<object> dimensionSize = arrayValue.DimensionSizes[0].ConstantValue;
                                  if (dimensionSize.HasValue && IntegralValue(dimensionSize.Value) > 3)
@@ -1120,8 +1118,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     {
                         if (argument.Parameter.IsParams)
                         {
-                            IArrayCreationExpression arrayValue = argument.Value as IArrayCreationExpression;
-                            if (arrayValue != null)
+                            if (argument.Value is IArrayCreationExpression arrayValue)
                             {
                                 Optional<object> dimensionSize = arrayValue.DimensionSizes[0].ConstantValue;
                                 if (dimensionSize.HasValue && IntegralValue(dimensionSize.Value) > 3)

@@ -19,7 +19,7 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="Dlls\TestUtilities\Roslyn.Test.Utilities.dll" target="lib\net46" />
+    <file src="Dlls\TestUtilities\net46\Roslyn.Test.Utilities.dll" target="lib\net46" />
     <file src="Dlls\VisualStudioIntegrationTestUtilities\Microsoft.VisualStudio.IntegrationTest.Utilities.dll" target="lib\net46" />
     <file src="Dlls\ServicesTestUtilities\Roslyn.Services.Test.Utilities.dll" target="lib\net46" />
   </files>

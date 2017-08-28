@@ -56,21 +56,17 @@ namespace X
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <methods>
-    <method containingType=""X.Y.C"" name=""M"">
+    <method containingType=""A"" name=""M"">
       <customDebugInfo>
         <using>
-          <namespace usingCount=""1"" />
-          <namespace usingCount=""1"" />
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""16"" startColumn=""28"" endLine=""16"" endColumn=""29"" />
-        <entry offset=""0x1"" startLine=""16"" startColumn=""30"" endLine=""16"" endColumn=""31"" />
+        <entry offset=""0x0"" startLine=""4"" startColumn=""20"" endLine=""4"" endColumn=""21"" />
+        <entry offset=""0x1"" startLine=""4"" startColumn=""22"" endLine=""4"" endColumn=""23"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x2"">
-        <namespace name=""System.Threading"" />
-        <namespace name=""System.IO"" />
         <namespace name=""System"" />
       </scope>
     </method>
@@ -90,17 +86,21 @@ namespace X
         <namespace name=""System"" />
       </scope>
     </method>
-    <method containingType=""A"" name=""M"">
+    <method containingType=""X.Y.C"" name=""M"">
       <customDebugInfo>
         <using>
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""1"" />
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""4"" startColumn=""20"" endLine=""4"" endColumn=""21"" />
-        <entry offset=""0x1"" startLine=""4"" startColumn=""22"" endLine=""4"" endColumn=""23"" />
+        <entry offset=""0x0"" startLine=""16"" startColumn=""28"" endLine=""16"" endColumn=""29"" />
+        <entry offset=""0x1"" startLine=""16"" startColumn=""30"" endLine=""16"" endColumn=""31"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x2"">
+        <namespace name=""System.Threading"" />
+        <namespace name=""System.IO"" />
         <namespace name=""System"" />
       </scope>
     </method>
@@ -133,21 +133,17 @@ namespace X
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <methods>
-    <method containingType=""X.Y.C"" name=""M"">
+    <method containingType=""A"" name=""M"">
       <customDebugInfo>
         <using>
-          <namespace usingCount=""1"" />
-          <namespace usingCount=""1"" />
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""16"" startColumn=""28"" endLine=""16"" endColumn=""29"" />
-        <entry offset=""0x1"" startLine=""16"" startColumn=""30"" endLine=""16"" endColumn=""31"" />
+        <entry offset=""0x0"" startLine=""4"" startColumn=""20"" endLine=""4"" endColumn=""21"" />
+        <entry offset=""0x1"" startLine=""4"" startColumn=""22"" endLine=""4"" endColumn=""23"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x2"">
-        <alias name=""R"" target=""System.Threading"" kind=""namespace"" />
-        <alias name=""Q"" target=""System.IO"" kind=""namespace"" />
         <alias name=""P"" target=""System"" kind=""namespace"" />
       </scope>
     </method>
@@ -167,17 +163,21 @@ namespace X
         <alias name=""P"" target=""System"" kind=""namespace"" />
       </scope>
     </method>
-    <method containingType=""A"" name=""M"">
+    <method containingType=""X.Y.C"" name=""M"">
       <customDebugInfo>
         <using>
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""1"" />
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""4"" startColumn=""20"" endLine=""4"" endColumn=""21"" />
-        <entry offset=""0x1"" startLine=""4"" startColumn=""22"" endLine=""4"" endColumn=""23"" />
+        <entry offset=""0x0"" startLine=""16"" startColumn=""28"" endLine=""16"" endColumn=""29"" />
+        <entry offset=""0x1"" startLine=""16"" startColumn=""30"" endLine=""16"" endColumn=""31"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x2"">
+        <alias name=""R"" target=""System.Threading"" kind=""namespace"" />
+        <alias name=""Q"" target=""System.IO"" kind=""namespace"" />
         <alias name=""P"" target=""System"" kind=""namespace"" />
       </scope>
     </method>
@@ -210,21 +210,17 @@ namespace X
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <methods>
-    <method containingType=""X.Y.C"" name=""M"">
+    <method containingType=""A"" name=""M"">
       <customDebugInfo>
         <using>
-          <namespace usingCount=""1"" />
-          <namespace usingCount=""1"" />
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""16"" startColumn=""28"" endLine=""16"" endColumn=""29"" />
-        <entry offset=""0x1"" startLine=""16"" startColumn=""30"" endLine=""16"" endColumn=""31"" />
+        <entry offset=""0x0"" startLine=""4"" startColumn=""20"" endLine=""4"" endColumn=""21"" />
+        <entry offset=""0x1"" startLine=""4"" startColumn=""22"" endLine=""4"" endColumn=""23"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x2"">
-        <alias name=""R"" target=""System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
-        <alias name=""Q"" target=""System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
         <alias name=""P"" target=""System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
       </scope>
     </method>
@@ -244,17 +240,21 @@ namespace X
         <alias name=""P"" target=""System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
       </scope>
     </method>
-    <method containingType=""A"" name=""M"">
+    <method containingType=""X.Y.C"" name=""M"">
       <customDebugInfo>
         <using>
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""1"" />
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""4"" startColumn=""20"" endLine=""4"" endColumn=""21"" />
-        <entry offset=""0x1"" startLine=""4"" startColumn=""22"" endLine=""4"" endColumn=""23"" />
+        <entry offset=""0x0"" startLine=""16"" startColumn=""28"" endLine=""16"" endColumn=""29"" />
+        <entry offset=""0x1"" startLine=""16"" startColumn=""30"" endLine=""16"" endColumn=""31"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x2"">
+        <alias name=""R"" target=""System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""Q"" target=""System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
         <alias name=""P"" target=""System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
       </scope>
     </method>
@@ -287,21 +287,17 @@ namespace X
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <methods>
-    <method containingType=""X.Y.C"" name=""M"">
+    <method containingType=""A"" name=""M"">
       <customDebugInfo>
         <using>
-          <namespace usingCount=""1"" />
-          <namespace usingCount=""1"" />
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""16"" startColumn=""28"" endLine=""16"" endColumn=""29"" />
-        <entry offset=""0x1"" startLine=""16"" startColumn=""30"" endLine=""16"" endColumn=""31"" />
+        <entry offset=""0x0"" startLine=""4"" startColumn=""20"" endLine=""4"" endColumn=""21"" />
+        <entry offset=""0x1"" startLine=""4"" startColumn=""22"" endLine=""4"" endColumn=""23"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x2"">
-        <alias name=""P"" target=""System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
-        <alias name=""Q"" target=""System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
         <alias name=""P"" target=""System.Collections.Generic.List`1[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
       </scope>
     </method>
@@ -321,17 +317,21 @@ namespace X
         <alias name=""P"" target=""System.Collections.Generic.List`1[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
       </scope>
     </method>
-    <method containingType=""A"" name=""M"">
+    <method containingType=""X.Y.C"" name=""M"">
       <customDebugInfo>
         <using>
+          <namespace usingCount=""1"" />
+          <namespace usingCount=""1"" />
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""4"" startColumn=""20"" endLine=""4"" endColumn=""21"" />
-        <entry offset=""0x1"" startLine=""4"" startColumn=""22"" endLine=""4"" endColumn=""23"" />
+        <entry offset=""0x0"" startLine=""16"" startColumn=""28"" endLine=""16"" endColumn=""29"" />
+        <entry offset=""0x1"" startLine=""16"" startColumn=""30"" endLine=""16"" endColumn=""31"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x2"">
+        <alias name=""P"" target=""System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""Q"" target=""System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
         <alias name=""P"" target=""System.Collections.Generic.List`1[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
       </scope>
     </method>
@@ -805,8 +805,8 @@ namespace X
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <extern alias=""P"" />
         <namespace name=""System"" />
-        <alias name=""AU1"" target=""System"" kind=""namespace"" />
         <alias name=""AT1"" target=""System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""AU1"" target=""System"" kind=""namespace"" />
         <externinfo alias=""P"" assembly=""a, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
         <externinfo alias=""Q"" assembly=""b, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
         <externinfo alias=""R"" assembly=""c, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
@@ -827,12 +827,12 @@ namespace X
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <extern alias=""Q"" />
         <namespace name=""System.IO"" />
-        <alias name=""AU2"" target=""System.IO"" kind=""namespace"" />
         <alias name=""AT2"" target=""System.IO.Directory, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""AU2"" target=""System.IO"" kind=""namespace"" />
         <extern alias=""P"" />
         <namespace name=""System"" />
-        <alias name=""AU1"" target=""System"" kind=""namespace"" />
         <alias name=""AT1"" target=""System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""AU1"" target=""System"" kind=""namespace"" />
       </scope>
     </method>
     <method containingType=""X.Y.C"" name=""M"">
@@ -855,12 +855,12 @@ namespace X
         <alias name=""AU3"" target=""System.Text"" kind=""namespace"" />
         <extern alias=""Q"" />
         <namespace name=""System.IO"" />
-        <alias name=""AU2"" target=""System.IO"" kind=""namespace"" />
         <alias name=""AT2"" target=""System.IO.Directory, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""AU2"" target=""System.IO"" kind=""namespace"" />
         <extern alias=""P"" />
         <namespace name=""System"" />
-        <alias name=""AU1"" target=""System"" kind=""namespace"" />
         <alias name=""AT1"" target=""System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""AU1"" target=""System"" kind=""namespace"" />
       </scope>
     </method>
   </methods>
@@ -1101,12 +1101,12 @@ namespace X
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <extern alias=""R"" />
         <namespace name=""System.Threading"" />
-        <alias name=""AU3"" target=""System.Threading"" kind=""namespace"" />
         <alias name=""AT3"" target=""System.Threading.Thread, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""AU3"" target=""System.Threading"" kind=""namespace"" />
         <extern alias=""P"" />
         <namespace name=""System"" />
-        <alias name=""AU1"" target=""System"" kind=""namespace"" />
         <alias name=""AT1"" target=""System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""AU1"" target=""System"" kind=""namespace"" />
         <externinfo alias=""P"" assembly=""a, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
         <externinfo alias=""Q"" assembly=""b, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
         <externinfo alias=""R"" assembly=""c, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
@@ -1127,12 +1127,12 @@ namespace X
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <extern alias=""Q"" />
         <namespace name=""System.IO"" />
-        <alias name=""AU2"" target=""System.IO"" kind=""namespace"" />
         <alias name=""AT2"" target=""System.IO.Directory, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""AU2"" target=""System.IO"" kind=""namespace"" />
         <extern alias=""P"" />
         <namespace name=""System"" />
-        <alias name=""AU1"" target=""System"" kind=""namespace"" />
         <alias name=""AT1"" target=""System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""AU1"" target=""System"" kind=""namespace"" />
       </scope>
     </method>
     <method containingType=""X.C"" name=""N2"">
@@ -1150,12 +1150,12 @@ namespace X
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <extern alias=""R"" />
         <namespace name=""System.Threading"" />
-        <alias name=""AU3"" target=""System.Threading"" kind=""namespace"" />
         <alias name=""AT3"" target=""System.Threading.Thread, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""AU3"" target=""System.Threading"" kind=""namespace"" />
         <extern alias=""P"" />
         <namespace name=""System"" />
-        <alias name=""AU1"" target=""System"" kind=""namespace"" />
         <alias name=""AT1"" target=""System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""AU1"" target=""System"" kind=""namespace"" />
       </scope>
     </method>
   </methods>
@@ -1289,12 +1289,12 @@ namespace X
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <extern alias=""S"" />
         <namespace name=""System.Threading"" />
-        <alias name=""AU4"" target=""System.Threading"" kind=""namespace"" />
         <alias name=""AT4"" target=""System.Threading.Thread, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""AU4"" target=""System.Threading"" kind=""namespace"" />
         <extern alias=""R"" />
         <namespace name=""System.Text"" />
-        <alias name=""AU3"" target=""System.Text"" kind=""namespace"" />
         <alias name=""AT3"" target=""System.Text.StringBuilder, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""AU3"" target=""System.Text"" kind=""namespace"" />
         <externinfo alias=""P"" assembly=""a, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
         <externinfo alias=""Q"" assembly=""b, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
         <externinfo alias=""R"" assembly=""c, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
@@ -1316,12 +1316,12 @@ namespace X
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <extern alias=""Q"" />
         <namespace name=""System.IO"" />
-        <alias name=""AU2"" target=""System.IO"" kind=""namespace"" />
         <alias name=""AT2"" target=""System.IO.Directory, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""AU2"" target=""System.IO"" kind=""namespace"" />
         <extern alias=""P"" />
         <namespace name=""System"" />
-        <alias name=""AU1"" target=""System"" kind=""namespace"" />
         <alias name=""AT1"" target=""System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""AU1"" target=""System"" kind=""namespace"" />
       </scope>
     </method>
     <method containingType=""X.C"" name=""N2"">
@@ -1339,12 +1339,12 @@ namespace X
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <extern alias=""S"" />
         <namespace name=""System.Threading"" />
-        <alias name=""AU4"" target=""System.Threading"" kind=""namespace"" />
         <alias name=""AT4"" target=""System.Threading.Thread, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""AU4"" target=""System.Threading"" kind=""namespace"" />
         <extern alias=""R"" />
         <namespace name=""System.Text"" />
-        <alias name=""AU3"" target=""System.Text"" kind=""namespace"" />
         <alias name=""AT3"" target=""System.Text.StringBuilder, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
+        <alias name=""AU3"" target=""System.Text"" kind=""namespace"" />
       </scope>
     </method>
   </methods>
@@ -1542,24 +1542,6 @@ class C
         <entry offset=""0x1"" startLine=""7"" startColumn=""38"" endLine=""7"" endColumn=""39"" />
       </sequencePoints>
     </method>
-    <method containingType=""C"" name=""add_E2"" parameterNames=""value"">
-      <customDebugInfo>
-        <forward declaringType=""C"" methodName=""get_P2"" />
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""10"" startColumn=""34"" endLine=""10"" endColumn=""35"" />
-        <entry offset=""0x1"" startLine=""10"" startColumn=""36"" endLine=""10"" endColumn=""37"" />
-      </sequencePoints>
-    </method>
-    <method containingType=""C"" name=""remove_E2"" parameterNames=""value"">
-      <customDebugInfo>
-        <forward declaringType=""C"" methodName=""get_P2"" />
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""10"" startColumn=""45"" endLine=""10"" endColumn=""46"" />
-        <entry offset=""0x1"" startLine=""10"" startColumn=""47"" endLine=""10"" endColumn=""48"" />
-      </sequencePoints>
-    </method>
     <method containingType=""C"" name=""get_Item"" parameterNames=""x"">
       <customDebugInfo>
         <forward declaringType=""C"" methodName=""get_P2"" />
@@ -1580,6 +1562,24 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" startLine=""8"" startColumn=""45"" endLine=""8"" endColumn=""46"" />
         <entry offset=""0x1"" startLine=""8"" startColumn=""47"" endLine=""8"" endColumn=""48"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""C"" name=""add_E2"" parameterNames=""value"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""get_P2"" />
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""10"" startColumn=""34"" endLine=""10"" endColumn=""35"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""36"" endLine=""10"" endColumn=""37"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""C"" name=""remove_E2"" parameterNames=""value"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""get_P2"" />
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""10"" startColumn=""45"" endLine=""10"" endColumn=""46"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""47"" endLine=""10"" endColumn=""48"" />
       </sequencePoints>
     </method>
   </methods>
@@ -2029,7 +2029,7 @@ using System;
 
 using DICT1 = System.Collections.Generic.Dictionary<int, int>;
 
-namespace foo
+namespace goo
 {
     using ACT = System.Action<DICT1, DICT1, DICT1, DICT1, DICT1, DICT1, DICT1>;
     
@@ -2226,7 +2226,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 
 [assembly: Guid(""11111111-1111-1111-1111-111111111111"")]
-[assembly: ImportedFromTypeLib(""Foo"")]
+[assembly: ImportedFromTypeLib(""Goo"")]
 [assembly: TypeLibVersion(1, 0)]
 
 namespace N

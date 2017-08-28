@@ -225,7 +225,7 @@ End Class")
 End Class",
 "Class C
     Sub M(arg1 As Integer, optional arg2 As Integer=1, optional arg3 as Integer=1)
-        M(1,,arg3:=3)
+        M(1,, arg3:=3)
     End Sub
 End Class")
         End Function

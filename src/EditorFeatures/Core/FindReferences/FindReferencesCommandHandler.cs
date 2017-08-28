@@ -49,15 +49,23 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
 
         public void ExecuteCommand(FindReferencesCommandArgs args, Action nextHandler)
         {
-            var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
-
-            if (caretPosition >= 0)
+            // Get the selection that user has in our buffer (this also works if there
+            // is no selection and the caret is just at a single position).  If we 
+            // can't get the selection, or there are multiple spans for it (i.e. a 
+            // box selection), then don't do anything.
+            var snapshotSpans = args.TextView.Selection.GetSnapshotSpansOnBuffer(args.SubjectBuffer);
+            if (snapshotSpans.Count == 1)
             {
+                var selectedSpan = snapshotSpans[0];
                 var snapshot = args.SubjectBuffer.CurrentSnapshot;
                 var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document != null)
                 {
-                    if (TryExecuteCommand(caretPosition, document))
+                    // Do a find-refs at the *start* of the selection.  That way if the
+                    // user has selected a symbol that has another symbol touching it
+                    // on the right (i.e.  Goo++  ), then we'll do the find-refs on the
+                    // symbol selected, not the symbol following.
+                    if (TryExecuteCommand(selectedSpan.Start, document))
                     {
                         return;
                     }

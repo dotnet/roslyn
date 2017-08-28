@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.Options;
 using static Microsoft.CodeAnalysis.CodeStyle.CodeStyleHelpers;
 
@@ -132,5 +133,51 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             storageLocations: new OptionStorageLocation[] {
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_explicit_tuple_names"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferExplicitTupleNames") });
+
+        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferIsNullCheckOverReferenceEqualityMethod = new PerLanguageOption<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions),
+            nameof(PreferIsNullCheckOverReferenceEqualityMethod),
+            defaultValue: TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[]{
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_prefer_is_null_check_over_reference_equality_method"),
+                new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(PreferIsNullCheckOverReferenceEqualityMethod)}") });
+
+        private static readonly CodeStyleOption<AccessibilityModifiersRequired> s_requireAccessibilityModifiersDefault =
+            new CodeStyleOption<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.ForNonInterfaceMembers, NotificationOption.None);
+
+        internal static readonly PerLanguageOption<CodeStyleOption<AccessibilityModifiersRequired>> RequireAccessibilityModifiers = 
+            new PerLanguageOption<CodeStyleOption<AccessibilityModifiersRequired>>(
+                nameof(CodeStyleOptions), nameof(RequireAccessibilityModifiers), defaultValue: s_requireAccessibilityModifiersDefault,
+                storageLocations: new OptionStorageLocation[]{
+                    new EditorConfigStorageLocation<CodeStyleOption<AccessibilityModifiersRequired>>("dotnet_style_require_accessibility_modifiers", s => ParseAccessibilityModifiersRequired(s)),
+                    new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.RequireAccessibilityModifiers")});
+
+        private static CodeStyleOption<AccessibilityModifiersRequired> ParseAccessibilityModifiersRequired(string optionString)
+        {
+            if (TryGetCodeStyleValueAndOptionalNotification(optionString,
+                    out var value, out var notificationOpt))
+            {
+                if (value == "never")
+                {
+                    // If they provide 'never', they don't need a notification level.
+                    notificationOpt = notificationOpt ?? NotificationOption.None;
+                }
+
+                if (notificationOpt != null)
+                {
+                    switch (value)
+                    {
+                        case "never":
+                            return new CodeStyleOption<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.Never, notificationOpt);
+                        case "always":
+                            return new CodeStyleOption<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.Always, notificationOpt);
+                        case "for_non_interface_members":
+                            return new CodeStyleOption<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.ForNonInterfaceMembers, notificationOpt);
+                    }
+                }
+            }
+
+            return s_requireAccessibilityModifiersDefault;
+        }
     }
 }

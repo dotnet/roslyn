@@ -32,7 +32,9 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsAddDocCommentNodes = "CodeActions.AddDocCommentParamNodes";
             public const string CodeActionsAddAwait = "CodeActions.AddAwait";
             public const string CodeActionsUpgradeProject = "CodeActions.UpgradeProject";
+            public const string CodeActionsAddAccessibilityModifiers = "CodeActions.AddAccessibilityModifiers";
             public const string CodeActionsAddBraces = "CodeActions.AddBraces";
+            public const string CodeActionsAddFileBanner = "CodeActions.AddFileBanner";
             public const string CodeActionsAddImport = "CodeActions.AddImport";
             public const string CodeActionsAddMissingReference = "CodeActions.AddMissingReference";
             public const string CodeActionsAddParameter = "CodeActions.AddParameter";
@@ -83,6 +85,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsOrderModifiers = "CodeActions.OrderModifiers";
             public const string CodeActionsPopulateSwitch = "CodeActions.PopulateSwitch";
             public const string CodeActionsQualifyMemberAccess = "CodeActions.QualifyMemberAccess";
+            public const string CodeActionsReplaceDocCommentTextWithTag = "CodeActions.ReplaceDocCommentTextWithTag";
             public const string CodeActionsReplaceMethodWithProperty = "CodeActions.ReplaceMethodWithProperty";
             public const string CodeActionsReplacePropertyWithMethods = "CodeActions.ReplacePropertyWithMethods";
             public const string CodeActionsRemoveByVal = "CodeActions.RemoveByVal";
@@ -106,6 +109,8 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsUseExplicitType = "CodeActions.UseExplicitType";
             public const string CodeActionsUseExplicitTupleName = "CodeActions.UseExplicitTupleName";
             public const string CodeActionsUseFrameworkType = "CodeActions.UseFrameworkType";
+            public const string CodeActionsUseIsNullCheck = "CodeActions.UseIsNullCheck";
+            public const string CodeActionsUseLocalFunction = "CodeActions.UseLocalFunction";
             public const string CodeActionsUseNullPropagation = "CodeActions.UseNullPropagation";
             public const string CodeActionsUseNamedArguments = "CodeActions.UseNamedArguments";
             public const string CodeActionsUseObjectInitializer = "CodeActions.UseObjectInitializer";
@@ -148,6 +153,7 @@ namespace Roslyn.Test.Utilities
             public const string LineSeparators = nameof(LineSeparators);
             public const string MetadataAsSource = nameof(MetadataAsSource);
             public const string NamingStyle = nameof(NamingStyle);
+            public const string NavigableSymbols = nameof(NavigableSymbols);
             public const string NavigateTo = nameof(NavigateTo);
             public const string NavigationBar = nameof(NavigationBar);
             public const string ObjectBrowser = nameof(ObjectBrowser);
@@ -175,6 +181,7 @@ namespace Roslyn.Test.Utilities
             public const string TodoComments = nameof(TodoComments);
             public const string TypeInferenceService = nameof(TypeInferenceService);
             public const string Venus = nameof(Venus);
+            public const string ValidateFormatString = nameof(ValidateFormatString);
             public const string VsLanguageBlock = nameof(VsLanguageBlock);
             public const string VsNavInfo = nameof(VsNavInfo);
             public const string XmlTagCompletion = nameof(XmlTagCompletion);

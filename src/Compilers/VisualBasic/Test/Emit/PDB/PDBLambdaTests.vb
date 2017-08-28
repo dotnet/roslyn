@@ -91,7 +91,7 @@ Module M1
             Console.Write(y.ToString())
         End Sub
 
-        Public Sub Foo(Of TFun1, TFun2)(p As TFun1, p1 As TFun2, p3 As Integer)
+        Public Sub Goo(Of TFun1, TFun2)(p As TFun1, p1 As TFun2, p3 As Integer)
             Dim d1 As Action(Of Integer, Integer) =
                 Sub(lifted As Integer, notLifted As Integer)
                     Dim iii As Integer = lifted + notlifted
@@ -111,7 +111,7 @@ Module M1
 
     Public Sub Main()
         Dim inst As New C1(Of Integer)
-        inst.Foo(Of Integer, Integer)(42, 333, 432)
+        inst.Goo(Of Integer, Integer)(42, 333, 432)
     End Sub
 End Module
 ]]></file>

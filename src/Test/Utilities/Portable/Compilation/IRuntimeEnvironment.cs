@@ -27,20 +27,13 @@ namespace Roslyn.Test.Utilities
 
         private static IRuntimeEnvironmentFactory GetFactoryImplementation()
         {
-            string assemblyName;
-            string typeName;
-            if (CoreClrShim.IsRunningOnCoreClr)
-            {
-                assemblyName = "Roslyn.Test.Utilities.CoreClr";
-                typeName = "Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime.CoreCLRRuntimeEnvironmentFactory";
-            }
-            else
-            {
-                assemblyName = "Roslyn.Test.Utilities.Desktop";
-                typeName = "Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime.DesktopRuntimeEnvironmentFactory";
-            }
-
-            return RuntimeUtilities.GetFactoryImplementation<IRuntimeEnvironmentFactory>(assemblyName, typeName);
+#if NET46
+            return new Roslyn.Test.Utilities.Desktop.DesktopRuntimeEnvironmentFactory();
+#elif NETCOREAPP2_0
+            return new Roslyn.Test.Utilities.CoreClr.CoreCLRRuntimeEnvironmentFactory();
+#else
+            throw new NotSupportedException();
+#endif
         }
 
         public static void CaptureOutput(Action action, int expectedLength, out string output, out string errorOutput)
@@ -71,26 +64,6 @@ namespace Roslyn.Test.Utilities
         private static IEnumerable<ModuleMetadata> EnumerateModules(Metadata metadata)
         {
             return (metadata.Kind == MetadataImageKind.Assembly) ? ((AssemblyMetadata)metadata).GetModules().AsEnumerable() : SpecializedCollections.SingletonEnumerable((ModuleMetadata)metadata);
-        }
-
-        /// <summary>
-        /// Loads the given assembly name, assuming the same public key, culture, version,
-        /// and architecture as this assembly, and uses reflection to instantiate the given
-        /// type and return the value.
-        /// </summary>
-        internal static T GetFactoryImplementation<T>(string assemblyName, string typeName)
-        {
-            var thisAssemblyName = typeof(RuntimeUtilities).GetTypeInfo().Assembly.GetName();
-            var name = new AssemblyName();
-            name.Name = assemblyName;
-            name.Version = thisAssemblyName.Version;
-            name.SetPublicKey(thisAssemblyName.GetPublicKey());
-            name.CultureName = thisAssemblyName.CultureName;
-            name.ProcessorArchitecture = thisAssemblyName.ProcessorArchitecture;
-
-            var assembly = Assembly.Load(name);
-            var type = assembly.GetType(typeName);
-            return (T)Activator.CreateInstance(type);
         }
 
         /// <summary>
@@ -324,8 +297,7 @@ namespace Roslyn.Test.Utilities
                     }
                     else
                     {
-                        AssemblyIdentity identity;
-                        AssemblyIdentity.TryParseDisplayName(module.FullName, out identity);
+                        AssemblyIdentity.TryParseDisplayName(module.FullName, out var identity);
                         fileName = identity.Name;
                     }
 

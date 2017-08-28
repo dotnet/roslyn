@@ -163,7 +163,7 @@ class Program
             var markup = @"
 class C
 {
-    void foo()
+    void goo()
     {
         (int goat, int moat) x = (g$$)1;
     }

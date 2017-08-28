@@ -82,7 +82,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 Assert.Equal(comments.Count, 1);
 
-                keepAliveSession.Shutdown(CancellationToken.None);
+                keepAliveSession.Shutdown();
             }
         }
 
@@ -282,10 +282,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var map = solution.GetAssetMap();
             var storage = client.AssetStorage;
 
-            object data;
             foreach (var kv in map)
             {
-                Assert.True(storage.TryGetAsset(kv.Key, out data));
+                Assert.True(storage.TryGetAsset(kv.Key, out object data));
             }
         }
 
@@ -400,7 +399,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             return new RemoteHostService(stream, new InProcRemoteHostClient.ServiceProvider(runCacheCleanup: false));
         }
 
-        public static void SetEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual)
+        private static void SetEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual)
         {
             var expectedSet = new HashSet<T>(expected);
             var result = expected.Count() == actual.Count() && expectedSet.SetEquals(actual);

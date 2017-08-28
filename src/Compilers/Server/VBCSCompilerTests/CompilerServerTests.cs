@@ -1301,7 +1301,7 @@ class Program
         [Fact]
         public void BadKeepAlive2()
         {
-            var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:foo", _tempDirectory.Path);
+            var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:goo", _tempDirectory.Path);
 
             Assert.True(result.ContainsErrors);
             Assert.Equal(1, result.ExitCode);

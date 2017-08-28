@@ -599,7 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var identifierValueText = node.Identifier.ValueText;
 
-            // If we are here in an error-recovery scenario, say, "foo<int, >(123);" then
+            // If we are here in an error-recovery scenario, say, "goo<int, >(123);" then
             // we might have an 'empty' simple name. In that case do not report an 
             // 'unable to find ""' error; we've already reported an error in the parser so
             // just bail out with an error symbol.
@@ -754,7 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var args = (this, diagnostics, syntax);
                     type.VisitType((typePart, argTuple, isNested) =>
                     {
-                        argTuple.Item1.ReportDiagnosticsIfObsolete(argTuple.Item2, typePart, argTuple.Item3, hasBaseReceiver: false);
+                        argTuple.Item1.ReportDiagnosticsIfObsolete(argTuple.diagnostics, typePart, argTuple.syntax, hasBaseReceiver: false);
                         return false;
                     }, args);
                 }

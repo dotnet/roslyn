@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Interop;
 using Microsoft.VisualStudio.Setup.Configuration;
 using Process = System.Diagnostics.Process;
+using RunTests;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
@@ -168,8 +169,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 hostProcess = StartNewVisualStudioProcess(installationPath);
 
-                var procDumpPath = Environment.GetEnvironmentVariable(ProcDumpRunner.ProcDumpPathEnvironmentVariableKey);
-                ProcDumpRunner.StartProcDump(procDumpPath, hostProcess.Id, hostProcess.ProcessName, Path.Combine(GetAssemblyDirectory(), "xUnitResults"), s => Debug.WriteLine(s));
+                var procDumpInfo = ProcDumpInfo.ReadFromEnvironment();
+                if (procDumpInfo != null)
+                {
+                    ProcDumpUtil.AttachProcDump(procDumpInfo.Value, hostProcess.Id);
+                }
 
                 // We wait until the DTE instance is up before we're good
                 dte = IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).Result;

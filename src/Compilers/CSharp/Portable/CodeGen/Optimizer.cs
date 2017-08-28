@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// 1) Do not elide any user defined locals, even if never read from. 
         ///    Example:
         ///      {
-        ///        var dummy = Foo();    // should not become just "Foo"
+        ///        var dummy = Goo();    // should not become just "Goo"
         ///      }
         ///        
         ///    User might want to examine dummy in the debugger.
@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// 2) Do not carry values on the stack between statements
         ///    Example:
         ///      {
-        ///        var temp = Foo();
-        ///        temp.ToString();       // should not become   Foo().ToString();
+        ///        var temp = Goo();
+        ///        temp.ToString();       // should not become   Goo().ToString();
         ///      }
         ///       
         ///    User might want to examine temp in the debugger.
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// [1, 3) conflicts with [2, 4)
         /// 
         /// NOTE: with regular spans, it is not possible for two spans to share an edge point 
-        /// unless they belong to the same local. (because we cannot aceess two real locals at the same time)
+        /// unless they belong to the same local. (because we cannot access two real locals at the same time)
         /// 
         /// specifically:
         /// [1, 3) does not conflict with [0, 1)   since such spans would need to belong to the same local
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     // it will affect inference of stack behavior
     // it will also affect when locals can be scheduled to the stack
     // Example:
-    //      Foo(x, ref x)     <-- x cannot be a stack local as it is used in different contexts.
+    //      Goo(x, ref x)     <-- x cannot be a stack local as it is used in different contexts.
     internal enum ExprContext
     {
         None,

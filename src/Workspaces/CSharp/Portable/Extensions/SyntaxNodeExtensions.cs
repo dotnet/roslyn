@@ -17,6 +17,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static partial class SyntaxNodeExtensions
     {
+        public static bool IsKind<TNode>(this SyntaxNode node, SyntaxKind kind, out TNode result)
+            where TNode : SyntaxNode
+        {
+            if (node.IsKind(kind))
+            {
+                result = (TNode)node;
+                return true;
+            }
+
+            result = null;
+            return false;
+        }
+
         public static bool IsParentKind(this SyntaxNode node, SyntaxKind kind)
         {
             return node != null && CodeAnalysis.CSharpExtensions.IsKind(node.Parent, kind);
@@ -325,30 +338,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// 
         /// i.e. The following returns false:
         /// 
-        ///   void Foo() {
+        ///   void Goo() {
         /// #if true
         /// #endif
         ///   }
         /// 
         /// #if true
-        ///   void Foo() {
+        ///   void Goo() {
         ///   }
         /// #endif
         /// 
         /// but these return true:
         /// 
         /// #if true
-        ///   void Foo() {
+        ///   void Goo() {
         /// #endif
         ///   }
         /// 
-        ///   void Foo() {
+        ///   void Goo() {
         /// #if true
         ///   }
         /// #endif
         /// 
         /// #if true
-        ///   void Foo() {
+        ///   void Goo() {
         /// #else
         ///   }
         /// #endif
@@ -458,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     // this node that belongs to a span of pp directives that
                     // is not entirely contained within the node.  i.e.:
                     //
-                    //   void Foo() {
+                    //   void Goo() {
                     //      #if ...
                     //   }
                     //
@@ -477,7 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     // We have a PP directive before us.  i.e.:
                     // 
                     //   #if ...
-                    //      void Foo() {
+                    //      void Goo() {
                     //
                     // That means we start a new group that is contained between
                     // the above directive and the following directive.
@@ -638,46 +651,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetBraces(this SyntaxNode node)
         {
-            var namespaceNode = node as NamespaceDeclarationSyntax;
-            if (namespaceNode != null)
+            switch (node)
             {
-                return (namespaceNode.OpenBraceToken, namespaceNode.CloseBraceToken);
-            }
-
-            var baseTypeNode = node as BaseTypeDeclarationSyntax;
-            if (baseTypeNode != null)
-            {
-                return (baseTypeNode.OpenBraceToken, baseTypeNode.CloseBraceToken);
-            }
-
-            var accessorListNode = node as AccessorListSyntax;
-            if (accessorListNode != null)
-            {
-                return (accessorListNode.OpenBraceToken, accessorListNode.CloseBraceToken);
-            }
-
-            var blockNode = node as BlockSyntax;
-            if (blockNode != null)
-            {
-                return (blockNode.OpenBraceToken, blockNode.CloseBraceToken);
-            }
-
-            var switchStatementNode = node as SwitchStatementSyntax;
-            if (switchStatementNode != null)
-            {
-                return (switchStatementNode.OpenBraceToken, switchStatementNode.CloseBraceToken);
-            }
-
-            var anonymousObjectCreationExpression = node as AnonymousObjectCreationExpressionSyntax;
-            if (anonymousObjectCreationExpression != null)
-            {
-                return (anonymousObjectCreationExpression.OpenBraceToken, anonymousObjectCreationExpression.CloseBraceToken);
-            }
-
-            var initializeExpressionNode = node as InitializerExpressionSyntax;
-            if (initializeExpressionNode != null)
-            {
-                return (initializeExpressionNode.OpenBraceToken, initializeExpressionNode.CloseBraceToken);
+                case NamespaceDeclarationSyntax namespaceNode:
+                    return (namespaceNode.OpenBraceToken, namespaceNode.CloseBraceToken);
+                case BaseTypeDeclarationSyntax baseTypeNode:
+                    return (baseTypeNode.OpenBraceToken, baseTypeNode.CloseBraceToken);
+                case AccessorListSyntax accessorListNode:
+                    return (accessorListNode.OpenBraceToken, accessorListNode.CloseBraceToken);
+                case BlockSyntax blockNode:
+                    return (blockNode.OpenBraceToken, blockNode.CloseBraceToken);
+                case SwitchStatementSyntax switchStatementNode:
+                    return (switchStatementNode.OpenBraceToken, switchStatementNode.CloseBraceToken);
+                case AnonymousObjectCreationExpressionSyntax anonymousObjectCreationExpression:
+                    return (anonymousObjectCreationExpression.OpenBraceToken, anonymousObjectCreationExpression.CloseBraceToken);
+                case InitializerExpressionSyntax initializeExpressionNode:
+                    return (initializeExpressionNode.OpenBraceToken, initializeExpressionNode.CloseBraceToken);
             }
 
             return default;
@@ -852,40 +841,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool CheckTopLevel(this SyntaxNode node, TextSpan span)
         {
-            var block = node as BlockSyntax;
-            if (block != null)
+            switch (node)
             {
-                return block.ContainsInBlockBody(span);
-            }
-
-            var expressionBodiedMember = node as ArrowExpressionClauseSyntax;
-            if (expressionBodiedMember != null)
-            {
-                return expressionBodiedMember.ContainsInExpressionBodiedMemberBody(span);
-            }
-
-            var field = node as FieldDeclarationSyntax;
-            if (field != null)
-            {
-                foreach (var variable in field.Declaration.Variables)
-                {
-                    if (variable.Initializer != null && variable.Initializer.Span.Contains(span))
+                case BlockSyntax block:
+                    return block.ContainsInBlockBody(span);
+                case ArrowExpressionClauseSyntax expressionBodiedMember:
+                    return expressionBodiedMember.ContainsInExpressionBodiedMemberBody(span);
+                case FieldDeclarationSyntax field:
                     {
-                        return true;
+                        foreach (var variable in field.Declaration.Variables)
+                        {
+                            if (variable.Initializer != null && variable.Initializer.Span.Contains(span))
+                            {
+                                return true;
+                            }
+                        }
+
+                        break;
                     }
-                }
-            }
 
-            var global = node as GlobalStatementSyntax;
-            if (global != null)
-            {
-                return true;
-            }
-
-            var constructorInitializer = node as ConstructorInitializerSyntax;
-            if (constructorInitializer != null)
-            {
-                return constructorInitializer.ContainsInArgument(span);
+                case GlobalStatementSyntax global:
+                    return true;
+                case ConstructorInitializerSyntax constructorInitializer:
+                    return constructorInitializer.ContainsInArgument(span);
             }
 
             return false;
@@ -925,28 +903,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static IEnumerable<MemberDeclarationSyntax> GetMembers(this SyntaxNode node)
         {
-            var compilation = node as CompilationUnitSyntax;
-            if (compilation != null)
+            switch (node)
             {
-                return compilation.Members;
-            }
-
-            var @namespace = node as NamespaceDeclarationSyntax;
-            if (@namespace != null)
-            {
-                return @namespace.Members;
-            }
-
-            var type = node as TypeDeclarationSyntax;
-            if (type != null)
-            {
-                return type.Members;
-            }
-
-            var @enum = node as EnumDeclarationSyntax;
-            if (@enum != null)
-            {
-                return @enum.Members;
+                case CompilationUnitSyntax compilation:
+                    return compilation.Members;
+                case NamespaceDeclarationSyntax @namespace:
+                    return @namespace.Members;
+                case TypeDeclarationSyntax type:
+                    return type.Members;
+                case EnumDeclarationSyntax @enum:
+                    return @enum.Members;
             }
 
             return SpecializedCollections.EmptyEnumerable<MemberDeclarationSyntax>();

@@ -11,15 +11,11 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
     {
         public string FilePath;
         public string DesignerAttributeArgument;
-        public bool ContainsErrors;
-        public bool NotApplicable;
 
-        public DesignerAttributeDocumentData(string filePath, string designerAttributeArgument, bool containsErrors, bool notApplicable)
+        public DesignerAttributeDocumentData(string filePath, string designerAttributeArgument)
         {
             FilePath = filePath;
             DesignerAttributeArgument = designerAttributeArgument;
-            ContainsErrors = containsErrors;
-            NotApplicable = notApplicable;
         }
 
         public override bool Equals(object obj)
@@ -28,9 +24,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
         public bool Equals(DesignerAttributeDocumentData other)
         {
             return FilePath == other.FilePath &&
-                   DesignerAttributeArgument == other.DesignerAttributeArgument &&
-                   ContainsErrors == other.ContainsErrors &&
-                   NotApplicable == other.NotApplicable;
+                   DesignerAttributeArgument == other.DesignerAttributeArgument;
         }
 
         // Currently no need for GetHashCode.  If we end up using this as a key in a dictionary,

@@ -7072,7 +7072,7 @@ class C
 {
     static void F()
     {
-        string foo = ""abc"";
+        string goo = ""abc"";
     }
 }";
             var source1 =
@@ -7080,7 +7080,7 @@ class C
 {
     static void F()
     {
-        float foo = 10;
+        float goo = 10;
     }
 }";
             var source2 =
@@ -7088,7 +7088,7 @@ class C
 {
     static void F()
     {
-        bool foo = true;
+        bool goo = true;
     }
 }";
             var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
@@ -7284,7 +7284,7 @@ public class B
             var source0 = @"
 public class C
 {    
-    public static void F(dynamic d) { d.Foo(); }
+    public static void F(dynamic d) { d.Goo(); }
 }";
             var source1 = @"
 public class C

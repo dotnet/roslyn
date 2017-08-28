@@ -30,7 +30,7 @@ End Class
 Class C1
     Public Shared Sub Main()
 
-        Using foo1 As New MyDisposable(), foo2 As New MyDisposable(), foo3 As MyDisposable = Nothing
+        Using goo1 As New MyDisposable(), goo2 As New MyDisposable(), goo3 As MyDisposable = Nothing
             Console.WriteLine("Inside Using.")
         End Using
     End Sub
@@ -69,9 +69,9 @@ End Class
             <scope startOffset="0x0" endOffset="0x46">
                 <importsforward declaringType="MyDisposable" methodName="Dispose"/>
                 <scope startOffset="0x2" endOffset="0x44">
-                    <local name="foo1" il_index="0" il_start="0x2" il_end="0x44" attributes="0"/>
-                    <local name="foo2" il_index="1" il_start="0x2" il_end="0x44" attributes="0"/>
-                    <local name="foo3" il_index="2" il_start="0x2" il_end="0x44" attributes="0"/>
+                    <local name="goo1" il_index="0" il_start="0x2" il_end="0x44" attributes="0"/>
+                    <local name="goo2" il_index="1" il_start="0x2" il_end="0x44" attributes="0"/>
+                    <local name="goo3" il_index="2" il_start="0x2" il_end="0x44" attributes="0"/>
                 </scope>
             </scope>
         </method>

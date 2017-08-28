@@ -725,13 +725,13 @@ Module Module1
     End Sub
 
     MustInherit Class Base(Of T, S)
-        MustOverride Sub Foo(Of U As T, V As S)()
+        MustOverride Sub Goo(Of U As T, V As S)()
     End Class
 
     Class Derived
         Inherits Base(Of B1, S1)
 
-        Public Overrides Sub Foo(Of U As B1, V As S1)()
+        Public Overrides Sub Goo(Of U As B1, V As S1)()
             Dim i1 As I123(Of Object) = Nothing
             Dim x1 As I123(Of U) = i1
             Dim i2 As I124(Of U) = Nothing
@@ -747,7 +747,7 @@ Module Module1
     Class Derived2
         Inherits Base(Of B1, S1?)
 
-        Public Overrides Sub Foo(Of U2 As B1, V2 As S1?)()
+        Public Overrides Sub Goo(Of U2 As B1, V2 As S1?)()
             Dim i3 As I123(Of Object) = Nothing
             Dim x3 As I123(Of V2) = i3
             Dim i4 As I124(Of V2) = Nothing
@@ -829,18 +829,18 @@ Module Module1
     End Enum
 
     <extension()>
-    Sub Foo1(i As I123(Of e1()))
+    Sub Goo1(i As I123(Of e1()))
     End Sub
 
     <extension()>
-    Sub Foo2(i As I123(Of Integer()))
+    Sub Goo2(i As I123(Of Integer()))
     End Sub
 
-    Sub Foo3(i As I124(Of e1()))
+    Sub Goo3(i As I124(Of e1()))
     End Sub
 
     <extension()>
-    Sub Foo4(i As I124(Of Integer()))
+    Sub Goo4(i As I124(Of Integer()))
     End Sub
 
     Structure S1(Of T)
@@ -856,30 +856,30 @@ Module Module1
         Dim i4 As I124(Of Integer()) = i3
         i3 = i4
 
-        i2.Foo1()
-        i1.Foo2()
+        i2.Goo1()
+        i1.Goo2()
 
-        i4.Foo3()
-        i3.Foo4()
+        i4.Goo3()
+        i3.Goo4()
 
-        i1.Foo1()
-        i2.Foo2()
+        i1.Goo1()
+        i2.Goo2()
 
-        i3.Foo3()
-        i4.Foo4()
+        i3.Goo3()
+        i4.Goo4()
 
         Dim s1 As New S1(Of e1())
         Dim s2 As New S1(Of Integer())
 
-        s1.Foo1()
-        s1.Foo2()
-        s1.Foo3()
-        s1.Foo4()
+        s1.Goo1()
+        s1.Goo2()
+        s1.Goo3()
+        s1.Goo4()
 
-        s2.Foo1()
-        s2.Foo2()
-        s2.Foo3()
-        s2.Foo4()
+        s2.Goo1()
+        s2.Goo2()
+        s2.Goo3()
+        s2.Goo4()
     End Sub
 End Module
     ]]></file>
@@ -897,35 +897,35 @@ BC42016: Implicit conversion from 'Module1.I123(Of Module1.e1())' to 'Module1.I1
 BC42016: Implicit conversion from 'Module1.I124(Of Integer())' to 'Module1.I124(Of Module1.e1())'; this conversion may fail because 'Integer()' is not derived from 'Module1.e1()', as required for the 'Out' generic parameter 'T' in 'Interface I124(Of Out T)'.
         i3 = i4
              ~~
-BC30456: 'Foo1' is not a member of 'Module1.I123(Of Integer())'.
-        i2.Foo1()
+BC30456: 'Goo1' is not a member of 'Module1.I123(Of Integer())'.
+        i2.Goo1()
         ~~~~~~~
-BC30456: 'Foo2' is not a member of 'Module1.I123(Of Module1.e1())'.
-        i1.Foo2()
+BC30456: 'Goo2' is not a member of 'Module1.I123(Of Module1.e1())'.
+        i1.Goo2()
         ~~~~~~~
-BC30456: 'Foo3' is not a member of 'Module1.I124(Of Integer())'.
-        i4.Foo3()
+BC30456: 'Goo3' is not a member of 'Module1.I124(Of Integer())'.
+        i4.Goo3()
         ~~~~~~~
-BC30456: 'Foo4' is not a member of 'Module1.I124(Of Module1.e1())'.
-        i3.Foo4()
+BC30456: 'Goo4' is not a member of 'Module1.I124(Of Module1.e1())'.
+        i3.Goo4()
         ~~~~~~~
-BC30456: 'Foo3' is not a member of 'Module1.I124(Of Module1.e1())'.
-        i3.Foo3()
+BC30456: 'Goo3' is not a member of 'Module1.I124(Of Module1.e1())'.
+        i3.Goo3()
         ~~~~~~~
-BC30456: 'Foo2' is not a member of 'Module1.S1(Of Module1.e1())'.
-        s1.Foo2()
+BC30456: 'Goo2' is not a member of 'Module1.S1(Of Module1.e1())'.
+        s1.Goo2()
         ~~~~~~~
-BC30456: 'Foo3' is not a member of 'Module1.S1(Of Module1.e1())'.
-        s1.Foo3()
+BC30456: 'Goo3' is not a member of 'Module1.S1(Of Module1.e1())'.
+        s1.Goo3()
         ~~~~~~~
-BC30456: 'Foo4' is not a member of 'Module1.S1(Of Module1.e1())'.
-        s1.Foo4()
+BC30456: 'Goo4' is not a member of 'Module1.S1(Of Module1.e1())'.
+        s1.Goo4()
         ~~~~~~~
-BC30456: 'Foo1' is not a member of 'Module1.S1(Of Integer())'.
-        s2.Foo1()
+BC30456: 'Goo1' is not a member of 'Module1.S1(Of Integer())'.
+        s2.Goo1()
         ~~~~~~~
-BC30456: 'Foo3' is not a member of 'Module1.S1(Of Integer())'.
-        s2.Foo3()
+BC30456: 'Goo3' is not a member of 'Module1.S1(Of Integer())'.
+        s2.Goo3()
         ~~~~~~~
 </expected>)
         End Sub
@@ -1149,11 +1149,11 @@ Module Module1
         Inherits I123(Of B1)
     End Interface
 
-    Sub Foo(Of T As {I1, I2})(x As T)
+    Sub Goo(Of T As {I1, I2})(x As T)
         Dim x22 As I123(Of B2) = x
     End Sub
 
-    Sub Foo(Of T As I123(Of B1), S As {T, I123(Of B3)})(x As S)
+    Sub Goo(Of T As I123(Of B1), S As {T, I123(Of B3)})(x As S)
         Dim x33 As I123(Of B2) = x
     End Sub
 
@@ -1259,11 +1259,11 @@ Module Module1
 
     End Sub
 
-    Sub Foo(Of T As {I123(Of B3), I123(Of B1)})(x As T)
+    Sub Goo(Of T As {I123(Of B3), I123(Of B1)})(x As T)
         Dim p1 As I123(Of B2) = x
     End Sub
 
-    Sub Foo(Of T As {I123(Of B3), I123(Of B1)})(x As T())
+    Sub Goo(Of T As {I123(Of B3), I123(Of B1)})(x As T())
         Dim p2 As I123(Of B2)() = x
     End Sub
 End Module
@@ -1343,7 +1343,7 @@ Module Module1
         Inherits B1
     End Class
 
-    Sub Foo1(Of T As {I123(Of B1), I123(Of S)}, S As Class, Q As {Class, I123(Of B1)})(x As T, y As S, z As I123(Of S), u As Q)
+    Sub Goo1(Of T As {I123(Of B1), I123(Of S)}, S As Class, Q As {Class, I123(Of B1)})(x As T, y As S, z As I123(Of S), u As Q)
         Dim b2 As B2 = y
         y = b2
         Dim p1 As I123(Of B2) = x
@@ -1356,7 +1356,7 @@ Module Module1
         a3 = a2
     End Sub
 
-    Sub Foo2(Of T As {I124(Of B2), I124(Of S)}, S As Class, Q As {Class, I124(Of B2)})(x As T, y As S, z As I124(Of S), u As Q)
+    Sub Goo2(Of T As {I124(Of B2), I124(Of S)}, S As Class, Q As {Class, I124(Of B2)})(x As T, y As S, z As I124(Of S), u As Q)
         Dim b1 As B1 = y
         y = b1
         Dim p1 As I124(Of B1) = x
@@ -1369,7 +1369,7 @@ Module Module1
         a3 = a2
     End Sub
 
-    Sub Foo3(Of T As {I123(Of B1()), I123(Of S())}, S As Class, Q As {Class, I123(Of B1())})(x As T, y As S(), z As I123(Of S()), u As Q)
+    Sub Goo3(Of T As {I123(Of B1()), I123(Of S())}, S As Class, Q As {Class, I123(Of B1())})(x As T, y As S(), z As I123(Of S()), u As Q)
         Dim b2 As B2() = y
         y = b2
         Dim p1 As I123(Of B2()) = x
@@ -1382,7 +1382,7 @@ Module Module1
         a3 = a2
     End Sub
 
-    Sub Foo4(Of T As {I124(Of B2()), I124(Of S())}, S As Class, Q As {Class, I124(Of B2())})(x As T, y As S(), z As I124(Of S()), u As Q)
+    Sub Goo4(Of T As {I124(Of B2()), I124(Of S())}, S As Class, Q As {Class, I124(Of B2())})(x As T, y As S(), z As I124(Of S()), u As Q)
         Dim b1 As B1() = y
         y = b1
         Dim p1 As I124(Of B1()) = x
@@ -1395,7 +1395,7 @@ Module Module1
         a3 = a2
     End Sub
 
-    Sub Foo5(Of T As {I123(Of IEnumerable(Of B1)), I123(Of IEnumerable(Of S))},
+    Sub Goo5(Of T As {I123(Of IEnumerable(Of B1)), I123(Of IEnumerable(Of S))},
                 S As Class,
                 Q As {Class, I123(Of IEnumerable(Of B1))})(x As T, y As IEnumerable(Of S), z As I123(Of IEnumerable(Of S)), u As Q)
         Dim b2 As B2() = y
@@ -1411,7 +1411,7 @@ Module Module1
     End Sub
 
     MustInherit Class B3(Of U)
-        MustOverride Sub Foo6(Of T As {I123(Of Q()), I123(Of S())}, S As Structure, Q As U, R As Q)()
+        MustOverride Sub Goo6(Of T As {I123(Of Q()), I123(Of S())}, S As Structure, Q As U, R As Q)()
     End Class
 
     Structure S1
@@ -1420,7 +1420,7 @@ Module Module1
     Class B4
         Inherits B3(Of S1)
 
-        Public Overrides Sub Foo6(Of T As {I123(Of Q()), I123(Of S())}, S As Structure, Q As S1, R As Q)()
+        Public Overrides Sub Goo6(Of T As {I123(Of Q()), I123(Of S())}, S As Structure, Q As S1, R As Q)()
             Dim a As R() = Nothing
             Dim b As Q() = a
 
@@ -1540,7 +1540,7 @@ Module Module1
     Interface I123(Of In T)
     End Interface
 
-    Public Sub Foo7(Of T As {I123(Of Q()), I123(Of S())}, S As Structure, Q, R As Q)()
+    Public Sub Goo7(Of T As {I123(Of Q()), I123(Of S())}, S As Structure, Q, R As Q)()
         Dim a As R() = Nothing
         Dim b As Q() = a
 
@@ -1587,7 +1587,7 @@ Module Module1
     Interface I123(Of In T)
     End Interface
 
-    Public Sub Foo8(Of T As {I123(Of Q()), I123(Of S())}, S As Structure, Q, R As {Class, Q})()
+    Public Sub Goo8(Of T As {I123(Of Q()), I123(Of S())}, S As Structure, Q, R As {Class, Q})()
         Dim a As R() = Nothing
         Dim b As Q() = a
 
@@ -1628,7 +1628,7 @@ Module Module1
     Interface I123(Of In T)
     End Interface
 
-    Public Sub Foo9(Of T As {I123(Of Q()), I123(Of S())}, S, Q, R As {Structure, Q})()
+    Public Sub Goo9(Of T As {I123(Of Q()), I123(Of S())}, S, Q, R As {Structure, Q})()
         Dim a As R() = Nothing
         Dim b As Q() = a
 
@@ -1884,7 +1884,7 @@ Module Module1
             Implements I123(Of IEnumerable(Of Integer)), I123(Of T())
         End Class
 
-        Sub Foo1()
+        Sub Goo1()
             Dim x As B6 = Nothing
             Dim y As I123(Of Integer()) = x
         End Sub
@@ -1926,7 +1926,7 @@ Module Module1
             Implements I123(Of Integer()), I123(Of IEnumerable(Of T))
         End Class
 
-        Sub Foo1()
+        Sub Goo1()
             Dim x As B6 = Nothing
             Dim y As I123(Of T()) = x
         End Sub
@@ -2015,14 +2015,14 @@ Module Module2
     Class C
         Inherits A
     End Class
-    Public Sub Foo(ByVal a1 As A)
+    Public Sub Goo(ByVal a1 As A)
     End Sub
-    Public Sub foo(ByVal a1 As Action(Of C))
+    Public Sub goo(ByVal a1 As Action(Of C))
         Console.WriteLine(TypeOf a1 Is 
         Action(Of B))
     End Sub
     Sub Main()
-        Foo(New Action(Of A)(AddressOf Foo))
+        Goo(New Action(Of A)(AddressOf Goo))
     End Sub
 End Module
     </file>
@@ -2114,7 +2114,7 @@ Module Module1
     Interface I123(Of In T)
     End Interface
 
-    Public Sub Foo7(Of T As {I123(Of D(Of Q())), I123(Of D(Of S()))}, S As Structure, Q, R As Q)()
+    Public Sub Goo7(Of T As {I123(Of D(Of Q())), I123(Of D(Of S()))}, S As Structure, Q, R As Q)()
         Dim a As D(Of R()) = Nothing
         Dim b As D(Of Q()) = a
 
@@ -2170,7 +2170,7 @@ Module Module1
         Inherits B1
     End Class
 
-    Sub Foo1(Of T As {I123(Of D(Of B1)), I123(Of D(Of S))}, S, Q As {Class, I123(Of D(Of B1))})(x As T, y As S, z As I123(Of D(Of S)), u As Q)
+    Sub Goo1(Of T As {I123(Of D(Of B1)), I123(Of D(Of S))}, S, Q As {Class, I123(Of D(Of B1))})(x As T, y As S, z As I123(Of D(Of S)), u As Q)
         Dim p1 As I123(Of D(Of B2)) = x
         p1 = z
         p1 = u
@@ -2732,7 +2732,7 @@ Module Module1
         Inherits B1
     End Class
     Class Program
-        Shared Function Foo(Of T As U, U)(ByVal arg As T) As U
+        Shared Function Goo(Of T As U, U)(ByVal arg As T) As U
             Console.WriteLine(TypeOf arg Is IEnumerable(Of B2))
             Return arg
         End Function
@@ -2740,7 +2740,7 @@ Module Module1
         Shared Sub Main()
             Dim btnList As IEnumerable(Of B2) = New List(Of B2)()
             'This is allowed because it satisfies the constraint IEnumerable(Of B1) AS IEnumerable(Of B2)
-            Dim _ctrlCol As IEnumerable(Of B1) = Foo(Of IEnumerable(Of B2), IEnumerable(Of B1))(btnList)
+            Dim _ctrlCol As IEnumerable(Of B1) = Goo(Of IEnumerable(Of B2), IEnumerable(Of B1))(btnList)
         End Sub
     End Class
 End Module
@@ -2891,7 +2891,7 @@ Module Module1
         Console.WriteLine(ffac_1.GetType)
     End Sub
  
-    Sub Foo(ByVal f As C)
+    Sub Goo(ByVal f As C)
         Console.WriteLine(f.GetType)
     End Sub
  

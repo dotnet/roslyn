@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -39,9 +40,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 
                     var codeIssueOrRefactoring = await GetCodeRefactoringAsync(workspace, testOptions);
                     await TestActionsAsync(workspace, expectedCode, index, codeIssueOrRefactoring.Actions,
-                        conflictSpans: ImmutableArray<Text.TextSpan>.Empty,
-                        renameSpans: ImmutableArray<Text.TextSpan>.Empty,
-                        warningSpans: ImmutableArray<Text.TextSpan>.Empty, ignoreTrivia: true);
+                        conflictSpans: ImmutableArray<TextSpan>.Empty,
+                        renameSpans: ImmutableArray<TextSpan>.Empty,
+                        warningSpans: ImmutableArray<TextSpan>.Empty, 
+                        navigationSpans: ImmutableArray<TextSpan>.Empty);
                 }
             }
             else

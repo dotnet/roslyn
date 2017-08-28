@@ -347,7 +347,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // - Need to have a way to specify these somewhere in VS options.
                 // - Use RuntimeMetadataReferenceResolver like in InteractiveEvaluator.CreateMetadataReferenceResolver
                 // - Add default namespace imports
-                // - Add default script globals available in 'csi foo.csx' environment: CommandLineScriptGlobals
+                // - Add default script globals available in 'csi goo.csx' environment: CommandLineScriptGlobals
 
                 var referenceSearchPaths = ImmutableArray<string>.Empty;
                 var sourceSearchPaths = ImmutableArray<string>.Empty;

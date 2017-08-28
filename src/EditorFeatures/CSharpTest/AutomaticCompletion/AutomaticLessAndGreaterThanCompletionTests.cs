@@ -412,7 +412,7 @@ using System.Linq;
 
 class Program
 {
-    void Foo(object[] args)
+    void Goo(object[] args)
     {
         var a = new Outer();
         a?.M(x => x?.ToString())?.Method$$

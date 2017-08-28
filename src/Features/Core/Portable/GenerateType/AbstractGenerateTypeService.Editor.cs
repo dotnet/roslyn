@@ -399,8 +399,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
                 var namespaceContainersAndUsings = GetNamespaceContainersAndAddUsingsOrImport(isDialog, new List<string>(folders), generateTypeOptionsResult.AreFoldersValidIdentifiers, generateTypeOptionsResult.Project, triggeringProject);
 
-                var containers = namespaceContainersAndUsings.Item1;
-                var includeUsingsOrImports = namespaceContainersAndUsings.Item2;
+                var containers = namespaceContainersAndUsings.containers;
+                var includeUsingsOrImports = namespaceContainersAndUsings.usingOrImport;
 
                 Tuple<INamespaceSymbol, INamespaceOrTypeSymbol, Location> enclosingNamespaceGeneratedTypeToAddAndLocation = null;
                 if (_targetProjectChangeInLanguage == TargetProjectChangeInLanguage.NoChange)

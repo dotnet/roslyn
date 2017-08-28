@@ -38,12 +38,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
                 this.SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task TestUpdatePropertyIfPropertyWantsBlockAndAccesorWantsExpression()
+        public async Task TestUpdatePropertyIfPropertyWantsBlockAndAccessorWantsExpression()
         {
             await TestInRegularAndScript1Async(
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    int Foo => Bar();
+    int Goo => Bar();
 }", parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties));
         }
 
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestMissingAsync(
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScript1Async(
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -89,7 +89,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    int Foo { get => Bar(); }
+    int Goo
+    {
+        get => Bar();
+    }
 }", parameters: new TestParameters(options: UseBlockBodyForAccessors_ExpressionBodyForProperties));
         }
 
@@ -99,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScript1Async(
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -109,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    int Foo => [||]Bar();
+    int Goo => [||]Bar();
 }", parameters: new TestParameters(options: UseBlockBodyForAccessors_BlockBodyForProperties));
         }
 
@@ -119,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestMissingAsync(
 @"class C
 {
-    int Foo { get => [||]Bar(); }
+    int Goo { get => [||]Bar(); }
 }", parameters: new TestParameters(options: UseBlockBodyForAccessors_ExpressionBodyForProperties));
         }
 
@@ -129,12 +132,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScript1Async(
 @"class C
 {
-    int Foo { get => [||]Bar(); }
+    int Goo { get => [||]Bar(); }
 }",
 
 @"class C
 {
-    int Foo => Bar();
+    int Goo => Bar();
 }", parameters: new TestParameters(options: UseBlockBodyForAccessors_BlockBodyForProperties));
         }
 
@@ -144,11 +147,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScript1Async(
 @"class C
 {
-    int Foo { get => [||]Bar(); }
+    int Goo { get => [||]Bar(); }
 }",
 @"class C
 {
-    int Foo => Bar();
+    int Goo => Bar();
 }", parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties));
         }
 
@@ -159,18 +162,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScript1Async(
 @"class C
 {
-    int Foo { get => [||]Bar(); }
+    int Goo { get => [||]Bar(); }
 }",
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
             return Bar();
         }
     }
-}", ignoreTrivia: false, parameters: new TestParameters(options: UseExpressionBodyForAccessors_ExpressionBodyForProperties));
+}", parameters: new TestParameters(options: UseExpressionBodyForAccessors_ExpressionBodyForProperties));
         }
     }
 }

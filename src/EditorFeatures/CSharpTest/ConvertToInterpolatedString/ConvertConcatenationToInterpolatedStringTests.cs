@@ -156,7 +156,7 @@ public class C
             // Leading trivia
             $""{1 + 2}string"" /* trailing trivia */;
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]

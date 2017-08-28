@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialMethodInvalidModifier = 750,
         ERR_PartialMethodOnlyInPartialClass = 751,
         ERR_PartialMethodCannotHaveOutParameters = 752,
-        ERR_PartialMethodOnlyMethods = 753,
+        // ERR_PartialMethodOnlyMethods = 753, Removed as it is subsumed by ERR_PartialMisplaced
         ERR_PartialMethodNotExplicit = 754,
         ERR_PartialMethodExtensionDifference = 755,
         ERR_PartialMethodOnlyOneLatent = 756,
@@ -1496,6 +1496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region diagnostics introduced for C# 7.2
         ERR_FeatureNotAvailableInVersion7_2 = 8320,
         WRN_UnreferencedLocalFunction = 8321,
+        ERR_DynamicLocalFunctionTypeParameter = 8322,
         #endregion diagnostics introduced for C# 7.2
     }
 }

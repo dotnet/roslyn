@@ -63,14 +63,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     testPosition = nameToken.SpanStart;
                 }
 
-                // If the user types Foo<T, automatic brace completion will insert the close brace
+                // If the user types Goo<T, automatic brace completion will insert the close brace
                 // and the generic won't be "partially written".
                 if (testPosition == position)
                 {
                     var typeArgumentList = leftToken.GetAncestor<TypeArgumentListSyntax>();
                     if (typeArgumentList != null)
                     {
-                        if (typeArgumentList.LessThanToken != default(SyntaxToken) && typeArgumentList.GreaterThanToken != default(SyntaxToken))
+                        if (typeArgumentList.LessThanToken != default && typeArgumentList.GreaterThanToken != default)
                         {
                             testPosition = typeArgumentList.LessThanToken.SpanStart;
                         }
