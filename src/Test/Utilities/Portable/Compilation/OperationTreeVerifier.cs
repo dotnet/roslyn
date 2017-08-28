@@ -1264,6 +1264,26 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.GuardExpression, "Guard Expression");
         }
 
+        public override void VisitConditionalGotoStatement(IConditionalGotoStatement operation)
+        {
+            LogString(nameof(IConditionalGotoStatement));
+            LogSymbol(operation.Target, " (Target Symbol");
+            LogString($", JumpIfTrue: {operation.JumpIfTrue})");
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Condition, "Condition");
+        }
+
+        public override void VisitSequenceExpression(ISequenceExpression operation)
+        {
+            LogString(nameof(ISequenceExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            LogLocals(operation.Locals, header: "Locals");
+            VisitArray(operation.Expressions, "Expressions", logElementCount: true);
+            Visit(operation.Value, "Value");
+        }
+
         #endregion
     }
 }

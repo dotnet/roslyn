@@ -1126,7 +1126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         #region IOperation tree validation
 
-        protected static (IOperation operation, SyntaxNode node) GetOperationAndSyntaxForTest<TSyntaxNode>(CSharpCompilation compilation)
+        protected static (IOperation operation, SyntaxNode node) GetOperationAndSyntaxForTest<TSyntaxNode>(CSharpCompilation compilation, bool highLevelOperation = true)
             where TSyntaxNode : SyntaxNode
         {
             var tree = compilation.SyntaxTrees[0];
@@ -1137,7 +1137,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 return (null, null);
             }
 
-            return (model.GetOperationInternal(syntaxNode), syntaxNode);
+            IOperation operation;
+
+            if (highLevelOperation)
+            {
+                operation = model.GetOperationInternal(syntaxNode);
+            }
+            else
+            {
+                var methodSymbol = model.GetDeclaredSymbolForNode(syntaxNode) as IMethodSymbol;
+
+                if (methodSymbol == null)
+                {
+                    return (null, null);
+                }
+
+                operation = model.GetOperationInternal(methodSymbol);
+            }
+
+            return (operation, syntaxNode);
         }
 
         protected static string GetOperationTreeForTest<TSyntaxNode>(CSharpCompilation compilation)
@@ -1159,10 +1177,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return GetOperationTreeForTest<TSyntaxNode>(compilation);
         }
 
-        protected static void VerifyOperationTreeForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedOperationTree, Action<IOperation, Compilation, SyntaxNode> AdditionalOperationTreeVerifier = null)
+        protected static void VerifyOperationTreeForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedOperationTree, Action<IOperation, Compilation, SyntaxNode> AdditionalOperationTreeVerifier = null, bool highLevelOperation = true)
             where TSyntaxNode : SyntaxNode
         {
-            var (actualOperation, syntaxNode) = GetOperationAndSyntaxForTest<TSyntaxNode>(compilation);
+            var (actualOperation, syntaxNode) = GetOperationAndSyntaxForTest<TSyntaxNode>(compilation, highLevelOperation);
             var actualOperationTree = GetOperationTreeForTest(compilation, actualOperation);
             OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
             AdditionalOperationTreeVerifier?.Invoke(actualOperation, compilation, syntaxNode);
@@ -1175,12 +1193,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
         }
 
-        protected static void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedOperationTree, DiagnosticDescription[] expectedDiagnostics, Action<IOperation, Compilation, SyntaxNode> AdditionalOperationTreeVerifier = null)
+        protected static void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedOperationTree, DiagnosticDescription[] expectedDiagnostics, Action<IOperation, Compilation, SyntaxNode> AdditionalOperationTreeVerifier = null, bool highLevelOperation = true)
             where TSyntaxNode : SyntaxNode
         {
             var actualDiagnostics = compilation.GetDiagnostics().Where(d => d.Severity != DiagnosticSeverity.Hidden);
             actualDiagnostics.Verify(expectedDiagnostics);
-            VerifyOperationTreeForTest<TSyntaxNode>(compilation, expectedOperationTree, AdditionalOperationTreeVerifier);
+            VerifyOperationTreeForTest<TSyntaxNode>(compilation, expectedOperationTree, AdditionalOperationTreeVerifier, highLevelOperation);
         }
 
         private static readonly MetadataReference[] s_defaultOperationReferences = new[] { SystemRef, SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef };
@@ -1191,12 +1209,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpCompilationOptions compilationOptions = null,
             CSharpParseOptions parseOptions = null,
             MetadataReference[] additionalReferences = null,
-            Action<IOperation, Compilation, SyntaxNode> AdditionalOperationTreeVerifier = null)
+            Action<IOperation, Compilation, SyntaxNode> AdditionalOperationTreeVerifier = null,
+            bool highLevelOperation = true)
             where TSyntaxNode : SyntaxNode
         {
             var references = additionalReferences == null ? s_defaultOperationReferences : additionalReferences.Concat(s_defaultOperationReferences);
             var compilation = CreateStandardCompilation(testSrc, references, sourceFileName: "file.cs", options: compilationOptions ?? TestOptions.ReleaseDll, parseOptions: parseOptions);
-            VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier);
+            VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier, highLevelOperation);
         }
 
         protected static MetadataReference VerifyOperationTreeAndDiagnosticsForTestWithIL<TSyntaxNode>(string testSrc,
