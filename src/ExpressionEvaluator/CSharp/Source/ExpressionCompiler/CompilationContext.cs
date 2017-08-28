@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal readonly Binder NamespaceBinder; // Internal for test purposes.
 
         private readonly MethodSymbol _currentFrame;
+        private readonly MethodSymbol _currentSourceMethod;
         private readonly ImmutableArray<LocalSymbol> _locals;
         private readonly ImmutableDictionary<string, DisplayClassVariable> _displayClassVariables;
         private readonly ImmutableArray<string> _sourceMethodParametersInOrder;
@@ -47,11 +48,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal CompilationContext(
             CSharpCompilation compilation,
             MethodSymbol currentFrame,
+            MethodSymbol currentSourceMethod,
             ImmutableArray<LocalSymbol> locals,
             ImmutableSortedSet<int> inScopeHoistedLocalSlots,
             MethodDebugInfo<TypeSymbol, LocalSymbol> methodDebugInfo)
         {
             _currentFrame = currentFrame;
+            _currentSourceMethod = currentSourceMethod;
             _methodNotType = !locals.IsDefault;
 
             // NOTE: Since this is done within CompilationContext, it will not be cached.
@@ -77,6 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 ImmutableArray<string> displayClassVariableNamesInOrder;
                 GetDisplayClassVariables(
                     currentFrame,
+                    currentSourceMethod,
                     _locals,
                     inScopeHoistedLocalSlots,
                     out displayClassVariableNamesInOrder,
@@ -374,7 +378,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         parameterIndex++;
                     }
 
-                    if (_sourceMethodParametersInOrder.Any())
+                    // iterator or async state machine
+                    if (!itemsAdded.Any())
                     {
                         var localsDictionary = new Dictionary<string, (LocalSymbol, int)>();
                         int localIndex = 0;
@@ -384,8 +389,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             localIndex++;
                         }
                         
-                        foreach (var argumentName in _sourceMethodParametersInOrder)
+                        foreach (var parameter in _currentSourceMethod.Parameters)
                         {
+                            var argumentName = parameter.Name;
                             Debug.Assert(!itemsAdded.Contains(argumentName));
                             (LocalSymbol local, int localIndex) localSymbolAndIndex;
                             if (localsDictionary.TryGetValue(argumentName, out localSymbolAndIndex))
@@ -1207,6 +1213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// </summary>
         private static void GetDisplayClassVariables(
             MethodSymbol method,
+            MethodSymbol sourceMethod,
             ImmutableArray<LocalSymbol> locals,
             ImmutableSortedSet<int> inScopeHoistedLocalSlots,
             out ImmutableArray<string> displayClassVariableNamesInOrder,

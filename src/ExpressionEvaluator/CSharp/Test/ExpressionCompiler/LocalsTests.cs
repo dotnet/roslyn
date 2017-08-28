@@ -3827,7 +3827,7 @@ class C
     {
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 EvaluationContext context;
