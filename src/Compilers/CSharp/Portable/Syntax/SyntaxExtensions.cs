@@ -47,12 +47,107 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IndexerDeclaration:
                     arrowExpr = ((IndexerDeclarationSyntax)node).ExpressionBody;
                     break;
+                case SyntaxKind.LocalFunctionStatement:
+                    arrowExpr = ((LocalFunctionStatementSyntax)node).ExpressionBody;
+                    break;
                 default:
                     // Don't throw, just use for the assert in case this is used in the semantic model
                     ExceptionUtilities.UnexpectedValue(node.Kind());
                     break;
             }
             return arrowExpr;
+        }
+
+        /// <summary>
+        /// Gets the body syntax from a bodied member. The
+        /// given syntax must be for a member which could contain a body.
+        /// </summary>
+        internal static BlockSyntax GetBodySyntax(this CSharpSyntaxNode node)
+        {
+            BlockSyntax body = null;
+            switch (node.Kind())
+            {
+                case SyntaxKind.Block:
+                    body = (BlockSyntax)node;
+                    break;
+                case SyntaxKind.MethodDeclaration:
+                case SyntaxKind.OperatorDeclaration:
+                case SyntaxKind.ConversionOperatorDeclaration:
+                case SyntaxKind.ConstructorDeclaration:
+                case SyntaxKind.DestructorDeclaration:
+                    body = ((BaseMethodDeclarationSyntax)node).Body;
+                    break;
+                case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.AddAccessorDeclaration:
+                case SyntaxKind.RemoveAccessorDeclaration:
+                case SyntaxKind.UnknownAccessorDeclaration:
+                    body = ((AccessorDeclarationSyntax)node).Body;
+                    break;
+                case SyntaxKind.LocalFunctionStatement:
+                    body = ((LocalFunctionStatementSyntax)node).Body;
+                    break;
+                default:
+                    // Don't throw, just use for the assert in case this is used in the semantic model
+                    ExceptionUtilities.UnexpectedValue(node.Kind());
+                    break;
+            }
+            return body;
+        }
+
+        /// <summary>
+        /// Gets the code block syntax from a bodied member. The
+        /// given syntax must be for a member which could contain a code block.
+        /// </summary>
+        internal static CSharpSyntaxNode GetCodeBlockSyntax(this CSharpSyntaxNode node)
+        {
+            CSharpSyntaxNode codeBlock = null;
+            switch (node.Kind())
+            {
+                // The ArrowExpressionClause is the declaring syntax for the
+                // 'get' SourcePropertyAccessorSymbol of properties and indexers.
+                case SyntaxKind.ArrowExpressionClause:
+                    codeBlock = node;
+                    break;
+                case SyntaxKind.Block:
+                    codeBlock = node;
+                    break;
+                case SyntaxKind.MethodDeclaration:
+                case SyntaxKind.OperatorDeclaration:
+                case SyntaxKind.ConversionOperatorDeclaration:
+                case SyntaxKind.ConstructorDeclaration:
+                case SyntaxKind.DestructorDeclaration:
+                    var methodDeclaration = (BaseMethodDeclarationSyntax)node;
+                    codeBlock = methodDeclaration.ExpressionBody ?? (CSharpSyntaxNode)methodDeclaration.Body;
+                    break;
+                case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.AddAccessorDeclaration:
+                case SyntaxKind.RemoveAccessorDeclaration:
+                case SyntaxKind.UnknownAccessorDeclaration:
+                    var accessorDeclaration = (BaseMethodDeclarationSyntax)node;
+                    codeBlock = accessorDeclaration.ExpressionBody ?? (CSharpSyntaxNode)accessorDeclaration.Body;
+                    break;
+                case SyntaxKind.PropertyDeclaration:
+                    codeBlock = ((PropertyDeclarationSyntax)node).ExpressionBody;
+                    break;
+                case SyntaxKind.IndexerDeclaration:
+                    codeBlock = ((IndexerDeclarationSyntax)node).ExpressionBody;
+                    break;
+                case SyntaxKind.SimpleLambdaExpression:
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                    codeBlock = ((AnonymousFunctionExpressionSyntax)node).Body;
+                    break;
+                case SyntaxKind.LocalFunctionStatement:
+                    var localFunctionStatement = (LocalFunctionStatementSyntax)node;
+                    codeBlock = localFunctionStatement.ExpressionBody ?? (CSharpSyntaxNode)localFunctionStatement.Body;
+                    break;
+                default:
+                    // Don't throw, just use for the assert in case this is used in the semantic model
+                    ExceptionUtilities.UnexpectedValue(node.Kind());
+                    break;
+            }
+            return codeBlock;
         }
 
         /// <summary>

@@ -132,11 +132,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                  TypeOf (node) Is OrderingSyntax)
         End Function
 
-        Protected Overrides Function GetOperationCore(method As IMethodSymbol, body As SyntaxNode, cancellationToken As CancellationToken) As IOperation
-            Dim vbbody = DirectCast(body, VisualBasicSyntaxNode)
+        Protected Overrides Function GetOperationCore(method As IMethodSymbol, cancellationToken As CancellationToken) As IOperation
             Dim vbmethod = DirectCast(method, MethodSymbol)
-            CheckSyntaxNode(vbbody)
             CheckSymbol(vbmethod)
+            Dim vbbody = vbmethod.GetBodySyntax()
+            CheckSyntaxNode(vbbody)
             Return GetOperationWorker(vbmethod, vbbody, cancellationToken)
         End Function
 

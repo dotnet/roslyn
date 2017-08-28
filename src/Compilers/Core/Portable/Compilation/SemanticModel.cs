@@ -67,24 +67,23 @@ namespace Microsoft.CodeAnalysis
         /// Gets the low-level operation corresponding to the method's body.
         /// </summary>
         /// <param name="method">The method symbol.</param>
-        /// <param name="body">The method body syntax node</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
         /// <returns></returns>
-        public IOperation GetOperation(IMethodSymbol method, SyntaxNode body, CancellationToken cancellationToken = default)
+        public IOperation GetOperation(IMethodSymbol method, CancellationToken cancellationToken = default)
         {
             if (!this.Compilation.IsIOperationFeatureEnabled())
             {
                 throw new InvalidOperationException(CodeAnalysisResources.IOperationFeatureDisabled);
             }
 
-            return GetOperationInternal(method, body, cancellationToken);
+            return GetOperationInternal(method, cancellationToken);
         }
 
-        internal IOperation GetOperationInternal(IMethodSymbol method, SyntaxNode body, CancellationToken cancellationToken = default)
+        internal IOperation GetOperationInternal(IMethodSymbol method, CancellationToken cancellationToken = default)
         {
             try
             {
-                return GetOperationCore(method, body, cancellationToken);
+                return GetOperationCore(method, cancellationToken);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
@@ -95,7 +94,7 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
-        protected abstract IOperation GetOperationCore(IMethodSymbol method, SyntaxNode body, CancellationToken cancellationToken);
+        protected abstract IOperation GetOperationCore(IMethodSymbol method, CancellationToken cancellationToken);
 
         /// <summary>
         /// Gets the operation corresponding to the expression or statement syntax node.

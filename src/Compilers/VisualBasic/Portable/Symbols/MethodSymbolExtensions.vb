@@ -97,5 +97,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return If(method.IsGenericMethod(), method.Construct(typeArguments), method)
         End Function
 
+        <Extension()>
+        Friend Function GetBodySyntax(method As MethodSymbol) As VisualBasicSyntaxNode
+            Dim syntaxReference = method.DeclaringSyntaxReferences.FirstOrDefault()
+            Dim node = syntaxReference.GetVisualBasicSyntax()
+            node = node.GetCodeBlockSyntax()
+            Return node
+        End Function
     End Module
 End Namespace

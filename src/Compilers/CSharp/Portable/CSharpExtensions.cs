@@ -128,6 +128,11 @@ namespace Microsoft.CodeAnalysis
             int index = list.IndexOf(kind);
             return (index >= 0) ? list[index] : default(SyntaxToken);
         }
+
+        internal static CSharpSyntaxNode GetCSharpSyntax(this SyntaxReference syntaxReference, CancellationToken cancellationToken = default)
+        {
+            return (CSharpSyntaxNode)syntaxReference.GetSyntax(cancellationToken);
+        }
     }
 }
 

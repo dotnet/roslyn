@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -315,6 +316,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return (CSharpSyntaxNode)CSharpSyntaxTree.Dummy.GetRoot();
+        }
+
+        internal static CSharpSyntaxNode GetBodySyntax(this MethodSymbol method)
+        {
+            var syntaxReference = method.DeclaringSyntaxReferences.FirstOrDefault();
+            var node = syntaxReference.GetCSharpSyntax();
+            node = node.GetCodeBlockSyntax();
+            return node;
         }
     }
 }

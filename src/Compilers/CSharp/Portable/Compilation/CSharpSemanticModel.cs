@@ -465,13 +465,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion Helpers for speculative binding
 
-        protected override IOperation GetOperationCore(IMethodSymbol method, SyntaxNode body, CancellationToken cancellationToken)
+        protected override IOperation GetOperationCore(IMethodSymbol method, CancellationToken cancellationToken)
         {
-            var csbody = (CSharpSyntaxNode)body;
             var csmethod = (MethodSymbol)method;
-            CheckSyntaxNode(csbody);
             CheckSymbol(csmethod);
-            return this.GetOperationWorker(csmethod, csbody, cancellationToken);
+            var csbody = csmethod.GetBodySyntax();
+            CheckSyntaxNode(csbody);
+            return GetOperationWorker(csmethod, csbody, cancellationToken);
         }
 
         internal virtual IOperation GetOperationWorker(MethodSymbol method, CSharpSyntaxNode body, CancellationToken cancellationToken)
@@ -490,7 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var csnode = (CSharpSyntaxNode)node;
             CheckSyntaxNode(csnode);
-            return this.GetOperationWorker(csnode, GetOperationOptions.Lowest, cancellationToken);
+            return GetOperationWorker(csnode, GetOperationOptions.Lowest, cancellationToken);
         }
 
         internal virtual IOperation GetOperationWorker(CSharpSyntaxNode node, GetOperationOptions options, CancellationToken cancellationToken)

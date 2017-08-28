@@ -123,5 +123,58 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim nameToken As SyntaxToken = expr.ExtractAnonymousTypeMemberName(ignore)
             Return If(nameToken.Kind() = SyntaxKind.IdentifierToken, nameToken.ValueText, Nothing)
         End Function
+
+        ''' <summary>
+        ''' Gets the code block syntax from a bodied member. The
+        ''' given syntax must be for a member which could contain a code block.
+        ''' </summary>
+        <Extension>
+        Friend Function GetCodeBlockSyntax(node As VisualBasicSyntaxNode) As VisualBasicSyntaxNode
+            Dim codeBlock As VisualBasicSyntaxNode = Nothing
+            Select Case node.Kind()
+                ' The ArrowExpressionClause is the declaring syntax for the
+                ' 'get' SourcePropertyAccessorSymbol of properties and indexers.
+                Case SyntaxKind.AddHandlerAccessorBlock,
+                    SyntaxKind.CaseBlock,
+                    SyntaxKind.CaseElseBlock,
+                    SyntaxKind.CatchBlock,
+                    SyntaxKind.ConstructorBlock,
+                    SyntaxKind.DoLoopUntilBlock,
+                    SyntaxKind.DoLoopWhileBlock,
+                    SyntaxKind.DoUntilLoopBlock,
+                    SyntaxKind.DoWhileLoopBlock,
+                    SyntaxKind.ElseBlock,
+                    SyntaxKind.ElseIfBlock,
+                    SyntaxKind.FinallyBlock,
+                    SyntaxKind.ForBlock,
+                    SyntaxKind.ForEachBlock,
+                    SyntaxKind.FunctionBlock,
+                    SyntaxKind.GetAccessorBlock,
+                    SyntaxKind.MultiLineIfBlock,
+                    SyntaxKind.OperatorBlock,
+                    SyntaxKind.RaiseEventAccessorBlock,
+                    SyntaxKind.RemoveHandlerAccessorBlock,
+                    SyntaxKind.SelectBlock,
+                    SyntaxKind.SetAccessorBlock,
+                    SyntaxKind.SimpleDoLoopBlock,
+                    SyntaxKind.SubBlock,
+                    SyntaxKind.SyncLockBlock,
+                    SyntaxKind.TryBlock,
+                    SyntaxKind.UsingBlock,
+                    SyntaxKind.WhileBlock,
+                    SyntaxKind.WithBlock
+                    codeBlock = node
+                Case SyntaxKind.SubStatement,
+                    SyntaxKind.FunctionStatement,
+                    SyntaxKind.GetAccessorStatement,
+                    SyntaxKind.SetAccessorStatement
+                    codeBlock = node.Parent
+                Case Else
+                    ' Don't throw, just use for the assert in case this is used in the semantic model
+                    ExceptionUtilities.UnexpectedValue(node.Kind())
+            End Select
+
+            Return codeBlock
+        End Function
     End Module
 End Namespace
