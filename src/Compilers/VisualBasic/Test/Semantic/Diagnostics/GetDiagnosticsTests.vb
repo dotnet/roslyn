@@ -425,8 +425,9 @@ BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
                         Dim symbol = symbolDeclaredEvent.Symbol
                         Dim added = declaredSymbolNames.Add(symbol.Name)
                         If Not added Then
-                            Dim isPartialMethod = DirectCast(symbol, Symbols.SourceMethodSymbol).PartialDefinitionPart IsNot Nothing OrElse
-                                                  DirectCast(symbol, Symbols.SourceMethodSymbol).PartialImplementationPart IsNot Nothing
+                            Dim method = DirectCast(symbol, Symbols.MethodSymbol)
+                            Dim isPartialMethod = method.PartialDefinitionPart IsNot Nothing OrElse
+                                                  method.PartialImplementationPart IsNot Nothing
                             Assert.True(isPartialMethod, "Unexpected multiple symbol declared events for same symbol " + symbol.Name)
                         End If
                     Else
