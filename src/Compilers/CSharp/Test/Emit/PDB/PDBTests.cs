@@ -7391,7 +7391,7 @@ partial class C
         </encLocalSlotMap>
         <encLambdaMap>
           <methodOrdinal>0</methodOrdinal>
-          <lambda offset=""99"" />
+          <lambda offset=""115"" />
           <lambda offset=""202"" />
         </encLambdaMap>
       </customDebugInfo>

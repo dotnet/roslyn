@@ -661,8 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
                     if (item.IsNode)
                     {
-                        var node = item.AsNode() as ArgumentSyntax;
-                        if (node != null && node.NameColon != null)
+                        if (item.AsNode() is ArgumentSyntax node && node.NameColon != null)
                         {
                             return true;
                         }

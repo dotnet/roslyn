@@ -83,7 +83,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitSingleValueCaseClause(ISingleValueCaseClause operation)
         {
             var caseKind = operation.CaseKind;
-            var equality = operation.Equality;
 
             base.VisitSingleValueCaseClause(operation);
         }
@@ -324,7 +323,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var usesOperatorMethod = operation.UsesOperatorMethod;
             var operatorMethod = operation.OperatorMethod;
-            var unaryOperationKind = operation.UnaryOperationKind;
+            var unaryOperationKind = operation.OperatorKind;
+            var isLifted = operation.IsLifted;
+            var isChecked = operation.IsChecked;
 
             base.VisitUnaryOperatorExpression(operation);
         }
@@ -333,7 +334,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var usesOperatorMethod = operation.UsesOperatorMethod;
             var operatorMethod = operation.OperatorMethod;
-            var binaryOperationKind = operation.BinaryOperationKind;
+            var binaryOperationKind = operation.OperatorKind;
+            var isLifted = operation.IsLifted;
+            var isChecked = operation.IsChecked;
+            var isCompareText = operation.IsCompareText;
 
             base.VisitBinaryOperatorExpression(operation);
         }
@@ -516,7 +520,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var usesOperatorMethod = operation.UsesOperatorMethod;
             var operatorMethod = operation.OperatorMethod;
-            var binaryOperationKind = operation.BinaryOperationKind;
+            var binaryOperationKind = operation.OperatorKind;
 
             base.VisitCompoundAssignmentExpression(operation);
         }
@@ -525,7 +529,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var usesOperatorMethod = operation.UsesOperatorMethod;
             var operatorMethod = operation.OperatorMethod;
-            var incrementOperationKind = operation.IncrementOperationKind;
+            var isDecrement = operation.IsDecrement;
+            var isPostFix = operation.IsPostfix;
 
             base.VisitIncrementExpression(operation);
         }

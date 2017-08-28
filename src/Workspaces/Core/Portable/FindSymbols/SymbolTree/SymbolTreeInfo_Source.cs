@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Project project, Checksum checksum, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var assembly = compilation.Assembly;
+            var assembly = compilation?.Assembly;
             if (assembly == null)
             {
                 return CreateEmpty(checksum);
@@ -185,8 +185,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static void AddSymbol(ISymbol symbol, MultiDictionary<string, ISymbol> symbolMap, Func<ISymbol, bool> useSymbol)
         {
-            var nt = symbol as INamespaceOrTypeSymbol;
-            if (nt != null)
+            if (symbol is INamespaceOrTypeSymbol nt)
             {
                 foreach (var member in nt.GetMembers())
                 {

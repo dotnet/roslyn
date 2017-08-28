@@ -102,12 +102,12 @@ End Class
 
     ]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
+Dim expectedOperationTree = <![CDATA[
 IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each y  ... Next')
   Collection: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'x')
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each y  ... Next')
       IIfStatement (OperationKind.IfStatement) (Syntax: 'If y = "B"c ... End If')
-        Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'y = "B"c')
+        Condition: IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'y = "B"c')
             Left: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Char) (Syntax: 'y')
             Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Char, Constant: B) (Syntax: '"B"c')
         IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If y = "B"c ... End If')
@@ -145,7 +145,7 @@ End Class
 
     ]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
+Dim expectedOperationTree = <![CDATA[
 IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each x  ... Next y, x')
   Collection: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'S')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -155,7 +155,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
         Collection: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'x')
         Body: IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'For Each y  ... Next y, x')
             IIfStatement (OperationKind.IfStatement) (Syntax: 'If y = "B"c ... End If')
-              Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'y = "B"c')
+              Condition: IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'y = "B"c')
                   Left: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Char) (Syntax: 'y')
                   Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Char, Constant: B) (Syntax: '"B"c')
               IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If y = "B"c ... End If')
@@ -433,8 +433,8 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             Instance Receiver: null
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: message) (OperationKind.Argument) (Syntax: 'country.Cou ... untry.Count')
-                  IBinaryOperatorExpression (BinaryOperationKind.StringConcatenate) (OperationKind.BinaryOperatorExpression, Type: System.String) (Syntax: 'country.Cou ... untry.Count')
-                    Left: IBinaryOperatorExpression (BinaryOperationKind.StringConcatenate) (OperationKind.BinaryOperatorExpression, Type: System.String) (Syntax: 'country.Cou ... & " count="')
+                  IBinaryOperatorExpression (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperatorExpression, Type: System.String) (Syntax: 'country.Cou ... untry.Count')
+                    Left: IBinaryOperatorExpression (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperatorExpression, Type: System.String) (Syntax: 'country.Cou ... & " count="')
                         Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key CountryName As System.String, Key CustomersInCountry As System.Collections.Generic.IEnumerable(Of Customer), Key Count As System.Int32>.CountryName As System.String (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'country.CountryName')
                             Instance Receiver: ILocalReferenceExpression: country (OperationKind.LocalReferenceExpression, Type: <anonymous type: Key CountryName As System.String, Key CustomersInCountry As System.Collections.Generic.IEnumerable(Of Customer), Key Count As System.Int32>) (Syntax: 'country')
                         Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " count=") (Syntax: '" count="')
@@ -453,9 +453,9 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
                   Instance Receiver: null
                   Arguments(1):
                       IArgument (ArgumentKind.Explicit, Matching Parameter: message) (OperationKind.Argument) (Syntax: '"   " & cus ... stomer.City')
-                        IBinaryOperatorExpression (BinaryOperationKind.StringConcatenate) (OperationKind.BinaryOperatorExpression, Type: System.String) (Syntax: '"   " & cus ... stomer.City')
-                          Left: IBinaryOperatorExpression (BinaryOperationKind.StringConcatenate) (OperationKind.BinaryOperatorExpression, Type: System.String) (Syntax: '"   " & cus ... Name & "  "')
-                              Left: IBinaryOperatorExpression (BinaryOperationKind.StringConcatenate) (OperationKind.BinaryOperatorExpression, Type: System.String) (Syntax: '"   " & cus ... CompanyName')
+                        IBinaryOperatorExpression (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperatorExpression, Type: System.String) (Syntax: '"   " & cus ... stomer.City')
+                          Left: IBinaryOperatorExpression (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperatorExpression, Type: System.String) (Syntax: '"   " & cus ... Name & "  "')
+                              Left: IBinaryOperatorExpression (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperatorExpression, Type: System.String) (Syntax: '"   " & cus ... CompanyName')
                                   Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "   ") (Syntax: '"   "')
                                   Right: IPropertyReferenceExpression: Property Customer.CompanyName As System.String (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'customer.CompanyName')
                                       Instance Receiver: ILocalReferenceExpression: customer (OperationKind.LocalReferenceExpression, Type: Customer) (Syntax: 'customer')
@@ -739,7 +739,7 @@ Class C
 End Class
     ]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
+Dim expectedOperationTree = <![CDATA[
 IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each s  ... Next')
   Collection: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'arr')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -747,7 +747,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
   Body: IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'For Each s  ... Next')
       IIfStatement (OperationKind.IfStatement) (Syntax: 'If (s = "on ... End If')
         Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean) (Syntax: '(s = "one")')
-            Operand: IBinaryOperatorExpression (BinaryOperationKind.StringEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's = "one"')
+            Operand: IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's = "one"')
                 Left: ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 's')
                 Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "one") (Syntax: '"one"')
         IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If (s = "on ... End If')
@@ -791,7 +791,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
       Operand: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: System.Object()) (Syntax: 'c')
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each o  ... Next')
       IIfStatement (OperationKind.IfStatement) (Syntax: 'If o IsNot  ... Return True')
-        Condition: IBinaryOperatorExpression (BinaryOperationKind.ObjectNotEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'o IsNot Nothing')
+        Condition: IBinaryOperatorExpression (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'o IsNot Nothing')
             Left: ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
             Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null) (Syntax: 'Nothing')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)

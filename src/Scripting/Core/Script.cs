@@ -271,8 +271,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 // add new references:
                 foreach (var reference in Options.MetadataReferences)
                 {
-                    var unresolved = reference as UnresolvedMetadataReference;
-                    if (unresolved != null)
+                    if (reference is UnresolvedMetadataReference unresolved)
                     {
                         var resolved = resolver.ResolveReference(unresolved.Reference, null, unresolved.Properties);
                         if (resolved.IsDefault)

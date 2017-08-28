@@ -332,7 +332,7 @@ class Program
 
         string y = x ?? string.Empty;
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(17028, "https://github.com/dotnet/roslyn/issues/17028")]
