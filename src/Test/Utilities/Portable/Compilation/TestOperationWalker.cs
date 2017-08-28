@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitLocalFunctionStatement(ILocalFunctionStatement operation)
         {
-            var localFunction = operation.LocalFunctionSymbol;
+            var localFunction = operation.Symbol;
 
             base.VisitLocalFunctionStatement(operation);
         }
