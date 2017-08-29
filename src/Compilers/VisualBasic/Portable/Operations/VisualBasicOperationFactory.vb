@@ -524,7 +524,6 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim operand As Lazy(Of IOperation)
             Dim methodSymbol As MethodSymbol
 
-            ' TODO: Use Gen's GetConversion after https://github.com/dotnet/roslyn/pull/21445 is merged.
             If (boundConversion.ConversionKind And VisualBasic.ConversionKind.UserDefined) = VisualBasic.ConversionKind.UserDefined Then
                 Dim userDefinedConversion As BoundUserDefinedConversion = DirectCast(boundConversion.Operand, BoundUserDefinedConversion)
                 methodSymbol = userDefinedConversion.Call.Method
