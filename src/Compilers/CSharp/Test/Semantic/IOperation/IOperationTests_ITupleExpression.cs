@@ -157,10 +157,10 @@ ITupleExpression (OperationKind.TupleExpression, Type: (System.Int64 a, System.I
   Elements(2):
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64) (Syntax: 'a')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: ILocalReferenceExpression: a (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
+        Operand: ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64) (Syntax: 'b')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: ILocalReferenceExpression: b (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'b')
+        Operand: ILocalReferenceExpression: b (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'b')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -195,10 +195,10 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             Elements(2):
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64) (Syntax: 'a')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Operand: ILocalReferenceExpression: a (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
+                  Operand: ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64) (Syntax: 'b')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Operand: ILocalReferenceExpression: b (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'b')
+                  Operand: ILocalReferenceExpression: b (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'b')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

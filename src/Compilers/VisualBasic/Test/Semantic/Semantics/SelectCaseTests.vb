@@ -600,7 +600,7 @@ ISwitchStatement (2 cases) (OperationKind.SwitchStatement) (Syntax: 'Select Case
                               ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'Function() 5')
                                 LabeledStatement: null
                               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Function() 5')
-                                ReturnedValue: ILocalReferenceExpression:  (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'Function() 5')
+                                ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'Function() 5')
           Body:
               IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Case Functi ... e("Failed")')
                 IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... e("Failed")')

@@ -26,7 +26,7 @@ class X
 ";
             string expectedOperationTree = @"
 IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (Syntax: 'x is var y')
-  Expression: ILocalReferenceExpression: x (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32?) (Syntax: 'x')
+  Expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32?) (Syntax: 'x')
   Pattern: IDeclarationPattern (Declared Symbol: System.Int32? y) (OperationKind.DeclarationPattern) (Syntax: 'var y')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -51,7 +51,7 @@ class X
 ";
             string expectedOperationTree = @"
 IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (Syntax: 'x is int y')
-  Expression: ILocalReferenceExpression: x (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32?) (Syntax: 'x')
+  Expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32?) (Syntax: 'x')
   Pattern: IDeclarationPattern (Declared Symbol: System.Int32 y) (OperationKind.DeclarationPattern) (Syntax: 'int y')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -152,7 +152,7 @@ class X
 ";
             string expectedOperationTree = @"
 IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (Syntax: 'x is 12')
-  Expression: ILocalReferenceExpression: x (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32?) (Syntax: 'x')
+  Expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32?) (Syntax: 'x')
   Pattern: IConstantPattern (OperationKind.ConstantPattern) (Syntax: '12')
       Value: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12) (Syntax: '12')
 ";
@@ -178,7 +178,7 @@ class X
 ";
             string expectedOperationTree = @"
 IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (Syntax: 'x is (int)12.0')
-  Expression: ILocalReferenceExpression: x (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32?) (Syntax: 'x')
+  Expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32?) (Syntax: 'x')
   Pattern: IConstantPattern (OperationKind.ConstantPattern) (Syntax: '(int)12.0')
       Value: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 12) (Syntax: '(int)12.0')
           Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -206,7 +206,7 @@ class X
 ";
             string expectedOperationTree = @"
 IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x is 12.0')
-  Expression: ILocalReferenceExpression: x (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32?) (Syntax: 'x')
+  Expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32?) (Syntax: 'x')
   Pattern: IConstantPattern (OperationKind.ConstantPattern, IsInvalid) (Syntax: '12.0')
       Value: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 12, IsInvalid) (Syntax: '12.0')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -238,7 +238,7 @@ class X
 ";
             string expectedOperationTree = @"
 IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x is null')
-  Expression: ILocalReferenceExpression: x (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+  Expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
   Pattern: IConstantPattern (OperationKind.ConstantPattern, IsInvalid) (Syntax: 'null')
       Value: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'null')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -270,7 +270,7 @@ class X
 ";
             string expectedOperationTree = @"
 IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x is UndefinedType y')
-  Expression: ILocalReferenceExpression: x (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32?) (Syntax: 'x')
+  Expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32?) (Syntax: 'x')
   Pattern: IDeclarationPattern (Declared Symbol: UndefinedType y) (OperationKind.DeclarationPattern, IsInvalid) (Syntax: 'UndefinedType y')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -299,9 +299,9 @@ class X
 ";
             string expectedOperationTree = @"
 IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x is y')
-  Expression: ILocalReferenceExpression: x (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32?) (Syntax: 'x')
+  Expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32?) (Syntax: 'x')
   Pattern: IConstantPattern (OperationKind.ConstantPattern, IsInvalid) (Syntax: 'y')
-      Value: ILocalReferenceExpression: y (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32?, IsInvalid) (Syntax: 'y')
+      Value: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32?, IsInvalid) (Syntax: 'y')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0150: A constant value is expected
@@ -329,7 +329,7 @@ class X
 ";
             string expectedOperationTree = @"
 IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x is X y')
-  Expression: ILocalReferenceExpression: x (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32?) (Syntax: 'x')
+  Expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32?) (Syntax: 'x')
   Pattern: IDeclarationPattern (Declared Symbol: X y) (OperationKind.DeclarationPattern, IsInvalid) (Syntax: 'X y')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -358,7 +358,7 @@ class X
 ";
             string expectedOperationTree = @"
 IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x is int y')
-  Expression: ILocalReferenceExpression: x (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32?) (Syntax: 'x')
+  Expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32?) (Syntax: 'x')
   Pattern: IDeclarationPattern (Declared Symbol: System.Int32 y) (OperationKind.DeclarationPattern, IsInvalid) (Syntax: 'int y')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -387,7 +387,7 @@ class X
 ";
             string expectedOperationTree = @"
 IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (Syntax: 'x is int y2')
-  Expression: ILocalReferenceExpression: x (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32?) (Syntax: 'x')
+  Expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32?) (Syntax: 'x')
   Pattern: IDeclarationPattern (Declared Symbol: System.Int32 y2) (OperationKind.DeclarationPattern) (Syntax: 'int y2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -434,7 +434,7 @@ class X
 ";
             string expectedOperationTree = @"
 IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x is /*</bind>*/')
-  Expression: ILocalReferenceExpression: x (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+  Expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
   Pattern: IConstantPattern (OperationKind.ConstantPattern, IsInvalid) (Syntax: '')
       Value: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '')
           Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -486,7 +486,7 @@ class X
 ";
             string expectedOperationTree = @"
 IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, IsInvalid) (Syntax: 'string.Empty is string y')
-  Expression: IFieldReferenceExpression: System.String System.String.Empty (IsDeclaration: False) (Static) (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'string.Empty')
+  Expression: IFieldReferenceExpression: System.String System.String.Empty (Static) (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'string.Empty')
       Instance Receiver: null
   Pattern: IDeclarationPattern (Declared Symbol: System.String y) (OperationKind.DeclarationPattern, IsInvalid) (Syntax: 'string y')
 ";
@@ -512,7 +512,7 @@ class C
 ";
             string expectedOperationTree = @"
 IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, IsInvalid) (Syntax: 'o is int x')
-  Expression: IFieldReferenceExpression: System.Object C.o (IsDeclaration: False) (Static) (OperationKind.FieldReferenceExpression, Type: System.Object) (Syntax: 'o')
+  Expression: IFieldReferenceExpression: System.Object C.o (Static) (OperationKind.FieldReferenceExpression, Type: System.Object) (Syntax: 'o')
       Instance Receiver: null
   Pattern: IDeclarationPattern (Declared Symbol: System.Int32 x) (OperationKind.DeclarationPattern, IsInvalid) (Syntax: 'int x')
 ";
@@ -576,7 +576,7 @@ class C
 ";
             string expectedOperationTree = @"
 IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, IsInvalid) (Syntax: 'o is int x')
-  Expression: IFieldReferenceExpression: System.Object C.o (IsDeclaration: False) (Static) (OperationKind.FieldReferenceExpression, Type: System.Object, Constant: 1, IsInvalid) (Syntax: 'o')
+  Expression: IFieldReferenceExpression: System.Object C.o (Static) (OperationKind.FieldReferenceExpression, Type: System.Object, Constant: 1, IsInvalid) (Syntax: 'o')
       Instance Receiver: null
   Pattern: IDeclarationPattern (Declared Symbol: System.Int32 x) (OperationKind.DeclarationPattern, IsInvalid) (Syntax: 'int x')
 ";

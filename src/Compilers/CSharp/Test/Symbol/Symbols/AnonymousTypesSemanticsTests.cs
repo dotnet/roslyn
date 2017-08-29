@@ -181,9 +181,9 @@ IBlockStatement (4 statements, 4 locals) (OperationKind.BlockStatement) (Syntax:
                               Instance Receiver: IObjectCreationExpression (Constructor: ClassA..ctor()) (OperationKind.ObjectCreationExpression, Type: ClassA) (Syntax: 'new ClassA()')
                                   Arguments(0)
                                   Initializer: null
-                            IFieldReferenceExpression: System.String ClassA.BB (IsDeclaration: False) (Static) (OperationKind.FieldReferenceExpression, Type: System.String, Constant: ""-=-= -"") (Syntax: 'ClassA.BB')
+                            IFieldReferenceExpression: System.String ClassA.BB (Static) (OperationKind.FieldReferenceExpression, Type: System.String, Constant: ""-=-= -"") (Syntax: 'ClassA.BB')
                               Instance Receiver: null
-                            IFieldReferenceExpression: ClassA.SSS ClassA.CCC (IsDeclaration: False) (Static) (OperationKind.FieldReferenceExpression, Type: ClassA.SSS) (Syntax: 'ClassA.CCC')
+                            IFieldReferenceExpression: ClassA.SSS ClassA.CCC (Static) (OperationKind.FieldReferenceExpression, Type: ClassA.SSS) (Syntax: 'ClassA.CCC')
                               Instance Receiver: null
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'object v3 = new { };')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'object v3 = new { };')
@@ -298,7 +298,7 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
                   Instance Receiver: IObjectCreationExpression (Constructor: ClassA..ctor()) (OperationKind.ObjectCreationExpression, Type: ClassA) (Syntax: 'new ClassA()')
                       Arguments(0)
                       Initializer: null
-                IFieldReferenceExpression: System.String ClassA.global (IsDeclaration: False) (Static) (OperationKind.FieldReferenceExpression, Type: System.String, Constant: "" -=-= -"") (Syntax: 'global')
+                IFieldReferenceExpression: System.String ClassA.global (Static) (OperationKind.FieldReferenceExpression, Type: System.String, Constant: "" -=-= -"") (Syntax: 'global')
                   Instance Receiver: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -408,7 +408,7 @@ class ClassA : ClassB
             string expectedOperationTree = @"
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: System.Func<System.Int32, System.Int32> F>) (Syntax: 'new { base.F }')
   Initializers(1):
-      IFieldReferenceExpression: System.Func<System.Int32, System.Int32> ClassB.F (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.Func<System.Int32, System.Int32>) (Syntax: 'base.F')
+      IFieldReferenceExpression: System.Func<System.Int32, System.Int32> ClassB.F (OperationKind.FieldReferenceExpression, Type: System.Func<System.Int32, System.Int32>) (Syntax: 'base.F')
         Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.BaseClass) (OperationKind.InstanceReferenceExpression, Type: ClassB) (Syntax: 'base')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -1389,19 +1389,19 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
             Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False) (Syntax: 'false')
             WhenTrue: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID>) (Syntax: 'new { p.Pro ... upplierID }')
                 Initializers(3):
-                    IFieldReferenceExpression: System.Int32 Product.ProductID (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'p.ProductID')
+                    IFieldReferenceExpression: System.Int32 Product.ProductID (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'p.ProductID')
                       Instance Receiver: IParameterReferenceExpression: p (OperationKind.ParameterReferenceExpression, Type: Product) (Syntax: 'p')
-                    IFieldReferenceExpression: System.String Product.ProductName (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'p.ProductName')
+                    IFieldReferenceExpression: System.String Product.ProductName (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'p.ProductName')
                       Instance Receiver: IParameterReferenceExpression: p (OperationKind.ParameterReferenceExpression, Type: Product) (Syntax: 'p')
-                    IFieldReferenceExpression: System.Int32 Product.SupplierID (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'p.SupplierID')
+                    IFieldReferenceExpression: System.Int32 Product.SupplierID (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'p.SupplierID')
                       Instance Receiver: IParameterReferenceExpression: p (OperationKind.ParameterReferenceExpression, Type: Product) (Syntax: 'p')
             WhenFalse: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID>) (Syntax: 'new { p.Pro ... upplierID }')
                 Initializers(3):
-                    IFieldReferenceExpression: System.Int32 Product.ProductID (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'p.ProductID')
+                    IFieldReferenceExpression: System.Int32 Product.ProductID (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'p.ProductID')
                       Instance Receiver: IParameterReferenceExpression: p (OperationKind.ParameterReferenceExpression, Type: Product) (Syntax: 'p')
-                    IFieldReferenceExpression: System.String Product.ProductName (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'p.ProductName')
+                    IFieldReferenceExpression: System.String Product.ProductName (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'p.ProductName')
                       Instance Receiver: IParameterReferenceExpression: p (OperationKind.ParameterReferenceExpression, Type: Product) (Syntax: 'p')
-                    IFieldReferenceExpression: System.Int32 Product.SupplierID (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'p.SupplierID')
+                    IFieldReferenceExpression: System.Int32 Product.SupplierID (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'p.SupplierID')
                       Instance Receiver: IParameterReferenceExpression: p (OperationKind.ParameterReferenceExpression, Type: Product) (Syntax: 'p')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {

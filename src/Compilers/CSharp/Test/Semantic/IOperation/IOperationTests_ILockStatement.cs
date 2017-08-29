@@ -27,7 +27,7 @@ public class C1
 ";
             string expectedOperationTree = @"
 ILockStatement (OperationKind.LockStatement) (Syntax: 'lock (o) ... }')
-  Expression: IFieldReferenceExpression: System.Object C1.o (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.Object) (Syntax: 'o')
+  Expression: IFieldReferenceExpression: System.Object C1.o (OperationKind.FieldReferenceExpression, Type: System.Object) (Syntax: 'o')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'o')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
 ";
@@ -54,7 +54,7 @@ public class C1
 ";
             string expectedOperationTree = @"
 ILockStatement (OperationKind.LockStatement) (Syntax: 'lock (o) ... }')
-  Expression: ILocalReferenceExpression: o (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
+  Expression: ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -105,7 +105,7 @@ public class C1
 ";
             string expectedOperationTree = @"
 ILockStatement (OperationKind.LockStatement, IsInvalid) (Syntax: 'lock (i) ... }')
-  Expression: ILocalReferenceExpression: i (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
+  Expression: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -196,7 +196,7 @@ public class C1
             string expectedOperationTree = @"
 ILockStatement (OperationKind.LockStatement, IsInvalid) (Syntax: 'lock (o)
 ')
-  Expression: ILocalReferenceExpression: o (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
+  Expression: ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
   Body: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '')
       Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?) (Syntax: '')
           Children(0)
@@ -232,7 +232,7 @@ public class C1
             string expectedOperationTree = @"
 ILockStatement (OperationKind.LockStatement) (Syntax: 'lock (o.ToS ... }')
   Expression: IInvocationExpression (virtual System.String System.Object.ToString()) (OperationKind.InvocationExpression, Type: System.String) (Syntax: 'o.ToString()')
-      Instance Receiver: ILocalReferenceExpression: o (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
+      Instance Receiver: ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
       Arguments(0)
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
 ";

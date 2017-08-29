@@ -107,7 +107,7 @@ IDynamicObjectCreationExpression (Name: C) (OperationKind.TypeParameterObjectCre
     Symbol: C..ctor(System.Int64 i, System.Char c)
   Arguments(2):
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
-      ILocalReferenceExpression: c (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Char) (Syntax: 'c')
+      ILocalReferenceExpression: c (OperationKind.LocalReferenceExpression, Type: System.Char) (Syntax: 'c')
   ArgumentNames(0)
   ArgumentRefKinds(0)
   Initializer: null
@@ -182,7 +182,7 @@ IDynamicObjectCreationExpression (Name: C) (OperationKind.TypeParameterObjectCre
     Symbol: C..ctor(ref System.Object i, out System.Int32 j, System.Char c)
   Arguments(3):
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
-      ILocalReferenceExpression: k (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'k')
+      ILocalReferenceExpression: k (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'k')
       IParameterReferenceExpression: e (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'e')
   ArgumentNames(0)
   ArgumentRefKinds(3):
@@ -226,7 +226,7 @@ IDynamicObjectCreationExpression (Name: C) (OperationKind.TypeParameterObjectCre
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C) (Syntax: '{ X = 0 }')
       Initializers(1):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'X = 0')
-            Left: IFieldReferenceExpression: System.Int32 C.X (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'X')
+            Left: IFieldReferenceExpression: System.Int32 C.X (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'X')
                 Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'X')
             Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
@@ -265,7 +265,7 @@ IDynamicObjectCreationExpression (Name: C) (OperationKind.TypeParameterObjectCre
     Symbol: C..ctor(ref System.Int32 i, System.Char c)
     Symbol: C..ctor(ref System.Int32 i, System.Int64 c)
   Arguments(2):
-      ILocalReferenceExpression: i (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+      ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
   ArgumentNames(2):
     ""null""
@@ -276,7 +276,7 @@ IDynamicObjectCreationExpression (Name: C) (OperationKind.TypeParameterObjectCre
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C) (Syntax: '{ X = 0 }')
       Initializers(1):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'X = 0')
-            Left: IFieldReferenceExpression: System.Int32 C.X (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'X')
+            Left: IFieldReferenceExpression: System.Int32 C.X (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'X')
                 Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'X')
             Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
@@ -314,7 +314,7 @@ IDynamicObjectCreationExpression (Name: C) (OperationKind.TypeParameterObjectCre
         IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ }')
           IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: '{ }')
             ReturnedValue: null
-      ILocalReferenceExpression: y (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'y')
+      ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'y')
   ArgumentNames(0)
   ArgumentRefKinds(0)
   Initializer: null

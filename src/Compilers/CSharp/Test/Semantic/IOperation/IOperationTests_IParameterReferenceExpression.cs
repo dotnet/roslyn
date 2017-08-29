@@ -1001,11 +1001,11 @@ ILocalFunctionStatement (Local Function: System.Collections.Generic.IEnumerable<
               Instance Receiver: IParameterReferenceExpression: predicate (OperationKind.ParameterReferenceExpression, Type: System.Func<T, System.Boolean>) (Syntax: 'predicate')
               Arguments(1):
                   IArgument (ArgumentKind.Explicit, Matching Parameter: arg) (OperationKind.Argument) (Syntax: 'element')
-                    ILocalReferenceExpression: element (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: T) (Syntax: 'element')
+                    ILocalReferenceExpression: element (OperationKind.LocalReferenceExpression, Type: T) (Syntax: 'element')
                     InConversion: null
                     OutConversion: null
           IfTrue: IReturnStatement (OperationKind.YieldReturnStatement) (Syntax: 'yield return element;')
-              ReturnedValue: ILocalReferenceExpression: element (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: T) (Syntax: 'element')
+              ReturnedValue: ILocalReferenceExpression: element (OperationKind.LocalReferenceExpression, Type: T) (Syntax: 'element')
           IfFalse: null
     IReturnStatement (OperationKind.YieldBreakStatement) (Syntax: '{ ... }')
       ReturnedValue: null

@@ -24,7 +24,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ILockStatement (OperationKind.LockStatement) (Syntax: 'SyncLock o' ... nd SyncLock')
-  Expression: IFieldReferenceExpression: C1.o As System.Object (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.Object) (Syntax: 'o')
+  Expression: IFieldReferenceExpression: C1.o As System.Object (OperationKind.FieldReferenceExpression, Type: System.Object) (Syntax: 'o')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'o')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'SyncLock o' ... nd SyncLock')
 ]]>.Value
@@ -51,7 +51,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ILockStatement (OperationKind.LockStatement) (Syntax: 'SyncLock o' ... nd SyncLock')
-  Expression: ILocalReferenceExpression: o (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
+  Expression: ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'SyncLock o' ... nd SyncLock')
 ]]>.Value
 
@@ -77,7 +77,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ILockStatement (OperationKind.LockStatement) (Syntax: 'SyncLock o' ... nd SyncLock')
-  Expression: ILocalReferenceExpression: o (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
+  Expression: ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'SyncLock o' ... nd SyncLock')
 ]]>.Value
 
@@ -103,7 +103,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ILockStatement (OperationKind.LockStatement, IsInvalid) (Syntax: 'SyncLock i' ... nd SyncLock')
-  Expression: ILocalReferenceExpression: i (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
+  Expression: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'SyncLock i' ... nd SyncLock')
 ]]>.Value
 
@@ -192,7 +192,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ILockStatement (OperationKind.LockStatement, IsInvalid) (Syntax: 'SyncLock o' ... SyncLock o"')
-  Expression: ILocalReferenceExpression: o (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'o')
+  Expression: ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'o')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'SyncLock o' ... SyncLock o"')
 ]]>.Value
 
@@ -222,7 +222,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 ILockStatement (OperationKind.LockStatement) (Syntax: 'SyncLock o. ... nd SyncLock')
   Expression: IInvocationExpression (virtual Function System.Object.ToString() As System.String) (OperationKind.InvocationExpression, Type: System.String) (Syntax: 'o.ToString()')
-      Instance Receiver: ILocalReferenceExpression: o (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
+      Instance Receiver: ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
       Arguments(0)
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'SyncLock o. ... nd SyncLock')
 ]]>.Value
@@ -315,7 +315,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ILockStatement (OperationKind.LockStatement) (Syntax: 'SyncLock o' ... nd SyncLock')
-  Expression: ILocalReferenceExpression: o (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
+  Expression: ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'SyncLock o' ... nd SyncLock')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... lo World!")')
         Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... lo World!")')

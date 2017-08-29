@@ -94,7 +94,7 @@ IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement) (Syntax:
   ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Function')
     LabeledStatement: null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
-    ReturnedValue: ILocalReferenceExpression: Method (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'End Function')
+    ReturnedValue: ILocalReferenceExpression: Method (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'End Function')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -127,7 +127,7 @@ IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax:
   ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Get')
     LabeledStatement: null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Get')
-    ReturnedValue: ILocalReferenceExpression: Prop (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Get')
+    ReturnedValue: ILocalReferenceExpression: Prop (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Get')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -314,7 +314,7 @@ IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement) (Syntax:
   ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Operator')
     LabeledStatement: null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Operator')
-    ReturnedValue: ILocalReferenceExpression:  (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Operator')
+    ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Operator')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

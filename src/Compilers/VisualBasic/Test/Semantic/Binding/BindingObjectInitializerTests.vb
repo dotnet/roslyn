@@ -40,7 +40,7 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2) (Syntax: 'With {.Fiel ... lo World!"}')
       Initializers(1):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String) (Syntax: '.Field = "Hello World!"')
-            Left: IFieldReferenceExpression: C2.Field As System.String (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'Field')
+            Left: IFieldReferenceExpression: C2.Field As System.String (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'Field')
                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C2() Wi ... lo World!"}')
             Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
 ]]>.Value
@@ -75,9 +75,9 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2) (Syntax: 'With {.Fiel ... HelloWorld}')
       Initializers(1):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String) (Syntax: '.Field = .HelloWorld')
-            Left: IFieldReferenceExpression: C2.Field As System.String (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'Field')
+            Left: IFieldReferenceExpression: C2.Field As System.String (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'Field')
                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C2() Wi ... HelloWorld}')
-            Right: IFieldReferenceExpression: C2.HelloWorld As System.String (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: '.HelloWorld')
+            Right: IFieldReferenceExpression: C2.HelloWorld As System.String (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: '.HelloWorld')
                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C2() Wi ... HelloWorld}')
 ]]>.Value
 
@@ -197,7 +197,7 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2, IsInvalid) (Syntax: 'With {.Field}')
       Initializers(1):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: '.Field')
-            Left: IFieldReferenceExpression: C2.Field As System.Int32 (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'Field')
+            Left: IFieldReferenceExpression: C2.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'Field')
                 Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C2() With {.Field}')
             Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -240,7 +240,7 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2, IsInvalid) (Syntax: 'With {.Field =}')
       Initializers(1):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: '.Field =')
-            Left: IFieldReferenceExpression: C2.Field As System.Int32 (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field')
+            Left: IFieldReferenceExpression: C2.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field')
                 Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C2() With {.Field =}')
             Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -330,11 +330,11 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2, IsInvalid) (Syntax: 'With {.Fiel ... ield = "b"}')
       Initializers(2):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String) (Syntax: '.Field = "a"')
-            Left: IFieldReferenceExpression: C2.Field As System.String (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'Field')
+            Left: IFieldReferenceExpression: C2.Field As System.String (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'Field')
                 Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C2() Wi ... ield = "b"}')
             Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "a") (Syntax: '"a"')
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, IsInvalid) (Syntax: '.Field = "b"')
-            Left: IFieldReferenceExpression: C2.Field As System.String (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'Field')
+            Left: IFieldReferenceExpression: C2.Field As System.String (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'Field')
                 Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C2() Wi ... ield = "b"}')
             Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "b") (Syntax: '"b"')
 ]]>.Value
@@ -439,7 +439,7 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C1, IsInvalid) (Syntax: 'With {.Fiel ... lo World!"}')
       Initializers(1):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, IsInvalid) (Syntax: '.Field1 = "Hello World!"')
-            Left: IFieldReferenceExpression: C1.Field1 As System.String (IsDeclaration: False) (Static) (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'Field1')
+            Left: IFieldReferenceExpression: C1.Field1 As System.String (Static) (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'Field1')
                 Instance Receiver: null
             Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
 ]]>.Value
@@ -649,7 +649,7 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.X = "Hello World!"')
             Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'X')
                 Children(1):
-                    IFieldReferenceExpression: C1.X As System.String (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'X')
+                    IFieldReferenceExpression: C1.X As System.String (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'X')
                       Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C1() Wi ... lo World!"}')
             Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: ?) (Syntax: '"Hello World!"')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -744,7 +744,7 @@ IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement, IsInvali
                         Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "goo") (Syntax: '"goo"')
   IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x = New C3( ...  Unknown()}')
     Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: C3, IsInvalid) (Syntax: 'x = New C3( ...  Unknown()}')
-        Left: ILocalReferenceExpression: x (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: C3) (Syntax: 'x')
+        Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: C3) (Syntax: 'x')
         Right: IObjectCreationExpression (Constructor: Sub C3..ctor()) (OperationKind.ObjectCreationExpression, Type: C3, IsInvalid) (Syntax: 'New C3() Wi ...  Unknown()}')
             Arguments(0)
             Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C3, IsInvalid) (Syntax: 'With {.X = Unknown()}')
@@ -853,7 +853,7 @@ IObjectCreationExpression (Constructor: Sub C1(Of T)..ctor()) (OperationKind.Obj
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C1(Of T)) (Syntax: 'With {.Field = New T}')
       Initializers(1):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: T) (Syntax: '.Field = New T')
-            Left: IFieldReferenceExpression: C1(Of T).Field As T (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: T) (Syntax: 'Field')
+            Left: IFieldReferenceExpression: C1(Of T).Field As T (OperationKind.FieldReferenceExpression, Type: T) (Syntax: 'Field')
                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C1(Of T ... ld = New T}')
             Right: ITypeParameterObjectCreationExpression (OperationKind.TypeParameterObjectCreationExpression, Type: T) (Syntax: 'New T')
 ]]>.Value
@@ -903,9 +903,9 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C1) (Syntax: 'With {.Field = .Field}')
       Initializers(1):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '.Field = .Field')
-            Left: IFieldReferenceExpression: C1.Field As System.Int32 (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field')
+            Left: IFieldReferenceExpression: C1.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field')
                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C1() Wi ... d = .Field}')
-            Right: IFieldReferenceExpression: C1.Field As System.Int32 (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: '.Field')
+            Right: IFieldReferenceExpression: C1.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: '.Field')
                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C1() Wi ... d = .Field}')
 ]]>.Value
 
@@ -945,7 +945,7 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C1, IsInvalid) (Syntax: 'With {.Field = .Field2}')
       Initializers(1):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: '.Field = .Field2')
-            Left: IFieldReferenceExpression: C1.Field As System.Int32 (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field')
+            Left: IFieldReferenceExpression: C1.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field')
                 Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C1() Wi ...  = .Field2}')
             Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '.Field2')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1002,18 +1002,18 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C1) (Syntax: 'With {.Fiel ... ield = 42}}')
       Initializers(2):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '.Field = 23')
-            Left: IFieldReferenceExpression: C1.Field As System.Int32 (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field')
+            Left: IFieldReferenceExpression: C1.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field')
                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C1() Wi ... ield = 42}}')
             Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 23) (Syntax: '23')
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: C2) (Syntax: '.FieldC2 =  ... Field = 42}')
-            Left: IFieldReferenceExpression: C1.FieldC2 As C2 (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: C2) (Syntax: 'FieldC2')
+            Left: IFieldReferenceExpression: C1.FieldC2 As C2 (OperationKind.FieldReferenceExpression, Type: C2) (Syntax: 'FieldC2')
                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C1() Wi ... ield = 42}}')
             Right: IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2) (Syntax: 'New C2() Wi ... Field = 42}')
                 Arguments(0)
                 Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2) (Syntax: 'With {.Field = 42}')
                     Initializers(1):
                         ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '.Field = 42')
-                          Left: IFieldReferenceExpression: C2.Field As System.Int32 (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field')
+                          Left: IFieldReferenceExpression: C2.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field')
                               Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C2() Wi ... Field = 42}')
                           Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 42) (Syntax: '42')
 ]]>.Value
@@ -1051,18 +1051,18 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C1, IsInvalid) (Syntax: 'With {.Fiel ... = .Field2}}')
       Initializers(2):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '.Field1 = 23')
-            Left: IFieldReferenceExpression: C1.Field1 As System.Int32 (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field1')
+            Left: IFieldReferenceExpression: C1.Field1 As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field1')
                 Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C1() Wi ... = .Field2}}')
             Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 23) (Syntax: '23')
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: C2, IsInvalid) (Syntax: '.FieldC2 =  ...  = .Field2}')
-            Left: IFieldReferenceExpression: C1.FieldC2 As C2 (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: C2) (Syntax: 'FieldC2')
+            Left: IFieldReferenceExpression: C1.FieldC2 As C2 (OperationKind.FieldReferenceExpression, Type: C2) (Syntax: 'FieldC2')
                 Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C1() Wi ... = .Field2}}')
             Right: IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2, IsInvalid) (Syntax: 'New C2() Wi ...  = .Field2}')
                 Arguments(0)
                 Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2, IsInvalid) (Syntax: 'With {.Field1 = .Field2}')
                     Initializers(1):
                         ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: '.Field1 = .Field2')
-                          Left: IFieldReferenceExpression: C2.Field1 As System.Int32 (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field1')
+                          Left: IFieldReferenceExpression: C2.Field1 As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field1')
                               Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C2() Wi ...  = .Field2}')
                           Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '.Field2')
                               Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1121,7 +1121,7 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C1) (Syntax: 'With {.Fiel ... d Function}')
       Initializers(1):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Func(Of System.Int32)) (Syntax: '.Field2 = F ... nd Function')
-            Left: IFieldReferenceExpression: C1.Field2 As System.Func(Of System.Int32) (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.Func(Of System.Int32)) (Syntax: 'Field2')
+            Left: IFieldReferenceExpression: C1.Field2 As System.Func(Of System.Int32) (OperationKind.FieldReferenceExpression, Type: System.Func(Of System.Int32)) (Syntax: 'Field2')
                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C1 With ... d Function}')
             Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.Int32)) (Syntax: 'Function()  ... nd Function')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1129,12 +1129,12 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
                     IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Function()  ... nd Function')
                       Locals: Local_1: <anonymous local> As System.Int32
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return .Field')
-                        ReturnedValue: IFieldReferenceExpression: C1.Field As System.Int32 (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: '.Field')
+                        ReturnedValue: IFieldReferenceExpression: C1.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: '.Field')
                             Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C1 With ... d Function}')
                       ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Function')
                         LabeledStatement: null
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
-                        ReturnedValue: ILocalReferenceExpression:  (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Function')
+                        ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Function')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1173,9 +1173,9 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C1) (Syntax: 'With {.Fiel ... ivateField}')
       Initializers(1):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '.Field = PrivateField')
-            Left: IFieldReferenceExpression: C1.Field As System.Int32 (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field')
+            Left: IFieldReferenceExpression: C1.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field')
                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C1() Wi ... ivateField}')
-            Right: IFieldReferenceExpression: C2.PrivateField As System.Int32 (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'PrivateField')
+            Right: IFieldReferenceExpression: C2.PrivateField As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'PrivateField')
                 Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C2) (Syntax: 'PrivateField')
 ]]>.Value
 
@@ -1350,7 +1350,7 @@ IObjectCreationExpression (Constructor: Sub s1..ctor()) (OperationKind.ObjectCre
             Left: IPropertyReferenceExpression: Property s1.x As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x')
                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'As New s1 W ... {.x = s1.x}')
             Right: IPropertyReferenceExpression: Property s1.x As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's1.x')
-                Instance Receiver: ILocalReferenceExpression: s1 (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: s1) (Syntax: 's1')
+                Instance Receiver: ILocalReferenceExpression: s1 (OperationKind.LocalReferenceExpression, Type: s1) (Syntax: 's1')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1391,7 +1391,7 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2) (Syntax: 'With {.Fiel ... d Function}')
       Initializers(2):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Func(Of System.Object)) (Syntax: '.Field = Fu ... nd Function')
-            Left: IFieldReferenceExpression: C2.Field As System.Func(Of System.Object) (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.Func(Of System.Object)) (Syntax: 'Field')
+            Left: IFieldReferenceExpression: C2.Field As System.Func(Of System.Object) (OperationKind.FieldReferenceExpression, Type: System.Func(Of System.Object)) (Syntax: 'Field')
                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'As New C2 W ... d Function}')
             Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.Object)) (Syntax: 'Function()' ... nd Function')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1401,14 +1401,14 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return .Field')
                         ReturnedValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '.Field')
                             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            Operand: IFieldReferenceExpression: C2.Field As System.Func(Of System.Object) (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.Func(Of System.Object)) (Syntax: '.Field')
+                            Operand: IFieldReferenceExpression: C2.Field As System.Func(Of System.Object) (OperationKind.FieldReferenceExpression, Type: System.Func(Of System.Object)) (Syntax: '.Field')
                                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'As New C2 W ... d Function}')
                       ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Function')
                         LabeledStatement: null
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
-                        ReturnedValue: ILocalReferenceExpression:  (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'End Function')
+                        ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'End Function')
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Func(Of System.Object)) (Syntax: '.Field2 = F ... nd Function')
-            Left: IFieldReferenceExpression: C2.Field2 As System.Func(Of System.Object) (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.Func(Of System.Object)) (Syntax: 'Field2')
+            Left: IFieldReferenceExpression: C2.Field2 As System.Func(Of System.Object) (OperationKind.FieldReferenceExpression, Type: System.Func(Of System.Object)) (Syntax: 'Field2')
                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'As New C2 W ... d Function}')
             Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.Object)) (Syntax: 'Function() ... nd Function')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1418,12 +1418,12 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return .Field')
                         ReturnedValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '.Field')
                             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            Operand: IFieldReferenceExpression: C2.Field As System.Func(Of System.Object) (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.Func(Of System.Object)) (Syntax: '.Field')
+                            Operand: IFieldReferenceExpression: C2.Field As System.Func(Of System.Object) (OperationKind.FieldReferenceExpression, Type: System.Func(Of System.Object)) (Syntax: '.Field')
                                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'As New C2 W ... d Function}')
                       ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Function')
                         LabeledStatement: null
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
-                        ReturnedValue: ILocalReferenceExpression:  (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'End Function')
+                        ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'End Function')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1461,7 +1461,7 @@ IObjectCreationExpression (Constructor: Sub cust..ctor()) (OperationKind.ObjectC
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: cust) (Syntax: 'With {.x = !a}')
       Initializers(1):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int64) (Syntax: '.x = !a')
-            Left: IFieldReferenceExpression: cust.x As System.Int64 (IsDeclaration: False) (OperationKind.FieldReferenceExpression, Type: System.Int64) (Syntax: 'x')
+            Left: IFieldReferenceExpression: cust.x As System.Int64 (OperationKind.FieldReferenceExpression, Type: System.Int64) (Syntax: 'x')
                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New cust With {.x = !a}')
             Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64) (Syntax: '!a')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)

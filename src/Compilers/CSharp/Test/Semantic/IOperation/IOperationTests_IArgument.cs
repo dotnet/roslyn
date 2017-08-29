@@ -300,11 +300,11 @@ IInvocationExpression ( void P.M2(ref System.Int32 x, out System.Int32 y)) (Oper
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'a')
-        ILocalReferenceExpression: a (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
+        ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
         InConversion: null
         OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'b')
-        ILocalReferenceExpression: b (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'b')
+        ILocalReferenceExpression: b (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'b')
         InConversion: null
         OutConversion: null
 ";
@@ -335,11 +335,11 @@ IInvocationExpression ( void P.M2(ref System.Int32 x, out System.Int32 y)) (Oper
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'a')
-        ILocalReferenceExpression: a (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
+        ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
         InConversion: null
         OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'b')
-        ILocalReferenceExpression: b (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'b')
+        ILocalReferenceExpression: b (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'b')
         InConversion: null
         OutConversion: null
 ";
@@ -370,11 +370,11 @@ IInvocationExpression ( void P.M2(ref System.Int32 x, out System.Int32 y)) (Oper
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'b')
-        ILocalReferenceExpression: b (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'b')
+        ILocalReferenceExpression: b (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'b')
         InConversion: null
         OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'a')
-        ILocalReferenceExpression: a (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
+        ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
         InConversion: null
         OutConversion: null
 ";
@@ -622,7 +622,7 @@ IInvocationExpression ( void P.M2(System.Int32 x, params System.Double[] array))
         InConversion: null
         OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'a')
-        ILocalReferenceExpression: a (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Double[]) (Syntax: 'a')
+        ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Double[]) (Syntax: 'a')
         InConversion: null
         OutConversion: null
 ";
@@ -766,7 +766,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'a')
-        ILocalReferenceExpression: a (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Double[]) (Syntax: 'a')
+        ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Double[]) (Syntax: 'a')
         InConversion: null
         OutConversion: null
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'M2(array: a)')
@@ -844,7 +844,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0], params System.Double[] a
         InConversion: null
         OutConversion: null
       IArgument (ArgumentKind.Explicit, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'a')
-        ILocalReferenceExpression: a (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Double[]) (Syntax: 'a')
+        ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Double[]) (Syntax: 'a')
         InConversion: null
         OutConversion: null
 ";
@@ -915,7 +915,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'M2(array: a, 
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
       Arguments(2):
           IArgument (ArgumentKind.Explicit, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'a')
-            ILocalReferenceExpression: a (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: System.Double[]) (Syntax: 'a')
+            ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Double[]) (Syntax: 'a')
             InConversion: null
             OutConversion: null
           IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
@@ -1530,7 +1530,7 @@ internal class P
 ";
             string expectedOperationTree = @"
 IPropertyReferenceExpression: System.Int32 Derived.this[[System.Int32 x = 8], [System.Int32 y = 9]] { set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'd[0]')
-  Instance Receiver: ILocalReferenceExpression: d (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: Derived) (Syntax: 'd')
+  Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: Derived) (Syntax: 'd')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '0')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -1719,7 +1719,7 @@ class C
 ";
             string expectedOperationTree = @"
 IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.Int32 j = 4]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'p[10]')
-  Instance Receiver: ILocalReferenceExpression: p (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: P) (Syntax: 'p')
+  Instance Receiver: ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: P) (Syntax: 'p')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: '10')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
@@ -1836,7 +1836,7 @@ class C
 ";
             string expectedOperationTree = @"
 IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.Int32 j = 4]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'p[10]')
-  Instance Receiver: ILocalReferenceExpression: p (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: P) (Syntax: 'p')
+  Instance Receiver: ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: P) (Syntax: 'p')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: '10')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
@@ -1953,7 +1953,7 @@ class C
 ";
             string expectedOperationTree = @"
 IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.Int32 j = 4]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'p[10]')
-  Instance Receiver: ILocalReferenceExpression: p (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: P) (Syntax: 'p')
+  Instance Receiver: ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: P) (Syntax: 'p')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: '10')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
@@ -2016,7 +2016,7 @@ class C
 ";
             string expectedOperationTree = @"
 IInvocationExpression ( void P.M1([System.Int32 s = ""abc""])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'p.M1()')
-  Instance Receiver: ILocalReferenceExpression: p (IsDeclaration: False) (OperationKind.LocalReferenceExpression, Type: P) (Syntax: 'p')
+  Instance Receiver: ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: P) (Syntax: 'p')
   Arguments(1):
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument) (Syntax: 'p.M1()')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'p.M1()')
