@@ -296,8 +296,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             return Enumerable.Any(@namespace.GetAllTypes(cancellationToken), t => t.IsAccessibleWithin(model.Compilation.Assembly));
         }
 
-        private static IEnumerable<SymbolResult> GetContainers(
-            IEnumerable<SymbolResult> symbols, Compilation compilation)
+        private static IEnumerable<SymbolResult> GetContainers(ImmutableArray<SymbolResult> symbols, Compilation compilation)
         {
             foreach (var symbolResult in symbols)
             {
