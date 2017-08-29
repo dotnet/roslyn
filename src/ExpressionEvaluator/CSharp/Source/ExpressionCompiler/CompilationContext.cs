@@ -389,10 +389,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             localIndex++;
                         }
                         
-                        foreach (var parameter in _currentSourceMethod.Parameters)
+                        foreach (var argumentName in _sourceMethodParametersInOrder)
                         {
-                            var argumentName = parameter.Name;
-                            Debug.Assert(!itemsAdded.Contains(argumentName));
                             (LocalSymbol local, int localIndex) localSymbolAndIndex;
                             if (localsDictionary.TryGetValue(argumentName, out localSymbolAndIndex))
                             {
@@ -1265,10 +1263,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
 
             var parameterNames = PooledHashSet<string>.GetInstance();
-            if (isIteratorOrAsyncMethod)
+            var parameterNamesInOrder = ArrayBuilder<string>.GetInstance();
+            // For version before .NET 4.5, we cannot find the sourceMethod properly:
+            // The source method coincides with the original method in the case.
+            // Here, we have to get parameters from the containingType.
+            // This does not guarantees the proper order of parameters.
+            if (isIteratorOrAsyncMethod && method == sourceMethod)
             {
                 Debug.Assert(IsDisplayClassType(containingType));
-                var parameterNamesInOrder = ArrayBuilder<string>.GetInstance();
                 foreach (var field in containingType.GetMembers().OfType<FieldSymbol>())
                 {
                     // All iterator and async state machine fields (including hoisted locals) have mangled names, except
@@ -1280,17 +1282,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         parameterNames.Add(fieldName);
                     }
                 }
-                sourceMethodParametersInOrder = parameterNamesInOrder.ToImmutableArray();
-                parameterNamesInOrder.Free();
             }
             else
             {
-                foreach (var p in method.Parameters)
+                foreach (var p in sourceMethod.Parameters)
                 {
+                    parameterNamesInOrder.Add(p.Name);
                     parameterNames.Add(p.Name);
                 }
-                sourceMethodParametersInOrder = ImmutableArray<string>.Empty;
             }
+
+            sourceMethodParametersInOrder = parameterNamesInOrder.ToImmutableArray();
+            parameterNamesInOrder.Free();
 
             if (displayClassInstances.Any())
             {

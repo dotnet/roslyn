@@ -40,13 +40,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     {
                         var module = metadataDecoder.Module;
                         methodHandle = candidateMethod.Handle;
-                  //      string stateMachineTypeName;
+                        string stateMachineTypeName;
 
                         if (GeneratedNames.GetKind(containingType.Name) == GeneratedNameKind.StateMachineType)
-                        //if (module.HasStringValuedAttribute(methodHandle, AttributeDescription.AsyncStateMachineAttribute, out stateMachineTypeName) ||
-                        //module.HasStringValuedAttribute(methodHandle, AttributeDescription.IteratorStateMachineAttribute, out stateMachineTypeName))
+                        if (module.HasStringValuedAttribute(methodHandle, AttributeDescription.AsyncStateMachineAttribute, out stateMachineTypeName) ||
+                            module.HasStringValuedAttribute(methodHandle, AttributeDescription.IteratorStateMachineAttribute, out stateMachineTypeName))
                         {
-                        //    if (metadataDecoder.GetTypeSymbolForSerializedType(stateMachineTypeName).OriginalDefinition.Equals(containingType))
+                            if (metadataDecoder.GetTypeSymbolForSerializedType(stateMachineTypeName).OriginalDefinition.Equals(containingType))
                             {
                                 return candidateMethod;
                             }

@@ -3839,6 +3839,19 @@ class C
                 // The order must confirm the order of the arguments in the method signature.
                 Assert.Equal(names, new[] { "y", "x" });
             });
+
+            comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
+            WithRuntimeInstance(comp, runtime =>
+            {
+                EvaluationContext context;
+                context = CreateMethodContext(runtime, "C.<F>d__0.MoveNext", atLineNumber: 500);
+                string unused;
+                var locals = new ArrayBuilder<LocalAndMethod>();
+                context.CompileGetLocals(locals, argumentsOnly: true, typeName: out unused, testData: null);
+                var names = locals.Select(l => l.LocalName).ToArray();
+                // The problem is not fixed in versions before 4.5: the order of arguments can be wrong.
+                Assert.Equal(names, new[] { "x", "y" });
+            });
         }
 
         private static void GetLocals(RuntimeInstance runtime, string methodName, bool argumentsOnly, ArrayBuilder<LocalAndMethod> locals, int count, out string typeName, out CompilationTestData testData)
