@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -27,11 +27,11 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ILocalFunctionStatement (Local Function: System.Int32 Local(System.Int32 p1)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local(i ... }')
+ILocalFunctionStatement (Symbol: System.Int32 Local(System.Int32 p1)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local(i ... }')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return x++;')
-      ReturnedValue: IIncrementExpression (UnaryOperandKind.IntegerPostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
-          Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+      ReturnedValue: IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
+          Target: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -53,11 +53,11 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ILocalFunctionStatement (Local Function: System.Int32 Local(System.Int32 p1)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local(i ... p1) => x++;')
+ILocalFunctionStatement (Symbol: System.Int32 Local(System.Int32 p1)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local(i ... p1) => x++;')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '=> x++')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x++')
-      ReturnedValue: IIncrementExpression (UnaryOperandKind.IntegerPostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
-          Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+      ReturnedValue: IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
+          Target: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -79,11 +79,11 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ILocalFunctionStatement (Local Function: System.Int32 Local(System.Int32 x)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local(int x) => x++;')
+ILocalFunctionStatement (Symbol: System.Int32 Local(System.Int32 x)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local(int x) => x++;')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '=> x++')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x++')
-      ReturnedValue: IIncrementExpression (UnaryOperandKind.IntegerPostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
-          Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+      ReturnedValue: IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
+          Target: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -110,10 +110,10 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ILocalFunctionStatement (Local Function: System.Int32 Local(System.Int32 y)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local(i ... ) => x + y;')
+ILocalFunctionStatement (Symbol: System.Int32 Local(System.Int32 y)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local(i ... ) => x + y;')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '=> x + y')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x + y')
-      ReturnedValue: IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + y')
+      ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + y')
           Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
           Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
 ";
@@ -141,10 +141,10 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ILocalFunctionStatement (Local Function: System.Int32 Local3(System.Int32 p1)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local3( ... Local2(p1);')
+ILocalFunctionStatement (Symbol: System.Int32 Local3(System.Int32 p1)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local3( ... Local2(p1);')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '=> x + Local2(p1)')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x + Local2(p1)')
-      ReturnedValue: IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + Local2(p1)')
+      ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + Local2(p1)')
           Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
           Right: IInvocationExpression (System.Int32 Local2(System.Int32 p1)) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Local2(p1)')
               Instance Receiver: null
@@ -173,14 +173,14 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ILocalFunctionStatement (Local Function: System.Int32 Local(System.Int32 p1)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local(i ... al(x + p1);')
+ILocalFunctionStatement (Symbol: System.Int32 Local(System.Int32 p1)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local(i ... al(x + p1);')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '=> Local(x + p1)')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Local(x + p1)')
       ReturnedValue: IInvocationExpression (System.Int32 Local(System.Int32 p1)) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Local(x + p1)')
           Instance Receiver: null
           Arguments(1):
               IArgument (ArgumentKind.Explicit, Matching Parameter: p1) (OperationKind.Argument) (Syntax: 'x + p1')
-                IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + p1')
+                IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + p1')
                   Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
                   Right: IParameterReferenceExpression: p1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'p1')
                 InConversion: null
@@ -213,7 +213,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ILocalFunctionStatement (Local Function: System.Threading.Tasks.Task<System.Int32> LocalAsync(System.Int32 p1)) (OperationKind.LocalFunctionStatement) (Syntax: 'async Task< ... }')
+ILocalFunctionStatement (Symbol: System.Threading.Tasks.Task<System.Int32> LocalAsync(System.Int32 p1)) (OperationKind.LocalFunctionStatement) (Syntax: 'async Task< ... }')
   IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
     IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'await Task.Delay(0);')
       Expression: IAwaitExpression (OperationKind.AwaitExpression, Type: System.Void) (Syntax: 'await Task.Delay(0)')
@@ -225,7 +225,7 @@ ILocalFunctionStatement (Local Function: System.Threading.Tasks.Task<System.Int3
                     InConversion: null
                     OutConversion: null
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return x + p1;')
-      ReturnedValue: IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + p1')
+      ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + p1')
           Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
           Right: IParameterReferenceExpression: p1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'p1')
 ";
@@ -252,7 +252,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ILocalFunctionStatement (Local Function: System.Int32 Local()) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local() => x;')
+ILocalFunctionStatement (Symbol: System.Int32 Local()) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local() => x;')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '=> x')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x')
       ReturnedValue: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
@@ -278,11 +278,11 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ILocalFunctionStatement (Local Function: void F()) (OperationKind.LocalFunctionStatement) (Syntax: 'void F() => x++;')
+ILocalFunctionStatement (Symbol: void F()) (OperationKind.LocalFunctionStatement) (Syntax: 'void F() => x++;')
   IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '=> x++')
     IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x++')
-      Expression: IIncrementExpression (UnaryOperandKind.IntegerPostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
-          Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+      Expression: IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
+          Target: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: '=> x++')
       ReturnedValue: null
 ";
@@ -311,7 +311,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ILocalFunctionStatement (Local Function: void F(out System.Int32 y)) (OperationKind.LocalFunctionStatement) (Syntax: 'void F(out  ... ) => y = p;')
+ILocalFunctionStatement (Symbol: void F(out System.Int32 y)) (OperationKind.LocalFunctionStatement) (Syntax: 'void F(out  ... ) => y = p;')
   IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '=> y = p')
     IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'y = p')
       Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'y = p')
@@ -338,7 +338,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ILocalFunctionStatement (Local Function: void F(out System.Int32 y)) (OperationKind.LocalFunctionStatement, IsInvalid) (Syntax: 'void F(out int y) => ;')
+ILocalFunctionStatement (Symbol: void F(out System.Int32 y)) (OperationKind.LocalFunctionStatement, IsInvalid) (Syntax: 'void F(out int y) => ;')
   IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '=> ')
     IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: '')
       Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
@@ -375,7 +375,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ILocalFunctionStatement (Local Function: void F()) (OperationKind.LocalFunctionStatement, IsInvalid) (Syntax: 'void F( { }')
+ILocalFunctionStatement (Symbol: void F()) (OperationKind.LocalFunctionStatement, IsInvalid) (Syntax: 'void F( { }')
   IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ }')
     IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: '{ }')
       ReturnedValue: null
@@ -406,7 +406,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ILocalFunctionStatement (Local Function: X F()) (OperationKind.LocalFunctionStatement, IsInvalid) (Syntax: 'X F() { }')
+ILocalFunctionStatement (Symbol: X F()) (OperationKind.LocalFunctionStatement, IsInvalid) (Syntax: 'X F() { }')
   IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {

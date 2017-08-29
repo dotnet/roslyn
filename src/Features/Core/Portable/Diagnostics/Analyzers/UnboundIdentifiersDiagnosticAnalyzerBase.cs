@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
 
         private void ReportUnboundIdentifierNames(SyntaxNodeAnalysisContext context, SyntaxNode member)
         {
-            Func<SyntaxNode, bool> isQualifiedOrSimpleName = (SyntaxNode n) => n is TQualifiedNameSyntax || n is TSimpleNameSyntax;
+            bool isQualifiedOrSimpleName(SyntaxNode n) => n is TQualifiedNameSyntax || n is TSimpleNameSyntax;
             var typeNames = member.DescendantNodes().Where(n => isQualifiedOrSimpleName(n) && !n.Span.IsEmpty);
             foreach (var typeName in typeNames)
             {

@@ -44,11 +44,12 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public static IExpressionStatement CreateCompoundAssignmentExpressionStatement(
-            IOperation target, IOperation value, BinaryOperationKind binaryOperationKind, bool isLifted, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
+            IOperation target, IOperation value, BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
         {
             var expression = new CompoundAssignmentExpression(
-                     binaryOperationKind,
+                     operatorKind,
                      isLifted,
+                     isChecked,
                      target,
                      value,
                      operatorMethod != null,
@@ -73,11 +74,12 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public static IBinaryOperatorExpression CreateBinaryOperatorExpression(
-            BinaryOperationKind binaryOperationKind, IOperation left, IOperation right, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax, bool isLifted, bool isImplicit)
+            BinaryOperatorKind operatorKind, IOperation left, IOperation right, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax, bool isLifted, bool isChecked, bool isCompareText, bool isImplicit)
         {
             return new BinaryOperatorExpression(
-                binaryOperationKind, left, right,
-                isLifted: isLifted, usesOperatorMethod: false, operatorMethod: null,
+                operatorKind, left, right,
+                isLifted: isLifted, isChecked: isChecked,
+                isCompareText: isCompareText, usesOperatorMethod: false, operatorMethod: null,
                 semanticModel: semanticModel, syntax: syntax, type: resultType, constantValue: default, isImplicit: isImplicit);
         }
 

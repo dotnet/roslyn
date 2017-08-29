@@ -135,34 +135,21 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             }
 
             if (!TryFindAssignmentExpression(containingBlock, ifOperation, localOrParameter,
-                out var expressionStatement, out var assignmentExpression))
+                    out var expressionStatement, out var assignmentExpression))
             {
                 return;
             }
 
             // We found an assignment using this local/parameter.  Now, just make sure there
             // were no intervening accesses between the check and the assignment.
-            var statements = containingBlock.Statements;
-            var ifOperationIndex = statements.IndexOf(ifOperation);
-            var expressionStatementIndex = statements.IndexOf(expressionStatement);
-
-            if (expressionStatementIndex > ifOperationIndex + 1)
+            if (ValueIsAccessed(
+                    semanticModel, ifOperation, containingBlock,
+                    localOrParameter, expressionStatement, assignmentExpression))
             {
-                // There are intermediary statements between the check and the assignment.
-                // Make sure they don't try to access the local.
-                var dataFlow = semanticModel.AnalyzeDataFlow(
-                    statements[ifOperationIndex + 1].Syntax,
-                    statements[expressionStatementIndex - 1].Syntax);
-
-                if (dataFlow.ReadInside.Contains(localOrParameter) ||
-                    dataFlow.WrittenInside.Contains(localOrParameter))
-                {
-                    return;
-                }
+                return;
             }
 
             // Ok, there were no intervening writes or accesses.  This check+assignment can be simplified.
-
             var allLocations = ImmutableArray.Create(
                 ifOperation.Syntax.GetLocation(),
                 throwExpressionOperation.Expression.Syntax.GetLocation(),
@@ -193,6 +180,34 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                             ifOperation.Syntax.Span.End)),
                         additionalLocations: allLocations));
             }
+        }
+
+        private static bool ValueIsAccessed(SemanticModel semanticModel, IIfStatement ifOperation, IBlockStatement containingBlock, ISymbol localOrParameter, IExpressionStatement expressionStatement, IAssignmentExpression assignmentExpression)
+        {
+            var statements = containingBlock.Statements;
+            var ifOperationIndex = statements.IndexOf(ifOperation);
+            var expressionStatementIndex = statements.IndexOf(expressionStatement);
+
+            if (expressionStatementIndex > ifOperationIndex + 1)
+            {
+                // There are intermediary statements between the check and the assignment.
+                // Make sure they don't try to access the local.
+                var dataFlow = semanticModel.AnalyzeDataFlow(
+                    statements[ifOperationIndex + 1].Syntax,
+                    statements[expressionStatementIndex - 1].Syntax);
+
+                if (dataFlow.ReadInside.Contains(localOrParameter) ||
+                    dataFlow.WrittenInside.Contains(localOrParameter))
+                {
+                    return true;
+                }
+            }
+
+            // Also, have to make sure there is no read/write of the local/parameter on the left
+            // of the assignment.  For example: map[val.Id] = val;
+            var exprDataFlow = semanticModel.AnalyzeDataFlow(assignmentExpression.Target.Syntax);
+            return exprDataFlow.ReadInside.Contains(localOrParameter) ||
+                   exprDataFlow.WrittenInside.Contains(localOrParameter);
         }
 
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
@@ -250,7 +265,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 return false;
             }
 
-            if (binaryOperator.GetSimpleBinaryOperationKind() != SimpleBinaryOperationKind.Equals)
+            if (binaryOperator.OperatorKind != BinaryOperatorKind.Equals)
             {
                 return false;
             }

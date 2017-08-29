@@ -35,8 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             if (token.Kind() == SyntaxKind.IdentifierToken)
             {
-                var statement = token.Parent as ForEachStatementSyntax;
-                if (statement != null && token == statement.Identifier)
+                if (token.Parent is ForEachStatementSyntax statement && token == statement.Identifier)
                 {
                     return true;
                 }
@@ -70,8 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     }
                 }
 
-                var fromClause = token.Parent as FromClauseSyntax;
-                if (fromClause != null)
+                if (token.Parent is FromClauseSyntax fromClause)
                 {
                     // case:
                     //   from int x |

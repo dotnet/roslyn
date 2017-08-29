@@ -593,7 +593,7 @@ class C
     {
         this.s = s;
     }
-}", ignoreTrivia: false);
+}");
         }
     }
 }

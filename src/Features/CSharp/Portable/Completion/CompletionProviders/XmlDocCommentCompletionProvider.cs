@@ -157,8 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 foreach (var node in parentTrivia.Content)
                 {
-                    var element = node as XmlElementSyntax;
-                    if (element != null)
+                    if (node is XmlElementSyntax element)
                     {
                         names.Remove(selector(element));
                     }
@@ -251,8 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             foreach (var node in trivia.Content)
             {
-                var element = node as XmlElementSyntax;
-                if (element != null && !element.StartTag.IsMissing && !element.EndTag.IsMissing)
+                if (node is XmlElementSyntax element && !element.StartTag.IsMissing && !element.EndTag.IsMissing)
                 {
                     var startTag = element.StartTag;
 

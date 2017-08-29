@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' UNDONE: filter using options.
             If _typeSymbol.Arity > 0 Then
                 For Each tp In _typeSymbol.TypeParameters
-                    If originalBinder.CanAddLookupSymbolInfo(tp, options, Nothing) Then
+                    If originalBinder.CanAddLookupSymbolInfo(tp, options, nameSet, Nothing) Then
                         nameSet.AddSymbol(tp, tp.Name, 0)
                     End If
                 Next

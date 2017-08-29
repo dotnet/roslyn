@@ -129,8 +129,8 @@ IBlockStatement (9 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
                   IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '""')
                     Children(1):
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "", IsInvalid) (Syntax: '""')
-  ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Sub')
-    LabeledStatement: null
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
+    Statement: null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
     ReturnedValue: null]]>.Value
 

@@ -294,13 +294,13 @@ Module Program
     End Sub
 End Module]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
+Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Integer = b + c')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Int32
     Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'b + c')
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: IBinaryOperatorExpression (BinaryOperationKind.Invalid) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'b + c')
+        Operand: IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'b + c')
             Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'b')
                 Children(0)
             Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'c')
@@ -764,8 +764,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: IAnonymousFunctionExpression (Symbol: Sub (i As System.Int32)) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub(i As In ... End Sub')
             IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'Sub(i As In ... End Sub')
-              ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Sub')
-                LabeledStatement: null
+              ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
+                Statement: null
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
                 ReturnedValue: null
 ]]>.Value
@@ -797,8 +797,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub()'BIND: ... End Sub')
             IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'Sub()'BIND: ... End Sub')
-              ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Sub')
-                LabeledStatement: null
+              ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
+                Statement: null
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
                 ReturnedValue: null
 ]]>.Value
@@ -830,8 +830,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: IAnonymousFunctionExpression (Symbol: Sub (i As System.Int32)) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub(i As In ... End Sub')
             IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Sub(i As In ... End Sub')
-              ILabelStatement (Label: exit) (OperationKind.LabelStatement, IsInvalid) (Syntax: 'End Sub')
-                LabeledStatement: null
+              ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid) (Syntax: 'End Sub')
+                Statement: null
               IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'End Sub')
                 ReturnedValue: null
 
@@ -872,8 +872,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
               Locals: Local_1: <anonymous local> As System.Int32
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return 1')
                 ReturnedValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-              ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Function')
-                LabeledStatement: null
+              ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
+                Statement: null
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
                 ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Function')]]>.Value
 
@@ -908,8 +908,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
               Locals: Local_1: <anonymous local> As System.Int32
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return 1')
                 ReturnedValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-              ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Function')
-                LabeledStatement: null
+              ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
+                Statement: null
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
                 ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Function')]]>.Value
 
@@ -940,8 +940,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub()'BIND: ... End Sub')
             IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Sub()'BIND: ... End Sub')
-              ILabelStatement (Label: exit) (OperationKind.LabelStatement, IsInvalid) (Syntax: 'End Sub')
-                LabeledStatement: null
+              ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid) (Syntax: 'End Sub')
+                Statement: null
               IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'End Sub')
                 ReturnedValue: null
 ]]>.Value
@@ -1179,7 +1179,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
+Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Ar ... teger(1) {}')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Array
@@ -1187,11 +1187,12 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer(1) {}')
             Dimension Sizes(1):
-                IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2) (Syntax: '1')
+                IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2) (Syntax: '1')
                   Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
                   Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
             Initializer: IArrayInitializer (0 elements) (OperationKind.ArrayInitializer) (Syntax: '{}')
-                Element Values(0)]]>.Value
+                Element Values(0)
+]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
@@ -1211,7 +1212,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
+Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Ar ... ger(1)() {}')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Array
@@ -1219,11 +1220,12 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: IArrayCreationExpression (Element Type: System.Int32()) (OperationKind.ArrayCreationExpression, Type: System.Int32()()) (Syntax: 'New Integer(1)() {}')
             Dimension Sizes(1):
-                IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2) (Syntax: '1')
+                IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2) (Syntax: '1')
                   Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
                   Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
             Initializer: IArrayInitializer (0 elements) (OperationKind.ArrayInitializer) (Syntax: '{}')
-                Element Values(0)]]>.Value
+                Element Values(0)
+]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
@@ -1670,7 +1672,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
+Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim s1 As S ...  Char(1) {}')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 's1')
     Variables: Local_1: s1 As System.String
@@ -1678,11 +1680,12 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: IArrayCreationExpression (Element Type: System.Char) (OperationKind.ArrayCreationExpression, Type: System.Char()) (Syntax: 'New Char(1) {}')
             Dimension Sizes(1):
-                IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2) (Syntax: '1')
+                IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2) (Syntax: '1')
                   Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
                   Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
             Initializer: IArrayInitializer (0 elements) (OperationKind.ArrayInitializer) (Syntax: '{}')
-                Element Values(0)]]>.Value
+                Element Values(0)
+]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
@@ -2087,7 +2090,7 @@ Module Module1
 End Module
 ]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
+Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim expr As ... um) num < 5')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'expr')
     Variables: Local_1: expr As System.Linq.Expressions.Expression(Of System.Func(Of System.Int32, System.Boolean))
@@ -2097,11 +2100,11 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Function(num) num < 5')
               Locals: Local_1: <anonymous local> As System.Boolean
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'num < 5')
-                ReturnedValue: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'num < 5')
+                ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'num < 5')
                     Left: IParameterReferenceExpression: num (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'num')
                     Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
-              ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'Function(num) num < 5')
-                LabeledStatement: null
+              ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'Function(num) num < 5')
+                Statement: null
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Function(num) num < 5')
                 ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'Function(num) num < 5')]]>.Value
 
@@ -2139,8 +2142,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 ReturnedValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'num')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     Operand: IParameterReferenceExpression: num (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'num')
-              ILabelStatement (Label: exit) (OperationKind.LabelStatement, IsInvalid) (Syntax: 'Function(num) num')
-                LabeledStatement: null
+              ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid) (Syntax: 'Function(num) num')
+                Statement: null
               IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Function(num) num')
                 ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Boolean, IsInvalid) (Syntax: 'Function(num) num')
 ]]>.Value

@@ -174,13 +174,14 @@ Class C
     End Function
 End Class]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
+Dim expectedOperationTree = <![CDATA[
 IFieldInitializer (Field: C.s1 As System.Int32) (OperationKind.FieldInitializer) (Syntax: '= 1 + F()')
-  IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
+  IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
     Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     Right: IInvocationExpression (Function C.F() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F()')
         Instance Receiver: null
-        Arguments(0)]]>.Value
+        Arguments(0)
+]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
@@ -199,13 +200,14 @@ Class C
     End Function
 End Class]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
+Dim expectedOperationTree = <![CDATA[
 IFieldInitializer (Field: C.i1 As System.Int32) (OperationKind.FieldInitializer) (Syntax: '= 1 + F()')
-  IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
+  IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
     Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     Right: IInvocationExpression (Function C.F() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F()')
         Instance Receiver: null
-        Arguments(0)]]>.Value
+        Arguments(0)
+]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
@@ -224,13 +226,14 @@ Class C
     End Function
 End Class]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
+Dim expectedOperationTree = <![CDATA[
 IPropertyInitializer (Property: Property C.P1 As System.Int32) (OperationKind.PropertyInitializer) (Syntax: '= 1 + F()')
-  IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
+  IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
     Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     Right: IInvocationExpression (Function C.F() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F()')
         Instance Receiver: null
-        Arguments(0)]]>.Value
+        Arguments(0)
+]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 

@@ -96,11 +96,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         }
 
                         // get partial solution from background thread.
-                        _documentOpt = await _text.GetDocumentWithFrozenPartialSemanticsAsync(cancellationToken).ConfigureAwait(false);
+                        _documentOpt = _text.GetDocumentWithFrozenPartialSemantics(cancellationToken);
 
                         // TODO(cyrusn): We're calling into extensions, we need to make ourselves resilient
                         // to the extension crashing.
-                        var completionList = await GetCompletionListAsync(_completionService, _trigger, cancellationToken).ConfigureAwait(false);
+                        var completionList = await _completionService.GetCompletionsAndSetItemDocumentAsync(
+                            _documentOpt, _subjectBufferCaretPosition, _trigger, _roles, _options, cancellationToken).ConfigureAwait(false);
                         if (completionList == null)
                         {
                             return null;
@@ -114,13 +115,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                             useSuggestionMode: suggestionMode,
                             trigger: _trigger);
                     }
-                }
-
-                private async Task<CompletionList> GetCompletionListAsync(CompletionService completionService, CompletionTrigger trigger, CancellationToken cancellationToken)
-                {
-                    return _documentOpt != null
-                        ? await completionService.GetCompletionsAsync(_documentOpt, _subjectBufferCaretPosition, trigger, _roles, _options, cancellationToken).ConfigureAwait(false)
-                        : null;
                 }
             }
         }

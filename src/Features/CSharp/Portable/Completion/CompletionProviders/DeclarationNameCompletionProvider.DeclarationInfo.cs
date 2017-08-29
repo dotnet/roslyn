@@ -48,8 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var semanticModel = await document.GetSemanticModelForSpanAsync(new Text.TextSpan(token.SpanStart, 0), cancellationToken).ConfigureAwait(false);
                 var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
 
-                NameDeclarationInfo result;
-                if (IsParameterDeclaration(token, semanticModel, position, cancellationToken, out result)
+                if (IsParameterDeclaration(token, semanticModel, position, cancellationToken, out var result)
                     || IsTypeParameterDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsVariableDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsIncompleteMemberDeclaration(token, semanticModel, position, cancellationToken, out result)

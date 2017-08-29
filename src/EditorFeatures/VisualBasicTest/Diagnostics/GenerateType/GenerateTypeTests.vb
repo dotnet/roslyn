@@ -518,7 +518,7 @@ Friend Class Bar
 End Class
 ",
 expectedContainers:=ImmutableArray(Of String).Empty,
-expectedDocumentName:="Bar.vb", ignoreTrivia:=False)
+expectedDocumentName:="Bar.vb")
         End Function
 
         <WorkItem(17361, "https://github.com/dotnet/roslyn/issues/17361")>
@@ -538,7 +538,7 @@ End Class",
 End Class
 ",
 expectedContainers:=ImmutableArray(Of String).Empty,
-expectedDocumentName:="Bar.vb", ignoreTrivia:=False)
+expectedDocumentName:="Bar.vb")
         End Function
 
         <WorkItem(17361, "https://github.com/dotnet/roslyn/issues/17361")>
@@ -565,7 +565,7 @@ Friend Class Bar
 End Class
 ",
 expectedContainers:=ImmutableArray(Of String).Empty,
-expectedDocumentName:="Bar.vb", ignoreTrivia:=False)
+expectedDocumentName:="Bar.vb")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -1173,8 +1173,7 @@ End Class</Text>.NormalizedValue,
         End Sub
     End Class
 End Class</Text>.NormalizedValue,
-index:=2,
-ignoreTrivia:=False)
+index:=2)
         End Function
 
         <WorkItem(543290, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543290")>
@@ -1396,8 +1395,7 @@ End Class
 Class AA(Of T)
 End Class
 </text>.NormalizedValue,
-index:=1,
-ignoreTrivia:=False)
+index:=1)
         End Function
 
         <WorkItem(821277, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/821277")>
@@ -1427,8 +1425,7 @@ End Class
 Class AA(Of T)
 End Class
 </text>.NormalizedValue,
-index:=1,
-ignoreTrivia:=False)
+index:=1)
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -1458,7 +1455,6 @@ Friend Class T
 End Class
 </text>.NormalizedValue,
 index:=1,
-ignoreTrivia:=False,
 options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption.Error))
         End Function
 
@@ -1495,7 +1491,7 @@ Namespace A
     End Class
 End Namespace</Text>.NormalizedValue
 
-            Await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
         <WorkItem(940003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/940003")>
