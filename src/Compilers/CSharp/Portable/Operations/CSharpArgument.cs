@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        public override Optional<CommonConversion> InConversion => default;
+        public override CommonConversion InConversion => new CommonConversion(exists:true, isIdentity:true, isNumeric:false, isReference:false, methodSymbol:null);
 
-        public override Optional<CommonConversion> OutConversion => default;
+        public override CommonConversion OutConversion => new CommonConversion(exists: true, isIdentity: true, isNumeric: false, isReference: false, methodSymbol: null);
     }
 
     internal sealed partial class CSharpArgument : BaseCSharpArgument

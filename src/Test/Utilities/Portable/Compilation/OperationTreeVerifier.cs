@@ -631,23 +631,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
-            if (operation.InConversion.HasValue)
-            {
-                Indent();
-                LogConversion(operation.InConversion.Value, "InConversion");
-                Unindent();
-                LogNewLine();
-            }
-
-            if (operation.OutConversion.HasValue)
-            {
-                Indent();
-                LogConversion(operation.OutConversion.Value, "OutConversion");
-                Unindent();
-                LogNewLine();
-            }
-
             Visit(operation.Value);
+
+            Indent();
+            LogConversion(operation.InConversion, "InConversion");
+            LogNewLine();
+            LogConversion(operation.OutConversion, "OutConversion");
+            LogNewLine();
+            Unindent();
         }
 
         public override void VisitOmittedArgumentExpression(IOmittedArgumentExpression operation)

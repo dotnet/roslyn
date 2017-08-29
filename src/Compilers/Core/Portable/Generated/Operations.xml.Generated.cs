@@ -206,8 +206,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         public IParameterSymbol Parameter { get; }
         protected abstract IOperation ValueImpl { get; }
-        public abstract Optional<CommonConversion> InConversion { get; }
-        public abstract Optional<CommonConversion> OutConversion { get; }
+        public abstract CommonConversion InConversion { get; }
+        public abstract CommonConversion OutConversion { get; }
         public override IEnumerable<IOperation> Children
         {
             get
