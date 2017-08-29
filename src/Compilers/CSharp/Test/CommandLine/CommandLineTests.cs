@@ -9481,7 +9481,7 @@ class C
         }
 
         [WorkItem(406649, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=484417")]
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(typeof(WindowsOnly), typeof(IsEnglishLocal))]
         public void MicrosoftDiaSymReaderNativeAltLoadPath()
         {
             var dir = Temp.CreateDirectory();
@@ -9504,9 +9504,22 @@ class C
 
             var cscCopy = Path.Combine(dir.Path, "csc.exe");
 
-            var result = ProcessUtilities.Run(
-                cscCopy, 
-                arguments: "/nologo /t:library /debug:full /deterministic Source.cs",
+            var arguments = "/nologo /t:library /debug:full Source.cs";
+
+            // env variable not set (deterministic) -- DSRN is required:
+            var result = ProcessUtilities.Run(cscCopy, arguments + " /deterministic", workingDirectory: dir.Path);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+                "error CS0041: Unexpected error writing debug information -- 'Unable to load DLL 'Microsoft.DiaSymReader.Native.amd64.dll': " +
+                "The specified module could not be found. (Exception from HRESULT: 0x8007007E)'", result.Output.Trim());
+
+            // env variable not set (non-deterministic) -- globally registered SymReader is picked up:
+            result = ProcessUtilities.Run(cscCopy, arguments, workingDirectory: dir.Path);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", result.Output.Trim());
+
+            // env variable set:
+            result = ProcessUtilities.Run(
+                cscCopy,
+                arguments + " /deterministic",
                 workingDirectory: dir.Path, 
                 additionalEnvironmentVars: new[] { KeyValuePair.Create("MICROSOFT_DIASYMREADER_NATIVE_ALT_LOAD_PATH", cscDir) });
 
