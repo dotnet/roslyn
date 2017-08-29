@@ -5691,6 +5691,101 @@ unsafe class C
         }
 
         [Fact]
+        public void CheckedSignExtend()
+        {
+            var text = @"
+using System;
+
+unsafe struct S
+{
+    static void Main()
+    {
+        byte* ptr1 = default(byte*);
+
+        ptr1 = (byte*)2;
+        checked
+        {
+            // should not overflow regardless of 32/64 bit
+            ptr1 = ptr1 + 2147483649;
+        }
+
+        Console.WriteLine((long)ptr1);
+
+        byte* ptr = (byte*)2;
+        try
+        { 
+            checked
+            {
+                int i = -1;
+                // should overflow regardless of 32/64 bit
+                ptr = ptr + i;
+            }
+            Console.WriteLine((long)ptr);
+        }
+        catch (OverflowException)
+        {
+            Console.WriteLine(""overflow"");
+            Console.WriteLine((long)ptr);
+        }
+    }
+}
+";
+
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2147483651
+overflow
+2").VerifyIL("S.Main", @"
+{
+  // Code size       67 (0x43)
+  .maxstack  2
+  .locals init (byte* V_0, //ptr1
+                byte* V_1, //ptr
+                int V_2) //i
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""byte*""
+  IL_0008:  ldc.i4.2
+  IL_0009:  conv.i
+  IL_000a:  stloc.0
+  IL_000b:  ldloc.0
+  IL_000c:  ldc.i4     0x80000001
+  IL_0011:  conv.u
+  IL_0012:  add.ovf.un
+  IL_0013:  stloc.0
+  IL_0014:  ldloc.0
+  IL_0015:  conv.u8
+  IL_0016:  call       ""void System.Console.WriteLine(long)""
+  IL_001b:  ldc.i4.2
+  IL_001c:  conv.i
+  IL_001d:  stloc.1
+  .try
+  {
+    IL_001e:  ldc.i4.m1
+    IL_001f:  stloc.2
+    IL_0020:  ldloc.1
+    IL_0021:  ldloc.2
+    IL_0022:  conv.i
+    IL_0023:  add.ovf.un
+    IL_0024:  stloc.1
+    IL_0025:  ldloc.1
+    IL_0026:  conv.u8
+    IL_0027:  call       ""void System.Console.WriteLine(long)""
+    IL_002c:  leave.s    IL_0042
+  }
+  catch System.OverflowException
+  {
+    IL_002e:  pop
+    IL_002f:  ldstr      ""overflow""
+    IL_0034:  call       ""void System.Console.WriteLine(string)""
+    IL_0039:  ldloc.1
+    IL_003a:  conv.u8
+    IL_003b:  call       ""void System.Console.WriteLine(long)""
+    IL_0040:  leave.s    IL_0042
+  }
+  IL_0042:  ret
+}
+");
+        }
+
+        [Fact]
         public void Increment()
         {
             var text = @"
