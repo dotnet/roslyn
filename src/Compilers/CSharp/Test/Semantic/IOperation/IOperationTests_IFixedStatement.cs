@@ -69,6 +69,67 @@ IOperation:  (OperationKind.None) (Syntax: 'fixed(int * ... }')
 
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation)]
+        public void FixedStatement_MultipleDeclarators()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    private int i1;
+    private int i2;
+
+    void M1()
+    {
+        int i3;
+        unsafe
+        {
+            /*<bind>*/fixed (int* p1 = &i1, p2 = &i2)
+            {
+                i3 = *p1 + *p2;
+            }/*</bind>*/
+        }
+    }
+}
+";
+            string expectedOperationTree = @"
+IOperation:  (OperationKind.None) (Syntax: 'fixed (int* ... }')
+  Children(2):
+      IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int* p1 = &i1, p2 = &i2')
+        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p1 = &i1')
+          Variables: Local_1: System.Int32* p1
+          Initializer: IOperation:  (OperationKind.None) (Syntax: '&i1')
+              Children(1):
+                  IAddressOfExpression (OperationKind.AddressOfExpression, Type: System.Int32*) (Syntax: '&i1')
+                    Reference: IFieldReferenceExpression: System.Int32 C.i1 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i1')
+                        Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'i1')
+        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p2 = &i2')
+          Variables: Local_1: System.Int32* p2
+          Initializer: IOperation:  (OperationKind.None) (Syntax: '&i2')
+              Children(1):
+                  IAddressOfExpression (OperationKind.AddressOfExpression, Type: System.Int32*) (Syntax: '&i2')
+                    Reference: IFieldReferenceExpression: System.Int32 C.i2 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i2')
+                        Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'i2')
+      IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+        IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i3 = *p1 + *p2;')
+          Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i3 = *p1 + *p2')
+              Left: ILocalReferenceExpression: i3 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i3')
+              Right: IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '*p1 + *p2')
+                  Left: IPointerIndirectionReferenceExpression (OperationKind.PointerIndirectionReferenceExpression, Type: System.Int32) (Syntax: '*p1')
+                      Pointer: ILocalReferenceExpression: p1 (OperationKind.LocalReferenceExpression, Type: System.Int32*) (Syntax: 'p1')
+                  Right: IPointerIndirectionReferenceExpression (OperationKind.PointerIndirectionReferenceExpression, Type: System.Int32) (Syntax: '*p2')
+                      Pointer: ILocalReferenceExpression: p2 (OperationKind.LocalReferenceExpression, Type: System.Int32*) (Syntax: 'p2')
+";
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<FixedStatementSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                compilationOptions: TestOptions.UnsafeDebugDll);
+        }
+
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
         public void FixedStatement_MultipleFixedStatements()
         {
             string source = @"
@@ -122,7 +183,9 @@ IOperation:  (OperationKind.None) (Syntax: 'fixed (int* ... }')
                         Left: IPointerIndirectionReferenceExpression (OperationKind.PointerIndirectionReferenceExpression, Type: System.Int32) (Syntax: '*p1')
                             Pointer: ILocalReferenceExpression: p1 (OperationKind.LocalReferenceExpression, Type: System.Int32*) (Syntax: 'p1')
                         Right: IPointerIndirectionReferenceExpression (OperationKind.PointerIndirectionReferenceExpression, Type: System.Int32) (Syntax: '*p2')
-                            Pointer: ILocalReferenceExpression: p2 (OperationKind.LocalReferenceExpression, Type: System.Int32*) (Syntax: 'p2')";
+                            Pointer: ILocalReferenceExpression: p2 (OperationKind.LocalReferenceExpression, Type: System.Int32*) (Syntax: 'p2')
+";
+
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<FixedStatementSyntax>(source, expectedOperationTree, expectedDiagnostics,
