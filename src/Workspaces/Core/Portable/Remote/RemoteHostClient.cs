@@ -98,57 +98,24 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public abstract class Connection : IDisposable
         {
-            // this will be removed soon.
-            protected readonly CancellationToken CancellationToken;
-
-            // scope will be also removed from the connection
-            private readonly object _gate;
-            private PinnedRemotableDataScope _scopeDoNotAccessDirectly;
-
             private bool _disposed;
 
-            protected Connection(CancellationToken cancellationToken)
+            protected Connection()
             {
-                _gate = new object();
-
                 _disposed = false;
-                _scopeDoNotAccessDirectly = null;
-
-                CancellationToken = cancellationToken;
             }
 
             protected abstract Task OnRegisterPinnedRemotableDataScopeAsync(PinnedRemotableDataScope scope);
 
-            public PinnedRemotableDataScope PinnedRemotableDataScope
-            {
-                get
-                {
-                    lock (_gate)
-                    {
-                        return _scopeDoNotAccessDirectly;
-                    }
-                }
-                set
-                {
-                    lock (_gate)
-                    {
-                        _scopeDoNotAccessDirectly = value;
-                    }
-                }
-            }
-
             public virtual Task RegisterPinnedRemotableDataScopeAsync(PinnedRemotableDataScope scope)
             {
-                // make sure all thread can read the info
-                PinnedRemotableDataScope = scope;
-
                 return OnRegisterPinnedRemotableDataScopeAsync(scope);
             }
 
-            public abstract Task InvokeAsync(string targetName, params object[] arguments);
-            public abstract Task<T> InvokeAsync<T>(string targetName, params object[] arguments);
-            public abstract Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync);
-            public abstract Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync);
+            public abstract Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken);
+            public abstract Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken);
+            public abstract Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken);
+            public abstract Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken);
 
             protected virtual void OnDisposed()
             {

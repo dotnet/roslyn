@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -121,8 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         private HostType GetHostType()
         {
-            var projectionBuffer = _containedLanguage.DataBuffer as IProjectionBuffer;
-            if (projectionBuffer != null)
+            if (_containedLanguage.DataBuffer is IProjectionBuffer projectionBuffer)
             {
                 // RazorCSharp has an HTMLX base type but should not be associated with
                 // the HTML host type, so we check for it first.
@@ -527,7 +526,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             SourceText originalText, TextSpan visibleSpanInOriginalText,
             string rightText, TextSpan spanInOriginalText, TextSpan spanInRightText, out TextChange textChange)
         {
-            textChange = default(TextChange);
+            textChange = default;
 
             var visibleFirstLineInOriginalText = originalText.Lines.GetLineFromPosition(visibleSpanInOriginalText.Start);
             var visibleLastLineInOriginalText = originalText.Lines.GetLineFromPosition(visibleSpanInOriginalText.End);
@@ -725,8 +724,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         {
             var subjectBuffer = (IProjectionBuffer)this.GetOpenTextBuffer();
 
-            var projectionDataBuffer = _containedLanguage.DataBuffer as IProjectionBuffer;
-            if (projectionDataBuffer != null)
+            if (_containedLanguage.DataBuffer is IProjectionBuffer projectionDataBuffer)
             {
                 return projectionDataBuffer.CurrentSnapshot
                     .GetSourceSpans()
@@ -982,7 +980,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 }
             }
 
-            return (start <= end) ? TextSpan.FromBounds(start, end + 1) : default(TextSpan);
+            return (start <= end) ? TextSpan.FromBounds(start, end + 1) : default;
         }
 
         private int GetAdditionalIndentation(SyntaxNode root, SourceText text, TextSpan span)

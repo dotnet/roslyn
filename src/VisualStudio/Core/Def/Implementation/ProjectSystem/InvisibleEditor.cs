@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _needsSave = needsSave;
 
             var invisibleEditorManager = (IIntPtrReturningVsInvisibleEditorManager)serviceProvider.GetService(typeof(SVsInvisibleEditorManager));
-            var vsProject = projectOpt?.Hierarchy as IVsProject;
+            var vsProject = TryGetProjectOfHierarchy(projectOpt?.Hierarchy);
             var invisibleEditorPtr = IntPtr.Zero;
             Marshal.ThrowExceptionForHR(invisibleEditorManager.RegisterInvisibleEditor(filePath, vsProject, 0, null, out invisibleEditorPtr));
 
@@ -82,6 +82,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // We need to clean up the extra reference we have, now that we have an RCW holding onto the object.
                 Marshal.Release(invisibleEditorPtr);
             }
+        }
+
+        private IVsProject TryGetProjectOfHierarchy(IVsHierarchy hierarchyOpt)
+        {
+            // The invisible editor manager will fail in cases where the IVsProject passed to it is not consistent with
+            // the IVsProject known to IVsSolution (e.g. if the object is a wrapper like AbstractHostObject created by
+            // the CPS-based project system). This method returns an IVsProject instance known to the solution, or null
+            // if the project could not be determined.
+            if (hierarchyOpt == null)
+            {
+                return null;
+            }
+
+            if (!ErrorHandler.Succeeded(hierarchyOpt.GetGuidProperty(
+                (uint)VSConstants.VSITEMID.Root,
+                (int)__VSHPROPID.VSHPROPID_ProjectIDGuid,
+                out var projectId)))
+            {
+                return null;
+            }
+
+            var solution = (IVsSolution)_serviceProvider.GetService(typeof(SVsSolution));
+            if (!ErrorHandler.Succeeded(solution.GetProjectOfGuid(projectId, out var projectHierarchy)))
+            {
+                return null;
+            }
+
+            return projectHierarchy as IVsProject;
         }
 
         public IVsTextLines VsTextLines
@@ -153,9 +181,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+#pragma warning disable CA1821 // Remove empty Finalizers
+#if DEBUG
         ~InvisibleEditor()
         {
             Debug.Assert(Environment.HasShutdownStarted, GetType().Name + " was leaked without Dispose being called.");
         }
+#endif
+#pragma warning restore CA1821 // Remove empty Finalizers
     }
 }

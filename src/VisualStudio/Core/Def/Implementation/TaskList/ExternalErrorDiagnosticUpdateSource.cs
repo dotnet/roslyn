@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -175,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 // pause live analyzer
                 using (var operation = _notificationService.Start("BuildDone"))
                 {
-                    Func<DiagnosticData, bool> liveDiagnosticChecker = d =>
+                    bool liveDiagnosticChecker(DiagnosticData d)
                     {
                         // REVIEW: we probably need a better design on de-duplicating live and build errors. or don't de-dup at all.
                         //         for now, we are special casing compiler error case.
@@ -201,10 +201,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                         }
 
                         return false;
-                    };
+                    }
 
-                    var diagnosticService = _diagnosticService as DiagnosticAnalyzerService;
-                    if (diagnosticService != null)
+                    if (_diagnosticService is DiagnosticAnalyzerService diagnosticService)
                     {
                         await CleanupAllLiveErrors(diagnosticService, inprogressState.GetProjectsWithoutErrors(inprogressState.Solution)).ConfigureAwait(false);
                         await SyncBuildErrorsAndReportAsync(diagnosticService, inprogressState.Solution, inprogressState.GetLiveDiagnosticsPerProject(liveDiagnosticChecker)).ConfigureAwait(false);
@@ -248,8 +247,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private void ReportBuildErrors<T>(T item, Solution solution, ImmutableArray<DiagnosticData> buildErrors)
         {
-            var projectId = item as ProjectId;
-            if (projectId != null)
+            if (item is ProjectId projectId)
             {
                 RaiseDiagnosticsCreated(projectId, solution, projectId, null, buildErrors);
                 return;
@@ -386,7 +384,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         public bool SupportGetDiagnostics { get { return false; } }
 
         public ImmutableArray<DiagnosticData> GetDiagnostics(
-            Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
+            Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
             return ImmutableArray<DiagnosticData>.Empty;
         }

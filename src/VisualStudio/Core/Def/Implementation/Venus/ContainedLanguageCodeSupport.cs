@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -178,20 +178,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 ? ImmutableArray.Create(syntaxFactory.MemberAccessExpression(
                         objectName != null ? syntaxFactory.IdentifierName(objectName) : syntaxFactory.ThisExpression(),
                         syntaxFactory.IdentifierName(nameOfEvent)))
-                : default(ImmutableArray<SyntaxNode>);
+                : default;
 
             var invokeMethod = ((INamedTypeSymbol)eventType).DelegateInvokeMethod;
             var newMethod = CodeGenerationSymbolFactory.CreateMethodSymbol(
-                attributes: default(ImmutableArray<AttributeData>),
+                attributes: default,
                 accessibility: Accessibility.Protected,
                 modifiers: new DeclarationModifiers(),
                 returnType: targetDocument.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSpecialType(SpecialType.System_Void),
                 returnsByRef: false,
                 explicitInterfaceImplementations: default,
                 name: eventHandlerName,
-                typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
+                typeParameters: default,
                 parameters: invokeMethod.Parameters,
-                statements: default(ImmutableArray<SyntaxNode>),
+                statements: default,
                 handlesExpressions: handlesExpressions);
 
             var annotation = new SyntaxAnnotation();
@@ -249,7 +249,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             CancellationToken cancellationToken)
         {
             targetDocument = null;
-            textSpan = default(VsTextSpan);
+            textSpan = default;
 
             var type = thisDocument.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetTypeByMetadataName(className);
             var member = LookupMemberId(type, uniqueMemberID);

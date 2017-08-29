@@ -254,8 +254,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var parameter = parameterAndProjectId.Symbol;
             var ordinal = parameter.Ordinal;
-            var containingMethod = parameter.ContainingSymbol as IMethodSymbol;
-            if (containingMethod != null)
+            if (parameter.ContainingSymbol is IMethodSymbol containingMethod)
             {
                 var containingType = containingMethod.ContainingType as INamedTypeSymbol;
                 if (containingType.IsDelegateType())

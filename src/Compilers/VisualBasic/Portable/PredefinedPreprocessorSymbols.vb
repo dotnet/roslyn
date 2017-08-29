@@ -1,11 +1,16 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Globalization
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Public Module PredefinedPreprocessorSymbols
 
-        Friend ReadOnly CurrentVersionNumber As Double = Double.Parse(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion().GetErrorName())
+        Friend ReadOnly Property CurrentVersionNumber As Double
+            Get
+                Return Double.Parse(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion().GetErrorName(), CultureInfo.InvariantCulture)
+            End Get
+        End Property
 
         ''' <summary>
         ''' Adds predefined preprocessor symbols VBC_VER and TARGET to given list of preprocessor symbols if not included yet.

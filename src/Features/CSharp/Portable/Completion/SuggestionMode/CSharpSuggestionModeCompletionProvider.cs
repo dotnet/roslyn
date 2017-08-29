@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using System.Threading;
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
     internal class CSharpSuggestionModeCompletionProvider : SuggestionModeCompletionProvider
     {
         protected override async Task<CompletionItem> GetSuggestionModeItemAsync(
-            Document document, int position, TextSpan itemSpan, CompletionTrigger trigger, CancellationToken cancellationToken = default(CancellationToken))
+            Document document, int position, TextSpan itemSpan, CompletionTrigger trigger, CancellationToken cancellationToken = default)
         {
             if (trigger.Kind != CompletionTriggerKind.Snippets)
             {
@@ -166,6 +166,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                 previousToken.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression))
             {
                 return false;
+            }
+
+            // async lambda: 
+            //    Goo(async($$
+            //    Goo(async(p1, $$
+            if (token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken) && token.Parent.IsKind(SyntaxKind.ArgumentList)
+                && token.Parent.Parent is InvocationExpressionSyntax invocation
+                && invocation.Expression is IdentifierNameSyntax identifier)
+            {
+                if (identifier.Identifier.IsKindOrHasMatchingText(SyntaxKind.AsyncKeyword))
+                {
+                    return true;
+                }
             }
 
             // If we're an argument to a function with multiple overloads, 

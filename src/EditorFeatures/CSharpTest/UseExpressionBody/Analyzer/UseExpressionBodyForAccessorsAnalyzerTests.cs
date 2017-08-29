@@ -1,10 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    int Foo
+    int Goo
     {
         get => Bar();
     }
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScript1Async(
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    int Foo => Bar();
+    int Goo => Bar();
 }", parameters: new TestParameters(options: UseExpressionBodyIncludingPropertiesAndIndexers));
         }
 
@@ -100,8 +101,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     int this[int i]
     {
         get => Bar();
-        }
-    }", options: UseExpressionBody);
+    }
+}", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -130,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int Foo
+    int Goo
     {
         set
         {
@@ -140,11 +141,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    int Foo
+    int Goo
     {
         set => [|Bar|]();
-        }
-    }", options: UseExpressionBody);
+    }
+}", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -153,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestMissingAsync(
 @"class C
 {
-    int Foo
+    int Goo
     {
         set => [|Bar|]();
     }
@@ -166,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -176,11 +177,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    int Foo
+    int Goo
     {
         get => throw new NotImplementedException();
-        }
-    }", options: UseExpressionBody);
+    }
+}", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -189,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -199,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    int Foo
+    int Goo
     {
         get => throw new NotImplementedException(); // comment
     }
@@ -212,14 +213,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int Foo
+    int Goo
     {
         get [|=>|] Bar();
     }
 }",
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -235,14 +236,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int Foo
+    int Goo
     {
         set [|=>|] Bar();
         }
     }",
 @"class C
 {
-    int Foo
+    int Goo
     {
         set
         {
@@ -258,14 +259,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int Foo
+    int Goo
     {
         get [|=>|] throw new NotImplementedException();
         }
     }",
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -281,14 +282,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int Foo
+    int Goo
     {
         get [|=>|] throw new NotImplementedException(); // comment
     }
 }",
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -296,6 +297,111 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         }
     }
 }", ignoreTrivia: false, options: UseBlockBodyIncludingPropertiesAndIndexers);
+        }
+
+        [WorkItem(20350, "https://github.com/dotnet/roslyn/issues/20350")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestAccessorListFormatting()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int Goo { get [|=>|] Bar(); }
+}",
+@"class C
+{
+    int Goo
+    {
+        get
+        {
+            return Bar();
+        }
+    }
+}", options: UseBlockBodyIncludingPropertiesAndIndexers, ignoreTrivia: false);
+        }
+
+        [WorkItem(20350, "https://github.com/dotnet/roslyn/issues/20350")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestAccessorListFormatting_FixAll()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int Goo { get {|FixAllInDocument:=>|} Bar(); set => Bar(); }
+}",
+@"class C
+{
+    int Goo
+    {
+        get
+        {
+            return Bar();
+        }
+
+        set
+        {
+            Bar();
+        }
+    }
+}", options: UseBlockBodyIncludingPropertiesAndIndexers, ignoreTrivia: false);
+        }
+
+        [WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfPriorToCSharp7()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    int Goo { get [|=>|] throw new NotImplementedException(); }
+}",
+@"
+using System;
+class C
+{
+    int Goo
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+}", options: UseExpressionBody, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
+        }
+
+        [WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestOfferToConvertToBlockEvenIfExpressionBodyPreferredIfPriorToCSharp7_FixAll()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    int Goo { get {|FixAllInDocument:=>|} throw new NotImplementedException(); }
+    int Bar { get => throw new NotImplementedException(); }
+}",
+@"
+using System;
+class C
+{
+    int Goo
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+    int Bar
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+}", options: UseExpressionBody, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
         }
     }
 }

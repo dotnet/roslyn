@@ -546,7 +546,7 @@ End Class
     End Module
     ]]>.Value
 
-        Private Shared ReadOnly s_commonExpectedOutput_ConditionalMethodsTest As String =
+        Private Const s_commonExpectedOutput_ConditionalMethodsTest As String =
             "Z.PreservedCalls_AppliedConditional_Method" & vbCrLf &
             "Z.PreservedCalls_InheritedConditional_Method" & vbCrLf &
             "Z.PreservedCalls_MultipleConditional_Method" & vbCrLf &
@@ -754,7 +754,7 @@ End Module
 Imports System
 
 Class TestClass
-    WriteOnly Property foo() As String
+    WriteOnly Property goo() As String
         &lt;Diagnostics.Conditional("N")&gt;
         Set(ByVal Value As String)
             Console.WriteLine("Property Called")
@@ -765,7 +765,7 @@ End Class
 Module M1
     Sub Main()
         Dim t As New TestClass()
-        t.foo = "abds"
+        t.goo = "abds"
     End Sub
 End Module
 

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal sealed partial class SyntaxTreeIndex : IObjectWritable
     {
         private const string PersistenceName = "<SyntaxTreeIndex>";
-        private const string SerializationFormat = "9";
+        private const string SerializationFormat = "10";
 
         public readonly Checksum Checksum;
 
@@ -80,14 +80,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // any time the SyntaxTree could have changed.  Right now, that can only happen if the
             // text of the document changes, or the ParseOptions change.  So we get the checksums
             // for both of those, and merge them together to make the final checksum.
+            var projectChecksumState = await document.Project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+            var parseOptionsChecksum = projectChecksumState.ParseOptions;
 
             var documentChecksumState = await document.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
             var textChecksum = documentChecksumState.Text;
-
-            var parseOptions = document.Project.ParseOptions;
-            var serializer = new Serializer(document.Project.Solution.Workspace);
-            var parseOptionsChecksum = ChecksumCache.GetOrCreate(
-                parseOptions, _ => serializer.CreateChecksum(parseOptions, cancellationToken));
 
             return Checksum.Create(WellKnownSynchronizationKind.SyntaxTreeIndex, new[] { textChecksum, parseOptionsChecksum });
         }

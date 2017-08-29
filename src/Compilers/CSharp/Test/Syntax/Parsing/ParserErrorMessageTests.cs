@@ -126,7 +126,13 @@ public class C
     }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_BadMemberProtection, "internal"));
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (4,13): error CS0107: More than one protection modifier
+                //     private internal void f() {}
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "internal").WithLocation(4, 13),
+                // (4,27): error CS0107: More than one protection modifier
+                //     private internal void f() {}
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "f").WithLocation(4, 27));
         }
 
         [Fact, WorkItem(543622, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543622")]
@@ -337,7 +343,7 @@ public class MyClass {
         public void CS0257ERR_VarargsLast()
         {
             var test = @"
-class Foo
+class Goo
 {
   public void Bar(__arglist,  int b)
   {
@@ -369,7 +375,7 @@ public class Test
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial"));
+            CreateStandardCompilation(test).VerifyDiagnostics();
         }
 
         [Fact]
@@ -379,39 +385,59 @@ public class Test
 partial enum E { }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial"));
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // partial enum E { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(2, 14));
         }
 
         [Fact]
-        public void CS0267ERR_PartialMisplaced_Delegate()
+        public void CS0267ERR_PartialMisplaced_Delegate1()
         {
             var test = @"
 partial delegate E { }
 ";
 
             // Extra errors
-            ParseAndValidate(test,
-    // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
-    // partial delegate E { }
-    Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial"),
-    // (2,20): error CS1001: Identifier expected
-    // partial delegate E { }
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, "{"),
-    // (2,20): error CS1003: Syntax error, '(' expected
-    // partial delegate E { }
-    Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("(", "{"),
-    // (2,20): error CS1026: ) expected
-    // partial delegate E { }
-    Diagnostic(ErrorCode.ERR_CloseParenExpected, "{"),
-    // (2,20): error CS1002: ; expected
-    // partial delegate E { }
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "{"),
-    // (2,20): error CS1022: Type or namespace definition, or end-of-file expected
-    // partial delegate E { }
-    Diagnostic(ErrorCode.ERR_EOFExpected, "{"),
-    // (2,22): error CS1022: Type or namespace definition, or end-of-file expected
-    // partial delegate E { }
-    Diagnostic(ErrorCode.ERR_EOFExpected, "}"));
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (2,20): error CS1001: Identifier expected
+                // partial delegate E { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(2, 20),
+                // (2,20): error CS1003: Syntax error, '(' expected
+                // partial delegate E { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("(", "{").WithLocation(2, 20),
+                // (2,20): error CS1026: ) expected
+                // partial delegate E { }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(2, 20),
+                // (2,20): error CS1002: ; expected
+                // partial delegate E { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(2, 20),
+                // (2,20): error CS1022: Type or namespace definition, or end-of-file expected
+                // partial delegate E { }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(2, 20),
+                // (2,22): error CS1022: Type or namespace definition, or end-of-file expected
+                // partial delegate E { }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(2, 22),
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // partial delegate E { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "").WithLocation(2, 20),
+                // (2,18): error CS0246: The type or namespace name 'E' could not be found (are you missing a using directive or an assembly reference?)
+                // partial delegate E { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "E").WithArguments("E").WithLocation(2, 18));
+        }
+
+        [Fact]
+        public void CS0267ERR_PartialMisplaced_Delegate2()
+        {
+            var test = @"
+partial delegate void E();
+";
+
+            // Extra errors
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // partial delegate void E();
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(2, 23));
         }
 
         // TODO: Extra errors
@@ -1393,7 +1419,211 @@ namespace x {
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public"));
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (6,16): error CS1004: Duplicate 'public' modifier
+                //         public public static int Main()    // CS1004, two public keywords
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(6, 16),
+                // (5,13): warning CS0169: The field 'clx.i' is never used
+                //         int i;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("x.clx.i").WithLocation(5, 13));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier1()
+        {
+            var test = @"
+class C 
+{
+    public public C()
+    {
+    }
+}";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (4,12): error CS1004: Duplicate 'public' modifier
+                //     public public C()
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(4, 12));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier2()
+        {
+            var test = @"
+class C 
+{
+    public public ~C()
+    {
+    }
+}";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (4,12): error CS1004: Duplicate 'public' modifier
+                //     public public ~C()
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(4, 12),
+                // (4,20): error CS0106: The modifier 'public' is not valid for this item
+                //     public public ~C()
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("public").WithLocation(4, 20));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier3()
+        {
+            var test = @"
+class C 
+{
+    public public int x;
+}";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (4,12): error CS1004: Duplicate 'public' modifier
+                //     public public int x;
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(4, 12),
+                // (4,23): warning CS0649: Field 'C.x' is never assigned to, and will always have its default value 0
+                //     public public int x;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("C.x", "0").WithLocation(4, 23));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier4()
+        {
+            var test = @"
+class C 
+{
+    public public int P { get; }
+}";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (4,12): error CS1004: Duplicate 'public' modifier
+                //     public public int P { get; }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(4, 12));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier5()
+        {
+            var test = @"
+class C 
+{
+    public public static implicit operator int(C c) => 0;
+}";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (4,12): error CS1004: Duplicate 'public' modifier
+                //     public public static implicit operator int(C c) => 0;
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(4, 12));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier6()
+        {
+            var test = @"
+class C 
+{
+    public public static int operator +(C c1, C c2) => 0;
+}";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (4,12): error CS1004: Duplicate 'public' modifier
+                //     public public static int operator +(C c1, C c2) => 0;
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(4, 12));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier7()
+        {
+            var test = @"
+class C 
+{
+    public int P { get; private private set; }
+}";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (4,33): error CS1004: Duplicate 'private' modifier
+                //     public int P { get; private private set; }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "private").WithArguments("private").WithLocation(4, 33));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier8()
+        {
+            var test = @"
+class C 
+{
+    public public int this[int i] => 0;
+}";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (4,12): error CS1004: Duplicate 'public' modifier
+                //     public public int this[int i] => 0;
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(4, 12));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier9()
+        {
+            var test = @"
+public public class C 
+{
+}";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (2,8): error CS1004: Duplicate 'public' modifier
+                // public public class C 
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(2, 8));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier10()
+        {
+            var test = @"
+public public interface I
+{
+}";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (2,8): error CS1004: Duplicate 'public' modifier
+                // public public interface I
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(2, 8));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier11()
+        {
+            var test = @"
+public public enum E
+{
+}";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (2,8): error CS1004: Duplicate 'public' modifier
+                // public public enum E
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(2, 8));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier12()
+        {
+            var test = @"
+public public struct S
+{
+}";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (2,8): error CS1004: Duplicate 'public' modifier
+                // public public struct S
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(2, 8));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier13()
+        {
+            var test = @"
+public public delegate void D();";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (2,8): error CS1004: Duplicate 'public' modifier
+                // public public delegate void D();
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(2, 8));
         }
 
         [Fact]
@@ -1709,12 +1939,12 @@ public class Test
             var test = @"
 namespace x
 {
-    class FooAttribute : System.Attribute
+    class GooAttribute : System.Attribute
     {
         public int a;
     }
 
-    [Foo(a=5, b)]
+    [Goo(a=5, b)]
     class Bar
     {
     }
@@ -1728,14 +1958,14 @@ namespace x
 }";
             CreateStandardCompilation(test).VerifyDiagnostics(
                 // (9,15): error CS1016: Named attribute argument expected
-                //     [Foo(a=5, b)]
+                //     [Goo(a=5, b)]
                 Diagnostic(ErrorCode.ERR_NamedArgumentExpected, "b").WithLocation(9, 15),
                 // (9,15): error CS0103: The name 'b' does not exist in the current context
-                //     [Foo(a=5, b)]
+                //     [Goo(a=5, b)]
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(9, 15),
-                //(9,6): error CS1729: 'FooAttribute' does not contain a constructor that takes 1 arguments
-                //     [Foo(a=5, b)]
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Foo(a=5, b)").WithArguments("x.FooAttribute", "1").WithLocation(9, 6));
+                //(9,6): error CS1729: 'GooAttribute' does not contain a constructor that takes 1 arguments
+                //     [Goo(a=5, b)]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Goo(a=5, b)").WithArguments("x.GooAttribute", "1").WithLocation(9, 6));
         }
 
         [Fact]
@@ -2848,68 +3078,68 @@ using System;
 public static class Extensions
 {
     //No type parameters
-    public static void Foo1(this ref int i) {}
+    public static void Goo1(this ref int i) {}
     //Single type parameter
-    public static void Foo1<T>(this ref T t) where T : struct {}
+    public static void Goo1<T>(this ref T t) where T : struct {}
     //Multiple type parameters
-    public static void Foo1<T,U,V>(this ref U u) where U : struct {}
+    public static void Goo1<T,U,V>(this ref U u) where U : struct {}
 }
 public static class GenExtensions<X> where X : struct
 {
     //No type parameters
-    public static void Foo2(this ref int i) {}
-    public static void Foo2(this ref X x) {}
+    public static void Goo2(this ref int i) {}
+    public static void Goo2(this ref X x) {}
     //Single type parameter
-    public static void Foo2<T>(this ref T t) where T : struct {}
-    public static void Foo2<T>(this ref X x) {}
+    public static void Goo2<T>(this ref T t) where T : struct {}
+    public static void Goo2<T>(this ref X x) {}
     //Multiple type parameters
-    public static void Foo2<T,U,V>(this ref U u) where U : struct {}
-    public static void Foo2<T,U,V>(this ref X x) {}
+    public static void Goo2<T,U,V>(this ref U u) where U : struct {}
+    public static void Goo2<T,U,V>(this ref X x) {}
 }
 ";
 
             CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
                 // (10,41): error CS8404:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
-                //     public static void Foo1<T,U,V>(this ref U u) {}
+                //     public static void Goo1<T,U,V>(this ref U u) {}
                 Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(10, 41),
                 // (22,41): error CS8416:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
-                //     public static void Foo2<T,U,V>(this ref X x) {}
+                //     public static void Goo2<T,U,V>(this ref X x) {}
                 Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(22, 41),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
                 // (8,37): error CS8416:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
-                //     public static void Foo1<T>(this ref T t) {}
+                //     public static void Goo1<T>(this ref T t) {}
                 Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(8, 37),
                 // (16,34): error CS8416:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
-                //     public static void Foo2(this ref X x) {}
+                //     public static void Goo2(this ref X x) {}
                 Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(16, 34),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
                 // (6,34): error CS8416:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
-                //     public static void Foo1(this ref int i) {}
+                //     public static void Goo1(this ref int i) {}
                 Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(6, 34),
                 // (18,37): error CS8416:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
-                //     public static void Foo2<T>(this ref T t) {}
+                //     public static void Goo2<T>(this ref T t) {}
                 Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(18, 37),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
                 // (19,37): error CS8416:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
-                //     public static void Foo2<T>(this ref X x) {}
+                //     public static void Goo2<T>(this ref X x) {}
                 Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(19, 37),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
                 // (21,41): error CS8416:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
-                //     public static void Foo2<T,U,V>(this ref U u) {}
+                //     public static void Goo2<T,U,V>(this ref U u) {}
                 Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(21, 41),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
                 // (15,34): error CS8416:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
-                //     public static void Foo2(this ref int i) {}
+                //     public static void Goo2(this ref int i) {}
                 Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(15, 34),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
@@ -2942,23 +3172,23 @@ using System;
 public static class Extensions
 {
     //No type parameters
-    public static void Foo(this out int i) {}
+    public static void Goo(this out int i) {}
     //Single type parameter
-    public static void Foo<T>(this out T t) {}
+    public static void Goo<T>(this out T t) {}
     //Multiple type parameters
-    public static void Foo<T,U,V>(this out U u) {}
+    public static void Goo<T,U,V>(this out U u) {}
 }
 public static class GenExtensions<X>
 {
     //No type parameters
-    public static void Foo(this out int i) {}
-    public static void Foo(this out X x) {}
+    public static void Goo(this out int i) {}
+    public static void Goo(this out X x) {}
     //Single type parameter
-    public static void Foo<T>(this out T t) {}
-    public static void Foo<T>(this out X x) {}
+    public static void Goo<T>(this out T t) {}
+    public static void Goo<T>(this out X x) {}
     //Multiple type parameters
-    public static void Foo<T,U,V>(this out U u) {}
-    public static void Foo<T,U,V>(this out X x) {}
+    public static void Goo<T,U,V>(this out U u) {}
+    public static void Goo<T,U,V>(this out X x) {}
 }
 ";
 
@@ -3121,71 +3351,71 @@ using System;
 public static class Extensions
 {
     //No type parameters
-    public static void Foo(this params int[] iArr) {}
+    public static void Goo(this params int[] iArr) {}
     //Single type parameter
-    public static void Foo<T>(this params T[] tArr) {}
+    public static void Goo<T>(this params T[] tArr) {}
     //Multiple type parameters
-    public static void Foo<T,U,V>(this params U[] uArr) {}
+    public static void Goo<T,U,V>(this params U[] uArr) {}
 }
 public static class GenExtensions<X>
 {
     //No type parameters
-    public static void Foo(this params int[] iArr) {}
-    public static void Foo(this params X[] xArr) {}
+    public static void Goo(this params int[] iArr) {}
+    public static void Goo(this params X[] xArr) {}
     //Single type parameter
-    public static void Foo<T>(this params T[] tArr) {}
-    public static void Foo<T>(this params X[] xArr) {}
+    public static void Goo<T>(this params T[] tArr) {}
+    public static void Goo<T>(this params X[] xArr) {}
     //Multiple type parameters
-    public static void Foo<T,U,V>(this params U[] uArr) {}
-    public static void Foo<T,U,V>(this params X[] xArr) {}
+    public static void Goo<T,U,V>(this params U[] uArr) {}
+    public static void Goo<T,U,V>(this params X[] xArr) {}
 }
 ";
 
             CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
                 // (22,40): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
-                //     public static void Foo<T,U,V>(this params X[] xArr) {}
+                //     public static void Goo<T,U,V>(this params X[] xArr) {}
                 Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(22, 40),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
                 // (16,33): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
-                //     public static void Foo(this params X[] xArr) {}
+                //     public static void Goo(this params X[] xArr) {}
                 Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(16, 33),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
                 // (18,36): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
-                //     public static void Foo<T>(this params T[] tArr) {}
+                //     public static void Goo<T>(this params T[] tArr) {}
                 Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(18, 36),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
                 // (19,36): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
-                //     public static void Foo<T>(this params X[] xArr) {}
+                //     public static void Goo<T>(this params X[] xArr) {}
                 Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(19, 36),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
                 // (21,40): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
-                //     public static void Foo<T,U,V>(this params U[] uArr) {}
+                //     public static void Goo<T,U,V>(this params U[] uArr) {}
                 Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(21, 40),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
                 // (15,33): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
-                //     public static void Foo(this params int[] iArr) {}
+                //     public static void Goo(this params int[] iArr) {}
                 Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(15, 33),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
                 // (10,40): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
-                //     public static void Foo<T,U,V>(this params U[] uArr) {}
+                //     public static void Goo<T,U,V>(this params U[] uArr) {}
                 Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(10, 40),
                 // (8,36): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
-                //     public static void Foo<T>(this params T[] tArr) {}
+                //     public static void Goo<T>(this params T[] tArr) {}
                 Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(8, 36),
                 // (6,33): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
-                //     public static void Foo(this params int[] iArr) {}
+                //     public static void Goo(this params int[] iArr) {}
                 Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(6, 33));
         }
 
@@ -3197,35 +3427,35 @@ using System;
 public static class Extensions
 {
     //Extension methods
-    public static void Foo(this this t) {}
-    public static void Foo(this int this) {}
+    public static void Goo(this this t) {}
+    public static void Goo(this int this) {}
     //Non-extension methods
-    public static void Foo(this t) {}
-    public static void Foo(int this) {}
+    public static void Goo(this t) {}
+    public static void Goo(int this) {}
 }
 ";
             CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
-                // (10,32): error CS1100: Method 'Foo' has a parameter modifier 'this' which is not on the first parameter
-                //     public static void Foo(int this) {}
-                Diagnostic(ErrorCode.ERR_BadThisParam, "this").WithArguments("Foo").WithLocation(10, 32),
-                // (7,37): error CS1100: Method 'Foo' has a parameter modifier 'this' which is not on the first parameter
-                //     public static void Foo(this int this) {}
-                Diagnostic(ErrorCode.ERR_BadThisParam, "this").WithArguments("Foo").WithLocation(7, 37),
+                // (10,32): error CS1100: Method 'Goo' has a parameter modifier 'this' which is not on the first parameter
+                //     public static void Goo(int this) {}
+                Diagnostic(ErrorCode.ERR_BadThisParam, "this").WithArguments("Goo").WithLocation(10, 32),
+                // (7,37): error CS1100: Method 'Goo' has a parameter modifier 'this' which is not on the first parameter
+                //     public static void Goo(this int this) {}
+                Diagnostic(ErrorCode.ERR_BadThisParam, "this").WithArguments("Goo").WithLocation(7, 37),
                 // (9,33): error CS0246: The type or namespace name 't' could not be found (are you missing a using directive or an assembly reference?)
-                //     public static void Foo(this t) {}
+                //     public static void Goo(this t) {}
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "t").WithArguments("t").WithLocation(9, 33),
                 // (6,33): error CS1107: A parameter can only have one 'this' modifier
-                //     public static void Foo(this this t) {}
+                //     public static void Goo(this this t) {}
                 Diagnostic(ErrorCode.ERR_DupParamMod, "this").WithArguments("this").WithLocation(6, 33),
                 // (6,38): error CS0246: The type or namespace name 't' could not be found (are you missing a using directive or an assembly reference?)
-                //     public static void Foo(this this t) {}
+                //     public static void Goo(this this t) {}
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "t").WithArguments("t").WithLocation(6, 38),
-                // (9,24): error CS0111: Type 'Extensions' already defines a member called 'Foo' with the same parameter types
-                //     public static void Foo(this t) {}
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Foo").WithArguments("Foo", "Extensions").WithLocation(9, 24),
-                // (10,24): error CS0111: Type 'Extensions' already defines a member called 'Foo' with the same parameter types
-                //     public static void Foo(int this) {}
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Foo").WithArguments("Foo", "Extensions").WithLocation(10, 24));
+                // (9,24): error CS0111: Type 'Extensions' already defines a member called 'Goo' with the same parameter types
+                //     public static void Goo(this t) {}
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Goo").WithArguments("Goo", "Extensions").WithLocation(9, 24),
+                // (10,24): error CS0111: Type 'Extensions' already defines a member called 'Goo' with the same parameter types
+                //     public static void Goo(int this) {}
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Goo").WithArguments("Goo", "Extensions").WithLocation(10, 24));
         }
 
         [WorkItem(863405, "DevDiv/Personal")]
@@ -3237,23 +3467,23 @@ using System;
 public static class Extensions
 {
     //No type parameters
-    public static void Foo(ref out int i) {}
+    public static void Goo(ref out int i) {}
     //Single type parameter
-    public static void Foo<T>(ref out T t) {}
+    public static void Goo<T>(ref out T t) {}
     //Multiple type parameters
-    public static void Foo<T,U,V>(ref out U u) {}
+    public static void Goo<T,U,V>(ref out U u) {}
 }
 public static class GenExtensions<X>
 {
     //No type parameters
-    public static void Foo(ref out int i) {}
-    public static void Foo(ref out X x) {}
+    public static void Goo(ref out int i) {}
+    public static void Goo(ref out X x) {}
     //Single type parameter
-    public static void Foo<T>(ref out T t) {}
-    public static void Foo<T>(ref out X x) {}
+    public static void Goo<T>(ref out T t) {}
+    public static void Goo<T>(ref out X x) {}
     //Multiple type parameters
-    public static void Foo<T,U,V>(ref out U u) {}
-    public static void Foo<T,U,V>(ref out X x) {}
+    public static void Goo<T,U,V>(ref out U u) {}
+    public static void Goo<T,U,V>(ref out X x) {}
 }
 ";
 
@@ -4053,7 +4283,7 @@ namespace nms
 {
     void M()
     {
-        void.Foo();
+        void.Goo();
     }
 }";
 
@@ -4353,16 +4583,16 @@ class MyClass {
             var test = @"
 class Test
 {    
-    public void foo(void){}
+    public void goo(void){}
 }
 ";
 
             ParseAndValidate(test,
     // (4,21): error CS1536: Invalid parameter type 'void'
-    //     public void foo(void){}
+    //     public void goo(void){}
     Diagnostic(ErrorCode.ERR_NoVoidParameter, "void"),
     // (4,25): error CS1001: Identifier expected
-    //     public void foo(void){}
+    //     public void goo(void){}
     Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"));
         }
 
@@ -4461,8 +4691,8 @@ public class MyClass {
         {
             // Extra errors
             var test = @"
-class foo {
-    public static int implicit operator (foo f) { return 6; }    // Error
+class goo {
+    public static int implicit operator (goo f) { return 6; }    // Error
 }
 public class MainClass
     {
@@ -4475,34 +4705,34 @@ public class MainClass
 
             ParseAndValidate(test, TestOptions.Regular,
                 // (3,19): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
-                //     public static int implicit operator (foo f) { return 6; }    // Error
+                //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(3, 19),
                 // (3,23): error CS1003: Syntax error, 'operator' expected
-                //     public static int implicit operator (foo f) { return 6; }    // Error
+                //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator", "implicit").WithLocation(3, 23),
                 // (3,23): error CS1019: Overloadable unary operator expected
-                //     public static int implicit operator (foo f) { return 6; }    // Error
+                //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "implicit").WithLocation(3, 23),
                 // (3,32): error CS1003: Syntax error, '(' expected
-                //     public static int implicit operator (foo f) { return 6; }    // Error
+                //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("(", "operator").WithLocation(3, 32),
                 // (3,32): error CS1041: Identifier expected; 'operator' is a keyword
-                //     public static int implicit operator (foo f) { return 6; }    // Error
+                //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(3, 32),
                 // (3,47): error CS8124: Tuple must contain at least two elements.
-                //     public static int implicit operator (foo f) { return 6; }    // Error
+                //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 47),
                 // (3,49): error CS1001: Identifier expected
-                //     public static int implicit operator (foo f) { return 6; }    // Error
+                //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(3, 49),
                 // (3,49): error CS1003: Syntax error, ',' expected
-                //     public static int implicit operator (foo f) { return 6; }    // Error
+                //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(3, 49),
                 // (3,61): error CS1026: ) expected
-                //     public static int implicit operator (foo f) { return 6; }    // Error
+                //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(3, 61),
                 // (3,61): error CS1002: ; expected
-                //     public static int implicit operator (foo f) { return 6; }    // Error
+                //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(3, 61),
                 // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
@@ -4515,8 +4745,8 @@ public class MainClass
         {
             // Extra errors
             var test = @"
-class foo {
-    public static int implicit operator (foo f) { return 6; }    // Error
+class goo {
+    public static int implicit operator (goo f) { return 6; }    // Error
 }
 public class MainClass
     {
@@ -4529,37 +4759,37 @@ public class MainClass
 
             ParseAndValidate(test, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6),
                 // (3,19): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
-                //     public static int implicit operator (foo f) { return 6; }    // Error
+                //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(3, 19),
                 // (3,23): error CS1003: Syntax error, 'operator' expected
-                //     public static int implicit operator (foo f) { return 6; }    // Error
+                //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator", "implicit").WithLocation(3, 23),
                 // (3,23): error CS1019: Overloadable unary operator expected
-                //     public static int implicit operator (foo f) { return 6; }    // Error
+                //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "implicit").WithLocation(3, 23),
                 // (3,32): error CS1003: Syntax error, '(' expected
-                //     public static int implicit operator (foo f) { return 6; }    // Error
+                //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("(", "operator").WithLocation(3, 32),
                 // (3,32): error CS1041: Identifier expected; 'operator' is a keyword
-                //     public static int implicit operator (foo f) { return 6; }    // Error
+                //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(3, 32),
                 // (3,41): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
-                //     public static int implicit operator (foo f) { return 6; }    // Error
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(foo f)").WithArguments("tuples", "7.0").WithLocation(3, 41),
+                //     public static int implicit operator (goo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(goo f)").WithArguments("tuples", "7.0").WithLocation(3, 41),
                 // (3,47): error CS8124: Tuple must contain at least two elements.
-                //     public static int implicit operator (foo f) { return 6; }    // Error
+                //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 47),
                 // (3,49): error CS1001: Identifier expected
-                //     public static int implicit operator (foo f) { return 6; }    // Error
+                //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(3, 49),
                 // (3,49): error CS1003: Syntax error, ',' expected
-                //     public static int implicit operator (foo f) { return 6; }    // Error
+                //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(3, 49),
                 // (3,61): error CS1026: ) expected
-                //     public static int implicit operator (foo f) { return 6; }    // Error
+                //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(3, 61),
                 // (3,61): error CS1002: ; expected
-                //     public static int implicit operator (foo f) { return 6; }    // Error
+                //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(3, 61),
                 // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
@@ -4572,8 +4802,8 @@ public class MainClass
         {
             // Diff errors: CS1003, 1031 etc. (8 errors)
             var test = @"
-class foo {
-    public static operator ++ foo (foo f) { return new foo(); }    // Error
+class goo {
+    public static operator ++ goo (goo f) { return new goo(); }    // Error
 }
 public class MainClass
     {
@@ -4645,6 +4875,72 @@ unsafe public class Test
 }
 ";
             CreateStandardCompilation(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).GetParseDiagnostics().Verify();
+        }
+
+        [Fact]
+        public void CS1575ERR_BadStackAllocExpr3()
+        {
+            // Diff errors
+            var test = @"
+unsafe public class Test
+{
+    void M()
+    {
+        const int* p = stackalloc int[1];
+    }
+}
+";
+            CreateStandardCompilation(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
+                // (6,15): error CS0283: The type 'int*' cannot be declared const
+                //         const int* p = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_BadConstType, "int*").WithArguments("int*").WithLocation(6, 15)
+            );
+        }
+        
+        [Fact]
+        public void CS1674ERR_StackAllocInUsing1()
+        {
+            // Diff errors
+            var test = @"
+public class Test
+{
+    unsafe public static void Main()
+    {
+        using (var v = stackalloc int[1])
+        {
+        }
+    }
+}
+";
+            CreateStandardCompilation(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
+                // (6,16): error CS1674: 'int*': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                //         using (var v = stackalloc int[1])
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v = stackalloc int[1]").WithArguments("int*").WithLocation(6, 16));
+        }
+
+        [Fact]
+        public void CS0029ERR_StackAllocInUsing2()
+        {
+            // Diff errors
+            var test = @"
+public class Test
+{
+    unsafe public static void Main()
+    {
+        using (System.IDisposable v = stackalloc int[1])
+        {
+        }
+    }
+}
+";
+            CreateStandardCompilation(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
+                // (6,39): error CS0518: Predefined type 'System.Span`1' is not defined or imported
+                //         using (System.IDisposable v = stackalloc int[1])
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "stackalloc int[1]").WithArguments("System.Span`1").WithLocation(6, 39),
+                // (6,39): error CS8520: Conversion of a stackalloc expression of type 'int' to type 'IDisposable' is not possible.
+                //         using (System.IDisposable v = stackalloc int[1])
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[1]").WithArguments("int", "System.IDisposable").WithLocation(6, 39)
+             );
         }
 
         [WorkItem(906993, "DevDiv/Personal")]
@@ -5158,13 +5454,22 @@ namespace N1
 ";
 
             // Native compiler : CS1003
-            ParseAndValidate(test,
-    // (6,15): error CS7000: Unexpected use of an aliased name
-    //     namespace N1Alias::N2 {}
-    Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "N1Alias::N2"),
-    // (12,22): error CS7000: Unexpected use of an aliased name
-    //             N1.global::Test.M1();
-    Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "::"));
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (12,22): error CS7000: Unexpected use of an aliased name
+                //             N1.global::Test.M1();
+                Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "::").WithLocation(12, 22),
+                // (6,15): error CS7000: Unexpected use of an aliased name
+                //     namespace N1Alias::N2 {}
+                Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "N1Alias::N2").WithLocation(6, 15),
+                // (12,13): error CS0234: The type or namespace name 'global' does not exist in the namespace 'N1' (are you missing an assembly reference?)
+                //             N1.global::Test.M1();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "N1.global").WithArguments("global", "N1").WithLocation(12, 13),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using N1Alias = N1;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N1Alias = N1;").WithLocation(2, 1),
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(1, 1));
         }
 
         [Fact]
@@ -5304,7 +5609,7 @@ partial class C
             var text = @"
 class C
 {
-    partial int Foo() { }
+    partial int Goo() { }
 }
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
@@ -5313,7 +5618,7 @@ class C
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
                 // (4,5): error CS8023: Feature 'partial method' is not available in C# 2. Please use language version 3 or greater.
-                //     partial int Foo() { }
+                //     partial int Goo() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "partial").WithArguments("partial method", "3"));
         }
 
@@ -5323,7 +5628,7 @@ class C
             var text = @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         var q = from a in b
                 select c;
@@ -5349,7 +5654,7 @@ class C
             var text = @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         var q = new { };
     }
@@ -5371,7 +5676,7 @@ class C
             var text = @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         var q = new [] { };
     }
@@ -5393,9 +5698,9 @@ class C
             var text = @"
 class C
 {
-    void Foo()
+    void Goo()
     {
-        var q = new Foo { };
+        var q = new Goo { };
     }
 }
 ";
@@ -5405,7 +5710,7 @@ class C
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
                 // (6,25): error CS8023: Feature 'object initializer' is not available in C# 2. Please use language version 3 or greater.
-                //         var q = new Foo { };
+                //         var q = new Goo { };
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "{").WithArguments("object initializer", "3"));
         }
 
@@ -5415,7 +5720,7 @@ class C
             var text = @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         var q = a => b;
     }
@@ -5729,7 +6034,7 @@ class MyClass
             var test = @"
 public class Class1 
 {
-    int Meth2 (int parm) {[Foo(5)]return 0;}
+    int Meth2 (int parm) {[Goo(5)]return 0;}
 }
 ";
             ParseAndValidate(test,
@@ -5995,14 +6300,14 @@ class C
 {
     void M() 
     {
-        return new C { Foo = 1 }; 
+        return new C { Goo = 1 }; 
     }
 }
 ";
             SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3)).GetDiagnostics().Verify();
             SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2)).GetDiagnostics().Verify(
                 // (6,22): error CS8023: Feature 'object initializer' is not available in C# 2. Please use language version 3 or greater.
-                //         return new C { Foo = 1 }; 
+                //         return new C { Goo = 1 }; 
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "{").WithArguments("object initializer", "3"));
         }
 
@@ -6049,24 +6354,24 @@ class C
         public void CrefAliasQualifiedNameBeforeCSharp2()
         {
             var text = @"
-/// <see cref='Alias::Foo'/>
-/// <see cref='global::Foo'/>
+/// <see cref='Alias::Goo'/>
+/// <see cref='global::Goo'/>
 class C { }
 ";
             // NOTE: This actually causes an internal compiler error in dev12 (probably wasn't expecting an error from cref parsing).
             SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.CSharp2)).GetDiagnostics().Verify();
             SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.CSharp1)).GetDiagnostics().Verify(
-                // (2,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'Alias::Foo'
-                // /// <see cref='Alias::Foo'/>
-                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "Alias::Foo").WithArguments("Alias::Foo"),
+                // (2,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'Alias::Goo'
+                // /// <see cref='Alias::Goo'/>
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "Alias::Goo").WithArguments("Alias::Goo"),
                 // (2,16): warning CS1658: Feature 'namespace alias qualifier' is not available in C# 1. Please use language version 2 or greater.. See also error CS8022.
-                // /// <see cref='Alias::Foo'/>
+                // /// <see cref='Alias::Goo'/>
                 Diagnostic(ErrorCode.WRN_ErrorOverride, "Alias").WithArguments("Feature 'namespace alias qualifier' is not available in C# 1. Please use language version 2 or greater.", "8022"),
-                // (3,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'global::Foo'
-                // /// <see cref='global::Foo'/>
-                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "global::Foo").WithArguments("global::Foo"),
+                // (3,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'global::Goo'
+                // /// <see cref='global::Goo'/>
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "global::Goo").WithArguments("global::Goo"),
                 // (3,16): warning CS1658: Feature 'namespace alias qualifier' is not available in C# 1. Please use language version 2 or greater.. See also error CS8022.
-                // /// <see cref='global::Foo'/>
+                // /// <see cref='global::Goo'/>
                 Diagnostic(ErrorCode.WRN_ErrorOverride, "global").WithArguments("Feature 'namespace alias qualifier' is not available in C# 1. Please use language version 2 or greater.", "8022"));
         }
 
@@ -6127,7 +6432,7 @@ class C
         public void CSharp6Features()
         {
             var source =
-@"class Foo
+@"class Goo
 {
     int L { get; } = 12; // auto property initializer
 
@@ -6137,9 +6442,9 @@ class C
 
     int this[int a] => a + 1; // expression-bodied indexer
     
-    public static int operator +(Foo a, Foo b) => null; // expression-bodied operator
+    public static int operator +(Goo a, Goo b) => null; // expression-bodied operator
     
-    public static explicit operator bool(Foo a) => false; // expression-bodied conversion operator
+    public static explicit operator bool(Goo a) => false; // expression-bodied conversion operator
 
     void P(object o)
     {
@@ -6167,10 +6472,10 @@ class C
     //     int this[int a] => a + 1; // expression-bodied indexer
     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> a + 1").WithArguments("expression-bodied indexer", "6").WithLocation(9, 21),
     // (11,48): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
-    //     public static int operator +(Foo a, Foo b) => null; // expression-bodied operator
+    //     public static int operator +(Goo a, Goo b) => null; // expression-bodied operator
     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> null").WithArguments("expression-bodied method", "6").WithLocation(11, 48),
     // (13,49): error CS8026: Feature 'expression-bodied method' is not available in C# 5. Please use language version 6 or greater.
-    //     public static explicit operator bool(Foo a) => false; // expression-bodied conversion operator
+    //     public static explicit operator bool(Goo a) => false; // expression-bodied conversion operator
     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> false").WithArguments("expression-bodied method", "6").WithLocation(13, 49),
     // (18,32): error CS8026: Feature 'exception filter' is not available in C# 5. Please use language version 6 or greater.
     //         } catch (Exception ex) when (ex.ToString() == null) { // exception filter

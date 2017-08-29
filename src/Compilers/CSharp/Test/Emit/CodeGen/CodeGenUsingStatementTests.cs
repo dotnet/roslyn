@@ -1198,7 +1198,7 @@ class Gen<T> where T : new()
             var source = @"
 class Program
 {
-    static void foo(ref MyManagedClass x, out MyManagedClass y)
+    static void goo(ref MyManagedClass x, out MyManagedClass y)
     {
         using (x)
         {
@@ -1226,7 +1226,7 @@ class Program
             var source = @"
 class Program
 {
-    static void foo()
+    static void goo()
     {
         MyManagedClass res = new MyManagedClass();
         using (res) // Invalid
@@ -1249,7 +1249,7 @@ class Program
             var source = @"
 class Program
 {
-    static void foo()
+    static void goo()
     {
         MyManagedClass res = new MyManagedClass();
         using (res) // Invalid
@@ -1274,7 +1274,7 @@ class Program
 using System;
 class Program
 {
-    static void foo()
+    static void goo()
     {
         MyManagedClass res = new MyManagedClass();
         using (res) 
@@ -1288,7 +1288,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source).VerifyIL("Program.foo", @"
+            CompileAndVerify(source).VerifyIL("Program.goo", @"
 {
   // Code size       19 (0x13)
   .maxstack  1
@@ -1364,7 +1364,7 @@ class Program
 using System;
 class Program
 {
-    static void foo()
+    static void goo()
     {
         MyManagedClass res = new MyManagedClass();
         using (res) 
@@ -1378,7 +1378,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source).VerifyIL("Program.foo", @"
+            CompileAndVerify(source).VerifyIL("Program.goo", @"
 {
   // Code size       19 (0x13)
   .maxstack  1
@@ -2590,7 +2590,7 @@ using System;
 delegate T D1<T>(T t);
 class A1
 {
-    static void Foo<T>(T t) where T : IDisposable
+    static void Goo<T>(T t) where T : IDisposable
     {
         T local = t;
         using (T t1 = ((D1<T>)delegate(T tt) { return t; })(t))

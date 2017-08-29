@@ -275,8 +275,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
             else
             {
-                var viewEx = textView as IVsTextViewEx;
-                if (viewEx != null)
+                if (textView is IVsTextViewEx viewEx)
                 {
                     if (isOpenMetadataAsSource)
                     {

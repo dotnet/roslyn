@@ -426,8 +426,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             while (true)
             {
-                if (!skipVerificationForCurrentNode && ReplacementChangesSemanticsForNode(currentOriginalNode,
-                    currentReplacedNode, previousOriginalNode, previousReplacedNode))
+                if (!skipVerificationForCurrentNode &&
+                    ReplacementChangesSemanticsForNode(
+                        currentOriginalNode, currentReplacedNode,
+                        previousOriginalNode, previousReplacedNode))
                 {
                     return true;
                 }

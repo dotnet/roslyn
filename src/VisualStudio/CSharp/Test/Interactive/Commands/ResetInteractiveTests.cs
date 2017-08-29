@@ -66,7 +66,7 @@ namespace ResetInteractiveTestsDocument
 
             InteractiveWindowTestHost testHost = new InteractiveWindowTestHost();
             List<string> executedSubmissionCalls = new List<string>();
-            EventHandler<string> ExecuteSubmission = (_, code) => { executedSubmissionCalls.Add(code); };
+            void ExecuteSubmission(object _, string code) { executedSubmissionCalls.Add(code); }
 
             testHost.Evaluator.OnExecute += ExecuteSubmission;
 

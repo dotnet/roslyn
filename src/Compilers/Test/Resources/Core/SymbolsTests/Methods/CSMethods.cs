@@ -78,5 +78,5 @@ public class DefaultParameterValues
 
 public class MultiDimArrays
 {
-    public static void Foo(int[,] x) { }
+    public static void Goo(int[,] x) { }
 }

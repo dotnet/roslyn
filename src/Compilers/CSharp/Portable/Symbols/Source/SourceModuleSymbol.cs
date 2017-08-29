@@ -188,7 +188,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if ((object)_globalNamespace == null)
                 {
-                    var globalNS = new SourceNamespaceSymbol(this, this, DeclaringCompilation.MergedRootDeclaration);
+                    var diagnostics = DiagnosticBag.GetInstance();
+                    var globalNS = new SourceNamespaceSymbol(
+                        this, this, DeclaringCompilation.MergedRootDeclaration, diagnostics);
+                    Debug.Assert(diagnostics.IsEmptyWithoutResolution);
+                    diagnostics.Free();
                     Interlocked.CompareExchange(ref _globalNamespace, globalNS, null);
                 }
 

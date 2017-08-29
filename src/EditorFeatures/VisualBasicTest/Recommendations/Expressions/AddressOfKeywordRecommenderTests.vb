@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class AddressOfKeywordRecommenderTests
@@ -20,22 +20,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ex
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AddressOfAfterArgument1Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(|</MethodBody>, "AddressOf")
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(|</MethodBody>, "AddressOf")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AddressOfAfterArgument2Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(bar, |</MethodBody>, "AddressOf")
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar, |</MethodBody>, "AddressOf")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AddressOfAfterBinaryExpressionTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(bar + |</MethodBody>, "AddressOf")
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar + |</MethodBody>, "AddressOf")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AddressOfAfterNotTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(Not |</MethodBody>, "AddressOf")
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(Not |</MethodBody>, "AddressOf")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
@@ -109,13 +109,13 @@ Loop Until |</MethodBody>, "AddressOf")
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AddressOfInAddHandlerTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>AddHandler foo, |</MethodBody>, "AddressOf")
+            Await VerifyRecommendationsContainAsync(<MethodBody>AddHandler goo, |</MethodBody>, "AddressOf")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AddressOfInRemoveHandlerTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>RemoveHandler foo, |</MethodBody>, "AddressOf")
+            Await VerifyRecommendationsContainAsync(<MethodBody>RemoveHandler goo, |</MethodBody>, "AddressOf")
         End Function
 
         <WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
@@ -124,10 +124,10 @@ Loop Until |</MethodBody>, "AddressOf")
             Dim code = <ModuleDeclaration><![CDATA[
 Module Program
     Sub Main(args As String())
-        Dim f1 As New Foo2( |
+        Dim f1 As New Goo2( |
     End Sub
  
-    Delegate Sub Foo2()
+    Delegate Sub Goo2()
  
     Function Bar2() As Object
         Return Nothing
@@ -145,7 +145,7 @@ End Module
 Sub Main(args As String())
     Dim d As Func(Of Boolean) = AddressOf |
 End Sub
-Function Foo() As Boolean
+Function Goo() As Boolean
     Return True
 End Function
 ]]></ModuleDeclaration>
@@ -158,9 +158,9 @@ End Function
         Public Async Function AddressOfNotAfterAddressOfInDelegateCreationTest() As Task
             Dim code = <ModuleDeclaration><![CDATA[
 Sub Main(args As String())
-    Dim d As New Foo(AddressOf |
+    Dim d As New Goo(AddressOf |
 End Sub
-Delegate Sub Foo()
+Delegate Sub Goo()
 ]]></ModuleDeclaration>
             Await VerifyRecommendationsMissingAsync(code, "AddressOf")
         End Function
@@ -172,13 +172,13 @@ Delegate Sub Foo()
             Dim code = <ModuleDeclaration><![CDATA[
 Class C
     Sub M(args As String())
-        Dim x As Action = AddressOf Foo2(|
+        Dim x As Action = AddressOf Goo2(|
     End Sub
 
-    Sub Foo()
+    Sub Goo()
     End Sub
 
-    Function Foo2(a As Action) As C
+    Function Goo2(a As Action) As C
         Return New C()
     End Function
 End Class

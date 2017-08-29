@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 
@@ -632,12 +632,12 @@ class Program
     {
         var arr = new int[1];
         var y = arr[0];
-        var z = new Foo {
+        var z = new Goo {
                             A = arr[{|Simplify:(0)|}]
                         };
      }
 }
-class Foo{
+class Goo{
     public int A { get; set; }
 }
         </Document>
@@ -652,12 +652,12 @@ class Program
     {
         var arr = new int[1];
         var y = arr[0];
-        var z = new Foo {
+        var z = new Goo {
                             A = arr[0]
                         };
      }
 }
-class Foo{
+class Goo{
     public int A { get; set; }
 }
 </code>
@@ -822,7 +822,7 @@ class C
         <Document>
 using System.Linq;
 
-class foo
+class goo
 {
     void www()
     {
@@ -841,7 +841,7 @@ class foo
 <code>
 using System.Linq;
 
-class foo
+class goo
 {
     void www()
     {
@@ -1010,7 +1010,7 @@ class C
 
         End Function
 
-        <WorkItem(724, "#724")>
+        <WorkItem(724, "https://github.com/dotnet/roslyn/issues/724")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_SimplifyParenthesesInsideInterpolation3() As Task
             Dim input =
@@ -1043,7 +1043,7 @@ class C
 
         End Function
 
-        <WorkItem(724, "#724")>
+        <WorkItem(724, "https://github.com/dotnet/roslyn/issues/724")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_SimplifyParenthesesInsideInterpolation4() As Task
             Dim input =
@@ -1078,7 +1078,7 @@ class C
 
         End Function
 
-        <WorkItem(724, "#724")>
+        <WorkItem(724, "https://github.com/dotnet/roslyn/issues/724")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_SimplifyParenthesesInsideInterpolation5() As Task
             Dim input =
@@ -1113,7 +1113,7 @@ class C
 
         End Function
 
-        <WorkItem(724, "#724")>
+        <WorkItem(724, "https://github.com/dotnet/roslyn/issues/724")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharp_SimplifyParenthesesInsideInterpolation6() As Task
             Dim input =

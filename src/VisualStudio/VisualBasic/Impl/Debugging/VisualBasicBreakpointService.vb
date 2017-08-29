@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
 Imports System.Threading
@@ -23,7 +23,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
             ' Non-zero length means that the span is passed by the debugger and we may need validate it.
             ' In a rare VB case, this span may contain multiple methods, e.g., 
             '
-            '    [Sub Foo() Handles A
+            '    [Sub Goo() Handles A
             '
             '     End Sub
             '

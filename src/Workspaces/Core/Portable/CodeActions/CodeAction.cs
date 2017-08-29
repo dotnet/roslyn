@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <summary>
         /// used by batch fixer engine to get new solution
         /// </summary>
-        internal async Task<Solution> GetChangedSolutionInternalAsync(bool postProcessChanges = true, CancellationToken cancellationToken = default(CancellationToken))
+        internal async Task<Solution> GetChangedSolutionInternalAsync(bool postProcessChanges = true, CancellationToken cancellationToken = default)
         {
             var solution = await GetChangedSolutionAsync(new ProgressTracker(), cancellationToken).ConfigureAwait(false);
             if (solution == null || !postProcessChanges)
@@ -196,8 +196,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
             foreach (var op in operations)
             {
-                var ac = op as ApplyChangesOperation;
-                if (ac != null)
+                if (op is ApplyChangesOperation ac)
                 {
                     arrayBuilder.Add(new ApplyChangesOperation(await this.PostProcessChangesAsync(ac.ChangedSolution, cancellationToken).ConfigureAwait(false)));
                 }

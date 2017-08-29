@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -281,8 +281,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
             {
                 foreach (var node in symbol.DeclaringSyntaxReferences.Select(d => d.GetSyntax()))
                 {
-                    var declarator = node as VariableDeclaratorSyntax;
-                    if (declarator != null && declarator.Initializer != null)
+                    if (node is VariableDeclaratorSyntax declarator && declarator.Initializer != null)
                     {
                         var model = _compilation.GetSemanticModel(declarator.SyntaxTree);
 
@@ -322,8 +321,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
                     }
 
                     // C# specific (this|base access)
-                    var ctor = node as ConstructorDeclarationSyntax;
-                    if (ctor != null && ctor.Initializer != null)
+                    if (node is ConstructorDeclarationSyntax ctor && ctor.Initializer != null)
                     {
                         foreach (var a in ctor.Initializer.ArgumentList.Arguments)
                         {
@@ -343,8 +341,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
                 foreach (var v in df.VariablesDeclared)
                 {
                     list.Add((Symbol)v);
-                    var local = v as LocalSymbol;
-                    if (local != null && (local.Type.Kind == SymbolKind.ArrayType || local.Type.Kind == SymbolKind.PointerType))
+                    if (v is LocalSymbol local && (local.Type.Kind == SymbolKind.ArrayType || local.Type.Kind == SymbolKind.PointerType))
                     {
                         list.Add(local.Type);
                     }

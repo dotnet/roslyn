@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
@@ -411,12 +411,12 @@ End Namespace
         Public Sub TestComment1()
             Dim code =
 <Code>
-' Foo
+' Goo
 Namespace $$N
 End Namespace
 </Code>
 
-            Dim result = " Foo"
+            Dim result = " Goo"
 
             TestComment(code, result)
         End Sub
@@ -425,13 +425,13 @@ End Namespace
         Public Sub TestComment2()
             Dim code =
 <Code>
-' Foo
+' Goo
 ' Bar
 Namespace $$N
 End Namespace
 </Code>
 
-            Dim result = " Foo" & vbCrLf &
+            Dim result = " Goo" & vbCrLf &
                          " Bar"
 
             TestComment(code, result)
@@ -441,7 +441,7 @@ End Namespace
         Public Sub TestComment3()
             Dim code =
 <Code>
-' Foo
+' Goo
 
 ' Bar
 Namespace $$N
@@ -458,7 +458,7 @@ End Namespace
             Dim code =
 <Code>
 Namespace N1
-End Namespace ' Foo
+End Namespace ' Goo
 
 ' Bar
 Namespace $$N2
@@ -474,7 +474,7 @@ End Namespace
         Public Sub TestComment5()
             Dim code =
 <Code>
-' Foo
+' Goo
 ''' &lt;summary&gt;Bar&lt;/summary&gt;
 Namespace $$N
 End Namespace
@@ -494,7 +494,7 @@ End Namespace
             Dim code =
 <Code>
 ''' &lt;summary&gt;
-''' Foo
+''' Goo
 ''' &lt;/summary&gt;
 ''' &lt;remarks&gt;&lt;/remarks&gt;
 Namespace $$N
@@ -503,7 +503,7 @@ End Namespace
 
             Dim result =
 " <summary>" & vbCrLf &
-" Foo" & vbCrLf &
+" Goo" & vbCrLf &
 " </summary>" & vbCrLf &
 " <remarks></remarks>"
 
@@ -534,7 +534,7 @@ End Namespace
             Dim code =
 <Code>
 ''' &lt;summary&gt;
-''' Foo
+''' Goo
 ''' &lt;/summary&gt;
 ' Bar
 ''' &lt;remarks&gt;&lt;/remarks&gt;
@@ -554,7 +554,7 @@ End Namespace
 <Code>
 Namespace N1
     ''' &lt;summary&gt;
-    ''' Foo
+    ''' Goo
     ''' &lt;/summary&gt;
     ''' &lt;remarks&gt;&lt;/remarks&gt;
     Namespace $$N2
@@ -564,7 +564,7 @@ End Namespace
 
             Dim result =
 " <summary>" & vbCrLf &
-" Foo" & vbCrLf &
+" Goo" & vbCrLf &
 " </summary>" & vbCrLf &
 " <remarks></remarks>"
 
@@ -579,7 +579,7 @@ End Namespace
         Public Async Function TestSetComment1() As Task
             Dim code =
 <Code>
-' Foo
+' Goo
 
 ' Bar
 Namespace $$N
@@ -588,7 +588,7 @@ End Namespace
 
             Dim expected =
 <Code>
-' Foo
+' Goo
 
 Namespace N
 End Namespace
@@ -601,7 +601,7 @@ End Namespace
         Public Async Function TestSetComment2() As Task
             Dim code =
 <Code>
-' Foo
+' Goo
 ''' &lt;summary&gt;Bar&lt;/summary&gt;
 Namespace $$N
 End Namespace
@@ -609,7 +609,7 @@ End Namespace
 
             Dim expected =
 <Code>
-' Foo
+' Goo
 ''' &lt;summary&gt;Bar&lt;/summary&gt;
 ' Bar
 Namespace N
@@ -623,7 +623,7 @@ End Namespace
         Public Async Function TestSetComment3() As Task
             Dim code =
 <Code>
-' Foo
+' Goo
 
 ' Bar
 Namespace $$N
@@ -632,7 +632,7 @@ End Namespace
 
             Dim expected =
 <Code>
-' Foo
+' Goo
 
 ' Blah
 Namespace N
@@ -668,7 +668,7 @@ End Namespace
             Dim code =
 <Code>
 ''' &lt;summary&gt;
-''' Foo
+''' Goo
 ''' &lt;/summary&gt;
 Namespace $$N
 End Namespace
@@ -760,14 +760,14 @@ End Namespace
         Public Async Function TestSetDocComment3() As Task
             Dim code =
 <Code>
-' Foo
+' Goo
 Namespace $$N
 End Namespace
 </Code>
 
             Dim expected =
 <Code>
-' Foo
+' Goo
 ''' &lt;summary&gt;Blah&lt;/summary&gt;
 Namespace N
 End Namespace
@@ -781,7 +781,7 @@ End Namespace
             Dim code =
 <Code>
 ''' &lt;summary&gt;FogBar&lt;/summary&gt;
-' Foo
+' Goo
 Namespace $$N
 End Namespace
 </Code>
@@ -789,7 +789,7 @@ End Namespace
             Dim expected =
 <Code>
 ''' &lt;summary&gt;Blah&lt;/summary&gt;
-' Foo
+' Goo
 Namespace N
 End Namespace
 </Code>
@@ -827,7 +827,7 @@ End Namespace
         Public Async Function TestRemove1() As Task
             Dim code =
 <Code>
-Namespace $$Foo
+Namespace $$Goo
     Class C
     End Class
 End Namespace
@@ -835,7 +835,7 @@ End Namespace
 
             Dim expected =
 <Code>
-Namespace Foo
+Namespace Goo
 End Namespace
 </Code>
 

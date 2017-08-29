@@ -1275,6 +1275,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(value, token.Value);
         }
 
+        [Fact]
+        [Trait("Feature", "Literals")]
         public void TestNumericLiteralWithHugeNumberAndHugeDecimal()
         {
             var value = 12332434234234234234234234324234234234.45623423423423423423423423423423423423;

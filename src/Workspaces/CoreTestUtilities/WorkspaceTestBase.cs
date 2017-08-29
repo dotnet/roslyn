@@ -222,8 +222,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
             catch (Exception e)
             {
-                var agg = e as AggregateException;
-                if (agg != null && agg.InnerExceptions.Count == 1)
+                if (e is AggregateException agg && agg.InnerExceptions.Count == 1)
                 {
                     e = agg.InnerExceptions[0];
                 }

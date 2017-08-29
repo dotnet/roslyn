@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
@@ -132,13 +132,13 @@ class Program
     {
         void Main()
         {
-            [|new C().Foo(4);|]
+            [|new C().Goo(4);|]
         }
     }
 
     class C
     {
-        public void Foo(string y)
+        public void Goo(string y)
         {
         }
     }
@@ -148,7 +148,7 @@ namespace NS2
 {
     static class CExt
     {
-        public static void Foo(this NS1.C c, int x)
+        public static void Goo(this NS1.C c, int x)
         {
         }
     }
@@ -161,13 +161,13 @@ namespace NS1
     {
         void Main()
         {
-            new C().Foo(4);
+            new C().Goo(4);
         }
     }
 
     class C
     {
-        public void Foo(string y)
+        public void Goo(string y)
         {
         }
     }
@@ -177,7 +177,7 @@ namespace NS2
 {
     static class CExt
     {
-        public static void Foo(this NS1.C c, int x)
+        public static void Goo(this NS1.C c, int x)
         {
         }
     }
@@ -196,13 +196,13 @@ namespace NS2
     {
         void Main()
         {
-            [|new C().Foo(4);|]
+            [|new C().Goo(4);|]
         }
     }
 
     class C
     {
-        private void Foo(int x)
+        private void Goo(int x)
         {
         }
     }
@@ -212,7 +212,7 @@ namespace NS2
 {
     static class CExt
     {
-        public static void Foo(this NS1.C c, int x)
+        public static void Goo(this NS1.C c, int x)
         {
         }
     }
@@ -225,13 +225,13 @@ namespace NS1
     {
         void Main()
         {
-            new C().Foo(4);
+            new C().Goo(4);
         }
     }
 
     class C
     {
-        private void Foo(int x)
+        private void Goo(int x)
         {
         }
     }
@@ -241,7 +241,7 @@ namespace NS2
 {
     static class CExt
     {
-        public static void Foo(this NS1.C c, int x)
+        public static void Goo(this NS1.C c, int x)
         {
         }
     }
@@ -262,7 +262,7 @@ namespace NS1
     {
         void Main()
         {
-            [|new C().Foo(4);|]
+            [|new C().Goo(4);|]
         }
     }
 
@@ -275,7 +275,7 @@ namespace NS2
 {
     static class CExt
     {
-        private static void Foo(this NS1.C c, int x)
+        private static void Goo(this NS1.C c, int x)
         {
         }
     }
@@ -285,7 +285,7 @@ namespace NS3
 {
     static class CExt
     {
-        public static void Foo(this NS1.C c, int x)
+        public static void Goo(this NS1.C c, int x)
         {
         }
     }
@@ -299,7 +299,7 @@ namespace NS1
     {
         void Main()
         {
-            new C().Foo(4);
+            new C().Goo(4);
         }
     }
 
@@ -312,7 +312,7 @@ namespace NS2
 {
     static class CExt
     {
-        private static void Foo(this NS1.C c, int x)
+        private static void Goo(this NS1.C c, int x)
         {
         }
     }
@@ -322,7 +322,7 @@ namespace NS3
 {
     static class CExt
     {
-        public static void Foo(this NS1.C c, int x)
+        public static void Goo(this NS1.C c, int x)
         {
         }
     }
@@ -967,7 +967,9 @@ namespace Sample.Extensions
 </Workspace>";
 
             var expectedText =
-@"using Sample.Extensions;
+@"
+using Sample.Extensions;
+
 namespace Sample
 {
     class Program
@@ -978,7 +980,8 @@ namespace Sample
             var other = myString?.StringExtension().Substring(0);
         }
     }
-}";
+}
+       ";
             await TestInRegularAndScriptAsync(initialText, expectedText);
         }
 
@@ -1014,14 +1017,17 @@ namespace Sample.Extensions
 </Workspace>";
 
             var expectedText =
-@"using Sample.Extensions;
+@"
+using Sample.Extensions;
+
 public class C
 {
     public T F<T>(T x)
     {
         return F(new C())?.F(new C())?.Extn();
     }
-}";
+}
+       ";
             await TestInRegularAndScriptAsync(initialText, expectedText);
         }
 
@@ -1057,14 +1063,17 @@ namespace Sample.Extensions
 </Workspace>";
 
             var expectedText =
-@"using Sample.Extensions;
+@"
+using Sample.Extensions;
+
 public class C
 {
     public T F<T>(T x)
     {
         return F(new C())?.F(new C()).Extn()?.F(newC());
     }
-}";
+}
+       ";
             await TestInRegularAndScriptAsync(initialText, expectedText);
         }
 

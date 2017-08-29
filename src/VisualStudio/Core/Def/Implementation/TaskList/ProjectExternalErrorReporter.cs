@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -123,8 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             var line = error.iLine;
             var column = error.iCol;
-            var containedDocument = hostDocument as ContainedDocument;
-            if (containedDocument != null)
+            if (hostDocument is ContainedDocument containedDocument)
             {
                 var span = new VsTextSpan
                 {

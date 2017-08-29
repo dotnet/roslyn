@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -314,7 +314,7 @@ class C
 {
     private string _s;
 
-    void Foo()
+    void Goo()
     {
         Expression<Action<string>> e = s =>
         {
@@ -427,6 +427,30 @@ class C
             Console.WriteLine();
         }
         _s = s;
+    }
+}");
+        }
+
+        [WorkItem(21612, "https://github.com/dotnet/roslyn/issues/21612")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task TestNotWhenAccessedOnLeftOfAssignment()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Collections.Generic;
+
+class A
+{
+    public string Id;
+}
+
+class B
+{
+    private Dictionary<string, A> map = new Dictionary<string, A>();
+    public B(A a)
+    {
+        if (a == null) [|throw|] new ArgumentNullException();
+        map[a.Id] = a;
     }
 }");
         }

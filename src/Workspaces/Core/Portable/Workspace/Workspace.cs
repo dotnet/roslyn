@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -1027,8 +1027,7 @@ namespace Microsoft.CodeAnalysis
                 // convert metadata references to project references if the metadata reference matches some project's output assembly.
                 foreach (var meta in project.MetadataReferences)
                 {
-                    var pemeta = meta as PortableExecutableReference;
-                    if (pemeta != null)
+                    if (meta is PortableExecutableReference pemeta)
                     {
 
                         // check both Display and FilePath. FilePath points to the actually bits, but Display should match output path if 

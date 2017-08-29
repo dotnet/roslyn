@@ -72,7 +72,7 @@ namespace Roslyn.Utilities
         /// <param name="cancellationToken"></param>
         public ObjectWriter(
             Stream stream,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             // String serialization assumes both reader and writer to be of the same endianness.
             // It can be adjusted for BigEndian if needed.
@@ -118,6 +118,28 @@ namespace Roslyn.Utilities
         public void WriteUInt64(ulong value) => _writer.Write(value);
         public void WriteUInt16(ushort value) => _writer.Write(value);
         public void WriteString(string value) => WriteStringValue(value);
+
+        /// <summary>
+        /// Used so we can easily grab the low/high 64bits of a guid for serialization.
+        /// </summary>
+        [StructLayout(LayoutKind.Explicit)]
+        internal struct GuidAccessor
+        {
+            [FieldOffset(0)]
+            public Guid Guid;
+
+            [FieldOffset(0)]
+            public long Low64;
+            [FieldOffset(8)]
+            public long High64;
+        }
+
+        public void WriteGuid(Guid guid)
+        {
+            var accessor = new GuidAccessor { Guid = guid };
+            WriteInt64(accessor.Low64);
+            WriteInt64(accessor.High64);
+        }
 
         public void WriteValue(object value)
         {
@@ -484,7 +506,8 @@ namespace Roslyn.Utilities
                     // don't blow the stack.  'LongRunning' ensures that we get a dedicated thread
                     // to do this work.  That way we don't end up blocking the threadpool.
                     var task = Task.Factory.StartNew(
-                        () => WriteArrayValues(array),
+                        a => WriteArrayValues((Array)a), 
+                        array,
                         _cancellationToken,
                         TaskCreationOptions.LongRunning,
                         TaskScheduler.Default);
@@ -842,22 +865,22 @@ namespace Roslyn.Utilities
         /// <summary>
         /// byte marker mask for encoding compressed uint 
         /// </summary>
-        internal static readonly byte ByteMarkerMask = 3 << 6;
+        internal const byte ByteMarkerMask = 3 << 6;
 
         /// <summary>
         /// byte marker bits for uint encoded in 1 byte.
         /// </summary>
-        internal static readonly byte Byte1Marker = 0;
+        internal const byte Byte1Marker = 0;
 
         /// <summary>
         /// byte marker bits for uint encoded in 2 bytes.
         /// </summary>
-        internal static readonly byte Byte2Marker = 1 << 6;
+        internal const byte Byte2Marker = 1 << 6;
 
         /// <summary>
         /// byte marker bits for uint encoded in 4 bytes.
         /// </summary>
-        internal static readonly byte Byte4Marker = 2 << 6;
+        internal const byte Byte4Marker = 2 << 6;
 
         internal enum EncodingKind : byte
         {

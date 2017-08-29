@@ -1,8 +1,7 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -10,9 +9,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -31,28 +28,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTyp
 
 class C
 {
-    static T Foo<T>(T x, T y)
+    static T Goo<T>(T x, T y)
     {
         return default(T);
     }
 
     static void M()
     {
-        var c = [|Foo<int>|](1, 1);
+        var c = [|Goo<int>|](1, 1);
     }
 }",
 @"using System;
 
 class C
 {
-    static T Foo<T>(T x, T y)
+    static T Goo<T>(T x, T y)
     {
         return default(T);
     }
 
     static void M()
     {
-        var c = Foo(1, 1);
+        var c = Goo(1, 1);
     }
 }");
         }
@@ -61,7 +58,7 @@ class C
         public async Task UseAlias0()
         {
             await TestWithPredefinedTypeOptionsAsync(
-@"using Foo = System;
+@"using Goo = System;
 
 namespace Root
 {
@@ -71,10 +68,10 @@ namespace Root
 
     class B
     {
-        public [|Foo::Int32|] a;
+        public [|Goo::Int32|] a;
     }
 }",
-@"using Foo = System;
+@"using Goo = System;
 
 namespace Root
 {
@@ -320,7 +317,7 @@ namespace Root
         public async Task UseAlias8()
         {
             await TestInRegularAndScriptAsync(
-@"using Foo = System.Int32;
+@"using Goo = System.Int32;
 
 namespace Root
 {
@@ -332,7 +329,7 @@ namespace Root
         }
     }
 }", 
-@"using Foo = System.Int32;
+@"using Goo = System.Int32;
 
 namespace Root
 {
@@ -340,9 +337,117 @@ namespace Root
     {
         class A
         {
-            var c = Foo.MaxValue;
+            var c = Goo.MaxValue;
         }
     }
+}");
+        }
+
+        [WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoNotChangeToAliasInNameOfIfItChangesNameOfName()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+using Foo = SimplifyInsideNameof.Program;
+
+namespace SimplifyInsideNameof
+{
+  class Program
+  {
+    static void Main(string[] args)
+    {
+      Console.WriteLine(nameof([|SimplifyInsideNameof.Program|]));
+    }
+  }
+}",
+@"using System;
+using Foo = SimplifyInsideNameof.Program;
+
+namespace SimplifyInsideNameof
+{
+  class Program
+  {
+    static void Main(string[] args)
+    {
+      Console.WriteLine(nameof(Program));
+    }
+  }
+}");
+        }
+
+        [WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoChangeToAliasInNameOfIfItDoesNotAffectName1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using Goo = SimplifyInsideNameof.Program;
+
+namespace SimplifyInsideNameof
+{
+  class Program
+  {
+    static void Main(string[] args)
+    {
+      Console.WriteLine(nameof([|SimplifyInsideNameof.Program|].Main));
+    }
+  }
+}",
+
+@"using System;
+using Goo = SimplifyInsideNameof.Program;
+
+namespace SimplifyInsideNameof
+{
+  class Program
+  {
+    static void Main(string[] args)
+    {
+      Console.WriteLine(nameof(Goo.Main));
+    }
+  }
+}");
+        }
+
+        [WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoChangeToAliasInNameOfIfItDoesNotAffectName2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using Goo = N.Goo;
+
+namespace N {
+    class Goo { }
+}
+
+namespace SimplifyInsideNameof
+{
+  class Program
+  {
+    static void Main(string[] args)
+    {
+      Console.WriteLine(nameof([|N.Goo|]));
+    }
+  }
+}",
+@"using System;
+using Goo = N.Goo;
+
+namespace N {
+    class Goo { }
+}
+
+namespace SimplifyInsideNameof
+{
+  class Program
+  {
+    static void Main(string[] args)
+    {
+      Console.WriteLine(nameof(Goo));
+    }
+  }
 }");
         }
 
@@ -513,7 +618,7 @@ namespace Root
             var content =
 @"class A
 {
-     [|[||]|] i;
+    [|[||]|] i;
 }
 ";
 
@@ -746,9 +851,7 @@ namespace Root
     {
         public class A2
         {
-            public class A1
-            {
-            }
+            public class A1 { }
 
             A1 a;
         }
@@ -1177,7 +1280,7 @@ namespace N1
         {
             await TestWithPredefinedTypeOptionsAsync(
 @"using I64 = System.Int64;
-using Foo = System.Collections.Generic.IList<[|System.Int64|]>;
+using Goo = System.Collections.Generic.IList<[|System.Int64|]>;
 
 namespace N1
 {
@@ -1186,7 +1289,7 @@ namespace N1
     }
 }", 
 @"using I64 = System.Int64;
-using Foo = System.Collections.Generic.IList<long>;
+using Goo = System.Collections.Generic.IList<long>;
 
 namespace N1
 {
@@ -1204,7 +1307,7 @@ namespace N1
 @"namespace Outer
 {
     using I64 = System.Int64;
-    using Foo = System.Collections.Generic.IList<[|System.Int64|]>;
+    using Goo = System.Collections.Generic.IList<[|System.Int64|]>;
 
     namespace N1
     {
@@ -1216,7 +1319,7 @@ namespace N1
 @"namespace Outer
 {
     using I64 = System.Int64;
-    using Foo = System.Collections.Generic.IList<long>;
+    using Goo = System.Collections.Generic.IList<long>;
 
     namespace N1
     {
@@ -1236,7 +1339,7 @@ namespace N1
 
 namespace Outer
 {
-    using Foo = System.Collections.Generic.IList<[|System.Int64|]>;
+    using Goo = System.Collections.Generic.IList<[|System.Int64|]>;
 
     namespace N1
     {
@@ -1249,7 +1352,7 @@ namespace Outer
 
 namespace Outer
 {
-    using Foo = System.Collections.Generic.IList<long>;
+    using Goo = System.Collections.Generic.IList<long>;
 
     namespace N1
     {
@@ -1643,7 +1746,7 @@ ignoreTrivia: false);
 {
     class Program
     {
-        class Foo
+        class Goo
         {
             public static void Bar()
             {
@@ -1652,9 +1755,9 @@ ignoreTrivia: false);
 
         static void Main()
         {
-            [|N.Program.Foo.Bar|]();
+            [|N.Program.Goo.Bar|]();
             {
-                int Foo;
+                int Goo;
             }
         }
     }
@@ -1663,7 +1766,7 @@ ignoreTrivia: false);
 {
     class Program
     {
-        class Foo
+        class Goo
         {
             public static void Bar()
             {
@@ -1672,9 +1775,9 @@ ignoreTrivia: false);
 
         static void Main()
         {
-            Program.Foo.Bar();
+            Program.Goo.Bar();
             {
-                int Foo;
+                int Goo;
             }
         }
     }
@@ -1685,7 +1788,7 @@ ignoreTrivia: false);
 {
     class Program
     {
-        class Foo
+        class Goo
         {
             public static void Bar()
             {
@@ -1694,9 +1797,9 @@ ignoreTrivia: false);
 
         static void Main()
         {
-            [|Program.Foo.Bar|]();
+            [|Program.Goo.Bar|]();
             {
-                int Foo;
+                int Goo;
             }
         }
     }
@@ -1713,7 +1816,7 @@ ignoreTrivia: false);
     public class Inner
     {
         [Bar(typeof([|Program<>.Inner|]))]
-        void Foo()
+        void Goo()
         {
         }
     }
@@ -1730,7 +1833,7 @@ ignoreTrivia: false);
     public class Inner<T>
     {
         [Bar(typeof([|Program.Inner<>|]))]
-        void Foo()
+        void Goo()
         {
         }
     }
@@ -1740,7 +1843,7 @@ ignoreTrivia: false);
     public class Inner<T>
     {
         [Bar(typeof(Inner<>))]
-        void Foo()
+        void Goo()
         {
         }
     }
@@ -1757,7 +1860,7 @@ ignoreTrivia: false);
     public class Inner<Y>
     {
         [Bar(typeof([|Program<>.Inner<>|]))]
-        void Foo()
+        void Goo()
         {
         }
     }
@@ -1774,7 +1877,7 @@ ignoreTrivia: false);
     public class Inner<Y>
     {
         [Bar(typeof([|Program<X>.Inner<>|]))]
-        void Foo()
+        void Goo()
         {
         }
     }
@@ -1791,7 +1894,7 @@ ignoreTrivia: false);
     public class Inner<Y>
     {
         [Bar(typeof([|Program<>.Inner<Y>|]))]
-        void Foo()
+        void Goo()
         {
         }
     }
@@ -1808,7 +1911,7 @@ ignoreTrivia: false);
     public class Inner<Y>
     {
         [Bar(typeof([|Program<Y>.Inner<X>|]))]
-        void Foo()
+        void Goo()
         {
         }
     }
@@ -1825,7 +1928,7 @@ ignoreTrivia: false);
     public class Inner
     {
         [Bar(typeof([|Program.Inner|]))]
-        void Foo()
+        void Goo()
         {
         }
     }
@@ -1835,7 +1938,7 @@ ignoreTrivia: false);
     public class Inner
     {
         [Bar(typeof(Inner))]
-        void Foo()
+        void Goo()
         {
         }
     }
@@ -1852,7 +1955,7 @@ ignoreTrivia: false);
     public class Inner
     {
         [Bar(typeof([|Program<T>.Inner|]))]
-        void Foo()
+        void Goo()
         {
         }
     }
@@ -1862,7 +1965,7 @@ ignoreTrivia: false);
     public class Inner
     {
         [Bar(typeof(Inner))]
-        void Foo()
+        void Goo()
         {
         }
     }
@@ -1879,7 +1982,7 @@ ignoreTrivia: false);
     public class Inner<T>
     {
         [Bar(typeof([|Program.Inner<>|]))]
-        void Foo()
+        void Goo()
         {
         }
     }
@@ -1889,7 +1992,7 @@ ignoreTrivia: false);
     public class Inner<T>
     {
         [Bar(typeof(Inner<>))]
-        void Foo()
+        void Goo()
         {
         }
     }
@@ -1906,7 +2009,7 @@ ignoreTrivia: false);
     public class Inner<Y>
     {
         [Bar(typeof([|Program<X>.Inner<Y>|]))]
-        void Foo()
+        void Goo()
         {
         }
     }
@@ -1916,7 +2019,7 @@ ignoreTrivia: false);
     public class Inner<Y>
     {
         [Bar(typeof(Inner<Y>))]
-        void Foo()
+        void Goo()
         {
         }
     }
@@ -1933,7 +2036,7 @@ ignoreTrivia: false);
     public class Inner<Y>
     {
         [Bar(typeof([|Program<X>.Inner<X>|]))]
-        void Foo()
+        void Goo()
         {
         }
     }
@@ -1943,7 +2046,7 @@ ignoreTrivia: false);
     public class Inner<Y>
     {
         [Bar(typeof(Inner<X>))]
-        void Foo()
+        void Goo()
         {
         }
     }
@@ -1960,7 +2063,7 @@ ignoreTrivia: false);
     public class Inner<Y>
     {
         [Bar(typeof([|Program<Y>.Inner<Y>|]))]
-        void Foo()
+        void Goo()
         {
         }
     }
@@ -2380,7 +2483,7 @@ class A
 @"using System;
 using System.Collections.Generic;
 /// <summary>
-/// <see cref=""A.M{T}(List{Nullable{T}}, T?})""/>
+/// <see cref=""A.M{T}(List{Nullable{T}}, T?)""/>
 /// </summary>
 class A
 {
@@ -2400,7 +2503,7 @@ namespace N
 {
     class Color
     {
-        public static void Foo()
+        public static void Goo()
         {
         }
 
@@ -2416,7 +2519,7 @@ class Program
 
     void Main()
     {
-        [|N.Color|].Foo();
+        [|N.Color|].Goo();
     }
 }",
 @"using N;
@@ -2425,7 +2528,7 @@ namespace N
 {
     class Color
     {
-        public static void Foo()
+        public static void Goo()
         {
         }
 
@@ -2441,7 +2544,7 @@ class Program
 
     void Main()
     {
-        Color.Foo();
+        Color.Goo();
     }
 }");
         }
@@ -2456,7 +2559,7 @@ namespace N
 {
     class Color
     {
-        public static void Foo()
+        public static void Goo()
         {
         }
 
@@ -2472,7 +2575,7 @@ class Program
 
     void Main()
     {
-        [|Color.Foo|]();
+        [|Color.Goo|]();
     }
 }");
         }
@@ -2493,7 +2596,7 @@ class Program
 {
     static void Main()
     {
-        Program a = null;
+        Program a = null; 
     }
 }", parseOptions: null);
 
@@ -2548,7 +2651,7 @@ static class M
             await TestInRegularAndScriptAsync(source,
 @"class Preserve
 {
-    public static int Y;
+	public static int Y;
 }
 
 class Z<T> : Preserve
@@ -2557,10 +2660,10 @@ class Z<T> : Preserve
 
 static class M
 {
-    public static void Main()
-    {
-        int k = Preserve.Y;
-    }
+	public static void Main()
+	{
+		int k = Preserve.Y;
+	}
 }");
         }
 
@@ -2591,10 +2694,10 @@ class M
             await TestInRegularAndScriptAsync(source,
 @"class Preserve
 {
-    public class X
-    {
-        public static int Y;
-    }
+	public class X
+	{
+		public static int Y;
+	}
 }
 
 class Z<T> : Preserve
@@ -2603,10 +2706,10 @@ class Z<T> : Preserve
 
 class M
 {
-    public static void Main()
-    {
-        int k = Preserve.X.Y;
-    }
+	public static void Main()
+	{
+		int k = Preserve.X.Y;
+	}
 }");
         }
 
@@ -2694,7 +2797,7 @@ class Program
         public async Task FixAllOccurrences1()
         {
             await TestInRegularAndScriptAsync(
-@"using foo = A.B;
+@"using goo = A.B;
 using bar = C.D;
 
 class Program
@@ -2719,7 +2822,7 @@ namespace C
         public A.B prop { get; set; }
     }
 }",
-@"using foo = A.B;
+@"using goo = A.B;
 using bar = C.D;
 
 class Program
@@ -2779,14 +2882,14 @@ namespace Test
         {
             var localA = new NSA.DuplicateClassName();
             var localB = new NSB.DuplicateClassName();
-            new List<NoAlias.Foo>().Where(m => [|m.InnocentProperty|] == null);
+            new List<NoAlias.Goo>().Where(m => [|m.InnocentProperty|] == null);
         }
     }
 }
 
 namespace NoAlias
 {
-    class Foo
+    class Goo
     {
         public NSB.DuplicateClassName InnocentProperty { get; set; }
     }
@@ -2915,13 +3018,13 @@ namespace X
 
 class B
 {
-    public static void Foo(int x, object y)
+    public static void Goo(int x, object y)
     {
     }
 
     static void Main()
     {
-        C<string>.D.Foo(0);
+        C<string>.D.Goo(0);
     }
 }
 
@@ -2929,13 +3032,13 @@ class C<T> : B
 {
     public class D : C<T> // Start rename session and try to rename D to T
     {
-        public static void Foo(dynamic x)
+        public static void Goo(dynamic x)
         {
-            Console.WriteLine([|D.Foo(x, "")|]);
+            Console.WriteLine([|D.Goo(x, "")|]);
         }
     }
 
-    public static string Foo(int x, T y)
+    public static string Goo(int x, T y)
     {
         string s = null;
         return s;
@@ -2948,7 +3051,7 @@ class C<T> : B
         public async Task CodeIssueAtRightSpan()
         {
             await TestSpansAsync(@"
-using foo = System.Console;
+using goo = System.Console;
 class Program
 {
     static void Main(string[] args)
@@ -2979,9 +3082,9 @@ class Program
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    void Foo()
+    void Goo()
     {
-        ([|this.Foo|])();
+        ([|this.Goo|])();
     }
 }");
         }
@@ -2995,24 +3098,24 @@ class Program
 
 class B
 {
-    static void Foo(int x, object y)
+    static void Goo(int x, object y)
     {
     }
 
-    static void Foo<T>(dynamic x)
+    static void Goo<T>(dynamic x)
     {
-        Console.WriteLine([|C<T>.Foo|](x, ""));
+        Console.WriteLine([|C<T>.Goo|](x, ""));
     }
 
     static void Main()
     {
-        Foo<string>(0);
+        Goo<string>(0);
     }
 }
 
 class C<T> : B
 {
-    public static string Foo(int x, T y)
+    public static string Goo(int x, T y)
     {
         return ""Hello world"";
     }
@@ -3067,7 +3170,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        [|System|].Console.WriteLine(""foo"");
+        [|System|].Console.WriteLine(""goo"");
     }
 }
 ");
@@ -3079,7 +3182,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        [|System|].Console.WriteLine(""foo"");
+        [|System|].Console.WriteLine(""goo"");
     }
 }
 ",
@@ -3089,7 +3192,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(""foo"");
+        Console.WriteLine(""goo"");
     }
 }
 ");
@@ -3120,11 +3223,11 @@ class Program
         public async Task DontSimplifyAliases()
         {
             await TestMissingInRegularAndScriptAsync(
-@"using Foo = System.Int32;
+@"using Goo = System.Int32;
 
 class C
 {
-    [|Foo|] f;
+    [|Goo|] f;
 }");
         }
 
@@ -3693,11 +3796,11 @@ class Program
             await TestWithPredefinedTypeOptionsAsync(
 @"class C
 {
-    public string Foo() => ([|System.String|])"";
+    public string Goo() => ([|System.String|])"";
 }", 
 @"class C
 {
-    public string Foo() => (string)"";
+    public string Goo() => (string)"";
 }");
         }
 
@@ -3744,7 +3847,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestAppropriateDiagnosticOnMissingQualifier()
         {
-            await TestDiagnosticSeverityAndCountAsync(
+            await TestDiagnosticInfoAsync(
 @"class C
 {
     int SomeProperty { get; set; }
@@ -3755,7 +3858,6 @@ class Program
     }
 }",
                 options: Option(CodeStyleOptions.QualifyPropertyAccess, false, NotificationOption.Warning),
-                diagnosticCount: 1,
                 diagnosticId: IDEDiagnosticIds.RemoveQualificationDiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning);
         }
@@ -3880,7 +3982,7 @@ class C
 {
     void Main()
     {
-        [|UInt32|].Parse(""foo"");
+        [|UInt32|].Parse(""goo"");
     }
 }",
 @"using System;
@@ -3888,7 +3990,7 @@ class C
 {
     void Main()
     {
-        uint.Parse(""foo"");
+        uint.Parse(""goo"");
     }
 }",
                 parseOptions: CSharpParseOptions.Default,

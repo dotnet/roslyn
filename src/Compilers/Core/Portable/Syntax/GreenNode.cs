@@ -654,9 +654,9 @@ namespace Microsoft.CodeAnalysis
             while (stack.Count > 0)
             {
                 var current = stack.Pop();
-                var currentNode = current.Item1;
-                var currentLeading = current.Item2;
-                var currentTrailing = current.Item3;
+                var currentNode = current.node;
+                var currentLeading = current.leading;
+                var currentTrailing = current.trailing;
 
                 if (currentNode.IsToken)
                 {

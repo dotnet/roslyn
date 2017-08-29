@@ -74,6 +74,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public Accessibility Accessibility => GetAccessibility(_flags);
         public byte ParameterCount => GetParameterCount(_flags);
         public byte TypeParameterCount => GetTypeParameterCount(_flags);
+        public bool IsNestedType => GetIsNestedType(_flags);
 
         /// <summary>
         /// The names directly referenced in source that this type inherits from.
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Accessibility accessibility,
             TextSpan span,
             ImmutableArray<string> inheritanceNames,
-            int parameterCount = 0, int typeParameterCount = 0)
+            bool isNestedType = false, int parameterCount = 0, int typeParameterCount = 0)
         {
             Name = Intern(stringTable, name);
             NameSuffix = Intern(stringTable, nameSuffix);
@@ -105,7 +106,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             parameterCount = Math.Min(parameterCount, (byte)MaxFlagValue);
             typeParameterCount = Math.Min(typeParameterCount, (byte)MaxFlagValue);
 
-            _flags = (uint)kind | ((uint)accessibility << 4) | ((uint)parameterCount << 8) | ((uint)typeParameterCount << 12);
+            _flags =
+                (uint)kind |
+                ((uint)accessibility << 4) |
+                ((uint)parameterCount << 8) |
+                ((uint)typeParameterCount << 12) |
+                ((isNestedType ? 1u : 0u) << 16);
         }
 
         public static string Intern(StringTable stringTable, string name)
@@ -122,6 +128,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static byte GetTypeParameterCount(uint flags)
             => (byte)((flags >> 12) & Lower4BitMask);
+
+        private static bool GetIsNestedType(uint flags)
+            => ((flags >> 16) & 1) == 1;
 
         internal void WriteTo(ObjectWriter writer)
         {

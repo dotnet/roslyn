@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -93,9 +94,9 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                     {
                         aliasMap = aliasMap ?? AllocateAliasMap();
 
-                        // If we have:  using X = Foo, then we store a mapping from X -> Foo
+                        // If we have:  using X = Goo, then we store a mapping from X -> Goo
                         // here.  That way if we see a class that inherits from X we also state
-                        // that it inherits from Foo as well.
+                        // that it inherits from Goo as well.
                         aliasMap[usingDecl.Alias.Name.Identifier.ValueText] = mappedName;
                     }
                 }
@@ -149,7 +150,47 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         DeclaredSymbolInfoKind.Class,
                         GetAccessibility(classDecl, classDecl.Modifiers),
                         classDecl.Identifier.Span,
-                        GetInheritanceNames(stringTable, classDecl.BaseList));
+                        GetInheritanceNames(stringTable, classDecl.BaseList),
+                        IsNestedType(classDecl));
+                    return true;
+                case SyntaxKind.EnumDeclaration:
+                    var enumDecl = (EnumDeclarationSyntax)node;
+                    declaredSymbolInfo = new DeclaredSymbolInfo(
+                        stringTable,
+                        enumDecl.Identifier.ValueText, null,
+                        GetContainerDisplayName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent),
+                        DeclaredSymbolInfoKind.Enum,
+                        GetAccessibility(enumDecl, enumDecl.Modifiers),
+                        enumDecl.Identifier.Span,
+                        inheritanceNames: ImmutableArray<string>.Empty,
+                        isNestedType: IsNestedType(enumDecl));
+                    return true;
+                case SyntaxKind.InterfaceDeclaration:
+                    var interfaceDecl = (InterfaceDeclarationSyntax)node;
+                    declaredSymbolInfo = new DeclaredSymbolInfo(
+                        stringTable,
+                        interfaceDecl.Identifier.ValueText, GetTypeParameterSuffix(interfaceDecl.TypeParameterList),
+                        GetContainerDisplayName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent),
+                        DeclaredSymbolInfoKind.Interface,
+                        GetAccessibility(interfaceDecl, interfaceDecl.Modifiers),
+                        interfaceDecl.Identifier.Span,
+                        GetInheritanceNames(stringTable, interfaceDecl.BaseList),
+                        IsNestedType(interfaceDecl));
+                    return true;
+                case SyntaxKind.StructDeclaration:
+                    var structDecl = (StructDeclarationSyntax)node;
+                    declaredSymbolInfo = new DeclaredSymbolInfo(
+                        stringTable,
+                        structDecl.Identifier.ValueText, GetTypeParameterSuffix(structDecl.TypeParameterList),
+                        GetContainerDisplayName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent),
+                        DeclaredSymbolInfoKind.Struct,
+                        GetAccessibility(structDecl, structDecl.Modifiers),
+                        structDecl.Identifier.Span,
+                        GetInheritanceNames(stringTable, structDecl.BaseList),
+                        IsNestedType(structDecl));
                     return true;
                 case SyntaxKind.ConstructorDeclaration:
                     var ctorDecl = (ConstructorDeclarationSyntax)node;
@@ -176,18 +217,6 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         DeclaredSymbolInfoKind.Delegate,
                         GetAccessibility(delegateDecl, delegateDecl.Modifiers),
                         delegateDecl.Identifier.Span,
-                        inheritanceNames: ImmutableArray<string>.Empty);
-                    return true;
-                case SyntaxKind.EnumDeclaration:
-                    var enumDecl = (EnumDeclarationSyntax)node;
-                    declaredSymbolInfo = new DeclaredSymbolInfo(
-                        stringTable,
-                        enumDecl.Identifier.ValueText, null,
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
-                        DeclaredSymbolInfoKind.Enum,
-                        GetAccessibility(enumDecl, enumDecl.Modifiers),
-                        enumDecl.Identifier.Span,
                         inheritanceNames: ImmutableArray<string>.Empty);
                     return true;
                 case SyntaxKind.EnumMemberDeclaration:
@@ -226,18 +255,6 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         indexerDecl.ThisKeyword.Span,
                         inheritanceNames: ImmutableArray<string>.Empty);
                     return true;
-                case SyntaxKind.InterfaceDeclaration:
-                    var interfaceDecl = (InterfaceDeclarationSyntax)node;
-                    declaredSymbolInfo = new DeclaredSymbolInfo(
-                        stringTable,
-                        interfaceDecl.Identifier.ValueText, GetTypeParameterSuffix(interfaceDecl.TypeParameterList),
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
-                        DeclaredSymbolInfoKind.Interface,
-                        GetAccessibility(interfaceDecl, interfaceDecl.Modifiers),
-                        interfaceDecl.Identifier.Span,
-                        GetInheritanceNames(stringTable, interfaceDecl.BaseList));
-                    return true;
                 case SyntaxKind.MethodDeclaration:
                     var method = (MethodDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
@@ -263,18 +280,6 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         GetAccessibility(property, property.Modifiers),
                         property.Identifier.Span,
                         inheritanceNames: ImmutableArray<string>.Empty);
-                    return true;
-                case SyntaxKind.StructDeclaration:
-                    var structDecl = (StructDeclarationSyntax)node;
-                    declaredSymbolInfo = new DeclaredSymbolInfo(
-                        stringTable,
-                        structDecl.Identifier.ValueText, GetTypeParameterSuffix(structDecl.TypeParameterList),
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
-                        DeclaredSymbolInfoKind.Struct,
-                        GetAccessibility(structDecl, structDecl.Modifiers),
-                        structDecl.Identifier.Span,
-                        GetInheritanceNames(stringTable, structDecl.BaseList));
                     return true;
                 case SyntaxKind.VariableDeclarator:
                     // could either be part of a field declaration or an event field declaration
@@ -304,9 +309,12 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                     break;
             }
 
-            declaredSymbolInfo = default(DeclaredSymbolInfo);
+            declaredSymbolInfo = default;
             return false;
         }
+
+        private bool IsNestedType(BaseTypeDeclarationSyntax typeDecl)
+            => typeDecl.Parent is BaseTypeDeclarationSyntax;
 
         private string GetConstructorSuffix(ConstructorDeclarationSyntax constructor)
             => constructor.Modifiers.Any(SyntaxKind.StaticKeyword)
@@ -341,6 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                 }
 
                 builder.Append(parameter.Identifier.Text);
+                first = false;
             }
 
             builder.Append('>');

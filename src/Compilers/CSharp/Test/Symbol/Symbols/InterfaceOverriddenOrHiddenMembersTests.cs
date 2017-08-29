@@ -24,23 +24,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             var source = @"
 interface I3
 {
-    int foo { get; set; }
+    int goo { get; set; }
 }
 interface I1 : I3 { }
 interface I2 : I3
 {
-    new void foo();
+    new void goo();
 }
 interface I0 : I1, I2
 {
-    new void foo(int x);
+    new void goo(int x);
 }
 ";
 
             CreateStandardCompilation(source).VerifyDiagnostics(
-                // (13,14): warning CS0109: The member 'I0.foo(int)' does not hide an accessible member. The new keyword is not required.
-                //     new void foo(int x);
-                Diagnostic(ErrorCode.WRN_NewNotRequired, "foo").WithArguments("I0.foo(int)"));
+                // (13,14): warning CS0109: The member 'I0.goo(int)' does not hide an accessible member. The new keyword is not required.
+                //     new void goo(int x);
+                Diagnostic(ErrorCode.WRN_NewNotRequired, "goo").WithArguments("I0.goo(int)"));
         }
 
         /// <summary>

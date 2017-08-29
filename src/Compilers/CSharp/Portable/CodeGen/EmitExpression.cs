@@ -621,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             var temp = EmitAddress(expression.Operand, AddressKind.Writeable);
             Debug.Assert(temp == null, "If the operand is addressable, then a temp shouldn't be required.");
-            if (used && !expression.IsFixedStatementAddressOf)
+            if (used)
             {
                 // When computing an address to be used to initialize a fixed-statement variable, we have to be careful
                 // not to convert the managed reference to an unmanaged pointer before storing it.  Otherwise the GC might

@@ -21,7 +21,7 @@ using System;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
     }
 }";
@@ -160,7 +160,7 @@ using System;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Console.WriteLine();
     }
@@ -178,7 +178,7 @@ using System;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         /*here*/
     }
@@ -229,7 +229,7 @@ namespace NamespaceContainingInternalsOnly
 {
     internal static class Extensions
     {
-        internal static void Foo(this int x) {}
+        internal static void Goo(this int x) {}
     }
 }
 "),
@@ -249,7 +249,7 @@ public class C
 {
     internal static void F(int x)
     {
-        x.Foo();
+        x.Goo();
     }
 }
 "),

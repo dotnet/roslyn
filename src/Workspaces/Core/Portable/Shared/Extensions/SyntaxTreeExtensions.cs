@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             if (position >= syntaxTree.Length)
             {
-                return default(SyntaxToken);
+                return default;
             }
 
             var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             // SyntaxKind = None
-            return default(SyntaxToken);
+            return default;
         }
 
         public static bool OverlapsHiddenPosition(this SyntaxTree tree, TextSpan span, CancellationToken cancellationToken)
@@ -160,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return compilationUnit.EndOfFileToken;
             }
 
-            return default(SyntaxToken);
+            return default;
         }
 
         internal static SyntaxTrivia FindTriviaAndAdjustForEndOfFile(

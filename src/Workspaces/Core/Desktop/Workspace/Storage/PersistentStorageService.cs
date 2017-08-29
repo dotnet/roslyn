@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Storage
         }
 
         protected abstract string GetDatabaseFilePath(string workingFolderPath);
-        protected abstract AbstractPersistentStorage OpenDatabase(Solution solution, string workingFolderPath, string databaseFilePath);
+        protected abstract bool TryOpenDatabase(Solution solution, string workingFolderPath, string databaseFilePath, out AbstractPersistentStorage storage);
         protected abstract bool ShouldDeleteDatabase(Exception exception);
 
         public IPersistentStorage GetStorage(Solution solution)
@@ -235,7 +235,11 @@ namespace Microsoft.CodeAnalysis.Storage
             var databaseFilePath = GetDatabaseFilePath(workingFolderPath);
             try
             {
-                database = OpenDatabase(solution, workingFolderPath, databaseFilePath);
+                if (!TryOpenDatabase(solution, workingFolderPath, databaseFilePath, out database))
+                {
+                    return false;
+                }
+
                 database.Initialize(solution);
 
                 persistentStorage = database;

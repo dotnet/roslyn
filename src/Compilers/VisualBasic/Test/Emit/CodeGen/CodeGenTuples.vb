@@ -6278,6 +6278,28 @@ BC37289: Tuple element name 'M' is inferred. Please use language version 15.3 or
         End Sub
 
         <Fact>
+        Public Sub InferredName_Conversion()
+            Dim source = <compilation>
+                             <file>
+Imports System.Collections.Generic
+Class C
+    Shared Sub F(items As (Integer, IList(Of Object)))
+    End Sub
+    Shared Sub Test()
+        Dim items = New List(Of Object)()
+        Dim group = (1, items)
+        F(group)
+    End Sub
+End Class
+    </file>
+                         </compilation>
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source,
+                additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef},
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
+            comp.AssertTheseEmitDiagnostics(<errors/>)
+        End Sub
+
+        <Fact>
         Public Sub LongTupleWithArgumentEvaluation()
 
             Dim verifier = CompileAndVerify(
@@ -7564,7 +7586,7 @@ BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is
         End Sub
 
         <Fact>
-        Public Sub TupleInferredLambdStrictOn()
+        Public Sub TupleInferredLambdaStrictOn()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -7600,7 +7622,7 @@ BC36642: Option Strict On requires each lambda expression parameter to be declar
         End Sub
 
         <Fact()>
-        Public Sub TupleInferredLambdStrictOff()
+        Public Sub TupleInferredLambdaStrictOff()
 
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -8876,7 +8898,7 @@ namespace ClassLibrary1
 {
     public class Class1
     {
-        public (int Alice, int Bob) foo = (2, 3);
+        public (int Alice, int Bob) goo = (2, 3);
 
         public (int Alice, int Bob) Bar() => (4, 5);
 
@@ -8886,7 +8908,7 @@ namespace ClassLibrary1
 
     public class Class2
     {
-        public (int Alice, int q, int w, int e, int f, int g, int h, int j, int Bob) foo = SetBob(11);
+        public (int Alice, int q, int w, int e, int f, int g, int h, int j, int Bob) goo = SetBob(11);
 
         public (int Alice, int q, int w, int e, int f, int g, int h, int j, int Bob) Bar() => SetBob(12);
 
@@ -8925,16 +8947,16 @@ Module Module1
 
     Sub Main()
         Dim x As New ClassLibrary1.Class1
-        System.Console.WriteLine(x.foo.Alice)
-        System.Console.WriteLine(x.foo.Bob)
+        System.Console.WriteLine(x.goo.Alice)
+        System.Console.WriteLine(x.goo.Bob)
         System.Console.WriteLine(x.Bar.Alice)
         System.Console.WriteLine(x.Bar.Bob)
         System.Console.WriteLine(x.Baz.Alice)
         System.Console.WriteLine(x.Baz.Bob)
 
         Dim y As New ClassLibrary1.Class2
-        System.Console.WriteLine(y.foo.Alice)
-        System.Console.WriteLine(y.foo.Bob)
+        System.Console.WriteLine(y.goo.Alice)
+        System.Console.WriteLine(y.goo.Bob)
         System.Console.WriteLine(y.Bar.Alice)
         System.Console.WriteLine(y.Bar.Bob)
         System.Console.WriteLine(y.Baz.Alice)
@@ -8990,7 +9012,7 @@ Imports System.Threading.Tasks
 
 Namespace ClassLibrary1
     Public Class Class1
-        Public foo As (Alice As Integer, Bob As Integer) = (2, 3)
+        Public goo As (Alice As Integer, Bob As Integer) = (2, 3)
 
         Public Function Bar() As (Alice As Integer, Bob As Integer)
             Return (4, 5)
@@ -9004,7 +9026,7 @@ Namespace ClassLibrary1
     End Class
 
     Public Class Class2
-        Public foo As (Alice As Integer, q As Integer, w As Integer, e As Integer, f As Integer, g As Integer, h As Integer, j As Integer, Bob As Integer) = SetBob(11)
+        Public goo As (Alice As Integer, q As Integer, w As Integer, e As Integer, f As Integer, g As Integer, h As Integer, j As Integer, Bob As Integer) = SetBob(11)
 
         Public Function Bar() As (Alice As Integer, q As Integer, w As Integer, e As Integer, f As Integer, g As Integer, h As Integer, j As Integer, Bob As Integer)
             Return SetBob(12)
@@ -9047,16 +9069,16 @@ Module Module1
 
     Sub Main()
         Dim x As New ClassLibrary1.Class1
-        System.Console.WriteLine(x.foo.Alice)
-        System.Console.WriteLine(x.foo.Bob)
+        System.Console.WriteLine(x.goo.Alice)
+        System.Console.WriteLine(x.goo.Bob)
         System.Console.WriteLine(x.Bar.Alice)
         System.Console.WriteLine(x.Bar.Bob)
         System.Console.WriteLine(x.Baz.Alice)
         System.Console.WriteLine(x.Baz.Bob)
 
         Dim y As New ClassLibrary1.Class2
-        System.Console.WriteLine(y.foo.Alice)
-        System.Console.WriteLine(y.foo.Bob)
+        System.Console.WriteLine(y.goo.Alice)
+        System.Console.WriteLine(y.goo.Bob)
         System.Console.WriteLine(y.Bar.Alice)
         System.Console.WriteLine(y.Bar.Bob)
         System.Console.WriteLine(y.Baz.Alice)
@@ -9174,17 +9196,17 @@ namespace ClassLibrary1
 {
     public class Class1
     {
-        public (int Alice, (int Alice, int Bob) Bob) foo = (2, (2, 3));
+        public (int Alice, (int Alice, int Bob) Bob) goo = (2, (2, 3));
 
         public ((int Alice, int Bob)[] Alice, int Bob) Bar() => (new(int, int)[] { (4, 5) }, 5);
 
         public (int Alice, List<(int Alice, int Bob)?> Bob) Baz => (6, new List<(int Alice, int Bob)?>() { (8, 9) });
 
-        public static event Action<(int i0, int i1, int i2, int i3, int i4, int i5, int i6, int i7, (int Alice, int Bob) Bob)> foo1;
+        public static event Action<(int i0, int i1, int i2, int i3, int i4, int i5, int i6, int i7, (int Alice, int Bob) Bob)> goo1;
 
         public static void raise()
         {
-            foo1((0, 1, 2, 3, 4, 5, 6, 7, (8, 42)));
+            goo1((0, 1, 2, 3, 4, 5, 6, 7, (8, 42)));
         }
     }
 }
@@ -9199,14 +9221,14 @@ Module Module1
 
     Sub Main()
         Dim x As New ClassLibrary1.Class1
-        System.Console.WriteLine(x.foo.Bob.Bob)
-        System.Console.WriteLine(x.foo.Item2.Item2)
+        System.Console.WriteLine(x.goo.Bob.Bob)
+        System.Console.WriteLine(x.goo.Item2.Item2)
         System.Console.WriteLine(x.Bar.Alice(0).Bob)
         System.Console.WriteLine(x.Bar.Item1(0).Item2)
         System.Console.WriteLine(x.Baz.Bob(0).Value)
         System.Console.WriteLine(x.Baz.Item2(0).Value)
 
-        AddHandler ClassLibrary1.Class1.foo1, Sub(p)
+        AddHandler ClassLibrary1.Class1.goo1, Sub(p)
                                                   System.Console.WriteLine(p.Bob.Bob)
                                                   System.Console.WriteLine(p.Rest.Item2.Bob)
                                               End Sub
@@ -9251,7 +9273,7 @@ Imports System.Threading.Tasks
 
 Namespace ClassLibrary1
     Public Class Class1
-        Public foo As (Alice As Integer, Bob As (Alice As Integer, Bob As Integer)) = (2, (2, 3))
+        Public goo As (Alice As Integer, Bob As (Alice As Integer, Bob As Integer)) = (2, (2, 3))
 
         Public Function Bar() As (Alice As (Alice As Integer, Bob As Integer)(), Bob As Integer)
             Return (New(Integer, Integer)() {(4, 5)}, 5)
@@ -9263,10 +9285,10 @@ Namespace ClassLibrary1
             End Get
         End Property
 
-        Public Shared Event foo1 As Action(Of (i0 As Integer, i1 As Integer, i2 As Integer, i3 As Integer, i4 As Integer, i5 As Integer, i6 As Integer, i7 As Integer, Bob As (Alice As Integer, Bob As Integer)))
+        Public Shared Event goo1 As Action(Of (i0 As Integer, i1 As Integer, i2 As Integer, i3 As Integer, i4 As Integer, i5 As Integer, i6 As Integer, i7 As Integer, Bob As (Alice As Integer, Bob As Integer)))
 
         Public Shared Sub raise()
-            RaiseEvent foo1((0, 1, 2, 3, 4, 5, 6, 7, (8, 42)))
+            RaiseEvent goo1((0, 1, 2, 3, 4, 5, 6, 7, (8, 42)))
         End Sub
     End Class
 End Namespace
@@ -9281,14 +9303,14 @@ Module Module1
 
     Sub Main()
         Dim x As New ClassLibrary1.Class1
-        System.Console.WriteLine(x.foo.Bob.Bob)
-        System.Console.WriteLine(x.foo.Item2.Item2)
+        System.Console.WriteLine(x.goo.Bob.Bob)
+        System.Console.WriteLine(x.goo.Item2.Item2)
         System.Console.WriteLine(x.Bar.Alice(0).Bob)
         System.Console.WriteLine(x.Bar.Item1(0).Item2)
         System.Console.WriteLine(x.Baz.Bob(0).Value)
         System.Console.WriteLine(x.Baz.Item2(0).Value)
 
-        AddHandler ClassLibrary1.Class1.foo1, Sub(p)
+        AddHandler ClassLibrary1.Class1.goo1, Sub(p)
                                                   System.Console.WriteLine(p.Bob.Bob)
                                                   System.Console.WriteLine(p.Rest.Item2.Bob)
                                               End Sub
@@ -9335,7 +9357,7 @@ namespace ClassLibrary1
 {
     public class Class1
     {
-        public (int Alice, int alice) foo = (2, 3);
+        public (int Alice, int alice) goo = (2, 3);
     }
 }
 
@@ -9349,12 +9371,12 @@ Module Module1
 
     Sub Main()
         Dim x As New ClassLibrary1.Class1
-        System.Console.WriteLine(x.foo.Item1)
-        System.Console.WriteLine(x.foo.Item2)
-        System.Console.WriteLine(x.foo.Alice)
-        System.Console.WriteLine(x.foo.alice)
+        System.Console.WriteLine(x.goo.Item1)
+        System.Console.WriteLine(x.goo.Item2)
+        System.Console.WriteLine(x.goo.Alice)
+        System.Console.WriteLine(x.goo.alice)
 
-        Dim f = x.foo
+        Dim f = x.goo
         System.Console.WriteLine(f.Item1)
         System.Console.WriteLine(f.Item2)
         System.Console.WriteLine(f.Alice)
@@ -9371,8 +9393,8 @@ End Module
                             referencedAssemblies:=s_valueTupleRefsAndDefault)
 
             vbCompilation.VerifyDiagnostics(
-    Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "x.foo.Alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer)").WithLocation(8, 34),
-    Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "x.foo.alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer)").WithLocation(9, 34),
+    Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "x.goo.Alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer)").WithLocation(8, 34),
+    Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "x.goo.alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer)").WithLocation(9, 34),
     Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "f.Alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer)").WithLocation(14, 34),
     Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "f.alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer)").WithLocation(15, 34)
 )
@@ -9394,7 +9416,7 @@ namespace ClassLibrary1
 {
     public class Class1
     {
-        public (int Alice, int alice, int) foo = (2, 3, 4);
+        public (int Alice, int alice, int) goo = (2, 3, 4);
     }
 }
 
@@ -9408,13 +9430,13 @@ Module Module1
 
     Sub Main()
         Dim x As New ClassLibrary1.Class1
-        System.Console.WriteLine(x.foo.Item1)
-        System.Console.WriteLine(x.foo.Item2)
-        System.Console.WriteLine(x.foo.Item3)
-        System.Console.WriteLine(x.foo.Alice)
-        System.Console.WriteLine(x.foo.alice)
+        System.Console.WriteLine(x.goo.Item1)
+        System.Console.WriteLine(x.goo.Item2)
+        System.Console.WriteLine(x.goo.Item3)
+        System.Console.WriteLine(x.goo.Alice)
+        System.Console.WriteLine(x.goo.alice)
 
-        Dim f = x.foo
+        Dim f = x.goo
         System.Console.WriteLine(f.Item1)
         System.Console.WriteLine(f.Item2)
         System.Console.WriteLine(f.Item3)
@@ -9432,8 +9454,8 @@ End Module
                             referencedAssemblies:=s_valueTupleRefsAndDefault)
 
             vbCompilation.VerifyDiagnostics(
-    Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "x.foo.Alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer, Integer)").WithLocation(9, 34),
-    Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "x.foo.alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer, Integer)").WithLocation(10, 34),
+    Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "x.goo.Alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer, Integer)").WithLocation(9, 34),
+    Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "x.goo.alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer, Integer)").WithLocation(10, 34),
     Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "f.Alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer, Integer)").WithLocation(16, 34),
     Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "f.alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer, Integer)").WithLocation(17, 34)
                 )
@@ -16029,6 +16051,58 @@ BC40001: 'Public Overrides Function M5() As (c As (notA As Integer, notB As Inte
         End Sub
 
         <Fact>
+        Public Sub OverriddenMethodWithNoTupleNamesInReturn()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class Base
+    Public Overridable Function M6() As (a As Integer, b As Integer)
+        Return (1, 2)
+    End Function
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    Public Overrides Function M6() As (Integer, Integer)
+        Return (1, 2)
+    End Function
+    Sub M()
+        Dim result = Me.M6()
+        Dim result2 = MyBase.M6()
+        System.Console.Write(result.a)
+        System.Console.Write(result2.a)
+    End Sub
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30456: 'a' is not a member of '(Integer, Integer)'.
+        System.Console.Write(result.a)
+                             ~~~~~~~~
+</errors>)
+
+            Dim m6 = comp.GetMember(Of MethodSymbol)("Derived.M6").ReturnType
+            Assert.Equal("(System.Int32, System.Int32)", m6.ToTestDisplayString())
+
+            Dim tree = comp.SyntaxTrees.First()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+
+            Dim invocation = nodes.OfType(Of InvocationExpressionSyntax)().ElementAt(0)
+            Assert.Equal("Me.M6()", invocation.ToString())
+            Assert.Equal("Function Derived.M6() As (System.Int32, System.Int32)", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString())
+
+            Dim invocation2 = nodes.OfType(Of InvocationExpressionSyntax)().ElementAt(1)
+            Assert.Equal("MyBase.M6()", invocation2.ToString())
+            Assert.Equal("Function Base.M6() As (a As System.Int32, b As System.Int32)", model.GetSymbolInfo(invocation2).Symbol.ToTestDisplayString())
+        End Sub
+
+        <Fact>
         Public Sub OverriddenMethodWithDifferentTupleNamesInReturnUsingTypeArg()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -17201,9 +17275,6 @@ additionalReferences:=s_valueTupleRefs)
 
             compDifferent2.AssertTheseDiagnostics(
 <errors>
-BC40001: 'Public Overrides Function M() As (Integer, Integer)' cannot override 'Public Overrides Function M() As (notA As Integer, notB As Integer)' because they differ by their tuple element names.
-    Public Overrides Function M() As (Integer, Integer)
-                              ~
 </errors>)
 
         End Sub
@@ -17283,6 +17354,125 @@ BC40001: 'Public Overrides Property P4 As (notA As Integer, notB As Integer)?' c
 BC40001: 'Public Overrides Property P5 As (c As (notA As Integer, notB As Integer), d As Integer)' cannot override 'Public Overridable Property P5 As (c As (a As Integer, b As Integer), d As Integer)' because they differ by their tuple element names.
     Public Overrides Property P5 As (c As (notA As Integer, notB As Integer), d As Integer)
                               ~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub OverriddenPropertyWithNoTupleNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class Base
+    Public Overridable Property P6 As (a As Integer, b As Integer)
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    Public Overrides Property P6 As (Integer, Integer)
+    Sub M()
+        Dim result = Me.P6
+        Dim result2 = MyBase.P6
+        System.Console.Write(result.a)
+        System.Console.Write(result2.a)
+    End Sub
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+</errors>)
+
+            Dim tree = comp.SyntaxTrees.First()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+
+            Dim propertyAccess = nodes.OfType(Of MemberAccessExpressionSyntax)().ElementAt(0)
+            Assert.Equal("Me.P6", propertyAccess.ToString())
+            Assert.Equal("Property Derived.P6 As (System.Int32, System.Int32)", model.GetSymbolInfo(propertyAccess).Symbol.ToTestDisplayString())
+
+            Dim propertyAccess2 = nodes.OfType(Of MemberAccessExpressionSyntax)().ElementAt(1)
+            Assert.Equal("MyBase.P6", propertyAccess2.ToString())
+            Assert.Equal("Property Base.P6 As (a As System.Int32, b As System.Int32)", model.GetSymbolInfo(propertyAccess2).Symbol.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        Public Sub OverriddenPropertyWithNoTupleNamesWithValueTuple()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class Base
+    Public Overridable Property P6 As (a As Integer, b As Integer)
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    Public Overrides Property P6 As System.ValueTuple(Of Integer, Integer)
+    Sub M()
+        Dim result = Me.P6
+        Dim result2 = MyBase.P6
+        System.Console.Write(result.a)
+        System.Console.Write(result2.a)
+    End Sub
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+</errors>)
+
+            Dim tree = comp.SyntaxTrees.First()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+
+            Dim propertyAccess = nodes.OfType(Of MemberAccessExpressionSyntax)().ElementAt(0)
+            Assert.Equal("Me.P6", propertyAccess.ToString())
+            Assert.Equal("Property Derived.P6 As (System.Int32, System.Int32)", model.GetSymbolInfo(propertyAccess).Symbol.ToTestDisplayString())
+
+            Dim propertyAccess2 = nodes.OfType(Of MemberAccessExpressionSyntax)().ElementAt(1)
+            Assert.Equal("MyBase.P6", propertyAccess2.ToString())
+            Assert.Equal("Property Base.P6 As (a As System.Int32, b As System.Int32)", model.GetSymbolInfo(propertyAccess2).Symbol.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        Public Sub OverriddenEventWithDifferentTupleNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Public Class Base
+    Public Overridable Event E1 As Action(Of (a As Integer, b As Integer))
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    Public Overrides Event E1 As Action(Of (Integer, Integer))
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30243: 'Overridable' is not valid on an event declaration.
+    Public Overridable Event E1 As Action(Of (a As Integer, b As Integer))
+           ~~~~~~~~~~~
+BC30243: 'Overrides' is not valid on an event declaration.
+    Public Overrides Event E1 As Action(Of (Integer, Integer))
+           ~~~~~~~~~
+BC40004: event 'E1' conflicts with event 'E1' in the base class 'Base' and should be declared 'Shadows'.
+    Public Overrides Event E1 As Action(Of (Integer, Integer))
+                           ~~
 </errors>)
 
         End Sub
@@ -17743,6 +17933,125 @@ BC30402: 'evtTest3' cannot implement event 'evtTest2' on interface 'I1' because 
                                                                                              ~~~~~~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
+        End Sub
+
+        <Fact()>
+        Public Sub ImplementingEventWithNoTupleNames()
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Imports System
+Interface I1
+    Event evtTest1 As Action(Of (A As Integer, B As Integer))
+    Event evtTest2 As Action(Of (A As Integer, notB As Integer))
+End Interface
+Class C1
+    Implements I1
+    Event evtTest3 As Action(Of (Integer, Integer)) Implements I1.evtTest1, I1.evtTest2
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+
+            CompilationUtils.AssertNoDiagnostics(compilation1)
+        End Sub
+
+        <Fact()>
+        Public Sub ImplementingPropertyWithDifferentTupleNames()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Imports System
+Interface I1
+    Property P(x As (a As Integer, b As Integer)) As Boolean
+End Interface
+Class C1
+    Implements I1
+    Property P(x As (notA As Integer, notB As Integer)) As Boolean Implements I1.P
+        Get
+            Return True
+        End Get
+        Set
+        End Set
+    End Property
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+
+            compilation.AssertTheseDiagnostics(<errors>
+BC30402: 'P' cannot implement property 'P' on interface 'I1' because the tuple element names in 'Public Property P(x As (notA As Integer, notB As Integer)) As Boolean' do not match those in 'Property P(x As (a As Integer, b As Integer)) As Boolean'.
+    Property P(x As (notA As Integer, notB As Integer)) As Boolean Implements I1.P
+                                                                              ~~~~
+                                               </errors>)
+        End Sub
+
+        <Fact()>
+        Public Sub ImplementingPropertyWithNoTupleNames()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Imports System
+Interface I1
+    Property P(x As (a As Integer, b As Integer)) As Boolean
+End Interface
+Class C1
+    Implements I1
+    Property P(x As (Integer, Integer)) As Boolean Implements I1.P
+        Get
+            Return True
+        End Get
+        Set
+        End Set
+    End Property
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+
+            compilation.AssertTheseDiagnostics()
+        End Sub
+
+        <Fact()>
+        Public Sub ImplementingPropertyWithNoTupleNames2()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Imports System
+Interface I1
+    Property P As (a As Integer, b As Integer)
+End Interface
+Class C1
+    Implements I1
+    Property P As (Integer, Integer) Implements I1.P
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+
+            compilation.AssertTheseDiagnostics()
+        End Sub
+
+        <Fact()>
+        Public Sub ImplementingMethodWithNoTupleNames()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Imports System
+Interface I1
+    Sub M(x As (a As Integer, b As Integer))
+    Function M2 As (a As Integer, b As Integer)
+End Interface
+Class C1
+    Implements I1
+
+    Sub M(x As (Integer, Integer)) Implements I1.M
+    End Sub
+
+    Function M2 As (Integer, Integer) Implements I1.M2
+        Return (1, 2)
+    End Function
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+
+            compilation.AssertTheseDiagnostics()
         End Sub
 
         <Fact>
@@ -20396,6 +20705,134 @@ BC30311: Value of type '(e As Integer?, String)' cannot be converted to '(Intege
             Assert.Equal(ConversionKind.DelegateRelaxationLevelNone, model.GetConversion(node).Kind)
         End Sub
 
+        <Fact>
+        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
+        Public Sub MoreGenericTieBreaker_01()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+Module Module1
+    Public Sub Main()
+        Dim a As A(Of A(Of Integer)) = Nothing
+        M1(a) ' ok, selects M1(Of T)(A(Of A(Of T)) a)
+
+        Dim b = New ValueTuple(Of ValueTuple(Of Integer, Integer), Integer)()
+        M2(b) ' ok, should select M2(Of T)(ValueTuple(Of ValueTuple(Of T, Integer), Integer) a)
+    End Sub
+
+    Public Sub M1(Of T)(a As A(Of T))
+        Console.Write(1)
+    End Sub
+    Public Sub M1(Of T)(a As A(Of A(Of T)))
+        Console.Write(2)
+    End Sub
+
+    Public Sub M2(Of T)(a As ValueTuple(Of T, Integer))
+        Console.Write(3)
+    End Sub
+    Public Sub M2(Of T)(a As ValueTuple(Of ValueTuple(Of T, Integer), Integer))
+        Console.Write(4)
+    End Sub
+End Module
+
+Public Class A(Of T)
+End Class
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
+24
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
+        Public Sub MoreGenericTieBreaker_01b()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+Module Module1
+    Public Sub Main()
+        Dim b = ((0, 0), 0)
+        M2(b) ' ok, should select M2(Of T)(ValueTuple(Of ValueTuple(Of T, Integer), Integer) a)
+    End Sub
+
+    Public Sub M2(Of T)(a As (T, Integer))
+        Console.Write(3)
+    End Sub
+    Public Sub M2(Of T)(a As ((T, Integer), Integer))
+        Console.Write(4)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
+4
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
+        Public Sub MoreGenericTieBreaker_03()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+Module Module1
+    Public Sub Main()
+        Dim b = ((1, 1), 2, 3, 4, 5, 6, 7, 8, 9, (10, 10), (11, 11))
+        M1(b) ' ok, should select M1(Of T, U, V)(a As ((T, Integer), Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, (U, Integer), V))
+    End Sub
+
+    Sub M1(Of T, U, V)(a As ((T, Integer), Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, (U, Integer), V))
+        Console.Write(3)
+    End Sub
+    Sub M1(Of T, U, V)(a As (T, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, U, (V, Integer)))
+        Console.Write(4)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
+3
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
+        Public Sub MoreGenericTieBreaker_04()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+Module Module1
+    Public Sub Main()
+        Dim b = ((1, 1), 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, (20, 20))
+        M1(b) ' error: ambiguous
+    End Sub
+
+    Sub M1(Of T, U)(a As (T, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, (U, Integer)))
+        Console.Write(3)
+    End Sub
+    Sub M1(Of T, U)(a As ((T, Integer), Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, U))
+        Console.Write(4)
+    End Sub
+End Module
+    </file>
+</compilation>
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:=s_valueTupleRefs)
+            comp.VerifyDiagnostics(
+    Diagnostic(ERRID.ERR_NoMostSpecificOverload2, "M1").WithArguments("M1", "
+    'Public Sub M1(Of (Integer, Integer), Integer)(a As ((Integer, Integer), Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer)))': Not most specific.
+    'Public Sub M1(Of Integer, (Integer, Integer))(a As ((Integer, Integer), Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer)))': Not most specific.").WithLocation(7, 9)
+                )
+        End Sub
     End Class
 
 End Namespace

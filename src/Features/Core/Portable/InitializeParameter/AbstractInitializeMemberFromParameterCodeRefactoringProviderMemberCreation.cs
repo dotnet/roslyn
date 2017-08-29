@@ -11,10 +11,12 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter
@@ -128,7 +130,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private IFieldSymbol CreateField(
-            IParameterSymbol parameter, ImmutableArray<NamingRule> rules, List<string> parameterNameParts)
+            IParameterSymbol parameter, ImmutableArray<NamingRule> rules, ImmutableArray<string> parameterNameParts)
         {
             foreach (var rule in rules)
             {
@@ -137,7 +139,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     var uniqueName = GenerateUniqueName(parameter, parameterNameParts, rule);
 
                     return CodeGenerationSymbolFactory.CreateFieldSymbol(
-                        default(ImmutableArray<AttributeData>),
+                        default,
                         Accessibility.Private,
                         DeclarationModifiers.ReadOnly,
                         parameter.Type, uniqueName);
@@ -149,7 +151,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             throw ExceptionUtilities.Unreachable;
         }
 
-        private static string GenerateUniqueName(IParameterSymbol parameter, List<string> parameterNameParts, NamingRule rule)
+        private static string GenerateUniqueName(IParameterSymbol parameter, ImmutableArray<string> parameterNameParts, NamingRule rule)
         {
             // Determine an appropriate name to call the new field.
             var containingType = parameter.ContainingType;
@@ -163,7 +165,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private IPropertySymbol CreateProperty(
-            IParameterSymbol parameter, ImmutableArray<NamingRule> rules, List<string> parameterNameParts)
+            IParameterSymbol parameter, ImmutableArray<NamingRule> rules, ImmutableArray<string> parameterNameParts)
         {
             foreach (var rule in rules)
             {
@@ -172,19 +174,19 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     var uniqueName = GenerateUniqueName(parameter, parameterNameParts, rule);
 
                     var getMethod = CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                        default(ImmutableArray<AttributeData>),
+                        default,
                         Accessibility.Public,
-                        default(ImmutableArray<SyntaxNode>));
+                        default);
 
                     return CodeGenerationSymbolFactory.CreatePropertySymbol(
-                        default(ImmutableArray<AttributeData>),
+                        default,
                         Accessibility.Public,
                         new DeclarationModifiers(),
                         parameter.Type,
                         returnsByRef: false,
                         explicitInterfaceImplementations: default,
                         name: uniqueName,
-                        parameters: default(ImmutableArray<IParameterSymbol>),
+                        parameters: default,
                         getMethod: getMethod,
                         setMethod: null);
                 }
@@ -489,24 +491,23 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         /// Get the individual words in the parameter name.  This way we can generate 
         /// appropriate field/property names based on the user's preference.
         /// </summary>
-        private List<string> GetParameterWordParts(IParameterSymbol parameter)
+        private ImmutableArray<string> GetParameterWordParts(IParameterSymbol parameter)
         {
-            using (var breaks = StringBreaker.BreakIntoWordParts(parameter.Name))
-            {
-                return CreateWords(breaks, parameter.Name);
-            }
+            var parts = StringBreaker.GetWordParts(parameter.Name);
+            var result  = CreateWords(parts, parameter.Name);
+            parts.Free();
+            return result;
         }
 
-        private List<string> CreateWords(StringBreaks wordBreaks, string name)
+        private ImmutableArray<string> CreateWords(ArrayBuilder<TextSpan> parts, string name)
         {
-            var result = new List<string>(wordBreaks.GetCount());
-            for (int i = 0, n = wordBreaks.GetCount(); i < n; i++)
+            var result = ArrayBuilder<string>.GetInstance(parts.Count);
+            foreach (var part in parts)
             {
-                var br = wordBreaks[i];
-                result.Add(name.Substring(br.Start, br.Length));
+                result.Add(name.Substring(part.Start, part.Length));
             }
 
-            return result;
+            return result.ToImmutableAndFree();
         }
     }
 }

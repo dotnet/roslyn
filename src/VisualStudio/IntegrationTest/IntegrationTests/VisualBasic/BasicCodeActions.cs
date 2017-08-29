@@ -17,12 +17,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20371"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public void GenerateMethodInClosedFile()
         {
             var project = new Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils.Project(ProjectName);
-            VisualStudio.SolutionExplorer.AddFile(project, "Foo.vb", @"
-Class Foo
+            VisualStudio.SolutionExplorer.AddFile(project, "Goo.vb", @"
+Class Goo
 End Class
 ");
 
@@ -31,16 +31,16 @@ Imports System;
 
 Class Program
     Sub Main(args As String())
-        Dim f as Foo = new Foo()
+        Dim f as Goo = new Goo()
         f.Bar()$$
     End Sub
 End Class
 ");
 
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Generate method 'Foo.Bar'", applyFix: true);
-            VisualStudio.SolutionExplorer.Verify.FileContents(project, "Foo.vb", @"
-Class Foo
+            VisualStudio.Editor.Verify.CodeAction("Generate method 'Goo.Bar'", applyFix: true);
+            VisualStudio.SolutionExplorer.Verify.FileContents(project, "Goo.vb", @"
+Class Goo
     Friend Sub Bar()
         Throw New NotImplementedException()
     End Sub

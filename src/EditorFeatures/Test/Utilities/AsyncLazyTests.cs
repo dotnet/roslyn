@@ -26,17 +26,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             object createdObject = null;
 
             Func<CancellationToken, object> synchronousComputation = c =>
-                {
-                    Interlocked.Increment(ref computations);
+            {
+                Interlocked.Increment(ref computations);
 
-                    // We do not want to ever use the cancellation token that we are passed to this
-                    // computation. Rather, we will ignore it but cancel any request that is
-                    // outstanding.
-                    requestCancellationTokenSource.Cancel();
+                // We do not want to ever use the cancellation token that we are passed to this
+                // computation. Rather, we will ignore it but cancel any request that is
+                // outstanding.
+                requestCancellationTokenSource.Cancel();
 
-                    createdObject = new object();
-                    return createdObject;
-                };
+                createdObject = new object();
+                return createdObject;
+            };
 
             var lazy = new AsyncLazy<object>(
                 c => Task.FromResult(synchronousComputation(c)),

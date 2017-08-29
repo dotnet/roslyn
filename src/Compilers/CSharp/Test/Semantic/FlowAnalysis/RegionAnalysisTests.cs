@@ -933,7 +933,7 @@ class C {
     static void Main()
     {
         int x = 0;
-        Foo(ref 
+        Goo(ref 
 /*<bind>*/
 x
 /*</bind>*/
@@ -941,7 +941,7 @@ x
         System.Console.WriteLine(x);
     }
 
-    static void Foo(ref int x) { }
+    static void Goo(ref int x) { }
 }
 ");
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
@@ -1729,14 +1729,14 @@ public class MemberInitializerTest
         public void TestObjectInitializerExpression_NestedObjectInitializer()
         {
             var analysis = CompileAndAnalyzeDataFlowExpression(@"
-public class Foo
+public class Goo
 {
     public int z;
 }
 public class MemberInitializerTest
 {   
     public int x;
-    public Foo y { get; set; }
+    public Goo y { get; set; }
 
     public static void Main()
     {
@@ -1763,7 +1763,7 @@ public class MemberInitializerTest
         public void TestObjectInitializerExpression_VariableCaptured()
         {
             var analysis = CompileAndAnalyzeDataFlowExpression(@"
-public class Foo
+public class Goo
 {
     public delegate int D();
     public D z;
@@ -1771,7 +1771,7 @@ public class Foo
 public class MemberInitializerTest
 {   
     public int x;
-    public Foo y { get; set; }
+    public Goo y { get; set; }
 
     public static void Main()
     {
@@ -2335,7 +2335,7 @@ class C {
             var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C {
 
-    static void Foo()
+    static void Goo()
     {
         int i, j;
 /*<bind>*/
@@ -2401,7 +2401,7 @@ using System;
 public class Test
 {
     public delegate int D();
-    public void foo(ref D d)
+    public void goo(ref D d)
     {
 /*<bind>*/
         d = { return 10;};
@@ -3252,11 +3252,11 @@ class C {
     {
         int x = 1, y = 1;
 /*<bind>*/
-        Foo(x);
+        Goo(x);
 /*</bind>*/
     }
 
-    static void Foo(int x) { }
+    static void Goo(int x) { }
 }
 ");
             var controlFlowAnalysisResults = analysisResults.Item1;
@@ -3284,12 +3284,12 @@ class C {
     {
         int x = 1, y = 1;
 /*<bind>*/
-        Foo(x = y, y = 2);
+        Goo(x = y, y = 2);
 /*</bind>*/
         int z = x + y;
     }
 
-    static void Foo(int x, int y) { }
+    static void Goo(int x, int y) { }
 }
 ");
             var controlFlowAnalysisResults = analysisResults.Item1;
@@ -4908,7 +4908,7 @@ class Test
             var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
 public class Derived
 {
-    public void Foo(int x = /*<bind>*/ 2 /*</bind>*/)
+    public void Goo(int x = /*<bind>*/ 2 /*</bind>*/)
     {
     }
 }
@@ -4985,7 +4985,7 @@ class Program
             var source =
 @"class C
 {
-    void Foo(string[] args)
+    void Goo(string[] args)
     {
         foreach (var s in args)
         {

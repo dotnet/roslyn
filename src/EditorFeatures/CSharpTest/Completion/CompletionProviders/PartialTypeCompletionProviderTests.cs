@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -172,7 +172,7 @@ partial struct $$";
             var text = @"
 namespace N
 {
-    partial class Foo { }
+    partial class Goo { }
 }
 
 namespace N
@@ -180,7 +180,7 @@ namespace N
     partial class $$
 }";
 
-            await VerifyItemExistsAsync(text, "Foo");
+            await VerifyItemExistsAsync(text, "Goo");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -189,7 +189,7 @@ namespace N
             var text = @"
 namespace N
 {
-    partial class Foo { }
+    partial class Goo { }
 }
 
 partial class $$";

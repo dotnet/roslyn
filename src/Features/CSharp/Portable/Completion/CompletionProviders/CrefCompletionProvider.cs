@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             if (!tree.IsEntirelyWithinCrefSyntax(position, cancellationToken))
             {
-                return (default(SyntaxToken), null, ImmutableArray<ISymbol>.Empty);
+                return (default, null, ImmutableArray<ISymbol>.Empty);
             }
 
             var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDocumentationComments: true)
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             _testSpeculativeNodeCallbackOpt?.Invoke(parentNode);
             if (parentNode == null)
             {
-                return (default(SyntaxToken), null, ImmutableArray<ISymbol>.Empty);
+                return (default, null, ImmutableArray<ISymbol>.Empty);
             }
 
             var semanticModel = await document.GetSemanticModelForNodeAsync(
@@ -238,8 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var result = ArrayBuilder<ISymbol>.GetInstance();
             result.AddRange(semanticModel.LookupSymbols(token.SpanStart, container));
 
-            var namedTypeContainer = container as INamedTypeSymbol;
-            if (namedTypeContainer != null)
+            if (container is INamedTypeSymbol namedTypeContainer)
             {
                 result.AddRange(namedTypeContainer.InstanceConstructors);
             }
@@ -399,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private static readonly string InsertionTextProperty = "insertionText";
+        private const string InsertionTextProperty = "insertionText";
 
         protected override Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {

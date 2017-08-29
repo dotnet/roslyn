@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
@@ -1789,40 +1789,40 @@ End Try
 #Region "Using"
         <Fact>
         Public Sub Using1()
-            Dim src1 As String = "Using a : Using b : Foo() : End Using : End Using"
-            Dim src2 As String = "Using a : Using c : Using b : Foo() : End Using : End Using : End Using"
+            Dim src1 As String = "Using a : Using b : Goo() : End Using : End Using"
+            Dim src2 As String = "Using a : Using c : Using b : Goo() : End Using : End Using : End Using"
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [Using c : Using b : Foo() : End Using : End Using]@18",
+                "Insert [Using c : Using b : Goo() : End Using : End Using]@18",
                 "Insert [Using c]@18",
-                "Move [Using b : Foo() : End Using]@18 -> @28",
+                "Move [Using b : Goo() : End Using]@18 -> @28",
                 "Insert [End Using]@58")
         End Sub
 
         <Fact>
         Public Sub Using_DeleteHeader()
-            Dim src1 As String = "Using a : Foo() : End Using"
-            Dim src2 As String = "Foo()"
+            Dim src1 As String = "Using a : Goo() : End Using"
+            Dim src2 As String = "Goo()"
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Move [Foo()]@18 -> @8",
-                "Delete [Using a : Foo() : End Using]@8",
+                "Move [Goo()]@18 -> @8",
+                "Delete [Using a : Goo() : End Using]@8",
                 "Delete [Using a]@8",
                 "Delete [End Using]@26")
         End Sub
 
         <Fact>
         Public Sub Using_InsertHeader()
-            Dim src1 As String = "Foo()"
-            Dim src2 As String = "Using a : Foo() : End Using"
+            Dim src1 As String = "Goo()"
+            Dim src2 As String = "Using a : Goo() : End Using"
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [Using a : Foo() : End Using]@8",
+                "Insert [Using a : Goo() : End Using]@8",
                 "Insert [Using a]@8",
-                "Move [Foo()]@8 -> @18",
+                "Move [Goo()]@8 -> @18",
                 "Insert [End Using]@26")
         End Sub
 #End Region
@@ -1830,40 +1830,40 @@ End Try
 #Region "SyncLock"
         <Fact>
         Public Sub SyncLock1()
-            Dim src1 As String = "SyncLock a : SyncLock b : Foo() : End SyncLock : End SyncLock"
-            Dim src2 As String = "SyncLock a : SyncLock c : SyncLock b : Foo() : End SyncLock : End SyncLock : End SyncLock"
+            Dim src1 As String = "SyncLock a : SyncLock b : Goo() : End SyncLock : End SyncLock"
+            Dim src2 As String = "SyncLock a : SyncLock c : SyncLock b : Goo() : End SyncLock : End SyncLock : End SyncLock"
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [SyncLock c : SyncLock b : Foo() : End SyncLock : End SyncLock]@21",
+                "Insert [SyncLock c : SyncLock b : Goo() : End SyncLock : End SyncLock]@21",
                 "Insert [SyncLock c]@21",
-                "Move [SyncLock b : Foo() : End SyncLock]@21 -> @34",
+                "Move [SyncLock b : Goo() : End SyncLock]@21 -> @34",
                 "Insert [End SyncLock]@70")
         End Sub
 
         <Fact>
         Public Sub SyncLock_DeleteHeader()
-            Dim src1 As String = "SyncLock a : Foo() : End SyncLock"
-            Dim src2 As String = "Foo()"
+            Dim src1 As String = "SyncLock a : Goo() : End SyncLock"
+            Dim src2 As String = "Goo()"
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Move [Foo()]@21 -> @8",
-                "Delete [SyncLock a : Foo() : End SyncLock]@8",
+                "Move [Goo()]@21 -> @8",
+                "Delete [SyncLock a : Goo() : End SyncLock]@8",
                 "Delete [SyncLock a]@8",
                 "Delete [End SyncLock]@29")
         End Sub
 
         <Fact>
         Public Sub SyncLock_InsertHeader()
-            Dim src1 As String = "Foo()"
-            Dim src2 As String = "SyncLock a : Foo() : End SyncLock"
+            Dim src1 As String = "Goo()"
+            Dim src2 As String = "SyncLock a : Goo() : End SyncLock"
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [SyncLock a : Foo() : End SyncLock]@8",
+                "Insert [SyncLock a : Goo() : End SyncLock]@8",
                 "Insert [SyncLock a]@8",
-                "Move [Foo()]@8 -> @21",
+                "Move [Goo()]@8 -> @21",
                 "Insert [End SyncLock]@29")
         End Sub
 #End Region
@@ -1871,29 +1871,29 @@ End Try
 #Region "For Each"
         <Fact>
         Public Sub ForEach1()
-            Dim src1 As String = "For Each a In e : For Each b In f : Foo() : Next : Next"
-            Dim src2 As String = "For Each a In e : For Each c In g : For Each b In f : Foo() : Next : Next : Next"
+            Dim src1 As String = "For Each a In e : For Each b In f : Goo() : Next : Next"
+            Dim src2 As String = "For Each a In e : For Each c In g : For Each b In f : Goo() : Next : Next : Next"
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [For Each c In g : For Each b In f : Foo() : Next : Next]@26",
+                "Insert [For Each c In g : For Each b In f : Goo() : Next : Next]@26",
                 "Insert [For Each c In g]@26",
-                "Move [For Each b In f : Foo() : Next]@26 -> @44",
+                "Move [For Each b In f : Goo() : Next]@26 -> @44",
                 "Insert [Next]@77")
 
             Dim actual = ToMatchingPairs(edits.Match)
             Dim expected = New MatchingPairs From
             {
                 {"Sub F()", "Sub F()"},
-                {"For Each a In e : For Each b In f : Foo() : Next : Next",
-                 "For Each a In e : For Each c In g : For Each b In f : Foo() : Next : Next : Next"},
+                {"For Each a In e : For Each b In f : Goo() : Next : Next",
+                 "For Each a In e : For Each c In g : For Each b In f : Goo() : Next : Next : Next"},
                 {"For Each a In e",
                  "For Each a In e"},
-                {"For Each b In f : Foo() : Next",
-                 "For Each b In f : Foo() : Next"},
+                {"For Each b In f : Goo() : Next",
+                 "For Each b In f : Goo() : Next"},
                 {"For Each b In f",
                  "For Each b In f"},
-                {"Foo()", "Foo()"},
+                {"Goo()", "Goo()"},
                 {"Next", "Next"},
                 {"Next", "Next"},
                 {"End Sub", "End Sub"}
@@ -1904,24 +1904,24 @@ End Try
 
         <Fact>
         Public Sub ForEach_Swap1()
-            Dim src1 As String = "For Each a In e : For Each b In f : Foo() : Next : Next"
-            Dim src2 As String = "For Each b In f : For Each a In e : Foo() : Next : Next"
+            Dim src1 As String = "For Each a In e : For Each b In f : Goo() : Next : Next"
+            Dim src2 As String = "For Each b In f : For Each a In e : Goo() : Next : Next"
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Move [For Each b In f : Foo() : Next]@26 -> @8",
-                "Move [For Each a In e : For Each b In f : Foo() : Next : Next]@8 -> @26",
-                "Move [Foo()]@44 -> @44")
+                "Move [For Each b In f : Goo() : Next]@26 -> @8",
+                "Move [For Each a In e : For Each b In f : Goo() : Next : Next]@8 -> @26",
+                "Move [Goo()]@44 -> @44")
 
             Dim actual = ToMatchingPairs(edits.Match)
             Dim expected = New MatchingPairs From
             {
                 {"Sub F()", "Sub F()"},
-                {"For Each a In e : For Each b In f : Foo() : Next : Next", "For Each a In e : Foo() : Next"},
+                {"For Each a In e : For Each b In f : Goo() : Next : Next", "For Each a In e : Goo() : Next"},
                 {"For Each a In e", "For Each a In e"},
-                {"For Each b In f : Foo() : Next", "For Each b In f : For Each a In e : Foo() : Next : Next"},
+                {"For Each b In f : Goo() : Next", "For Each b In f : For Each a In e : Goo() : Next : Next"},
                 {"For Each b In f", "For Each b In f"},
-                {"Foo()", "Foo()"},
+                {"Goo()", "Goo()"},
                 {"Next", "Next"},
                 {"Next", "Next"},
                 {"End Sub", "End Sub"}
@@ -1932,27 +1932,27 @@ End Try
 
         <Fact>
         Public Sub Foreach_DeleteHeader()
-            Dim src1 As String = "For Each a In b : Foo() : Next"
-            Dim src2 As String = "Foo()"
+            Dim src1 As String = "For Each a In b : Goo() : Next"
+            Dim src2 As String = "Goo()"
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Move [Foo()]@26 -> @8",
-                "Delete [For Each a In b : Foo() : Next]@8",
+                "Move [Goo()]@26 -> @8",
+                "Delete [For Each a In b : Goo() : Next]@8",
                 "Delete [For Each a In b]@8",
                 "Delete [Next]@34")
         End Sub
 
         <Fact>
         Public Sub Foreach_InsertHeader()
-            Dim src1 As String = "Foo()"
-            Dim src2 As String = "For Each a In b : Foo() : Next"
+            Dim src1 As String = "Goo()"
+            Dim src2 As String = "For Each a In b : Goo() : Next"
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [For Each a In b : Foo() : Next]@8",
+                "Insert [For Each a In b : Goo() : Next]@8",
                 "Insert [For Each a In b]@8",
-                "Move [Foo()]@8 -> @26",
+                "Move [Goo()]@8 -> @26",
                 "Insert [Next]@34")
         End Sub
 #End Region
@@ -1960,28 +1960,28 @@ End Try
 #Region "For"
         <Fact>
         Public Sub For1()
-            Dim src1 = "For a = 0 To 10 : For a = 0 To 20 : Foo() : Next : Next"
-            Dim src2 = "For a = 0 To 10 : For b = 0 To 10 : For a = 0 To 20 : Foo() : Next : Next : Next"
+            Dim src1 = "For a = 0 To 10 : For a = 0 To 20 : Goo() : Next : Next"
+            Dim src2 = "For a = 0 To 10 : For b = 0 To 10 : For a = 0 To 20 : Goo() : Next : Next : Next"
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [For b = 0 To 10 : For a = 0 To 20 : Foo() : Next : Next]@26",
+                "Insert [For b = 0 To 10 : For a = 0 To 20 : Goo() : Next : Next]@26",
                 "Insert [For b = 0 To 10]@26",
-                "Move [For a = 0 To 20 : Foo() : Next]@26 -> @44",
+                "Move [For a = 0 To 20 : Goo() : Next]@26 -> @44",
                 "Insert [Next]@77")
         End Sub
 
         <Fact>
         Public Sub For2()
-            Dim src1 = "For a = 0 To 10 Step 1 : For a = 0 To 20 : Foo() : Next : Next"
-            Dim src2 = "For a = 0 To 10 Step 2 : For b = 0 To 10 Step 4 : For a = 0 To 20 Step 5 : Foo() : Next : Next : Next"
+            Dim src1 = "For a = 0 To 10 Step 1 : For a = 0 To 20 : Goo() : Next : Next"
+            Dim src2 = "For a = 0 To 10 Step 2 : For b = 0 To 10 Step 4 : For a = 0 To 20 Step 5 : Goo() : Next : Next : Next"
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [For b = 0 To 10 Step 4 : For a = 0 To 20 Step 5 : Foo() : Next : Next]@33",
+                "Insert [For b = 0 To 10 Step 4 : For a = 0 To 20 Step 5 : Goo() : Next : Next]@33",
                 "Update [Step 1]@24 -> [Step 2]@24",
                 "Insert [For b = 0 To 10 Step 4]@33",
-                "Move [For a = 0 To 20 : Foo() : Next]@33 -> @58",
+                "Move [For a = 0 To 20 : Goo() : Next]@33 -> @58",
                 "Insert [Next]@98",
                 "Insert [Step 4]@49",
                 "Insert [Step 5]@74")
@@ -1989,21 +1989,21 @@ End Try
 
         <Fact>
         Public Sub For_DeleteHeader()
-            Dim src1 As String = "For a = 0 To 10 : Foo() : Next"
-            Dim src2 As String = "Foo()"
+            Dim src1 As String = "For a = 0 To 10 : Goo() : Next"
+            Dim src2 As String = "Goo()"
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Move [Foo()]@26 -> @8",
-                "Delete [For a = 0 To 10 : Foo() : Next]@8",
+                "Move [Goo()]@26 -> @8",
+                "Delete [For a = 0 To 10 : Goo() : Next]@8",
                 "Delete [For a = 0 To 10]@8",
                 "Delete [Next]@34")
         End Sub
 
         <Fact>
         Public Sub For_DeleteStep()
-            Dim src1 As String = "For a = 0 To 10 Step 1 : Foo() : Next"
-            Dim src2 As String = "For a = 0 To 10 : Foo() : Next"
+            Dim src1 As String = "For a = 0 To 10 Step 1 : Goo() : Next"
+            Dim src2 As String = "For a = 0 To 10 : Goo() : Next"
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
@@ -2012,8 +2012,8 @@ End Try
 
         <Fact>
         Public Sub For_InsertStep()
-            Dim src1 As String = "For a = 0 To 10 : Foo() : Next"
-            Dim src2 As String = "For a = 0 To 10 Step 1 : Foo() : Next"
+            Dim src1 As String = "For a = 0 To 10 : Goo() : Next"
+            Dim src2 As String = "For a = 0 To 10 Step 1 : Goo() : Next"
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
@@ -2022,14 +2022,14 @@ End Try
 
         <Fact>
         Public Sub For_InsertHeader()
-            Dim src1 As String = "Foo()"
-            Dim src2 As String = "For a = 0 To 10 : Foo() : Next"
+            Dim src1 As String = "Goo()"
+            Dim src2 As String = "For a = 0 To 10 : Goo() : Next"
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [For a = 0 To 10 : Foo() : Next]@8",
+                "Insert [For a = 0 To 10 : Goo() : Next]@8",
                 "Insert [For a = 0 To 10]@8",
-                "Move [Foo()]@8 -> @26",
+                "Move [Goo()]@8 -> @26",
                 "Insert [Next]@34")
         End Sub
 #End Region
@@ -2037,32 +2037,32 @@ End Try
 #Region "Do, While, Loop"
         <Fact>
         Public Sub While1()
-            Dim src1 As String = "While a : While b : Foo() : End While : End While"
-            Dim src2 As String = "While a : While c : While b : Foo() : End While : End While : End While"
+            Dim src1 As String = "While a : While b : Goo() : End While : End While"
+            Dim src2 As String = "While a : While c : While b : Goo() : End While : End While : End While"
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [While c : While b : Foo() : End While : End While]@18",
+                "Insert [While c : While b : Goo() : End While : End While]@18",
                 "Insert [While c]@18",
-                "Move [While b : Foo() : End While]@18 -> @28",
+                "Move [While b : Goo() : End While]@18 -> @28",
                 "Insert [End While]@58")
         End Sub
 
         <Fact>
         Public Sub DoWhile1()
-            Dim src1 As String = "While a : While b : Foo() : End While : End While"
-            Dim src2 As String = "Do While a : While c : Do Until b : Foo() : Loop : End While : Loop"
+            Dim src1 As String = "While a : While b : Goo() : End While : End While"
+            Dim src2 As String = "Do While a : While c : Do Until b : Goo() : Loop : End While : Loop"
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [While a : While b : Foo() : End While : End While]@8 -> [Do While a : While c : Do Until b : Foo() : Loop : End While : Loop]@8",
+                "Update [While a : While b : Goo() : End While : End While]@8 -> [Do While a : While c : Do Until b : Goo() : Loop : End While : Loop]@8",
                 "Update [While a]@8 -> [Do While a]@8",
-                "Insert [While c : Do Until b : Foo() : Loop : End While]@21",
+                "Insert [While c : Do Until b : Goo() : Loop : End While]@21",
                 "Update [End While]@48 -> [Loop]@71",
                 "Insert [While a]@11",
                 "Insert [While c]@21",
-                "Update [While b : Foo() : End While]@18 -> [Do Until b : Foo() : Loop]@31",
-                "Move [While b : Foo() : End While]@18 -> @31",
+                "Update [While b : Goo() : End While]@18 -> [Do Until b : Goo() : Loop]@31",
+                "Move [While b : Goo() : End While]@18 -> @31",
                 "Insert [End While]@59",
                 "Update [While b]@18 -> [Do Until b]@31",
                 "Update [End While]@36 -> [Loop]@52",
@@ -2071,66 +2071,66 @@ End Try
 
         <Fact>
         Public Sub While_DeleteHeader()
-            Dim src1 As String = "While a : Foo() : End While"
-            Dim src2 As String = "Foo()"
+            Dim src1 As String = "While a : Goo() : End While"
+            Dim src2 As String = "Goo()"
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Move [Foo()]@18 -> @8",
-                "Delete [While a : Foo() : End While]@8",
+                "Move [Goo()]@18 -> @8",
+                "Delete [While a : Goo() : End While]@8",
                 "Delete [While a]@8",
                 "Delete [End While]@26")
         End Sub
 
         <Fact>
         Public Sub While_InsertHeader()
-            Dim src1 As String = "Foo()"
-            Dim src2 As String = "While a : Foo() : End While"
+            Dim src1 As String = "Goo()"
+            Dim src2 As String = "While a : Goo() : End While"
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [While a : Foo() : End While]@8",
+                "Insert [While a : Goo() : End While]@8",
                 "Insert [While a]@8",
-                "Move [Foo()]@8 -> @18",
+                "Move [Goo()]@8 -> @18",
                 "Insert [End While]@26")
         End Sub
 
         <Fact>
         Public Sub Do1()
-            Dim src1 = "Do : Do : Foo() : Loop While b : Loop Until a"
-            Dim src2 = "Do : Do : Do : Foo() : Loop While b : Loop: Loop Until a"
+            Dim src1 = "Do : Do : Goo() : Loop While b : Loop Until a"
+            Dim src2 = "Do : Do : Do : Goo() : Loop While b : Loop: Loop Until a"
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [Do : Do : Foo() : Loop While b : Loop]@13",
+                "Insert [Do : Do : Goo() : Loop While b : Loop]@13",
                 "Insert [Do]@13",
-                "Move [Do : Foo() : Loop While b]@13 -> @18",
+                "Move [Do : Goo() : Loop While b]@13 -> @18",
                 "Insert [Loop]@46")
         End Sub
 
         <Fact>
         Public Sub Do_DeleteHeader()
-            Dim src1 = "Do : Foo() : Loop"
-            Dim src2 = "Foo()"
+            Dim src1 = "Do : Goo() : Loop"
+            Dim src2 = "Goo()"
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Move [Foo()]@13 -> @8",
-                "Delete [Do : Foo() : Loop]@8",
+                "Move [Goo()]@13 -> @8",
+                "Delete [Do : Goo() : Loop]@8",
                 "Delete [Do]@8",
                 "Delete [Loop]@21")
         End Sub
 
         <Fact>
         Public Sub Do_InsertHeader()
-            Dim src1 = "Foo()"
-            Dim src2 = "Do : Foo() : Loop"
+            Dim src1 = "Goo()"
+            Dim src2 = "Do : Goo() : Loop"
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [Do : Foo() : Loop]@8",
+                "Insert [Do : Goo() : Loop]@8",
                 "Insert [Do]@8",
-                "Move [Foo()]@8 -> @13",
+                "Move [Goo()]@8 -> @13",
                 "Insert [Loop]@21")
         End Sub
 #End Region
@@ -2196,89 +2196,89 @@ End Try
 
         <Fact>
         Public Sub If1()
-            Dim src1 As String = "If a : If b : Foo() : End If : End If"
-            Dim src2 As String = "If a : If c : If b : Foo() : End If : End If : End If"
+            Dim src1 As String = "If a : If b : Goo() : End If : End If"
+            Dim src2 As String = "If a : If c : If b : Goo() : End If : End If : End If"
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [If c : If b : Foo() : End If : End If]@15",
+                "Insert [If c : If b : Goo() : End If : End If]@15",
                 "Insert [If c]@15",
-                "Move [If b : Foo() : End If]@15 -> @22",
+                "Move [If b : Goo() : End If]@15 -> @22",
                 "Insert [End If]@46")
         End Sub
 
         <Fact>
         Public Sub If_DeleteHeader()
-            Dim src1 = "If a : Foo() : End If"
-            Dim src2 = "Foo()"
+            Dim src1 = "If a : Goo() : End If"
+            Dim src2 = "Goo()"
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Move [Foo()]@15 -> @8",
-                "Delete [If a : Foo() : End If]@8",
+                "Move [Goo()]@15 -> @8",
+                "Delete [If a : Goo() : End If]@8",
                 "Delete [If a]@8",
                 "Delete [End If]@23")
         End Sub
 
         <Fact>
         Public Sub If_InsertHeader()
-            Dim src1 = "Foo()"
-            Dim src2 = "If a : Foo() : End If"
+            Dim src1 = "Goo()"
+            Dim src2 = "If a : Goo() : End If"
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [If a : Foo() : End If]@8",
+                "Insert [If a : Goo() : End If]@8",
                 "Insert [If a]@8",
-                "Move [Foo()]@8 -> @15",
+                "Move [Goo()]@8 -> @15",
                 "Insert [End If]@23")
         End Sub
 
         <Fact>
         Public Sub Else_DeleteHeader()
-            Dim src1 As String = "If a : Foo( ) : Else : Foo(  ) : End If"
-            Dim src2 As String = "If a : Foo( ) : Foo(  ) : End If"
+            Dim src1 As String = "If a : Goo( ) : Else : Goo(  ) : End If"
+            Dim src2 As String = "If a : Goo( ) : Goo(  ) : End If"
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Move [Foo(  )]@31 -> @24",
-                "Delete [Else : Foo(  )]@24",
+                "Move [Goo(  )]@31 -> @24",
+                "Delete [Else : Goo(  )]@24",
                 "Delete [Else]@24")
         End Sub
 
         <Fact>
         Public Sub Else_InsertHeader()
-            Dim src1 = "If a : Foo( ) : End If : Foo(  )"
-            Dim src2 = "If a : Foo( ) : Else : Foo(  ) : End If"
+            Dim src1 = "If a : Goo( ) : End If : Goo(  )"
+            Dim src2 = "If a : Goo( ) : Else : Goo(  ) : End If"
 
             Dim edits = GetMethodEdits(src1, src2)
             edits.VerifyEdits(
-                "Insert [Else : Foo(  )]@24",
+                "Insert [Else : Goo(  )]@24",
                 "Insert [Else]@24",
-                "Move [Foo(  )]@33 -> @31")
+                "Move [Goo(  )]@33 -> @31")
         End Sub
 
         <Fact>
         Public Sub ElseIf_DeleteHeader()
-            Dim src1 = "If a : Foo( ) : ElseIf b : Foo(  ) : End If"
-            Dim src2 = "If a : Foo( ) : End If : Foo(  )"
+            Dim src1 = "If a : Goo( ) : ElseIf b : Goo(  ) : End If"
+            Dim src2 = "If a : Goo( ) : End If : Goo(  )"
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Move [Foo(  )]@35 -> @33",
-                "Delete [ElseIf b : Foo(  )]@24",
+                "Move [Goo(  )]@35 -> @33",
+                "Delete [ElseIf b : Goo(  )]@24",
                 "Delete [ElseIf b]@24")
         End Sub
 
         <Fact>
         Public Sub ElseIf_InsertHeader()
-            Dim src1 = "If a : Foo( ) : Foo(  ) : End If"
-            Dim src2 = "If a : Foo( ) : Else If b : Foo(  ) : End If"
+            Dim src1 = "If a : Goo( ) : Goo(  ) : End If"
+            Dim src2 = "If a : Goo( ) : Else If b : Goo(  ) : End If"
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [Else If b : Foo(  )]@24",
+                "Insert [Else If b : Goo(  )]@24",
                 "Insert [Else If b]@24",
-                "Move [Foo(  )]@24 -> @36")
+                "Move [Goo(  )]@24 -> @36")
         End Sub
 #End Region
 

@@ -27,7 +27,7 @@ class C
     }
 }";
             var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
-            var method = (SourceMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
+            var method = (SourceMemberMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
             Assert.True(method.IsAsync);
         }
 
@@ -831,7 +831,7 @@ class Test
 
     class await { }
 
-    static int Foo(int[] arr = await t)
+    static int Goo(int[] arr = await t)
     {
         return arr.Length;
     }
@@ -844,7 +844,7 @@ class Test
 
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (10,32): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<int>'.
-                //     static int Foo(int[] arr = await t)
+                //     static int Goo(int[] arr = await t)
                 Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await t").WithArguments("int").WithLocation(10, 32)
                 );
         }
@@ -1589,10 +1589,10 @@ class Test
     public async void Meth()
     {
         await Task.Delay(10);
-        Foo();
+        Goo();
     }
 
-    public async Task<int> Foo()
+    public async Task<int> Goo()
     {
         await Task.Delay(10);
         return 1;
@@ -1605,8 +1605,8 @@ class Test
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (16,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
-                //         Foo();
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Foo()"));
+                //         Goo();
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"));
         }
 
         [Fact]
@@ -1621,19 +1621,19 @@ class Test
 {
     public async Task Meth()
     {
-        Foo();
+        Goo();
         foreach (var x in new int[] { 1, 2 })
         {
-            Foo();
+            Goo();
         }
 
-        while (await Foo())
+        while (await Goo())
         {
-            Foo();
+            Goo();
         }
     }
 
-    public async Task<dynamic> Foo()
+    public async Task<dynamic> Goo()
     {
         return 1;
     }
@@ -1645,17 +1645,17 @@ class Test
 }";
             CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }).VerifyDiagnostics(
                 // (19,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
-                //         Foo();
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Foo()"),
+                //         Goo();
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"),
                 // (22,13): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
-                //             Foo();
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Foo()"),
+                //             Goo();
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"),
                 // (27,13): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
-                //             Foo();
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Foo()"),
+                //             Goo();
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"),
                 // (31,32): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public async Task<dynamic> Foo()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Foo"));
+                //     public async Task<dynamic> Goo()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Goo"));
         }
 
         [Fact]
@@ -1670,24 +1670,24 @@ class Test
 {
     static async Task<object> Meth()
     {
-        Foo();
+        Goo();
 
-        Bar bar = Foo;
+        Bar bar = Goo;
         bar();
 
         return (object)"""";
     }
 
-    static async Task<decimal?> Foo()
+    static async Task<decimal?> Goo()
     {
         return null;
     }
 
     static Task Meth2()
     {
-        Foo();
+        Goo();
 
-        Bar bar = Foo;
+        Bar bar = Goo;
         bar();
         return Task.Run(async () => { await Task.Delay(10); });
     }
@@ -1699,8 +1699,8 @@ class Test
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (21,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
-                //         Foo();
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Foo()"),
+                //         Goo();
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"),
                 // (24,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         bar();
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "bar()"),
@@ -1708,11 +1708,11 @@ class Test
                 //     static async Task<object> Meth()
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Meth"),
                 // (29,33): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<decimal?> Foo()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Foo"),
+                //     static async Task<decimal?> Goo()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Goo"),
                 // (36,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
-                //         Foo();
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Foo()"));
+                //         Goo();
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"));
         }
 
         [Fact]
@@ -1738,11 +1738,11 @@ class Test
     {
         int i = 0;
         i.MethExt();
-        Foo(1);
+        Goo(1);
         return t;
     }
 
-    static Task<T> Foo<T>(T t)
+    static Task<T> Goo<T>(T t)
     {
         return Task.Run(async () => { return t; });
     }
@@ -1757,8 +1757,8 @@ class Test
                 //         i.MethExt();
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "i.MethExt()").WithLocation(19, 9),
                 // (20,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
-                //         Foo(1);
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Foo(1)").WithLocation(20, 9),
+                //         Goo(1);
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo(1)").WithLocation(20, 9),
                 // (16,26): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     static async Task<T> Meth<T>(T t)
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Meth").WithLocation(16, 26),
@@ -1782,18 +1782,18 @@ class Test
     static async Task<dynamic> Meth1()
     {
         throw new EntryPointNotFoundException();
-        Foo();
+        Goo();
         return """";
     }
 
     static async Task<decimal?> Meth2()
     {
-        Foo();
+        Goo();
         throw new DuplicateWaitObjectException();
         return null;
     }
 
-    static async Task<decimal?> Foo()
+    static async Task<decimal?> Goo()
     {
         return null;
     }
@@ -1808,23 +1808,23 @@ class Test
                 //     static async Task<dynamic> Meth1()
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Meth1"),
                 // (23,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
-                //         Foo();
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Foo()"),
+                //         Goo();
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"),
                 // (23,9): warning CS0162: Unreachable code detected
-                //         Foo();
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "Foo"),
+                //         Goo();
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "Goo"),
                 // (27,33): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     static async Task<decimal?> Meth2()
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Meth2"),
                 // (29,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
-                //         Foo();
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Foo()"),
+                //         Goo();
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"),
                 // (31,9): warning CS0162: Unreachable code detected
                 //         return null;
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "return"),
                 // (34,33): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<decimal?> Foo()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Foo"));
+                //     static async Task<decimal?> Goo()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Goo"));
         }
 
         [Fact]
@@ -1839,16 +1839,16 @@ class Test
     static async Task<dynamic> Meth1()
     {
         return """";
-        Foo();
+        Goo();
     }
 
     static int Meth2()
     {
         return 2;
-        Foo();
+        Goo();
     }
 
-    static async Task<double?> Foo()
+    static async Task<double?> Goo()
     {
         return null;
     }
@@ -1860,23 +1860,23 @@ class Test
 }";
             CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }).VerifyDiagnostics(
                 // (22,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
-                //         Foo();
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Foo()"),
+                //         Goo();
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"),
                 // (19,32): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     static async Task<dynamic> Meth1()
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Meth1"),
                 // (22,9): warning CS0162: Unreachable code detected
-                //         Foo();
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "Foo"),
+                //         Goo();
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "Goo"),
                 // (28,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
-                //         Foo();
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Foo()"),
+                //         Goo();
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"),
                 // (28,9): warning CS0162: Unreachable code detected
-                //         Foo();
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "Foo"),
+                //         Goo();
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "Goo"),
                 // (31,32): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<double?> Foo()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Foo"));
+                //     static async Task<double?> Goo()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Goo"));
         }
 
         [Fact]
@@ -1895,7 +1895,7 @@ class Test
         return t;
     }
 
-    static async Task<T> Foo<T>(T t)
+    static async Task<T> Goo<T>(T t)
     {
         Func<Task<int>> f = async () =>
         {
@@ -2091,7 +2091,7 @@ class Test
         return t;
     }
 
-    static async Task Foo()
+    static async Task Goo()
     {
         try
         {
@@ -2123,8 +2123,8 @@ class Test
                 //             Meth((decimal?)2);
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Meth((decimal?)2)"),
                 // (24,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task Foo()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Foo"));
+                //     static async Task Goo()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Goo"));
         }
 
         [Fact]
@@ -2145,7 +2145,7 @@ static class Extension
 
 class Test
 {
-    static async Task<T> Foo<T>(T t)
+    static async Task<T> Goo<T>(T t)
     {
         var i = 0;
         Func<Task> f = async delegate()
@@ -2227,7 +2227,7 @@ class Test
         }
     }
 
-    public async Task Foo()
+    public async Task Goo()
     {
         await Bar();
         Bar(); //the callee return type is dynamic, it will not give warning
@@ -2281,7 +2281,7 @@ partial class Test
         Meth("""", null);
     }
 
-    async public Task Foo()
+    async public Task Goo()
     {
         Bar();
         Meth(Task.Run(async () => 1), Meth(1));
@@ -2303,8 +2303,8 @@ partial class Test
                 //         Meth(Task.Run(async () => 1), Meth(1));
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(25, 32),
                 // (22,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async public Task Foo()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Foo").WithLocation(22, 23));
+                //     async public Task Goo()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Goo").WithLocation(22, 23));
         }
 
         [WorkItem(611150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611150")]
@@ -2322,7 +2322,7 @@ class Test
         return t;
     }
 
-    static async Task Foo()
+    static async Task Goo()
     {
         checked
         {
@@ -2373,7 +2373,7 @@ using System.Threading.Tasks;
 
 class Test
 {
-    static async Task Foo()
+    static async Task Goo()
     {
         await Task.Factory.StartNew(() => { });
         lock (new object())
@@ -2420,7 +2420,7 @@ class Test
         Meth(1); //warning CS4014
     }
 
-    public async Task Foo()
+    public async Task Goo()
     {
         var test = new Test();
         test.Prop; //error CS0201
@@ -2444,8 +2444,8 @@ class Test
                 //         test[1]; //error CS0201
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "test[1]"),
                 // (44,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public async Task Foo()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Foo"));
+                //     public async Task Goo()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Goo"));
         }
 
         [Fact]
@@ -2463,7 +2463,7 @@ class Test
         return t;
     }
 
-    static async Task Foo()
+    static async Task Goo()
     {
         for (Meth(""""); await Meth(false); Meth((float?)null))
         {
@@ -2528,7 +2528,7 @@ public class TestB
 
 public class Test
 {
-    public async Task Foo()
+    public async Task Goo()
     {
         var testB = new TestB();
         for (testB.Meth2(); await testB.Meth(false); testB.Meth((float?)null))
@@ -2578,10 +2578,10 @@ class Test
 {
     public void Meth()
     {
-        Foo();
+        Goo();
     }
 
-    public async Task<int> Foo()
+    public async Task<int> Goo()
     {
         await Task.Delay(10);
         return 1;
@@ -2593,8 +2593,8 @@ class Test
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (15,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
-                //         Foo();
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Foo()"));
+                //         Goo();
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"));
         }
 
         [Fact]
@@ -2644,17 +2644,17 @@ class Test
     public delegate T Del<T>(T item);
     public T Meth<T>(T t)
     {
-        Foo();
+        Goo();
         Del<int> del = x =>
             {
-                Foo();
+                Goo();
                 return 1;
             };
         return t;
     }
 
 
-    static async Task<Task> Foo()
+    static async Task<Task> Goo()
     {
         await Task.Delay(10);
         return new Task(() => { Task.Delay(10); });
@@ -2666,11 +2666,11 @@ class Test
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (18,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
-                //         Foo();
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Foo()"),
+                //         Goo();
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"),
                 // (21,17): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
-                //                 Foo();
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Foo()"));
+                //                 Goo();
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"));
         }
 
         [Fact]
@@ -2685,14 +2685,14 @@ class Test
     public delegate T Del<T>();
     public T Meth<T>(T t)
     {
-        Foo();
+        Goo();
         Del<Task<string>> del =async delegate()
         {
             await Task.Delay(10);
-            Foo();
+            Goo();
             Del<int> del2 = () =>
                 {
-                    Foo();
+                    Goo();
                     return 1;
                 };
             return """";
@@ -2702,7 +2702,7 @@ class Test
     }
 
 
-    public Task Foo()
+    public Task Goo()
     {
         return Task.Run(async() =>
             {
@@ -2716,8 +2716,8 @@ class Test
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (21,13): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
-                //             Foo();
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Foo()"));
+                //             Goo();
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"));
         }
 
         [Fact]
@@ -2734,14 +2734,14 @@ class Testcase
     static Test test = null;
     public void Meth()
     {
-        Foo();
+        Goo();
         Func<Task<Test>> fun = () =>
             {
-                return Foo();
+                return Goo();
             };
     }
 
-    public Task<Test> Foo()
+    public Task<Test> Goo()
     {
         return Task.Run<Test>( () =>
             {
@@ -2808,21 +2808,21 @@ class Test
 {
     public void Meth()
     {
-        Func<Task<string>> Foo = async () =>
+        Func<Task<string>> Goo = async () =>
             {
                 await Task.Delay(10);
                 return """";
             };
-        Foo();
+        Goo();
         Task.Run(() =>
             {
-                Foo();
+                Goo();
                 Func<Task<Task>> fun = async () =>
                     {
                         await Task.Delay(10);
                         return Task.Run(() =>
                             {
-                                Foo();
+                                Goo();
                             });
                     };
             });
@@ -2890,12 +2890,12 @@ static class Extension
 {
     public static Task<int> ExMeth(this int i)
     {
-        Func<Task<int>> Foo = async () =>
+        Func<Task<int>> Goo = async () =>
             {
                 await Task.Delay(10);
                 return ++i;
             };
-        return (Task<int>) Foo();
+        return (Task<int>) Goo();
     }
 }
 class Test
@@ -2926,7 +2926,7 @@ class Test
         await Task.Delay(10);
         return int.MaxValue;
     }
-    public Task<int> Foo()
+    public Task<int> Goo()
     {
         int i = int.MaxValue;
         return Task.Run(async () => { return i; });
@@ -2937,12 +2937,12 @@ class Test
         checked
         {
             test.Meth();
-            test.Foo();
+            test.Goo();
         }
         unchecked
         {
             test.Meth();
-            test.Foo();
+            test.Goo();
         }
         return 0;
     }
@@ -2970,15 +2970,15 @@ class Testcase
 {
     ~Testcase()
     {
-        Foo();
-        Foo2();
+        Goo();
+        Goo2();
     }
-    public async Task<string> Foo()
+    public async Task<string> Goo()
     {
         await Task.Delay(10);
-        return ""Foo"";
+        return ""Goo"";
     }
-    public Task Foo2()
+    public Task Goo2()
     {
         return Task.Run(() => { });
     }
@@ -2997,8 +2997,8 @@ class Test
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (17,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
-                //         Foo();
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Foo()"));
+                //         Goo();
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"));
         }
 
         [Fact]
@@ -3010,19 +3010,19 @@ using System.Threading.Tasks;
 
 class Test : IDisposable
 {
-    public async Task Foo()
+    public async Task Goo()
     {
         await Task.Delay(10);
     }
     public void Dispose()
     {
-        Foo();
+        Goo();
     }
     static int Main()
     {
         using (Test test = new Test())
         {
-            test.Foo();
+            test.Goo();
         }
         return 0;
     }
@@ -3031,11 +3031,11 @@ class Test : IDisposable
 
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (22,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
-                //         Foo();
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Foo()"),
+                //         Goo();
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Goo()"),
                 // (28,13): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
-                //             test.Foo();
-                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "test.Foo()"));
+                //             test.Goo();
+                Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "test.Goo()"));
         }
 
         [Fact]
@@ -3449,16 +3449,16 @@ class Driver
         return 1;
     }
 
-    public async void Foo(ref int x)
+    public async void Goo(ref int x)
     { }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (9,35): error CS1988: Async methods cannot have ref or out parameters
-                //     public async void Foo(ref int x)
+                //     public async void Goo(ref int x)
                 Diagnostic(ErrorCode.ERR_BadAsyncArgType, "x"),
                 // (9,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public async void Foo(ref int x)
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Foo"));
+                //     public async void Goo(ref int x)
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Goo"));
         }
 
 
@@ -3586,7 +3586,7 @@ using System.Threading.Tasks;
 
 class C
 {
-    async void Foo()
+    async void Goo()
     {
         Action<int> x = (await) => { }; // should be a syntax error
         await Task.Delay(1);
@@ -3656,7 +3656,7 @@ using System.Threading.Tasks;
 
 class Program
 {
-    static async Task<T> Foo<T>()
+    static async Task<T> Goo<T>()
     {
         await Task.Delay(1);
         return 1;

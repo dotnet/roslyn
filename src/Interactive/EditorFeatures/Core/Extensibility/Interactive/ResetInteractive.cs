@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -105,8 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             // Now send the reference paths we've collected to the repl.
             // The SetPathsAsync method is not available through an Interface.
             // Execute the method only if the cast to a concrete InteractiveEvaluator succeeds.
-            InteractiveEvaluator interactiveEvaluator = evaluator as InteractiveEvaluator;
-            if (interactiveEvaluator != null)
+            if (evaluator is InteractiveEvaluator interactiveEvaluator)
             {
                 await interactiveEvaluator.SetPathsAsync(referenceSearchPaths, sourceSearchPaths, projectDirectory).ConfigureAwait(true);
             }

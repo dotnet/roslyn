@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
             Dim text = StringFromLines(
                 "Module M",
                 "    Sub S()",
-                "        Dim foo",
+                "        Dim goo",
                 "    End Sub",
                 "End Module")
             Await TestAsync(text)
@@ -511,7 +511,7 @@ End Class
 <code>
 Class C
     Sub M()
-        Dim m = My.Foo
+        Dim m = My.Goo
     End Sub
 End Class
 </code>.NormalizedValue()
@@ -544,6 +544,17 @@ end sub
 </code>.NormalizedValue()
 
             Await TestInClassAsync(text)
+        End Function
+
+        <WorkItem(21524, "https://github.com/dotnet/roslyn/issues/21524")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestAttribute() As Task
+            Await TestAsync("Imports System
+
+<AttributeUsage()>
+Class Program
+End Class",
+                [Class]("AttributeUsage"))
         End Function
     End Class
 End Namespace

@@ -236,18 +236,18 @@ public class Test
 }";
             var comp = CreateCompilationRef(text);
             comp.VerifyDiagnostics(
-                // (18,24): error CS8168: Cannot return local 'l' by reference because it is not a ref local
-                //             return ref l;
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "l").WithArguments("l").WithLocation(18, 24),
-                // (28,24): error CS8169: Cannot return a member of local 'l' by reference because it is not a ref local
-                //             return ref l.x;
-                Diagnostic(ErrorCode.ERR_RefReturnLocal2, "l").WithArguments("l").WithLocation(28, 24),
-                // (37,24): error CS8166: Cannot return a parameter by reference 'arg1' because it is not a ref or out parameter
-                //             return ref arg1;
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "arg1").WithArguments("arg1").WithLocation(37, 24),
-                // (46,24): error CS8167: Cannot return by reference a member of parameter 'arg2' by reference because it is not a ref or out parameter
-                //             return ref arg2.x;
-                Diagnostic(ErrorCode.ERR_RefReturnParameter2, "arg2").WithArguments("arg2").WithLocation(46, 24)
+    // (18,24): error CS8168: Cannot return local 'l' by reference because it is not a ref local
+    //             return ref l;
+    Diagnostic(ErrorCode.ERR_RefReturnLocal, "l").WithArguments("l").WithLocation(18, 24),
+    // (28,24): error CS8169: Cannot return a member of local 'l' by reference because it is not a ref local
+    //             return ref l.x;
+    Diagnostic(ErrorCode.ERR_RefReturnLocal2, "l").WithArguments("l").WithLocation(28, 24),
+    // (37,24): error CS8166: Cannot return a parameter by reference 'arg1' because it is not a ref or out parameter
+    //             return ref arg1;
+    Diagnostic(ErrorCode.ERR_RefReturnParameter, "arg1").WithArguments("arg1").WithLocation(37, 24),
+    // (46,24): error CS8167: Cannot return a member of parameter 'arg2' by reference because it is not a ref or out parameter
+    //             return ref arg2.x;
+    Diagnostic(ErrorCode.ERR_RefReturnParameter2, "arg2").WithArguments("arg2").WithLocation(46, 24)
             );
         }
 
@@ -549,23 +549,23 @@ public class Test
     {
         public char x;
 
-        public ref S1 FooS()
+        public ref S1 GooS()
         {
             return ref this;
         }        
 
-        public ref char Foo()
+        public ref char Goo()
         {
             return ref x;
         }
 
-        public ref char Foo1()
+        public ref char Goo1()
         {
             return ref this.x;
         }
     }
 
-    static ref T Foo<T>(ref T arg)
+    static ref T Goo<T>(ref T arg)
     {
         return ref arg;
     }
@@ -577,21 +577,21 @@ public class Test
 
         if (1.ToString() != null)
         {
-            return ref Foo(ref M1);
+            return ref Goo(ref M1);
         }
         
         if (2.ToString() != null)
         {
-            return ref Foo(ref M2.x);
+            return ref Goo(ref M2.x);
         }
 
         if (3.ToString() != null)
         {
-            return ref Foo(ref M2).x;
+            return ref Goo(ref M2).x;
         }
         else
         {
-            return ref M2.Foo();
+            return ref M2.Goo();
         }
     }
   
@@ -615,23 +615,23 @@ public class Test
                 //             return ref this.x;
                 Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this.x").WithArguments("this").WithLocation(20, 24),
                 // (36,32): error CS8168: Cannot return local 'M1' by reference because it is not a ref local
-                //             return ref Foo(ref M1);
+                //             return ref Goo(ref M1);
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "M1").WithArguments("M1").WithLocation(36, 32),
-                // (36,24): error CS8164: Cannot return by reference a result of 'Test.Foo<char>(ref char)' because the argument passed to parameter 'arg' cannot be returned by reference
-                //             return ref Foo(ref M1);
-                Diagnostic(ErrorCode.ERR_RefReturnCall, "Foo(ref M1)").WithArguments("Test.Foo<char>(ref char)", "arg").WithLocation(36, 24),
+                // (36,24): error CS8164: Cannot return by reference a result of 'Test.Goo<char>(ref char)' because the argument passed to parameter 'arg' cannot be returned by reference
+                //             return ref Goo(ref M1);
+                Diagnostic(ErrorCode.ERR_RefReturnCall, "Goo(ref M1)").WithArguments("Test.Goo<char>(ref char)", "arg").WithLocation(36, 24),
                 // (41,32): error CS8169: Cannot return a member of local 'M2' by reference because it is not a ref local
-                //             return ref Foo(ref M2.x);
+                //             return ref Goo(ref M2.x);
                 Diagnostic(ErrorCode.ERR_RefReturnLocal2, "M2").WithArguments("M2").WithLocation(41, 32),
-                // (41,24): error CS8164: Cannot return by reference a result of 'Test.Foo<char>(ref char)' because the argument passed to parameter 'arg' cannot be returned by reference
-                //             return ref Foo(ref M2.x);
-                Diagnostic(ErrorCode.ERR_RefReturnCall, "Foo(ref M2.x)").WithArguments("Test.Foo<char>(ref char)", "arg").WithLocation(41, 24),
+                // (41,24): error CS8164: Cannot return by reference a result of 'Test.Goo<char>(ref char)' because the argument passed to parameter 'arg' cannot be returned by reference
+                //             return ref Goo(ref M2.x);
+                Diagnostic(ErrorCode.ERR_RefReturnCall, "Goo(ref M2.x)").WithArguments("Test.Goo<char>(ref char)", "arg").WithLocation(41, 24),
                 // (46,32): error CS8168: Cannot return local 'M2' by reference because it is not a ref local
-                //             return ref Foo(ref M2).x;
+                //             return ref Goo(ref M2).x;
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "M2").WithArguments("M2").WithLocation(46, 32),
-                // (46,24): error CS8165: Cannot return by reference a member of result of 'Test.Foo<Test.S1>(ref Test.S1)' because the argument passed to parameter 'arg' cannot be returned by reference
-                //             return ref Foo(ref M2).x;
-                Diagnostic(ErrorCode.ERR_RefReturnCall2, "Foo(ref M2)").WithArguments("Test.Foo<Test.S1>(ref Test.S1)", "arg").WithLocation(46, 24),
+                // (46,24): error CS8165: Cannot return by reference a member of result of 'Test.Goo<Test.S1>(ref Test.S1)' because the argument passed to parameter 'arg' cannot be returned by reference
+                //             return ref Goo(ref M2).x;
+                Diagnostic(ErrorCode.ERR_RefReturnCall2, "Goo(ref M2)").WithArguments("Test.Goo<Test.S1>(ref Test.S1)", "arg").WithLocation(46, 24),
                 // (58,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //             return ref this;
                 Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithArguments("this").WithLocation(58, 24)
@@ -746,7 +746,7 @@ public class Test
         public char x;
     }
 
-    ref char Foo(ref char a, ref char b)
+    ref char Goo(ref char a, ref char b)
     {
         return ref a;
     }
@@ -768,7 +768,7 @@ public class Test
         if (3.ToString() == null)
         {
             ref char a = ref (new char[1])[0];
-            ref char invalid = ref Foo(ref a, ref a);
+            ref char invalid = ref Goo(ref a, ref a);
 
             // valid
             return ref r;
@@ -777,7 +777,7 @@ public class Test
         if (4.ToString() == null)
         {
             ref char a = ref (new char[1])[0];
-            ref char valid = ref Foo(ref a, ref arg1);
+            ref char valid = ref Goo(ref a, ref arg1);
 
             // valid
             return ref valid; //4
@@ -786,7 +786,7 @@ public class Test
         if (5.ToString() == null)
         {
             ref char a = ref (new char[1])[0];
-            ref char r = ref Foo(ref a, ref r);
+            ref char r = ref Goo(ref a, ref r);
 
             // invalid
             return ref r;  //5
@@ -832,18 +832,18 @@ public class Test
 {
     public static void Main()
     {
-        ref char Foo(ref char a, ref char b)
+        ref char Goo(ref char a, ref char b)
         {
             // valid
             return ref a;
         }
         
-        char Foo1(ref char a, ref char b)
+        char Goo1(ref char a, ref char b)
         {
             return ref b;
         }
 
-        ref char Foo2(ref char c, ref char b)
+        ref char Goo2(ref char c, ref char b)
         {
             return c;
         }
@@ -858,15 +858,15 @@ public class Test
                 // (19,13): error CS8150: By-value returns may only be used in methods that return by value
                 //             return c;
                 Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(19, 13),
-                // (6,18): warning CS8321: The local function 'Foo' is declared but never used
-                //         ref char Foo(ref char a, ref char b)
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Foo").WithArguments("Foo").WithLocation(6, 18),
-                // (12,14): warning CS8321: The local function 'Foo1' is declared but never used
-                //         char Foo1(ref char a, ref char b)
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Foo1").WithArguments("Foo1").WithLocation(12, 14),
-                // (17,18): warning CS8321: The local function 'Foo2' is declared but never used
-                //         ref char Foo2(ref char c, ref char b)
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Foo2").WithArguments("Foo2").WithLocation(17, 18));
+                // (6,18): warning CS8321: The local function 'Goo' is declared but never used
+                //         ref char Goo(ref char a, ref char b)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Goo").WithArguments("Goo").WithLocation(6, 18),
+                // (12,14): warning CS8321: The local function 'Goo1' is declared but never used
+                //         char Goo1(ref char a, ref char b)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Goo1").WithArguments("Goo1").WithLocation(12, 14),
+                // (17,18): warning CS8321: The local function 'Goo2' is declared but never used
+                //         ref char Goo2(ref char c, ref char b)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Goo2").WithArguments("Goo2").WithLocation(17, 18));
         }
 
         [Fact]
@@ -878,11 +878,11 @@ public class Test
     public static void Main()
     {
         // valid
-        ref char Foo(ref char a, ref char b) => ref a;
+        ref char Goo(ref char a, ref char b) => ref a;
         
-        char Foo1(ref char a, ref char b) => ref b;
+        char Goo1(ref char a, ref char b) => ref b;
 
-        ref char Foo2(ref char c, ref char b) => c;
+        ref char Goo2(ref char c, ref char b) => c;
 
         var arr = new int[1];
         ref var r = ref arr[0];
@@ -895,10 +895,10 @@ public class Test
             var comp = CreateCompilationWithMscorlib45(text, parseOptions: options);
             comp.VerifyDiagnostics(
                 // (9,50): error CS8149: By-reference returns may only be used in methods that return by reference
-                //         char Foo1(ref char a, ref char b) => ref b;
+                //         char Goo1(ref char a, ref char b) => ref b;
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "b").WithLocation(9, 50),
                 // (11,50): error CS8150: By-value returns may only be used in methods that return by value
-                //         ref char Foo2(ref char c, ref char b) => c;
+                //         ref char Goo2(ref char c, ref char b) => c;
                 Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "c").WithLocation(11, 50),
                 // (16,54): error CS8175: Cannot use ref local 'r' inside an anonymous method, lambda expression, or query expression
                 //         ref char Moo1(ref char a, ref char b) => ref r;
@@ -912,15 +912,15 @@ public class Test
                 // (17,46): error CS0266: Cannot implicitly convert type 'int' to 'char'. An explicit conversion exists (are you missing a cast?)
                 //         char Moo3(ref char a, ref char b) => r;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "r").WithArguments("int", "char").WithLocation(17, 46),
-                // (7,18): warning CS8321: The local function 'Foo' is declared but never used
-                //         ref char Foo(ref char a, ref char b) => ref a;
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Foo").WithArguments("Foo").WithLocation(7, 18),
-                // (9,14): warning CS8321: The local function 'Foo1' is declared but never used
-                //         char Foo1(ref char a, ref char b) => ref b;
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Foo1").WithArguments("Foo1").WithLocation(9, 14),
-                // (11,18): warning CS8321: The local function 'Foo2' is declared but never used
-                //         ref char Foo2(ref char c, ref char b) => c;
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Foo2").WithArguments("Foo2").WithLocation(11, 18),
+                // (7,18): warning CS8321: The local function 'Goo' is declared but never used
+                //         ref char Goo(ref char a, ref char b) => ref a;
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Goo").WithArguments("Goo").WithLocation(7, 18),
+                // (9,14): warning CS8321: The local function 'Goo1' is declared but never used
+                //         char Goo1(ref char a, ref char b) => ref b;
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Goo1").WithArguments("Goo1").WithLocation(9, 14),
+                // (11,18): warning CS8321: The local function 'Goo2' is declared but never used
+                //         ref char Goo2(ref char c, ref char b) => c;
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Goo2").WithArguments("Goo2").WithLocation(11, 18),
                 // (16,18): warning CS8321: The local function 'Moo1' is declared but never used
                 //         ref char Moo1(ref char a, ref char b) => ref r;
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Moo1").WithArguments("Moo1").WithLocation(16, 18),
@@ -1396,6 +1396,904 @@ class TestClass
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await Task.FromResult(0)").WithArguments("TestClass.Save(int)").WithLocation(18, 24));
         }
 
+        [Fact]
+        public void BadRefAssignByValueProperty()
+        {
+            var text = @"
+class Program
+{
+    static int P { get; set; }
+
+    static void M()
+    {
+        ref int rl = ref P;
+    }
+}
+";
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (8,26): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                //         ref int rl = ref P;
+                Diagnostic(ErrorCode.ERR_RefProperty, "P").WithArguments("Program.P").WithLocation(8, 26));
+        }
+
+        [Fact]
+        public void BadRefAssignByValueIndexer()
+        {
+            var text = @"
+class Program
+{
+    int this[int i] { get { return 0; } }
+
+    void M()
+    {
+        ref int rl = ref this[0];
+    }
+}
+";
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (8,26): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                //         ref int rl = ref this[0];
+                Diagnostic(ErrorCode.ERR_RefProperty, "this[0]").WithArguments("Program.this[int]").WithLocation(8, 26));
+        }
+
+        [Fact]
+        public void BadRefAssignNonFieldEvent()
+        {
+            var text = @"
+delegate void D();
+
+class Program
+{
+    event D d { add { } remove { } }
+
+    void M()
+    {
+        ref int rl = ref d;
+    }
+}
+";
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (10,26): error CS0079: The event 'Program.d' can only appear on the left hand side of += or -=
+                //         ref int rl = ref d;
+                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "d").WithArguments("Program.d").WithLocation(10, 26));
+        }
+
+        [Fact]
+        public void BadRefAssignReadonlyField()
+        {
+            var text = @"
+class Program
+{
+    readonly int i = 0;
+
+    void M()
+    {
+        ref int rl = ref i;
+    }
+}
+";
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (8,26): error CS0192: A readonly field cannot be used as a ref or out value (except in a constructor)
+                //         ref int rl = ref i;
+                Diagnostic(ErrorCode.ERR_RefReadonly, "i").WithLocation(8, 26));
+        }
+
+        [Fact]
+        public void BadRefAssignFieldReceiver()
+        {
+            var text = @"
+struct Program
+{
+    int i;
+
+    Program(int i)
+    {
+        this.i = i;
+    }
+
+    ref int M()
+    {
+        ref int rl = ref i;
+        return ref rl;
+    }
+}
+";
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (14,20): error CS8157: Cannot return 'rl' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref rl;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "rl").WithArguments("rl").WithLocation(14, 20)
+            );
+        }
+
+        [Fact]
+        public void BadRefAssignByValueCall()
+        {
+            var text = @"
+class Program
+{
+    static int L()
+    {
+        return 0;
+    }
+
+    static void M()
+    {
+        ref int rl = ref L();
+    }
+}
+";
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (11,26): error CS1510: A ref or out value must be an assignable variable
+                //         ref int rl = ref L();
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "L()").WithLocation(11, 26)
+            );
+        }
+
+        [Fact]
+        public void BadRefAssignByValueDelegateInvocation()
+        {
+            var text = @"
+delegate int D();
+
+class Program
+{
+    static void M(D d)
+    {
+        ref int rl = ref d();
+    }
+}
+";
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (8,26): error CS1510: A ref or out value must be an assignable variable
+                //         ref int rl = ref d();
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "d()").WithLocation(8, 26)
+            );
+        }
+
+        [Fact]
+        public void BadRefAssignCallArgument()
+        {
+            var text = @"
+class Program
+{
+    static ref int M(ref int i)
+    {
+        int j = 0;
+        ref int rl = ref M(ref j);
+        return ref rl;
+    }
+}
+";
+
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (8,20): error CS8157: Cannot return 'rl' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref rl;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "rl").WithArguments("rl").WithLocation(8, 20)
+            );
+        }
+
+        [Fact]
+        public void BadRefAssignThisReference()
+        {
+            var text = @"
+class Program
+{
+    void M()
+    {
+        ref int rl = ref this;
+    }
+}
+";
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (6,26): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
+                //         ref int rl = ref this;
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this").WithArguments("this").WithLocation(6, 26)
+            );
+        }
+
+        [Fact]
+        public void BadRefAssignWrongType()
+        {
+            var text = @"
+class Program
+{
+    void M(ref long i)
+    {
+        ref int rl = ref i;
+    }
+}
+";
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (6,26): error CS8173: The expression must be of type 'int' because it is being assigned by reference
+                //         ref int rl = ref i;
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "i").WithArguments("int").WithLocation(6, 26)
+            );
+        }
+
+        [Fact]
+        public void BadRefLocalCapturedInAnonymousMethod()
+        {
+            var text = @"
+using System.Linq;
+
+delegate int D();
+
+class Program
+{
+    static int field = 0;
+
+    static void M()
+    {
+        ref int rl = ref field;
+        var d = new D(delegate { return rl; });
+        d = new D(() => rl);
+        rl = (from v in new int[10] where v > rl select v).Single();
+    }
+}
+";
+
+            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+                // (13,41): error CS8930: Cannot use ref local 'rl' inside an anonymous method, lambda expression, or query expression
+                //         var d = new D(delegate { return rl; });
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUseLocal, "rl").WithArguments("rl").WithLocation(13, 41),
+                // (14,25): error CS8930: Cannot use ref local 'rl' inside an anonymous method, lambda expression, or query expression
+                //         d = new D(() => rl);
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUseLocal, "rl").WithArguments("rl").WithLocation(14, 25),
+                // (15,47): error CS8930: Cannot use ref local 'rl' inside an anonymous method, lambda expression, or query expression
+                //         rl = (from v in new int[10] where v > rl select r1).Single();
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUseLocal, "rl").WithArguments("rl").WithLocation(15, 47));
+        }
+
+        [Fact]
+        public void BadRefLocalInAsyncMethod()
+        {
+            var text = @"
+class Program
+{
+    static int field = 0;
+
+    static async void Goo()
+    {
+        ref int i = ref field;
+    }
+}
+";
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (8,17): error CS8932: Async methods cannot have by reference locals
+                //         ref int i = ref field;
+                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "i = ref field").WithLocation(8, 17),
+                // (6,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     static async void Goo()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Goo").WithLocation(6, 23));
+        }
+
+        [Fact]
+        public void BadRefLocalInIteratorMethod()
+        {
+            var text = @"
+using System.Collections;
+
+class Program
+{
+    static int field = 0;
+
+    static IEnumerable ObjEnumerable()
+    {
+        ref int i = ref field;
+        yield return new object();
+    }
+}
+";
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (10,17): error CS8931: Iterators cannot have by reference locals
+                //         ref int i = ref field;
+                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "i").WithLocation(10, 17));
+        }
+
+        [Fact]
+        public void BadRefAssignByValueLocal()
+        {
+            var text = @"
+class Program
+{
+    static void M(ref int i)
+    {
+        int l = ref i;
+    }
+}
+";
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (6,13): error CS8922: Cannot initialize a by-value variable with a reference
+                //         int l = ref i;
+                Diagnostic(ErrorCode.ERR_InitializeByValueVariableWithReference, "l = ref i").WithLocation(6, 13)
+               );
+        }
+
+        [Fact]
+        public void BadByValueInitRefLocal()
+        {
+            var text = @"
+class Program
+{
+    static void M(int i)
+    {
+        ref int rl = i;
+    }
+}
+";
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (6,17): error CS8921: Cannot initialize a by-reference variable with a value
+                //         ref int rl = i;
+                Diagnostic(ErrorCode.ERR_InitializeByReferenceVariableWithValue, "rl = i").WithLocation(6, 17));
+        }
+
+        [Fact]
+        public void BadRefReturnParameter()
+        {
+            var text = @"
+class Program
+{
+    static ref int M(int i)
+    {
+        return ref i;
+    }
+}
+";
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (6,20): error CS8911: Cannot return or assign a reference to parameter 'i' because it is not a ref or out parameter
+                //         return ref i;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "i").WithArguments("i").WithLocation(6, 20));
+        }
+
+        [Fact]
+        public void BadRefReturnLocal()
+        {
+            var text = @"
+class Program
+{
+    static ref int M()
+    {
+        int i = 0;
+        return ref i;
+    }
+}
+";
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (7,20): error CS8913: Cannot return or assign a reference to local 'i' because it is not a ref local
+                //         return ref i;
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(7, 20));
+        }
+
+        [Fact]
+        public void BadRefReturnByValueProperty()
+        {
+            var text = @"
+class Program
+{
+    static int P { get; set; }
+
+    static ref int M()
+    {
+        return ref P;
+    }
+}
+";
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (8,20): error CS8900: The argument to a by reference return or assignment must be an assignable variable or a property or call that returns by reference
+                //         return ref P;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "P").WithArguments("Program.P").WithLocation(8, 20));
+        }
+
+        [Fact]
+        public void BadRefReturnByValueIndexer()
+        {
+            var text = @"
+class Program
+{
+    int this[int i] { get { return 0; } }
+
+    ref int M()
+    {
+        return ref this[0];
+    }
+}
+";
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (8,20): error CS8900: The argument to a by reference return or assignment must be an assignable variable or a property or call that returns by reference
+                //         return ref this[0];
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "this[0]").WithArguments("Program.this[int]").WithLocation(8, 20));
+        }
+
+        [Fact]
+        public void BadRefReturnNonFieldEvent()
+        {
+            var text = @"
+delegate void D();
+
+class Program
+{
+    event D d { add { } remove { } }
+
+    ref int M()
+    {
+        return ref d;
+    }
+}
+";
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (10,20): error CS0079: The event 'Program.d' can only appear on the left hand side of += or -=
+                //         return ref d;
+                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "d").WithArguments("Program.d").WithLocation(10, 20));
+        }
+
+        [Fact]
+        public void BadRefReturnEventReceiver()
+        {
+            var text = @"
+delegate void D();
+
+struct Program
+{
+    event D d;
+
+    ref D M()
+    {
+        return ref d;
+    }
+}
+";
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (10,20): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //         return ref d;
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "d").WithArguments("this").WithLocation(10, 20)
+            );
+        }
+
+        [Fact]
+        public void BadRefReturnReadonlyField()
+        {
+            var text = @"
+class Program
+{
+    readonly int i = 0;
+
+    ref int M()
+    {
+        return ref i;
+    }
+}
+";
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (8,20): error CS0192: A readonly field cannot be used as a ref or out value (except in a constructor)
+                //         return ref i;
+                Diagnostic(ErrorCode.ERR_RefReadonly, "i").WithLocation(8, 20)
+            );
+        }
+
+        [Fact]
+        public void BadRefReturnFieldReceiver()
+        {
+            var text = @"
+struct Program
+{
+    int i;
+
+    Program(int i)
+    {
+        this.i = i;
+    }
+
+    ref int M()
+    {
+        return ref i;
+    }
+}
+";
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (13,20): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //         return ref i;
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "i").WithArguments("this").WithLocation(13, 20)
+            );
+        }
+
+        [Fact]
+        public void BadRefReturnByValueCall()
+        {
+            var text = @"
+class Program
+{
+    static int L()
+    {
+        return 0;
+    }
+
+    static ref int M()
+    {
+        return ref L();
+    }
+}
+";
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (11,20): error CS8900: The argument to a by reference return or assignment must be an assignable variable or a property or call that returns by reference
+                //         return ref L();
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "L()").WithLocation(11, 20));
+        }
+
+        [Fact]
+        public void BadRefReturnByValueDelegateInvocation()
+        {
+            var text = @"
+delegate int D();
+
+class Program
+{
+    static ref int M(D d)
+    {
+        return ref d();
+    }
+}
+";
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (8,20): error CS8900: The argument to a by reference return or assignment must be an assignable variable or a property or call that returns by reference
+                //         return ref d();
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "d()").WithLocation(8, 20));
+        }
+
+        [Fact]
+        public void BadRefReturnDelegateInvocationWithArguments()
+        {
+            var text = @"
+delegate ref int D(ref int i, ref int j, object o);
+
+class Program
+{
+    static ref int M(D d, int i, int j, object o)
+    {
+        return ref d(ref i, ref j, o);
+    }
+}
+";
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (8,26): error CS8912: Cannot return or assign a reference to parameter 'i' because it is not a ref or out parameter
+                //         return ref d(ref i, ref j, o);
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "i").WithArguments("i").WithLocation(8, 26),
+                // (8,20): error CS8910: Cannot return or assign a reference to the result of 'D.Invoke(ref int, ref int, object)' because the argument passed to parameter 'i' cannot be returned or assigned by reference
+                //         return ref d(ref i, ref j, o);
+                Diagnostic(ErrorCode.ERR_RefReturnCall, "d(ref i, ref j, o)").WithArguments("D.Invoke(ref int, ref int, object)", "i").WithLocation(8, 20));
+        }
+
+        [Fact]
+        public void BadRefReturnCallArgument()
+        {
+            var text = @"
+class Program
+{
+    static ref int M(ref int i)
+    {
+        int j = 0;
+        return ref M(ref j);
+    }
+}
+";
+
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (7,26): error CS8914: Cannot return or assign a reference to local 'j' because it is not a ref local
+                //         return ref M(ref j);
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "j").WithArguments("j").WithLocation(7, 26),
+                // (7,20): error CS8910: Cannot return or assign a reference to the result of 'Program.M(ref int)' because the argument passed to parameter 'i' cannot be returned or assigned by reference
+                //         return ref M(ref j);
+                Diagnostic(ErrorCode.ERR_RefReturnCall, "M(ref j)").WithArguments("Program.M(ref int)", "i").WithLocation(7, 20));
+        }
+
+        [Fact]
+        public void BadRefReturnStructThis()
+        {
+            var text = @"
+struct Program
+{
+    ref Program M()
+    {
+        return ref this;
+    }
+}
+";
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (6,20): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //         return ref this;
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithArguments("this").WithLocation(6, 20));
+        }
+
+        [Fact]
+        public void BadRefReturnThisReference()
+        {
+            var text = @"
+class Program
+{
+    ref Program M()
+    {
+        return ref this;
+    }
+}
+";
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (6,20): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //         return ref this;
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithArguments("this").WithLocation(6, 20)
+            );
+        }
+
+        [Fact]
+        public void BadRefReturnWrongType()
+        {
+            var text = @"
+class Program
+{
+    ref int M(ref long i)
+    {
+        return ref i;
+    }
+}
+";
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (6,20): error CS8085: The return expression must be of type 'int' because this method returns by reference.
+                //         return ref i;
+                Diagnostic(ErrorCode.ERR_RefReturnMustHaveIdentityConversion, "i").WithArguments("int").WithLocation(6, 20));
+        }
+
+        [Fact]
+        public void BadByRefReturnInByValueReturningMethod()
+        {
+            var text = @"
+class Program
+{
+    static int M(ref int i)
+    {
+        return ref i;
+    }
+}
+";
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (6,9): error CS8083: By-reference returns may only be used in by-reference returning methods.
+                //         return ref i;
+                Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "return").WithLocation(6, 9));
+        }
+
+        [Fact]
+        public void BadByValueReturnInByRefReturningMethod()
+        {
+            var text = @"
+class Program
+{
+    static ref int M(ref int i)
+    {
+        return i;
+    }
+}
+";
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (6,9): error CS8084: By-value returns may only be used in by-value returning methods.
+                //         return;
+                Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(6, 9));
+        }
+
+        [Fact]
+        public void BadEmptyReturnInByRefReturningMethod()
+        {
+            var text = @"
+class Program
+{
+    static ref int M(ref int i)
+    {
+        return;
+    }
+}
+";
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (6,9): error CS8150: By-value returns may only be used in methods that return by value
+                //         return;
+                Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(6, 9),
+                // (6,9): error CS0126: An object of a type convertible to 'int' is required
+                //         return;
+                Diagnostic(ErrorCode.ERR_RetObjectRequired, "return").WithArguments("int").WithLocation(6, 9)
+            );
+        }
+
+        [Fact]
+        public void BadIteratorReturnInRefReturningMethod()
+        {
+            var text = @"
+using System.Collections;
+using System.Collections.Generic;
+
+class C
+{
+    public ref IEnumerator ObjEnumerator()
+    {
+        yield return new object();
+    }
+
+    public ref IEnumerable ObjEnumerable()
+    {
+        yield return new object();
+    }
+
+    public ref IEnumerator<int> GenEnumerator()
+    {
+        yield return 0;
+    }
+
+    public ref IEnumerable<int> GenEnumerable()
+    {
+        yield return 0;
+    }
+}
+";
+
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (7,28): error CS8089: The body of 'C.ObjEnumerator()' cannot be an iterator block because 'C.ObjEnumerator()' returns by reference
+                //     public ref IEnumerator ObjEnumerator()
+                Diagnostic(ErrorCode.ERR_BadIteratorReturnRef, "ObjEnumerator").WithArguments("C.ObjEnumerator()").WithLocation(7, 28),
+                // (12,28): error CS8089: The body of 'C.ObjEnumerable()' cannot be an iterator block because 'C.ObjEnumerable()' returns by reference
+                //     public ref IEnumerable ObjEnumerable()
+                Diagnostic(ErrorCode.ERR_BadIteratorReturnRef, "ObjEnumerable").WithArguments("C.ObjEnumerable()").WithLocation(12, 28),
+                // (17,33): error CS8089: The body of 'C.GenEnumerator()' cannot be an iterator block because 'C.GenEnumerator()' returns by reference
+                //     public ref IEnumerator<int> GenEnumerator()
+                Diagnostic(ErrorCode.ERR_BadIteratorReturnRef, "GenEnumerator").WithArguments("C.GenEnumerator()").WithLocation(17, 33),
+                // (22,33): error CS8089: The body of 'C.GenEnumerable()' cannot be an iterator block because 'C.GenEnumerable()' returns by reference
+                //     public ref IEnumerable<int> GenEnumerable()
+                Diagnostic(ErrorCode.ERR_BadIteratorReturnRef, "GenEnumerable").WithArguments("C.GenEnumerable()").WithLocation(22, 33));
+        }
+
+        [Fact]
+        public void BadRefReturnInExpressionTree()
+        {
+            var text = @"
+using System.Linq.Expressions;
+
+delegate ref int D();
+delegate ref int E(int i);
+
+class C
+{
+    static int field = 0;
+
+    static void M()
+    {
+        Expression<D> d = () => ref field;
+        Expression<E> e = (int i) => ref field;
+    }
+}
+";
+
+            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+                // (13,27): error CS8090: Lambda expressions that return by reference cannot be converted to expression trees
+                //         Expression<D> d = () => ref field;
+                Diagnostic(ErrorCode.ERR_BadRefReturnExpressionTree, "() => ref field").WithLocation(13, 27),
+                // (14,27): error CS8090: Lambda expressions that return by reference cannot be converted to expression trees
+                //         Expression<E> e = (int i) => ref field;
+                Diagnostic(ErrorCode.ERR_BadRefReturnExpressionTree, "(int i) => ref field").WithLocation(14, 27));
+        }
+
+        [Fact]
+        public void BadRefReturningCallInExpressionTree()
+        {
+            var text = @"
+using System.Linq.Expressions;
+
+delegate int D(C c);
+
+class C
+{
+    int field = 0;
+
+    ref int P { get { return ref field; } }
+    ref int this[int i] { get { return ref field; } }
+    ref int M() { return ref field; }
+
+    static void M1()
+    {
+        Expression<D> e = c => c.P;
+        e = c => c[0];
+        e = c => c.M();
+    }
+}
+";
+
+            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+                // (16,32): error CS8091: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
+                //         Expression<D> e = c => c.P;
+                Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "c.P").WithLocation(16, 32),
+                // (17,18): error CS8091: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
+                //         e = c => c[0];
+                Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "c[0]").WithLocation(17, 18),
+                // (18,18): error CS8091: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
+                //         e = c => c.M();
+                Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "c.M()").WithLocation(18, 18));
+        }
+
+        [Fact]
+        public void BadRefReturningCallWithAwait()
+        {
+            var text = @"
+using System.Threading.Tasks;
+
+struct S
+{
+    static S s = new S();
+
+    public static ref S Instance { get { return ref s; } }
+
+    public int Echo(int i)
+    {
+        return i;
+    }
+}
+
+class C
+{
+    ref int Assign(ref int loc, int val)
+    {
+        loc = val;
+        return ref loc;
+    }
+
+    public async Task<int> Do(int i)
+    {
+        if (i == 0)
+        {
+            return 0;
+        }
+
+        int temp = 0;
+        var a = S.Instance.Echo(await Do(i - 1));
+        var b = Assign(ref Assign(ref temp, 0), await Do(i - 1));
+        return a + b;
+    }
+}
+";
+
+            CreateCompilationWithMscorlib45(text).VerifyEmitDiagnostics(
+                // (32,33): error CS8933: 'await' cannot be used in an expression containing a call to 'S.Instance.get' because it returns by reference
+                //         var a = S.Instance.Echo(await Do(i - 1));
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await Do(i - 1)").WithArguments("S.Instance.get").WithLocation(32, 33),
+                // (33,49): error CS8933: 'await' cannot be used in an expression containing a call to 'C.Assign(ref int, int)' because it returns by reference
+                //         var b = Assign(ref Assign(ref temp, 0), await Do(i - 1));
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await Do(i - 1)").WithArguments("C.Assign(ref int, int)").WithLocation(33, 49));
+        }
+
+        [Fact]
         public void CannotUseAwaitExpressionToAssignRefReturing()
         {
             var code = @"

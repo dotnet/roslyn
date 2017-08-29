@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Text
 
@@ -46,7 +46,7 @@ Module Program
   Sub Main(args As String())
   End Sub
 #ExternalSource ("Default.aspx", 3)[|
-            Sub     Foo (   )   
+            Sub     Goo (   )   
             End Sub 
 |]#End ExternalSource
 End Module</Code>
@@ -59,7 +59,7 @@ Module Program
   Sub Main(args As String())
   End Sub
 #ExternalSource ("Default.aspx", 3)
-    Sub Foo()
+    Sub Goo()
     End Sub
 #End ExternalSource
 End Module</Code>

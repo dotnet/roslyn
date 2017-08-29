@@ -18,7 +18,8 @@ static void addRoslynJob(def myJob, String jobName, String branchName, Boolean i
   archiveSettings.addFiles('Binaries/**/*.dmp')
   archiveSettings.addFiles('Binaries/**/*.zip')
   archiveSettings.addFiles('Binaries/**/*.png')
-  archiveSettings.addFiles('Binaries/**/*.xml')
+  archiveSettings.addFiles('Binaries/**/*.buildlog')
+  archiveSettings.addFiles('Binaries/**/*.binlog')
   archiveSettings.excludeFiles('Binaries/Obj/**')
   archiveSettings.excludeFiles('Binaries/Bootstrap/**')
   archiveSettings.excludeFiles('Binaries/**/nuget*.zip')
@@ -29,11 +30,12 @@ static void addRoslynJob(def myJob, String jobName, String branchName, Boolean i
 
   // Create the standard job.  This will setup parameter, SCM, timeout, etc ...
   def projectName = 'dotnet/roslyn'
-  def defaultBranch = "*/${branchName}"
-  Utilities.standardJobSetup(myJob, projectName, isPr, defaultBranch)
 
   // Need to setup the triggers for the job
   if (isPr) {
+    // Note the use of ' vs " for the 4th argument. We don't want groovy to interpolate this string (the ${ghprbPullId}
+    // is resolved when the job is run based on an environment variable set by the Jenkins Pull Request Builder plugin.
+    Utilities.standardJobSetupPR(myJob, projectName, null, '+refs/pull/${ghprbPullId}/*:refs/remotes/origin/pr/${ghprbPullId}/*');
     def triggerCore = "open|all|${jobName}"
     if (triggerPhraseExtra) {
       triggerCore = "${triggerCore}|${triggerPhraseExtra}"
@@ -42,6 +44,7 @@ static void addRoslynJob(def myJob, String jobName, String branchName, Boolean i
     def contextName = jobName
     Utilities.addGithubPRTriggerForBranch(myJob, branchName, contextName, triggerPhrase, triggerPhraseOnly)
   } else {
+    Utilities.standardJobSetupPush(myJob, projectName, "*/${branchName}");
     Utilities.addGithubPushTrigger(myJob)
     // TODO: Add once external email sending is available again
     // addEmailPublisher(myJob)
@@ -100,7 +103,7 @@ commitPullList.each { isPr ->
   def myJob = job(jobName) {
     description("Ubuntu 14.04 tests")
                   steps {
-                    shell("./cibuild.sh --nocache --debug")
+                    shell("./cibuild.sh --debug")
                   }
                 }
 
@@ -117,7 +120,7 @@ commitPullList.each { isPr ->
   def myJob = job(jobName) {
     description("Ubuntu 16.04 tests")
                   steps {
-                    shell("./cibuild.sh --nocache --debug")
+                    shell("./cibuild.sh --debug")
                   }
                 }
 
@@ -134,7 +137,7 @@ commitPullList.each { isPr ->
   def myJob = job(jobName) {
     description("Mac tests")
     steps {
-      shell("./cibuild.sh --nocache --debug")
+      shell("./cibuild.sh --debug")
     }
   }
 
@@ -223,7 +226,7 @@ commitPullList.each { isPr ->
 
       def triggerPhraseOnly = false
       def triggerPhraseExtra = ""
-      Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-dev15-3-preview2')
+      Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-dev15-3')
       Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
       addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
     }

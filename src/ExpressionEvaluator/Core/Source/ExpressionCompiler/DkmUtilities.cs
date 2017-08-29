@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
@@ -43,11 +44,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 });
         }
 
-        internal unsafe static ImmutableArray<MetadataBlock> GetMetadataBlocks(this DkmClrRuntimeInstance runtime, DkmClrAppDomain appDomain)
+        internal static ImmutableArray<MetadataBlock> GetMetadataBlocks(
+            this DkmClrRuntimeInstance runtime, 
+            DkmClrAppDomain appDomain, 
+            ImmutableArray<MetadataBlock> previousMetadataBlocks)
         {
             var builder = ArrayBuilder<MetadataBlock>.GetInstance();
             IntPtr ptr;
             uint size;
+            int index = 0;
             foreach (DkmClrModuleInstance module in runtime.GetModulesInAppDomain(appDomain))
             {
                 MetadataBlock block;
@@ -55,23 +60,24 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     ptr = module.GetMetaDataBytesPtr(out size);
                     Debug.Assert(size > 0);
-                    block = GetMetadataBlock(ptr, size);
+                    block = GetMetadataBlock(previousMetadataBlocks, index, ptr, size);
                 }
                 catch (NotImplementedException e) when (module is DkmClrNcModuleInstance)
                 {
                     // DkmClrNcModuleInstance.GetMetaDataBytesPtr not implemented in Dev14.
                     throw new NotImplementedMetadataException(e);
                 }
-                catch (Exception e) when (MetadataUtilities.IsBadOrMissingMetadataException(e, module.FullName))
+                catch (Exception e) when (DkmExceptionUtilities.IsBadOrMissingMetadataException(e))
                 {
                     continue;
                 }
                 Debug.Assert(block.ModuleVersionId == module.Mvid);
                 builder.Add(block);
+                index++;
             }
             // Include "intrinsic method" assembly.
             ptr = runtime.GetIntrinsicAssemblyMetaDataBytesPtr(out size);
-            builder.Add(GetMetadataBlock(ptr, size));
+            builder.Add(GetMetadataBlock(previousMetadataBlocks, index, ptr, size));
             return builder.ToImmutableAndFree();
         }
 
@@ -89,7 +95,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     Debug.Assert(size > 0);
                     block = GetMetadataBlock(ptr, size);
                 }
-                catch (Exception e) when (MetadataUtilities.IsBadOrMissingMetadataException(e, missingAssemblyIdentity.GetDisplayName()))
+                catch (Exception e) when (DkmExceptionUtilities.IsBadOrMissingMetadataException(e))
                 {
                     continue;
                 }
@@ -123,7 +129,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         Debug.Assert(size > 0);
                         reader = new MetadataReader((byte*)ptr, (int)size);
                     }
-                    catch (Exception e) when (MetadataUtilities.IsBadOrMissingMetadataException(e, module.FullName))
+                    catch (Exception e) when (DkmExceptionUtilities.IsBadOrMissingMetadataException(e))
                     {
                         continue;
                     }
@@ -140,6 +146,20 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var moduleVersionId = reader.GetGuid(moduleDef.Mvid);
             var generationId = reader.GetGuid(moduleDef.GenerationId);
             return new MetadataBlock(moduleVersionId, generationId, ptr, (int)size);
+        }
+
+        private static MetadataBlock GetMetadataBlock(ImmutableArray<MetadataBlock> previousMetadataBlocks, int index, IntPtr ptr, uint size)
+        {
+            if (!previousMetadataBlocks.IsDefault && index < previousMetadataBlocks.Length)
+            {
+                var previousBlock = previousMetadataBlocks[index];
+                if (previousBlock.Pointer == ptr && previousBlock.Size == size)
+                {
+                    return previousBlock;
+                }
+            }
+
+            return GetMetadataBlock(ptr, size);
         }
 
         internal static object GetSymReader(this DkmClrModuleInstance clrModule)

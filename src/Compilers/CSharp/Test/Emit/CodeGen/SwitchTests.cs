@@ -895,6 +895,7 @@ public class Test
             );
         }
 
+        [Fact]
         public void DegenerateSwitch007()
         {
             var text = @"using System;
@@ -2350,10 +2351,10 @@ class Program
                 break;
         }
 
-        Foo(1);
+        Goo(1);
     }
 
-    static void Foo(sbyte? p)
+    static void Goo(sbyte? p)
     {
         switch (p)
         {
@@ -2394,7 +2395,7 @@ class Program
   IL_0035:  ldc.i4.1
   IL_0036:  conv.i1
   IL_0037:  newobj     ""sbyte?..ctor(sbyte)""
-  IL_003c:  call       ""void Program.Foo(sbyte?)""
+  IL_003c:  call       ""void Program.Goo(sbyte?)""
   IL_0041:  ret
 }");
         }
@@ -2408,11 +2409,11 @@ class Program
 {
     static void Main()
     {
-        Foo(null);
-        Foo(100);
+        Goo(null);
+        Goo(100);
     }
 
-    static void Foo(short? p)
+    static void Goo(short? p)
     {
         switch (p)
         {
@@ -2494,7 +2495,7 @@ class Program
 }
 ";
             var verifier = CompileAndVerify(text, expectedOutput: "null default 100 default ");
-            verifier.VerifyIL("Program.Foo", @"
+            verifier.VerifyIL("Program.Goo", @"
 {
   // Code size      373 (0x175)
   .maxstack  2
@@ -2746,14 +2747,14 @@ class Program
     {
         switch (x)
         {
-            case (int)Foo.X:
+            case (int)Goo.X:
                 return true;
             default:
                 return false;
         }
     }
 
-    public enum Foo : int { X  = 1 }
+    public enum Goo : int { X  = 1 }
 
     static void Main()
     {
@@ -3665,7 +3666,7 @@ class Test
             var text = @"
 using System;
 
-class Foo
+class Goo
 {
   public static void Main()
   {
@@ -6338,22 +6339,22 @@ class SwitchTest
     public static int Main()
     {
         int n = 3;
-        int foo;        // unassigned foo
+        int goo;        // unassigned goo
 
         switch (n)
         {
             case 1:
             case 2:
-                foo = n;
+                goo = n;
                 break;
             case 3:
             default:
-                foo = 0;
+                goo = 0;
                 break;
         }
         
-        Console.Write(foo);     // foo must be definitely assigned here        
-        return foo;
+        Console.Write(goo);     // goo must be definitely assigned here        
+        return goo;
     }
 }
 ";
@@ -6364,7 +6365,7 @@ class SwitchTest
   // Code size       28 (0x1c)
   .maxstack  2
   .locals init (int V_0, //n
-                int V_1) //foo
+                int V_1) //goo
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
@@ -6399,13 +6400,13 @@ class SwitchTest
     {
         int n = 3;
         int cost = 0;
-        int foo;        // unassigned foo
+        int goo;        // unassigned goo
 
         switch (n)
         {
             case 1:
                 cost = 1;
-                foo = n;
+                goo = n;
                 break;
             case 2:
                 cost = 2;
@@ -6414,7 +6415,7 @@ class SwitchTest
                 cost = 3;
                 if(cost > n)
                 {
-                    foo = n - 1;
+                    goo = n - 1;
                 }
                 else
                 {
@@ -6424,13 +6425,13 @@ class SwitchTest
 
             default:
                 cost = 4;
-                foo = n - 1;
+                goo = n - 1;
                 break;
         }
 
-        if (foo != n)       // foo must be reported as definitely assigned
+        if (goo != n)       // goo must be reported as definitely assigned
         {
-            Console.Write(foo);
+            Console.Write(goo);
         }
         else
         {
@@ -6452,7 +6453,7 @@ class SwitchTest
   .maxstack  2
   .locals init (int V_0, //n
   int V_1, //cost
-  int V_2) //foo
+  int V_2) //goo
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  ldc.i4.0
@@ -6516,7 +6517,7 @@ class SwitchTest
 {
     public static int Main()
     {
-        int foo;        // unassigned foo
+        int goo;        // unassigned goo
         switch (3)
         {
             case 1:
@@ -6527,7 +6528,7 @@ class SwitchTest
                 }
                 catch(Exception)
                 {
-                    foo = 0;
+                    goo = 0;
                 }
                 break;
             case 2:
@@ -6542,8 +6543,8 @@ class SwitchTest
                 break;
         }
 
-        Console.Write(foo);    // foo should be definitely assigned here
-        return foo;
+        Console.Write(goo);    // goo should be definitely assigned here
+        return goo;
     }
 }
 ";
@@ -6562,7 +6563,7 @@ class SwitchTest
                 {
                     // Code size       20 (0x14)
                     .maxstack  1
-                    .locals init (int V_0) //foo
+                    .locals init (int V_0) //goo
                     IL_0000:  nop
                     .try
                     {
@@ -6595,7 +6596,7 @@ class SwitchTest
 
 class A
 {
-    static void Foo(DayOfWeek x)
+    static void Goo(DayOfWeek x)
     {
         switch (x)
         {
@@ -6615,7 +6616,7 @@ class A
             //                 goto case 1; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'System.DayOfWeek'
                 Diagnostic(ErrorCode.WRN_GotoCaseShouldConvert, "goto case 1;").WithArguments("System.DayOfWeek"));
 
-            compVerifier.VerifyIL("A.Foo", @"
+            compVerifier.VerifyIL("A.Goo", @"
 {
   // Code size        7 (0x7)
   .maxstack  2
@@ -7272,7 +7273,7 @@ class Program {
     static string boo(int i) {
         switch (i) {
             case 42:
-                var x = ""foo"";
+                var x = ""goo"";
                 if (x != ""bar"")
                 break;
             return x;
@@ -7296,7 +7297,7 @@ class Program {
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.s   42
   IL_0003:  bne.un.s   IL_001a
-  IL_0005:  ldstr      ""foo""
+  IL_0005:  ldstr      ""goo""
   IL_000a:  stloc.0
   IL_000b:  ldloc.0
   IL_000c:  ldstr      ""bar""
@@ -7322,7 +7323,7 @@ class Program {
     static string boo(int i) {
         switch (i) {
             case 42:
-                var x = ""foo"";
+                var x = ""goo"";
                 if (x != ""bar"")
                 break;
              break;
@@ -7345,7 +7346,7 @@ class Program {
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.s   42
   IL_0003:  bne.un.s   IL_0015
-  IL_0005:  ldstr      ""foo""
+  IL_0005:  ldstr      ""goo""
   IL_000a:  ldstr      ""bar""
   IL_000f:  call       ""bool string.op_Inequality(string, string)""
   IL_0014:  pop
@@ -7368,7 +7369,7 @@ class Program {
         var ii = i;
         switch (++ii) {
             case 42:
-                var x = ""foo"";
+                var x = ""goo"";
                 if (x != ""bar"")
                 {
                     return false;
@@ -7398,7 +7399,7 @@ class Program {
   IL_0004:  ldloc.0
   IL_0005:  ldc.i4.s   42
   IL_0007:  bne.un.s   IL_001c
-  IL_0009:  ldstr      ""foo""
+  IL_0009:  ldstr      ""goo""
   IL_000e:  ldstr      ""bar""
   IL_0013:  call       ""bool string.op_Inequality(string, string)""
   IL_0018:  brfalse.s  IL_001c
@@ -7423,7 +7424,7 @@ class Program {
         var ii = i;
         switch (ii++) {
             case 42:
-                var x = ""foo"";
+                var x = ""goo"";
                 if (x != ""bar"")
                 {
                     return false;
@@ -7451,7 +7452,7 @@ class Program {
   IL_0002:  ldloc.0
   IL_0003:  ldc.i4.s   42
   IL_0005:  bne.un.s   IL_001a
-  IL_0007:  ldstr      ""foo""
+  IL_0007:  ldstr      ""goo""
   IL_000c:  ldstr      ""bar""
   IL_0011:  call       ""bool string.op_Inequality(string, string)""
   IL_0016:  brfalse.s  IL_001a

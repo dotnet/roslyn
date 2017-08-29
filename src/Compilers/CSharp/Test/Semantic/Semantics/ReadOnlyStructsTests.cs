@@ -148,10 +148,10 @@ interface I1
                 // (43,9): error CS1604: Cannot assign to 'this' because it is read-only
                 //         e = () => { };
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "e").WithArguments("this").WithLocation(43, 9),
-                // (46,16): error CS1604: Cannot assign to 'this' because it is read-only
+                // (46,16): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
                 //         M1(ref e);
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "e").WithArguments("this").WithLocation(46, 16)
-    );
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "e").WithArguments("this").WithLocation(46, 16)
+            );
         }
 
         private static string ilreadonlyStructWithWriteableFieldIL = @"

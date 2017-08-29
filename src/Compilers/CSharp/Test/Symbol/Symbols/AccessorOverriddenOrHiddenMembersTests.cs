@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -931,7 +931,7 @@ class Derived : Base
             const string sourceFromReproSteps = @"
 class A
 {
-    void Foo()
+    void Goo()
     {
         var d = new Disposable();
         d.Dispose();
