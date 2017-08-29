@@ -1058,7 +1058,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         private IBlockStatement CreateBoundBlockOperation(BoundBlock boundBlock)
         {
             Lazy<ImmutableArray<IOperation>> statements =
-                new Lazy<ImmutableArray<IOperation>>(() => boundBlock.Statements.SelectAsArray(s => Create(s)));
+                new Lazy<ImmutableArray<IOperation>>(() => boundBlock.Statements.Select(s => (bound: s, operation: Create(s)))
+                                                                                // Filter out all OperationKind.None except fixed statements for now.
+                                                                                // https://github.com/dotnet/roslyn/issues/21776
+                                                                                .Where(s => s.operation.Kind != OperationKind.None || s.bound.Kind == BoundKind.FixedStatement)
+                                                                                .Select(s => s.operation).ToImmutableArray());
 
             ImmutableArray<ILocalSymbol> locals = boundBlock.Locals.As<ILocalSymbol>();
             SyntaxNode syntax = boundBlock.Syntax;
