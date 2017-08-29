@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public partial class IOperationTests : SemanticModelTestBase
     {
         [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
         public void FixedStatement_FixedClassVariableAndPrint()
         {
             string source = @"
@@ -51,7 +52,7 @@ IOperation:  (OperationKind.None) (Syntax: 'fixed(int * ... }')
                     IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""P is {*p}""')
                       Parts(2):
                           IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'P is ')
-                            Text: ILiteralExpression (Text: P is ) (OperationKind.LiteralExpression, Type: System.String, Constant: ""P is "") (Syntax: 'P is ')
+                            Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""P is "") (Syntax: 'P is ')
                           IInterpolation (OperationKind.Interpolation) (Syntax: '{*p}')
                             Expression: IPointerIndirectionReferenceExpression (OperationKind.PointerIndirectionReferenceExpression, Type: System.Int32) (Syntax: '*p')
                                 Pointer: ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: System.Int32*) (Syntax: 'p')
@@ -67,6 +68,7 @@ IOperation:  (OperationKind.None) (Syntax: 'fixed(int * ... }')
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
         public void FixedStatement_MultipleFixedStatements()
         {
             string source = @"
@@ -116,12 +118,11 @@ IOperation:  (OperationKind.None) (Syntax: 'fixed (int* ... }')
               IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i3 = *p1 + *p2;')
                 Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i3 = *p1 + *p2')
                     Left: ILocalReferenceExpression: i3 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i3')
-                    Right: IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '*p1 + *p2')
+                    Right: IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '*p1 + *p2')
                         Left: IPointerIndirectionReferenceExpression (OperationKind.PointerIndirectionReferenceExpression, Type: System.Int32) (Syntax: '*p1')
                             Pointer: ILocalReferenceExpression: p1 (OperationKind.LocalReferenceExpression, Type: System.Int32*) (Syntax: 'p1')
                         Right: IPointerIndirectionReferenceExpression (OperationKind.PointerIndirectionReferenceExpression, Type: System.Int32) (Syntax: '*p2')
-                            Pointer: ILocalReferenceExpression: p2 (OperationKind.LocalReferenceExpression, Type: System.Int32*) (Syntax: 'p2')
-";
+                            Pointer: ILocalReferenceExpression: p2 (OperationKind.LocalReferenceExpression, Type: System.Int32*) (Syntax: 'p2')";
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<FixedStatementSyntax>(source, expectedOperationTree, expectedDiagnostics,
@@ -129,6 +130,7 @@ IOperation:  (OperationKind.None) (Syntax: 'fixed (int* ... }')
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
         public void FixedStatement_InvalidVariable()
         {
             string source = @"
@@ -177,6 +179,7 @@ IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'fixed (int* ... }')
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
         public void FixedStatement_InvalidBody()
         {
             string source = @"
