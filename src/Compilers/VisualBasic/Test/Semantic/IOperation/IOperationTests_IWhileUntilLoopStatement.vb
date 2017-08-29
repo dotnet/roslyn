@@ -428,8 +428,8 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
         Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'number += 1')
             Left: IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')
             Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-      ILabelStatement (Label: Even) (OperationKind.LabelStatement) (Syntax: 'Even:')
-        LabeledStatement: null
+      ILabeledStatement (Label: Even) (OperationKind.LabeledStatement) (Syntax: 'Even:')
+        Statement: null
       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return number')
         ReturnedValue: IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')]]>.Value
 

@@ -434,8 +434,8 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'number++;')
         Expression: IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'number++')
             Target: IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')
-      ILabelStatement (Label: Even) (OperationKind.LabelStatement) (Syntax: 'Even: ... urn number;')
-        LabeledStatement: IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return number;')
+      ILabeledStatement (Label: Even) (OperationKind.LabeledStatement) (Syntax: 'Even: ... urn number;')
+        Statement: IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return number;')
             ReturnedValue: IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')
 ";
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);

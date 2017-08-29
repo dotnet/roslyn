@@ -1357,18 +1357,18 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyVariableDeclarationStatement(declarations, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private ILabelStatement CreateBoundLabelStatementOperation(BoundLabelStatement boundLabelStatement)
+        private ILabeledStatement CreateBoundLabelStatementOperation(BoundLabelStatement boundLabelStatement)
         {
             ILabelSymbol label = boundLabelStatement.Label;
-            Lazy<IOperation> labeledStatement = new Lazy<IOperation>(() => Create(null));
+            Lazy<IOperation> statement = new Lazy<IOperation>(() => Create(null));
             SyntaxNode syntax = boundLabelStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundLabelStatement.WasCompilerGenerated;
-            return new LazyLabelStatement(label, labeledStatement, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyLabeledStatement(label, statement, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private ILabelStatement CreateBoundLabeledStatementOperation(BoundLabeledStatement boundLabeledStatement)
+        private ILabeledStatement CreateBoundLabeledStatementOperation(BoundLabeledStatement boundLabeledStatement)
         {
             ILabelSymbol label = boundLabeledStatement.Label;
             Lazy<IOperation> labeledStatement = new Lazy<IOperation>(() => Create(boundLabeledStatement.Body));
@@ -1376,7 +1376,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundLabeledStatement.WasCompilerGenerated;
-            return new LazyLabelStatement(label, labeledStatement, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyLabeledStatement(label, labeledStatement, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IExpressionStatement CreateBoundExpressionStatementOperation(BoundExpressionStatement boundExpressionStatement)

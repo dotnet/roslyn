@@ -1071,14 +1071,14 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New LazyReturnStatement(OperationKind.YieldReturnStatement, returnedValue, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
-        Private Function CreateBoundLabelStatementOperation(boundLabelStatement As BoundLabelStatement) As ILabelStatement
+        Private Function CreateBoundLabelStatementOperation(boundLabelStatement As BoundLabelStatement) As ILabeledStatement
             Dim label As ILabelSymbol = boundLabelStatement.Label
-            Dim labeledStatement As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Nothing)
+            Dim statement As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Nothing)
             Dim syntax As SyntaxNode = boundLabelStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundLabelStatement.WasCompilerGenerated
-            Return New LazyLabelStatement(label, labeledStatement, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyLabeledStatement(label, statement, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundGotoStatementOperation(boundGotoStatement As BoundGotoStatement) As IBranchStatement

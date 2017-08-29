@@ -470,9 +470,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Body, "Body");
         }
 
-        public override void VisitLabelStatement(ILabelStatement operation)
+        public override void VisitLabeledStatement(ILabeledStatement operation)
         {
-            LogString(nameof(ILabelStatement));
+            LogString(nameof(ILabeledStatement));
 
             // TODO: Put a better workaround to skip compiler generated labels.
             if (!operation.Label.IsImplicitlyDeclared)
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.LabeledStatement, "LabeledStatement");
+            Visit(operation.Statement, "Statement");
         }
 
         public override void VisitBranchStatement(IBranchStatement operation)

@@ -11,16 +11,16 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface ILabelStatement : IOperation
+    public interface ILabeledStatement : IOperation
     {
         /// <summary>
         ///  Label that can be the target of branches.
         /// </summary>
         ILabelSymbol Label { get; }
         /// <summary>
-        /// Statement that has been labeled.
+        /// Statement that has been labeled. In VB, this is always null.
         /// </summary>
-        IOperation LabeledStatement { get; }
+        IOperation Statement { get; }
     }
 }
 

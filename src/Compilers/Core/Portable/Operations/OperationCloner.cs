@@ -99,9 +99,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new ForEachLoopStatement(operation.IterationVariable, Visit(operation.Collection), operation.LoopKind, Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        public override IOperation VisitLabelStatement(ILabelStatement operation, object argument)
+        public override IOperation VisitLabeledStatement(ILabeledStatement operation, object argument)
         {
-            return new LabelStatement(operation.Label, Visit(operation.LabeledStatement), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new LabeledStatement(operation.Label, Visit(operation.Statement), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitBranchStatement(IBranchStatement operation, object argument)

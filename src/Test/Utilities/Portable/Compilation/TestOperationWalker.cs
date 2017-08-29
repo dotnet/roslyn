@@ -128,11 +128,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitForEachLoopStatement(operation);
         }
 
-        public override void VisitLabelStatement(ILabelStatement operation)
+        public override void VisitLabeledStatement(ILabeledStatement operation)
         {
             var label = operation.Label;
 
-            base.VisitLabelStatement(operation);
+            base.VisitLabeledStatement(operation);
         }
 
         public override void VisitBranchStatement(IBranchStatement operation)
