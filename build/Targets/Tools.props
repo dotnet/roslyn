@@ -3,6 +3,6 @@
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <dotnetSdkVersion>2.0.0-preview3-006923</dotnetSdkVersion>
-    <nugetExeVersion>4.1.0</nugetExeVersion>
+    <nugetExeVersion>4.3.0</nugetExeVersion>
   </PropertyGroup>
 </Project>
