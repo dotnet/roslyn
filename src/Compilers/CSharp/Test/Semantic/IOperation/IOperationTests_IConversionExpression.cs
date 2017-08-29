@@ -3220,7 +3220,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'num => num < 5')
             IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'num < 5')
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'num < 5')
-                ReturnedValue: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'num < 5')
+                ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'num < 5')
                     Left: IParameterReferenceExpression: num (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'num')
                     Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";

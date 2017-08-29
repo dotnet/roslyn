@@ -252,7 +252,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 await _rpc.InvokeAsync(
                     nameof(IRemoteHostService.OnGlobalOperationStopped),
-                    e.Operations, e.Cancelled);
+                    e.Operations, e.Cancelled).ConfigureAwait(false);
 
                 // Mark that we're stopped now.
                 return GlobalNotificationState.NotStarted;

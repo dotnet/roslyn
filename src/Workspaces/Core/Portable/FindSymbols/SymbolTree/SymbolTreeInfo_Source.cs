@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Project project, Checksum checksum, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var assembly = compilation.Assembly;
+            var assembly = compilation?.Assembly;
             if (assembly == null)
             {
                 return CreateEmpty(checksum);

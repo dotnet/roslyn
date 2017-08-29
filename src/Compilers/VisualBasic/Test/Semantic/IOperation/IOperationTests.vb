@@ -61,7 +61,7 @@ End Module
             Dim assignment1 As ISimpleAssignmentExpression = DirectCast(expression1, ISimpleAssignmentExpression)
             Assert.Equal(assignment1.Value.Kind, OperationKind.BinaryOperatorExpression)
             Dim add1 As IBinaryOperatorExpression = DirectCast(assignment1.Value, IBinaryOperatorExpression)
-            Assert.Equal(add1.BinaryOperationKind, BinaryOperationKind.OperatorMethodAdd)
+            Assert.Equal(add1.OperatorKind, CodeAnalysis.Semantics.BinaryOperatorKind.Add)
             Assert.False(add1.UsesOperatorMethod)
             Assert.Null(add1.OperatorMethod)
             Dim left1 As IOperation = add1.LeftOperand
@@ -76,7 +76,7 @@ End Module
 IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x = x + 10')
   Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2, IsInvalid) (Syntax: 'x = x + 10')
       Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
-      Right: IBinaryOperatorExpression (BinaryOperationKind.OperatorMethodAdd) (OperationKind.BinaryOperatorExpression, Type: B2, IsInvalid) (Syntax: 'x + 10')
+      Right: IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: B2, IsInvalid) (Syntax: 'x + 10')
           Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
           Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
 ")
@@ -91,7 +91,7 @@ IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x 
             Dim assignment2 As ISimpleAssignmentExpression = DirectCast(expression2, ISimpleAssignmentExpression)
             Assert.Equal(assignment2.Value.Kind, OperationKind.BinaryOperatorExpression)
             Dim add2 As IBinaryOperatorExpression = DirectCast(assignment2.Value, IBinaryOperatorExpression)
-            Assert.Equal(add2.BinaryOperationKind, BinaryOperationKind.OperatorMethodAdd)
+            Assert.Equal(add2.OperatorKind, CodeAnalysis.Semantics.BinaryOperatorKind.Add)
             Assert.True(add2.UsesOperatorMethod)
             Assert.NotNull(add2.OperatorMethod)
             Assert.Equal(add2.OperatorMethod.Name, "op_Addition")
@@ -106,7 +106,7 @@ IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x 
 IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x = x + y')
   Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2) (Syntax: 'x = x + y')
       Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
-      Right: IBinaryOperatorExpression (BinaryOperationKind.OperatorMethodAdd) (OperatorMethod: Function B2.op_Addition(x As B2, y As B2) As B2) (OperationKind.BinaryOperatorExpression, Type: B2) (Syntax: 'x + y')
+      Right: IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function B2.op_Addition(x As B2, y As B2) As B2) (OperationKind.BinaryOperatorExpression, Type: B2) (Syntax: 'x + y')
           Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
           Right: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'y')
 ")
@@ -121,7 +121,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x = x + y')
             Dim assignment3 As ISimpleAssignmentExpression = DirectCast(expression3, ISimpleAssignmentExpression)
             Assert.Equal(assignment3.Value.Kind, OperationKind.UnaryOperatorExpression)
             Dim negate3 As IUnaryOperatorExpression = DirectCast(assignment3.Value, IUnaryOperatorExpression)
-            Assert.Equal(negate3.UnaryOperationKind, UnaryOperationKind.OperatorMethodMinus)
+            Assert.Equal(negate3.OperatorKind, CodeAnalysis.Semantics.UnaryOperatorKind.Minus)
             Assert.False(negate3.UsesOperatorMethod)
             Assert.Null(negate3.OperatorMethod)
             Dim operand3 As IOperation = negate3.Operand
@@ -132,7 +132,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x = x + y')
 IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x = -x')
   Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2, IsInvalid) (Syntax: 'x = -x')
       Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
-      Right: IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodMinus) (OperationKind.UnaryOperatorExpression, Type: B2, IsInvalid) (Syntax: '-x')
+      Right: IUnaryOperatorExpression (UnaryOperatorKind.Minus) (OperationKind.UnaryOperatorExpression, Type: B2, IsInvalid) (Syntax: '-x')
           Operand: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2, IsInvalid) (Syntax: 'x')
 ")
         End Sub
@@ -182,13 +182,13 @@ End Module
             Dim value1 As ILocalReferenceExpression = TryCast(assignment1.Value, ILocalReferenceExpression)
             Assert.NotNull(value1)
             Assert.Equal(value1.Local.Name, "y")
-            Assert.Equal(assignment1.BinaryOperationKind, BinaryOperationKind.IntegerAdd)
+            Assert.Equal(assignment1.OperatorKind, CodeAnalysis.Semantics.BinaryOperatorKind.Add)
             Assert.False(assignment1.UsesOperatorMethod)
             Assert.Null(assignment1.OperatorMethod)
 
             comp.VerifyOperationTree(nodes(0), expectedOperationTree:="
 IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x += y')
-  Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'x += y')
+  Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'x += y')
       Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
       Right: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
 ")
@@ -207,14 +207,14 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x += y')
             Dim value2 As ILocalReferenceExpression = TryCast(assignment2.Value, ILocalReferenceExpression)
             Assert.NotNull(value2)
             Assert.Equal(value2.Local.Name, "b")
-            Assert.Equal(assignment2.BinaryOperationKind, BinaryOperationKind.OperatorMethodAdd)
+            Assert.Equal(assignment2.OperatorKind, CodeAnalysis.Semantics.BinaryOperatorKind.Add)
             Assert.True(assignment2.UsesOperatorMethod)
             Assert.NotNull(assignment2.OperatorMethod)
             Assert.Equal(assignment2.OperatorMethod.Name, "op_Addition")
 
             comp.VerifyOperationTree(nodes(1), expectedOperationTree:="
 IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a += b')
-  Expression: ICompoundAssignmentExpression (BinaryOperationKind.OperatorMethodAdd) (OperatorMethod: Function B2.op_Addition(x As B2, y As B2) As B2) (OperationKind.CompoundAssignmentExpression, Type: B2) (Syntax: 'a += b')
+  Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function B2.op_Addition(x As B2, y As B2) As B2) (OperationKind.CompoundAssignmentExpression, Type: B2) (Syntax: 'a += b')
       Left: ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'a')
       Right: ILocalReferenceExpression: b (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'b')
 ")
@@ -233,9 +233,9 @@ Class C
 End Class
 ]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
+Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement) (Syntax: 'If x <> 0 T ... End If')
-  Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerNotEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x <> 0')
+  Condition: IBinaryOperatorExpression (BinaryOperatorKind.NotEquals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x <> 0')
       Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
       Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If x <> 0 T ... End If')
@@ -269,7 +269,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i = 0 T ... Next')
-  Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '10')
+  Condition: IBinaryOperatorExpression (BinaryOperatorKind.LessThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '10')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
       Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
   Before:
@@ -279,7 +279,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i =
             Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   AtLoopBottom:
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For i = 0 T ... Next')
-        Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'For i = 0 T ... Next')
+        Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Add) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'For i = 0 T ... Next')
             Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
             Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For i = 0 T ... Next')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -351,11 +351,11 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
   Instance Receiver: null
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'Nothing')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32(), Constant: null) (Syntax: 'Nothing')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')")
+          Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)")
 
             comp.VerifyOperationTree(nodes(1), expectedOperationTree:=
 "IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'Test2(New S ... ), Nothing)')

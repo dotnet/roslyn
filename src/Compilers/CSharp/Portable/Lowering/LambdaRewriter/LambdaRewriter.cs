@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(scope.DeclaredEnvironments.Count == 1);
 
                     var env = scope.DeclaredEnvironments[0];
-                    var frame = MakeFrame(scope, env.IsStruct);
+                    var frame = MakeFrame(scope, env);
                     env.SynthesizedEnvironment = frame;
 
                     CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(ContainingType, frame);
@@ -346,20 +346,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 frame.Constructor));
                     }
 
-                    foreach (var captured in env.CapturedVariables)
-                    {
-                        Debug.Assert(!proxies.ContainsKey(captured));
-
-                        var hoistedField = LambdaCapturedVariable.Create(frame, captured, ref _synthesizedFieldNameIdDispenser);
-                        proxies.Add(captured, new CapturedToFrameSymbolReplacement(hoistedField, isReusable: false));
-                        CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, hoistedField);
-                    }
-
                     _frames.Add(scope.BoundNode, env);
                 }
             });
 
-            SynthesizedClosureEnvironment MakeFrame(Analysis.Scope scope, bool isStruct)
+            SynthesizedClosureEnvironment MakeFrame(Analysis.Scope scope, Analysis.ClosureEnvironment env)
             {
                 var scopeBoundNode = scope.BoundNode;
 
@@ -375,13 +366,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     containingMethod = _substitutedSourceMethod;
                 }
 
-                return new SynthesizedClosureEnvironment(
+                var synthesizedEnv = new SynthesizedClosureEnvironment(
                     _topLevelMethod,
                     containingMethod,
-                    isStruct,
+                    env.IsStruct,
                     syntax,
                     methodId,
                     closureId);
+
+                foreach (var captured in env.CapturedVariables)
+                {
+                    Debug.Assert(!proxies.ContainsKey(captured));
+
+                    var hoistedField = LambdaCapturedVariable.Create(synthesizedEnv, captured, ref _synthesizedFieldNameIdDispenser);
+                    proxies.Add(captured, new CapturedToFrameSymbolReplacement(hoistedField, isReusable: false));
+                    synthesizedEnv.AddHoistedField(hoistedField);
+                    CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(synthesizedEnv, hoistedField);
+                }
+
+                return synthesizedEnv;
             }
         }
 
@@ -515,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var frame = _lazyStaticLambdaFrame;
 
-                    // add frame type
+                    // add frame type and cache field
                     CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(this.ContainingType, frame);
 
                     // add its ctor (note Constructor can be null if TypeKind.Struct is passed in to LambdaFrame.ctor, but Class is passed in above)
@@ -661,6 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (CompilationState.Emitting)
                     {
                         Debug.Assert(capturedFrame.Type.IsReferenceType); // Make sure we're not accidentally capturing a struct by value
+                        frame.AddHoistedField(capturedFrame);
                         CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, capturedFrame);
                     }
 
@@ -1331,7 +1335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (localFunction != null)
             {
-                lambdaOrLambdaBodySyntax = (SyntaxNode)localFunction.Body ?? localFunction.ExpressionBody;
+                lambdaOrLambdaBodySyntax = (SyntaxNode)localFunction.Body ?? localFunction.ExpressionBody?.Expression;
                 isLambdaBody = true;
             }
             else if (LambdaUtilities.IsQueryPairLambda(syntax))

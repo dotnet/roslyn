@@ -470,9 +470,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Body, "Body");
         }
 
-        public override void VisitLabelStatement(ILabelStatement operation)
+        public override void VisitLabeledStatement(ILabeledStatement operation)
         {
-            LogString(nameof(ILabelStatement));
+            LogString(nameof(ILabeledStatement));
 
             // TODO: Put a better workaround to skip compiler generated labels.
             if (!operation.Label.IsImplicitlyDeclared)
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.LabeledStatement, "LabeledStatement");
+            Visit(operation.Statement, "Statement");
         }
 
         public override void VisitBranchStatement(IBranchStatement operation)
@@ -765,8 +765,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IConditionalAccessExpression));
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.ConditionalInstance, header: "Left");
-            Visit(operation.ConditionalValue, header: "Right");
+            Visit(operation.Expression, header: nameof(operation.Expression));
+            Visit(operation.WhenNotNull, header: nameof(operation.WhenNotNull));
         }
 
         public override void VisitConditionalAccessInstanceExpression(IConditionalAccessInstanceExpression operation)
@@ -785,15 +785,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IUnaryOperatorExpression));
 
-            var kindStr = $"{nameof(UnaryOperationKind)}.{operation.UnaryOperationKind}";
+            var kindStr = $"{nameof(UnaryOperatorKind)}.{operation.OperatorKind}";
             if (operation.IsLifted)
             {
-                LogString($" ({kindStr}-IsLifted)");
+                kindStr += ", IsLifted";
             }
-            else
+
+            if (operation.IsChecked)
             {
-                LogString($" ({kindStr})");
+                kindStr += ", Checked";
             }
+
+            LogString($" ({kindStr})");
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);
 
@@ -804,15 +807,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IBinaryOperatorExpression));
 
-            var kindStr = $"{nameof(BinaryOperationKind)}.{operation.BinaryOperationKind}";
+            var kindStr = $"{nameof(BinaryOperatorKind)}.{operation.OperatorKind}";
             if (operation.IsLifted)
             {
-                LogString($" ({kindStr}-IsLifted)");
+                kindStr += ", IsLifted";
             }
-            else
+
+            if (operation.IsChecked)
             {
-                LogString($" ({kindStr})");
+                kindStr += ", Checked";
             }
+
+            if (operation.IsCompareText)
+            {
+                kindStr += ", CompareText";
+            }
+
+            LogString($" ({kindStr})");
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);
 
@@ -1098,15 +1109,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(ICompoundAssignmentExpression));
 
-            var kindStr = $"{nameof(BinaryOperationKind)}.{operation.BinaryOperationKind}";
+            var kindStr = $"{nameof(BinaryOperatorKind)}.{operation.OperatorKind}";
             if (operation.IsLifted)
             {
-                LogString($" ({kindStr}-IsLifted)");
+                kindStr += ", IsLifted";
             }
-            else
+
+            if (operation.IsChecked)
             {
-                LogString($" ({kindStr})");
+                kindStr += ", Checked";
             }
+
+            LogString($" ({kindStr})");
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);
 
@@ -1118,12 +1132,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IIncrementExpression));
 
-            var unaryKindStr = $"{nameof(UnaryOperandKind)}.{operation.IncrementOperationKind}";
-            LogString($" ({unaryKindStr})");
+            var kindStr = operation.IsPostfix ? "Postfix" : "Prefix";
+            kindStr += operation.IsDecrement ? "Decrement" : "Increment";
+            if (operation.IsLifted)
+            {
+                kindStr += ", IsLifted";
+            }
+
+            if (operation.IsChecked)
+            {
+                kindStr += ", Checked";
+            }
+
+            LogString($" ({kindStr})");
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.Target, "Left");
+            Visit(operation.Target, "Target");
         }
 
         public override void VisitParenthesizedExpression(IParenthesizedExpression operation)
@@ -1192,7 +1217,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(ILocalFunctionStatement));
 
-            LogSymbol(operation.LocalFunctionSymbol, header: " (Local Function");
+            LogSymbol(operation.Symbol, header: " (Symbol");
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
@@ -1209,8 +1234,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitSingleValueCaseClause(ISingleValueCaseClause operation)
         {
             LogString(nameof(ISingleValueCaseClause));
-            var kindStr = $"{nameof(BinaryOperationKind)}.{operation.Equality}";
-            LogString($" (Equality operator kind: {kindStr})");
             LogCaseClauseCommon(operation);
 
             Visit(operation.Value, "Value");
@@ -1219,7 +1242,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitRelationalCaseClause(IRelationalCaseClause operation)
         {
             LogString(nameof(IRelationalCaseClause));
-            var kindStr = $"{nameof(BinaryOperationKind)}.{operation.Relation}";
+            var kindStr = $"{nameof(BinaryOperatorKind)}.{operation.Relation}";
             LogString($" (Relational operator kind: {kindStr})");
             LogCaseClauseCommon(operation);
 

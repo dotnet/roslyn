@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -35,7 +35,7 @@ IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.Conve
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '.c = .b + .a')
             Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.c As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'c')
                 Instance Receiver: null
-            Right: IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '.b + .a')
+            Right: IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '.b + .a')
                 Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.b As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: '.b')
                     Instance Receiver: null
                 Right: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: '.a')
@@ -126,8 +126,8 @@ IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
                                 IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{tr}')
                                   Element Values(1):
                                       IParameterReferenceExpression: tr (OperationKind.ParameterReferenceExpression, Type: System.TypedReference, IsInvalid) (Syntax: 'tr')
-  ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Sub')
-    LabeledStatement: null
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
+    Statement: null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
     ReturnedValue: null
 ]]>.Value
@@ -628,8 +628,8 @@ IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
       Initializer: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: __ As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>) (Syntax: 'New With {<a/>.<__>}')
           Initializers(1):
               IOperation:  (OperationKind.None) (Syntax: '<a/>.<__>')
-  ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Sub')
-    LabeledStatement: null
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
+    Statement: null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
     ReturnedValue: null
 ]]>.Value
@@ -656,7 +656,7 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: $0 As System.Int32>, IsInvalid) (Syntax: 'New With {a * 2}')
   Initializers(1):
-      IBinaryOperatorExpression (BinaryOperationKind.IntegerMultiply) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: 'a * 2')
+      IBinaryOperatorExpression (BinaryOperatorKind.Multiply, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: 'a * 2')
         Left: ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'a')
         Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
 ]]>.Value
@@ -835,8 +835,8 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
                             Instance Receiver: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.String, Key a As System.String>.x As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String, IsInvalid) (Syntax: '.x')
                                 Instance Receiver: null
                             Arguments(0)
-                      ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Function')
-                        LabeledStatement: null
+                      ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
+                        Statement: null
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
                         ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
             Arguments(0)
@@ -889,8 +889,8 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
                                             Children(1):
                                                 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.a')
                                                   Children(0)
-                      ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Function')
-                        LabeledStatement: null
+                      ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
+                        Statement: null
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
                         ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
             Arguments(0)
@@ -943,8 +943,8 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
                                             Children(1):
                                                 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.x')
                                                   Children(0)
-                      ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Function')
-                        LabeledStatement: null
+                      ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
+                        Statement: null
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
                         ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
             Arguments(0)
@@ -1006,13 +1006,13 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
                                                             Children(1):
                                                                 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.x')
                                                                   Children(0)
-                                      ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Function')
-                                        LabeledStatement: null
+                                      ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
+                                        Statement: null
                                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
                                         ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
                             Arguments(0)
-                      ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Function')
-                        LabeledStatement: null
+                      ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
+                        Statement: null
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
                         ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
             Arguments(0)

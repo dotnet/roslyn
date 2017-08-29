@@ -441,8 +441,7 @@ class Program
     static void Main(string[] args)
     {
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
@@ -475,8 +474,7 @@ class Program
     {
         List<int> list;
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
@@ -512,8 +510,7 @@ ignoreTrivia: false);
         {
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
@@ -552,8 +549,7 @@ ignoreTrivia: false);
             List<int> list;
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(541817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541817")]
@@ -609,8 +605,7 @@ namespace Goo2
     public class Bar2
     {
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(528609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528609")]
@@ -634,8 +629,7 @@ class Program
 class Program
 {
 }
-",
-ignoreTrivia: false);
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
@@ -655,8 +649,7 @@ class Program
     static void Main()
     {
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(541827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541827")]
@@ -880,8 +873,7 @@ class Program
     }
 }
 
-",
-ignoreTrivia: false);
+");
         }
 
         [WorkItem(541914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541914")]
@@ -959,8 +951,7 @@ class Program
     {
 
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(542016, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542016")]
@@ -991,8 +982,7 @@ ignoreTrivia: false);
 
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(542134, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542134")]

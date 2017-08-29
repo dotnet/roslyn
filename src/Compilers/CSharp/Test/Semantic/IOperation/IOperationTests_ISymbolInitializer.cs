@@ -166,7 +166,7 @@ class C
 ";
             string expectedOperationTree = @"
 IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializer) (Syntax: '= 1 + F()')
-  IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
+  IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
     Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     Right: IInvocationExpression (System.Int32 C.F()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F()')
         Instance Receiver: null
@@ -193,7 +193,7 @@ class C
 ";
             string expectedOperationTree = @"
 IFieldInitializer (Field: System.Int32 C.s1) (OperationKind.FieldInitializer) (Syntax: '= 1 + F()')
-  IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
+  IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
     Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     Right: IInvocationExpression (System.Int32 C.F()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F()')
         Instance Receiver: null
@@ -218,7 +218,7 @@ class C
 ";
             string expectedOperationTree = @"
 IFieldInitializer (Field: System.Int32 C.i1) (OperationKind.FieldInitializer) (Syntax: '= 1 + F()')
-  IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
+  IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '1 + F()')
     Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     Right: IInvocationExpression (System.Int32 C.F()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'F()')
         Instance Receiver: null

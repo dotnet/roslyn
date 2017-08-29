@@ -49,7 +49,7 @@ end class",
         next
         return count
     End Function
-end class", ignoreTrivia:=False)
+end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
@@ -449,7 +449,7 @@ End Interface",
     '''     An that provides access to the language service for the active configured project.
     ''' </returns>
     Function GetActiveProjectContext() As Object
-End Interface", ignoreTrivia:=False)
+End Interface")
         End Function
 
         <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
@@ -473,7 +473,7 @@ End Interface",
     '''     An that provides access to the language service for the active configured project.
     ''' </param>
     Sub SetActiveProjectContext(Value As Object)
-End Interface", ignoreTrivia:=False)
+End Interface")
         End Function
 
         <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
@@ -504,7 +504,7 @@ End Interface",
     '''     An that provides access to the language service for the active configured project.
     ''' </param>
     Sub SetActiveProjectContext(Value As Object)
-End Interface", ignoreTrivia:=False)
+End Interface")
         End Function
 
         <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
@@ -532,7 +532,7 @@ End Interface
 Structure AStruct
     ''' <seealso cref=""ILanguageServiceHost.SetActiveProjectContext(Object)""/>
     Private X As Integer
-End Structure", ignoreTrivia:=False)
+End Structure")
         End Function
 
         <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
@@ -565,7 +565,7 @@ End Interface
 Structure AStruct
     ''' <seealso cref=""ILanguageServiceHost.GetActiveProjectContext()""/>
     Private X As Integer
-End Structure", ignoreTrivia:=False)
+End Structure")
         End Function
 
         <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
@@ -587,7 +587,7 @@ End Interface
 Structure AStruct
     ''' <seealso cref=""ISomeInterface(Of T).SetContext(ISomeInterface(Of T))""/>
     Private X As Integer
-End Structure", ignoreTrivia:=False)
+End Structure")
         End Function
 
         <WorkItem(440371, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/440371")>

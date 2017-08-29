@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Linq.Enumerable
 Imports System.Xml.Linq
@@ -283,7 +283,7 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: 'Key .Field = 23')
             Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Key .Field = 23')
                 Children(0)
-            Right: IBinaryOperatorExpression (BinaryOperationKind.Invalid) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'Key .Field = 23')
+            Right: IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'Key .Field = 23')
                 Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Key .Field')
                     Children(1):
                         IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Key .Field')
@@ -759,8 +759,8 @@ IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement, IsInvali
                           Children(1):
                               IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Unknown')
                                 Children(0)
-  ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Sub')
-    LabeledStatement: null
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
+    Statement: null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
     ReturnedValue: null
 ]]>.Value
@@ -1131,8 +1131,8 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return .Field')
                         ReturnedValue: IFieldReferenceExpression: C1.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: '.Field')
                             Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C1 With ... d Function}')
-                      ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Function')
-                        LabeledStatement: null
+                      ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
+                        Statement: null
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
                         ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Function')
 ]]>.Value
@@ -1403,8 +1403,8 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
                             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             Operand: IFieldReferenceExpression: C2.Field As System.Func(Of System.Object) (OperationKind.FieldReferenceExpression, Type: System.Func(Of System.Object)) (Syntax: '.Field')
                                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'As New C2 W ... d Function}')
-                      ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Function')
-                        LabeledStatement: null
+                      ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
+                        Statement: null
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
                         ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'End Function')
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Func(Of System.Object)) (Syntax: '.Field2 = F ... nd Function')
@@ -1420,8 +1420,8 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
                             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             Operand: IFieldReferenceExpression: C2.Field As System.Func(Of System.Object) (OperationKind.FieldReferenceExpression, Type: System.Func(Of System.Object)) (Syntax: '.Field')
                                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'As New C2 W ... d Function}')
-                      ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Function')
-                        LabeledStatement: null
+                      ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
+                        Statement: null
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
                         ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'End Function')
 ]]>.Value
