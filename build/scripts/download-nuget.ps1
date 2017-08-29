@@ -27,6 +27,7 @@ try {
 
     Write-Host "Downloading NuGet.exe"
     $webClient = New-Object -TypeName "System.Net.WebClient"
+    $webClient.Proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
     $webClient.DownloadFile("https://dist.nuget.org/win-x86-commandline/v$nugetVersion/NuGet.exe", $scratchFile)
     $nugetVersion | Out-File $versionFile
     Copy-Item $scratchFile $destFile
