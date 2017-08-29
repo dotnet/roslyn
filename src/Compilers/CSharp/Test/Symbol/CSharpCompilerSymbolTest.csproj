@@ -12,7 +12,7 @@
     <NoStdLib>true</NoStdLib>
     <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
     <RoslynProjectType>UnitTestPortable</RoslynProjectType>
-    <RuntimeIdentifier>$(RoslynRuntimeIdentifier)</RuntimeIdentifier>
+    <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SelfContained>true</SelfContained>
   </PropertyGroup>
