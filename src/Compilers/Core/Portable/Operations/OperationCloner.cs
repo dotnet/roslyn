@@ -84,19 +84,29 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new IfStatement(Visit(operation.Condition), Visit(operation.IfTrueStatement), Visit(operation.IfFalseStatement), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        public override IOperation VisitWhileUntilLoopStatement(IWhileUntilLoopStatement operation, object argument)
+        public override IOperation VisitDoLoopStatement(IDoLoopStatement operation, object argument)
         {
-            return new WhileUntilLoopStatement(operation.IsTopTest, operation.IsWhile, Visit(operation.Condition), operation.LoopKind, Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new DoLoopStatement(operation.DoLoopKind, Visit(operation.Condition), Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
+        public override IOperation VisitWhileLoopStatement(IWhileLoopStatement operation, object argument)
+        {
+            return new WhileLoopStatement(Visit(operation.Condition), Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitForLoopStatement(IForLoopStatement operation, object argument)
         {
-            return new ForLoopStatement(VisitArray(operation.Before), VisitArray(operation.AtLoopBottom), operation.Locals, Visit(operation.Condition), operation.LoopKind, Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new ForLoopStatement(VisitArray(operation.Before), Visit(operation.Condition), VisitArray(operation.AtLoopBottom), operation.Locals, Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
+        public override IOperation VisitForToLoopStatement(IForToLoopStatement operation, object argument)
+        {
+            return new ForToLoopStatement(operation.IterationVariable, Visit(operation.LoopControlVariable), Visit(operation.InitialValue), Visit(operation.LimitValue), Visit(operation.StepValue), Visit(operation.Body), VisitArray(operation.AtLoopBottomExpressionList), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitForEachLoopStatement(IForEachLoopStatement operation, object argument)
         {
-            return new ForEachLoopStatement(operation.IterationVariable, Visit(operation.Collection), operation.LoopKind, Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new ForEachLoopStatement(operation.IterationVariable, Visit(operation.LoopControlVariable), Visit(operation.Collection), VisitArray(operation.AtLoopBottomExpressionList), Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitLabelStatement(ILabelStatement operation, object argument)

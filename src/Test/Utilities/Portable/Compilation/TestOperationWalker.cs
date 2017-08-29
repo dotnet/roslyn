@@ -101,13 +101,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitDefaultCaseClause(operation);
         }
 
-        public override void VisitWhileUntilLoopStatement(IWhileUntilLoopStatement operation)
+        public override void VisitDoLoopStatement(IDoLoopStatement operation)
         {
             var loopKind = operation.LoopKind;
-            var isTopTest = operation.IsTopTest;
-            var isWhile = operation.IsWhile;
+            var isTopTest = operation.DoLoopKind;
 
-            base.VisitWhileUntilLoopStatement(operation);
+            base.VisitDoLoopStatement(operation);
+        }
+
+        public override void VisitWhileLoopStatement(IWhileLoopStatement operation)
+        {
+            var loopKind = operation.LoopKind;
+
+            base.VisitWhileLoopStatement(operation);
         }
 
         public override void VisitForLoopStatement(IForLoopStatement operation)
@@ -119,6 +125,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             base.VisitForLoopStatement(operation);
+        }
+
+        public override void VisitForToLoopStatement(IForToLoopStatement operation)
+        {
+            var loopKind = operation.LoopKind;
+            var iteraionVariable = operation.IterationVariable;
+
+            base.VisitForToLoopStatement(operation);
         }
 
         public override void VisitForEachLoopStatement(IForEachLoopStatement operation)

@@ -406,11 +406,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Unindent();
         }
 
-        public override void VisitWhileUntilLoopStatement(IWhileUntilLoopStatement operation)
+        public override void VisitDoLoopStatement(IDoLoopStatement operation)
         {
-            LogString(nameof(IWhileUntilLoopStatement));
+            LogString(nameof(IDoLoopStatement));
 
-            LogString($" (IsTopTest: {operation.IsTopTest}, IsWhile: {operation.IsWhile})");
+            LogString($" (DoLoopKind: {operation.DoLoopKind})");
+            LogLoopStatementHeader(operation);
+
+            Visit(operation.Condition, "Condition");
+            Visit(operation.Body, "Body");
+        }
+
+        public override void VisitWhileLoopStatement(IWhileLoopStatement operation)
+        {
+            LogString(nameof(IWhileLoopStatement));
             LogLoopStatementHeader(operation);
 
             Visit(operation.Condition, "Condition");
@@ -427,6 +436,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArray(operation.Before, "Before", logElementCount: false);
             VisitArray(operation.AtLoopBottom, "AtLoopBottom", logElementCount: false);
             Visit(operation.Body, "Body");
+        }
+
+        public override void VisitForToLoopStatement(IForToLoopStatement operation)
+        {
+            LogString(nameof(IForToLoopStatement));
+            LogSymbol(operation.IterationVariable, " (Iteration variable");
+            LogString(")");
+
+            LogLoopStatementHeader(operation);
+
+            Visit(operation.LoopControlVariable, "LoopControlVariable");
+            Visit(operation.InitialValue, "InitialValue");
+            Visit(operation.LimitValue, "LimitValue");
+            Visit(operation.StepValue, "StepValue");
+            Visit(operation.Body, "Body");
+            VisitArray(operation.AtLoopBottomExpressionList, "AtLoopBottomExpressionList", logElementCount: true);
         }
 
         private void LogLocals(IEnumerable<ILocalSymbol> locals, string header = "Locals")
@@ -466,8 +491,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(")");
 
             LogLoopStatementHeader(operation);
+            Visit(operation.LoopControlVariable, "LoopControlVariable");
             Visit(operation.Collection, "Collection");
             Visit(operation.Body, "Body");
+            VisitArray(operation.AtLoopBottomExpressionList, "AtLoopBottomExpressionList", logElementCount: true);
         }
 
         public override void VisitLabelStatement(ILabelStatement operation)

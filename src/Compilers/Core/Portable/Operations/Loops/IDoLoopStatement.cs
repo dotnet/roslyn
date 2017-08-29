@@ -1,26 +1,25 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
-
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents a C# while or do statement, or a VB While or Do statement.
+    /// Represents a C# 'do while' or VB 'Do While' or 'Do Until' loop statement.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IWhileUntilLoopStatement : IForWhileUntilLoopStatement
+    public interface IDoLoopStatement : ILoopStatement
     {
         /// <summary>
-        /// True if the loop test executes at the top of the loop; false if the loop test executes at the bottom of the loop.
+        /// Condition of the loop.
         /// </summary>
-        bool IsTopTest { get; }
+        IOperation Condition { get; }
+
         /// <summary>
-        /// True if the loop is a while loop; false if the loop is an until loop.
+        /// Represents kind of do loop statement.
         /// </summary>
-        bool IsWhile { get; }
+        DoLoopKind DoLoopKind { get; }
     }
 }
 

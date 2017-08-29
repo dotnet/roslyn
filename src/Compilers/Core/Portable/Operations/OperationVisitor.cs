@@ -75,12 +75,22 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitWhileUntilLoopStatement(IWhileUntilLoopStatement operation)
+        public virtual void VisitDoLoopStatement(IDoLoopStatement operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitWhileLoopStatement(IWhileLoopStatement operation)
         {
             DefaultVisit(operation);
         }
 
         public virtual void VisitForLoopStatement(IForLoopStatement operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitForToLoopStatement(IForToLoopStatement operation)
         {
             DefaultVisit(operation);
         }
@@ -540,12 +550,22 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitWhileUntilLoopStatement(IWhileUntilLoopStatement operation, TArgument argument)
+        public virtual TResult VisitDoLoopStatement(IDoLoopStatement operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitWhileLoopStatement(IWhileLoopStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
 
         public virtual TResult VisitForLoopStatement(IForLoopStatement operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitForToLoopStatement(IForToLoopStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

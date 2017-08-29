@@ -1727,12 +1727,12 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a C# foreach statement or a VB For Each statement.
+    /// Represents a C# 'foreach' statement or a VB 'For Each' staement.
     /// </summary>
     internal abstract partial class BaseForEachLoopStatement : LoopStatement, IForEachLoopStatement
     {
-        public BaseForEachLoopStatement(ILocalSymbol iterationVariable, LoopKind loopKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(loopKind, OperationKind.LoopStatement, semanticModel, syntax, type, constantValue, isImplicit)
+        public BaseForEachLoopStatement(ILocalSymbol iterationVariable, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(LoopKind.ForEach, OperationKind.LoopStatement, semanticModel, syntax, type, constantValue, isImplicit)
         {
             IterationVariable = iterationVariable;
         }
@@ -1740,20 +1740,36 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Iteration variable of the loop.
         /// </summary>
         public ILocalSymbol IterationVariable { get; }
+        protected abstract IOperation LoopControlVariableImpl { get; }
         protected abstract IOperation CollectionImpl { get; }
+        protected abstract ImmutableArray<IOperation> AtLoopBottomExpressionListImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
+                yield return LoopControlVariable;
                 yield return Collection;
                 yield return Body;
+                foreach (var expression in AtLoopBottomExpressionList)
+                {
+                    yield return expression;
+                }
             }
         }
+        /// <summary>
+        /// Optional loop control variable in VB that refers to the operation for declaring a new local variable or reference an existing variable or an expression.
+        /// This field is always null for C#.
+        /// </summary>
+        public IOperation LoopControlVariable => Operation.SetParentOperation(LoopControlVariableImpl, this);
         /// <summary>
         /// Collection value over which the loop iterates.
         /// </summary>
         public IOperation Collection => Operation.SetParentOperation(CollectionImpl, this);
-
+        /// <summary>
+        /// Optional list of comma separate operations to execute at loop bottom for VB.
+        /// This list is always empty for C#.
+        /// </summary>
+        public ImmutableArray<IOperation> AtLoopBottomExpressionList => Operation.SetParentOperation(AtLoopBottomExpressionListImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitForEachLoopStatement(this);
@@ -1765,52 +1781,75 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a C# foreach statement or a VB For Each statement.
+    /// Represents a C# 'foreach' statement or a VB 'For Each' staement.
     /// </summary>
     internal sealed partial class ForEachLoopStatement : BaseForEachLoopStatement, IForEachLoopStatement
     {
-        public ForEachLoopStatement(ILocalSymbol iterationVariable, IOperation collection, LoopKind loopKind, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(iterationVariable, loopKind, semanticModel, syntax, type, constantValue, isImplicit)
+        public ForEachLoopStatement(ILocalSymbol iterationVariable, IOperation collection, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            this (iterationVariable, null, collection, ImmutableArray<IOperation>.Empty, body, semanticModel, syntax, type, constantValue, isImplicit)
         {
+        }
+
+        public ForEachLoopStatement(ILocalSymbol iterationVariable, IOperation loopControlVariable, IOperation collection, ImmutableArray<IOperation> atLoopBottomExpressionList, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(iterationVariable, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            LoopControlVariableImpl = loopControlVariable;
             CollectionImpl = collection;
+            AtLoopBottomExpressionListImpl = atLoopBottomExpressionList;
             BodyImpl = body;
         }
 
+        protected override IOperation LoopControlVariableImpl { get; }
         protected override IOperation CollectionImpl { get; }
+        protected override ImmutableArray<IOperation> AtLoopBottomExpressionListImpl { get; }
         protected override IOperation BodyImpl { get; }
     }
 
     /// <summary>
-    /// Represents a C# foreach statement or a VB For Each statement.
+    /// Represents a C# 'foreach' statement or a VB 'For Each' staement.
     /// </summary>
     internal sealed partial class LazyForEachLoopStatement : BaseForEachLoopStatement, IForEachLoopStatement
     {
+        private readonly Lazy<IOperation> _lazyLoopControlVariable;
         private readonly Lazy<IOperation> _lazyCollection;
+        private readonly Lazy<ImmutableArray<IOperation>> _lazyAtLoopBottomExpressionList;
         private readonly Lazy<IOperation> _lazyBody;
+        private static readonly Lazy<IOperation> s_defaultLoopControlVariable = new Lazy<IOperation>(() => null);
+        private static readonly Lazy<ImmutableArray<IOperation>> s_defaultAtLoopBottomExpressionList = new Lazy<ImmutableArray<IOperation>>(() => ImmutableArray<IOperation>.Empty);
 
-        public LazyForEachLoopStatement(ILocalSymbol iterationVariable, Lazy<IOperation> collection, LoopKind loopKind, Lazy<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(iterationVariable, loopKind, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyForEachLoopStatement(ILocalSymbol iterationVariable, Lazy<IOperation> collection, Lazy<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : this(iterationVariable, s_defaultLoopControlVariable, collection, s_defaultAtLoopBottomExpressionList, body, semanticModel, syntax, type, constantValue, isImplicit)
         {
+        }
+
+        public LazyForEachLoopStatement(ILocalSymbol iterationVariable, Lazy<IOperation> loopControlVariable, Lazy<IOperation> collection, Lazy<ImmutableArray<IOperation>> atLoopBottomExpressionList, Lazy<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(iterationVariable, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            _lazyLoopControlVariable = loopControlVariable ?? throw new System.ArgumentNullException(nameof(loopControlVariable));
             _lazyCollection = collection ?? throw new System.ArgumentNullException(nameof(collection));
+            _lazyAtLoopBottomExpressionList = atLoopBottomExpressionList ?? throw new System.ArgumentNullException(nameof(atLoopBottomExpressionList));
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }
 
+        protected override IOperation LoopControlVariableImpl => _lazyLoopControlVariable.Value;
         protected override IOperation CollectionImpl => _lazyCollection.Value;
+        protected override ImmutableArray<IOperation> AtLoopBottomExpressionListImpl => _lazyAtLoopBottomExpressionList.Value;
         protected override IOperation BodyImpl => _lazyBody.Value;
     }
 
     /// <summary>
-    /// Represents a C# for statement or a VB For statement.
+    /// Represents a C# 'for' loop statement.
     /// </summary>
-    internal abstract partial class BaseForLoopStatement : ForWhileUntilLoopStatement, IForLoopStatement
+    internal abstract partial class BaseForLoopStatement : LoopStatement, IForLoopStatement
     {
-        public BaseForLoopStatement(ImmutableArray<ILocalSymbol> locals, LoopKind loopKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(loopKind, OperationKind.LoopStatement, semanticModel, syntax, type, constantValue, isImplicit)
+        public BaseForLoopStatement(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(LoopKind.For, OperationKind.LoopStatement, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Locals = locals;
         }
 
         protected abstract ImmutableArray<IOperation> BeforeImpl { get; }
+        protected abstract IOperation ConditionImpl { get; }
         protected abstract ImmutableArray<IOperation> AtLoopBottomImpl { get; }
         /// <summary>
         /// Declarations local to the loop.
@@ -1825,19 +1864,23 @@ namespace Microsoft.CodeAnalysis.Semantics
                     yield return before;
                 }
                 yield return Condition;
-                yield return Body;
                 foreach (var atLoopBottom in AtLoopBottom)
                 {
                     yield return atLoopBottom;
                 }
+                yield return Body;
             }
         }
         /// <summary>
-        /// Statements to execute before entry to the loop. For C# these come from the first clause of the for statement. For VB these initialize the index variable of the For statement.
+        /// List of operations to execute before entry to the loop. This comes from the first clause of the for statement.
         /// </summary>
         public ImmutableArray<IOperation> Before => Operation.SetParentOperation(BeforeImpl, this);
         /// <summary>
-        /// Statements to execute at the bottom of the loop. For C# these come from the third clause of the for statement. For VB these increment the index variable of the For statement.
+        /// Condition of the loop. This comes from the second clause of the for statement.
+        /// </summary>
+        public IOperation Condition => Operation.SetParentOperation(ConditionImpl, this);
+        /// <summary>
+        /// List of operations to execute at the bottom of the loop. This comes from the third clause of the for statement.
         /// </summary>
         public ImmutableArray<IOperation> AtLoopBottom => Operation.SetParentOperation(AtLoopBottomImpl, this);
 
@@ -1852,67 +1895,174 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a C# for statement or a VB For statement.
+    /// Represents a C# 'for' loop statement.
     /// </summary>
     internal sealed partial class ForLoopStatement : BaseForLoopStatement, IForLoopStatement
     {
-        public ForLoopStatement(ImmutableArray<IOperation> before, ImmutableArray<IOperation> atLoopBottom, ImmutableArray<ILocalSymbol> locals, IOperation condition, LoopKind loopKind, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(locals, loopKind, semanticModel, syntax, type, constantValue, isImplicit)
+        public ForLoopStatement(ImmutableArray<IOperation> before, IOperation condition, ImmutableArray<IOperation> atLoopBottom, ImmutableArray<ILocalSymbol> locals, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
             BeforeImpl = before;
-            AtLoopBottomImpl = atLoopBottom;
             ConditionImpl = condition;
+            AtLoopBottomImpl = atLoopBottom;
             BodyImpl = body;
         }
 
         protected override ImmutableArray<IOperation> BeforeImpl { get; }
-        protected override ImmutableArray<IOperation> AtLoopBottomImpl { get; }
         protected override IOperation ConditionImpl { get; }
+        protected override ImmutableArray<IOperation> AtLoopBottomImpl { get; }
         protected override IOperation BodyImpl { get; }
     }
 
     /// <summary>
-    /// Represents a C# for statement or a VB For statement.
+    /// Represents a C# 'for' loop statement.
     /// </summary>
     internal sealed partial class LazyForLoopStatement : BaseForLoopStatement, IForLoopStatement
     {
         private readonly Lazy<ImmutableArray<IOperation>> _lazyBefore;
-        private readonly Lazy<ImmutableArray<IOperation>> _lazyAtLoopBottom;
         private readonly Lazy<IOperation> _lazyCondition;
+        private readonly Lazy<ImmutableArray<IOperation>> _lazyAtLoopBottom;
         private readonly Lazy<IOperation> _lazyBody;
 
-        public LazyForLoopStatement(Lazy<ImmutableArray<IOperation>> before, Lazy<ImmutableArray<IOperation>> atLoopBottom, ImmutableArray<ILocalSymbol> locals, Lazy<IOperation> condition, LoopKind loopKind, Lazy<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(locals, loopKind, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyForLoopStatement(Lazy<ImmutableArray<IOperation>> before, Lazy<IOperation> condition, Lazy<ImmutableArray<IOperation>> atLoopBottom, ImmutableArray<ILocalSymbol> locals, Lazy<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            _lazyBefore = before;
-            _lazyAtLoopBottom = atLoopBottom;
+            _lazyBefore = before ?? throw new System.ArgumentNullException(nameof(before));
             _lazyCondition = condition ?? throw new System.ArgumentNullException(nameof(condition));
+            _lazyAtLoopBottom = atLoopBottom ?? throw new System.ArgumentNullException(nameof(atLoopBottom));
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }
 
         protected override ImmutableArray<IOperation> BeforeImpl => _lazyBefore.Value;
-
-        protected override ImmutableArray<IOperation> AtLoopBottomImpl => _lazyAtLoopBottom.Value;
-
         protected override IOperation ConditionImpl => _lazyCondition.Value;
-
+        protected override ImmutableArray<IOperation> AtLoopBottomImpl => _lazyAtLoopBottom.Value;
         protected override IOperation BodyImpl => _lazyBody.Value;
     }
 
     /// <summary>
-    /// Represents a C# while, for, or do statement, or a VB While, For, or Do statement.
+    /// Represents a VB 'For To' loop statement.
     /// </summary>
-    internal abstract partial class ForWhileUntilLoopStatement : LoopStatement, IForWhileUntilLoopStatement
+    internal abstract partial class BaseForToLoopStatement : LoopStatement, IForToLoopStatement
     {
-        protected ForWhileUntilLoopStatement(LoopKind loopKind, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(loopKind, kind, semanticModel, syntax, type, constantValue, isImplicit)
+        public BaseForToLoopStatement(ILocalSymbol iterationVariable, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(LoopKind.ForTo, OperationKind.LoopStatement, semanticModel, syntax, type, constantValue, isImplicit)
         {
+            IterationVariable = iterationVariable;
         }
-        protected abstract IOperation ConditionImpl { get; }
+
         /// <summary>
-        /// Condition of the loop.
+        /// Optional local variable symbol declared or inferred from <see cref="LoopControlVariable"/> which acts as the loop iteration variable.
         /// </summary>
-        public IOperation Condition => Operation.SetParentOperation(ConditionImpl, this);
+        public ILocalSymbol IterationVariable { get; }
+
+        protected abstract IOperation LoopControlVariableImpl { get; }
+        protected abstract IOperation InitialValueImpl { get; }
+        protected abstract IOperation LimitValueImpl { get; }
+        protected abstract IOperation StepValueImpl { get; }
+        protected abstract ImmutableArray<IOperation> AtLoopBottomExpressionListImpl { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return LoopControlVariable;
+                yield return InitialValue;
+                yield return LimitValue;
+                yield return StepValue;
+                yield return Body;
+                foreach (var expression in AtLoopBottomExpressionList)
+                {
+                    yield return expression;
+                }
+            }
+        }
+        /// <summary>
+        /// Loop control variable refers to the operation for declaring a new local variable or reference an existing variable or an expression.
+        /// </summary>
+        public IOperation LoopControlVariable => Operation.SetParentOperation(LoopControlVariableImpl, this);
+
+        /// <summary>
+        /// Operation for setting the initial value of the loop control variable. This comes from the expression between the 'For' and 'To' keywords.
+        /// </summary>
+        public IOperation InitialValue => Operation.SetParentOperation(InitialValueImpl, this);
+
+        /// <summary>
+        /// Operation for the limit value of the loop control variable. This comes from the expression after the 'To' keyword.
+        /// </summary>
+        public IOperation LimitValue => Operation.SetParentOperation(LimitValueImpl, this);
+
+        /// <summary>
+        /// Optional operation for the step value of the loop control variable. This comes from the expression after the 'Step' keyword.
+        /// </summary>
+        public IOperation StepValue => Operation.SetParentOperation(StepValueImpl, this);
+
+        /// <summary>
+        /// Optional list of comma separate operations to execute at loop bottom.
+        /// </summary>
+        public ImmutableArray<IOperation> AtLoopBottomExpressionList => Operation.SetParentOperation(AtLoopBottomExpressionListImpl, this);
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitForToLoopStatement(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitForToLoopStatement(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a VB 'For To' loop statement.
+    /// </summary>
+    internal sealed partial class ForToLoopStatement : BaseForToLoopStatement, IForToLoopStatement
+    {
+        public ForToLoopStatement(ILocalSymbol iterationVariable, IOperation loopControlVariable, IOperation initialValue, IOperation limitValue, IOperation stepValue, IOperation body, ImmutableArray<IOperation> atLoopBottomExpressionList, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(iterationVariable, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            LoopControlVariableImpl = loopControlVariable;
+            InitialValueImpl = initialValue;
+            LimitValueImpl = limitValue;
+            StepValueImpl = stepValue;
+            BodyImpl = body;
+            AtLoopBottomExpressionListImpl = atLoopBottomExpressionList;
+        }
+
+        protected override IOperation LoopControlVariableImpl { get; }
+        protected override IOperation InitialValueImpl { get; }
+        protected override IOperation LimitValueImpl { get; }
+        protected override IOperation StepValueImpl { get; }
+        protected override IOperation BodyImpl { get; }
+        protected override ImmutableArray<IOperation> AtLoopBottomExpressionListImpl { get; }
+    }
+
+    /// <summary>
+    /// Represents a VB 'For To' loop statement.
+    /// </summary>
+    internal sealed partial class LazyForToLoopStatement : BaseForToLoopStatement, IForToLoopStatement
+    {
+        private readonly Lazy<IOperation> _lazyLoopControlVariable;
+        private readonly Lazy<IOperation> _lazyInitialValue;
+        private readonly Lazy<IOperation> _lazyLimitValue;
+        private readonly Lazy<IOperation> _lazyStepValue;
+        private readonly Lazy<IOperation> _lazyBody;
+        private readonly Lazy<ImmutableArray<IOperation>> _lazyAtLoopBottomExpressionList;
+
+        public LazyForToLoopStatement(ILocalSymbol iterationVariable, Lazy<IOperation> loopControlVariable, Lazy<IOperation> initialValue, Lazy<IOperation> limitValue, Lazy<IOperation> stepValue, Lazy<IOperation> body, Lazy<ImmutableArray<IOperation>> atLoopBottomExpressionList, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(iterationVariable, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            _lazyLoopControlVariable = loopControlVariable ?? throw new System.ArgumentNullException(nameof(loopControlVariable));
+            _lazyInitialValue = initialValue ?? throw new System.ArgumentNullException(nameof(initialValue));
+            _lazyLimitValue = limitValue ?? throw new System.ArgumentNullException(nameof(limitValue));
+            _lazyStepValue = stepValue ?? throw new System.ArgumentNullException(nameof(stepValue));
+            _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
+            _lazyAtLoopBottomExpressionList = atLoopBottomExpressionList ?? throw new System.ArgumentNullException(nameof(atLoopBottomExpressionList));
+        }
+
+        protected override IOperation LoopControlVariableImpl => _lazyLoopControlVariable.Value;
+        protected override IOperation InitialValueImpl => _lazyInitialValue.Value;
+        protected override IOperation LimitValueImpl => _lazyLimitValue.Value;
+        protected override IOperation StepValueImpl => _lazyStepValue.Value;
+        protected override IOperation BodyImpl => _lazyBody.Value;
+        protected override ImmutableArray<IOperation> AtLoopBottomExpressionListImpl => _lazyAtLoopBottomExpressionList.Value;
     }
 
     /// <summary>
@@ -4896,24 +5046,20 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a C# while or do statement, or a VB While or Do statement.
+    /// Represents a C# 'do while' or VB 'Do While' or 'Do Until' loop statement.
     /// </summary>
-    internal abstract partial class BaseWhileUntilLoopStatement : ForWhileUntilLoopStatement, IWhileUntilLoopStatement
+    internal abstract partial class BaseDoLoopStatement : LoopStatement, IDoLoopStatement
     {
-        public BaseWhileUntilLoopStatement(bool isTopTest, bool isWhile, LoopKind loopKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(loopKind, OperationKind.LoopStatement, semanticModel, syntax, type, constantValue, isImplicit)
+        public BaseDoLoopStatement(DoLoopKind doLoopKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(LoopKind.Do, OperationKind.LoopStatement, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            IsTopTest = isTopTest;
-            IsWhile = isWhile;
+            DoLoopKind = doLoopKind;
         }
         /// <summary>
-        /// True if the loop test executes at the top of the loop; false if the loop test executes at the bottom of the loop.
+        /// Represents kind of do loop statement.
         /// </summary>
-        public bool IsTopTest { get; }
-        /// <summary>
-        /// True if the loop is a while loop; false if the loop is an until loop.
-        /// </summary>
-        public bool IsWhile { get; }
+        public DoLoopKind DoLoopKind { get; }
+        protected abstract IOperation ConditionImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
@@ -4922,24 +5068,27 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Body;
             }
         }
-
+        /// <summary>
+        /// Condition of the loop.
+        /// </summary>
+        public IOperation Condition => Operation.SetParentOperation(ConditionImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitWhileUntilLoopStatement(this);
+            visitor.VisitDoLoopStatement(this);
         }
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitWhileUntilLoopStatement(this, argument);
+            return visitor.VisitDoLoopStatement(this, argument);
         }
     }
 
     /// <summary>
-    /// Represents a C# while or do statement, or a VB While or Do statement.
+    /// Represents a C# 'do while' or VB 'Do While' or 'Do Until' loop statement.
     /// </summary>
-    internal sealed partial class WhileUntilLoopStatement : BaseWhileUntilLoopStatement, IWhileUntilLoopStatement
+    internal sealed partial class DoLoopStatement : BaseDoLoopStatement, IDoLoopStatement
     {
-        public WhileUntilLoopStatement(bool isTopTest, bool isWhile, IOperation condition, LoopKind loopKind, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(isTopTest, isWhile, loopKind, semanticModel, syntax, type, constantValue, isImplicit)
+        public DoLoopStatement(DoLoopKind doLoopKind, IOperation condition, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(doLoopKind, semanticModel, syntax, type, constantValue, isImplicit)
         {
             ConditionImpl = condition;
             BodyImpl = body;
@@ -4949,15 +5098,80 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a C# while or do statement, or a VB While or Do statement.
+    /// Represents a C# 'do while' or VB 'Do While' or 'Do Until' loop statement.
     /// </summary>
-    internal sealed partial class LazyWhileUntilLoopStatement : BaseWhileUntilLoopStatement, IWhileUntilLoopStatement
+    internal sealed partial class LazyDoLoopStatement : BaseDoLoopStatement, IDoLoopStatement
     {
         private readonly Lazy<IOperation> _lazyCondition;
         private readonly Lazy<IOperation> _lazyBody;
 
-        public LazyWhileUntilLoopStatement(bool isTopTest, bool isWhile, Lazy<IOperation> condition, LoopKind loopKind, Lazy<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(isTopTest, isWhile, loopKind, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyDoLoopStatement(DoLoopKind doLoopKind, Lazy<IOperation> condition, Lazy<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(doLoopKind, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            _lazyCondition = condition ?? throw new System.ArgumentNullException(nameof(condition));
+            _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
+        }
+        protected override IOperation ConditionImpl => _lazyCondition.Value;
+        protected override IOperation BodyImpl => _lazyBody.Value;
+    }
+
+    /// <summary>
+    /// Represents a C# 'while' or a VB 'While' loop statement.
+    /// </summary>
+    internal abstract partial class BaseWhileLoopStatement : LoopStatement, IWhileLoopStatement
+    {
+        public BaseWhileLoopStatement(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(LoopKind.While, OperationKind.LoopStatement, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+        }
+        protected abstract IOperation ConditionImpl { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Condition;
+                yield return Body;
+            }
+        }
+        /// <summary>
+        /// Condition of the loop.
+        /// </summary>
+        public IOperation Condition => Operation.SetParentOperation(ConditionImpl, this);
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitWhileLoopStatement(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitWhileLoopStatement(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a C# 'while' or a VB 'While' loop statement.
+    /// </summary>
+    internal sealed partial class WhileLoopStatement : BaseWhileLoopStatement, IWhileLoopStatement
+    {
+        public WhileLoopStatement(IOperation condition, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            ConditionImpl = condition;
+            BodyImpl = body;
+        }
+        protected override IOperation ConditionImpl { get; }
+        protected override IOperation BodyImpl { get; }
+    }
+
+    /// <summary>
+    /// Represents a C# 'while' or a VB 'While' loop statement.
+    /// </summary>
+    internal sealed partial class LazyWhileLoopStatement : BaseWhileLoopStatement, IWhileLoopStatement
+    {
+        private readonly Lazy<IOperation> _lazyCondition;
+        private readonly Lazy<IOperation> _lazyBody;
+
+        public LazyWhileLoopStatement(Lazy<IOperation> condition, Lazy<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyCondition = condition ?? throw new System.ArgumentNullException(nameof(condition));
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
