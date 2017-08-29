@@ -27,12 +27,14 @@ namespace Roslyn.Test.Utilities
 
         private static IRuntimeEnvironmentFactory GetFactoryImplementation()
         {
-#if NET461
+#if NET461 || NET46
             return new Roslyn.Test.Utilities.Desktop.DesktopRuntimeEnvironmentFactory();
 #elif NETCOREAPP2_0
             return new Roslyn.Test.Utilities.CoreClr.CoreCLRRuntimeEnvironmentFactory();
-#else
+#elif NETSTANDARD1_3
             throw new NotSupportedException();
+#else
+#error Unsupported configuration
 #endif
         }
 

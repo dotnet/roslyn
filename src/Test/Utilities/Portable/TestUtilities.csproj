@@ -9,7 +9,7 @@
     <AssemblyName>Roslyn.Test.Utilities</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nonshipping>true</Nonshipping>
-    <TargetFrameworks>netstandard1.3;$(RoslynPortableTargetFrameworks)</TargetFrameworks>
+    <TargetFrameworks>netstandard1.3;$(RoslynPortableTargetFrameworks);net46</TargetFrameworks>
     <DefineConstants>$(DefineConstants);DNX</DefineConstants>
     <NoStdLib>true</NoStdLib>
     <RootNamespace></RootNamespace>
