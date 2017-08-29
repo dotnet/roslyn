@@ -921,6 +921,7 @@ class C
         var q = default && 1;
         var r = default || 1;
         var s = default ?? 1;
+        var t = default ?? default(int?);
     }
 }
 ";
@@ -977,6 +978,9 @@ class C
                 // (24,17): error CS8310: Operator '??' cannot be applied to operand 'default'
                 //         var s = default ?? 1;
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default ?? 1").WithArguments("??", "default").WithLocation(24, 17),
+                // (25,17): error CS8310: Operator '??' cannot be applied to operand 'default'
+                //         var t = default ?? default(int?);
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default ?? default(int?)").WithArguments("??", "default").WithLocation(25, 17),
                 // (20,13): warning CS0219: The variable 'o' is assigned but its value is never used
                 //         var o = default == 1; // ok
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(20, 13),
@@ -1077,6 +1081,26 @@ class C
                 //         var p = 1 != default; // ok
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "p").WithArguments("p").WithLocation(21, 13)
                 );
+        }
+
+        [Fact]
+        public void TestBinaryOperators4()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        var a = default(string) ?? """";
+        var b = default(int?) ?? default;
+        var c = null ?? default(int?);
+        System.Console.Write($""{a == """"} {b == 0} {c == null}"");
+    }
+}
+";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "True True True");
         }
 
         [Fact]

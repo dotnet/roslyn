@@ -26,5 +26,5 @@ Consider the case where the type of `a` is `System.Func<bool>` and you write `va
 
 - https://github.com/dotnet/roslyn/issues/20873 In Roslyn 2.3, the `includePrivateMembers` parameter of the `EmitOptions` constructor was changed to use `true` as its default value. This is a binary compatibility break. So clients using this API may have to re-compile, to pick up the new default value. An update will include a mitigation (ignoring the old default value when trying to emit a full assembly).
 
-- https://github.com/dotnet/roslyn/issues/21582 In C# 7.1, when the default literal was introduced, it was accepted on the left-hand-side of a null-coalescing operator. For instance, in `default ?? 1`. In C# 7.2, this compiler bug was fixed to match the specification.
+- https://github.com/dotnet/roslyn/issues/21582 In C# 7.1, when the default literal was introduced, it was accepted on the left-hand-side of a null-coalescing operator. For instance, in `default ?? 1`. In C# 7.2, this compiler bug was fixed to match the specification, and an error is produced instead ("Operator '??' cannot be applied to operand 'default'").
 
