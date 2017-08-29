@@ -8596,6 +8596,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot return &apos;this&apos; by reference..
+        /// </summary>
+        internal static string ERR_RefReturnThis {
+            get {
+                return ResourceManager.GetString("ERR_RefReturnThis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: ref structs cannot implement interfaces.
         /// </summary>
         internal static string ERR_RefStructInterfaceImpl {

@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // create this eagerly as it will always be needed for the EnsureSingleDefinition
             _locations = ImmutableArray.Create<Location>(identifierToken.GetLocation());
 
-            _refEscapeScope = this._refKind == RefKind.None?
-                                        scopeBinder.LocalScopeDepth :  
+            _refEscapeScope = this._refKind == RefKind.None ?
+                                        scopeBinder.LocalScopeDepth :
                                         Binder.ExternalScope; // default to returnable, unless there is initializer
 
             // we do not know the type yet. 

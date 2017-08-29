@@ -1534,5 +1534,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MismatchedRefEscapeInTernary = 8525,
         ERR_EscapeLocal = 8526,
         ERR_EscapeStackAlloc = 8527,
+        ERR_RefReturnThis = 8528,
     }
 }

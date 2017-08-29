@@ -1356,6 +1356,9 @@
   <data name="ERR_AddrOnReadOnlyLocal" xml:space="preserve">
     <value>Cannot take the address of a read-only local variable</value>
   </data>
+  <data name="ERR_RefReturnThis" xml:space="preserve">
+    <value>Cannot return 'this' by reference.</value>
+  </data>
   <data name="ERR_OverrideWithConstraints" xml:space="preserve">
     <value>Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly</value>
   </data>

@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return true;
                     }
 
-                    // reprot standard lvalue error
+                    // report standard lvalue error
                     break;
 
                 case BoundKind.FieldAccess:
@@ -981,7 +981,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // if ref is passed and it is not a ref-like, check ref escape, 
                     // since it is the same or narrower than val escape and callee may wrap the ref into a val
                     var argument = args[argIndex];
-                    var argEscape = effectiveRefKind != RefKind.None && argument.Type.IsByRefLikeType == false ?
+                    var argEscape = effectiveRefKind != RefKind.None && argument.Type?.IsByRefLikeType == false ?
                                         GetRefEscape(argument, scopeOfTheContainingExpression) :
                                         GetValEscape(argument, scopeOfTheContainingExpression);
 
@@ -1152,7 +1152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // if ref is passed and it is not a ref-like, check ref escape, 
                     // since it is the same or narrower than val escape and callee may wrap the ref into a val
                     var argument = args[argIndex];
-                    var valid = effectiveRefKind != RefKind.None && argument.Type.IsByRefLikeType == false ?
+                    var valid = effectiveRefKind != RefKind.None && argument.Type?.IsByRefLikeType == false ?
                                         CheckRefEscape(argument.Syntax, argument, scopeOfTheContainingExpression, escapeTo, false, diagnostics) :
                                         CheckValEscape(argument.Syntax, argument, scopeOfTheContainingExpression, escapeTo, false, diagnostics);
 
@@ -1319,7 +1319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BindValueKind.RefReturn:
                 case BindValueKind.ReadonlyRef:
-                    return ErrorCode.ERR_RefReturnStructThis;
+                    return ErrorCode.ERR_RefReturnThis;
             }
 
             throw ExceptionUtilities.UnexpectedValue(kind);
@@ -1661,6 +1661,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         scopeOfTheContainingExpression);
             }
 
+            //PROTOTYPE(span): when all relevant cases are handles, consider making the switch above comprehensive and Assert or throw Unreachable on unhandled node kinds.
+
             // At this point we should have covered all the possible cases for anything that is not a strict RValue.
             return scopeOfTheContainingExpression;
         }
@@ -1841,6 +1843,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics);
             }
 
+            //PROTOTYPE(span): when all relevant cases are handles, consider making the switch above comprehensive and Assert or throw Unreachable on unhandled node kinds.
+
             // At this point we should have covered all the possible cases for anything that is not a strict RValue.
             Error(diagnostics, GetStandardRValueRefEscapeError(escapeTo), node);
             return false;
@@ -1992,6 +1996,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //PROTOTYPE: __refvalue. It is not possible to __makeref(span), but it is allowed to do __refvalue(tr, Span), perhaps it should not be allowed, looks like a bug.
                     //           otherwise we need to decide how to treat that. Most likely as scopeOfTheContainingExpression
             }
+
+            //PROTOTYPE(span): when all relevant cases are handles, consider making the switch above comprehensive and Assert or throw Unreachable on unhandled node kinds.
 
             // At this point we should have covered all the possible cases for anything that may return its operands or manufacture local references.
             return Binder.ExternalScope;
@@ -2189,6 +2195,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //PROTOTYPE: __refvalue. It is not possible to __makeref(span), but it is allowed to do __refvalue(tr, Span), perhaps it should not be allowed, looks like a bug.
                     //           otherwise we need to decide how to treat that. Most likely as scopeOfTheContainingExpression
             }
+
+            //PROTOTYPE(span): when all relevant cases are handles, consider making the switch above comprehensive and Assert or throw Unreachable on unhandled node kinds.
 
             // At this point we should have covered all the possible cases for anything that may return its operands or manufacture local references.
             return true;

@@ -5,9 +5,11 @@ using Xunit;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System.Linq;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
+    [CompilerTrait(CompilerFeature.RefLocalsReturns)]
     public class RefLocalsAndReturnsTests : CompilingTestBase
     {
         private static CSharpCompilation CreateCompilationRef(
@@ -629,12 +631,12 @@ public class Test
                 // (46,32): error CS8168: Cannot return local 'M2' by reference because it is not a ref local
                 //             return ref Goo(ref M2).x;
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "M2").WithArguments("M2").WithLocation(46, 32),
-                // (46,24): error CS8165: Cannot return by reference a member of result of 'Test.Goo<Test.S1>(ref Test.S1)' because the argument passed to parameter 'arg' cannot be returned by reference
-                //             return ref Goo(ref M2).x;
-                Diagnostic(ErrorCode.ERR_RefReturnCall2, "Goo(ref M2)").WithArguments("Test.Goo<Test.S1>(ref Test.S1)", "arg").WithLocation(46, 24),
-                // (58,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                // (46,24): error CS8522: Cannot use a member of result of 'Test.Foo<Test.S1>(ref Test.S1)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
+                //             return ref Foo(ref M2).x;
+                Diagnostic(ErrorCode.ERR_EscapeCall2, "Foo(ref M2)").WithArguments("Test.Foo<Test.S1>(ref Test.S1)", "arg").WithLocation(46, 24),
+                // (58,24): error CS8528: Cannot return 'this' by reference.
                 //             return ref this;
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithArguments("this").WithLocation(58, 24)
+                Diagnostic(ErrorCode.ERR_RefReturnThis, "this").WithArguments("this").WithLocation(58, 24)
                 );
         }
 

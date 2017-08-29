@@ -4455,15 +4455,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
                 var argToParams = memberResolutionResult.Result.ArgsToParamsOpt;
                 hasError |= !CheckInvocationArgMixing(
-                            node,
-                            method,
-                            null,
-                            method.Parameters,
-                            arguments,
-                            refKinds,
-                            argToParams,
-                            this.LocalScopeDepth,
-                            diagnostics);
+                    node,
+                    method,
+                    null,
+                    method.Parameters,
+                    arguments,
+                    refKinds,
+                    argToParams,
+                    this.LocalScopeDepth,
+                    diagnostics);
 
                 result = new BoundObjectCreationExpression(
                     node,
