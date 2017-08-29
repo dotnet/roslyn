@@ -1242,6 +1242,32 @@ class C
             Await TestAsync(input, expected)
         End Function
 
+        <WorkItem(12600, "https://github.com/dotnet/roslyn/issues/12600")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharp_RemoveParensInLambdaExpression() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    Func&lt;object&gt; Value => () => {|Simplify:(new object())|};
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+class C
+{
+    Func&lt;object&gt; Value => () => new object();
+}
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
 #End Region
 
 #Region "C# Binary Expressions"
