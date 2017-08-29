@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal readonly Binder NamespaceBinder; // Internal for test purposes.
 
         private readonly MethodSymbol _currentFrame;
-        private readonly MethodSymbol _currentSourceMethod;
         private readonly ImmutableArray<LocalSymbol> _locals;
         private readonly ImmutableDictionary<string, DisplayClassVariable> _displayClassVariables;
         private readonly ImmutableArray<string> _sourceMethodParametersInOrder;
@@ -54,7 +53,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             MethodDebugInfo<TypeSymbol, LocalSymbol> methodDebugInfo)
         {
             _currentFrame = currentFrame;
-            _currentSourceMethod = currentSourceMethod;
             _methodNotType = !locals.IsDefault;
 
             // NOTE: Since this is done within CompilationContext, it will not be cached.
@@ -363,7 +361,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         }
                     }
 
-                    var itemsAdded = new HashSet<string>();
+                    var itemsAdded = PooledHashSet<string>.GetInstance();
+
+                    // Method parameters
                     int parameterIndex = m.IsStatic ? 0 : 1;
                     foreach (var parameter in m.Parameters)
                     {
@@ -378,10 +378,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         parameterIndex++;
                     }
 
-                    // iterator or async state machine
-                    if (!itemsAdded.Any())
+                    // In case of iterator or async state machine, the 'm' method has no parameters
+                    // but the source method can have parameters to iterate over.
+                    if (itemsAdded.Count == 0 && _sourceMethodParametersInOrder.Length != 0)
                     {
-                        var localsDictionary = new Dictionary<string, (LocalSymbol, int)>();
+                        var localsDictionary = PooledDictionary<string, (LocalSymbol, int)>.GetInstance();
                         int localIndex = 0;
                         foreach (var local in _localsForBinding)
                         {
@@ -399,6 +400,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                                 AppendLocalAndMethod(localBuilder, methodBuilder, local, container, localSymbolAndIndex.localIndex, GetLocalResultFlags(local));
                             }
                         }
+
+                        localsDictionary.Free();
                     }
 
                     if (!argumentsOnly)
@@ -429,7 +432,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             methodBuilder.Add(method);
                         }
                     }
-   
+
+                    itemsAdded.Free();
                     return methodBuilder.ToImmutableAndFree();
                 });
 
@@ -1261,39 +1265,48 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
                 isIteratorOrAsyncMethod = GeneratedNames.GetKind(containingType.Name) == GeneratedNameKind.StateMachineType;
             }
-
-            var parameterNames = PooledHashSet<string>.GetInstance();
+            
             var parameterNamesInOrder = ArrayBuilder<string>.GetInstance();
             // For version before .NET 4.5, we cannot find the sourceMethod properly:
             // The source method coincides with the original method in the case.
-            // Here, we have to get parameters from the containingType.
+            // Therefore, for iterators and async state machines, we have to get parameters from the containingType.
             // This does not guarantees the proper order of parameters.
             if (isIteratorOrAsyncMethod && method == sourceMethod)
             {
                 Debug.Assert(IsDisplayClassType(containingType));
-                foreach (var field in containingType.GetMembers().OfType<FieldSymbol>())
+                foreach (var member in containingType.GetMembers())
                 {
-                    // All iterator and async state machine fields (including hoisted locals) have mangled names, except
-                    // for hoisted parameters (whose field names are always the same as the original source parameters).
+                    if (member.Kind != SymbolKind.Field)
+                    {
+                        continue;
+                    }
+
+                    var field = (FieldSymbol)member;
                     var fieldName = field.Name;
                     if (GeneratedNames.GetKind(fieldName) == GeneratedNameKind.None)
                     {
                         parameterNamesInOrder.Add(fieldName);
-                        parameterNames.Add(fieldName);
                     }
                 }
             }
             else
             {
-                foreach (var p in sourceMethod.Parameters)
+                if (sourceMethod != null)
                 {
-                    parameterNamesInOrder.Add(p.Name);
-                    parameterNames.Add(p.Name);
+                    foreach (var p in sourceMethod.Parameters)
+                    {
+                        parameterNamesInOrder.Add(p.Name);
+                    }
                 }
             }
 
-            sourceMethodParametersInOrder = parameterNamesInOrder.ToImmutableArray();
-            parameterNamesInOrder.Free();
+            var parameterNames = PooledHashSet<string>.GetInstance();
+            foreach (var name in parameterNamesInOrder)
+            {
+                parameterNames.Add(name);
+            }
+
+            sourceMethodParametersInOrder = parameterNamesInOrder.ToImmutableAndFree();
 
             if (displayClassInstances.Any())
             {

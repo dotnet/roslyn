@@ -3838,6 +3838,7 @@ class C
                 var names = locals.Select(l => l.LocalName).ToArray();
                 // The order must confirm the order of the arguments in the method signature.
                 Assert.Equal(names, new[] { "y", "x" });
+                locals.Free();
             });
 
             comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
@@ -3851,6 +3852,7 @@ class C
                 var names = locals.Select(l => l.LocalName).ToArray();
                 // The problem is not fixed in versions before 4.5: the order of arguments can be wrong.
                 Assert.Equal(names, new[] { "x", "y" });
+                locals.Free();
             });
         }
 
