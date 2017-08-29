@@ -273,7 +273,9 @@ namespace N1
                         var added = declaredSymbolNames.Add(symbol.Name);
                         if (!added)
                         {
-                            var method = (Symbols.MethodSymbol)symbol;
+                            var method = symbol as Symbols.MethodSymbol;
+                            Assert.NotNull(method);
+
                             var isPartialMethod = method.PartialDefinitionPart != null ||
                                                   method.PartialImplementationPart != null;
                             Assert.True(isPartialMethod, "Unexpected multiple symbol declared events for symbol " + symbol);
