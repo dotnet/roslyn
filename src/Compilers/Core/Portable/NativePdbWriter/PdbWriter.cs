@@ -789,9 +789,13 @@ namespace Microsoft.Cci
                             CreateSymWriter64(ref guid, out symWriter);
                         }
                     }
-                    catch (DllNotFoundException)
+                    catch (DllNotFoundException e)
                     {
                         symWriter = TryLoadFromAlternativePath();
+                        if (symWriter == null)
+                        {
+                            s_MicrosoftDiaSymReaderNativeLoadFailure = e.Message;
+                        }
                     }
                 }
                 catch (Exception e)
