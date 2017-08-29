@@ -23,7 +23,7 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Sub Method( ... End Sub')
   IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'If p < 0 Th ... End If')
-    IConditionalGotoStatement (Target Symbol: afterif, JumpIfTrue: False) (OperationKind.ConditionalGotoStatement) (Syntax: 'If p < 0 Th ... End If')
+    IConditionalGotoStatement (JumpIfTrue: False, Target: afterif) (OperationKind.ConditionalGotoStatement) (Syntax: 'If p < 0 Th ... End If')
       Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'p < 0')
           Left: IParameterReferenceExpression: p (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'p')
           Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -32,6 +32,54 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Sub Meth
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'p = 0')
             Left: IParameterReferenceExpression: p (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'p')
             Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+    ILabelStatement (Label: afterif) (OperationKind.LabelStatement) (Syntax: 'If p < 0 Th ... End If')
+      LabeledStatement: null
+  ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Sub')
+    LabeledStatement: null
+  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
+    ReturnedValue: null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of MethodStatementSyntax)(source, expectedOperationTree, expectedDiagnostics, highLevelOperation:=False)
+        End Sub
+
+        <Fact>
+        Public Sub IConditionalGotoStatement_FromIfElse()
+            Dim source = <![CDATA[
+Class C
+    Sub Method(p As Integer)'BIND:"Sub Method(p As Integer)"
+        If p < 0 Then
+            p = 0
+        Else
+            p = 1
+        End If
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Sub Method( ... End Sub')
+  IBlockStatement (6 statements) (OperationKind.BlockStatement) (Syntax: 'If p < 0 Th ... End If')
+    IConditionalGotoStatement (JumpIfTrue: False, Target: alternative) (OperationKind.ConditionalGotoStatement) (Syntax: 'If p < 0 Th ... End If')
+      Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'p < 0')
+          Left: IParameterReferenceExpression: p (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'p')
+          Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If p < 0 Th ... End If')
+      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'p = 0')
+        Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'p = 0')
+            Left: IParameterReferenceExpression: p (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'p')
+            Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+    IBranchStatement (BranchKind.GoTo, Label: afterif) (OperationKind.BranchStatement) (Syntax: 'If p < 0 Th ... End If')
+    ILabelStatement (Label: alternative) (OperationKind.LabelStatement) (Syntax: 'If p < 0 Th ... End If')
+      LabeledStatement: null
+    IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Else ... p = 1')
+      IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Else ... p = 1')
+        IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'p = 1')
+          Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'p = 1')
+              Left: IParameterReferenceExpression: p (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'p')
+              Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
     ILabelStatement (Label: afterif) (OperationKind.LabelStatement) (Syntax: 'If p < 0 Th ... End If')
       LabeledStatement: null
   ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Sub')

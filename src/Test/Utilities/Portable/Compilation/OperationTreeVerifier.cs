@@ -1267,8 +1267,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitConditionalGotoStatement(IConditionalGotoStatement operation)
         {
             LogString(nameof(IConditionalGotoStatement));
-            LogSymbol(operation.Target, " (Target Symbol");
-            LogString($", JumpIfTrue: {operation.JumpIfTrue})");
+            LogString($" (JumpIfTrue: {operation.JumpIfTrue}");
+
+            // TODO: Put a better workaround to skip compiler generated labels.
+            if (!operation.Target.IsImplicitlyDeclared)
+            {
+                LogString($", Target: {operation.Target.Name}");
+            }
+
+            LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Condition, "Condition");
