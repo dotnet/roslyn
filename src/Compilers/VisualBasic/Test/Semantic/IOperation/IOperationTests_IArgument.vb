@@ -901,6 +901,46 @@ IInvocationExpression ( Sub Program.M2(ByRef a As System.Int32)) (OperationKind.
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
+        Public Sub InOutConversionUserDefinedWithIntermediateConversion()
+            Dim source = <![CDATA[
+Class C
+    Public Shared Widening Operator CType(ByVal c As C) As Integer
+        Return 0
+    End Operator
+
+
+    Public Shared Narrowing Operator CType(ByVal i As Integer) As C
+        Return New C()
+    End Operator
+End Class
+
+Class Program
+    Sub M1()
+        Dim x = 2.0
+        M2(x)'BIND:"M2(x)"
+    End Sub
+
+    Sub M2(ByRef c As C)
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IInvocationExpression ( Sub Program.M2(ByRef c As C)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(x)')
+  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M2')
+  Arguments(1):
+      IArgument (ArgumentKind.Explicit, Matching Parameter: c) (OperationKind.Argument) (Syntax: 'x')
+        ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Double) (Syntax: 'x')
+        InConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function C.op_Explicit(i As System.Int32) As C)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function C.op_Implicit(c As C) As System.Int32)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
         Public Sub InOutConversionUserDefinedMissingOperator()
             Dim source = <![CDATA[
 Class C
