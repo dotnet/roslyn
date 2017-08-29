@@ -4992,5 +4992,28 @@ class Program
 }",
                 MainDescription($"({FeaturesResources.local_variable}) ref int i"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(410932, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=410932")]
+        public async Task TestGenericMethodInDocComment()
+        {
+            await TestAsync(
+@"
+class Test
+{
+    T F<T>()
+    {
+        F<T>();
+    }
+
+    /// <summary>
+    /// <see cref=""F$${T}()""/>
+    /// </summary>
+    void S()
+    { }
+}
+",
+            MainDescription("T Test.F<T>()"));
+        }
     }
 }

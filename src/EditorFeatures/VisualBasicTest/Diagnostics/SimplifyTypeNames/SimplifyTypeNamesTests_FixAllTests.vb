@@ -98,7 +98,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, ignoreTrivia:=False, fixAllActionEquivalenceKey:=fixAllActionId, options:=PreferIntrinsicPredefinedTypeEverywhere())
+            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=fixAllActionId, options:=PreferIntrinsicPredefinedTypeEverywhere())
         End Function
 
         <Fact>
@@ -189,7 +189,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, ignoreTrivia:=False, fixAllActionEquivalenceKey:=fixAllActionId, options:=PreferIntrinsicPredefinedTypeEverywhere())
+            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=fixAllActionId, options:=PreferIntrinsicPredefinedTypeEverywhere())
         End Function
 
         <Fact>
@@ -280,7 +280,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, ignoreTrivia:=False, fixAllActionEquivalenceKey:=fixAllActionId, options:=PreferIntrinsicPredefinedTypeEverywhere())
+            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=fixAllActionId, options:=PreferIntrinsicPredefinedTypeEverywhere())
         End Function
 
         <Fact>
@@ -487,7 +487,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, ignoreTrivia:=False, fixAllActionEquivalenceKey:=fixAllActionId)
+            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=fixAllActionId)
         End Function
 
         <Fact>
@@ -718,7 +718,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, ignoreTrivia:=False, fixAllActionEquivalenceKey:=fixAllActionId)
+            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=fixAllActionId)
         End Function
 
         <Fact>
@@ -796,7 +796,6 @@ End Class]]>
                 initialMarkup:=input,
                 expectedMarkup:=expected,
                 options:=options,
-                ignoreTrivia:=False,
                 fixAllActionEquivalenceKey:=VBFeaturesResources.Remove_Me_qualification)
         End Function
 

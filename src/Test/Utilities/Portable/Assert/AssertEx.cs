@@ -69,20 +69,17 @@ namespace Roslyn.Test.Utilities
                     return false;
                 }
 
-                var equatable = x as IEquatable<T>;
-                if (equatable != null)
+                if (x is IEquatable<T> equatable)
                 {
                     return equatable.Equals(y);
                 }
 
-                var comparableT = x as IComparable<T>;
-                if (comparableT != null)
+                if (x is IComparable<T> comparableT)
                 {
                     return comparableT.CompareTo(y) == 0;
                 }
 
-                var comparable = x as IComparable;
-                if (comparable != null)
+                if (x is IComparable comparable)
                 {
                     return comparable.CompareTo(y) == 0;
                 }
@@ -488,8 +485,7 @@ namespace Roslyn.Test.Utilities
             message.AppendLine("Differences:");
             message.AppendLine(DiffUtil.DiffReport(expected, actual, comparer, itemInspector, itemSeparator));
 
-            string link;
-            if (TryGenerateExpectedSourceFileAndGetDiffLink(actualString, expected.Count(), expectedValueSourcePath, expectedValueSourceLine, out link))
+            if (TryGenerateExpectedSourceFileAndGetDiffLink(actualString, expected.Count(), expectedValueSourcePath, expectedValueSourceLine, out var link))
             {
                 message.AppendLine(link);
             }

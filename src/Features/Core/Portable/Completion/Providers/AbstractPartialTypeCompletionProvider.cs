@@ -33,9 +33,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var semanticModel = await document.GetSemanticModelForNodeAsync(node, cancellationToken).ConfigureAwait(false);
                 var syntaxContext = await CreateSyntaxContextAsync(document, semanticModel, position, cancellationToken).ConfigureAwait(false);
 
-                var declaredSymbol = semanticModel.GetDeclaredSymbol(node, cancellationToken) as INamedTypeSymbol;
 
-                if (declaredSymbol != null)
+                if (semanticModel.GetDeclaredSymbol(node, cancellationToken) is INamedTypeSymbol declaredSymbol)
                 {
                     var symbols = LookupCandidateSymbols(syntaxContext, declaredSymbol, cancellationToken);
                     var items = symbols?.Select(s => CreateCompletionItem(s, syntaxContext));
@@ -54,8 +53,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var displayAndInsertionText = GetDisplayAndInsertionText(symbol, context);
 
             return SymbolCompletionItem.CreateWithSymbolId(
-                displayText: displayAndInsertionText.Item1,
-                insertionText: displayAndInsertionText.Item2,
+                displayText: displayAndInsertionText.displayText,
+                insertionText: displayAndInsertionText.insertionText,
                 symbols: ImmutableArray.Create(symbol),
                 contextPosition: context.Position,
                 properties: GetProperties(symbol, context),

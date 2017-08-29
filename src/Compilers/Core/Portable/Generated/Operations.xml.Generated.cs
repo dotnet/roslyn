@@ -647,18 +647,20 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseBinaryOperatorExpression : Operation, IHasOperatorMethodExpression, IBinaryOperatorExpression
     {
-        protected BaseBinaryOperatorExpression(BinaryOperationKind binaryOperationKind, bool isLifted, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseBinaryOperatorExpression(BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, bool isCompareText, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
                     base(OperationKind.BinaryOperatorExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            BinaryOperationKind = binaryOperationKind;
+            OperatorKind = operatorKind;
+            IsLifted = isLifted;
+            IsChecked = isChecked;
+            IsCompareText = isCompareText;
             UsesOperatorMethod = usesOperatorMethod;
             OperatorMethod = operatorMethod;
-            IsLifted = isLifted;
         }
         /// <summary>
         /// Kind of binary operation.
         /// </summary>
-        public BinaryOperationKind BinaryOperationKind { get; }
+        public BinaryOperatorKind OperatorKind { get; }
         protected abstract IOperation LeftOperandImpl { get; }
         protected abstract IOperation RightOperandImpl { get; }
         /// <summary>
@@ -669,9 +671,21 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Operation method used by the operation, null if the operation does not use an operator method.
         /// </summary>
         public IMethodSymbol OperatorMethod { get; }
-
+        /// <summary>
+        /// <code>true</code> if this is a 'lifted' binary operator.  When there is an 
+        /// operator that is defined to work on a value type, 'lifted' operators are 
+        /// created to work on the <see cref="System.Nullable{T}"/> versions of those
+        /// value types.
+        /// </summary>
         public bool IsLifted { get; }
-
+        /// <summary>
+        /// <code>true</code> if overflow checking is performed for the arithmetic operation.
+        /// </summary>
+        public bool IsChecked { get; }
+        /// <summary>
+        /// <code>true</code> if the comparison is text based for string or object comparison in VB.
+        /// </summary>
+        public bool IsCompareText { get; }
         public override IEnumerable<IOperation> Children
         {
             get
@@ -703,8 +717,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class BinaryOperatorExpression : BaseBinaryOperatorExpression, IHasOperatorMethodExpression, IBinaryOperatorExpression
     {
-        public BinaryOperatorExpression(BinaryOperationKind binaryOperationKind, IOperation leftOperand, IOperation rightOperand, bool isLifted, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(binaryOperationKind, isLifted, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+        public BinaryOperatorExpression(BinaryOperatorKind operatorKind, IOperation leftOperand, IOperation rightOperand, bool isLifted, bool isChecked, bool isCompareText, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(operatorKind, isLifted, isChecked, isCompareText, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
             LeftOperandImpl = leftOperand;
             RightOperandImpl = rightOperand;
@@ -722,8 +736,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         private readonly Lazy<IOperation> _lazyLeftOperand;
         private readonly Lazy<IOperation> _lazyRightOperand;
 
-        public LazyBinaryOperatorExpression(BinaryOperationKind binaryOperationKind, Lazy<IOperation> leftOperand, Lazy<IOperation> rightOperand, bool isLifted, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : 
-            base(binaryOperationKind, isLifted, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyBinaryOperatorExpression(BinaryOperatorKind operatorKind, Lazy<IOperation> leftOperand, Lazy<IOperation> rightOperand, bool isLifted, bool isChecked, bool isCompareText, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : 
+            base(operatorKind, isLifted, isChecked, isCompareText, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyLeftOperand = leftOperand ?? throw new System.ArgumentNullException(nameof(leftOperand));
             _lazyRightOperand = rightOperand ?? throw new System.ArgumentNullException(nameof(rightOperand));
@@ -943,22 +957,27 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseCompoundAssignmentExpression : AssignmentExpression, IHasOperatorMethodExpression, ICompoundAssignmentExpression
     {
-        protected BaseCompoundAssignmentExpression(BinaryOperationKind binaryOperationKind, bool isLifted, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseCompoundAssignmentExpression(BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.CompoundAssignmentExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            BinaryOperationKind = binaryOperationKind;
+            OperatorKind = operatorKind;
             IsLifted = isLifted;
+            IsChecked = isChecked;
             UsesOperatorMethod = usesOperatorMethod;
             OperatorMethod = operatorMethod;
         }
         /// <summary>
         /// Kind of binary operation.
         /// </summary>
-        public BinaryOperationKind BinaryOperationKind { get; }
+        public BinaryOperatorKind OperatorKind { get; }
         /// <summary>
         /// <code>true</code> if this assignment contains a 'lifted' binary operation.
         /// </summary>
         public bool IsLifted { get; }
+        /// <summary>
+        /// <code>true</code> if overflow checking is performed for the arithmetic operation.
+        /// </summary>
+        public bool IsChecked { get; }
         /// <summary>
         /// True if and only if the operation is performed by an operator method.
         /// </summary>
@@ -991,8 +1010,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class CompoundAssignmentExpression : BaseCompoundAssignmentExpression, IHasOperatorMethodExpression, ICompoundAssignmentExpression
     {
-        public CompoundAssignmentExpression(BinaryOperationKind binaryOperationKind, bool isLifted, IOperation target, IOperation value, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(binaryOperationKind, isLifted, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+        public CompoundAssignmentExpression(BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IOperation target, IOperation value, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(operatorKind, isLifted, isChecked, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
             TargetImpl = target;
             ValueImpl = value;
@@ -1009,8 +1028,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         private readonly Lazy<IOperation> _lazyTarget;
         private readonly Lazy<IOperation> _lazyValue;
 
-        public LazyCompoundAssignmentExpression(BinaryOperationKind binaryOperationKind, bool isLifted, Lazy<IOperation> target, Lazy<IOperation> value, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(binaryOperationKind, isLifted, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyCompoundAssignmentExpression(BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, Lazy<IOperation> target, Lazy<IOperation> value, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(operatorKind, isLifted, isChecked, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyTarget = target ?? throw new System.ArgumentNullException(nameof(target));
             _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
@@ -1029,24 +1048,24 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
         }
 
-        protected abstract IOperation ConditionalValueImpl { get; }
-        protected abstract IOperation ConditionalInstanceImpl { get; }
+        protected abstract IOperation WhenNotNullImpl { get; }
+        protected abstract IOperation ExpressionImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                yield return ConditionalInstance;
-                yield return ConditionalValue;
+                yield return Expression;
+                yield return WhenNotNull;
             }
         }
         /// <summary>
-        /// Expression to be evaluated if the conditional instance is non null.
-        /// </summary>
-        public IOperation ConditionalValue => Operation.SetParentOperation(ConditionalValueImpl, this);
-        /// <summary>
         /// Expresson that is conditionally accessed.
         /// </summary>
-        public IOperation ConditionalInstance => Operation.SetParentOperation(ConditionalInstanceImpl, this);
+        public IOperation Expression => Operation.SetParentOperation(ExpressionImpl, this);
+        /// <summary>
+        /// Expression to be evaluated if the conditional instance is non null.
+        /// </summary>
+        public IOperation WhenNotNull => Operation.SetParentOperation(WhenNotNullImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitConditionalAccessExpression(this);
@@ -1062,15 +1081,15 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class ConditionalAccessExpression : BaseConditionalAccessExpression, IConditionalAccessExpression
     {
-        public ConditionalAccessExpression(IOperation conditionalValue, IOperation conditionalInstance, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public ConditionalAccessExpression(IOperation whenNotNull, IOperation expression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            ConditionalValueImpl = conditionalValue;
-            ConditionalInstanceImpl = conditionalInstance;
+            WhenNotNullImpl = whenNotNull;
+            ExpressionImpl = expression;
         }
 
-        protected override IOperation ConditionalValueImpl { get; }
-        protected override IOperation ConditionalInstanceImpl { get; }
+        protected override IOperation ExpressionImpl { get; }
+        protected override IOperation WhenNotNullImpl { get; }
     }
 
     /// <summary>
@@ -1078,18 +1097,17 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LazyConditionalAccessExpression : BaseConditionalAccessExpression, IConditionalAccessExpression
     {
-        private readonly Lazy<IOperation> _lazyConditionalValue;
-        private readonly Lazy<IOperation> _lazyConditionalInstance;
+        private readonly Lazy<IOperation> _lazyWhenNotNull;
+        private readonly Lazy<IOperation> _lazyExpression;
 
-        public LazyConditionalAccessExpression(Lazy<IOperation> conditionalValue, Lazy<IOperation> conditionalInstance, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyConditionalAccessExpression(Lazy<IOperation> whenNotNull, Lazy<IOperation> expression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            _lazyConditionalValue = conditionalValue ?? throw new System.ArgumentNullException(nameof(conditionalValue));
-            _lazyConditionalInstance = conditionalInstance ?? throw new System.ArgumentNullException(nameof(conditionalInstance));
+            _lazyWhenNotNull = whenNotNull ?? throw new System.ArgumentNullException(nameof(whenNotNull));
+            _lazyExpression = expression ?? throw new System.ArgumentNullException(nameof(expression));
         }
 
-        protected override IOperation ConditionalValueImpl => _lazyConditionalValue.Value;
-
-        protected override IOperation ConditionalInstanceImpl => _lazyConditionalInstance.Value;
+        protected override IOperation ExpressionImpl => _lazyExpression.Value;
+        protected override IOperation WhenNotNullImpl => _lazyWhenNotNull.Value;
     }
 
     /// <summary>
@@ -1121,23 +1139,23 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# ?: or VB If expression.
     /// </summary>
-    internal abstract partial class BaseConditionalChoiceExpression : Operation, IConditionalChoiceExpression
+    internal abstract partial class BaseConditionalExpression : Operation, IConditionalExpression
     {
-        protected BaseConditionalChoiceExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-                    base(OperationKind.ConditionalChoiceExpression, semanticModel, syntax, type, constantValue, isImplicit)
+        protected BaseConditionalExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+                    base(OperationKind.ConditionalExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
         protected abstract IOperation ConditionImpl { get; }
-        protected abstract IOperation IfTrueValueImpl { get; }
-        protected abstract IOperation IfFalseValueImpl { get; }
+        protected abstract IOperation WhenTrueImpl { get; }
+        protected abstract IOperation WhenFalseImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
                 yield return Condition;
-                yield return IfTrueValue;
-                yield return IfFalseValue;
+                yield return WhenTrue;
+                yield return WhenFalse;
             }
         }
         /// <summary>
@@ -1147,60 +1165,60 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Value evaluated if the Condition is true.
         /// </summary>
-        public IOperation IfTrueValue => Operation.SetParentOperation(IfTrueValueImpl, this);
+        public IOperation WhenTrue => Operation.SetParentOperation(WhenTrueImpl, this);
         /// <summary>
         /// Value evaluated if the Condition is false.
         /// </summary>
-        public IOperation IfFalseValue => Operation.SetParentOperation(IfFalseValueImpl, this);
+        public IOperation WhenFalse => Operation.SetParentOperation(WhenFalseImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitConditionalChoiceExpression(this);
+            visitor.VisitConditionalExpression(this);
         }
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitConditionalChoiceExpression(this, argument);
+            return visitor.VisitConditionalExpression(this, argument);
         }
     }
 
     /// <summary>
     /// Represents a C# ?: or VB If expression.
     /// </summary>
-    internal sealed partial class ConditionalChoiceExpression : BaseConditionalChoiceExpression, IConditionalChoiceExpression
+    internal sealed partial class ConditionalExpression : BaseConditionalExpression, IConditionalExpression
     {
-        public ConditionalChoiceExpression(IOperation condition, IOperation ifTrueValue, IOperation ifFalseValue, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public ConditionalExpression(IOperation condition, IOperation whenTrue, IOperation whenFalse, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             ConditionImpl = condition;
-            IfTrueValueImpl = ifTrueValue;
-            IfFalseValueImpl = ifFalseValue;
+            WhenTrueImpl = whenTrue;
+            WhenFalseImpl = whenFalse;
         }
 
         protected override IOperation ConditionImpl { get; }
-        protected override IOperation IfTrueValueImpl { get; }
-        protected override IOperation IfFalseValueImpl { get; }
+        protected override IOperation WhenTrueImpl { get; }
+        protected override IOperation WhenFalseImpl { get; }
     }
 
     /// <summary>
     /// Represents a C# ?: or VB If expression.
     /// </summary>
-    internal sealed partial class LazyConditionalChoiceExpression : BaseConditionalChoiceExpression, IConditionalChoiceExpression
+    internal sealed partial class LazyConditionalExpression : BaseConditionalExpression, IConditionalExpression
     {
         private readonly Lazy<IOperation> _lazyCondition;
-        private readonly Lazy<IOperation> _lazyIfTrueValue;
-        private readonly Lazy<IOperation> _lazyIfFalseValue;
+        private readonly Lazy<IOperation> _lazyWhenTrue;
+        private readonly Lazy<IOperation> _lazyWhenFalse;
 
-        public LazyConditionalChoiceExpression(Lazy<IOperation> condition, Lazy<IOperation> ifTrueValue, Lazy<IOperation> ifFalseValue, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyConditionalExpression(Lazy<IOperation> condition, Lazy<IOperation> whenTrue, Lazy<IOperation> whenFalse, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyCondition = condition ?? throw new System.ArgumentNullException(nameof(condition));
-            _lazyIfTrueValue = ifTrueValue ?? throw new System.ArgumentNullException(nameof(ifTrueValue));
-            _lazyIfFalseValue = ifFalseValue ?? throw new System.ArgumentNullException(nameof(ifFalseValue));
+            _lazyWhenTrue = whenTrue ?? throw new System.ArgumentNullException(nameof(whenTrue));
+            _lazyWhenFalse = whenFalse ?? throw new System.ArgumentNullException(nameof(whenFalse));
         }
 
         protected override IOperation ConditionImpl => _lazyCondition.Value;
 
-        protected override IOperation IfTrueValueImpl => _lazyIfTrueValue.Value;
+        protected override IOperation WhenTrueImpl => _lazyWhenTrue.Value;
 
-        protected override IOperation IfFalseValueImpl => _lazyIfFalseValue.Value;
+        protected override IOperation WhenFalseImpl => _lazyWhenFalse.Value;
     }
 
     /// <summary>
@@ -1399,14 +1417,14 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<IEventReferenceExpression> _lazyEventReference;
         private readonly Lazy<IOperation> _lazyHandlerValue;
-        
+
         public LazyEventAssignmentExpression(Lazy<IEventReferenceExpression> eventReference, Lazy<IOperation> handlerValue, bool adds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(adds, semanticModel, syntax, type, constantValue, isImplicit)
 
         {
             _lazyEventReference = eventReference ?? throw new System.ArgumentNullException(nameof(eventReference));
             _lazyHandlerValue = handlerValue ?? throw new System.ArgumentNullException(nameof(handlerValue));
         }
-        
+
         protected override IEventReferenceExpression EventReferenceImpl => _lazyEventReference.Value;
 
         protected override IOperation HandlerValueImpl => _lazyHandlerValue.Value;
@@ -2007,17 +2025,37 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseIncrementExpression : Operation, IIncrementExpression
     {
-        public BaseIncrementExpression(UnaryOperationKind incrementOperationKind, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public BaseIncrementExpression(bool isDecrement, bool isPostfix, bool isLifted, bool isChecked, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.IncrementExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            IncrementOperationKind = incrementOperationKind;
+            IsDecrement = isDecrement;
+            IsPostfix = isPostfix;
+            IsLifted = isLifted;
+            IsChecked = isChecked;
             UsesOperatorMethod = usesOperatorMethod;
             OperatorMethod = operatorMethod;
         }
         /// <summary>
-        /// Kind of increment.
+        /// <code>true</code> if this is a decrement expression.
+        /// <code>false</code> if this is an increment expression.
         /// </summary>
-        public UnaryOperationKind IncrementOperationKind { get; }
+        public bool IsDecrement { get; }
+        /// <summary>
+        /// <code>true</code> if this is a postfix expression.
+        /// <code>false</code> if this is a prefix expression.
+        /// </summary>
+        public bool IsPostfix { get; }
+        /// <summary>
+        /// <code>true</code> if this is a 'lifted' increment operator.  When there is an 
+        /// operator that is defined to work on a value type, 'lifted' operators are 
+        /// created to work on the <see cref="System.Nullable{T}"/> versions of those
+        /// value types.
+        /// </summary>
+        public bool IsLifted { get; }
+        /// <summary>
+        /// <code>true</code> if overflow checking is performed for the arithmetic operation.
+        /// </summary>
+        public bool IsChecked { get; }
         protected abstract IOperation TargetImpl { get; }
         /// <summary>
         /// True if and only if the operation is performed by an operator method.
@@ -2054,8 +2092,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class IncrementExpression : BaseIncrementExpression, IIncrementExpression
     {
-        public IncrementExpression(UnaryOperationKind incrementOperationKind, IOperation target, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(incrementOperationKind, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+        public IncrementExpression(bool isDecrement, bool isPostfix, bool isLifted, bool isChecked, IOperation target, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(isDecrement, isPostfix, isLifted, isChecked, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
             TargetImpl = target;
         }
@@ -2070,8 +2108,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<IOperation> _lazyTarget;
 
-        public LazyIncrementExpression(UnaryOperationKind incrementOperationKind, Lazy<IOperation> target, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(incrementOperationKind, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyIncrementExpression(bool isDecrement, bool isPostfix, bool isLifted, bool isChecked, Lazy<IOperation> target, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(isDecrement, isPostfix, isLifted, isChecked, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyTarget = target ?? throw new System.ArgumentNullException(nameof(target));
         }
@@ -2585,10 +2623,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# or VB label statement.
     /// </summary>
-    internal abstract partial class BaseLabelStatement : Operation, ILabelStatement
+    internal abstract partial class BaseLabeledStatement : Operation, ILabeledStatement
     {
-        protected BaseLabelStatement(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-                    base(OperationKind.LabelStatement, semanticModel, syntax, type, constantValue, isImplicit)
+        protected BaseLabeledStatement(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+                    base(OperationKind.LabeledStatement, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Label = label;
         }
@@ -2596,71 +2634,65 @@ namespace Microsoft.CodeAnalysis.Semantics
         ///  Label that can be the target of branches.
         /// </summary>
         public ILabelSymbol Label { get; }
-        protected abstract IOperation LabeledStatementImpl { get; }
+        protected abstract IOperation StatementImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                yield return LabeledStatement;
+                yield return Statement;
             }
         }
         /// <summary>
         /// Statement that has been labeled.
         /// </summary>
-        public IOperation LabeledStatement => Operation.SetParentOperation(LabeledStatementImpl, this);
+        public IOperation Statement => Operation.SetParentOperation(StatementImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitLabelStatement(this);
+            visitor.VisitLabeledStatement(this);
         }
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitLabelStatement(this, argument);
+            return visitor.VisitLabeledStatement(this, argument);
         }
     }
 
     /// <summary>
     /// Represents a C# or VB label statement.
     /// </summary>
-    internal sealed partial class LabelStatement : BaseLabelStatement, ILabelStatement
+    internal sealed partial class LabeledStatement : BaseLabeledStatement, ILabeledStatement
     {
-        public LabelStatement(ILabelSymbol label, IOperation labeledStatement, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public LabeledStatement(ILabelSymbol label, IOperation labeledStatement, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(label, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            LabeledStatementImpl = labeledStatement;
+            StatementImpl = labeledStatement;
         }
 
-        protected override IOperation LabeledStatementImpl { get; }
+        protected override IOperation StatementImpl { get; }
     }
 
     /// <summary>
     /// Represents a C# or VB label statement.
     /// </summary>
-    internal sealed partial class LazyLabelStatement : BaseLabelStatement, ILabelStatement
+    internal sealed partial class LazyLabeledStatement : BaseLabeledStatement, ILabeledStatement
     {
-        private readonly Lazy<IOperation> _lazyLabeledStatement;
+        private readonly Lazy<IOperation> _lazyStatement;
 
-        public LazyLabelStatement(ILabelSymbol label, Lazy<IOperation> labeledStatement, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(label, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyLabeledStatement(ILabelSymbol label, Lazy<IOperation> statement, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(label, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            _lazyLabeledStatement = labeledStatement ?? throw new System.ArgumentNullException(nameof(labeledStatement));
+            _lazyStatement = statement ?? throw new System.ArgumentNullException(nameof(statement));
         }
 
-        protected override IOperation LabeledStatementImpl => _lazyLabeledStatement.Value;
+        protected override IOperation StatementImpl => _lazyStatement.Value;
     }
 
-    /// <summary>
-    /// Represents a lambda expression.
-    /// </summary>
-    internal abstract partial class BaseLambdaExpression : Operation, ILambdaExpression
+    internal abstract partial class BaseAnonymousFunctionExpression : Operation, IAnonymousFunctionExpression
     {
-        protected BaseLambdaExpression(IMethodSymbol signature, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-                    base(OperationKind.LambdaExpression, semanticModel, syntax, type, constantValue, isImplicit)
+        protected BaseAnonymousFunctionExpression(IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+                    base(OperationKind.AnonymousFunctionExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Signature = signature;
+            Symbol = symbol;
         }
-        /// <summary>
-        /// Signature of the lambda.
-        /// </summary>
-        public IMethodSymbol Signature { get; }
+        public IMethodSymbol Symbol { get; }
         protected abstract IBlockStatement BodyImpl { get; }
         public override IEnumerable<IOperation> Children
         {
@@ -2669,27 +2701,21 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Body;
             }
         }
-        /// <summary>
-        /// Body of the lambda.
-        /// </summary>
         public IBlockStatement Body => Operation.SetParentOperation(BodyImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitLambdaExpression(this);
+            visitor.VisitAnonymousFunctionExpression(this);
         }
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitLambdaExpression(this, argument);
+            return visitor.VisitAnonymousFunctionExpression(this, argument);
         }
     }
 
-    /// <summary>
-    /// Represents a lambda expression.
-    /// </summary>
-    internal sealed partial class LambdaExpression : BaseLambdaExpression, ILambdaExpression
+    internal sealed partial class AnonymousFunctionExpression : BaseAnonymousFunctionExpression, IAnonymousFunctionExpression
     {
-        public LambdaExpression(IMethodSymbol signature, IBlockStatement body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(signature, semanticModel, syntax, type, constantValue, isImplicit)
+        public AnonymousFunctionExpression(IMethodSymbol symbol, IBlockStatement body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
             BodyImpl = body;
         }
@@ -2697,14 +2723,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         protected override IBlockStatement BodyImpl { get; }
     }
 
-    /// <summary>
-    /// Represents a lambda expression.
-    /// </summary>
-    internal sealed partial class LazyLambdaExpression : BaseLambdaExpression, ILambdaExpression
+    internal sealed partial class LazyAnonymousFunctionExpression : BaseAnonymousFunctionExpression, IAnonymousFunctionExpression
     {
         private readonly Lazy<IBlockStatement> _lazyBody;
 
-        public LazyLambdaExpression(IMethodSymbol signature, Lazy<IBlockStatement> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(signature, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyAnonymousFunctionExpression(IMethodSymbol symbol, Lazy<IBlockStatement> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }
@@ -2796,15 +2819,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LiteralExpression : Operation, ILiteralExpression
     {
-        public LiteralExpression(string text, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public LiteralExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.LiteralExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Text = text;
         }
-        /// <summary>
-        /// Textual representation of the literal.
-        /// </summary>
-        public string Text { get; }
         public override IEnumerable<IOperation> Children
         {
             get
@@ -2863,20 +2881,20 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
         }
 
-        protected abstract IOperation LockedObjectImpl { get; }
+        protected abstract IOperation ExpressionImpl { get; }
         protected abstract IOperation BodyImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                yield return LockedObject;
+                yield return Expression;
                 yield return Body;
             }
         }
         /// <summary>
-        /// Value to be locked.
+        /// Expression producing a value to be locked.
         /// </summary>
-        public IOperation LockedObject => Operation.SetParentOperation(LockedObjectImpl, this);
+        public IOperation Expression => Operation.SetParentOperation(ExpressionImpl, this);
         /// <summary>
         /// Body of the lock, to be executed while holding the lock.
         /// </summary>
@@ -2896,14 +2914,14 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LockStatement : BaseLockStatement, ILockStatement
     {
-        public LockStatement(IOperation lockedObject, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public LockStatement(IOperation expression, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            LockedObjectImpl = lockedObject;
+            ExpressionImpl = expression;
             BodyImpl = body;
         }
 
-        protected override IOperation LockedObjectImpl { get; }
+        protected override IOperation ExpressionImpl { get; }
         protected override IOperation BodyImpl { get; }
     }
 
@@ -2912,16 +2930,16 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LazyLockStatement : BaseLockStatement, ILockStatement
     {
-        private readonly Lazy<IOperation> _lazyLockedObject;
+        private readonly Lazy<IOperation> _lazyExpression;
         private readonly Lazy<IOperation> _lazyBody;
 
         public LazyLockStatement(Lazy<IOperation> lockedObject, Lazy<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            _lazyLockedObject = lockedObject ?? throw new System.ArgumentNullException(nameof(lockedObject));
+            _lazyExpression = lockedObject ?? throw new System.ArgumentNullException(nameof(lockedObject));
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }
 
-        protected override IOperation LockedObjectImpl => _lazyLockedObject.Value;
+        protected override IOperation ExpressionImpl => _lazyExpression.Value;
 
         protected override IOperation BodyImpl => _lazyBody.Value;
     }
@@ -3041,74 +3059,74 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a null-coalescing expression.
     /// </summary>
-    internal abstract partial class BaseNullCoalescingExpression : Operation, INullCoalescingExpression
+    internal abstract partial class BaseCoalesceExpression : Operation, ICoalesceExpression
     {
-        protected BaseNullCoalescingExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-                    base(OperationKind.NullCoalescingExpression, semanticModel, syntax, type, constantValue, isImplicit)
+        protected BaseCoalesceExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+                    base(OperationKind.CoalesceExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
-        protected abstract IOperation PrimaryOperandImpl { get; }
-        protected abstract IOperation SecondaryOperandImpl { get; }
+        protected abstract IOperation ExpressionImpl { get; }
+        protected abstract IOperation WhenNullImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                yield return PrimaryOperand;
-                yield return SecondaryOperand;
+                yield return Expression;
+                yield return WhenNull;
             }
         }
         /// <summary>
         /// Value to be unconditionally evaluated.
         /// </summary>
-        public IOperation PrimaryOperand => Operation.SetParentOperation(PrimaryOperandImpl, this);
+        public IOperation Expression => Operation.SetParentOperation(ExpressionImpl, this);
         /// <summary>
-        /// Value to be evaluated if Primary evaluates to null/Nothing.
+        /// Value to be evaluated if <see cref="Expression"/> evaluates to null/Nothing.
         /// </summary>
-        public IOperation SecondaryOperand => Operation.SetParentOperation(SecondaryOperandImpl, this);
+        public IOperation WhenNull => Operation.SetParentOperation(WhenNullImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitNullCoalescingExpression(this);
+            visitor.VisitCoalesceExpression(this);
         }
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitNullCoalescingExpression(this, argument);
+            return visitor.VisitCoalesceExpression(this, argument);
         }
     }
 
     /// <summary>
     /// Represents a null-coalescing expression.
     /// </summary>
-    internal sealed partial class NullCoalescingExpression : BaseNullCoalescingExpression, INullCoalescingExpression
+    internal sealed partial class CoalesceExpression : BaseCoalesceExpression, ICoalesceExpression
     {
-        public NullCoalescingExpression(IOperation primaryOperand, IOperation secondaryOperand, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public CoalesceExpression(IOperation expression, IOperation whenNull, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            PrimaryOperandImpl = primaryOperand;
-            SecondaryOperandImpl = secondaryOperand;
+            ExpressionImpl = expression;
+            WhenNullImpl = whenNull;
         }
 
-        protected override IOperation PrimaryOperandImpl { get; }
-        protected override IOperation SecondaryOperandImpl { get; }
+        protected override IOperation ExpressionImpl { get; }
+        protected override IOperation WhenNullImpl { get; }
     }
 
     /// <summary>
     /// Represents a null-coalescing expression.
     /// </summary>
-    internal sealed partial class LazyNullCoalescingExpression : BaseNullCoalescingExpression, INullCoalescingExpression
+    internal sealed partial class LazyCoalesceExpression : BaseCoalesceExpression, ICoalesceExpression
     {
-        private readonly Lazy<IOperation> _lazyPrimaryOperand;
-        private readonly Lazy<IOperation> _lazySecondaryOperand;
+        private readonly Lazy<IOperation> _lazyExpression;
+        private readonly Lazy<IOperation> _lazyWhenNull;
 
-        public LazyNullCoalescingExpression(Lazy<IOperation> primaryOperand, Lazy<IOperation> secondaryOperand, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyCoalesceExpression(Lazy<IOperation> expression, Lazy<IOperation> whenNull, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            _lazyPrimaryOperand = primaryOperand ?? throw new System.ArgumentNullException(nameof(primaryOperand));
-            _lazySecondaryOperand = secondaryOperand ?? throw new System.ArgumentNullException(nameof(secondaryOperand));
+            _lazyExpression = expression ?? throw new System.ArgumentNullException(nameof(expression));
+            _lazyWhenNull = whenNull ?? throw new System.ArgumentNullException(nameof(whenNull));
         }
 
-        protected override IOperation PrimaryOperandImpl => _lazyPrimaryOperand.Value;
+        protected override IOperation ExpressionImpl => _lazyExpression.Value;
 
-        protected override IOperation SecondaryOperandImpl => _lazySecondaryOperand.Value;
+        protected override IOperation WhenNullImpl => _lazyWhenNull.Value;
     }
 
     /// <summary>
@@ -3146,7 +3164,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
         /// </summary>
         /// <remarks>
-        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays. 
+        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays.
         /// Default values are supplied for optional arguments missing in source.
         /// </remarks>
         public ImmutableArray<IArgument> ArgumentsInEvaluationOrder => Operation.SetParentOperation(ArgumentsInEvaluationOrderImpl, this);
@@ -3617,7 +3635,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
         /// </summary>
         /// <remarks>
-        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays. 
+        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays.
         /// Default values are supplied for optional arguments missing in source.
         /// </remarks>
         public ImmutableArray<IArgument> ArgumentsInEvaluationOrder => Operation.SetParentOperation(ArgumentsInEvaluationOrderImpl, this);
@@ -3764,7 +3782,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseRelationalCaseClause : CaseClause, IRelationalCaseClause
     {
-        public BaseRelationalCaseClause(BinaryOperationKind relation, CaseKind caseKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public BaseRelationalCaseClause(BinaryOperatorKind relation, CaseKind caseKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(caseKind, OperationKind.RelationalCaseClause, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Relation = relation;
@@ -3774,7 +3792,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Relational operator used to compare the switch value with the case value.
         /// </summary>
-        public BinaryOperationKind Relation { get; }
+        public BinaryOperatorKind Relation { get; }
         public override IEnumerable<IOperation> Children
         {
             get
@@ -3802,7 +3820,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class RelationalCaseClause : BaseRelationalCaseClause, IRelationalCaseClause
     {
-        public RelationalCaseClause(IOperation value, BinaryOperationKind relation, CaseKind caseKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public RelationalCaseClause(IOperation value, BinaryOperatorKind relation, CaseKind caseKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(relation, caseKind, semanticModel, syntax, type, constantValue, isImplicit)
         {
             ValueImpl = value;
@@ -3818,7 +3836,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<IOperation> _lazyValue;
 
-        public LazyRelationalCaseClause(Lazy<IOperation> value, BinaryOperationKind relation, CaseKind caseKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public LazyRelationalCaseClause(Lazy<IOperation> value, BinaryOperatorKind relation, CaseKind caseKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(relation, caseKind, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
@@ -3910,17 +3928,12 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseSingleValueCaseClause : CaseClause, ISingleValueCaseClause
     {
-        public BaseSingleValueCaseClause(BinaryOperationKind equality, CaseKind caseKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public BaseSingleValueCaseClause(CaseKind caseKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(caseKind, OperationKind.SingleValueCaseClause, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Equality = equality;
         }
 
         protected abstract IOperation ValueImpl { get; }
-        /// <summary>
-        /// Relational operator used to compare the switch value with the case value.
-        /// </summary>
-        public BinaryOperationKind Equality { get; }
         public override IEnumerable<IOperation> Children
         {
             get
@@ -3948,8 +3961,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class SingleValueCaseClause : BaseSingleValueCaseClause, ISingleValueCaseClause
     {
-        public SingleValueCaseClause(IOperation value, BinaryOperationKind equality, CaseKind caseKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(equality, caseKind, semanticModel, syntax, type, constantValue, isImplicit)
+        public SingleValueCaseClause(IOperation value, CaseKind caseKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(caseKind, semanticModel, syntax, type, constantValue, isImplicit)
         {
             ValueImpl = value;
         }
@@ -3964,8 +3977,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<IOperation> _lazyValue;
 
-        public LazySingleValueCaseClause(Lazy<IOperation> value, BinaryOperationKind equality, CaseKind caseKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(equality, caseKind, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazySingleValueCaseClause(Lazy<IOperation> value, CaseKind caseKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(caseKind, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
@@ -4271,67 +4284,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             base(syntheticLocalKind, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
-    }
-
-    /// <summary>
-    /// Represents a C# throw or a VB Throw statement.
-    /// </summary>
-    internal abstract partial class BaseThrowStatement : Operation, IThrowStatement
-    {
-        protected BaseThrowStatement(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-                    base(OperationKind.ThrowStatement, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-        }
-
-        protected abstract IOperation ThrownObjectImpl { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                yield return ThrownObject;
-            }
-        }
-        /// <summary>
-        /// Value to be thrown.
-        /// </summary>
-        public IOperation ThrownObject => Operation.SetParentOperation(ThrownObjectImpl, this);
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitThrowStatement(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitThrowStatement(this, argument);
-        }
-    }
-
-    /// <summary>
-    /// Represents a C# throw or a VB Throw statement.
-    /// </summary>
-    internal sealed partial class ThrowStatement : BaseThrowStatement, IThrowStatement
-    {
-        public ThrowStatement(IOperation thrownObject, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            ThrownObjectImpl = thrownObject;
-        }
-
-        protected override IOperation ThrownObjectImpl { get; }
-    }
-
-    /// <summary>
-    /// Represents a C# throw or a VB Throw statement.
-    /// </summary>
-    internal sealed partial class LazyThrowStatement : BaseThrowStatement, IThrowStatement
-    {
-        private readonly Lazy<IOperation> _lazyThrownObject;
-
-        public LazyThrowStatement(Lazy<IOperation> thrownObject, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _lazyThrownObject = thrownObject ?? throw new System.ArgumentNullException(nameof(thrownObject));
-        }
-
-        protected override IOperation ThrownObjectImpl => _lazyThrownObject.Value;
     }
 
     /// <summary>
@@ -4685,18 +4637,19 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseUnaryOperatorExpression : Operation, IHasOperatorMethodExpression, IUnaryOperatorExpression
     {
-        protected BaseUnaryOperatorExpression(UnaryOperationKind unaryOperationKind, bool isLifted, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseUnaryOperatorExpression(UnaryOperatorKind unaryOperationKind, bool isLifted, bool isChecked, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
                     base(OperationKind.UnaryOperatorExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            UnaryOperationKind = unaryOperationKind;
+            OperatorKind = unaryOperationKind;
+            IsLifted = isLifted;
+            IsChecked = isChecked;
             UsesOperatorMethod = usesOperatorMethod;
             OperatorMethod = operatorMethod;
-            IsLifted = isLifted;
         }
         /// <summary>
         /// Kind of unary operation.
         /// </summary>
-        public UnaryOperationKind UnaryOperationKind { get; }
+        public UnaryOperatorKind OperatorKind { get; }
         protected abstract IOperation OperandImpl { get; }
         /// <summary>
         /// True if and only if the operation is performed by an operator method.
@@ -4706,9 +4659,17 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Operation method used by the operation, null if the operation does not use an operator method.
         /// </summary>
         public IMethodSymbol OperatorMethod { get; }
-
+        /// <summary>
+        /// <code>true</code> if this is a 'lifted' binary operator.  When there is an 
+        /// operator that is defined to work on a value type, 'lifted' operators are 
+        /// created to work on the <see cref="System.Nullable{T}"/> versions of those
+        /// value types.
+        /// </summary>
         public bool IsLifted { get; }
-
+        /// <summary>
+        /// <code>true</code> if overflow checking is performed for the arithmetic operation.
+        /// </summary>
+        public bool IsChecked { get; }
         public override IEnumerable<IOperation> Children
         {
             get
@@ -4735,8 +4696,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class UnaryOperatorExpression : BaseUnaryOperatorExpression, IHasOperatorMethodExpression, IUnaryOperatorExpression
     {
-        public UnaryOperatorExpression(UnaryOperationKind unaryOperationKind, IOperation operand, bool isLifted, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(unaryOperationKind, isLifted, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+        public UnaryOperatorExpression(UnaryOperatorKind unaryOperationKind, IOperation operand, bool isLifted, bool isChecked, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(unaryOperationKind, isLifted, isChecked, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
             OperandImpl = operand;
         }
@@ -4751,8 +4712,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<IOperation> _lazyOperand;
 
-        public LazyUnaryOperatorExpression(UnaryOperationKind unaryOperationKind, Lazy<IOperation> operand, bool isLifted, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : 
-            base(unaryOperationKind, isLifted, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyUnaryOperatorExpression(UnaryOperatorKind unaryOperationKind, Lazy<IOperation> operand, bool isLifted, bool isChecked, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : 
+            base(unaryOperationKind, isLifted, isChecked, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyOperand = operand ?? throw new System.ArgumentNullException(nameof(operand));
         }
@@ -5127,15 +5088,15 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseLocalFunctionStatement : Operation, ILocalFunctionStatement
     {
-        protected BaseLocalFunctionStatement(IMethodSymbol localFunctionSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseLocalFunctionStatement(IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
                     base(OperationKind.LocalFunctionStatement, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            LocalFunctionSymbol = localFunctionSymbol;
+            Symbol = symbol;
         }
         /// <summary>
         /// Local function symbol.
         /// </summary>
-        public IMethodSymbol LocalFunctionSymbol { get; }
+        public IMethodSymbol Symbol { get; }
         protected abstract IBlockStatement BodyImpl { get; }
         public override IEnumerable<IOperation> Children
         {
@@ -5163,8 +5124,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LocalFunctionStatement : BaseLocalFunctionStatement, ILocalFunctionStatement
     {
-        public LocalFunctionStatement(IMethodSymbol localFunctionSymbol, IBlockStatement body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(localFunctionSymbol, semanticModel, syntax, type, constantValue, isImplicit)
+        public LocalFunctionStatement(IMethodSymbol symbol, IBlockStatement body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
             BodyImpl = body;
         }
@@ -5179,8 +5140,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<IBlockStatement> _lazyBody;
 
-        public LazyLocalFunctionStatement(IMethodSymbol localFunctionSymbol, Lazy<IBlockStatement> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue,bool isImplicit)
-            : base(localFunctionSymbol, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyLocalFunctionStatement(IMethodSymbol symbol, Lazy<IBlockStatement> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue,bool isImplicit)
+            : base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }

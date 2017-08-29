@@ -45,34 +45,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             }
             else
             {
-                var methodDeclaration = node as BaseMethodDeclarationSyntax;
-                if (methodDeclaration != null)
+                switch (node)
                 {
-                    return GetFunctionPrototype(methodDeclaration, (IMethodSymbol)symbol, flags);
-                }
-
-                var propertyDeclaration = node as BasePropertyDeclarationSyntax;
-                if (propertyDeclaration != null)
-                {
-                    return GetPropertyPrototype(propertyDeclaration, (IPropertySymbol)symbol, flags);
-                }
-
-                var variableDeclarator = node as VariableDeclaratorSyntax;
-                if (variableDeclarator != null && symbol.Kind == SymbolKind.Field)
-                {
-                    return GetVariablePrototype(variableDeclarator, (IFieldSymbol)symbol, flags);
-                }
-
-                var enumMember = node as EnumMemberDeclarationSyntax;
-                if (enumMember != null)
-                {
-                    return GetVariablePrototype(enumMember, (IFieldSymbol)symbol, flags);
-                }
-
-                var delegateDeclaration = node as DelegateDeclarationSyntax;
-                if (delegateDeclaration != null)
-                {
-                    return GetDelegatePrototype(delegateDeclaration, (INamedTypeSymbol)symbol, flags);
+                    case BaseMethodDeclarationSyntax methodDeclaration:
+                        return GetFunctionPrototype(methodDeclaration, (IMethodSymbol)symbol, flags);
+                    case BasePropertyDeclarationSyntax propertyDeclaration:
+                        return GetPropertyPrototype(propertyDeclaration, (IPropertySymbol)symbol, flags);
+                    case VariableDeclaratorSyntax variableDeclarator when symbol.Kind == SymbolKind.Field:
+                        return GetVariablePrototype(variableDeclarator, (IFieldSymbol)symbol, flags);
+                    case EnumMemberDeclarationSyntax enumMember:
+                        return GetVariablePrototype(enumMember, (IFieldSymbol)symbol, flags);
+                    case DelegateDeclarationSyntax delegateDeclaration:
+                        return GetDelegatePrototype(delegateDeclaration, (INamedTypeSymbol)symbol, flags);
                 }
 
                 // Crazily, events for source are not implemented by the legacy C#

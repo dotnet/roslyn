@@ -296,13 +296,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             //     int i = 5;
             //     i.          // <-- here
             //     List<string> ml = new List<string>();
+            //
+            // The problem is that "i.List<string>" gets parsed as a type.  In this case we need 
+            // to try binding again as if "i" is an expression and not a type.  In order to do 
+            // that, we need to speculate as to what 'i' meant if it wasn't part of a local 
+            // declaration's type.
+            //
+            // Another interesting case is something like:
+            //
+            //      stringList.
+            //      await Test2();
+            //
+            // Here "stringList.await" is thought of as the return type of a local function.
 
-            // The problem is that "i.List<string>" gets parsed as a type.  In this case we need to
-            // try binding again as if "i" is an expression and not a type.  In order to do that, we
-            // need to speculate as to what 'i' meant if it wasn't part of a local declaration's
-            // type.
-
-            if (name.IsFoundUnder<LocalDeclarationStatementSyntax>(d => d.Declaration.Type) ||
+            if (name.IsFoundUnder<LocalFunctionStatementSyntax>(d => d.ReturnType) ||
+                name.IsFoundUnder<LocalDeclarationStatementSyntax>(d => d.Declaration.Type) ||
                 name.IsFoundUnder<FieldDeclarationSyntax>(d => d.Declaration.Type))
             {
                 var speculativeBinding = context.SemanticModel.GetSpeculativeSymbolInfo(
@@ -321,8 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             // MemberAccessExpressionSyntax. Thus, let's do other namespaces and types.
             var nameBinding = context.SemanticModel.GetSymbolInfo(name, cancellationToken);
 
-            var symbol = nameBinding.Symbol as INamespaceOrTypeSymbol;
-            if (symbol != null)
+            if (nameBinding.Symbol is INamespaceOrTypeSymbol symbol)
             {
                 if (context.IsNameOfContext)
                 {

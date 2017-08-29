@@ -125,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
         End Structure
 
-        Private Class TestContext
+        Friend Class TestContext
             Inherits FindUsagesContext
 
             Private ReadOnly gate As Object = New Object()

@@ -32,8 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public static void SetDefaultFilter(IWpfTableControl tableControl)
         {
             // We want only the active diagnostics to show up in the error list by default.
-            var suppressionStateColumn = tableControl.ColumnDefinitionManager.GetColumnDefinition(ColumnName) as SuppressionStateColumnDefinition;
-            if (suppressionStateColumn != null)
+            if (tableControl.ColumnDefinitionManager.GetColumnDefinition(ColumnName) is SuppressionStateColumnDefinition suppressionStateColumn)
             {
                 tableControl.SetFilter(ColumnName, new ColumnHashSetFilter(suppressionStateColumn, excluded: ServicesVSResources.Suppressed));
             }

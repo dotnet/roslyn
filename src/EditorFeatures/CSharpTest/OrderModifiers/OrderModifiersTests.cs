@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
 /// Doc comment
 internal static class C
 {
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
@@ -253,7 +253,7 @@ internal static class C
 @"
 /* start */ internal /* middle */ static /* end */ class C
 {
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
@@ -273,7 +273,7 @@ internal static class C
 {
 }
 #endif
-", ignoreTrivia: false);
+");
         }
     }
 }
