@@ -12,6 +12,9 @@
     <!-- xUnit.net WPF Runner -->
     <XUnitWpfPath>$(NuGetPackageRoot)\xunit.runner.wpf\$(xunitrunnerwpfVersion)\tools\xunit.runner.wpf.exe</XUnitWpfPath>
     <XUnitWpfArguments>"$(OutDir)\$(AssemblyName).dll"</XUnitWpfArguments>
+
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <ForceGenerationOfBindingRedirects>true</ForceGenerationOfBindingRedirects>
   </PropertyGroup>
     
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
