@@ -441,6 +441,7 @@ namespace BuildBoss
                 switch (targetFramework)
                 {
                     case "net20":
+                    case "net46":
                     case "net461":
                     case "net462":
                     case "netstandard1.3":
