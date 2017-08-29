@@ -2557,10 +2557,11 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseIsTypeExpression : Operation, IIsTypeExpression
     {
-        protected BaseIsTypeExpression(ITypeSymbol isType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseIsTypeExpression(ITypeSymbol isType, bool isNotTypeExpression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
                     base(OperationKind.IsTypeExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
             IsType = isType;
+            IsNotTypeExpression = isNotTypeExpression;
         }
 
         protected abstract IOperation OperandImpl { get; }
@@ -2568,6 +2569,12 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Type for which to test.
         /// </summary>
         public ITypeSymbol IsType { get; }
+        /// <summary>
+        /// Flag indicating if this is an "is not" type expression.
+        /// True for VB "TypeOf ... IsNot ..." expression.
+        /// False, otherwise.
+        /// </summary>
+        public bool IsNotTypeExpression { get; }
         public override IEnumerable<IOperation> Children
         {
             get
@@ -2594,8 +2601,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class IsTypeExpression : BaseIsTypeExpression, IIsTypeExpression
     {
-        public IsTypeExpression(IOperation operand, ITypeSymbol isType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(isType, semanticModel, syntax, type, constantValue, isImplicit)
+        public IsTypeExpression(IOperation operand, ITypeSymbol isType, bool isNotTypeExpression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(isType, isNotTypeExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
             OperandImpl = operand;
         }
@@ -2610,7 +2617,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<IOperation> _lazyOperand;
 
-        public LazyIsTypeExpression(Lazy<IOperation> operand, ITypeSymbol isType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(isType, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyIsTypeExpression(Lazy<IOperation> operand, ITypeSymbol isType, bool isNotTypeExpression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(isType, isNotTypeExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyOperand = operand ?? throw new System.ArgumentNullException(nameof(operand));
         }
