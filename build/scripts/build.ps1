@@ -305,7 +305,7 @@ function Test-XUnitCoreClr() {
         $name = Split-Path -leaf $file
         Write-Host "Publishing $name"
         $filePath = Join-Path $repoDir $file
-        Run-MSBuild "$filePath /m /v:m /t:Publish /p:TargetFramework=$tf /p:RuntimeIdentifier=$runtimeIdentifier"
+        Run-MSBuild "$filePath /m /v:m /t:Publish /p:TargetFramework=$tf /p:RuntimeIdentifier=$runtimeIdentifier /p:SelfContained=true"
     }
 
     $dlls = @()
