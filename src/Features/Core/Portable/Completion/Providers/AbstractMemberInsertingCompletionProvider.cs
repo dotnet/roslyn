@@ -102,6 +102,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             document = document.WithSyntaxRoot(annotatedRoot);
 
             var memberContainingDocument = await GenerateMemberAndUsingsAsync(document, completionItem, line, cancellationToken).ConfigureAwait(false);
+            if (memberContainingDocument == null)
+            {
+                // Generating the new document failed, return no changes.
+                return document;
+            }
 
             var insertionRoot = await PrepareTreeForMemberInsertionAsync(memberContainingDocument, cancellationToken).ConfigureAwait(false);
             var insertionText = await GenerateInsertionTextAsync(memberContainingDocument, cancellationToken).ConfigureAwait(false);
@@ -132,7 +137,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var containingType = semanticModel.GetEnclosingSymbol<INamedTypeSymbol>(line.Start, cancellationToken);
             var symbols = await SymbolCompletionItem.GetSymbolsAsync(completionItem, document, cancellationToken).ConfigureAwait(false);
-            var overriddenMember = symbols.First();
+            var overriddenMember = symbols.FirstOrDefault();
+
+            if (overriddenMember == null)
+            {
+                // Unfortunately, SymbolKey resolution failed. We have to bail.
+                return null;
+            }
 
             // CodeGenerationOptions containing before and after
             var options = new CodeGenerationOptions(contextLocation: semanticModel.SyntaxTree.GetLocation(TextSpan.FromBounds(line.Start, line.Start)));
