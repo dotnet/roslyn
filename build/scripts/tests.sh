@@ -29,7 +29,7 @@ NEED_PUBLISH=(
 for p in $NEED_PUBLISH
 do
     echo Publishing ${p}
-    dotnet publish --no-restore ${SRC_PATH}/${p} -p:RuntimeIdentifier=${RUNTIME_ID} -p:TargetFramework=${TARGET_FRAMEWORK}
+    dotnet publish --no-restore ${SRC_PATH}/${p} -p:RuntimeIdentifier=${RUNTIME_ID} -p:TargetFramework=${TARGET_FRAMEWORK} -p:SelfContained=true
 done
 
 # Discover and run the tests
