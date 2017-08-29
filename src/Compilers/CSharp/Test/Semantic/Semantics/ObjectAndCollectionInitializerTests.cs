@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         #region "Object Initializer"
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ObjectInitializerTest_ClassType()
         {
@@ -33,7 +34,7 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest) (Syntax: 'new MemberI ...  0, y = 0 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest) (Syntax: '{ x = 0, y = 0 }')
@@ -54,6 +55,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             CompileAndVerify(source, expectedOutput: "");
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ObjectInitializerTest_StructType()
         {
@@ -69,7 +71,7 @@ struct MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest) (Syntax: 'new MemberI ...  0, y = 0 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest) (Syntax: '{ x = 0, y = 0 }')
@@ -90,6 +92,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             CompileAndVerify(source, expectedOutput: "");
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ObjectInitializerTest_TypeParameterType()
         {
@@ -122,6 +125,7 @@ ITypeParameterObjectCreationExpression (OperationKind.TypeParameterObjectCreatio
             CompileAndVerify(source, expectedOutput: "");
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ObjectInitializerTest_EnumType()
         {
@@ -136,7 +140,7 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: X..ctor()) (OperationKind.ObjectCreationExpression, Type: X) (Syntax: 'new X() { }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: X) (Syntax: '{ }')
@@ -148,6 +152,7 @@ IObjectCreationExpression (Constructor: X..ctor()) (OperationKind.ObjectCreation
             CompileAndVerify(source, expectedOutput: "");
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ObjectInitializerTest_PrimitiveType()
         {
@@ -160,7 +165,7 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'new int() { }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Int32) (Syntax: '{ }')
@@ -173,6 +178,7 @@ IObjectCreationExpression (Constructor: System.Int32..ctor()) (OperationKind.Obj
             CompileAndVerify(source, expectedOutput: "");
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ObjectInitializerTest_MemberAccess_DynamicType()
         {
@@ -186,7 +192,7 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest) (Syntax: 'new MemberI ... t { X = 0 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest) (Syntax: '{ X = 0 }')
@@ -256,6 +262,7 @@ class MyList : List<int>
 
         #region "Collection Initializer"
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CollectionInitializerTest_Empty()
         {
@@ -273,7 +280,7 @@ class MemberInitializerTest
     }/*</bind>*/
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IBlockStatement (3 statements, 3 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
   Locals: Local_1: System.Collections.Generic.List<System.Int32> i
     Local_2: MemberInitializerTest j
@@ -312,6 +319,7 @@ IBlockStatement (3 statements, 3 locals) (OperationKind.BlockStatement) (Syntax:
             CompileAndVerify(source, expectedOutput: "");
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CollectionInitializerTest_DynamicType()
         {
@@ -340,7 +348,7 @@ class Test
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: Test..ctor()) (OperationKind.ObjectCreationExpression, Type: Test) (Syntax: 'new Test()  ... t = { 1 } }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: Test) (Syntax: '{ list = { 1 } }')
@@ -367,6 +375,7 @@ IObjectCreationExpression (Constructor: Test..ctor()) (OperationKind.ObjectCreat
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections;"));
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CollectionInitializerTest_ExplicitInterfaceImplementation_IEnumerable()
         {
@@ -409,7 +418,7 @@ class B : IEnumerable
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: B..ctor()) (OperationKind.ObjectCreationExpression, Type: B) (Syntax: 'new B { 1, 2, 3, 4, 5 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: B) (Syntax: '{ 1, 2, 3, 4, 5 }')
@@ -452,6 +461,7 @@ IObjectCreationExpression (Constructor: B..ctor()) (OperationKind.ObjectCreation
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CollectionInitializerTest_ExplicitInterfaceImplementation_IEnumerable_Of_T()
         {
@@ -500,7 +510,7 @@ class B<T> : IEnumerable<T>
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: B<System.Int64>..ctor()) (OperationKind.ObjectCreationExpression, Type: B<System.Int64>) (Syntax: 'new B<long> ... , 3, 4, 5 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: B<System.Int64>) (Syntax: '{ 1, 2, 3, 4, 5 }')
@@ -543,6 +553,7 @@ IObjectCreationExpression (Constructor: B<System.Int64>..ctor()) (OperationKind.
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CollectionInitializerTest_ExplicitImplOfAdd_And_ImplicitImplOfAdd()
         {
@@ -629,7 +640,7 @@ class MyList<T> : ICollection<T>
     #endregion
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MyList<System.String>..ctor()) (OperationKind.ObjectCreationExpression, Type: MyList<System.String>) (Syntax: 'new MyList< ... > { ""str"" }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MyList<System.String>) (Syntax: '{ ""str"" }')
@@ -645,6 +656,7 @@ IObjectCreationExpression (Constructor: MyList<System.String>..ctor()) (Operatio
             CompileAndVerify(source, expectedOutput: "str");
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CollectionInitializerTest_ExplicitImplOfAdd_NoImplicitImpl()
         {
@@ -723,7 +735,7 @@ class MyList<T> : ICollection<T>
     #endregion
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MyList<System.String>..ctor()) (OperationKind.ObjectCreationExpression, Type: MyList<System.String>, IsInvalid) (Syntax: 'new MyList< ... > { ""str"" }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MyList<System.String>, IsInvalid) (Syntax: '{ ""str"" }')
@@ -751,6 +763,7 @@ IObjectCreationExpression (Constructor: MyList<System.String>..ctor()) (Operatio
 
         #region "Error Tests"
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         [WorkItem(629368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629368")]
         public void AddFieldUsedLikeMethod()
@@ -773,7 +786,7 @@ class A : IEnumerable<int>
     IEnumerator IEnumerable.GetEnumerator() { return null; }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: A..ctor()) (OperationKind.ObjectCreationExpression, Type: A, IsInvalid) (Syntax: 'new A { """" }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: A, IsInvalid) (Syntax: '{ """" }')
@@ -795,6 +808,7 @@ IObjectCreationExpression (Constructor: A..ctor()) (OperationKind.ObjectCreation
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         [WorkItem(629368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629368")]
         public void AddPropertyUsedLikeMethod()
@@ -817,7 +831,7 @@ class A : IEnumerable<int>
     IEnumerator IEnumerable.GetEnumerator() { return null; }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: A..ctor()) (OperationKind.ObjectCreationExpression, Type: A, IsInvalid) (Syntax: 'new A { """" }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: A, IsInvalid) (Syntax: '{ """" }')
@@ -836,6 +850,7 @@ IObjectCreationExpression (Constructor: A..ctor()) (OperationKind.ObjectCreation
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0070ERR_BadEventUsage()
         {
@@ -853,7 +868,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ...  z = null }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ z = null }')
@@ -875,6 +890,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0117ERR_NoSuchMember()
         {
@@ -887,7 +903,7 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32, IsInvalid) (Syntax: 'new int() { x = 0 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Int32, IsInvalid) (Syntax: '{ x = 0 }')
@@ -907,6 +923,7 @@ IObjectCreationExpression (Constructor: System.Int32..ctor()) (OperationKind.Obj
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0120_ERR_ObjectRequired()
         {
@@ -921,7 +938,7 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ...  1, y = x }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ x = 1, y = x }')
@@ -945,6 +962,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0122_ERR_BadAccess()
         {
@@ -964,7 +982,7 @@ class Test
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ...  2, z = 3 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ x = 1, y = 2, z = 3 }')
@@ -999,6 +1017,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0144_ERR_NoNewAbstract()
         {
@@ -1012,7 +1031,7 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidExpression (OperationKind.InvalidExpression, Type: I, IsInvalid) (Syntax: 'new I() { }')
   Children(0)
 ";
@@ -1025,6 +1044,7 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: I, IsInvalid) (Syntax
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0154_ERR_PropertyLacksGet()
         {
@@ -1046,7 +1066,7 @@ class Test
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: Test..ctor()) (OperationKind.ObjectCreationExpression, Type: Test, IsInvalid) (Syntax: 'new Test()  ... , y = 2 } }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: Test, IsInvalid) (Syntax: '{ Prop = {  ... , y = 2 } }')
@@ -1074,6 +1094,7 @@ IObjectCreationExpression (Constructor: Test..ctor()) (OperationKind.ObjectCreat
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0165_ERR_UseDefViolation()
         {
@@ -1087,7 +1108,7 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... { x = m.x }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ x = m.x }')
@@ -1107,6 +1128,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0191_ERR_AssgReadonly()
         {
@@ -1125,7 +1147,7 @@ struct Test
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... ) { x = 1 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ x = 1 }')
@@ -1144,6 +1166,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0200_ERR_AssgReadonlyProp()
         {
@@ -1162,7 +1185,7 @@ struct Test
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... ) { y = 2 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ y = 2 }')
@@ -1184,6 +1207,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0246_ERR_SingleTypeNameNotFound()
         {
@@ -1196,7 +1220,7 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidExpression (OperationKind.InvalidExpression, Type: X, IsInvalid) (Syntax: 'new X() { x = 0 }')
   Children(1):
       IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: X) (Syntax: '{ x = 0 }')
@@ -1216,6 +1240,7 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: X, IsInvalid) (Syntax
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [WorkItem(543936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543936")]
         [Fact]
         public void CS0246_ERR_SingleTypeNameNotFound_02()
@@ -1234,7 +1259,7 @@ class Goo
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidExpression (OperationKind.InvalidExpression, Type: Bar, IsInvalid) (Syntax: 'new Bar() { Width = 16 }')
   Children(1):
       IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: Bar) (Syntax: '{ Width = 16 }')
@@ -1254,6 +1279,7 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: Bar, IsInvalid) (Synt
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0304_ERR_NoNewTyvar()
         {
@@ -1266,7 +1292,7 @@ class MemberInitializerTest<T>
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidExpression (OperationKind.InvalidExpression, Type: T, IsInvalid) (Syntax: 'new T() { x = 0 }')
   Children(0)
 ";
@@ -1282,6 +1308,7 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: T, IsInvalid) (Syntax
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0411_ERR_CantInferMethTypeArgs()
         {
@@ -1309,7 +1336,7 @@ class Test
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: Gen<System.Int32>..ctor()) (OperationKind.ObjectCreationExpression, Type: Gen<System.Int32>, IsInvalid) (Syntax: 'new Gen<int> { 1 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: Gen<System.Int32>, IsInvalid) (Syntax: '{ 1 }')
@@ -1331,6 +1358,7 @@ IObjectCreationExpression (Constructor: Gen<System.Int32>..ctor()) (OperationKin
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0747_ERR_InvalidInitializerElementInitializer()
         {
@@ -1344,7 +1372,7 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ...  = 0, y++ }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ x = 0, y++ }')
@@ -1353,8 +1381,8 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             Left: IFieldReferenceExpression: System.Int32 MemberInitializerTest.x (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'x')
                 Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'x')
             Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-          IIncrementExpression (UnaryOperandKind.Invalid) (OperationKind.IncrementExpression, Type: System.Object, IsInvalid) (Syntax: 'y++')
-            Left: IFieldReferenceExpression: System.Int32 MemberInitializerTest.y (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'y')
+          IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Object, IsInvalid) (Syntax: 'y++')
+            Target: IFieldReferenceExpression: System.Int32 MemberInitializerTest.y (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'y')
                 Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'y')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -1369,6 +1397,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0747_ERR_InvalidInitializerElementInitializer_MethodCall()
         {
@@ -1383,7 +1412,7 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... zerTest() }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ x = 0, Go ... zerTest() }')
@@ -1412,6 +1441,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0747_ERR_InvalidInitializerElementInitializer_AssignmentExpression()
         {
@@ -1428,7 +1458,7 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.List<System.Int32>, IsInvalid) (Syntax: 'new List<in ... o().x = 1 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List<System.Int32>, IsInvalid) (Syntax: '{ 1, Goo().x = 1 }')
@@ -1454,6 +1484,7 @@ IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.I
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1912ERR_MemberAlreadyInitialized()
         {
@@ -1467,7 +1498,7 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ...  1, x = 2 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ x = 1, x = 2 }')
@@ -1490,6 +1521,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1913ERR_MemberCannotBeInitialized()
         {
@@ -1503,7 +1535,7 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... zerTest() }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ Goo = new ... zerTest() }')
@@ -1539,7 +1571,7 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: X..ctor()) (OperationKind.ObjectCreationExpression, Type: X, IsInvalid) (Syntax: 'new X() { x = 0 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: X, IsInvalid) (Syntax: '{ x = 0 }')
@@ -1558,6 +1590,7 @@ IObjectCreationExpression (Constructor: X..ctor()) (OperationKind.ObjectCreation
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1914ERR_StaticMemberInObjectInitializer()
         {
@@ -1573,7 +1606,7 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ...  Prop = 1 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ x = 1, Prop = 1 }')
@@ -1599,6 +1632,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1917ERR_ReadonlyValueTypeInObjectInitializer()
         {
@@ -1618,7 +1652,7 @@ struct MemberInitializerTest2
     public int y;
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... { y = 1 } }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ x = { y = 1 } }')
@@ -1642,6 +1676,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1918ERR_ValueTypePropertyInObjectInitializer()
         {
@@ -1662,7 +1697,7 @@ struct MemberInitializerTest2
     public int x;
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... { x = 1 } }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ x = 1, Pr ... { x = 1 } }')
@@ -1690,6 +1725,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1920ERR_EmptyElementInitializer()
         {
@@ -1708,7 +1744,7 @@ class MemberInitializerTest
     }/*</bind>*/
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ ... }')
   Locals: Local_1: MemberInitializerTest i
     Local_2: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>> collection
@@ -1774,6 +1810,7 @@ IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1921ERR_InitializerAddHasWrongSignature()
         {
@@ -1798,7 +1835,7 @@ class Test : IEnumerable
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: Test..ctor()) (OperationKind.ObjectCreationExpression, Type: Test, IsInvalid) (Syntax: 'new Test() { 1 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: Test, IsInvalid) (Syntax: '{ 1 }')
@@ -1816,6 +1853,7 @@ IObjectCreationExpression (Constructor: Test..ctor()) (OperationKind.ObjectCreat
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1922ERR_CollectionInitRequiresIEnumerable()
         {
@@ -1842,7 +1880,7 @@ class A
     public string Prop2 { get; set; }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IBlockStatement (3 statements, 2 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ ... }')
   Locals: Local_1: B coll
     Local_2: A tc
@@ -1884,6 +1922,7 @@ IBlockStatement (3 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1922ERR_CollectionInitRequiresIEnumerable_02()
         {
@@ -1915,7 +1954,7 @@ class B
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: B..ctor()) (OperationKind.ObjectCreationExpression, Type: B, IsInvalid) (Syntax: 'new B { 1 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: B, IsInvalid) (Syntax: '{ 1 }')
@@ -1933,6 +1972,7 @@ IObjectCreationExpression (Constructor: B..ctor()) (OperationKind.ObjectCreation
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1922ERR_CollectionInitRequiresIEnumerable_InvalidInitializer()
         {
@@ -1946,15 +1986,15 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... est { y++ }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ y++ }')
       Initializers(1):
           IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'y++')
             Children(1):
-                IIncrementExpression (UnaryOperandKind.Invalid) (OperationKind.IncrementExpression, Type: System.Object, IsInvalid) (Syntax: 'y++')
-                  Left: IFieldReferenceExpression: System.Int32 MemberInitializerTest.y (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'y')
+                IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Object, IsInvalid) (Syntax: 'y++')
+                  Target: IFieldReferenceExpression: System.Int32 MemberInitializerTest.y (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'y')
                       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'y')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -1969,6 +2009,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1922ERR_CollectionInitRequiresIEnumerable_MethodCall()
         {
@@ -1982,7 +2023,7 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... zerTest() }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ Goo() = n ... zerTest() }')
@@ -2012,6 +2053,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1950ERR_BadArgTypesForCollectionAdd()
         {
@@ -2032,7 +2074,7 @@ class Test
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: TestClass..ctor()) (OperationKind.ObjectCreationExpression, Type: TestClass, IsInvalid) (Syntax: 'new TestClass { ""hi"" }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: TestClass, IsInvalid) (Syntax: '{ ""hi"" }')
@@ -2057,6 +2099,7 @@ IObjectCreationExpression (Constructor: TestClass..ctor()) (OperationKind.Object
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1954ERR_InitializerAddHasParamModifiers()
         {
@@ -2081,7 +2124,7 @@ class Test : IEnumerable
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: Test..ctor()) (OperationKind.ObjectCreationExpression, Type: Test, IsInvalid) (Syntax: 'new Test() { 1 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: Test, IsInvalid) (Syntax: '{ 1 }')
@@ -2103,6 +2146,7 @@ IObjectCreationExpression (Constructor: Test..ctor()) (OperationKind.ObjectCreat
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1954ERR_InitializerAddHasParamModifiers02()
         {
@@ -2144,7 +2188,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MyList<MyClass>..ctor()) (OperationKind.ObjectCreationExpression, Type: MyList<MyClass>, IsInvalid) (Syntax: 'new MyList< ... ""maple"" } }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MyList<MyClass>, IsInvalid) (Syntax: '{ new MyCla ... ""maple"" } }')
@@ -2176,6 +2220,7 @@ IObjectCreationExpression (Constructor: MyList<MyClass>..ctor()) (OperationKind.
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1958ERR_ObjectOrCollectionInitializerWithDelegateCreation()
         {
@@ -2190,7 +2235,7 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidExpression (OperationKind.InvalidExpression, Type: MemberInitializerTest.D<System.Int32>, IsInvalid) (Syntax: 'new D<int>( ... d<int>) { }')
   Children(1):
       IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'GenericMethod<int>')
@@ -2204,6 +2249,7 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: MemberInitializerTest
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CollectionInitializerTest_AddMethod_OverloadResolutionFailures()
         {
@@ -2295,7 +2341,7 @@ class E : IEnumerable
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IBlockStatement (5 statements, 4 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ ... }')
   Locals: Local_1: B coll1
     Local_2: C coll2
@@ -2385,6 +2431,7 @@ IBlockStatement (5 statements, 4 locals) (OperationKind.BlockStatement, IsInvali
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [WorkItem(543933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543933")]
         [Fact]
         public void ObjectInitializerTest_InvalidComplexElementInitializerExpression()
@@ -2402,7 +2449,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: Test..ctor()) (OperationKind.ObjectCreationExpression, Type: Test, IsInvalid) (Syntax: 'new Test()  ... { x = 1 } }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: Test, IsInvalid) (Syntax: '{ x = 1, {  ... { x = 1 } }')
@@ -2436,6 +2483,7 @@ IObjectCreationExpression (Constructor: Test..ctor()) (OperationKind.ObjectCreat
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [WorkItem(543933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543933")]
         [Fact]
         public void ObjectInitializerTest_IncompleteComplexElementInitializerExpression()
@@ -2452,7 +2500,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidExpression (OperationKind.InvalidExpression, Type: Dictionary<System.Object, System.Object>, IsInvalid) (Syntax: 'new Diction ... /*</bind>*/')
   Children(1):
       IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: Dictionary<System.Object, System.Object>, IsInvalid) (Syntax: '{ ... /*</bind>*/')
@@ -2493,6 +2541,7 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: Dictionary<System.Obj
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [WorkItem(543961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543961")]
         [Fact]
         public void CollectionInitializerTest_InvalidComplexElementInitializerSyntax()
@@ -2506,7 +2555,7 @@ class Test
 }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidExpression (OperationKind.InvalidExpression, Type: List<System.Int32>, IsInvalid) (Syntax: 'new List<in ... { { { 1 } }')
   Children(1):
       IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: List<System.Int32>, IsInvalid) (Syntax: '{ { { 1 } }')
@@ -2544,6 +2593,7 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: List<System.Int32>, I
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [WorkItem(544484, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544484")]
         [Fact]
         public void EmptyCollectionInitPredefinedType()
@@ -2554,7 +2604,7 @@ class Program
     const int value = /*<bind>*/new int { }/*</bind>*/;
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32, IsInvalid) (Syntax: 'new int { }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Int32, IsInvalid) (Syntax: '{ }')
@@ -2569,6 +2619,7 @@ IObjectCreationExpression (Constructor: System.Int32..ctor()) (OperationKind.Obj
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [WorkItem(544349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544349")]
         [Fact]
         public void CollectionInitializerTest_Bug_12635()
@@ -2584,7 +2635,7 @@ class A
     }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.List<System.Int32>, IsInvalid) (Syntax: 'new List<in ... unt = { } }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List<System.Int32>, IsInvalid) (Syntax: '{ Count = { } }')
@@ -2607,6 +2658,7 @@ IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.I
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [WorkItem(544349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544349")]
         [Fact]
         public void CollectionInitializerTest_Bug_12635_02()
@@ -2638,7 +2690,7 @@ namespace N
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: N.C..ctor()) (OperationKind.ObjectCreationExpression, Type: N.C, IsInvalid) (Syntax: 'new C() ... }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: N.C, IsInvalid) (Syntax: '{ ... }')
@@ -2682,6 +2734,7 @@ IObjectCreationExpression (Constructor: N.C..ctor()) (OperationKind.ObjectCreati
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [WorkItem(544570, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544570")]
         [Fact]
         public void CollectionInitializerTest_Bug_12977()
@@ -2716,7 +2769,7 @@ class A : IEnumerable
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: A..ctor()) (OperationKind.ObjectCreationExpression, Type: A, IsInvalid) (Syntax: 'new A { 5,  ...  { 1, 2 } }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: A, IsInvalid) (Syntax: '{ 5, { 1, 2, { 1, 2 } }')
@@ -2796,6 +2849,7 @@ class C
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { Main() }"));
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void AssignmentInOmittedCollectionElementInitializer()
         {
@@ -2822,7 +2876,7 @@ partial class C : IEnumerable
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C { (i = 1) }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C) (Syntax: '{ (i = 1) }')
@@ -2845,6 +2899,7 @@ IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreation
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void OmittedCollectionElementInitializerInExpressionTree()
         {
@@ -2867,7 +2922,7 @@ partial class C : IEnumerable
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C { 1 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C, IsInvalid) (Syntax: '{ 1 }')
@@ -2888,6 +2943,7 @@ IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreation
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1918ERR_ValueTypePropertyInObjectInitializer_NonSpec_Dev10_Error()
         {
@@ -2949,7 +3005,7 @@ class Test
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: B..ctor()) (OperationKind.ObjectCreationExpression, Type: B, IsInvalid) (Syntax: 'new B { A = ... 4, 5, 6 } }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: B, IsInvalid) (Syntax: '{ A = { 4, 5, 6 } }')

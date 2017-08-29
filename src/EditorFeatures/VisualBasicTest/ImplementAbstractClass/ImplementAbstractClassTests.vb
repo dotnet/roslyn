@@ -525,8 +525,7 @@ Class c
         Throw New NotImplementedException()
     End Sub
 End Class
-</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(2407, "https://github.com/dotnet/roslyn/issues/2407")>
