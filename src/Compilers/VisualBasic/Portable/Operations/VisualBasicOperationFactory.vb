@@ -948,7 +948,9 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim body As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundForToStatement.Body))
             Dim nextVariables As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
                 Function()
-                    Return boundForToStatement.NextVariablesOpt.NullToEmpty.Select(Function(n) Create(n)).ToImmutableArray
+                    Return If(boundForToStatement.NextVariablesOpt.IsDefault,
+                        ImmutableArray(Of IOperation).Empty,
+                        boundForToStatement.NextVariablesOpt.SelectAsArray(Function(n) Create(n)))
                 End Function)
             Dim syntax As SyntaxNode = boundForToStatement.Syntax
             Dim type As ITypeSymbol = Nothing
