@@ -348,7 +348,7 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
         Left: IPropertyReferenceExpression: D1 <anonymous type: D1 module>.module { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: D1) (Syntax: 'module')
             Instance Receiver: null
         Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: D1) (Syntax: '(D1)(() => false)')
-            Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => false')
                 IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'false')
                   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'false')
@@ -409,7 +409,7 @@ class ClassA : ClassB
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: System.Func<System.Int32, System.Int32> F>) (Syntax: 'new { base.F }')
   Initializers(1):
       IFieldReferenceExpression: System.Func<System.Int32, System.Int32> ClassB.F (OperationKind.FieldReferenceExpression, Type: System.Func<System.Int32, System.Int32>) (Syntax: 'base.F')
-        Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.BaseClass) (OperationKind.InstanceReferenceExpression, Type: ClassB) (Syntax: 'base')
+        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: ClassB) (Syntax: 'base')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

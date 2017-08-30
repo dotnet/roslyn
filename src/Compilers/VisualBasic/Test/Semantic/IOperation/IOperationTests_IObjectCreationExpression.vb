@@ -176,7 +176,7 @@ IObjectCreationExpression (Constructor: Sub System.Collections.Generic.List(Of S
           ICollectionElementInitializerExpression (AddMethod: Sub System.Collections.Generic.List(Of System.Int32).Add(item As System.Int32)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void) (Syntax: 'field')
             Arguments(1):
                 IFieldReferenceExpression: C.field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'field')
-                  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'field')
+                  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'field')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -209,7 +209,7 @@ IObjectCreationExpression (Constructor: Sub System.Collections.Generic.List(Of S
             Arguments(1):
                 IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).ToList() As System.Collections.Generic.List(Of System.Int32)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.List(Of System.Int32)) (Syntax: '{x, y}.ToList')
                   Instance Receiver: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32)) (Syntax: '{x, y}')
-                      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                       Operand: IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: '{x, y}')
                           Dimension Sizes(1):
                               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '{x, y}')
@@ -227,7 +227,7 @@ IObjectCreationExpression (Constructor: Sub System.Collections.Generic.List(Of S
                           ICollectionElementInitializerExpression (AddMethod: Sub System.Collections.Generic.List(Of System.Int32).Add(item As System.Int32)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void) (Syntax: 'field')
                             Arguments(1):
                                 IFieldReferenceExpression: C.field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'field')
-                                  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'field')
+                                  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'field')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -302,7 +302,7 @@ IObjectCreationExpression (Constructor: Sub [Class]..ctor()) (OperationKind.Obje
                           Left: IPropertyReferenceExpression: Property [Class].X As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'X')
                               Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New [Class] ... .X = field}')
                           Right: IFieldReferenceExpression: [Class].field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'field')
-                              Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: [Class]) (Syntax: 'field')
+                              Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: [Class]) (Syntax: 'field')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
