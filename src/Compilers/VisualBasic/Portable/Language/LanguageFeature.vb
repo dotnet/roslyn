@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Language
     Friend Module FeatureExtensions
 
         <Extension>
-        Friend Function IsPrototype(feature As Feature) As Boolean
+        Private Function IsPrototype(feature As Feature) As Boolean
             Select Case feature
                 Case Feature.IOperation
                     Return True
@@ -189,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Language
         End Function
 
         <Extension>
-        Friend Function IsInLanguageVersion(feature As Feature, options As VisualBasicCompilation) As Boolean
+        Private Function IsInLanguageVersion(feature As Feature, options As VisualBasicCompilation) As Boolean
             Dim required = feature.GetLanguageVersion()
             Dim current = options.LanguageVersion
             Return CheckVersionNumbers(required, current)
