@@ -827,14 +827,18 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             Locals = locals;
         }
+
+        protected abstract ImmutableArray<IOperation> SideEffectsImpl { get; }
+        protected abstract IOperation ValueImpl { get; }
+
         /// <summary>
         /// Side effects of the expression.
         /// </summary>
-        public abstract ImmutableArray<IOperation> SideEffects { get; }
+        public ImmutableArray<IOperation> SideEffects => Operation.SetParentOperation(SideEffectsImpl, this);
         /// <summary>
         /// The value of the expression.
         /// </summary>
-        public abstract IOperation Value { get; }
+        public IOperation Value => Operation.SetParentOperation(ValueImpl, this);
         /// <summary>
         /// Local declarations contained within the expression.
         /// </summary>
@@ -871,17 +875,12 @@ namespace Microsoft.CodeAnalysis.Semantics
         public SequenceExpression(ImmutableArray<IOperation> sideEffects, IOperation value, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            SideEffects = sideEffects;
-            Value = value;
+            SideEffectsImpl = sideEffects;
+            ValueImpl = value;
         }
-        /// <summary>
-        /// Side effects of the expression.
-        /// </summary>
-        public override ImmutableArray<IOperation> SideEffects { get; }
-        /// <summary>
-        /// The value of the expression.
-        /// </summary>
-        public override IOperation Value { get; }
+
+        protected override ImmutableArray<IOperation> SideEffectsImpl { get; }
+        protected override IOperation ValueImpl { get; }
     }
 
     /// <summary>
@@ -898,14 +897,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             _lazySideEffects = sideEffects;
             _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
-        /// <summary>
-        /// Side effects of the expression.
-        /// </summary>
-        public override ImmutableArray<IOperation> SideEffects => _lazySideEffects.Value;
-        /// <summary>
-        /// The value of the expression.
-        /// </summary>
-        public override IOperation Value => _lazyValue.Value;
+
+        protected override ImmutableArray<IOperation> SideEffectsImpl => _lazySideEffects.Value;
+        protected override IOperation ValueImpl => _lazyValue.Value;
     }
 
     /// <summary>
@@ -919,10 +913,13 @@ namespace Microsoft.CodeAnalysis.Semantics
             Target = target;
             JumpIfTrue = jumpIfTrue;
         }
+
+        protected abstract IOperation ConditionImpl { get; }
+
         /// <summary>
         /// Condition of the branch.
         /// </summary>
-        public abstract IOperation Condition { get; }
+        public IOperation Condition => Operation.SetParentOperation(ConditionImpl, this);
         /// <summary>
         /// Label that is the target of the branch.
         /// </summary>
@@ -959,12 +956,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         public ConditionalGotoStatement(IOperation condition, ILabelSymbol target, bool jumpIfTrue, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(target, jumpIfTrue, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Condition = condition;
+            ConditionImpl = condition;
         }
-        /// <summary>
-        /// Condition of the branch.
-        /// </summary>
-        public override IOperation Condition { get; }
+
+        protected override IOperation ConditionImpl { get; }
     }
 
     /// <summary>
@@ -979,10 +974,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             _lazyCondition = condition ?? throw new System.ArgumentNullException(nameof(condition));
         }
-        /// <summary>
-        /// Condition of the branch.
-        /// </summary>
-        public override IOperation Condition => _lazyCondition.Value;
+
+        protected override IOperation ConditionImpl => _lazyCondition.Value;
     }
 
     /// <summary>
