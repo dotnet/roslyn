@@ -215,5 +215,13 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>Indicates an <see cref="IDefaultCaseClause"/>.</summary>
         DefaultCaseClause = 0x412,
+
+        // Operations that occur only after lowering phase.
+
+        /// <summary>Indicates an <see cref="IConditionalGotoStatement"/>.</summary>
+        ConditionalGotoStatement = 0x413,
+
+        /// <summary>Indicates an <see cref="ISequenceExpression"/>.</summary>
+        SequenceExpression = 0x414
     }
 }

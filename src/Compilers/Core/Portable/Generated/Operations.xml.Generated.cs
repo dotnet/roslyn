@@ -736,7 +736,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         private readonly Lazy<IOperation> _lazyLeftOperand;
         private readonly Lazy<IOperation> _lazyRightOperand;
 
-        public LazyBinaryOperatorExpression(BinaryOperatorKind operatorKind, Lazy<IOperation> leftOperand, Lazy<IOperation> rightOperand, bool isLifted, bool isChecked, bool isCompareText, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : 
+        public LazyBinaryOperatorExpression(BinaryOperatorKind operatorKind, Lazy<IOperation> leftOperand, Lazy<IOperation> rightOperand, bool isLifted, bool isChecked, bool isCompareText, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(operatorKind, isLifted, isChecked, isCompareText, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyLeftOperand = leftOperand ?? throw new System.ArgumentNullException(nameof(leftOperand));
@@ -815,6 +815,174 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         protected override ImmutableArray<IOperation> StatementsImpl => _lazyStatements.Value;
+    }
+
+    /// <summary>
+    /// Represents a sequence of expressions.
+    /// </summary>
+    internal abstract partial class BaseSequenceExpression : Operation, ISequenceExpression
+    {
+        protected BaseSequenceExpression(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+                    base(OperationKind.SequenceExpression, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            Locals = locals;
+        }
+        /// <summary>
+        /// Side effects of the expression.
+        /// </summary>
+        public abstract ImmutableArray<IOperation> SideEffects { get; }
+        /// <summary>
+        /// The value of the expression.
+        /// </summary>
+        public abstract IOperation Value { get; }
+        /// <summary>
+        /// Local declarations contained within the expression.
+        /// </summary>
+        public ImmutableArray<ILocalSymbol> Locals { get; }
+
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                foreach (var operation in SideEffects)
+                {
+                    yield return operation;
+                }
+
+                yield return Value;
+            }
+        }
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitSequenceExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitSequenceExpression(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a sequence of expressions.
+    /// </summary>
+    internal sealed partial class SequenceExpression : BaseSequenceExpression, ISequenceExpression
+    {
+        public SequenceExpression(ImmutableArray<IOperation> sideEffects, IOperation value, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            SideEffects = sideEffects;
+            Value = value;
+        }
+        /// <summary>
+        /// Side effects of the expression.
+        /// </summary>
+        public override ImmutableArray<IOperation> SideEffects { get; }
+        /// <summary>
+        /// The value of the expression.
+        /// </summary>
+        public override IOperation Value { get; }
+    }
+
+    /// <summary>
+    /// Represents a sequence of expressions.
+    /// </summary>
+    internal sealed partial class LazySequenceExpression : BaseSequenceExpression, ISequenceExpression
+    {
+        private readonly Lazy<ImmutableArray<IOperation>> _lazySideEffects;
+        private readonly Lazy<IOperation> _lazyValue;
+
+        public LazySequenceExpression(Lazy<ImmutableArray<IOperation>> sideEffects, Lazy<IOperation> value, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            _lazySideEffects = sideEffects;
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
+        }
+        /// <summary>
+        /// Side effects of the expression.
+        /// </summary>
+        public override ImmutableArray<IOperation> SideEffects => _lazySideEffects.Value;
+        /// <summary>
+        /// The value of the expression.
+        /// </summary>
+        public override IOperation Value => _lazyValue.Value;
+    }
+
+    /// <summary>
+    /// Represents a conditional goto statement
+    /// </summary>
+    internal abstract partial class BaseConditionalGotoStatement : Operation, IConditionalGotoStatement
+    {
+        public BaseConditionalGotoStatement(ILabelSymbol target, bool jumpIfTrue, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(OperationKind.ConditionalGotoStatement, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            Target = target;
+            JumpIfTrue = jumpIfTrue;
+        }
+        /// <summary>
+        /// Condition of the branch.
+        /// </summary>
+        public abstract IOperation Condition { get; }
+        /// <summary>
+        /// Label that is the target of the branch.
+        /// </summary>
+        public ILabelSymbol Target { get; }
+        /// <summary>
+        /// Indicates if the jump will be executed when the condition is true.
+        /// Otherwise, it will be executed when the condition is false.
+        /// </summary>
+        public bool JumpIfTrue { get; }
+
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Condition;
+            }
+        }
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitConditionalGotoStatement(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitConditionalGotoStatement(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a conditional goto statement
+    /// </summary>
+    internal sealed partial class ConditionalGotoStatement : BaseConditionalGotoStatement, IConditionalGotoStatement
+    {
+        public ConditionalGotoStatement(IOperation condition, ILabelSymbol target, bool jumpIfTrue, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(target, jumpIfTrue, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            Condition = condition;
+        }
+        /// <summary>
+        /// Condition of the branch.
+        /// </summary>
+        public override IOperation Condition { get; }
+    }
+
+    /// <summary>
+    /// Represents a conditional goto statement
+    /// </summary>
+    internal sealed partial class LazyConditionalGotoStatement : BaseConditionalGotoStatement, IConditionalGotoStatement
+    {
+        private readonly Lazy<IOperation> _lazyCondition;
+
+        public LazyConditionalGotoStatement(Lazy<IOperation> condition, ILabelSymbol target, bool jumpIfTrue, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(target, jumpIfTrue, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            _lazyCondition = condition ?? throw new System.ArgumentNullException(nameof(condition));
+        }
+        /// <summary>
+        /// Condition of the branch.
+        /// </summary>
+        public override IOperation Condition => _lazyCondition.Value;
     }
 
     /// <summary>
@@ -4710,7 +4878,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<IOperation> _lazyOperand;
 
-        public LazyUnaryOperatorExpression(UnaryOperatorKind unaryOperationKind, Lazy<IOperation> operand, bool isLifted, bool isChecked, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : 
+        public LazyUnaryOperatorExpression(UnaryOperatorKind unaryOperationKind, Lazy<IOperation> operand, bool isLifted, bool isChecked, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(unaryOperationKind, isLifted, isChecked, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyOperand = operand ?? throw new System.ArgumentNullException(nameof(operand));
@@ -5138,7 +5306,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<IBlockStatement> _lazyBody;
 
-        public LazyLocalFunctionStatement(IMethodSymbol symbol, Lazy<IBlockStatement> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue,bool isImplicit)
+        public LazyLocalFunctionStatement(IMethodSymbol symbol, Lazy<IBlockStatement> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
             : base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));

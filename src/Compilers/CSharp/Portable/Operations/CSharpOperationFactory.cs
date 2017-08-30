@@ -254,6 +254,21 @@ namespace Microsoft.CodeAnalysis.Semantics
                     return CreateBoundPatternSwitchLabelOperation((BoundPatternSwitchLabel)boundNode);
                 case BoundKind.IsPatternExpression:
                     return CreateBoundIsPatternExpressionOperation((BoundIsPatternExpression)boundNode);
+
+                // To support BoundNodes after lowering phase.
+                case BoundKind.SequencePoint:
+                    return CreateBoundSequencePointOperation((BoundSequencePoint)boundNode);
+                case BoundKind.SequencePointWithSpan:
+                    return CreateBoundSequencePointWithSpanOperation((BoundSequencePointWithSpan)boundNode);
+                case BoundKind.SequencePointExpression:
+                    return CreateBoundSequencePointExpressionOperation((BoundSequencePointExpression)boundNode);
+                case BoundKind.StatementList:
+                    return CreateBoundStatementListOperation((BoundStatementList)boundNode);
+                case BoundKind.ConditionalGoto:
+                    return CreateBoundConditionalGotoOperation((BoundConditionalGoto)boundNode);
+                case BoundKind.Sequence:
+                    return CreateBoundSequenceOperation((BoundSequence)boundNode);
+
                 default:
                     var constantValue = ConvertToOptional((boundNode as BoundExpression)?.ConstantValue);
                     bool isImplicit = boundNode.WasCompilerGenerated;
@@ -426,7 +441,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyEventAssignmentExpression(eventReference, handlerValue, adds, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-            private IParameterReferenceExpression CreateBoundParameterOperation(BoundParameter boundParameter)
+        private IParameterReferenceExpression CreateBoundParameterOperation(BoundParameter boundParameter)
         {
             IParameterSymbol parameter = boundParameter.ParameterSymbol;
             SyntaxNode syntax = boundParameter.Syntax;
@@ -1064,7 +1079,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         private IBlockStatement CreateBoundBlockOperation(BoundBlock boundBlock)
         {
             Lazy<ImmutableArray<IOperation>> statements =
-                new Lazy<ImmutableArray<IOperation>>(() => boundBlock.Statements.Select(s => Create(s)).Where(s => s.Kind != OperationKind.None).ToImmutableArray());
+                new Lazy<ImmutableArray<IOperation>>(() => boundBlock.Statements.Select(s => Create(s)).Where(s => s != null && s.Kind != OperationKind.None).ToImmutableArray());
 
             ImmutableArray<ILocalSymbol> locals = boundBlock.Locals.As<ILocalSymbol>();
             SyntaxNode syntax = boundBlock.Syntax;
@@ -1505,6 +1520,60 @@ namespace Microsoft.CodeAnalysis.Semantics
             Optional<object> constantValue = ConvertToOptional(boundIsPatternExpression.ConstantValue);
             bool isImplicit = boundIsPatternExpression.WasCompilerGenerated;
             return new LazyIsPatternExpression(expression, pattern, _semanticModel, syntax, type, constantValue, isImplicit);
+        }
+
+        private IOperation CreateBoundSequencePointOperation(BoundSequencePoint boundSequencePoint)
+        {
+            return Create(boundSequencePoint.StatementOpt);
+        }
+
+        private IOperation CreateBoundSequencePointWithSpanOperation(BoundSequencePointWithSpan boundSequencePointWithSpan)
+        {
+            return Create(boundSequencePointWithSpan.StatementOpt);
+        }
+
+        private IOperation CreateBoundSequencePointExpressionOperation(BoundSequencePointExpression boundSequencePointExpression)
+        {
+            return Create(boundSequencePointExpression.Expression);
+        }
+
+        private IBlockStatement CreateBoundStatementListOperation(BoundStatementList boundStatementList)
+        {
+            Lazy<ImmutableArray<IOperation>> statements =
+                new Lazy<ImmutableArray<IOperation>>(() => boundStatementList.Statements.Select(s => Create(s)).Where(s => s != null && s.Kind != OperationKind.None).ToImmutableArray());
+
+            ImmutableArray<ILocalSymbol> locals = ImmutableArray<ILocalSymbol>.Empty;
+            SyntaxNode syntax = boundStatementList.Syntax;
+            ITypeSymbol type = null;
+            Optional<object> constantValue = default(Optional<object>);
+            bool isImplicit = boundStatementList.WasCompilerGenerated;
+            return new LazyBlockStatement(statements, locals, _semanticModel, syntax, type, constantValue, isImplicit);
+        }
+
+        private IConditionalGotoStatement CreateBoundConditionalGotoOperation(BoundConditionalGoto boundConditionalGoto)
+        {
+            Lazy<IOperation> condition = new Lazy<IOperation>(() => Create(boundConditionalGoto.Condition));
+            ILabelSymbol target = boundConditionalGoto.Label;
+            bool jumpIfTrue = boundConditionalGoto.JumpIfTrue;
+            SyntaxNode syntax = boundConditionalGoto.Syntax;
+            ITypeSymbol type = null;
+            Optional<object> constantValue = default(Optional<object>);
+            bool isImplicit = boundConditionalGoto.WasCompilerGenerated;
+            return new LazyConditionalGotoStatement(condition, target, jumpIfTrue, _semanticModel, syntax, type, constantValue, isImplicit);
+        }
+
+        private ISequenceExpression CreateBoundSequenceOperation(BoundSequence boundSequence)
+        {
+            Lazy<ImmutableArray<IOperation>> expressions =
+new Lazy<ImmutableArray<IOperation>>(() => boundSequence.SideEffects.Select(s => Create(s)).Where(s => s != null && s.Kind != OperationKind.None).ToImmutableArray());
+
+            Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundSequence.Value));
+            ImmutableArray<ILocalSymbol> locals = boundSequence.Locals.As<ILocalSymbol>();
+            SyntaxNode syntax = boundSequence.Syntax;
+            ITypeSymbol type = null;
+            Optional<object> constantValue = default(Optional<object>);
+            bool isImplicit = boundSequence.WasCompilerGenerated;
+            return new LazySequenceExpression(expressions, value, locals, _semanticModel, syntax, type, constantValue, isImplicit);
         }
     }
 }

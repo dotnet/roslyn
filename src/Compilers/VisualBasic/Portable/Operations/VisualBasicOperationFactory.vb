@@ -234,6 +234,21 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return Create(DirectCast(boundNode, BoundAnonymousTypeFieldInitializer).Value)
                 Case BoundKind.AnonymousTypePropertyAccess
                     Return CreateBoundAnonymousTypePropertyAccessOperation(DirectCast(boundNode, BoundAnonymousTypePropertyAccess))
+
+                   ' To support BoundNodes after lowering phase.
+                Case BoundKind.SequencePoint
+                    Return CreateBoundSequencePointOperation(DirectCast(boundNode, BoundSequencePoint))
+                Case BoundKind.SequencePointWithSpan
+                    Return CreateBoundSequencePointWithSpanOperation(DirectCast(boundNode, BoundSequencePointWithSpan))
+                Case BoundKind.SequencePointExpression
+                    Return CreateBoundSequencePointExpressionOperation(DirectCast(boundNode, BoundSequencePointExpression))
+                Case BoundKind.StatementList
+                    Return CreateBoundStatementListOperation(DirectCast(boundNode, BoundStatementList))
+                Case BoundKind.ConditionalGoto
+                    Return CreateBoundConditionalGotoOperation(DirectCast(boundNode, BoundConditionalGoto))
+                Case BoundKind.Sequence
+                    Return CreateBoundSequenceOperation(DirectCast(boundNode, BoundSequence))
+
                 Case Else
                     Dim constantValue = ConvertToOptional(TryCast(boundNode, BoundExpression)?.ConstantValueOpt)
                     Dim isImplicit As Boolean = boundNode.WasCompilerGenerated
@@ -990,7 +1005,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function CreateBoundBlockOperation(boundBlock As BoundBlock) As IBlockStatement
             Dim statements As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
                 Function()
-                    Return boundBlock.Statements.Select(Function(n) Create(n)).Where(Function(s) s.Kind <> OperationKind.None).ToImmutableArray()
+                    Return boundBlock.Statements.Select(Function(n) Create(n)).Where(Function(s) s IsNot Nothing AndAlso s.Kind <> OperationKind.None).ToImmutableArray()
                 End Function)
             Dim locals As ImmutableArray(Of ILocalSymbol) = boundBlock.Locals.As(Of ILocalSymbol)()
             Dim syntax As SyntaxNode = boundBlock.Syntax
@@ -1277,6 +1292,58 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAnonymousTypePropertyAccess.ConstantValueOpt)
             Dim isImplicit As Boolean = boundAnonymousTypePropertyAccess.WasCompilerGenerated
             Return New LazyPropertyReferenceExpression([property], instance, [property], argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue, isImplicit)
+        End Function
+
+        Private Function CreateBoundSequencePointOperation(boundSequencePoint As BoundSequencePoint) As IOperation
+            Return Create(boundSequencePoint.StatementOpt)
+        End Function
+
+        Private Function CreateBoundSequencePointWithSpanOperation(boundSequencePointWithSpan As BoundSequencePointWithSpan) As IOperation
+            Return Create(boundSequencePointWithSpan.StatementOpt)
+        End Function
+
+        Private Function CreateBoundSequencePointExpressionOperation(boundSequencePointExpression As BoundSequencePointExpression) As IOperation
+            Return Create(boundSequencePointExpression.Expression)
+        End Function
+
+        Private Function CreateBoundStatementListOperation(boundStatementList As BoundStatementList) As IBlockStatement
+            Dim statements As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
+                 Function()
+                     Return boundStatementList.Statements.Select(Function(n) Create(n)).Where(Function(s) s IsNot Nothing AndAlso s.Kind <> OperationKind.None).ToImmutableArray()
+                 End Function)
+
+            Dim locals As ImmutableArray(Of ILocalSymbol) = ImmutableArray(Of ILocalSymbol).Empty
+            Dim syntax As SyntaxNode = boundStatementList.Syntax
+            Dim type As ITypeSymbol = Nothing
+            Dim constantValue As [Optional](Of Object) = Nothing
+            Dim isImplicit As Boolean = boundStatementList.WasCompilerGenerated
+            Return New LazyBlockStatement(statements, locals, _semanticModel, syntax, type, constantValue, isImplicit)
+        End Function
+
+        Private Function CreateBoundConditionalGotoOperation(boundConditionalGoto As BoundConditionalGoto) As IConditionalGotoStatement
+            Dim condition As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundConditionalGoto.Condition))
+            Dim target As ILabelSymbol = boundConditionalGoto.Label
+            Dim jumpIfTrue As Boolean = boundConditionalGoto.JumpIfTrue
+            Dim syntax As SyntaxNode = boundConditionalGoto.Syntax
+            Dim Type As ITypeSymbol = Nothing
+            Dim constantValue As [Optional](Of Object) = Nothing
+            Dim isImplicit As Boolean = boundConditionalGoto.WasCompilerGenerated
+            Return New LazyConditionalGotoStatement(condition, target, jumpIfTrue, _semanticModel, syntax, Type, constantValue, isImplicit)
+        End Function
+
+        Private Function CreateBoundSequenceOperation(boundSequence As BoundSequence) As ISequenceExpression
+            Dim expressions As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
+                 Function()
+                     Return boundSequence.SideEffects.Select(Function(n) Create(n)).Where(Function(s) s IsNot Nothing AndAlso s.Kind <> OperationKind.None).ToImmutableArray()
+                 End Function)
+
+            Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundSequence.ValueOpt))
+            Dim locals As ImmutableArray(Of ILocalSymbol) = boundSequence.Locals.As(Of ILocalSymbol)
+            Dim syntax As SyntaxNode = boundSequence.Syntax
+            Dim type As ITypeSymbol = Nothing
+            Dim constantValue As [Optional](Of Object) = Nothing
+            Dim isImplicit As Boolean = boundSequence.WasCompilerGenerated
+            Return New LazySequenceExpression(expressions, value, locals, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
     End Class
 End Namespace
