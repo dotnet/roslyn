@@ -1,359 +1,513 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFullProperty
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFullPropertyTests
 {
-    public class ConvertAutoPropertyToFullPropertyTests : AbstractCSharpCodeActionTest
+    public partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider();
-
-        private IDictionary<OptionKey, object> PreferExpressionBodiedAccessors =>
-            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
-
-        private IDictionary<OptionKey, object> DoNotPreferExpressionBodiedAccessors =>
-            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement));
-
-        private IDictionary<OptionKey, object> DoNotPreferExpressionBodiedAccessorsAndPropertyOpenBraceOnSameLine =>
-             OptionsSet(
-                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
-                SingleOption(CSharpFormattingOptions.NewLinesForBracesInProperties, false));
-
-        private IDictionary<OptionKey, object> DoNotPreferExpressionBodiedAccessorsAndAccessorOpenBraceOnSameLine =>
-             OptionsSet(
-                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
-                SingleOption(CSharpFormattingOptions.NewLinesForBracesInAccessors, false));
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
         public async Task SimpleAutoPropertyTest()
         {
             var text = @"
-class foo
+class goo
 {
-    public int F[||]oo { get; set; }
+    public int G[||]oo { get; set; }
 }
 ";
             var expected = @"
-class foo
+class goo
 {
-    private int _foo;
+    private int _goo;
 
-    public int Foo
+    public int Goo
     {
         get
         {
-            return _foo;
+            return _goo;
         }
         set
         {
-            _foo = value;
+            _goo = value;
         }
     }
 }
 ";
-            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
-        public async Task AutoPropertyWithPrivateSetter()
+        public async Task ExtraLineAfterProperty()
         {
             var text = @"
-class foo
+class goo
 {
-    public int F[||]oo { get; private set; }
+    public int G[||]oo { get; set; }
+
 }
 ";
             var expected = @"
-class foo
+class goo
 {
-    private int _foo;
+    private int _goo;
 
-    public int Foo
+    public int Goo
     {
         get
         {
-            return _foo;
+            return _goo;
         }
-        private set
+        set
         {
-            _foo = value;
+            _goo = value;
         }
     }
+
 }
 ";
-            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
-        public async Task AutoPropertyWithFieldNameAlreadyUsed()
+        public async Task WithInitialValue()
         {
             var text = @"
-class foo
+class goo
 {
-    private int _foo;
-
-    public int F[||]oo { get; private set; }
+    public int G[||]oo { get; set; } = 2
 }
 ";
-        var expected = @"
-class foo
+            var expected = @"
+class goo
 {
-    private int _foo;
-    private int _foo1;
+    private int _goo = 2;
 
-    public int Foo
+    public int Goo
     {
         get
         {
-            return _foo1;
+            return _goo;
         }
-        private set
+        set
         {
-            _foo1 = value;
+            _goo = value;
         }
     }
 }
 ";
-            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task WithCalculatedInitialValue()
+        {
+            var text = @"
+class goo
+{
+    const int num = 345;
+    public int G[||]oo { get; set; } = 2*num
+}
+";
+            var expected = @"
+class goo
+{
+    const int num = 345;
+    private int _goo = 2 * num;
+
+    public int Goo
+    {
+        get
+        {
+            return _goo;
+        }
+        set
+        {
+            _goo = value;
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task WithPrivateSetter()
+        {
+            var text = @"
+class goo
+{
+    public int G[||]oo { get; private set; }
+}
+";
+            var expected = @"
+class goo
+{
+    private int _goo;
+
+    public int Goo
+    {
+        get
+        {
+            return _goo;
+        }
+        private set
+        {
+            _goo = value;
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task WithFieldNameAlreadyUsed()
+        {
+            var text = @"
+class goo
+{
+    private int _goo;
+
+    public int G[||]oo { get; private set; }
+}
+";
+        var expected = @"
+class goo
+{
+    private int _goo;
+    private int _goo1;
+
+    public int Goo
+    {
+        get
+        {
+            return _goo1;
+        }
+        private set
+        {
+            _goo1 = value;
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
         public async Task WithComments()
         {
             var text = @"
-class foo
+class goo
 {
     // Comments before
-    public int F[||]oo { get; private set; } //Comments during
+    public int G[||]oo { get; private set; } //Comments during
     //Comments after
 }
 ";
         var expected = @"
-class foo
+class goo
 {
-    private int _foo;
+    private int _goo;
 
     // Comments before
-    public int Foo
+    public int Goo
     {
         get
         {
-            return _foo;
+            return _goo;
         }
         private set
         {
-            _foo = value;
+            _goo = value;
         }
     } //Comments during
     //Comments after
 }
 ";
-            await TestInRegularAndScriptAsync(text, expected, options:DoNotPreferExpressionBodiedAccessors, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(text, expected, options:DoNotPreferExpressionBodiedAccessors);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
         public async Task WithExpressionBody()
         {
             var text = @"
-class foo
+class goo
 {
-    public int F[||]oo { get; set; }
+    public int G[||]oo { get; set; }
 }
 ";
         var expected = @"
-class foo
+class goo
 {
-    private int _foo;
+    private int _goo;
 
-    public int Foo { get => _foo; set => _foo = value; }
+    public int Goo { get => _goo; set => _goo = value; }
 }
 ";
-            await TestInRegularAndScriptAsync(text, expected, options: PreferExpressionBodiedAccessors, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(text, expected, options: PreferExpressionBodiedAccessorsWhenPossible);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task WithExpressionBodyWhenOnSingleLine()
+        {
+            var text = @"
+class goo
+{
+    public int G[||]oo { get; set; }
+}
+";
+            var expected = @"
+class goo
+{
+    private int _goo;
+
+    public int Goo { get => _goo; set => _goo = value; }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected, options: PreferExpressionBodiedAccessorsWhenOnSingleLine);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
         public async Task WithExpressionBodyWithTrivia()
         {
             var text = @"
-class foo
+class goo
 {
-    public int F[||]oo { get /* test */ ; set /* test2 */ ; }
+    public int G[||]oo { get /* test */ ; set /* test2 */ ; }
 }
 ";
             var expected = @"
-class foo
+class goo
 {
-    private int _foo;
+    private int _goo;
 
-    public int Foo { get /* test */ => _foo; set /* test2 */ => _foo = value; }
+    public int Goo { get /* test */ => _goo; set /* test2 */ => _goo = value; }
 }
 ";
-            await TestInRegularAndScriptAsync(text, expected, options: PreferExpressionBodiedAccessors, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(text, expected, options: PreferExpressionBodiedAccessorsWhenPossible);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
         public async Task WithPropertyOpenBraceOnSameLine()
         {
             var text = @"
-class foo
+class goo
 {
-    public int F[||]oo { get; set; }
+    public int G[||]oo { get; set; }
 }
 ";
             var expected = @"
-class foo
+class goo
 {
-    private int _foo;
+    private int _goo;
 
-    public int Foo {
+    public int Goo {
         get
         {
-            return _foo;
+            return _goo;
         }
         set
         {
-            _foo = value;
+            _goo = value;
         }
     }
 }
 ";
-            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessorsAndPropertyOpenBraceOnSameLine, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessorsAndPropertyOpenBraceOnSameLine);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
         public async Task WithAccessorOpenBraceOnSameLine()
         {
             var text = @"
-class foo
+class goo
 {
-    public int F[||]oo { get; set; }
+    public int G[||]oo { get; set; }
 }
 ";
             var expected = @"
-class foo
+class goo
 {
-    private int _foo;
+    private int _goo;
 
-    public int Foo
+    public int Goo
     {
         get {
-            return _foo;
+            return _goo;
         }
         set {
-            _foo = value;
+            _goo = value;
         }
     }
 }
 ";
-            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessorsAndAccessorOpenBraceOnSameLine, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessorsAndAccessorOpenBraceOnSameLine);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
         public async Task StaticProperty()
         {
             var text = @"
-class foo
+class goo
 {
-    public static int F[||]oo { get; set; }
+    public static int G[||]oo { get; set; }
 }
 ";
             var expected = @"
-class foo
+class goo
 {
-    private static int s_foo;
+    private static int s_goo;
 
-    public static int Foo
+    public static int Goo
     {
         get
         {
-            return s_foo;
+            return s_goo;
         }
         set
         {
-            s_foo = value;
+            s_goo = value;
         }
     }
 }
 ";
-            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
-        public async Task PropertyWithAttributes()
+        public async Task ProtectedProperty()
         {
             var text = @"
-class foo
+class goo
 {
-    [A]
-    public int F[||]oo { get; set; }
+    protected int G[||]oo { get; set; }
 }
 ";
             var expected = @"
-class foo
+class goo
 {
-    private int _foo;
+    private int _goo;
 
-    [A]
-    public int Foo
+    protected int Goo
     {
         get
         {
-            return _foo;
+            return _goo;
         }
         set
         {
-            _foo = value;
+            _goo = value;
         }
     }
 }
 ";
-            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task InternalProperty()
+        {
+            var text = @"
+class goo
+{
+    internal int G[||]oo { get; set; }
+}
+";
+            var expected = @"
+class goo
+{
+    private int _goo;
+
+    internal int Goo
+    {
+        get
+        {
+            return _goo;
+        }
+        set
+        {
+            _goo = value;
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task WithAttributes()
+        {
+            var text = @"
+class goo
+{
+    [A]
+    public int G[||]oo { get; set; }
+}
+";
+            var expected = @"
+class goo
+{
+    private int _goo;
+
+    [A]
+    public int Goo
+    {
+        get
+        {
+            return _goo;
+        }
+        set
+        {
+            _goo = value;
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
         public async Task CommentsInAccessors()
         {
             var text = @"
-class foo
+class goo
 {
     /// <summary>
     /// test stuff here
     /// </summary>
-    public int testf[||]oo { /* test1 */ get /* test2 */; /* test3 */ set /* test4 */; /* test5 */ } /* test6 */
+    public int testg[||]oo { /* test1 */ get /* test2 */; /* test3 */ set /* test4 */; /* test5 */ } /* test6 */
 }
 ";
             var expected = @"
-class foo
+class goo
 {
-    private int _testfoo;
+    private int _testgoo;
 
     /// <summary>
     /// test stuff here
     /// </summary>
-    public int testfoo
+    public int testgoo
     { /* test1 */
         get /* test2 */
         {
-            return _testfoo;
+            return _testgoo;
         } /* test3 */
         set /* test4 */
         {
-            _testfoo = value;
+            _testgoo = value;
         } /* test5 */
     } /* test6 */
 }
 ";
-            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
@@ -393,7 +547,7 @@ class MyDerivedClass : MyBaseClass
     }
 }
 ";
-            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
@@ -423,7 +577,7 @@ class MyClass
     }
 }
 ";
-            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
@@ -463,7 +617,37 @@ class MyDerivedClass : MyBaseClass
     public override string Name {get; set;}
 }
 ";
-            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task PrivateProperty()
+        {
+            var text = @"
+class MyClass
+{
+    private string N[||]ame { get; set; }
+}
+";
+            var expected = @"
+class MyClass
+{
+    private string _name;
+
+    private string Name
+    {
+        get
+        {
+            return _name;
+        }
+        set
+        {
+            _name = value;
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
@@ -484,24 +668,50 @@ class MyDerivedClass : MyBaseClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
-        public async Task GetterOnly()
+        public async Task ExternProperty()
         {
             var text = @"
-class foo
+class MyBaseClass
 {
-    public int F[||]oo { get;}
+    extern string N[||]ame { get; set; }
 }
 ";
             await TestMissingAsync(text);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task GetterOnly()
+        {
+            var text = @"
+class goo
+{
+    public int G[||]oo { get;}
+}
+";
+            var expected = @"
+class goo
+{
+    private readonly int _goo;
+
+    public int Goo
+    {
+        get
+        {
+            return _goo;
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
         public async Task SetterOnly()
         {
             var text = @"
-class foo
+class goo
 {
-    public int F[||]oo
+    public int G[||]oo
 ````{
         set {}
     }
@@ -514,15 +724,242 @@ class foo
         public async Task ExpressionBodiedAccessors()
         {
             var text = @"
-class foo
+class goo
 {
-   private int _testfoo;
+   private int _testgoo;
 
-   public int testf[||]oo {get => _testfoo; set => _testfoo = value; }
+   public int testf[||]oo {get => _testgoo; set => _testgoo = value; }
 }
 ";
             await TestMissingAsync(text);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task CursorAtBeginning()
+        {
+            var text = @"
+class goo
+{
+    [||]public int Goo { get; set; }
+}
+";
+            var expected = @"
+class goo
+{
+    private int _goo;
+
+    public int Goo
+    {
+        get
+        {
+            return _goo;
+        }
+        set
+        {
+            _goo = value;
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task CursorAtEnd()
+        {
+            var text = @"
+class goo
+{
+    public int Goo[||] { get; set; }
+}
+";
+            var expected = @"
+class goo
+{
+    private int _goo;
+
+    public int Goo
+    {
+        get
+        {
+            return _goo;
+        }
+        set
+        {
+            _goo = value;
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task CursorOnAccessors()
+        {
+            var text = @"
+class goo
+{
+    public int Goo { g[||]et; set; }
+}
+";
+            await TestMissingAsync(text);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task MoreThanOneGetter()
+        {
+            var text = @"
+class goo
+{
+    public int Goo { g[||]et; get; }
+}
+";
+            await TestMissingAsync(text);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task MoreThanOneSetter()
+        {
+            var text = @"
+class goo
+{
+    public int Goo { get; s[||]et; set; }
+}
+";
+            await TestMissingAsync(text);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task CustomFieldName()
+        {
+            var text = @"
+class goo
+{
+    public int G[||]oo { get; set; }
+}
+";
+            var expected = @"
+class goo
+{
+    private int testingGoo;
+
+    public int Goo
+    {
+        get
+        {
+            return testingGoo;
+        }
+        set
+        {
+            testingGoo = value;
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected, options: UseCustomFieldName);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task NonStaticPropertyWithCustomStaticFieldName()
+        {
+            var text = @"
+class goo
+{
+    public int G[||]oo { get; set; }
+}
+";
+            var expected = @"
+class goo
+{
+    private int _goo;
+
+    public int Goo
+    {
+        get
+        {
+            return _goo;
+        }
+        set
+        {
+            _goo = value;
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected, options: UseCustomStaticFieldName);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task StaticPropertyWithCustomStaticFieldName()
+        {
+            var text = @"
+class goo
+{
+    public static int G[||]oo { get; set; }
+}
+";
+            var expected = @"
+class goo
+{
+    private static int staticfieldtestGoo;
+
+    public static int Goo
+    {
+        get
+        {
+            return staticfieldtestGoo;
+        }
+        set
+        {
+            staticfieldtestGoo = value;
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected, options: UseCustomStaticFieldName);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task InInterface()
+        {
+            var text = @"
+interface IGoo
+{
+    public int Goo { get; s[||]et; set; }
+}
+";
+            await TestMissingAsync(text);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task InStruct()
+        {
+            var text = @"
+struct goo
+{
+    public int G[||]oo { get; set; }
+}
+";
+            var expected = @"
+struct goo
+{
+    private int _goo;
+
+    public int Goo
+    {
+        get
+        {
+            return _goo;
+        }
+        set
+        {
+            _goo = value;
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
+        }
     }
 }

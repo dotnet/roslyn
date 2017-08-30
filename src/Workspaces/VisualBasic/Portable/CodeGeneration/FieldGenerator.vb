@@ -78,7 +78,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 End If
             End If
 
-            Dim initializer = GenerateEqualsValue(field)
+            Dim initializerNode = TryCast(CodeGenerationFieldInfo.GetInitializer(field), ExpressionSyntax)
+            Dim initializer As EqualsValueSyntax
+            If (initializerNode IsNot Nothing) Then
+                initializer = SyntaxFactory.EqualsValue(initializerNode)
+            Else
+                initializer = GenerateEqualsValue(field)
+            End If
 
             Dim fieldDeclaration =
                 SyntaxFactory.FieldDeclaration(
