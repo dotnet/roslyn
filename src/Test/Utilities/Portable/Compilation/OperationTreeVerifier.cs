@@ -691,8 +691,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitInstanceReferenceExpression(IInstanceReferenceExpression operation)
         {
             LogString(nameof(IInstanceReferenceExpression));
-            var kindStr = $"{nameof(InstanceReferenceKind)}.{operation.InstanceReferenceKind}";
-            LogString($" ({kindStr})");
             LogCommonPropertiesAndNewLine(operation);
         }
 

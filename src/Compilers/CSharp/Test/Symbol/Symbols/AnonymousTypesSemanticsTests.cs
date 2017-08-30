@@ -409,7 +409,7 @@ class ClassA : ClassB
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: System.Func<System.Int32, System.Int32> F>) (Syntax: 'new { base.F }')
   Initializers(1):
       IFieldReferenceExpression: System.Func<System.Int32, System.Int32> ClassB.F (OperationKind.FieldReferenceExpression, Type: System.Func<System.Int32, System.Int32>) (Syntax: 'base.F')
-        Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.BaseClass) (OperationKind.InstanceReferenceExpression, Type: ClassB) (Syntax: 'base')
+        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: ClassB) (Syntax: 'base')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
