@@ -34,6 +34,9 @@
     <InternalsVisibleToRazor>
       <Visible>false</Visible>
     </InternalsVisibleToRazor>
+    <InternalsVisibleToRemoteLS>
+      <Visible>false</Visible>
+    </InternalsVisibleToRemoteLS>
   </ItemDefinitionGroup>
 
   <PropertyGroup Condition="'$(PublicKey)' != '' AND '$(SignAssembly)' == 'True'">
