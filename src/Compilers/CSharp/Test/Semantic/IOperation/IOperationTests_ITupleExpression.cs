@@ -929,8 +929,8 @@ IOperation:  (OperationKind.None) (Syntax: 'var (x, y)  ... Point(0, 1)')
   Children(2):
       ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: 'var (x, y)')
         Elements(2):
-            ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-            ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
+            ILocalReferenceExpression: x (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+            ILocalReferenceExpression: y (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: 'new Point(0, 1)')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: IObjectCreationExpression (Constructor: Point..ctor(System.Int32 x, System.Int32 y)) (OperationKind.ObjectCreationExpression, Type: Point) (Syntax: 'new Point(0, 1)')
@@ -1046,8 +1046,8 @@ IOperation:  (OperationKind.None) (Syntax: '(uint x, ui ... Point(0, 1)')
   Children(2):
       ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32 x, System.UInt32 y)) (Syntax: '(uint x, uint y)')
         Elements(2):
-            ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.UInt32) (Syntax: 'uint x')
-            ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.UInt32) (Syntax: 'uint y')
+            ILocalReferenceExpression: x (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.UInt32) (Syntax: 'uint x')
+            ILocalReferenceExpression: y (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.UInt32) (Syntax: 'uint y')
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.UInt32 x, System.UInt32 y)) (Syntax: 'new Point(0, 1)')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: IObjectCreationExpression (Constructor: Point..ctor(System.Int32 x, System.Int32 y)) (OperationKind.ObjectCreationExpression, Type: Point) (Syntax: 'new Point(0, 1)')

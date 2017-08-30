@@ -21,7 +21,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement) (Syntax: 'If count >  ... lue = count')
   Condition: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'count > 0')
       Left: ILocalReferenceExpression: count (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'count')
@@ -31,7 +31,8 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If count >  ... lue = count')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'returnValue = count')
             Left: ILocalReferenceExpression: returnValue (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'returnValue')
             Right: ILocalReferenceExpression: count (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'count')
-  IfFalse: null]]>.Value
+  IfFalse: null
+]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
@@ -53,7 +54,7 @@ Module Program
 End Module
 ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement) (Syntax: 'If count >  ... End If')
   Condition: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'count > 0')
       Left: ILocalReferenceExpression: count (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'count')
@@ -63,7 +64,8 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If count >  ... End If')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'returnValue = count')
             Left: ILocalReferenceExpression: returnValue (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'returnValue')
             Right: ILocalReferenceExpression: count (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'count')
-  IfFalse: null]]>.Value
+  IfFalse: null
+]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
@@ -82,7 +84,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement) (Syntax: 'If count >  ... ata - count')
   Condition: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'count > 10')
       Left: ILocalReferenceExpression: count (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'count')
@@ -100,7 +102,8 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If count >  ... ata - count')
             Left: ILocalReferenceExpression: data (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'data')
             Right: IBinaryOperatorExpression (BinaryOperatorKind.Subtract, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'data - count')
                 Left: ILocalReferenceExpression: data (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'data')
-                Right: ILocalReferenceExpression: count (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'count')]]>.Value
+                Right: ILocalReferenceExpression: count (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'count')
+]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
@@ -120,7 +123,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement) (Syntax: 'If m > 10 T ... rnValue = n')
   Condition: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'm > 10')
       Left: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'm')
@@ -136,7 +139,8 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If m > 10 T ... rnValue = n')
                   Left: ILocalReferenceExpression: returnValue (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'returnValue')
                   Right: ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'n')
         IfFalse: null
-  IfFalse: null]]>.Value
+  IfFalse: null
+]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
@@ -156,7 +160,7 @@ Class P
     End Sub
 End Class]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement) (Syntax: 'If 1 = 1 Th ... End If')
   Condition: IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: True) (Syntax: '1 = 1')
       Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -195,7 +199,8 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If False Th ... End If')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Boolean) (Syntax: 'condition = False')
             Left: ILocalReferenceExpression: condition (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'condition')
             Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False) (Syntax: 'False')
-  IfFalse: null]]>.Value
+  IfFalse: null
+]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
@@ -215,7 +220,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m > 10  ... rnValue = n')
   Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean) (Syntax: '(m > 10 And n > 20)')
       Operand: IBinaryOperatorExpression (BinaryOperatorKind.And, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'm > 10 And n > 20')
@@ -297,7 +302,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m > 10) ... End If')
   Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean) (Syntax: '(m > 10)')
       Operand: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'm > 10')
@@ -355,7 +360,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m > 10) ... End If')
   Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean) (Syntax: '(m > 10)')
       Operand: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'm > 10')
@@ -410,7 +415,7 @@ Module Program
 End Module
 ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m >= n  ... End If')
   Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean) (Syntax: '(m >= n AndAlso m >= p)')
       Operand: IBinaryOperatorExpression (BinaryOperatorKind.ConditionalAnd, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'm >= n AndAlso m >= p')
@@ -456,7 +461,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m > 20) ... End If')
   Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean) (Syntax: '(m > 20)')
       Operand: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'm > 20')
@@ -513,7 +518,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m > 20) ... ("Result3")')
   Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean) (Syntax: '(m > 20)')
       Operand: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'm > 20')
@@ -577,7 +582,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'If (m > 20) ... Else')
   Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean, IsInvalid) (Syntax: '(m > 20)')
       Operand: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, IsInvalid) (Syntax: 'm > 20')
@@ -661,14 +666,15 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m = 9)  ... End If')
   Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean) (Syntax: '(m = 9)')
       Operand: IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'm = 9')
           Left: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'm')
           Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 9) (Syntax: '9')
   IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If (m = 9)  ... End If')
-  IfFalse: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Else')]]>.Value
+  IfFalse: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Else')
+]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 

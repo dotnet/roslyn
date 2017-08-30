@@ -1565,15 +1565,17 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseFieldReferenceExpression : MemberReferenceExpression, IFieldReferenceExpression
     {
-        public BaseFieldReferenceExpression(IFieldSymbol field, ISymbol member, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public BaseFieldReferenceExpression(IFieldSymbol field, bool isDeclaration, ISymbol member, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(member, OperationKind.FieldReferenceExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Field = field;
+            IsDeclaration = isDeclaration;
         }
         /// <summary>
         /// Referenced field.
         /// </summary>
         public IFieldSymbol Field { get; }
+        public bool IsDeclaration { get; }
         public override IEnumerable<IOperation> Children
         {
             get
@@ -1597,8 +1599,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class FieldReferenceExpression : BaseFieldReferenceExpression, IFieldReferenceExpression
     {
-        public FieldReferenceExpression(IFieldSymbol field, IOperation instance, ISymbol member, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(field, member, semanticModel, syntax, type, constantValue, isImplicit)
+        public FieldReferenceExpression(IFieldSymbol field, bool isDeclaration, IOperation instance, ISymbol member, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(field, isDeclaration, member, semanticModel, syntax, type, constantValue, isImplicit)
         {
             InstanceImpl = instance;
         }
@@ -1612,8 +1614,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<IOperation> _lazyInstance;
 
-        public LazyFieldReferenceExpression(IFieldSymbol field, Lazy<IOperation> instance, ISymbol member, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(field, member, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyFieldReferenceExpression(IFieldSymbol field, bool isDeclaration, Lazy<IOperation> instance, ISymbol member, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(field, isDeclaration, member, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyInstance = instance ?? throw new System.ArgumentNullException(nameof(instance));
         }
@@ -2786,15 +2788,17 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LocalReferenceExpression : Operation, ILocalReferenceExpression
     {
-        public LocalReferenceExpression(ILocalSymbol local, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public LocalReferenceExpression(ILocalSymbol local, bool isDeclaration, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.LocalReferenceExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Local = local;
+            IsDeclaration = isDeclaration;
         }
         /// <summary>
         /// Referenced local variable.
         /// </summary>
         public ILocalSymbol Local { get; }
+        public bool IsDeclaration { get; }
         public override IEnumerable<IOperation> Children
         {
             get

@@ -291,7 +291,8 @@ IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.Conve
         ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid) (Syntax: 'Function() F()')
           Statement: null
         IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Function() F()')
-          ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: ?, IsInvalid) (Syntax: 'Function() F()')]]>.Value
+          ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: ?, IsInvalid) (Syntax: 'Function() F()')
+]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
 BC30491: Expression does not produce a value.
