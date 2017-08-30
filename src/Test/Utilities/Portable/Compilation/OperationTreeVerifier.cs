@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         private void VisitArray<T>(IEnumerable<T> list, string header, bool logElementCount)
-            where T: IOperation
+            where T : IOperation
         {
             VisitArrayCommon(list, header, logElementCount, VisitOperationArrayElement);
         }
@@ -1327,6 +1327,33 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Visit(operation.Pattern, "Pattern");
             Visit(operation.GuardExpression, "Guard Expression");
+        }
+
+        public override void VisitConditionalGotoStatement(IConditionalGotoStatement operation)
+        {
+            LogString(nameof(IConditionalGotoStatement));
+            LogString($" (JumpIfTrue: {operation.JumpIfTrue}");
+
+            // TODO: Put a better workaround to skip compiler generated labels.
+            if (!operation.Target.IsImplicitlyDeclared)
+            {
+                LogString($", Target: {operation.Target.Name}");
+            }
+
+            LogString(")");
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Condition, "Condition");
+        }
+
+        public override void VisitSequenceExpression(ISequenceExpression operation)
+        {
+            LogString(nameof(ISequenceExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            LogLocals(operation.Locals, header: "Locals");
+            VisitArray(operation.SideEffects, "SideEffects", logElementCount: true);
+            Visit(operation.Value, "Value");
         }
 
         #endregion
