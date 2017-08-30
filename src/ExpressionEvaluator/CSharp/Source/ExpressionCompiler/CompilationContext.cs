@@ -821,8 +821,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             for (int i = 0; i < assembliesAndModules.Length; i++)
             {
-                var assembly = assembliesAndModules[i] as AssemblySymbol;
-                if (assembly != null && assemblyIdentityComparer.ReferenceMatchesDefinition(referenceIdentity, assembly.Identity))
+                if (assembliesAndModules[i] is AssemblySymbol assembly && assemblyIdentityComparer.ReferenceMatchesDefinition(referenceIdentity, assembly.Identity))
                 {
                     return i;
                 }

@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis
         IfStatement = 0x5,
         /// <summary>Indicates an <see cref="ILoopStatement"/>.</summary>
         LoopStatement = 0x6,
-        /// <summary>Indicates an <see cref="ILabelStatement"/>.</summary>
-        LabelStatement = 0x7,
+        /// <summary>Indicates an <see cref="ILabeledStatement"/>.</summary>
+        LabeledStatement = 0x7,
         /// <summary>Indicates an <see cref="IBranchStatement"/>.</summary>
         BranchStatement = 0x8,
         /// <summary>Indicates an <see cref="IEmptyStatement"/>.</summary>
@@ -93,8 +93,8 @@ namespace Microsoft.CodeAnalysis
         UnaryOperatorExpression = 0x10d,
         /// <summary>Indicates an <see cref="IBinaryOperatorExpression"/>.</summary>
         BinaryOperatorExpression = 0x10e,
-        /// <summary>Indicates an <see cref="IConditionalChoiceExpression"/>.</summary>
-        ConditionalChoiceExpression = 0x10f,
+        /// <summary>Indicates an <see cref="IConditionalExpression"/>.</summary>
+        ConditionalExpression = 0x10f,
         /// <summary>Indicates an <see cref="ICoalesceExpression"/>.</summary>
         CoalesceExpression = 0x110,
         /// <summary>Indicates an <see cref="IAnonymousFunctionExpression"/>.</summary>

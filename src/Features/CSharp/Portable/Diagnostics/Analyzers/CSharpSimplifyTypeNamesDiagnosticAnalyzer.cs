@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             Diagnostic diagnostic;
             var options = context.Options;
             var cancellationToken = context.CancellationToken;
-            Func<SyntaxNode, bool> descendIntoChildren = n =>
+            bool descendIntoChildren(SyntaxNode n)
             {
                 if (!IsRegularCandidate(n) ||
                     !TrySimplifyTypeNameExpression(context.SemanticModel, n, options, out diagnostic, cancellationToken))
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
                 context.ReportDiagnostic(diagnostic);
                 return false;
-            };
+            }
 
             // find regular node first - search from top to down. once found one, don't get into its children
             foreach (var candidate in context.Node.DescendantNodesAndSelf(descendIntoChildren))

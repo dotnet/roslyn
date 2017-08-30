@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal abstract bool IsMethod(SyntaxNode declaration);
         internal abstract bool IsLambda(SyntaxNode node);
-        internal abstract bool IsLambdaExpression(SyntaxNode node);
+        internal abstract bool IsNestedFunction(SyntaxNode node);
         internal abstract bool IsClosureScope(SyntaxNode node);
         internal abstract bool ContainsLambda(SyntaxNode declaration);
         internal abstract SyntaxNode GetLambda(SyntaxNode lambdaBody);
@@ -3628,7 +3628,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             oldLocalCapturesBySyntax.Free();
         }
 
-        private void ReportLambdaSignatureRudeEdits(
+        protected virtual void ReportLambdaSignatureRudeEdits(
             SemanticModel oldModel,
             SyntaxNode oldLambdaBody,
             SemanticModel newModel,
@@ -3640,10 +3640,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var newLambda = GetLambda(newLambdaBody);
             var oldLambda = GetLambda(oldLambdaBody);
 
-            Debug.Assert(IsLambdaExpression(newLambda) == IsLambdaExpression(oldLambda));
+            Debug.Assert(IsNestedFunction(newLambda) == IsNestedFunction(oldLambda));
 
             // queries are analyzed separately
-            if (!IsLambdaExpression(newLambda))
+            if (!IsNestedFunction(newLambda))
             {
                 hasErrors = false;
                 return;

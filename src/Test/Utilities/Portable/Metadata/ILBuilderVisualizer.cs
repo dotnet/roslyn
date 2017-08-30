@@ -200,8 +200,7 @@ namespace Roslyn.Test.Utilities
 
         private static void DumpBlockIL(ILBuilder.BasicBlock block, StringBuilder sb)
         {
-            var switchBlock = block as ILBuilder.SwitchBlock;
-            if (switchBlock != null)
+            if (block is ILBuilder.SwitchBlock switchBlock)
             {
                 DumpSwitchBlockIL(switchBlock, sb);
             }

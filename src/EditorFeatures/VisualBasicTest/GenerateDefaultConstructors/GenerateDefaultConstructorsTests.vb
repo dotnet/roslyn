@@ -380,8 +380,7 @@ Class Program
 
     Sub Main(args As String())
     End Sub
-End Class</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+End Class</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(889349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")>
@@ -411,8 +410,7 @@ End Class
 Class B
     Friend Sub New(x As Integer)
     End Sub
-End Class</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+End Class</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/15005"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
@@ -474,8 +472,7 @@ Class B
     End Sub
 End Class
 </Text>.Value.Replace(vbLf, vbCrLf),
-index:=2,
-ignoreTrivia:=False)
+index:=2)
             Throw New Exception() ' (Skip:="https://github.com/dotnet/roslyn/issues/15005")
         End Function
 
@@ -538,8 +535,7 @@ Class B
     End Sub
 End Class
 </Text>.Value.Replace(vbLf, vbCrLf),
-index:=2,
-ignoreTrivia:=False)
+index:=2)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>

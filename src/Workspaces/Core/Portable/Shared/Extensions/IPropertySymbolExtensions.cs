@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return property;
             }
 
-            Func<AttributeData, bool> shouldRemoveAttribute = a =>
+            bool shouldRemoveAttribute(AttributeData a) =>
                 attributesToRemove.Where(attr => attr != null).Any(attr => attr.Equals(a.AttributeClass));
 
             var someParameterHasAttribute = property.Parameters

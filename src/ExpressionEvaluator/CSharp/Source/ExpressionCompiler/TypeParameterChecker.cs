@@ -45,8 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             public override BoundNode Visit(BoundNode node)
             {
-                var expression = node as BoundExpression;
-                if (expression != null)
+                if (node is BoundExpression expression)
                 {
                     _typeParameterChecker.Visit(expression.ExpressionSymbol);
                 }

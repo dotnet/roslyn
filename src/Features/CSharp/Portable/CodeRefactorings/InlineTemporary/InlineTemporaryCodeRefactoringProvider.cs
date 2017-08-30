@@ -555,8 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             }
 
             // Replace the conflicting inlined nodes with the original nodes annotated with conflict annotation.
-            Func<SyntaxNode, SyntaxNode, SyntaxNode> conflictAnnotationAdder =
-                (SyntaxNode oldNode, SyntaxNode newNode) =>
+            SyntaxNode conflictAnnotationAdder(SyntaxNode oldNode, SyntaxNode newNode) =>
                     newNode.WithAdditionalAnnotations(ConflictAnnotation.Create(CSharpFeaturesResources.Conflict_s_detected));
 
             return await inlinedDocument.ReplaceNodesAsync(replacementNodesWithChangedSemantics.Keys, conflictAnnotationAdder, cancellationToken).ConfigureAwait(false);

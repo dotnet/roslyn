@@ -329,8 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             // MemberAccessExpressionSyntax. Thus, let's do other namespaces and types.
             var nameBinding = context.SemanticModel.GetSymbolInfo(name, cancellationToken);
 
-            var symbol = nameBinding.Symbol as INamespaceOrTypeSymbol;
-            if (symbol != null)
+            if (nameBinding.Symbol is INamespaceOrTypeSymbol symbol)
             {
                 if (context.IsNameOfContext)
                 {
