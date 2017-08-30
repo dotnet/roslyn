@@ -25,15 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             // We'll always be leading trivia of some token.
             var startPos = trivia.FullSpan.Start;
 
-            // Look through our parent token's trivia, to:
-            // 1. See if we're the first disabled trivia attached to the token.
-            // 2. To extend the span to the end of the last disabled trivia.
-            //
-            // The issue is that if there are other pre-processor directives (like #regions or
-            // #lines) mixed in the disabled code, they will be interleaved.  Keep walking past
-            // them to the next thing that will actually end a disabled block. When we encounter
-            // one, we must also consider which opening block they end. In case of nested pre-processor
-            // directives, the inner most end block should match the inner most open block and so on.
             var parentTriviaList = trivia.Token.LeadingTrivia;
             var indexInParent = parentTriviaList.IndexOf(trivia);
 
@@ -58,8 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 return;
             }
 
-            var endPos = GetEndPositionIncludingLastNewLine(trivia, parentTriviaList, indexInParent);
-            endPos = GetEndPositionExludingLastNewLine(syntaxTree, endPos, cancellationToken);
+            var endTrivia = GetCorrespondingEndTrivia(trivia, parentTriviaList, indexInParent);
+            var endPos = GetEndPositionExludingLastNewLine(syntaxTree, endTrivia, cancellationToken);
 
             var span = TextSpan.FromBounds(startPos, endPos);
             spans.Add(new BlockSpan(
@@ -70,16 +61,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 autoCollapse: true));
         }
 
-        private static int GetEndPositionExludingLastNewLine(SyntaxTree syntaxTree, int endPos, CancellationToken cancellationToken)
+        private static int GetEndPositionExludingLastNewLine(SyntaxTree syntaxTree, SyntaxTrivia trivia, CancellationToken cancellationToken)
         {
+            var endPos = trivia.FullSpan.End;
             var text = syntaxTree.GetText(cancellationToken);
             return endPos >= 2 && text[endPos - 1] == '\n' && text[endPos - 2] == '\r' ? endPos - 2 :
                    endPos >= 1 && SyntaxFacts.IsNewLine(text[endPos - 1])              ? endPos - 1 : endPos;
         }
 
-        private int GetEndPositionIncludingLastNewLine(
+        private SyntaxTrivia GetCorrespondingEndTrivia(
             SyntaxTrivia trivia, SyntaxTriviaList triviaList, int index)
         {
+            // Look through our parent token's trivia, to extend the span to the end of the last
+            // disabled trivia.
+            //
+            // The issue is that if there are other pre-processor directives (like #regions or
+            // #lines) mixed in the disabled code, they will be interleaved.  Keep walking past
+            // them to the next thing that will actually end a disabled block. When we encounter
+            // one, we must also consider which opening block they end. In case of nested pre-processor
+            // directives, the inner most end block should match the inner most open block and so on.
+
             var nestedIfDirectiveTrivia = 0;
             for (var i = index; i < triviaList.Count; i++)
             {
@@ -101,9 +102,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                             continue;
                         }
 
-                        // Found an #endif corresponding to our original #if/#elif/#else
-                        // region we started with. Mark this range as the range to collapse.
-                        return triviaList[i - 1].FullSpan.End;
+                        // Found an #endif corresponding to our original #if/#elif/#else region we
+                        // started with. Mark up to the trivia before this as the range to collapse.
+                        return triviaList[i - 1];
 
                     case SyntaxKind.ElseDirectiveTrivia:
                     case SyntaxKind.ElifDirectiveTrivia:
@@ -116,13 +117,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                         }
 
                         // We found the next #else/#elif corresponding to our original #if/#elif/#else
-                        // region we started with. Mark this range as the range to collapse.
-                        return triviaList[i - 1].FullSpan.End;
+                        // region we started with. Mark up to the trivia before this as the range
+                        // to collapse.
+                        return triviaList[i - 1];
                 }
             }
 
-            // Couldn't find an end.  Just mark to the end of the disabled text.
-            return trivia.FullSpan.End;
+            // Couldn't find a future trivia to collapse up to.  Just collapse the original 
+            // disabled text trivia we started with.
+            return trivia;
         }
     }
 }
