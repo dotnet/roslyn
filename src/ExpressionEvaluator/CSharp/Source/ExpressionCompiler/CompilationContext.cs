@@ -1270,7 +1270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             // For version before .NET 4.5, we cannot find the sourceMethod properly:
             // The source method coincides with the original method in the case.
             // Therefore, for iterators and async state machines, we have to get parameters from the containingType.
-            // This does not guarantees the proper order of parameters.
+            // This does not guarantee the proper order of parameters.
             if (isIteratorOrAsyncMethod && method == sourceMethod)
             {
                 Debug.Assert(IsDisplayClassType(containingType));
