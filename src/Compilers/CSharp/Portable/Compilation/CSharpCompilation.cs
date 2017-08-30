@@ -1753,6 +1753,65 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
+        #region Operations
+
+        /// <summary>
+        /// Gets the low-level operation corresponding to the method's body.
+        /// </summary>
+        /// <param name="method">The method symbol.</param>
+        /// <param name="cancellationToken">An optional cancellation token.</param>
+        /// <returns>The low-level operation corresponding to the method's body.</returns>
+        protected override IOperation GetOperationCore(IMethodSymbol method, CancellationToken cancellationToken = default)
+        {
+            IOperation result = null;
+            var csmethod = method.EnsureCSharpSymbolOrNull<IMethodSymbol, MethodSymbol>(nameof(method));
+            var body = LowerMethodBody(csmethod);
+
+            if (body != null)
+            {
+                var operationFactory = new Semantics.CSharpOperationFactory(null);
+                result = operationFactory.Create(body);
+            }
+
+            return result;
+        }
+
+        private BoundStatement LowerMethodBody(MethodSymbol method)
+        {
+            BoundStatement result = null;
+            var compilationState = new TypeCompilationState(method.ContainingType, this, null);
+            var diagnostics = DiagnosticBag.GetInstance();
+            var body = MethodCompiler.BindMethodBody(method, compilationState, diagnostics);
+
+            if (body != null && !body.HasErrors)
+            {
+                const int methodOrdinal = -1;
+                var dynamicAnalysisSpans = ImmutableArray<SourceSpan>.Empty;
+
+                result = LocalRewriter.Rewrite(
+                    this,
+                    method,
+                    methodOrdinal,
+                    method.ContainingType,
+                    body,
+                    compilationState,
+                    previousSubmissionFields: null,
+                    allowOmissionOfConditionalCalls: true,
+                    instrumentForDynamicAnalysis: false,
+                    debugDocumentProvider: null,
+                    dynamicAnalysisSpans: ref dynamicAnalysisSpans,
+                    diagnostics: diagnostics,
+                    sawLambdas: out bool sawLambdas,
+                    sawLocalFunctions: out bool sawLocalFunctions,
+                    sawAwaitInExceptionHandler: out bool sawAwaitInExceptionHandler);
+            }
+
+            diagnostics.Free();
+            return result;
+        }
+
+        #endregion
+
         #region Binding
 
         /// <summary>

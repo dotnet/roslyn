@@ -1836,6 +1836,55 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #End Region
 
+#Region "Operations"
+
+        ''' <summary>
+        ''' Gets the low-level operation corresponding to the method's body.
+        ''' </summary>
+        ''' <param name="method">The method symbol.</param>
+        ''' <param name="cancellationToken">An optional cancellation token.</param>
+        ''' <returns>The low-level operation corresponding to the method's body.</returns>
+        Protected Overrides Function GetOperationCore(method As IMethodSymbol, Optional cancellationToken As CancellationToken = Nothing) As IOperation
+            Dim result As IOperation = Nothing
+            Dim vbmethod = method.EnsureVbSymbolOrNothing(Of MethodSymbol)(NameOf(method))
+            Dim body = LowerMethodBody(vbmethod)
+
+            If body IsNot Nothing Then
+                Dim operationFactory = New Semantics.VisualBasicOperationFactory(Nothing)
+                result = operationFactory.Create(body)
+            End If
+
+            Return result
+        End Function
+
+        Private Function LowerMethodBody(method As MethodSymbol) As BoundStatement
+            Dim result As BoundStatement = Nothing
+            Dim compilationState = New TypeCompilationState(Me, Nothing, Nothing)
+            Dim diagnostics = DiagnosticBag.GetInstance()
+            Dim body = method.GetBoundMethodBody(compilationState, diagnostics)
+
+            If body IsNot Nothing AndAlso Not body.HasErrors Then
+                Dim sawLambdas As Boolean
+
+                result = LocalRewriter.Rewrite(
+                    body,
+                    method,
+                    compilationState,
+                    previousSubmissionFields:=Nothing,
+                    diagnostics:=diagnostics,
+                    rewrittenNodes:=Nothing,
+                    hasLambdas:=sawLambdas,
+                    symbolsCapturedWithoutCopyCtor:=Nothing,
+                    flags:=LocalRewriter.RewritingFlags.Default,
+                    instrumenterOpt:=DebugInfoInjector.Singleton,
+                    currentMethod:=Nothing)
+            End If
+
+            diagnostics.Free()
+            Return result
+        End Function
+#End Region
+
 #Region "Binding"
 
         '''<summary> 
