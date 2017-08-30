@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpResources {
@@ -1781,7 +1781,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to  The parameter modifier &apos;{0}&apos; cannot be used with &apos;{1}&apos; .
+        ///   Looks up a localized string similar to  The parameter modifier &apos;{0}&apos; cannot be used with &apos;{1}&apos;.
         /// </summary>
         internal static string ERR_BadParameterModifiers {
             get {
@@ -2380,6 +2380,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ByRefTypeAndAwait {
             get {
                 return ResourceManager.GetString("ERR_ByRefTypeAndAwait", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This combination of arguments to &apos;{0}&apos; is disallowed because it may expose variables referenced by parameter &apos;{1}&apos; outside of their declaration scope.
+        /// </summary>
+        internal static string ERR_CallArgMixing {
+            get {
+                return ResourceManager.GetString("ERR_CallArgMixing", resourceCulture);
             }
         }
         
@@ -3941,11 +3950,56 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot use a result of &apos;{0}&apos; in this context because it may expose variables referenced by parameter &apos;{1}&apos; outside of their declaration scope.
+        /// </summary>
+        internal static string ERR_EscapeCall {
+            get {
+                return ResourceManager.GetString("ERR_EscapeCall", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot use a member of result of &apos;{0}&apos; in this context because it may expose variables referenced by parameter &apos;{1}&apos; outside of their declaration scope.
+        /// </summary>
+        internal static string ERR_EscapeCall2 {
+            get {
+                return ResourceManager.GetString("ERR_EscapeCall2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A &apos;{0}&apos; character may only be escaped by doubling &apos;{0}{0}&apos; in an interpolated string..
         /// </summary>
         internal static string ERR_EscapedCurly {
             get {
                 return ResourceManager.GetString("ERR_EscapedCurly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot use local &apos;{0}&apos; in this context because it may expose referenced variables outside of their declaration scope.
+        /// </summary>
+        internal static string ERR_EscapeLocal {
+            get {
+                return ResourceManager.GetString("ERR_EscapeLocal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope.
+        /// </summary>
+        internal static string ERR_EscapeOther {
+            get {
+                return ResourceManager.GetString("ERR_EscapeOther", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A result of a stackalloc expression of type &apos;{0}&apos; cannot be used in this context because it may be exposed outside of the containing method.
+        /// </summary>
+        internal static string ERR_EscapeStackAlloc {
+            get {
+                return ResourceManager.GetString("ERR_EscapeStackAlloc", resourceCulture);
             }
         }
         
@@ -6263,6 +6317,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes.
+        /// </summary>
+        internal static string ERR_MismatchedRefEscapeInTernary {
+            get {
+                return ResourceManager.GetString("ERR_MismatchedRefEscapeInTernary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Argument missing.
         /// </summary>
         internal static string ERR_MissingArgument {
@@ -8342,24 +8405,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot return by reference a result of &apos;{0}&apos; because the argument passed to parameter &apos;{1}&apos; cannot be returned by reference.
-        /// </summary>
-        internal static string ERR_RefReturnCall {
-            get {
-                return ResourceManager.GetString("ERR_RefReturnCall", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cannot return by reference a member of result of &apos;{0}&apos; because the argument passed to parameter &apos;{1}&apos; cannot be returned by reference.
-        /// </summary>
-        internal static string ERR_RefReturnCall2 {
-            get {
-                return ResourceManager.GetString("ERR_RefReturnCall2", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &apos;await&apos; cannot be used in an expression containing a call to &apos;{0}&apos; because it returns by reference.
         /// </summary>
         internal static string ERR_RefReturningCallAndAwait {
@@ -8430,18 +8475,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
                 return ResourceManager.GetString("ERR_RefReturnNonreturnableLocal2", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Cannot return a parameter by reference &apos;{0}&apos; because it is not a ref or out parameter.
         /// </summary>
-        internal static string ERR_RefReturnParameter {
-            get {
+        internal static string ERR_RefReturnParameter
+        {
+            get
+            {
                 return ResourceManager.GetString("ERR_RefReturnParameter", resourceCulture);
             }
         }
-        
+
         /// <summary>
-        ///   Looks up a localized string similar to Cannot return a member of parameter &apos;{0}&apos; by reference because it is not a ref or out parameter.
+        ///   Looks up a localized string similar to Cannot return by reference a member of parameter &apos;{0}&apos; because it is not a ref or out parameter.
         /// </summary>
         internal static string ERR_RefReturnParameter2 {
             get {
@@ -8459,7 +8506,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A readonly field cannot be returned by reference.
+        ///   Looks up a localized string similar to A readonly field cannot be returned by writable reference.
         /// </summary>
         internal static string ERR_RefReturnReadonly {
             get {
@@ -8468,7 +8515,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Members of readonly field &apos;{0}&apos; cannot be returned by reference.
+        ///   Looks up a localized string similar to Members of readonly field &apos;{0}&apos; cannot be returned by writable reference.
         /// </summary>
         internal static string ERR_RefReturnReadonly2 {
             get {
@@ -8504,7 +8551,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot return {0} &apos;{1}&apos; by reference because it is a readonly variable.
+        ///   Looks up a localized string similar to Cannot return {0} &apos;{1}&apos; by writable reference because it is a readonly variable.
         /// </summary>
         internal static string ERR_RefReturnReadonlyNotField {
             get {
@@ -8513,7 +8560,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Members of {0} &apos;{1}&apos; cannot be returned by reference because it is a readonly variable.
+        ///   Looks up a localized string similar to Members of {0} &apos;{1}&apos; cannot be returned by writable reference because it is a readonly variable.
         /// </summary>
         internal static string ERR_RefReturnReadonlyNotField2 {
             get {
@@ -8522,7 +8569,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A static readonly field cannot be returned by reference.
+        ///   Looks up a localized string similar to A static readonly field cannot be returned by writable reference.
         /// </summary>
         internal static string ERR_RefReturnReadonlyStatic {
             get {
@@ -8531,20 +8578,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Fields of static readonly field &apos;{0}&apos; cannot be returned by reference.
+        ///   Looks up a localized string similar to Fields of static readonly field &apos;{0}&apos; cannot be returned by writable reference.
         /// </summary>
         internal static string ERR_RefReturnReadonlyStatic2 {
             get {
                 return ResourceManager.GetString("ERR_RefReturnReadonlyStatic2", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cannot return &apos;{0}&apos; by reference because its receiver may not be returned by reference.
-        /// </summary>
-        internal static string ERR_RefReturnReceiver {
-            get {
-                return ResourceManager.GetString("ERR_RefReturnReceiver", resourceCulture);
             }
         }
         
@@ -8554,6 +8592,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_RefReturnStructThis {
             get {
                 return ResourceManager.GetString("ERR_RefReturnStructThis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot return &apos;this&apos; by reference..
+        /// </summary>
+        internal static string ERR_RefReturnThis {
+            get {
+                return ResourceManager.GetString("ERR_RefReturnThis", resourceCulture);
             }
         }
         

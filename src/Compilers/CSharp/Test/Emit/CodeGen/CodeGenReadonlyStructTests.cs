@@ -632,10 +632,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this").WithArguments("this").WithLocation(32, 26),
                 // (37,26): error CS0192: A readonly field cannot be used as a ref or out value (except in a constructor)
                 //             TakesRef(ref this.x); // error
-                Diagnostic(ErrorCode.ERR_RefReadonly, "this.x").WithLocation(37, 26),
-                // (37,26): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
-                //             TakesRef(ref this.x); // error
-                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this.x").WithArguments("this").WithLocation(37, 26)
+                Diagnostic(ErrorCode.ERR_RefReadonly, "this.x").WithLocation(37, 26)
                 );
 
         }
@@ -1116,12 +1113,10 @@ class Test
     }
 
     public static void Main()
-    {
-        Span<int> x = default;
-        
+    {       
         for (int i = 0; i < 5; i++)
         {
-            x = stackalloc int[GetLength()];
+            Span<int> x = stackalloc int[GetLength()];
             Console.Write(x.Length);
         }
     }
@@ -1129,37 +1124,35 @@ class Test
 
             CompileAndVerify(comp, expectedOutput: "12345", verify: false).VerifyIL("Test.Main", @"
 {
-  // Code size       52 (0x34)
+  // Code size       44 (0x2c)
   .maxstack  2
-  .locals init (System.Span<int> V_0, //x
-                int V_1, //i
+  .locals init (int V_0, //i
+                System.Span<int> V_1, //x
                 int V_2)
-  IL_0000:  ldloca.s   V_0
-  IL_0002:  initobj    ""System.Span<int>""
-  IL_0008:  ldc.i4.0
-  IL_0009:  stloc.1
-  IL_000a:  br.s       IL_002f
-  IL_000c:  call       ""int Test.GetLength()""
-  IL_0011:  stloc.2
-  IL_0012:  ldloc.2
-  IL_0013:  conv.u
-  IL_0014:  ldc.i4.4
-  IL_0015:  mul.ovf.un
-  IL_0016:  localloc
-  IL_0018:  ldloc.2
-  IL_0019:  newobj     ""System.Span<int>..ctor(void*, int)""
-  IL_001e:  stloc.0
-  IL_001f:  ldloca.s   V_0
-  IL_0021:  call       ""int System.Span<int>.Length.get""
-  IL_0026:  call       ""void System.Console.Write(int)""
-  IL_002b:  ldloc.1
-  IL_002c:  ldc.i4.1
-  IL_002d:  add
-  IL_002e:  stloc.1
-  IL_002f:  ldloc.1
-  IL_0030:  ldc.i4.5
-  IL_0031:  blt.s      IL_000c
-  IL_0033:  ret
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  br.s       IL_0027
+  IL_0004:  call       ""int Test.GetLength()""
+  IL_0009:  stloc.2
+  IL_000a:  ldloc.2
+  IL_000b:  conv.u
+  IL_000c:  ldc.i4.4
+  IL_000d:  mul.ovf.un
+  IL_000e:  localloc
+  IL_0010:  ldloc.2
+  IL_0011:  newobj     ""System.Span<int>..ctor(void*, int)""
+  IL_0016:  stloc.1
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  call       ""int System.Span<int>.Length.get""
+  IL_001e:  call       ""void System.Console.Write(int)""
+  IL_0023:  ldloc.0
+  IL_0024:  ldc.i4.1
+  IL_0025:  add
+  IL_0026:  stloc.0
+  IL_0027:  ldloc.0
+  IL_0028:  ldc.i4.5
+  IL_0029:  blt.s      IL_0004
+  IL_002b:  ret
 }");
         }
 

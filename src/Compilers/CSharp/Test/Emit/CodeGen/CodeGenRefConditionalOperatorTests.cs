@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
+    [CompilerTrait(CompilerFeature.RefConditionalOperator)]
     public class CodeGenRefConditionalOperatorTests : CSharpTestBase
     {
         [Fact]
@@ -625,12 +627,12 @@ class C
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
-                // (8,27): error CS1510: A ref or out value must be an assignable variable
+                // (8,27): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         (b? ref val1: ref 42) = 1;
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "42").WithLocation(8, 27),
-                // (10,46): error CS1510: A ref or out value must be an assignable variable
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "42").WithLocation(8, 27),
+                // (10,46): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         ref var local = ref b? ref val1: ref 42;
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "42").WithLocation(10, 46)
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "42").WithLocation(10, 46)
                );
         }
 
@@ -661,9 +663,6 @@ class C
                 // (15,27): error CS8168: Cannot return local 'local1' by reference because it is not a ref local
                 //         return ref b? ref local1: ref local2;
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "local1").WithArguments("local1").WithLocation(15, 27),
-                // (15,39): error CS8168: Cannot return local 'local2' by reference because it is not a ref local
-                //         return ref b? ref local1: ref local2;
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local2").WithArguments("local2").WithLocation(15, 39),
                 // (15,20): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         return ref b? ref local1: ref local2;
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "b? ref local1: ref local2").WithLocation(15, 20)
@@ -698,9 +697,9 @@ class C
                 // (14,37): error CS8168: Cannot return local 'local2' by reference because it is not a ref local
                 //         return ref b? ref val1: ref local2;
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "local2").WithArguments("local2").WithLocation(14, 37),
-                // (14,20): error CS8156: An expression cannot be used in this context because it may not be returned by reference
+                // (14,20): error CS8525: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes.
                 //         return ref b? ref val1: ref local2;
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "b? ref val1: ref local2").WithLocation(14, 20)
+                Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "b? ref val1: ref local2").WithLocation(14, 20)
                );
         }
 
@@ -737,9 +736,9 @@ class C
                 // (14,38): error CS8168: Cannot return local 'local2' by reference because it is not a ref local
                 //         return ref (b? ref val1: ref local2).x;
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "local2").WithArguments("local2").WithLocation(14, 38),
-                // (14,20): error CS8156: An expression cannot be used in this context because it may not be returned by reference
+                // (14,21): error CS8525: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes.
                 //         return ref (b? ref val1: ref local2).x;
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "(b? ref val1: ref local2).x").WithLocation(14, 20)
+                Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "b? ref val1: ref local2").WithLocation(14, 21)
                );
         }
 
@@ -774,9 +773,12 @@ class C
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
-                // (15,20): error CS8157: Cannot return 'temp' by reference because it was initialized to a value that cannot be returned by reference
-                //         return ref temp;
-                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "temp").WithArguments("temp").WithLocation(15, 20)
+                // (14,46): error CS8168: Cannot return local 'local2' by reference because it is not a ref local
+                //         ref var temp = ref (b? ref val1: ref local2).x;
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local2").WithArguments("local2").WithLocation(14, 46),
+                // (14,29): error CS8525: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes.
+                //         ref var temp = ref (b? ref val1: ref local2).x;
+                Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "b? ref val1: ref local2").WithLocation(14, 29)
                );
         }
 
@@ -871,9 +873,9 @@ class C
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
-                // (8,47): error CS1510: A ref or out value must be an assignable variable
+                // (8,47): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         System.Console.Write(b? ref val1: ref ()=>1);
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "()=>1").WithLocation(8, 47)
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "()=>1").WithLocation(8, 47)
                );
         }
 

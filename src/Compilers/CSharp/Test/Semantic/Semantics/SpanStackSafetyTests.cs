@@ -92,11 +92,11 @@ class Program
 
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
-            //PROTOTYPE(span): make this bind-time diagnostic?
-            comp.VerifyEmitDiagnostics(
-                // (17,29): error CS4013: Instance of type 'Span<int>' cannot be used inside an anonymous function, query expression, iterator block or async method
+            //PROTOTYPE(span): need a better error message for invalid span captures (should not say ref)
+            comp.VerifyDiagnostics(
+                // (17,29): error CS8175: Cannot use ref local 'x' inside an anonymous method, lambda expression, or query expression
                 //         Func<int> f = () => x[1];
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "x").WithArguments("System.Span<int>").WithLocation(17, 29)
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUseLocal, "x").WithArguments("x").WithLocation(17, 29)
             );
         }
 
@@ -123,14 +123,17 @@ class Program
 
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
-            //PROTOTYPE(span): make this bind-time diagnostic?
+            //PROTOTYPE(span): need a better error message for invalid span captures (should not say ref)
             comp.VerifyDiagnostics(
                 // (13,26): error CS0701: 'Span<int>' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
                 //     class C1<T> where T: Span<int>
                 Diagnostic(ErrorCode.ERR_BadBoundType, "Span<int>").WithArguments("System.Span<int>").WithLocation(13, 26),
                 // (10,14): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         Func<Span<int>> d = ()=>x;
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "Span<int>").WithArguments("System.Span<int>").WithLocation(10, 14)
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "Span<int>").WithArguments("System.Span<int>").WithLocation(10, 14),
+                // (10,33): error CS8175: Cannot use ref local 'x' inside an anonymous method, lambda expression, or query expression
+                //         Func<Span<int>> d = ()=>x;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUseLocal, "x").WithArguments("x").WithLocation(10, 33)
             );
         }
 
@@ -197,10 +200,10 @@ class Program
     {
     }
 
-    // OK
+    // Not OK
     static ref Span<string> M4(ref Span<string> ss) { return ref ss; }
 
-    // OK
+    // Not OK
     static ref readonly Span<string> M5(ref Span<string> ss) => ref ss;
 
     // Not OK
@@ -217,7 +220,14 @@ class Program
                 Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference ss").WithArguments("System.TypedReference").WithLocation(39, 34),
                 // (39,12): error CS1599: Method or delegate cannot return type 'TypedReference'
                 //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
-                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref TypedReference").WithArguments("System.TypedReference").WithLocation(39, 12));
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref TypedReference").WithArguments("System.TypedReference").WithLocation(39, 12),
+                // (32,66): error CS8166: Cannot return a parameter by reference 'ss' because it is not a ref or out parameter
+                //     static ref Span<string> M4(ref Span<string> ss) { return ref ss; }
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "ss").WithArguments("ss").WithLocation(32, 66),
+                // (35,69): error CS8166: Cannot return a parameter by reference 'ss' because it is not a ref or out parameter
+                //     static ref readonly Span<string> M5(ref Span<string> ss) => ref ss;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "ss").WithArguments("ss").WithLocation(35, 69)
+            );
         }
 
         [Fact]

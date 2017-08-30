@@ -947,14 +947,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             localSymbol.SetType(declTypeOpt);
 
-            if (localSymbol.RefKind != RefKind.None && initializerOpt != null)
+            if (initializerOpt != null)
             {
-                var ignoredDiagnostics = DiagnosticBag.GetInstance();
-                if (this.CheckValueKind(initializerOpt.Syntax, initializerOpt, BindValueKind.ReturnableReference, checkingReceiver: false, diagnostics: ignoredDiagnostics))
+                var currentScope = LocalScopeDepth;
+
+                localSymbol.SetValEscape(GetValEscape(initializerOpt, currentScope));
+
+                if (localSymbol.RefKind != RefKind.None)
                 {
-                    localSymbol.SetReturnable();
+                    localSymbol.SetRefEscape(GetRefEscape(initializerOpt, currentScope));
                 }
-                ignoredDiagnostics.Free();
             }
 
             ImmutableArray<BoundExpression> arguments = BindDeclaratorArguments(declarator, localDiagnostics);
@@ -1227,6 +1229,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     op2 = conversion;
                 }
+
+                if (op1.Type.IsByRefLikeType)
+                {
+                    var leftEscape = GetValEscape(op1, this.LocalScopeDepth);
+                    op2 = ValidateEscape(op2, leftEscape, isByRef: false, diagnostics: diagnostics);
+                }
             }
 
             TypeSymbol type;
@@ -1406,6 +1414,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return Next.LookupLocalFunction(nameToken);
         }
+
+        /// <summary>
+        /// Returns a value that tells how many local scopes are visible, including the current.
+        /// I.E. outside of any method will be 0
+        ///      immediately inside a method - 1
+        /// </summary>
+        internal virtual uint LocalScopeDepth => Next.LocalScopeDepth;
 
         internal BoundBlock BindEmbeddedBlock(BlockSyntax node, DiagnosticBag diagnostics)
         {
@@ -2312,6 +2327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BindValueKind requiredValueKind = GetRequiredReturnValueKind(refKind);
                 arg = BindValue(expressionSyntax, diagnostics, requiredValueKind);
+                arg = ValidateEscape(arg, Binder.ExternalScope, refKind != RefKind.None, diagnostics);
             }
             else
             {
@@ -2787,6 +2803,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ExpressionSyntax expressionSyntax = expressionBody.Expression.CheckAndUnwrapRefExpression(diagnostics, out refKind);
             BindValueKind requiredValueKind = GetRequiredReturnValueKind(refKind);
             BoundExpression expression = bodyBinder.BindValue(expressionSyntax, diagnostics, requiredValueKind);
+            expression = ValidateEscape(expression, Binder.ExternalScope, refKind != RefKind.None, diagnostics);
+
             return bodyBinder.CreateBlockFromExpression(expressionBody, bodyBinder.GetDeclaredLocalsForScope(expressionBody), refKind, expression, expressionSyntax, diagnostics);
         }
 
@@ -2802,6 +2820,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var expressionSyntax = body.CheckAndUnwrapRefExpression(diagnostics, out refKind);
             BindValueKind requiredValueKind = GetRequiredReturnValueKind(refKind);
             BoundExpression expression = bodyBinder.BindValue(expressionSyntax, diagnostics, requiredValueKind);
+            expression = ValidateEscape(expression, Binder.ExternalScope, refKind != RefKind.None, diagnostics);
+
             return bodyBinder.CreateBlockFromExpression(body, bodyBinder.GetDeclaredLocalsForScope(body), refKind, expression, expressionSyntax, diagnostics);
         }
 
@@ -2813,7 +2833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GetCurrentReturnType(out var sigRefKind);
                 requiredValueKind = sigRefKind == RefKind.Ref ?
                                         BindValueKind.RefReturn :
-                                        BindValueKind.RefReadonlyReturn;
+                                        BindValueKind.ReadonlyRef;
             }
 
             return requiredValueKind;

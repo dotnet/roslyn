@@ -1399,9 +1399,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool IsBadLocalOrParameterCapture(Symbol symbol, RefKind refKind)
+        private bool IsBadLocalOrParameterCapture(Symbol symbol, TypeSymbol type, RefKind refKind)
         {
-            if (refKind != RefKind.None)
+            if (refKind != RefKind.None || type.IsByRefLikeType )
             {
                 var containingMethod = this.ContainingMemberOrLambda as MethodSymbol;
                 if ((object)containingMethod != null && (object)symbol.ContainingSymbol != (object)containingMethod)
@@ -1514,8 +1514,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             type = localSymbol.Type;
-                            if (IsBadLocalOrParameterCapture(localSymbol, localSymbol.RefKind))
+                            if (IsBadLocalOrParameterCapture(localSymbol, type, localSymbol.RefKind))
                             {
+                                isError = true;
+                                //PROTOTYPE(span): need a better error message for invalid span captures (should not say ref)
                                 Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUseLocal, node, localSymbol);
                             }
                         }
@@ -1528,8 +1530,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Parameter:
                     {
                         var parameter = (ParameterSymbol)symbol;
-                        if (IsBadLocalOrParameterCapture(parameter, parameter.RefKind))
+                        if (IsBadLocalOrParameterCapture(parameter, parameter.Type, parameter.RefKind))
                         {
+                            isError = true;
+                            //PROTOTYPE(span): need a better error message for invalid in/span captures (should not say ref/out)
                             Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
                         }
                         return new BoundParameter(node, parameter, hasErrors: isError);
@@ -3337,17 +3341,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     ReportDiagnosticsIfObsolete(diagnostics, resultMember, nonNullSyntax, hasBaseReceiver: isBaseConstructorInitializer);
 
+                    var arguments = analyzedArguments.Arguments.ToImmutable();
+                    var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
+                    var argsToParamsOpt = memberResolutionResult.Result.ArgsToParamsOpt;
+
+                    hasErrors |= !CheckInvocationArgMixing(
+                        nonNullSyntax,
+                        resultMember,
+                        receiver,
+                        resultMember.Parameters, 
+                        arguments, 
+                        refKinds, 
+                        argsToParamsOpt, 
+                        this.LocalScopeDepth, 
+                        diagnostics);
+
                     return new BoundCall(
                         nonNullSyntax,
                         receiver,
                         resultMember,
-                        analyzedArguments.Arguments.ToImmutable(),
+                        arguments,
                         analyzedArguments.GetNames(),
-                        analyzedArguments.RefKinds.ToImmutableOrNull(),
+                        refKinds,
                         isDelegateCall: false,
                         expanded: memberResolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm,
                         invokedAsExtensionMethod: false,
-                        argsToParamsOpt: memberResolutionResult.Result.ArgsToParamsOpt,
+                        argsToParamsOpt: argsToParamsOpt,
                         resultKind: LookupResultKind.Viable,
                         binderOpt: this,
                         type: constructorReturnType,
@@ -4432,15 +4451,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                     FoldParameterlessValueTypeConstructor(type) :
                     null;
 
+                var arguments = analyzedArguments.Arguments.ToImmutable();
+                var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
+                var argToParams = memberResolutionResult.Result.ArgsToParamsOpt;
+                hasError |= !CheckInvocationArgMixing(
+                    node,
+                    method,
+                    null,
+                    method.Parameters,
+                    arguments,
+                    refKinds,
+                    argToParams,
+                    this.LocalScopeDepth,
+                    diagnostics);
+
                 result = new BoundObjectCreationExpression(
                     node,
                     method,
                     candidateConstructors,
-                    analyzedArguments.Arguments.ToImmutable(),
+                    arguments,
                     analyzedArguments.GetNames(),
-                    analyzedArguments.RefKinds.ToImmutableOrNull(),
+                    refKinds,
                     memberResolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm,
-                    memberResolutionResult.Result.ArgsToParamsOpt,
+                    argToParams,
                     constantValueOpt,
                     boundInitializerOpt,
                     this,
@@ -6743,11 +6776,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     gotError = IsRefOrOutThisParameterCaptured(syntax, diagnostics);
                 }
 
+                var arguments = analyzedArguments.Arguments.ToImmutable();
+                gotError |= !CheckInvocationArgMixing(
+                    syntax,
+                    property,
+                    receiver,
+                    property.Parameters,
+                    arguments,
+                    argumentRefKinds,
+                    argsToParams,
+                    this.LocalScopeDepth,
+                    diagnostics);
+
                 propertyAccess = new BoundIndexerAccess(
                     syntax,
                     receiver,
                     property,
-                    analyzedArguments.Arguments.ToImmutable(),
+                    arguments,
                     argumentNames,
                     argumentRefKinds,
                     isExpanded,

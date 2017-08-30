@@ -24,5 +24,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         DefaultLiteral,
         AsyncMain,
         PEVerifyCompat,
+        RefConditionalOperator,
     }
 }

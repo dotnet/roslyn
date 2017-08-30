@@ -1013,6 +1013,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(args.IsDefaultOrEmpty || (object)receiver != (object)args[0]);
 
+            gotError |= !CheckInvocationArgMixing(
+                node,
+                method,
+                receiver,
+                method.Parameters,
+                args,
+                argRefKinds,
+                argsToParams,
+                this.LocalScopeDepth,
+                diagnostics);
+
             if ((object)delegateTypeOpt != null)
             {
                 return new BoundCall(node, receiver, method, args, argNames, argRefKinds, isDelegateCall: true,
