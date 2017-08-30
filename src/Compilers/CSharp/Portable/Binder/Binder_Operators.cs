@@ -2006,12 +2006,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var expr = BindExpression(node.Operand, diagnostics);
             var type = expr.Type;
-            // Report an error if there are no reference types.
-            if ((object)type != null &&
-                (object)type.VisitType((t, a, c) => t.IsErrorType() || t.IsReferenceType, (object)null, canDigThroughNullable: true) == null)
+            if ((object)type != null)
             {
-                // PROTOTYPE(NullableReferenceTypes): Should be a warning, not an error.
-                Error(diagnostics, ErrorCode.ERR_NotNullableOperatorNotReferenceType, node);
+                // Report an error if there are no reference types.
+                if ((object)type.VisitType((t, a, c) => t.IsErrorType() || t.IsReferenceType, (object)null, canDigThroughNullable: true) == null)
+                {
+                    // PROTOTYPE(NullableReferenceTypes): Should be a warning, not an error.
+                    Error(diagnostics, ErrorCode.ERR_NotNullableOperatorNotReferenceType, node);
+                }
+                type = type.SetUnknownNullabilityForReferenceTypes();
             }
             return new BoundSuppressNullableWarningExpression(node, expr, type);
         }
@@ -3514,87 +3517,64 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression trueExpr = BindValue(node.WhenTrue, diagnostics, BindValueKind.RValue);
             BoundExpression falseExpr = BindValue(node.WhenFalse, diagnostics, BindValueKind.RValue);
 
-            TypeSymbol trueType = trueExpr.Type;
-            TypeSymbol falseType = falseExpr.Type;
-
             TypeSymbol type;
             bool hasErrors = false;
 
-            if (trueType == falseType)
-            {
-                // NOTE: Dev10 lets the type inferrer handle this case (presumably, for maximum consistency),
-                // but it seems like a worthwhile short-circuit for a common case.
+            bool hadMultipleCandidates;
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            TypeSymbol bestType = BestTypeInferrer.InferBestTypeForConditionalOperator(trueExpr, falseExpr, this.Conversions, out hadMultipleCandidates, ref useSiteDiagnostics);
+            diagnostics.Add(node, useSiteDiagnostics);
 
-                if ((object)trueType == null)
+            if ((object)bestType == null)
+            {
+                // CONSIDER: Dev10 suppresses ERR_InvalidQM unless the following is true for both trueType and falseType
+                // (!T->type->IsErrorType() || T->type->AsErrorType()->HasTypeParent() || T->type->AsErrorType()->HasNSParent())
+                if (hadMultipleCandidates)
                 {
-                    // If trueExpr and falseExpr both have type null, then we don't have any symbols
-                    // to pass to a SymbolDistinguisher (which ERR_InvalidQM would usually require).
-                    diagnostics.Add(ErrorCode.ERR_InvalidQM, node.Location, trueExpr.Display, falseExpr.Display);
-                    type = CreateErrorType();
-                    hasErrors = true;
+                    diagnostics.Add(ErrorCode.ERR_AmbigQM, node.Location, trueExpr.Display, falseExpr.Display);
                 }
                 else
                 {
-                    // <expr> ? T : T
-                    type = trueType;
+                    object trueArg = trueExpr.Display;
+                    object falseArg = falseExpr.Display;
+
+                    Symbol trueSymbol = trueArg as Symbol;
+                    Symbol falseSymbol = falseArg as Symbol;
+                    if ((object)trueSymbol != null && (object)falseSymbol != null)
+                    {
+                        SymbolDistinguisher distinguisher = new SymbolDistinguisher(this.Compilation, trueSymbol, falseSymbol);
+                        trueArg = distinguisher.First;
+                        falseArg = distinguisher.Second;
+                    }
+
+                    diagnostics.Add(ErrorCode.ERR_InvalidQM, node.Location, trueArg, falseArg);
                 }
+
+                type = CreateErrorType();
+                hasErrors = true;
+            }
+            else if (bestType.IsErrorType())
+            {
+                type = bestType;
+                hasErrors = true;
             }
             else
             {
-                bool hadMultipleCandidates;
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                TypeSymbol bestType = BestTypeInferrer.InferBestTypeForConditionalOperator(trueExpr, falseExpr, this.Conversions, out hadMultipleCandidates, ref useSiteDiagnostics);
-                diagnostics.Add(node, useSiteDiagnostics);
+                bool hasAnyErrors = trueExpr.HasAnyErrors || falseExpr.HasAnyErrors;
 
-                if ((object)bestType == null)
+                trueExpr = GenerateConversionForAssignment(bestType, trueExpr, diagnostics);
+                falseExpr = GenerateConversionForAssignment(bestType, falseExpr, diagnostics);
+
+                if (!hasAnyErrors && (trueExpr.HasAnyErrors || falseExpr.HasAnyErrors))
                 {
-                    // CONSIDER: Dev10 suppresses ERR_InvalidQM unless the following is true for both trueType and falseType
-                    // (!T->type->IsErrorType() || T->type->AsErrorType()->HasTypeParent() || T->type->AsErrorType()->HasNSParent())
-                    if (hadMultipleCandidates)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_AmbigQM, node.Location, trueExpr.Display, falseExpr.Display);
-                    }
-                    else
-                    {
-                        object trueArg = trueExpr.Display;
-                        object falseArg = falseExpr.Display;
-
-                        Symbol trueSymbol = trueArg as Symbol;
-                        Symbol falseSymbol = falseArg as Symbol;
-                        if ((object)trueSymbol != null && (object)falseSymbol != null)
-                        {
-                            SymbolDistinguisher distinguisher = new SymbolDistinguisher(this.Compilation, trueSymbol, falseSymbol);
-                            trueArg = distinguisher.First;
-                            falseArg = distinguisher.Second;
-                        }
-
-                        diagnostics.Add(ErrorCode.ERR_InvalidQM, node.Location, trueArg, falseArg);
-                    }
-
+                    // If one of the conversions went wrong (e.g. return type of method group being converted
+                    // didn't match), then we don't want to use bestType because it's not accurate.
                     type = CreateErrorType();
-                    hasErrors = true;
-                }
-                else if (bestType.IsErrorType())
-                {
-                    type = bestType;
                     hasErrors = true;
                 }
                 else
                 {
-                    trueExpr = GenerateConversionForAssignment(bestType, trueExpr, diagnostics);
-                    falseExpr = GenerateConversionForAssignment(bestType, falseExpr, diagnostics);
-
-                    if (trueExpr.HasAnyErrors || falseExpr.HasAnyErrors)
-                    {
-                        // If one of the conversions went wrong (e.g. return type of method group being converted
-                        // didn't match), then we don't want to use bestType because it's not accurate.
-                        type = CreateErrorType();
-                        hasErrors = true;
-                    }
-                    else
-                    {
-                        type = bestType;
-                    }
+                    type = bestType;
                 }
             }
 

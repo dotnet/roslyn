@@ -3138,7 +3138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return conversion;
             }
 
-            if ((object)argType != null && Conversions.HasIdentityConversion(argType, parameterType))
+            if ((object)argType != null && Conversions.HasIdentityConversion(argType, parameterType, ref useSiteDiagnostics))
             {
                 return Conversion.Identity;
             }
