@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -25,7 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         {
             // We'll always be leading trivia of some token.
             var startPos = trivia.FullSpan.Start;
-            var endPos = trivia.FullSpan.End;
 
             // Look through our parent token's trivia, to:
             // 1. See if we're the first disabled trivia attached to the token.
@@ -48,54 +48,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 indexInParent = parentTriviaList.IndexOf(trivia);
             }
 
-            if (indexInParent <= 0 ||
-                (!parentTriviaList[indexInParent - 1].IsKind(SyntaxKind.IfDirectiveTrivia) &&
-                 !parentTriviaList[indexInParent - 1].IsKind(SyntaxKind.ElifDirectiveTrivia) &&
-                 !parentTriviaList[indexInParent - 1].IsKind(SyntaxKind.ElseDirectiveTrivia)))
+            if (indexInParent <= 0)
             {
                 return;
             }
 
-            var nestedIfDirectiveTrivia = 0;
-            for (var i = indexInParent; i < parentTriviaList.Count; i++)
+            if (!parentTriviaList[indexInParent - 1].IsKind(SyntaxKind.IfDirectiveTrivia) &&
+                !parentTriviaList[indexInParent - 1].IsKind(SyntaxKind.ElifDirectiveTrivia) &&
+                !parentTriviaList[indexInParent - 1].IsKind(SyntaxKind.ElseDirectiveTrivia))
             {
-                var currentTrivia = parentTriviaList[i];
-                if (currentTrivia.IsKind(SyntaxKind.IfDirectiveTrivia))
-                {
-                    nestedIfDirectiveTrivia++;
-                    continue;
-                }
-
-                var isEndIf = currentTrivia.IsKind(SyntaxKind.EndIfDirectiveTrivia);
-                if (isEndIf ||
-                    currentTrivia.IsKind(SyntaxKind.ElifDirectiveTrivia) ||
-                    currentTrivia.IsKind(SyntaxKind.ElseDirectiveTrivia))
-                {
-                    if (nestedIfDirectiveTrivia > 0)
-                    {
-                        if (isEndIf)
-                        {
-                            nestedIfDirectiveTrivia--;
-                        }
-                    }
-                    else
-                    {
-                        endPos = parentTriviaList[i - 1].FullSpan.End;
-                        break;
-                    }
-                }
+                return;
             }
+
+            var endPos = GetEndPositionIncludingLastNewLine(trivia, parentTriviaList, indexInParent);
 
             // Now, exclude the last newline if there is one.
-            var text = syntaxTree.GetText(cancellationToken);
-            if (endPos > 1 && text[endPos - 1] == '\n' && text[endPos - 2] == '\r')
-            {
-                endPos -= 2;
-            }
-            else if (endPos > 0 && SyntaxFacts.IsNewLine(text[endPos - 1]))
-            {
-                endPos--;
-            }
+            endPos = GetEndPositionExludingLastNewLine(syntaxTree, endPos, cancellationToken);
 
             var span = TextSpan.FromBounds(startPos, endPos);
             spans.Add(new BlockSpan(
@@ -104,6 +72,61 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 type: BlockTypes.PreprocessorRegion,
                 bannerText: CSharpStructureHelpers.Ellipsis,
                 autoCollapse: true));
+        }
+
+        private static int GetEndPositionExludingLastNewLine(SyntaxTree syntaxTree, int endPos, CancellationToken cancellationToken)
+        {
+            var text = syntaxTree.GetText(cancellationToken);
+            return endPos >= 2 && text[endPos - 1] == '\n' && text[endPos - 2] == '\r' ? endPos - 2 :
+                   endPos >= 1 && SyntaxFacts.IsNewLine(text[endPos - 1])              ? endPos - 1 : endPos;
+        }
+
+        private int GetEndPositionIncludingLastNewLine(
+            SyntaxTrivia trivia, SyntaxTriviaList triviaList, int index)
+        {
+            var nestedIfDirectiveTrivia = 0;
+            for (var i = index; i < triviaList.Count; i++)
+            {
+                var currentTrivia = triviaList[i];
+                switch (currentTrivia.Kind())
+                {
+                    case SyntaxKind.IfDirectiveTrivia:
+                        // Hit a nested if directive.  Keep track of this so we can ensure
+                        // that our actual disabled region reached the right end point.
+                        nestedIfDirectiveTrivia++;
+                        continue;
+
+                    case SyntaxKind.EndIfDirectiveTrivia:
+                        if (nestedIfDirectiveTrivia > 0)
+                        {
+                            // This #endif corresponded to a nested #if, pop our stack
+                            // and keep searching.
+                            nestedIfDirectiveTrivia--;
+                            continue;
+                        }
+
+                        // Found an #endif corresponding to our original #if/#elif/#else
+                        // region we started with. Mark this range as the range to collapse.
+                        return triviaList[i - 1].FullSpan.End;
+
+                    case SyntaxKind.ElseDirectiveTrivia:
+                    case SyntaxKind.ElifDirectiveTrivia:
+                        if (nestedIfDirectiveTrivia > 0)
+                        {
+                            // This #else/#elif corresponded to a nested #if, ignore as
+                            // they're not relevant to the original construct we started 
+                            // on.
+                            continue;
+                        }
+
+                        // We found the next #else/#elif corresponding to our original #if/#elif/#else
+                        // region we started with. Mark this range as the range to collapse.
+                        return triviaList[i - 1].FullSpan.End;
+                }
+            }
+
+            // Couldn't find an end.  Just mark to the end of the disabled text.
+            return trivia.FullSpan.End;
         }
     }
 }
