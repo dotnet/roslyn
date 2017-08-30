@@ -1,12 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -317,17 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             int position = this.Position;
             this.AdvanceChar(delta);
 
-            char ch;
-            if (_offset >= _characterWindowCount
-                && !MoreChars())
-            {
-                ch = InvalidCharacter;
-            }
-            else
-            {
-                // N.B. MoreChars may update the offset.
-                ch = _characterWindow[_offset];
-            }
+            char ch = PeekChar();
 
             this.Reset(position);
             return ch;
