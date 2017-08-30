@@ -199,7 +199,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Language
             Return (Integer.MinValue < required) AndAlso (required <= current)
         End Function
 
-
         ''' <summary>
         ''' Check to see if a language <paramref name="feature"/> is enabled via <see cref="VisualBasicParseOptions.Features"/>.
         ''' Via a feature flag.
@@ -222,9 +221,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Language
         ''' If Feature is unavaible return the <paramref name="node"/> with the unavailable diagnostic attached to it.</returns>
         <Extension>
         Friend Function ReportFeatureUnavailable(Of TNode As Syntax.InternalSyntax.VisualBasicSyntaxNode)(node As TNode, feature As Feature, options As VisualBasicParseOptions) As TNode
-            Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
-            Dim requiredVersion As New VisualBasicRequiredLanguageVersion(feature.GetLanguageVersion())
-            Return Syntax.InternalSyntax.Parser.ReportSyntaxError(node, ERRID.ERR_LanguageVersion, options.LanguageVersion.GetErrorName(), featureName, requiredVersion)
+            Dim f = feature.GetNameAndRequiredVersion()
+            Return Syntax.InternalSyntax.Parser.ReportSyntaxError(node, ERRID.ERR_LanguageVersion, options.LanguageVersion.GetErrorName(), f.Info, f.Version)
+        End Function
+
+        Private Function ReportFeatureUnavailable(feature As Feature, options As VisualBasicParseOptions, location As Location) As Diagnostic
+            Dim f = feature.GetNameAndRequiredVersion()
+            Dim info = ErrorFactory.ErrorInfo(ERRID.ERR_LanguageVersion, options.LanguageVersion.GetErrorName(), f.Info, f.Version)
+            Return New VBDiagnostic(info, location)
+        End Function
+
+        <Extension>
+        Private Function GetNameAndRequiredVersion(feature As Feature) As (Info As DiagnosticInfo, Version As VisualBasicRequiredLanguageVersion)
+            Return (ErrorFactory.ErrorInfo(feature.GetResourceId), VisualBasicRequiredLanguageVersion.For(feature))
         End Function
 
         ''' <summary>
@@ -241,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Language
         End Function
 
         ''' <summary>
-        ''' Check to see if a language <paramref name="feature"/> is available with these <paramref name="compilation"/>.
+        ''' Check to see if a language <paramref name="feature"/> is available with this <paramref name="compilation"/>.
         ''' </summary>
         ''' <param name="feature">Language feature to check is available.</param>
         ''' <param name="compilation">The <see cref="VisualBasicCompilation"/> being used.</param>
@@ -264,25 +273,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Language
         End Function
 
         ''' <summary>
-        ''' Checks to see if a language <paramref name="feature"/> is unavailable to use with the <paramref name="options"/> being used.
-        ''' If unavailable the function returns False and adds an unavailable diagnostic to the <paramref name="diagnostics"/> at <paramref name="location"/>.
+        ''' Is a language <paramref name="feature"/> unavailable to use with these <paramref name="options"/>.
         ''' </summary>
         ''' <returns>
-        ''' False: Feature is available.
-        '''  True: Feature is unavailable, and a unavailable diagnostic is add to <paramref name="diagnostics"/> at the <paramref name="location"/>.
+        ''' Return a feature unavailable <see cref="Diagnostic"/> at <paramref name="location"/>, otherwise nothing.
         ''' </returns>
         ''' <param name="feature">Language feature to check is available.</param>
         ''' <param name="options">The parse options being used.</param>
-        ''' <param name="diagnostics">The diagnostics to which add this diagnostic.</param>
         ''' <param name="location">The location to report the diagnostic.</param>
         <Extension>
-        Friend Function IsUnavailable(feature As Feature, options As VisualBasicParseOptions, diagnostics As DiagnosticBag, location As Location) As Boolean
-            If feature.IsAvailable(options) Then Return False
-            Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
-            Dim requiredVersion As New VisualBasicRequiredLanguageVersion(feature.GetLanguageVersion())
-            diagnostics.Add(ERRID.ERR_LanguageVersion, location, options.LanguageVersion.GetErrorName(), featureName, requiredVersion)
-            Return True
+        Friend Function CheckFeatureAvailable(feature As Feature, options As VisualBasicParseOptions, location As Location) As Diagnostic
+            Return If(feature.IsAvailable(options), Nothing, ReportFeatureUnavailable(feature, options, location))
         End Function
+
 #End Region
     End Module
 End Namespace

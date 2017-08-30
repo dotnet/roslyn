@@ -169,5 +169,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function ToString() As String
             Return Version.ToDisplayString()
         End Function
+        Shared Function [For](feature As Feature) As VisualBasicRequiredLanguageVersion
+            Return New VisualBasicRequiredLanguageVersion(feature.GetLanguageVersion())
+        End Function
     End Class
+
 End Namespace

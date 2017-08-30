@@ -467,13 +467,15 @@ DoneWithErrorReporting:
 
                 ElseIf ((implementedProperty.GetMethod Is Nothing) Xor (implementedProperty.SetMethod Is Nothing)) AndAlso
                        implementingProperty.GetMethod IsNot Nothing AndAlso implementingProperty.SetMethod IsNot Nothing Then
-
-                    errorReported = errorReported Or
-                                    Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite.IsUnavailable(
-                                                                   DirectCast(implementedMemberSyntax.SyntaxTree, VisualBasicSyntaxTree).Options,
-                                                                   diagBag,
-                                                                   implementedMemberSyntax.GetLocation())
-
+                    With implementedMemberSyntax
+                        Dim result = Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite.
+                                         CheckFeatureAvailable(DirectCast(.SyntaxTree, VisualBasicSyntaxTree).Options,
+                                                                  .GetLocation())
+                        If result IsNot Nothing Then
+                            errorReported = True
+                            diagBag.Add(result)
+                        End If
+                    End With
                 End If
             End If
 
