@@ -5,6 +5,7 @@
 '-----------------------------------------------------------------------------
 Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxFactory
+Imports Microsoft.CodeAnalysis.VisualBasic.Language
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
@@ -1843,7 +1844,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Debug.Assert(yieldKeyword IsNot Nothing AndAlso yieldKeyword.Kind = SyntaxKind.YieldKeyword)
 
-            yieldKeyword = CheckFeatureAvailability(Feature.Iterators, yieldKeyword)
+            yieldKeyword = yieldKeyword.CheckFeatureAvailability(Feature.Iterators, Options)
             GetNextToken()
 
             Dim expression As ExpressionSyntax = ParseExpressionCore()

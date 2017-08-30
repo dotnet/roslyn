@@ -2,6 +2,7 @@
 
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
+Imports Microsoft.CodeAnalysis.VisualBasic.Language
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
@@ -154,11 +155,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
-        ''' <summary>Inference of tuple element names was added in VB 15.3</summary>
-        <Extension>
-        Friend Function DisallowInferredTupleElementNames(self As LanguageVersion) As Boolean
-            Return self < Feature.InferredTupleNames.GetLanguageVersion()
-        End Function
     End Module
 
     Friend Class VisualBasicRequiredLanguageVersion
@@ -173,5 +169,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function ToString() As String
             Return Version.ToDisplayString()
         End Function
+        Shared Function [For](feature As Feature) As VisualBasicRequiredLanguageVersion
+            Return New VisualBasicRequiredLanguageVersion(feature.GetLanguageVersion())
+        End Function
     End Class
+
 End Namespace

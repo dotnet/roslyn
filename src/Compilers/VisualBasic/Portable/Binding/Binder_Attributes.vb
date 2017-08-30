@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
+Imports Microsoft.CodeAnalysis.VisualBasic.Language
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class Binder
@@ -71,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #Region "Get Single Attribute"
         Friend Function GetAttribute(node As AttributeSyntax, boundAttributeType As NamedTypeSymbol, diagnostics As DiagnosticBag) As SourceAttributeData
-            Dim boundAttribute As boundAttribute = BindAttribute(node, boundAttributeType, diagnostics)
+            Dim boundAttribute As BoundAttribute = BindAttribute(node, boundAttributeType, diagnostics)
 
             Dim visitor As New AttributeExpressionVisitor(Me, boundAttribute.HasErrors)
             Dim args As ImmutableArray(Of TypedConstant) = visitor.VisitPositionalArguments(boundAttribute.ConstructorArguments, diagnostics)
@@ -786,10 +787,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         Dim cast = DirectCast(node.Syntax, PredefinedCastExpressionSyntax)
 
                                         If cast.Keyword.Kind = SyntaxKind.CObjKeyword Then
-                                            InternalSyntax.Parser.CheckFeatureAvailability(diagBag,
-                                                                                           cast.Keyword.GetLocation(),
-                                                                                           DirectCast(cast.SyntaxTree, VisualBasicSyntaxTree).Options.LanguageVersion,
-                                                                                           InternalSyntax.Feature.CObjInAttributeArguments)
+                                            Dim result = Feature.CObjInAttributeArguments.
+                                                                 CheckFeatureAvailable(DirectCast(cast.SyntaxTree, VisualBasicSyntaxTree).Options,
+                                                                                          cast.Keyword.GetLocation())
+                                            If result IsNot Nothing Then diagBag.Add(result)
                                         End If
                                     End If
                                     node = conv.Operand

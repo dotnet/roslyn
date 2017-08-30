@@ -3,7 +3,7 @@
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxFactory
-
+Imports Microsoft.CodeAnalysis.VisualBasic.Language
 '
 '============ Methods for parsing portions of executable statements ==
 '
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim node = SyntaxFactory.InterpolatedStringExpression(dollarSignDoubleQuoteToken,
                                                               _pool.ToListAndFree(contentBuilder),
                                                               doubleQuoteToken)
-            Return CheckFeatureAvailability(Feature.InterpolatedStrings, node)
+            Return node.CheckFeatureAvailability(Feature.InterpolatedStrings, Options)
         End Function
 
         Private Function ParseInterpolatedStringInterpolation() As InterpolationSyntax
