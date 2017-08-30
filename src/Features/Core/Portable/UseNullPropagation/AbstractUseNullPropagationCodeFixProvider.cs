@@ -127,8 +127,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             ISyntaxFactsService syntaxFacts, SyntaxGenerator generator, 
             SyntaxNode whenPart, SyntaxNode match, SyntaxNode matchParent, SyntaxNode currentConditional)
         {
-            var memberAccess = matchParent as TMemberAccessExpression;
-            if (memberAccess != null)
+            if (matchParent is TMemberAccessExpression memberAccess)
             {
                 return whenPart.ReplaceNode(memberAccess,
                     generator.ConditionalAccessExpression(
@@ -137,8 +136,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                             syntaxFacts.GetNameOfMemberAccessExpression(memberAccess))));
             }
 
-            var elementAccess = matchParent as TElementAccessExpression;
-            if (elementAccess != null)
+            if (matchParent is TElementAccessExpression elementAccess)
             {
                 return whenPart.ReplaceNode(elementAccess,
                     generator.ConditionalAccessExpression(

@@ -36,9 +36,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting
             {
                 // Check for 'else if' scenario' (the statement in the else clause is an if statement)
                 var elseKeyword = ifStatement.Else.ElseKeyword;
-                var elseIfStatement = ifStatement.Else.Statement as IfStatementSyntax;
 
-                if (elseIfStatement != null)
+                if (ifStatement.Else.Statement is IfStatementSyntax elseIfStatement)
                 {
                     if (OnlySpacesBetween(elseKeyword, elseIfStatement.IfKeyword))
                     {

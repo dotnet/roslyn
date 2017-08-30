@@ -34,7 +34,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 }",
 @"class Class
 {
-    int P { get; }
+
+    int P
+    {
+        get; }
 }");
         }
 
@@ -56,7 +59,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 }",
 @"class Class
 {
-    public int P { get; private set; }
+
+    public int P
+    {
+        get; private set; }
 }",
             CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
         }
@@ -97,7 +103,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 }",
 @"class Class
 {
-    int P { get; } = 1;
+
+    int P
+    {
+        get; } = 1;
 }");
         }
 
@@ -137,7 +146,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 }",
 @"class Class
 {
-    int P { get; }
+
+    int P
+    {
+        get; }
 }");
         }
 
@@ -182,7 +194,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 }",
 @"class Class
 {
-    int P { get; set; }
+
+    int P
+    {
+        get; set; }
 }");
         }
 
@@ -204,7 +219,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 }",
 @"class Class
 {
-    int P { get; }
+
+    int P
+    {
+        get; }
 }");
         }
 
@@ -249,7 +267,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 }",
 @"class Class
 {
-    int P { get; set; }
+
+    int P
+    {
+        get; set; }
 }");
         }
 
@@ -482,7 +503,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 {
     int j, k;
 
-    int P { get; }
+    int P
+    {
+        get; }
 }");
         }
 
@@ -506,7 +529,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 {
     int i, k;
 
-    int P { get; }
+    int P
+    {
+        get; }
 }");
         }
 
@@ -530,7 +555,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 {
     int i, j;
 
-    int P { get; }
+    int P
+    {
+        get; }
 }");
         }
 
@@ -559,7 +586,9 @@ partial class Class
 
 partial class Class
 {
-    int P { get; }
+    int P
+    {
+        get; }
 }");
         }
 
@@ -605,7 +634,10 @@ partial class Class
 }",
 @"class Class
 {
-    int P { get; }
+
+    int P
+    {
+        get; }
 
     public Class()
     {
@@ -637,7 +669,10 @@ partial class Class
 }",
 @"class Class
 {
-    int P { get; }
+
+    int P
+    {
+        get; }
 
     public Class(int P)
     {
@@ -669,7 +704,10 @@ partial class Class
 }",
 @"class Class
 {
-    int P { get; }
+
+    int P
+    {
+        get; }
 
     public Class()
     {
@@ -701,7 +739,10 @@ partial class Class
 }",
 @"class Class
 {
-    int P { get; set; }
+
+    int P
+    {
+        get; set; }
 
     public Goo()
     {
@@ -733,7 +774,10 @@ partial class Class
 }",
 @"class Class
 {
-    public int P { get; private set; }
+
+    public int P
+    {
+        get; private set; }
 
     public Goo()
     {
@@ -774,7 +818,7 @@ partial class Class
 @"class Class
 {
     int P { get; }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
@@ -792,7 +836,7 @@ partial class Class
 @"class Class
 {
     int P { get; }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
@@ -811,7 +855,7 @@ partial class Class
 @"class Class
 {
     int P { get; set; }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
@@ -832,7 +876,10 @@ partial class Class
 }",
 @"class Class
 {
-    (int, string) P { get; }
+
+    (int, string) P
+    {
+        get; }
 }");
         }
 
@@ -854,7 +901,10 @@ partial class Class
 }",
 @"class Class
 {
-    (int a, string b) P { get; }
+
+    (int a, string b) P
+    {
+        get; }
 }");
         }
 
@@ -894,7 +944,10 @@ partial class Class
 }",
 @"class Class
 {
-    (int a, string) P { get; }
+
+    (int a, string) P
+    {
+        get; }
 }");
         }
 
@@ -916,7 +969,10 @@ partial class Class
 }",
 @"class Class
 {
-    (int, string) P { get; } = (1, ""hello"");
+
+    (int, string) P
+    {
+        get; } = (1, ""hello"");
 }");
         }
 
@@ -943,7 +999,10 @@ partial class Class
 }",
 @"class Class
 {
-    (int, string) P { get; set; }
+
+    (int, string) P
+    {
+        get; set; }
 }");
         }
     }

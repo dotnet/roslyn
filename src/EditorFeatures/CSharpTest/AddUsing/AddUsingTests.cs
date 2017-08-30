@@ -38,25 +38,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             string initialMarkup,
             string expectedMarkup,
             int index = 0,
-            bool ignoreTrivia = true,
             CodeActionPriority? priority = null,
             IDictionary<OptionKey, object> options = null)
         {
-            await TestAsync(initialMarkup, expectedMarkup, index, ignoreTrivia, priority, options, outOfProcess: false);
-            await TestAsync(initialMarkup, expectedMarkup, index, ignoreTrivia, priority, options, outOfProcess: true);
+            await TestAsync(initialMarkup, expectedMarkup, index, priority, options, outOfProcess: false);
+            await TestAsync(initialMarkup, expectedMarkup, index, priority, options, outOfProcess: true);
         }
 
         internal async Task TestAsync(
             string initialMarkup,
             string expectedMarkup,
             int index,
-            bool ignoreTrivia,
             CodeActionPriority? priority,
             IDictionary<OptionKey, object> options,
             bool outOfProcess)
         {
             await TestInRegularAndScript1Async(
-                initialMarkup, expectedMarkup, index, ignoreTrivia, priority,
+                initialMarkup, expectedMarkup, index, priority,
                 parameters: new TestParameters(options: options, fixProviderData: outOfProcess));
         }
     }
@@ -1797,8 +1795,7 @@ namespace B
 @"class C { [|DateTime|] t; }",
 @"using System;
 
-class C { DateTime t; }",
-ignoreTrivia: false);
+class C { DateTime t; }");
         }
 
         [WorkItem(539657, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539657")]
@@ -1807,7 +1804,9 @@ ignoreTrivia: false);
         {
             await TestAsync(
 @"class Program { static void Main ( string [ ] args ) { [|Console|] . Out . NewLine = ""\r\n\r\n"" ; } } ",
-@"using System ; class Program { static void Main ( string [ ] args ) { Console . Out . NewLine = ""\r\n\r\n"" ; } } ");
+@"using System;
+
+class Program { static void Main ( string [ ] args ) { Console . Out . NewLine = ""\r\n\r\n"" ; } } ");
         }
 
         [WorkItem(539853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539853")]
@@ -1817,7 +1816,9 @@ ignoreTrivia: false);
             await TestAsync(
 @"using System.Console; WriteLine([|Expression|].Constant(123));",
 @"using System.Console;
-using System.Linq.Expressions; WriteLine(Expression.Constant(123));",
+using System.Linq.Expressions;
+
+WriteLine(Expression.Constant(123));",
 parseOptions: GetScriptOptions());
         }
 
@@ -1850,8 +1851,7 @@ class Program
     {
         Console.WriteLine();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(540339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540339")]
@@ -1878,8 +1878,7 @@ class Program
     {
         Console.WriteLine();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -1906,8 +1905,7 @@ class Program
     {
         Console.WriteLine();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -1935,8 +1933,7 @@ class Program
     {
         Console.WriteLine();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -1964,8 +1961,7 @@ class Program
     {
         Console.WriteLine();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -1995,8 +1991,7 @@ class Program
     {
         Console.WriteLine();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -2029,8 +2024,7 @@ class Program
     {
         Console.WriteLine();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -2049,8 +2043,7 @@ using System.Linq.Expressions;
 
 Expression",
 GetScriptOptions(),
-TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver),
-ignoreTrivia: false);
+TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver));
         }
 
         [WorkItem(542643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542643")]
@@ -2113,8 +2106,7 @@ class Program
 #line hidden
     }
 }
-#line default",
-ignoreTrivia: false);
+#line default");
         }
 
         [WorkItem(545248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545248")]
@@ -2146,7 +2138,7 @@ ignoreTrivia: false);
 input,
 @"using System.Runtime.InteropServices;
 
-[assembly: Guid(""9ed54f84-a89d-4fcd-a854-44251e925f09"")]");
+[ assembly : Guid ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ");
         }
 
         [WorkItem(546833, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546833")]
@@ -2420,6 +2412,7 @@ namespace ExternAliases
             const string ExpectedDocumentText = @"extern alias P;
 
 using P::ProjectLib;
+
 namespace ExternAliases
 {
     class Program
@@ -2477,7 +2470,8 @@ namespace ExternAliases
     </Project>
 </Workspace>";
 
-            const string ExpectedDocumentText = @"extern alias P;
+            const string ExpectedDocumentText = @"
+extern alias P;
 
 using P::AnotherNS;
 using P::ProjectLib;
@@ -2531,6 +2525,7 @@ namespace ExternAliases
 </Workspace>";
 
             const string ExpectedDocumentText = @"extern alias P;
+
 using P::AnotherNS;
 namespace ExternAliases
 {
@@ -2646,7 +2641,7 @@ namespace N1
 
 public class MyClass
 {
-    public static explicit operator N1.D(MyClass f)
+    public static explicit operator N1.D (MyClass f)
     {
         return default(N1.D);
     }
@@ -3058,14 +3053,17 @@ namespace Extensions
 </Workspace> ";
 
             var expectedText =
-@"using Extensions;
+@"
+using Extensions;
+
 public class C
 {
     void Main(C a)
     {
         C x = a?.B();
     }
-}";
+}
+       ";
             await TestAsync(initialText, expectedText);
         }
 
@@ -3104,7 +3102,9 @@ namespace Extensions
 </Workspace> ";
 
             var expectedText =
-@"using Extensions;
+@"
+using Extensions;
+
 public class C
 {
     public E B { get; private set; }
@@ -3117,7 +3117,8 @@ public class C
     public class E
     {
     }
-}";
+}
+       ";
             await TestAsync(initialText, expectedText);
         }
 
@@ -3242,7 +3243,7 @@ using System.IO;
 #if DEBUG
 using System.Text;
 #endif
-class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ", ignoreTrivia: false);
+class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -3268,7 +3269,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
 
-class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ", ignoreTrivia: false);
+class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -3294,7 +3295,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
 
-class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ", ignoreTrivia: false);
+class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -3844,8 +3845,8 @@ namespace X
 }",
 @"namespace Microsoft.MyApp
 {
-#if true
     using Microsoft.Win32.SafeHandles;
+#if true
     using Win32;
 #else
     using System;
@@ -4102,7 +4103,7 @@ using System.Collections.Generic;
 
 static void Main(string[] args)
 {
-    Func<int> f = () => { List<int>.}
+    Func<int> f = () => { List<int>. }
 }";
             await TestAsync(initialText, expectedText);
         }
@@ -4125,7 +4126,7 @@ using System.Collections.Generic;
 
 static void Main(string[] args)
 {
-    Func<int> f = () => { List<int>}
+    Func<int> f = () => { List<int> }
 }";
             await TestAsync(initialText, expectedText);
         }
@@ -4312,8 +4313,7 @@ namespace Namespace2
             Task<int>
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -4394,8 +4394,7 @@ using System.Collections.Generic;
 class C : IEnumerable<int>
 {
 }
-",
-ignoreTrivia: false);
+");
         }
 
         [WorkItem(226826, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=226826")]
@@ -4425,8 +4424,7 @@ class C
 {
     DateTime d;
 }
-",
-ignoreTrivia: false);
+");
         }
 
         [WorkItem(226826, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=226826")]
@@ -4450,8 +4448,7 @@ class C
 {
     DateTime d;
 }
-",
-ignoreTrivia: false);
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -4645,6 +4642,7 @@ namespace Outer
     {
         void M()
         {
+            // Note: IVsStatusBar is cased incorrectly.
             IVsStatusbar b;
         }
     }

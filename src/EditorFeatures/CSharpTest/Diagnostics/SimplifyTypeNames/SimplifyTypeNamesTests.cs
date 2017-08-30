@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -10,9 +9,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -346,6 +343,114 @@ namespace Root
 }");
         }
 
+        [WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoNotChangeToAliasInNameOfIfItChangesNameOfName()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+using Foo = SimplifyInsideNameof.Program;
+
+namespace SimplifyInsideNameof
+{
+  class Program
+  {
+    static void Main(string[] args)
+    {
+      Console.WriteLine(nameof([|SimplifyInsideNameof.Program|]));
+    }
+  }
+}",
+@"using System;
+using Foo = SimplifyInsideNameof.Program;
+
+namespace SimplifyInsideNameof
+{
+  class Program
+  {
+    static void Main(string[] args)
+    {
+      Console.WriteLine(nameof(Program));
+    }
+  }
+}");
+        }
+
+        [WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoChangeToAliasInNameOfIfItDoesNotAffectName1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using Goo = SimplifyInsideNameof.Program;
+
+namespace SimplifyInsideNameof
+{
+  class Program
+  {
+    static void Main(string[] args)
+    {
+      Console.WriteLine(nameof([|SimplifyInsideNameof.Program|].Main));
+    }
+  }
+}",
+
+@"using System;
+using Goo = SimplifyInsideNameof.Program;
+
+namespace SimplifyInsideNameof
+{
+  class Program
+  {
+    static void Main(string[] args)
+    {
+      Console.WriteLine(nameof(Goo.Main));
+    }
+  }
+}");
+        }
+
+        [WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoChangeToAliasInNameOfIfItDoesNotAffectName2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using Goo = N.Goo;
+
+namespace N {
+    class Goo { }
+}
+
+namespace SimplifyInsideNameof
+{
+  class Program
+  {
+    static void Main(string[] args)
+    {
+      Console.WriteLine(nameof([|N.Goo|]));
+    }
+  }
+}",
+@"using System;
+using Goo = N.Goo;
+
+namespace N {
+    class Goo { }
+}
+
+namespace SimplifyInsideNameof
+{
+  class Program
+  {
+    static void Main(string[] args)
+    {
+      Console.WriteLine(nameof(Goo));
+    }
+  }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TwoAliases()
         {
@@ -513,7 +618,7 @@ namespace Root
             var content =
 @"class A
 {
-     [|[||]|] i;
+    [|[||]|] i;
 }
 ";
 
@@ -746,9 +851,7 @@ namespace Root
     {
         public class A2
         {
-            public class A1
-            {
-            }
+            public class A1 { }
 
             A1 a;
         }
@@ -1630,8 +1733,7 @@ new TestParameters(Options.Script));
         }
     }
 }",
-index: 1,
-ignoreTrivia: false);
+index: 1);
         }
 
         [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
@@ -2055,7 +2157,7 @@ class C
         object x = 1;
         var y = (x as int?) + 1;
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(544974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544974")]
@@ -2139,8 +2241,7 @@ class Program
     {
         var x = 1 is int? ? 2 : 3;
     }
-}",
-  ignoreTrivia: false);
+}");
         }
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
@@ -2380,7 +2481,7 @@ class A
 @"using System;
 using System.Collections.Generic;
 /// <summary>
-/// <see cref=""A.M{T}(List{Nullable{T}}, T?})""/>
+/// <see cref=""A.M{T}(List{Nullable{T}}, T?)""/>
 /// </summary>
 class A
 {
@@ -2493,7 +2594,7 @@ class Program
 {
     static void Main()
     {
-        Program a = null;
+        Program a = null; 
     }
 }", parseOptions: null);
 
@@ -2548,7 +2649,7 @@ static class M
             await TestInRegularAndScriptAsync(source,
 @"class Preserve
 {
-    public static int Y;
+	public static int Y;
 }
 
 class Z<T> : Preserve
@@ -2557,10 +2658,10 @@ class Z<T> : Preserve
 
 static class M
 {
-    public static void Main()
-    {
-        int k = Preserve.Y;
-    }
+	public static void Main()
+	{
+		int k = Preserve.Y;
+	}
 }");
         }
 
@@ -2591,10 +2692,10 @@ class M
             await TestInRegularAndScriptAsync(source,
 @"class Preserve
 {
-    public class X
-    {
-        public static int Y;
-    }
+	public class X
+	{
+		public static int Y;
+	}
 }
 
 class Z<T> : Preserve
@@ -2603,10 +2704,10 @@ class Z<T> : Preserve
 
 class M
 {
-    public static void Main()
-    {
-        int k = Preserve.X.Y;
-    }
+	public static void Main()
+	{
+		int k = Preserve.X.Y;
+	}
 }");
         }
 
@@ -3221,7 +3322,7 @@ class C
     public void z()
     {
     }
-}", ignoreTrivia: false, options: PreferIntrinsicTypeEverywhere);
+}", options: PreferIntrinsicTypeEverywhere);
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3245,7 +3346,7 @@ class C
     public void z()
     {
     }
-}", ignoreTrivia: false, options: PreferIntrinsicTypeInMemberAccess);
+}", options: PreferIntrinsicTypeInMemberAccess);
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3267,7 +3368,7 @@ class C
     public void z()
     {
     }
-}", ignoreTrivia: false, options: PreferIntrinsicTypeEverywhere);
+}", options: PreferIntrinsicTypeEverywhere);
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3291,7 +3392,7 @@ class C
     public void z()
     {
     }
-}", ignoreTrivia: false, options: PreferIntrinsicTypeEverywhere);
+}", options: PreferIntrinsicTypeEverywhere);
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]

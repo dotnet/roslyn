@@ -618,8 +618,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 out var code, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
             // For linked files, use the same ITextBuffer for all linked documents
-            ITextBuffer textBuffer;
-            if (!filePathToTextBufferMap.TryGetValue(filePath, out textBuffer))
+            if (!filePathToTextBufferMap.TryGetValue(filePath, out var textBuffer))
             {
                 textBuffer = EditorFactory.CreateBuffer(contentType.TypeName, exportProvider, code);
                 filePathToTextBufferMap.Add(filePath, textBuffer);

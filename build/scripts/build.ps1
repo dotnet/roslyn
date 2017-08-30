@@ -347,6 +347,10 @@ function Test-XUnit() {
     # Exclude out the multi-targetted netcore app projects
     $dlls = $dlls | ?{ -not ($_.FullName -match ".*netcoreapp.*") }
 
+    # Exclude out the ref assemblies
+    $dlls = $dlls | ?{ -not ($_.FullName -match ".*\\ref\\.*") }
+    $dlls = $dlls | ?{ -not ($_.FullName -match ".*/ref/.*") }
+
     if ($cibuild) {
         # Use a 50 minute timeout on CI
         $args += " -xml -timeout:50"

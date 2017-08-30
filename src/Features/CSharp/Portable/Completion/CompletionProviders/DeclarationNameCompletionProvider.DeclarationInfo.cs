@@ -48,8 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var semanticModel = await document.GetSemanticModelForSpanAsync(new Text.TextSpan(token.SpanStart, 0), cancellationToken).ConfigureAwait(false);
                 var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
 
-                NameDeclarationInfo result;
-                if (IsParameterDeclaration(token, semanticModel, position, cancellationToken, out result)
+                if (IsParameterDeclaration(token, semanticModel, position, cancellationToken, out var result)
                     || IsTypeParameterDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsVariableDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsIncompleteMemberDeclaration(token, semanticModel, position, cancellationToken, out result)
@@ -62,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return result;
                 }
 
-                return default(NameDeclarationInfo);
+                return default;
             }
 
             private static bool IsPossibleOutVariableDeclaration(SyntaxToken token, SemanticModel semanticModel, int position,
@@ -150,24 +149,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 if (!IsPossibleTypeToken(token) && !token.IsKind(SyntaxKind.CommaToken))
                 {
-                    return default(NameDeclarationInfo);
+                    return default;
                 }
 
                 var target = token.GetAncestor<TSyntaxNode>();
                 if (target == null)
                 {
-                    return default(NameDeclarationInfo);
+                    return default;
                 }
 
                 if (token.IsKind(SyntaxKind.CommaToken) && token.Parent != target)
                 {
-                    return default(NameDeclarationInfo);
+                    return default;
                 }
 
                 var typeSyntax = typeSyntaxGetter(target);
                 if (typeSyntax == null)
                 {
-                    return default(NameDeclarationInfo);
+                    return default;
                 }
 
                 if (!token.IsKind(SyntaxKind.CommaToken) && token != typeSyntax.GetLastToken())
@@ -179,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 if (modifiers == null)
                 {
-                    return default(NameDeclarationInfo);
+                    return default;
                 }
 
                 var alias = semanticModel.GetAliasInfo(typeSyntax, cancellationToken);
@@ -203,25 +202,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 if (!IsPossibleTypeToken(token))
                 {
-                    return default(NameDeclarationInfo);
+                    return default;
                 }
 
                 var target = token.GetAncestor<TSyntaxNode>();
                 if (target == null)
                 {
-                    return default(NameDeclarationInfo);
+                    return default;
                 }
 
                 var typeSyntax = typeSyntaxGetter(target);
                 if (typeSyntax == null || token != typeSyntax.GetLastToken())
                 {
-                    return default(NameDeclarationInfo);
+                    return default;
                 }
 
                 var modifiers = modifierGetter(target);
                 if (modifiers == null)
                 {
-                    return default(NameDeclarationInfo);
+                    return default;
                 }
 
                 return new NameDeclarationInfo(
@@ -281,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return true;
                 }
 
-                result = default(NameDeclarationInfo);
+                result = default;
                 return false;
             }
 

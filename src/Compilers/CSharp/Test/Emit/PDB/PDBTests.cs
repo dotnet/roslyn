@@ -2948,12 +2948,12 @@ class Student : Person { public double GPA; }
         </encLocalSlotMap>
         <encLambdaMap>
           <methodOrdinal>2</methodOrdinal>
-          <closure offset=""383"" />
           <closure offset=""0"" />
-          <lambda offset=""109"" closure=""0"" />
-          <lambda offset=""202"" closure=""0"" />
-          <lambda offset=""295"" closure=""0"" />
-          <lambda offset=""383"" closure=""1"" />
+          <closure offset=""383"" />
+          <lambda offset=""109"" closure=""1"" />
+          <lambda offset=""202"" closure=""1"" />
+          <lambda offset=""295"" closure=""1"" />
+          <lambda offset=""383"" closure=""0"" />
         </encLambdaMap>
       </customDebugInfo>
       <sequencePoints>
@@ -6795,32 +6795,32 @@ class C
 
         #region Patterns
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21079")]
+        [Fact]
         public void SyntaxOffset_Pattern()
         {
             var source = @"class C { bool F(object o) => o is int i && o is 3 && o is bool; }";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.F", @"<symbols>
-	  <methods>
-	    <method containingType=""C"" name=""F"" parameterNames=""o"">
-	      <customDebugInfo>
-	        <using>
-	          <namespace usingCount=""0"" />
-	        </using>
-	        <encLocalSlotMap>
-	          <slot kind=""0"" offset=""12"" />
-	          <slot kind=""temp"" />
-	        </encLocalSlotMap>
-	      </customDebugInfo>
-	      <sequencePoints>
-	        <entry offset=""0x0"" startLine=""1"" startColumn=""31"" endLine=""1"" endColumn=""64"" />
-	      </sequencePoints>
-	      <scope startOffset=""0x0"" endOffset=""0x38"">
-	        <local name=""i"" il_index=""0"" il_start=""0x0"" il_end=""0x38"" attributes=""0"" />
-	      </scope>
-	    </method>
-	  </methods>
-	</symbols>");
+  <methods>
+    <method containingType=""C"" name=""F"" parameterNames=""o"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""12"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""1"" startColumn=""31"" endLine=""1"" endColumn=""64"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x35"">
+        <local name=""i"" il_index=""0"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>");
         }
 
         #endregion
@@ -7391,7 +7391,7 @@ partial class C
         </encLocalSlotMap>
         <encLambdaMap>
           <methodOrdinal>0</methodOrdinal>
-          <lambda offset=""99"" />
+          <lambda offset=""115"" />
           <lambda offset=""202"" />
         </encLambdaMap>
       </customDebugInfo>

@@ -179,7 +179,8 @@ class D
     sub M()
         dim a = new C(1, true)
     end sub
-end class")
+end class
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
@@ -209,7 +210,8 @@ class D
     sub M()
         dim a = new C(true, 1)
     end sub
-end class")
+end class
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
@@ -253,8 +255,7 @@ class C
     private sub Goo()
         dim x = new C(true, 0, 0)
     end sub
-end class",
-ignoreTrivia:=False)
+end class")
         End Function
 
         <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
@@ -281,8 +282,7 @@ class C
     private sub Goo()
         dim x = new C(0, true, 0)
     end sub
-end class",
-ignoreTrivia:=False)
+end class")
         End Function
 
         <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
@@ -309,8 +309,7 @@ class C
     private sub Goo()
         dim x = new C(0, 0, true)
     end sub
-end class",
-ignoreTrivia:=False)
+end class")
         End Function
 
         <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
@@ -339,8 +338,7 @@ class C
     private sub Goo()
         dim x = new C(true, 0, 0)
     end sub
-end class",
-ignoreTrivia:=False)
+end class")
         End Function
 
         <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
@@ -369,8 +367,7 @@ class C
     private sub Goo()
         dim x = new C(0, true, 0)
     end sub
-end class",
-ignoreTrivia:=False)
+end class")
         End Function
 
         <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
@@ -399,8 +396,7 @@ class C
     private sub Goo()
         dim x = new C(0, 0, true)
     end sub
-end class",
-ignoreTrivia:=False)
+end class")
         End Function
     End Class
 End Namespace

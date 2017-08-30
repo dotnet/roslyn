@@ -3150,6 +3150,157 @@ class C
         }
 
         [Fact]
+        public void SynthesizedVariablesInLambdas2()
+        {
+            var source0 = MarkedSource(@"
+using System;
+
+class C
+{
+    static void M()
+    {
+        var <N:0>f1</N:0> = new Action<int[], int>(<N:1>(a, _) =>
+        {
+            <N:2>foreach</N:2> (var x in a)
+            {
+                Console.WriteLine(1); // change to 10 and then to 100
+            }
+        }</N:1>);
+
+        var <N:3>f2</N:3> = new Action<int[], int>(<N:4>(a, _) =>
+        {
+            <N:5>foreach</N:5> (var x in a)
+            {
+                Console.WriteLine(20);
+            }
+        }</N:4>);
+
+        f1(new[] { 1, 2 }, 1);
+        f2(new[] { 1, 2 }, 1);
+    }
+}");
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+    static void M()
+    {
+        var <N:0>f1</N:0> = new Action<int[], int>(<N:1>(a, _) =>
+        {
+            <N:2>foreach</N:2> (var x in a)
+            {
+                Console.WriteLine(10); // change to 10 and then to 100
+            }
+        }</N:1>);
+
+        var <N:3>f2</N:3> = new Action<int[], int>(<N:4>(a, _) =>
+        {
+            <N:5>foreach</N:5> (var x in a)
+            {
+                Console.WriteLine(20);
+            }
+        }</N:4>);
+
+        f1(new[] { 1, 2 }, 1);
+        f2(new[] { 1, 2 }, 1);
+    }
+}");
+            var source2 = MarkedSource(@"
+using System;
+
+class C
+{
+    static void M()
+    {
+        var <N:0>f1</N:0> = new Action<int[], int>(<N:1>(a, _) =>
+        {
+            <N:2>foreach</N:2> (var x in a)
+            {
+                Console.WriteLine(100); // change to 10 and then to 100
+            }
+        }</N:1>);
+
+        var <N:3>f2</N:3> = new Action<int[], int>(<N:4>(a, _) =>
+        {
+            <N:5>foreach</N:5> (var x in a)
+            {
+                Console.WriteLine(20);
+            }
+        }</N:4>);
+
+        f1(new[] { 1, 2 }, 1);
+        f2(new[] { 1, 2 }, 1);
+    }
+}");
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var compilation2 = compilation1.WithSource(source2.Tree);
+
+            var m0 = compilation0.GetMember<MethodSymbol>("C.M");
+            var m1 = compilation1.GetMember<MethodSymbol>("C.M");
+            var m2 = compilation2.GetMember<MethodSymbol>("C.M");
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, m0, m1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, m1, m2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0_0, <>9__0_1, <M>b__0_0, <M>b__0_1}");
+
+            diff2.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0_0, <>9__0_1, <M>b__0_0, <M>b__0_1}");
+
+            var expectedIL = @"
+{
+  // Code size       33 (0x21)
+  .maxstack  2
+  .locals init (int[] V_0,
+                int V_1,
+                int V_2) //x
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ldarg.1
+  IL_0003:  stloc.0
+  IL_0004:  ldc.i4.0
+  IL_0005:  stloc.1
+  IL_0006:  br.s       IL_001a
+  IL_0008:  ldloc.0
+  IL_0009:  ldloc.1
+  IL_000a:  ldelem.i4
+  IL_000b:  stloc.2
+  IL_000c:  nop
+  IL_000d:  ldc.i4.s   20
+  IL_000f:  call       ""void System.Console.WriteLine(int)""
+  IL_0014:  nop
+  IL_0015:  nop
+  IL_0016:  ldloc.1
+  IL_0017:  ldc.i4.1
+  IL_0018:  add
+  IL_0019:  stloc.1
+  IL_001a:  ldloc.1
+  IL_001b:  ldloc.0
+  IL_001c:  ldlen
+  IL_001d:  conv.i4
+  IL_001e:  blt.s      IL_0008
+  IL_0020:  ret
+}";
+
+            diff1.VerifyIL(@"C.<>c.<M>b__0_1", expectedIL);
+            diff2.VerifyIL(@"C.<>c.<M>b__0_1", expectedIL);
+        }
+
+        [Fact]
         public void SynthesizedVariablesInIterator1()
         {
             var source = @"

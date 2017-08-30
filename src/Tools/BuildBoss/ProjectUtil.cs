@@ -50,9 +50,7 @@ namespace BuildBoss
 
         internal RoslynProjectData GetRoslynProjectData()
         {
-            RoslynProjectData data;
-            string error;
-            if (!TryGetRoslynProjectData(out data, out error))
+            if (!TryGetRoslynProjectData(out var data, out var error))
             {
                 throw new Exception(error);
             }
@@ -171,8 +169,7 @@ namespace BuildBoss
                 var refOutputAssembly = r.Element(Namespace.GetName("ReferenceOutputAssembly"));
                 if (refOutputAssembly != null)
                 {
-                    bool isRealReference;
-                    if (bool.TryParse(refOutputAssembly.Value.Trim().ToLower(), out isRealReference) && !isRealReference)
+                    if (bool.TryParse(refOutputAssembly.Value.Trim().ToLower(), out var isRealReference) && !isRealReference)
                     {
                         continue;
                     }

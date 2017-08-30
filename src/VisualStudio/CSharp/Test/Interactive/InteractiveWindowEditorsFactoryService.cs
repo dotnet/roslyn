@@ -36,8 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
 
         ITextBuffer IInteractiveWindowEditorFactoryService.CreateAndActivateBuffer(IInteractiveWindow window)
         {
-            IContentType contentType;
-            if (!window.Properties.TryGetProperty(typeof(IContentType), out contentType))
+            if (!window.Properties.TryGetProperty(typeof(IContentType), out IContentType contentType))
             {
                 contentType = _contentTypeRegistry.GetContentType(ContentType);
             }

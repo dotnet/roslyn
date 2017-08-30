@@ -7705,6 +7705,34 @@ class C
 
         [WorkItem(21028, "https://github.com/dotnet/roslyn/issues/21028")]
         [Fact]
+        public void InferredName()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        int x = 0, y = 1;
+        var t = (x, y);
+        var (a, b) = t;
+    }
+}";
+            // C# 7.0
+            var comp = CreateStandardCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyEmitDiagnostics();
+            // C# 7.1
+            comp = CreateStandardCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [WorkItem(21028, "https://github.com/dotnet/roslyn/issues/21028")]
+        [Fact]
         public void InferredName_ConditionalOperator()
         {
             var source =

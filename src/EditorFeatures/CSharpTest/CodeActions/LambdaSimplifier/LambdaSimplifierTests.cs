@@ -458,7 +458,7 @@ class C
     public static bool operator >(Func<string> y, C x) { return true; }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [WorkItem(545856, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545856")]

@@ -22,8 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
-            var name = syntax as NameSyntax;
-            if (name != null)
+            if (syntax is NameSyntax name)
             {
                 ClassifyTypeSyntax(name, semanticModel, result, cancellationToken);
             }
@@ -123,17 +122,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             CancellationToken cancellationToken,
             out ClassifiedSpan classifiedSpan)
         {
-            if (symbol != null)
+            // Classify a reference to an attribute constructor in an attribute location
+            // as if we were classifying the attribute type itself.
+            if (symbol.IsConstructor() && name.IsParentKind(SyntaxKind.Attribute))
             {
-                // see through using aliases
-                if (symbol.Kind == SymbolKind.Alias)
-                {
-                    symbol = (symbol as IAliasSymbol).Target;
-                }
-                else if (symbol.IsConstructor() && name.IsParentKind(SyntaxKind.Attribute))
-                {
-                    symbol = symbol.ContainingType;
-                }
+                symbol = symbol.ContainingType;
             }
 
             if (name.IsVar &&
@@ -153,18 +146,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 }
             }
 
-            if (symbol != null)
+            // Use .Equals since we can't rely on object identity for constructed types.
+            if (symbol is ITypeSymbol typeSymbol)
             {
-                // Use .Equals since we can't rely on object identity for constructed types.
-                if (symbol is ITypeSymbol typeSymbol)
+                var classification = GetClassificationForType(typeSymbol);
+                if (classification != null)
                 {
-                    var classification = GetClassificationForType(typeSymbol);
-                    if (classification != null)
-                    {
-                        var token = name.GetNameToken();
-                        classifiedSpan = new ClassifiedSpan(token.Span, classification);
-                        return true;
-                    }
+                    var token = name.GetNameToken();
+                    classifiedSpan = new ClassifiedSpan(token.Span, classification);
+                    return true;
                 }
             }
 
@@ -244,8 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         {
             // Okay - it wasn't a type. If the syntax matches "var q = from" or "q = from", and from
             // doesn't bind to anything then optimistically color from as a keyword.
-            var identifierName = name as IdentifierNameSyntax;
-            if (identifierName != null &&
+            if (name is IdentifierNameSyntax identifierName &&
                 identifierName.Identifier.HasMatchingText(SyntaxKind.FromKeyword) &&
                 symbolInfo.Symbol == null)
             {
@@ -278,8 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         private bool TryClassifyNameOfIdentifier(
             NameSyntax name, SymbolInfo symbolInfo, ArrayBuilder<ClassifiedSpan> result)
         {
-            var identifierName = name as IdentifierNameSyntax;
-            if (identifierName != null &&
+            if (name is IdentifierNameSyntax identifierName &&
                 identifierName.Identifier.IsKindOrHasMatchingText(SyntaxKind.NameOfKeyword) &&
                 symbolInfo.Symbol == null &&
                 !symbolInfo.CandidateSymbols.Any())

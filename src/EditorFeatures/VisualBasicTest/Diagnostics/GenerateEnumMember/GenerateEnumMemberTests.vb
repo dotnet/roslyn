@@ -526,8 +526,7 @@ Enum Color
 End Enum</Text>.Value.Replace(vbLf, vbCrLf)
 
             Await TestInRegularAndScriptAsync(code,
-                    expected,
-                    ignoreTrivia:=False)
+                    expected)
         End Function
 
         <WorkItem(540552, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540552")>
@@ -1163,6 +1162,7 @@ End Enum",
         Color.Blue
     End Sub
 End Class
+
 Enum Color As Long
     Red = &H8000000000000000
     Blue = &H8000000000000001

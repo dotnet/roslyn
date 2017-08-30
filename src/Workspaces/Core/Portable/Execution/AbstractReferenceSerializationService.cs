@@ -76,8 +76,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public Checksum CreateChecksum(MetadataReference reference, CancellationToken cancellationToken)
         {
-            var portable = reference as PortableExecutableReference;
-            if (portable != null)
+            if (reference is PortableExecutableReference portable)
             {
                 return CreatePortableExecutableReferenceChecksum(portable, cancellationToken);
             }
@@ -122,11 +121,9 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public void WriteTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
-            var portable = reference as PortableExecutableReference;
-            if (portable != null)
+            if (reference is PortableExecutableReference portable)
             {
-                var supportTemporaryStorage = portable as ISupportTemporaryStorage;
-                if (supportTemporaryStorage != null)
+                if (portable is ISupportTemporaryStorage supportTemporaryStorage)
                 {
                     if (TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(supportTemporaryStorage, writer, cancellationToken))
                     {
@@ -293,8 +290,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 return;
             }
 
-            var assemblyMetadata = metadata as AssemblyMetadata;
-            if (assemblyMetadata != null)
+            if (metadata is AssemblyMetadata assemblyMetadata)
             {
                 writer.WriteInt32((int)assemblyMetadata.Kind);
 
@@ -401,8 +397,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 return;
             }
 
-            var assemblyMetadata = metadata as AssemblyMetadata;
-            if (assemblyMetadata != null)
+            if (metadata is AssemblyMetadata assemblyMetadata)
             {
                 writer.WriteInt32((int)assemblyMetadata.Kind);
 
@@ -554,8 +549,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
         private void GetMetadata(Stream stream, long length, out ModuleMetadata metadata, out object lifeTimeObject)
         {
-            var directAccess = stream as ISupportDirectMemoryAccess;
-            if (directAccess != null)
+            if (stream is ISupportDirectMemoryAccess directAccess)
             {
                 metadata = ModuleMetadata.CreateFromMetadata(directAccess.GetPointer(), (int)length);
                 lifeTimeObject = stream;
@@ -563,8 +557,7 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             PinnedObject pinnedObject;
-            var memory = stream as MemoryStream;
-            if (memory != null &&
+            if (stream is MemoryStream memory &&
                 memory.TryGetBuffer(out var buffer) &&
                 buffer.Offset == 0)
             {

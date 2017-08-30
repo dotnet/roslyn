@@ -12,80 +12,110 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// A method that results from the translation of a single lambda expression.
     /// </summary>
-    internal sealed class SynthesizedLambdaMethod : SynthesizedMethodBaseSymbol, ISynthesizedMethodBodyImplementationSymbol
+    internal sealed class SynthesizedClosureMethod : SynthesizedMethodBaseSymbol, ISynthesizedMethodBodyImplementationSymbol
     {
         private readonly MethodSymbol _topLevelMethod;
-        private readonly ImmutableArray<TypeSymbol> _structClosures;
+        private readonly ImmutableArray<NamedTypeSymbol> _structEnvironments;
 
-        internal SynthesizedLambdaMethod(
+        internal readonly DebugId LambdaId;
+
+        internal SynthesizedClosureMethod(
             NamedTypeSymbol containingType,
-            ImmutableArray<TypeSymbol> structClosures,
+            ImmutableArray<SynthesizedClosureEnvironment> structEnvironments,
             ClosureKind closureKind,
             MethodSymbol topLevelMethod,
             DebugId topLevelMethodId,
-            IBoundLambdaOrFunction lambdaNode,
+            MethodSymbol originalMethod,
+            SyntaxReference blockSyntax,
             DebugId lambdaId)
             : base(containingType,
-                   lambdaNode.Symbol,
+                   originalMethod,
                    null,
-                   lambdaNode.Syntax.SyntaxTree.GetReference(lambdaNode.Body.Syntax),
-                   lambdaNode.Syntax.GetLocation(),
-                   lambdaNode is BoundLocalFunctionStatement ?
-                    MakeName(topLevelMethod.Name, lambdaNode.Symbol.Name, topLevelMethodId, closureKind, lambdaId) :
-                    MakeName(topLevelMethod.Name, topLevelMethodId, closureKind, lambdaId),
-                   (closureKind == ClosureKind.ThisOnly ? DeclarationModifiers.Private : DeclarationModifiers.Internal)
-                       | (closureKind == ClosureKind.Static ? DeclarationModifiers.Static : 0)
-                       | (lambdaNode.Symbol.IsAsync ? DeclarationModifiers.Async : 0))
+                   blockSyntax,
+                   originalMethod.DeclaringSyntaxReferences[0].GetLocation(),
+                   originalMethod is LocalFunctionSymbol
+                    ? MakeName(topLevelMethod.Name, originalMethod.Name, topLevelMethodId, closureKind, lambdaId)
+                    : MakeName(topLevelMethod.Name, topLevelMethodId, closureKind, lambdaId),
+                   MakeDeclarationModifiers(closureKind, originalMethod))
         {
             _topLevelMethod = topLevelMethod;
             ClosureKind = closureKind;
+            LambdaId = lambdaId;
 
             TypeMap typeMap;
             ImmutableArray<TypeParameterSymbol> typeParameters;
             ImmutableArray<TypeParameterSymbol> constructedFromTypeParameters;
-            LambdaFrame lambdaFrame;
 
-            lambdaFrame = this.ContainingType as LambdaFrame;
+            var lambdaFrame = ContainingType as SynthesizedClosureEnvironment;
             switch (closureKind)
             {
                 case ClosureKind.Singleton: // all type parameters on method (except the top level method's)
                 case ClosureKind.General: // only lambda's type parameters on method (rest on class)
                     Debug.Assert(lambdaFrame != null);
-                    typeMap = lambdaFrame.TypeMap.WithConcatAlphaRename(lambdaNode.Symbol, this, out typeParameters, out constructedFromTypeParameters, lambdaFrame.ContainingMethod);
+                    typeMap = lambdaFrame.TypeMap.WithConcatAlphaRename(
+                        originalMethod,
+                        this,
+                        out typeParameters,
+                        out constructedFromTypeParameters,
+                        lambdaFrame.OriginalContainingMethodOpt);
                     break;
                 case ClosureKind.ThisOnly: // all type parameters on method
                 case ClosureKind.Static:
                     Debug.Assert(lambdaFrame == null);
-                    typeMap = TypeMap.Empty.WithConcatAlphaRename(lambdaNode.Symbol, this, out typeParameters, out constructedFromTypeParameters, null);
+                    typeMap = TypeMap.Empty.WithConcatAlphaRename(
+                        originalMethod,
+                        this,
+                        out typeParameters,
+                        out constructedFromTypeParameters,
+                        stopAt: null);
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(closureKind);
             }
 
-            if (!structClosures.IsDefaultOrEmpty && typeParameters.Length != 0)
+            if (!structEnvironments.IsDefaultOrEmpty && typeParameters.Length != 0)
             {
-                var constructedStructClosures = ArrayBuilder<TypeSymbol>.GetInstance();
-                foreach (var closure in structClosures)
+                var constructedStructClosures = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+                foreach (var env in structEnvironments)
                 {
-                    var frame = (LambdaFrame)closure;
                     NamedTypeSymbol constructed;
-                    if (frame.Arity == 0)
+                    if (env.Arity == 0)
                     {
-                        constructed = frame;
+                        constructed = env;
                     }
                     else
                     {
-                        var originals = frame.ConstructedFromTypeParameters;
+                        var originals = env.ConstructedFromTypeParameters;
                         var newArgs = typeMap.SubstituteTypeParameters(originals);
-                        constructed = frame.Construct(newArgs);
+                        constructed = env.Construct(newArgs);
                     }
                     constructedStructClosures.Add(constructed);
                 }
-                structClosures = constructedStructClosures.ToImmutableAndFree();
+                _structEnvironments = constructedStructClosures.ToImmutableAndFree();
             }
-            _structClosures = structClosures;
+            else
+            {
+                _structEnvironments = ImmutableArray<NamedTypeSymbol>.CastUp(structEnvironments);
+            }
 
             AssignTypeMapAndTypeParameters(typeMap, typeParameters);
+        }
+
+        private static DeclarationModifiers MakeDeclarationModifiers(ClosureKind closureKind, MethodSymbol originalMethod)
+        {
+            var mods = closureKind == ClosureKind.ThisOnly ? DeclarationModifiers.Private : DeclarationModifiers.Internal;
+
+            if (closureKind == ClosureKind.Static)
+            {
+                mods |= DeclarationModifiers.Static;
+            }
+
+            if (originalMethod.IsAsync)
+            {
+                mods |= DeclarationModifiers.Async;
+            }
+
+            return mods;
         }
 
         private static string MakeName(string topLevelMethodName, string localFunctionName, DebugId topLevelMethodId, ClosureKind closureKind, DebugId lambdaId)
@@ -125,8 +155,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         // UNDONE: names from the delegate. Does it really matter?
         protected override ImmutableArray<ParameterSymbol> BaseMethodParameters => this.BaseMethod.Parameters;
 
-        protected override ImmutableArray<TypeSymbol> ExtraSynthesizedRefParameters => _structClosures;
-        internal int ExtraSynthesizedParameterCount => this._structClosures.IsDefault ? 0 : this._structClosures.Length;
+        protected override ImmutableArray<TypeSymbol> ExtraSynthesizedRefParameters
+            => ImmutableArray<TypeSymbol>.CastUp(_structEnvironments);
+        internal int ExtraSynthesizedParameterCount => this._structEnvironments.IsDefault ? 0 : this._structEnvironments.Length;
 
         internal override bool GenerateDebugInfo => !this.IsAsync;
         internal override bool IsExpressionBodied => false;

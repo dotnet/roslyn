@@ -151,7 +151,7 @@ class C
     void M()
     {
         throw new System.Exception();
-    
+
         void Local() {}
     }
 }");
@@ -181,7 +181,7 @@ class C
     void M()
     {
         throw new System.Exception();
-    
+
         void Local() {}
         void Local2() {}
     }
@@ -215,8 +215,9 @@ class C
     void M()
     {
         throw new System.Exception();
-    
+
         void Local() {}
+
         void Local2() {}
     }
 }");
@@ -250,8 +251,9 @@ class C
     void M()
     {
         throw new System.Exception();
-    
+
         void Local() {}
+
         void Local2() {}
     }
 }");
@@ -281,7 +283,7 @@ class C
     void M()
     {
         throw new System.Exception();
-    
+
         label:
             Console.WriteLine();
 
@@ -704,7 +706,7 @@ class C
 #if true
 #endif
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
@@ -731,7 +733,7 @@ class C
         throw new System.Exception();
 #endif
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
@@ -759,7 +761,7 @@ class C
 
 #endif
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
