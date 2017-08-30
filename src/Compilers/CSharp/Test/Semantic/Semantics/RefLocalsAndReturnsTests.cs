@@ -619,21 +619,21 @@ public class Test
                 // (36,32): error CS8168: Cannot return local 'M1' by reference because it is not a ref local
                 //             return ref Goo(ref M1);
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "M1").WithArguments("M1").WithLocation(36, 32),
-                // (36,24): error CS8164: Cannot return by reference a result of 'Test.Goo<char>(ref char)' because the argument passed to parameter 'arg' cannot be returned by reference
+                // (36,24): error CS8521: Cannot use a result of 'Test.Goo<char>(ref char)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
                 //             return ref Goo(ref M1);
-                Diagnostic(ErrorCode.ERR_RefReturnCall, "Goo(ref M1)").WithArguments("Test.Goo<char>(ref char)", "arg").WithLocation(36, 24),
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Goo(ref M1)").WithArguments("Test.Goo<char>(ref char)", "arg").WithLocation(36, 24),
                 // (41,32): error CS8169: Cannot return a member of local 'M2' by reference because it is not a ref local
                 //             return ref Goo(ref M2.x);
                 Diagnostic(ErrorCode.ERR_RefReturnLocal2, "M2").WithArguments("M2").WithLocation(41, 32),
-                // (41,24): error CS8164: Cannot return by reference a result of 'Test.Goo<char>(ref char)' because the argument passed to parameter 'arg' cannot be returned by reference
+                // (41,24): error CS8521: Cannot use a result of 'Test.Goo<char>(ref char)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
                 //             return ref Goo(ref M2.x);
-                Diagnostic(ErrorCode.ERR_RefReturnCall, "Goo(ref M2.x)").WithArguments("Test.Goo<char>(ref char)", "arg").WithLocation(41, 24),
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Goo(ref M2.x)").WithArguments("Test.Goo<char>(ref char)", "arg").WithLocation(41, 24),
                 // (46,32): error CS8168: Cannot return local 'M2' by reference because it is not a ref local
                 //             return ref Goo(ref M2).x;
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "M2").WithArguments("M2").WithLocation(46, 32),
-                // (46,24): error CS8522: Cannot use a member of result of 'Test.Foo<Test.S1>(ref Test.S1)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
-                //             return ref Foo(ref M2).x;
-                Diagnostic(ErrorCode.ERR_EscapeCall2, "Foo(ref M2)").WithArguments("Test.Foo<Test.S1>(ref Test.S1)", "arg").WithLocation(46, 24),
+                // (46,24): error CS8522: Cannot use a member of result of 'Test.Goo<Test.S1>(ref Test.S1)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
+                //             return ref Goo(ref M2).x;
+                Diagnostic(ErrorCode.ERR_EscapeCall2, "Goo(ref M2)").WithArguments("Test.Goo<Test.S1>(ref Test.S1)", "arg").WithLocation(46, 24),
                 // (58,24): error CS8528: Cannot return 'this' by reference.
                 //             return ref this;
                 Diagnostic(ErrorCode.ERR_RefReturnThis, "this").WithArguments("this").WithLocation(58, 24)
@@ -908,9 +908,6 @@ public class Test
                 // (17,46): error CS8175: Cannot use ref local 'r' inside an anonymous method, lambda expression, or query expression
                 //         char Moo3(ref char a, ref char b) => r;
                 Diagnostic(ErrorCode.ERR_AnonDelegateCantUseLocal, "r").WithArguments("r").WithLocation(17, 46),
-                // (17,46): error CS0266: Cannot implicitly convert type 'int' to 'char'. An explicit conversion exists (are you missing a cast?)
-                //         char Moo3(ref char a, ref char b) => r;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "r").WithArguments("int", "char").WithLocation(17, 46),
                 // (7,18): warning CS8321: The local function 'Goo' is declared but never used
                 //         ref char Goo(ref char a, ref char b) => ref a;
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Goo").WithArguments("Goo").WithLocation(7, 18),
@@ -1885,9 +1882,9 @@ class Program
 ";
 
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (8,20): error CS0192: A readonly field cannot be used as a ref or out value (except in a constructor)
+                // (8,20): error CS8160: A readonly field cannot be returned by writable reference
                 //         return ref i;
-                Diagnostic(ErrorCode.ERR_RefReadonly, "i").WithLocation(8, 20)
+                Diagnostic(ErrorCode.ERR_RefReturnReadonly, "i").WithLocation(8, 20)
             );
         }
 
@@ -1979,12 +1976,13 @@ class Program
 ";
 
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (8,26): error CS8912: Cannot return or assign a reference to parameter 'i' because it is not a ref or out parameter
+                // (8,26): error CS8166: Cannot return a parameter by reference 'i' because it is not a ref or out parameter
                 //         return ref d(ref i, ref j, o);
                 Diagnostic(ErrorCode.ERR_RefReturnParameter, "i").WithArguments("i").WithLocation(8, 26),
-                // (8,20): error CS8910: Cannot return or assign a reference to the result of 'D.Invoke(ref int, ref int, object)' because the argument passed to parameter 'i' cannot be returned or assigned by reference
+                // (8,20): error CS8521: Cannot use a result of 'D.Invoke(ref int, ref int, object)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
                 //         return ref d(ref i, ref j, o);
-                Diagnostic(ErrorCode.ERR_RefReturnCall, "d(ref i, ref j, o)").WithArguments("D.Invoke(ref int, ref int, object)", "i").WithLocation(8, 20));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "d(ref i, ref j, o)").WithArguments("D.Invoke(ref int, ref int, object)", "i").WithLocation(8, 20)
+                );
         }
 
         [Fact]
@@ -2001,14 +1999,14 @@ class Program
 }
 ";
 
-
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (7,26): error CS8914: Cannot return or assign a reference to local 'j' because it is not a ref local
+                // (7,26): error CS8168: Cannot return local 'j' by reference because it is not a ref local
                 //         return ref M(ref j);
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "j").WithArguments("j").WithLocation(7, 26),
-                // (7,20): error CS8910: Cannot return or assign a reference to the result of 'Program.M(ref int)' because the argument passed to parameter 'i' cannot be returned or assigned by reference
+                // (7,20): error CS8521: Cannot use a result of 'Program.M(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
                 //         return ref M(ref j);
-                Diagnostic(ErrorCode.ERR_RefReturnCall, "M(ref j)").WithArguments("Program.M(ref int)", "i").WithLocation(7, 20));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "M(ref j)").WithArguments("Program.M(ref int)", "i").WithLocation(7, 20)
+            );
         }
 
         [Fact]
@@ -2044,9 +2042,9 @@ class Program
 ";
 
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (6,20): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                // (6,20): error CS8528: Cannot return 'this' by reference.
                 //         return ref this;
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithArguments("this").WithLocation(6, 20)
+                Diagnostic(ErrorCode.ERR_RefReturnThis, "this").WithArguments("this").WithLocation(6, 20)
             );
         }
 
