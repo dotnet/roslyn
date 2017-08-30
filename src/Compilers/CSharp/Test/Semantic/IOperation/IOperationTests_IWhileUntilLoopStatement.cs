@@ -37,6 +37,7 @@ IDoLoopStatement (DoLoopKind: DoWhileBottomLoop) (LoopKind.Do) (OperationKind.Lo
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 4')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
       Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
+  InvalidCondition: null
   Body: IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'sum += ids[i];')
         Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'sum += ids[i]')
@@ -951,6 +952,7 @@ public class X
 ";
             string expectedOperationTree = @"
 IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement) (Syntax: 'while (Dumm ... }')
+  Locals: Local_1: System.Int32 x1
   Condition: IInvocationExpression (System.Boolean X.Dummy(System.Boolean x, System.Object y, System.Object z)) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'Dummy(f, Ta ... ar x1), x1)')
       Instance Receiver: null
       Arguments(3):
@@ -998,6 +1000,83 @@ IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement) (Syntax: 'whi
             Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False) (Syntax: 'false')
 ";
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        public void IWhileUntilLoopStatement_DoWithOutVar()
+        {
+            string source = @"
+class X
+{
+    public static void Main()
+    {
+        bool f = true;
+
+        /*<bind>*/do
+        {
+            f = false;
+        } while (Dummy(f, TakeOutParam((f ? 1 : 2), out var x1), x1));/*</bind>*/
+    }
+
+    static bool Dummy(bool x, object y, object z)
+    {
+        System.Console.WriteLine(z);
+        return x;
+    }
+
+    static bool TakeOutParam<T>(T y, out T x)
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            string expectedOperationTree = @"
+IDoLoopStatement (DoLoopKind: DoWhileBottomLoop) (LoopKind.Do) (OperationKind.LoopStatement) (Syntax: 'do ...  x1), x1));')
+  Locals: Local_1: System.Int32 x1
+  Condition: IInvocationExpression (System.Boolean X.Dummy(System.Boolean x, System.Object y, System.Object z)) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'Dummy(f, Ta ... ar x1), x1)')
+      Instance Receiver: null
+      Arguments(3):
+          IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'f')
+            ILocalReferenceExpression: f (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'f')
+            InConversion: null
+            OutConversion: null
+          IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'TakeOutPara ... out var x1)')
+            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'TakeOutPara ... out var x1)')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Operand: IInvocationExpression (System.Boolean X.TakeOutParam<System.Int32>(System.Int32 y, out System.Int32 x)) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'TakeOutPara ... out var x1)')
+                  Instance Receiver: null
+                  Arguments(2):
+                      IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'f ? 1 : 2')
+                        IConditionalExpression (OperationKind.ConditionalExpression, Type: System.Int32) (Syntax: 'f ? 1 : 2')
+                          Condition: ILocalReferenceExpression: f (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'f')
+                          WhenTrue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                          WhenFalse: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+                        InConversion: null
+                        OutConversion: null
+                      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'var x1')
+                        ILocalReferenceExpression: x1 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'var x1')
+                        InConversion: null
+                        OutConversion: null
+            InConversion: null
+            OutConversion: null
+          IArgument (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument) (Syntax: 'x1')
+            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'x1')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Operand: ILocalReferenceExpression: x1 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x1')
+            InConversion: null
+            OutConversion: null
+  InvalidCondition: null
+  Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'f = false;')
+        Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Boolean) (Syntax: 'f = false')
+            Left: ILocalReferenceExpression: f (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'f')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False) (Syntax: 'false')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<DoStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
     }
 }

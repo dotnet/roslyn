@@ -267,7 +267,8 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopStatement (Iteration variable: i As System.Int32) (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For i = 0 T ... Next')
+IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement) (Syntax: 'For i = 0 T ... Next')
+  Locals: Local_1: i As System.Int32
   LoopControlVariable: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
   InitialValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   LimitValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
@@ -283,7 +284,7 @@ IForToLoopStatement (Iteration variable: i As System.Int32) (LoopKind.ForTo) (Op
                   ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
                   InConversion: null
                   OutConversion: null
-  AtLoopBottomExpressionList(0)
+  NextVariables(0)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

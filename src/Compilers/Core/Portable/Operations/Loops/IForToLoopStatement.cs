@@ -14,14 +14,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     public interface IForToLoopStatement : ILoopStatement
     {
         /// <summary>
-        /// Loop control variable refers to the operation for declaring a new local variable or reference an existing variable or an expression.
+        /// Refers to the operation for declaring a new local variable or reference an existing variable or an expression.
         /// </summary>
         IOperation LoopControlVariable { get; }
-
-        /// <summary>
-        /// Optional local variable symbol declared or inferred from <see cref="LoopControlVariable"/> which acts as the loop iteration variable.
-        /// </summary>
-        ILocalSymbol IterationVariable { get; }
 
         /// <summary>
         /// Operation for setting the initial value of the loop control variable. This comes from the expression between the 'For' and 'To' keywords.
@@ -39,8 +34,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         IOperation StepValue { get; }
 
         /// <summary>
-        /// Optional list of comma separate operations to execute at loop bottom.
+        /// Optional list of comma separated next variables at loop bottom.
         /// </summary>
-        ImmutableArray<IOperation> AtLoopBottomExpressionList { get; }
+        ImmutableArray<IOperation> NextVariables { get; }
     }
 }

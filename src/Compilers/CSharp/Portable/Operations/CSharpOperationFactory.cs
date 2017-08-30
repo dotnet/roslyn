@@ -1134,11 +1134,12 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             Lazy<IOperation> condition = new Lazy<IOperation>(() => Create(boundWhileStatement.Condition));
             Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundWhileStatement.Body));
+            ImmutableArray<ILocalSymbol> locals = boundWhileStatement.Locals.As<ILocalSymbol>();
             SyntaxNode syntax = boundWhileStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundWhileStatement.WasCompilerGenerated;
-            return new LazyWhileLoopStatement(condition, body, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyWhileLoopStatement(condition, body, locals, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IDoLoopStatement CreateBoundDoStatementOperation(BoundDoStatement boundDoStatement)
@@ -1146,11 +1147,13 @@ namespace Microsoft.CodeAnalysis.Semantics
             DoLoopKind doLoopKind = DoLoopKind.DoWhileBottomLoop;
             Lazy<IOperation> condition = new Lazy<IOperation>(() => Create(boundDoStatement.Condition));
             Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundDoStatement.Body));
+            Lazy<IOperation> invalidCondition = new Lazy<IOperation>(() => null);
+            ImmutableArray<ILocalSymbol> locals = boundDoStatement.Locals.As<ILocalSymbol>();
             SyntaxNode syntax = boundDoStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundDoStatement.WasCompilerGenerated;
-            return new LazyDoLoopStatement(doLoopKind, condition, body, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyDoLoopStatement(doLoopKind, condition, body, invalidCondition, locals, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IForLoopStatement CreateBoundForStatementOperation(BoundForStatement boundForStatement)
@@ -1169,16 +1172,30 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IForEachLoopStatement CreateBoundForEachStatementOperation(BoundForEachStatement boundForEachStatement)
         {
-            ILocalSymbol iterationVariable = boundForEachStatement.IterationVariables.Length == 1 ?
-                                                                                    boundForEachStatement.IterationVariables.FirstOrDefault() :
-                                                                                    null;
+            ImmutableArray<ILocalSymbol> locals = boundForEachStatement.IterationVariables.As<ILocalSymbol>();
+            Lazy<IOperation> loopControlVariable;
+            if (boundForEachStatement.DeconstructionOpt != null)
+            {
+                loopControlVariable = new Lazy<IOperation>(() => Create(boundForEachStatement.DeconstructionOpt));
+            }
+            else if (locals.Length == 1)
+            {
+                var local = (LocalSymbol)locals.Single();
+                loopControlVariable = new Lazy<IOperation>(() => new LocalReferenceExpression(local, _semanticModel, local.GetDeclaratorSyntax(), local.Type, local.ConstantValue, local.IsImplicitlyDeclared));
+            }
+            else
+            {
+                loopControlVariable = new Lazy<IOperation>(() => null);
+            }
+
             Lazy<IOperation> collection = new Lazy<IOperation>(() => Create(boundForEachStatement.Expression));
             Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundForEachStatement.Body));
+            Lazy<ImmutableArray<IOperation>> nextVariables = new Lazy<ImmutableArray<IOperation>>(() => ImmutableArray<IOperation>.Empty);
             SyntaxNode syntax = boundForEachStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundForEachStatement.WasCompilerGenerated;
-            return new LazyForEachLoopStatement(iterationVariable, collection, body, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyForEachLoopStatement(locals, loopControlVariable, collection, nextVariables, body, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ISwitchStatement CreateBoundSwitchStatementOperation(BoundSwitchStatement boundSwitchStatement)

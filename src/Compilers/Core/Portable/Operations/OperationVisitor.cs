@@ -205,11 +205,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitSyntheticLocalReferenceExpression(ISyntheticLocalReferenceExpression operation)
-        {
-            DefaultVisit(operation);
-        }
-
         public virtual void VisitInstanceReferenceExpression(IInstanceReferenceExpression operation)
         {
             DefaultVisit(operation);
@@ -676,11 +671,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual TResult VisitParameterReferenceExpression(IParameterReferenceExpression operation, TArgument argument)
-        {
-            return DefaultVisit(operation, argument);
-        }
-
-        public virtual TResult VisitSyntheticLocalReferenceExpression(ISyntheticLocalReferenceExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

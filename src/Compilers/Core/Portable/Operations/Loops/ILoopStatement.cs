@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
+
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
@@ -19,6 +21,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Body of the loop.
         /// </summary>
         IOperation Body { get; }
+        /// <summary>
+        /// Declarations local to the loop.
+        /// </summary>
+        ImmutableArray<ILocalSymbol> Locals { get; }
     }
 }
 

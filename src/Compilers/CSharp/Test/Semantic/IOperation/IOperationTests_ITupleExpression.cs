@@ -984,8 +984,10 @@ class Class1
 }
 ";
             string expectedOperationTree = @"
-IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (va ... }')
-  LoopControlVariable: null
+IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (va ... }')
+  Locals: Local_1: System.UInt32 x
+    Local_2: System.UInt32 y
+  LoopControlVariable: IOperation:  (OperationKind.None) (Syntax: 'var (x, y)')
   Collection: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'new Point[] ... int(0, 1) }')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: IArrayCreationExpression (Element Type: Point) (OperationKind.ArrayCreationExpression, Type: Point[]) (Syntax: 'new Point[] ... int(0, 1) }')
@@ -1005,7 +1007,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
                           OutConversion: null
                     Initializer: null
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-  AtLoopBottomExpressionList(0)
+  NextVariables(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

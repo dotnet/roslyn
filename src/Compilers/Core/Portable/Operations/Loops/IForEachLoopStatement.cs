@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents a C# 'foreach' statement or a VB 'For Each' staement.
+    /// Represents a C# 'foreach' statement or a VB 'For Each' statement.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
@@ -14,13 +14,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     public interface IForEachLoopStatement : ILoopStatement
     {
         /// <summary>
-        /// Iteration variable of the loop.
-        /// </summary>
-        ILocalSymbol IterationVariable { get; }
-
-        /// <summary>
-        /// Optional loop control variable in VB that refers to the operation for declaring a new local variable or reference an existing variable or an expression.
-        /// This field is always null for C#.
+        /// Refers to the operation for declaring a new local variable or reference an existing variable or an expression.
         /// </summary>
         IOperation LoopControlVariable { get; }
 
@@ -30,10 +24,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         IOperation Collection { get; }
 
         /// <summary>
-        /// Optional list comma separate operations to execute at loop bottom in VB.
+        /// Optional list of comma separated next variables at loop bottom in VB.
         /// This list is always empty for C#.
         /// </summary>
-        ImmutableArray<IOperation> AtLoopBottomExpressionList { get; }
+        ImmutableArray<IOperation> NextVariables { get; }
     }
 }
 

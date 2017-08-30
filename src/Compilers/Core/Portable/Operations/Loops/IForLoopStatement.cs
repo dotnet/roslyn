@@ -27,11 +27,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// List of operations to execute at the bottom of the loop. This comes from the third clause of the for statement.
         /// </summary>
         ImmutableArray<IOperation> AtLoopBottom { get; }
-        
-        /// <summary>
-        /// Declarations local to the loop.
-        /// </summary>
-        ImmutableArray<ILocalSymbol> Locals { get; }
     }
 }
 

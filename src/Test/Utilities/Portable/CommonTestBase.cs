@@ -683,7 +683,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         operation.Kind != OperationKind.None &&
                         operation.Kind != OperationKind.InvalidExpression &&
                         operation.Kind != OperationKind.InvalidStatement &&
-                        operation.Kind != OperationKind.PlaceholderExpression)
+                        operation.Kind != OperationKind.PlaceholderExpression &&
+                        (operation.Kind != OperationKind.TupleExpression || !(semanticModel.GetOperationInternal(node.Parent)?.Kind == OperationKind.LoopStatement))) // https://github.com/dotnet/roslyn/issues/20798
                     {
                         Assert.True(set.Contains(operation));
                     }

@@ -208,7 +208,8 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopStatement (Iteration variable: i As System.Int32) (LoopKind.ForTo) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'For i As In ... Next i')
+IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'For i As In ... Next i')
+  Locals: Local_1: i As System.Int32
   LoopControlVariable: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i As Integer')
   InitialValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
   LimitValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '')
@@ -219,7 +220,7 @@ IForToLoopStatement (Iteration variable: i As System.Int32) (LoopKind.ForTo) (Op
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: 'For i As In ... Next i')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'For i As In ... Next i')
-  AtLoopBottomExpressionList(1):
+  NextVariables(1):
       ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
 ]]>.Value
 
@@ -248,7 +249,8 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopStatement (Iteration variable:  As System.Object) (LoopKind.ForTo) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'For Step (M ... Next')
+IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'For Step (M ... Next')
+  Locals: Local_1:  As System.Object
   LoopControlVariable: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Object, IsInvalid) (Syntax: '')
   InitialValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: '')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -262,7 +264,7 @@ IForToLoopStatement (Iteration variable:  As System.Object) (LoopKind.ForTo) (Op
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: 'For Step (M ... Next')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'For Step (M ... Next')
-  AtLoopBottomExpressionList(0)
+  NextVariables(0)
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -295,7 +297,8 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IForToLoopStatement (Iteration variable: i As System.Int32) (LoopKind.ForTo) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'For i As In ... Next i')
+IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'For i As In ... Next i')
+  Locals: Local_1: i As System.Int32
   LoopControlVariable: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i As Integer')
   InitialValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   LimitValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Program')
@@ -306,7 +309,7 @@ IForToLoopStatement (Iteration variable: i As System.Int32) (LoopKind.ForTo) (Op
       Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'x')
           Children(0)
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'For i As In ... Next i')
-  AtLoopBottomExpressionList(1):
+  NextVariables(1):
       ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
 ]]>.Value
 

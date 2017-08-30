@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -34,6 +34,7 @@ IDoLoopStatement (DoLoopKind: DoWhileBottomLoop) (LoopKind.Do) (OperationKind.Lo
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 4')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
       Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
+  InvalidCondition: null
   Body: IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'Do'BIND:"Do ... While i < 4')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'sum += ids(i)')
         Expression: ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'sum += ids(i)')
@@ -70,6 +71,7 @@ IDoLoopStatement (DoLoopKind: DoUntilTopLoop) (LoopKind.Do) (OperationKind.LoopS
       Left: IFieldReferenceExpression: C.X As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'X')
           Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'X')
       Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+  InvalidCondition: null
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Do Until X  ... Loop')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'X = X - 1')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'X = X - 1')
@@ -973,6 +975,7 @@ IDoLoopStatement (DoLoopKind: DoWhileTopLoop) (LoopKind.Do) (OperationKind.LoopS
   Condition: IInvocationExpression ( Function C.G() As System.Boolean) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'G()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'G')
       Arguments(0)
+  InvalidCondition: null
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Do While G( ... Loop')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(1)')
         Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(1)')
@@ -1011,6 +1014,7 @@ IDoLoopStatement (DoLoopKind: DoWhileBottomLoop) (LoopKind.Do) (OperationKind.Lo
   Condition: IInvocationExpression ( Function C.G() As System.Boolean) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'G()')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'G')
       Arguments(0)
+  InvalidCondition: null
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Do'BIND:"Do ... p While G()')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(1)')
         Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(1)')
@@ -1044,6 +1048,7 @@ IDoLoopStatement (DoLoopKind: DoUntilBottomLoop) (LoopKind.Do) (OperationKind.Lo
       Left: IFieldReferenceExpression: C.X As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'X')
           Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'X')
       Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+  InvalidCondition: null
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Do'BIND:"Do ... Until X < 0')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'X = X - 1')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'X = X - 1')
@@ -1105,6 +1110,45 @@ IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement) (Syntax: 'Whi
             Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'True')
 ]]>.Value
             VerifyOperationTreeForTest(Of WhileBlockSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
+        Public Sub IWhileUntilLoopStatement_DoWhileWithTopAndBottomCondition()
+            Dim source = <![CDATA[
+Class C
+    Sub M(i As Integer)
+        Do While i > 0'BIND:"Do While i > 0"
+            i = i + 1
+        Loop Until i <= 0
+
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDoLoopStatement (DoLoopKind: Invalid) (LoopKind.Do) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'Do While i  ... ntil i <= 0')
+  Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i > 0')
+      Left: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
+      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+  InvalidCondition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i <= 0')
+      Left: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
+      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+  Body: IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Do While i  ... ntil i <= 0')
+      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i = i + 1')
+        Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = i + 1')
+            Left: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
+            Right: IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 1')
+                Left: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30238: 'Loop' cannot have a condition if matching 'Do' has one.
+        Loop Until i <= 0
+             ~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of DoLoopBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
     End Class
 End Namespace

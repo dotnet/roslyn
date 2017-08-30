@@ -32,6 +32,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Loop executes while the loop condition evaluates to <code>false</code>.
         /// </summary>
         DoUntilTopLoop = 0x4,
+
+        /// <summary>
+        /// Indicates an invalid loop. For example, VB 'Do While' or 'Do Until' loop with syntax errors where both the top and bottom conditions are provided.
+        /// </summary>
+        Invalid = 0xf,
     }
 }
 

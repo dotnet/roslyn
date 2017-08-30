@@ -414,6 +414,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogLoopStatementHeader(operation);
 
             Visit(operation.Condition, "Condition");
+            Visit(operation.InvalidCondition, "InvalidCondition");
             Visit(operation.Body, "Body");
         }
 
@@ -432,7 +433,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogLoopStatementHeader(operation);
 
             Visit(operation.Condition, "Condition");
-            LogLocals(operation.Locals);
             VisitArray(operation.Before, "Before", logElementCount: false);
             VisitArray(operation.AtLoopBottom, "AtLoopBottom", logElementCount: false);
             Visit(operation.Body, "Body");
@@ -441,9 +441,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitForToLoopStatement(IForToLoopStatement operation)
         {
             LogString(nameof(IForToLoopStatement));
-            LogSymbol(operation.IterationVariable, " (Iteration variable");
-            LogString(")");
-
             LogLoopStatementHeader(operation);
 
             Visit(operation.LoopControlVariable, "LoopControlVariable");
@@ -451,7 +448,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.LimitValue, "LimitValue");
             Visit(operation.StepValue, "StepValue");
             Visit(operation.Body, "Body");
-            VisitArray(operation.AtLoopBottomExpressionList, "AtLoopBottomExpressionList", logElementCount: true);
+            VisitArray(operation.NextVariables, "NextVariables", logElementCount: true);
         }
 
         private void LogLocals(IEnumerable<ILocalSymbol> locals, string header = "Locals")
@@ -482,19 +479,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var kindStr = $"{nameof(LoopKind)}.{operation.LoopKind}";
             LogString($" ({kindStr})");
             LogCommonPropertiesAndNewLine(operation);
+
+            LogLocals(operation.Locals);
         }
 
         public override void VisitForEachLoopStatement(IForEachLoopStatement operation)
         {
             LogString(nameof(IForEachLoopStatement));
-            LogSymbol(operation.IterationVariable, " (Iteration variable");
-            LogString(")");
-
             LogLoopStatementHeader(operation);
+
             Visit(operation.LoopControlVariable, "LoopControlVariable");
             Visit(operation.Collection, "Collection");
             Visit(operation.Body, "Body");
-            VisitArray(operation.AtLoopBottomExpressionList, "AtLoopBottomExpressionList", logElementCount: true);
+            VisitArray(operation.NextVariables, "NextVariables", logElementCount: true);
         }
 
         public override void VisitLabelStatement(ILabelStatement operation)
@@ -698,16 +695,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IParameterReferenceExpression));
             LogString($": {operation.Parameter.Name}");
             LogCommonPropertiesAndNewLine(operation);
-        }
-
-        public override void VisitSyntheticLocalReferenceExpression(ISyntheticLocalReferenceExpression operation)
-        {
-            LogString(nameof(ISyntheticLocalReferenceExpression));
-            var kindStr = $"{nameof(SynthesizedLocalKind)}.{operation.SyntheticLocalKind}";
-            LogString($" ({kindStr})");
-            LogCommonPropertiesAndNewLine(operation);
-
-            base.VisitSyntheticLocalReferenceExpression(operation);
         }
 
         public override void VisitInstanceReferenceExpression(IInstanceReferenceExpression operation)

@@ -86,12 +86,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IOperation VisitDoLoopStatement(IDoLoopStatement operation, object argument)
         {
-            return new DoLoopStatement(operation.DoLoopKind, Visit(operation.Condition), Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new DoLoopStatement(operation.DoLoopKind, Visit(operation.Condition), Visit(operation.Body), Visit(operation.InvalidCondition), operation.Locals, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitWhileLoopStatement(IWhileLoopStatement operation, object argument)
         {
-            return new WhileLoopStatement(Visit(operation.Condition), Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new WhileLoopStatement(Visit(operation.Condition), Visit(operation.Body), operation.Locals, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitForLoopStatement(IForLoopStatement operation, object argument)
@@ -101,12 +101,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IOperation VisitForToLoopStatement(IForToLoopStatement operation, object argument)
         {
-            return new ForToLoopStatement(operation.IterationVariable, Visit(operation.LoopControlVariable), Visit(operation.InitialValue), Visit(operation.LimitValue), Visit(operation.StepValue), Visit(operation.Body), VisitArray(operation.AtLoopBottomExpressionList), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new ForToLoopStatement(operation.Locals, Visit(operation.LoopControlVariable), Visit(operation.InitialValue), Visit(operation.LimitValue), Visit(operation.StepValue), Visit(operation.Body), VisitArray(operation.NextVariables), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitForEachLoopStatement(IForEachLoopStatement operation, object argument)
         {
-            return new ForEachLoopStatement(operation.IterationVariable, Visit(operation.LoopControlVariable), Visit(operation.Collection), VisitArray(operation.AtLoopBottomExpressionList), Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new ForEachLoopStatement(operation.Locals, Visit(operation.LoopControlVariable), Visit(operation.Collection), VisitArray(operation.NextVariables), Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitLabelStatement(ILabelStatement operation, object argument)
@@ -212,11 +212,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override IOperation VisitParameterReferenceExpression(IParameterReferenceExpression operation, object argument)
         {
             return new ParameterReferenceExpression(operation.Parameter, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitSyntheticLocalReferenceExpression(ISyntheticLocalReferenceExpression operation, object argument)
-        {
-            return new SyntheticLocalReferenceExpression(operation.SyntheticLocalKind, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitInstanceReferenceExpression(IInstanceReferenceExpression operation, object argument)
