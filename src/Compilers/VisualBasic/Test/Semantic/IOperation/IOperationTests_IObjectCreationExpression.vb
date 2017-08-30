@@ -132,7 +132,8 @@ IBlockStatement (9 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
   ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
     Statement: null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
-    ReturnedValue: null]]>.Value
+    ReturnedValue: null
+]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
 BC30311: Value of type 'Integer' cannot be converted to 'B'.

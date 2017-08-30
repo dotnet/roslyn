@@ -663,6 +663,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(ILocalReferenceExpression));
             LogString($": {operation.Local.Name}");
+            if (operation.IsDeclaration)
+            {
+                LogString($" (IsDeclaration: {operation.IsDeclaration})");
+            }
             LogCommonPropertiesAndNewLine(operation);
         }
 
@@ -704,6 +708,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IFieldReferenceExpression));
             LogString($": {operation.Field.ToTestDisplayString()}");
+            if (operation.IsDeclaration)
+            {
+                LogString($" (IsDeclaration: {operation.IsDeclaration})");
+            }
 
             VisitMemberReferenceExpressionCommon(operation);
         }

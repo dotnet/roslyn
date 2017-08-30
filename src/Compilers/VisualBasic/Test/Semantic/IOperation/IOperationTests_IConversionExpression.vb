@@ -875,7 +875,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
               ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
                 Statement: null
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
-                ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Function')]]>.Value
+                ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Function')
+]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
@@ -911,7 +912,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
               ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
                 Statement: null
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
-                ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Function')]]>.Value
+                ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Function')
+]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
@@ -2106,7 +2108,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
               ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'Function(num) num < 5')
                 Statement: null
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Function(num) num < 5')
-                ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'Function(num) num < 5')]]>.Value
+                ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'Function(num) num < 5')
+]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 

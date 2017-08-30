@@ -558,7 +558,8 @@ IInvocationExpression ( Sub P.M2(x As System.Int32, ParamArray y As System.Int32
       IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'a')
         ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32()) (Syntax: 'a')
         InConversion: null
-        OutConversion: null]]>.Value
+        OutConversion: null
+]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
@@ -777,7 +778,8 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvali
   Children(3):
       IOperation:  (OperationKind.None) (Syntax: 'M2')
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-      ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32()) (Syntax: 'a')]]>.Value
+      ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32()) (Syntax: 'a')
+]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
 BC30587: Named argument cannot match a ParamArray parameter.

@@ -240,6 +240,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitLocalReferenceExpression(ILocalReferenceExpression operation)
         {
             var local = operation.Local;
+            var isDeclaration = operation.IsDeclaration;
 
             base.VisitLocalReferenceExpression(operation);
         }
