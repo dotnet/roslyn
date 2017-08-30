@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 switch (currentTrivia.Kind())
                 {
                     case SyntaxKind.IfDirectiveTrivia:
-                        // Hit a nested if directive.  Keep track of this so we can ensure
+                        // Hit a nested #if directive.  Keep track of this so we can ensure
                         // that our actual disabled region reached the right end point.
                         nestedIfDirectiveTrivia++;
                         continue;
