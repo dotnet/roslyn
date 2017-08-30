@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Client;
-using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Telemetry;
 using Roslyn.Utilities;
@@ -64,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var timeout = TimeSpan.FromMilliseconds(workspace.Options.GetOption(RemoteHostOptions.RequestServiceTimeoutInMS));
                 var remoteHostStream = await RequestServiceAsync(primary, WellKnownRemoteHostServices.RemoteHostService, hostGroup, timeout, cancellationToken).ConfigureAwait(false);
 
-                var remotableDataRpc = new RemotableDataJsonRpc(workspace, await RequestServiceAsync(primary, WellKnownServiceHubServices.SnapshotService, hostGroup, timeout, cancellationToken).ConfigureAwait(false));
+                var remotableDataRpc = new RemotableDataJsonRpc(workspace, primary.Logger, await RequestServiceAsync(primary, WellKnownServiceHubServices.SnapshotService, hostGroup, timeout, cancellationToken).ConfigureAwait(false));
                 var instance = new ServiceHubRemoteHostClient(workspace, primary, hostGroup, new ReferenceCountedDisposable<RemotableDataJsonRpc>(remotableDataRpc), remoteHostStream);
 
                 // make sure connection is done right
@@ -117,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             HubClient hubClient,
             HostGroup hostGroup,
             ReferenceCountedDisposable<RemotableDataJsonRpc> remotableDataRpc,
-            Stream stream) 
+            Stream stream)
             : base(workspace)
         {
             Contract.ThrowIfNull(remotableDataRpc);
@@ -152,7 +151,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // this is what consumer actually use to communicate information
             var serviceStream = await RequestServiceAsync(_hubClient, serviceName, _hostGroup, _timeout, cancellationToken).ConfigureAwait(false);
 
-            return new JsonRpcConnection(callbackTarget, serviceStream, dataRpc);
+            return new JsonRpcConnection(_hubClient.Logger, callbackTarget, serviceStream, dataRpc);
         }
 
         protected override void OnStarted()
@@ -293,7 +292,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     {
                         // RequestServiceAsync should never fail unless service itself is actually broken.
                         // So far, we catched multiple issues from this NFW. so we will keep this NFW.
-                        WatsonReporter.Report("RequestServiceAsync Failed", ex, ReportDetailInfo);
+                        ex.ReportServiceHubNFW("RequestServiceAsync Failed");
 
                         lastException = ex;
                     }
@@ -345,54 +344,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             // request service to HubClient timed out, more than we are willing to wait
             throw new TimeoutException("RequestServiceAsync timed out");
-        }
-
-        private static int ReportDetailInfo(IFaultUtility faultUtility)
-        {
-            // 0 means send watson, otherwise, cancel watson
-            // we always send watson since dump itself can have valuable data
-            var exitCode = 0;
-
-            try
-            {
-                var logPath = Path.Combine(Path.GetTempPath(), "servicehub", "logs");
-                if (!Directory.Exists(logPath))
-                {
-                    return exitCode;
-                }
-
-                // attach all log files that are modified less than 1 day before.
-                var now = DateTime.UtcNow;
-                var oneDay = TimeSpan.FromDays(1);
-
-                foreach (var file in Directory.EnumerateFiles(logPath, "*.log"))
-                {
-                    var lastWrite = File.GetLastWriteTimeUtc(file);
-                    if (now - lastWrite > oneDay)
-                    {
-                        continue;
-                    }
-
-                    faultUtility.AddFile(file);
-                }
-            }
-            catch (Exception ex) when (ReportNonIOException(ex))
-            {
-            }
-
-            return exitCode;
-        }
-
-        private static bool ReportNonIOException(Exception ex)
-        {
-            // IOException is expected. log other exceptions
-            if (!(ex is IOException))
-            {
-                WatsonReporter.Report(ex);
-            }
-
-            // catch all exception. not worth crashing VS.
-            return true;
         }
     }
 }

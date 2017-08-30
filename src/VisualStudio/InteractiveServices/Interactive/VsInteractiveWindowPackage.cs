@@ -15,6 +15,7 @@ using System.Diagnostics;
 using Microsoft.VisualStudio.InteractiveWindow;
 using System.Reflection;
 using Microsoft.VisualStudio.InteractiveWindow.Shell;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {

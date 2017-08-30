@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class RemoteSymbolSearchUpdateEngine : 
+    internal partial class RemoteSymbolSearchUpdateEngine :
         ServiceHubServiceBase, IRemoteSymbolSearchUpdateEngine, ISymbolSearchLogService, ISymbolSearchProgressService
     {
         private readonly SymbolSearchUpdateEngine _updateEngine;
@@ -26,31 +26,43 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public Task UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory)
         {
-            return _updateEngine.UpdateContinuouslyAsync(sourceName, localSettingsDirectory);
+            return RunServiceAsync(() =>
+            {
+                return _updateEngine.UpdateContinuouslyAsync(sourceName, localSettingsDirectory);
+            }, CancellationToken.None);
         }
 
         public async Task<IList<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity, CancellationToken cancellationToken)
         {
-            var results = await _updateEngine.FindPackagesWithTypeAsync(
-                source, name, arity, cancellationToken).ConfigureAwait(false);
+            return await RunServiceAsync(async () =>
+            {
+                var results = await _updateEngine.FindPackagesWithTypeAsync(
+                    source, name, arity, cancellationToken).ConfigureAwait(false);
 
-            return results;
+                return results;
+            }, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<IList<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName, CancellationToken cancellationToken)
         {
-            var results = await _updateEngine.FindPackagesWithAssemblyAsync(
-                source, assemblyName, cancellationToken).ConfigureAwait(false);
+            return await RunServiceAsync(async () =>
+            {
+                var results = await _updateEngine.FindPackagesWithAssemblyAsync(
+                    source, assemblyName, cancellationToken).ConfigureAwait(false);
 
-            return results;
+                return results;
+            }, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<IList<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity, CancellationToken cancellationToken)
         {
-            var results = await _updateEngine.FindReferenceAssembliesWithTypeAsync(
-                name, arity, cancellationToken).ConfigureAwait(false);
+            return await RunServiceAsync(async () =>
+            {
+                var results = await _updateEngine.FindReferenceAssembliesWithTypeAsync(
+                    name, arity, cancellationToken).ConfigureAwait(false);
 
-            return results;
+                return results;
+            }, cancellationToken).ConfigureAwait(false);
         }
 
         #region Messages to forward from here to VS
