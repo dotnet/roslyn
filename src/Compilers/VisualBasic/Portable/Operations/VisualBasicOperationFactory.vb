@@ -498,7 +498,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function CreateBoundBadExpressionOperation(boundBadExpression As BoundBadExpression) As IInvalidExpression
             Dim children As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() boundBadExpression.ChildBoundNodes.SelectAsArray(Function(n) Create(n)))
             Dim syntax As SyntaxNode = boundBadExpression.Syntax
-            Dim type As ITypeSymbol = boundBadExpression.Type
+            ' We match semantic model here: If the Then expression IsMissing, we have a null type, rather than the ErrorType Of the bound node.
+            Dim type As ITypeSymbol = If(syntax.IsMissing, Nothing, boundBadExpression.Type)
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundBadExpression.ConstantValueOpt)
             Dim isImplicit As Boolean = boundBadExpression.WasCompilerGenerated
             Return New LazyInvalidExpression(children, _semanticModel, syntax, type, constantValue, isImplicit)
@@ -530,7 +531,22 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New LazyVisualBasicConversionExpression(operand, conversion, isExplicit, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
-        Private Function CreateBoundConversionOperation(boundConversion As BoundConversion) As IConversionExpression
+        Private Function CreateBoundConversionOperation(boundConversion As BoundConversion) As IOperation
+            Dim syntax As SyntaxNode = boundConversion.Syntax
+
+            If syntax.IsMissing Then
+                ' If the underlying syntax IsMissing, then that means we're in case where the compiler generated a piece of syntax to fill in for
+                ' an error, such as this case:
+                '
+                '  Dim i =
+                '
+                ' Semantic model has a special case here that we match: if the underlying syntax is missing, don't create a conversion expression,
+                ' and instead directly return the operand, which will be a BoundBadExpression. When we generate a node for the BoundBadExpression,
+                ' the resulting IOperation will also have a null Type.
+                Debug.Assert(boundConversion.Operand.Kind = BoundKind.BadExpression)
+                Return Create(boundConversion.Operand)
+            End If
+
             Dim operand As Lazy(Of IOperation)
             Dim methodSymbol As MethodSymbol
 
@@ -544,7 +560,6 @@ Namespace Microsoft.CodeAnalysis.Semantics
             End If
 
             Dim conversion = New Conversion(New KeyValuePair(Of VisualBasic.ConversionKind, MethodSymbol)(boundConversion.ConversionKind, methodSymbol))
-            Dim syntax As SyntaxNode = boundConversion.Syntax
             Dim isExplicit As Boolean = boundConversion.ExplicitCastInCode
             Dim isTryCast As Boolean = False
             Dim isChecked As Boolean = False
