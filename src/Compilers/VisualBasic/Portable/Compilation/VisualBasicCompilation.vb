@@ -2718,11 +2718,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If tree Is Nothing Then
                 Return False
             End If
-
             Dim options = DirectCast(tree.Options, VisualBasicParseOptions)
-            Dim IOperationFeatureFlag = VisualBasic.Language.Feature.IOperation.GetFeatureFlag
             Return VisualBasic.Language.Feature.IOperation.IsAvailable(options)
-            'Return If(IOperationFeatureFlag Is Nothing, False, options.Features.ContainsKey(IOperationFeatureFlag))
         End Function
 
         Friend Overrides Function IsUnreferencedAssemblyIdentityDiagnosticCode(code As Integer) As Boolean

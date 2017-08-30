@@ -9,7 +9,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Language
 
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
     ''' <summary>
@@ -477,6 +476,7 @@ DoneWithErrorReporting:
 
                 End If
             End If
+
             If implementedSym IsNot Nothing AndAlso implementingSym.ContainsTupleNames() AndAlso
                 Not MembersHaveMatchingTupleNames(implementingSym, implementedSym) Then
 
