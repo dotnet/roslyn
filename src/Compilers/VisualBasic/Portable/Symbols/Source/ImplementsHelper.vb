@@ -7,6 +7,8 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FeatureExtensions
+
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -468,14 +470,13 @@ DoneWithErrorReporting:
                        implementingProperty.GetMethod IsNot Nothing AndAlso implementingProperty.SetMethod IsNot Nothing Then
 
                     errorReported = errorReported Or
-                                    Not InternalSyntax.IsAvailable(InternalSyntax.Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite,
+                                    InternalSyntax.Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite.IsUnavailable(
                                                                    DirectCast(implementedMemberSyntax.SyntaxTree, VisualBasicSyntaxTree).Options,
                                                                    diagBag,
                                                                    implementedMemberSyntax.GetLocation())
 
                 End If
             End If
-
             If implementedSym IsNot Nothing AndAlso implementingSym.ContainsTupleNames() AndAlso
                 Not MembersHaveMatchingTupleNames(implementingSym, implementedSym) Then
 

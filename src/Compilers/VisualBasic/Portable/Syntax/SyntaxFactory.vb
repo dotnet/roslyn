@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports VbObjectDisplay = Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay.ObjectDisplay
 Imports Parser = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Parser
 Imports Feature = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FeatureExtensions
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -1111,7 +1112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For Each err In lastToken.GetDiagnostics()
                 Select Case DirectCast(err.Code, ERRID)
                     Case ERRID.ERR_UnterminatedStringLiteral
-                        If InternalSyntax.IsAvailable(Feature.MultilineStringLiterals, options) Then
+                        If Feature.MultilineStringLiterals.IsAvailable(options) Then
                             Return False
                         End If
                 End Select

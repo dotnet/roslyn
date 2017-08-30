@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FeatureExtensions
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class Binder
@@ -786,10 +787,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         Dim cast = DirectCast(node.Syntax, PredefinedCastExpressionSyntax)
 
                                         If cast.Keyword.Kind = SyntaxKind.CObjKeyword Then
-                                            InternalSyntax.IsAvailable(InternalSyntax.Feature.CObjInAttributeArguments,
-                                                                       DirectCast(cast.SyntaxTree, VisualBasicSyntaxTree).Options,
-                                                                       diagBag,
-                                                                       cast.Keyword.GetLocation())
+                                            InternalSyntax.Feature.CObjInAttributeArguments.IsUnavailable(
+                                                DirectCast(cast.SyntaxTree, VisualBasicSyntaxTree).Options,
+                                                diagBag,
+                                                cast.Keyword.GetLocation())
                                         End If
                                     End If
                                     node = conv.Operand

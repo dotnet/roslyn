@@ -471,7 +471,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
 
                 If reportAnError Then
-                    rewritten = Feature.RegionsEverywhere.ReportFeatureUnavailable(_parser.Options, rewritten)
+                    rewritten = rewritten.ReportFeatureUnavailable(Feature.RegionsEverywhere, _parser.Options)
                 End If
 
                 Return rewritten
