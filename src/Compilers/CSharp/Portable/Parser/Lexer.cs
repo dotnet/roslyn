@@ -932,27 +932,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return start < TextWindow.Position; 
         }
 
-        // Allows underscores in integers, except at beginning and end
+        // Allows underscores in integers, except at beginning for decimal and end
         private void ScanNumericLiteralSingleInteger(ref bool underscoreInWrongPlace, ref bool usedUnderscore, bool isHex, bool isBinary)
         {
+            bool firstCharWasUnderscore = false;
             if (TextWindow.PeekChar() == '_')
             {
-                underscoreInWrongPlace = true;
+                if (isHex || isBinary)
+                {
+                    firstCharWasUnderscore = true;
+                }
+                else
+                {
+                    underscoreInWrongPlace = true;
+                }
             }
 
-            char ch;
-            var lastCharWasUnderscore = false;
+            bool lastCharWasUnderscore = false;
             while (true)
             {
-                ch = TextWindow.PeekChar();
+                char ch = TextWindow.PeekChar();
                 if (ch == '_')
                 {
                     usedUnderscore = true;
                     lastCharWasUnderscore = true;
                 }
-                else if ((isHex && !SyntaxFacts.IsHexDigit(ch))
-                        || (isBinary && !SyntaxFacts.IsBinaryDigit(ch))
-                        || (!isHex && !isBinary && !SyntaxFacts.IsDecDigit(ch)))
+                else if (!(isHex ? SyntaxFacts.IsHexDigit(ch) :
+                           isBinary ? SyntaxFacts.IsBinaryDigit(ch) :
+                           SyntaxFacts.IsDecDigit(ch)))
                 {
                     break;
                 }
@@ -964,7 +971,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 TextWindow.AdvanceChar();
             }
 
-            if (lastCharWasUnderscore)
+            if (firstCharWasUnderscore)
+            {
+                CheckFeatureAvailability(MessageID.IDS_FeatureLeadingDigitSeparator);
+                // No need for cascading feature error
+                usedUnderscore = false;
+            }
+            else if (lastCharWasUnderscore)
             {
                 underscoreInWrongPlace = true;
             }

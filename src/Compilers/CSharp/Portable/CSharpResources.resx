@@ -5111,4 +5111,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DynamicLocalFunctionTypeParameter" xml:space="preserve">
     <value>Cannot pass argument with dynamic type to generic local function '{0}' with inferred type arguments.</value>
   </data>
+  <data name="IDS_FeatureLeadingDigitSeparator" xml:space="preserve">
+    <value>leading digit separator</value>
+  </data>
 </root>
