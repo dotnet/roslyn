@@ -130,7 +130,7 @@ class C
 {
     void F()
     {
-        int x() <N:0>=> 1</N:0>;
+        <N:0>int x() => 1;</N:0>
     }
 }");
             var source1 = MarkedSource(@"
@@ -140,7 +140,7 @@ class C
 {
     void F()
     {
-        int x() <N:0>=> 2</N:0>;
+        <N:0>int x() => 2;</N:0>
     }
 }");
 
@@ -160,7 +160,7 @@ class C
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
             diff1.VerifySynthesizedMembers(
-                "C: {<F>g__x0_0#1}");
+                "C: {<F>g__x0_0}");
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -168,8 +168,7 @@ class C
             // Method updates
             CheckEncLogDefinitions(reader1,
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
@@ -237,7 +236,7 @@ class C
 {
     void F<T>()
     {
-        T x() <N:0>=> default(T)</N:0>;
+        <N:0>T x() => default(T);</N:0>
     }
 }");
             var source1 = MarkedSource(@"
@@ -247,7 +246,7 @@ class C
 {
     void F<T>()
     {
-        T x() <N:0>=> default(T)</N:0>;
+        <N:0>T x() => default(T);</N:0>
     }
 }");
             var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
@@ -267,7 +266,7 @@ class C
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
-                "C: {<F>g__x0_0#1}");
+                "C: {<F>g__x0_0}");
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -276,10 +275,8 @@ class C
             CheckEncLogDefinitions(reader1,
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(3, TableIndex.GenericParam, EditAndContinueOperation.Default));
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -347,7 +344,7 @@ class C
 {
     int F(int a)
     {
-        int x() <N:0>=> F(1)</N:0>;
+        <N:0>int x() => F(1);</N:0>
         return 1;
     }
 }");
@@ -358,7 +355,7 @@ class C
 {
     int F(int a)
     {
-        int x() <N:0>=> F(2)</N:0>;
+        <N:0>int x() => F(2);</N:0>
         return 2;
     }
 }");
@@ -378,7 +375,7 @@ class C
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
             diff1.VerifySynthesizedMembers(
-                "C: {<F>g__x0_0#1}");
+                "C: {<F>g__x0_0}");
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -387,8 +384,7 @@ class C
             CheckEncLogDefinitions(reader1,
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
@@ -457,7 +453,7 @@ class C
 {
     int F(int a)
     <N:0>{</N:0>
-        int x() => <N:1>F(a + 1)</N:1>;
+        <N:1>int x() => F(a + 1);</N:1>
         return 1;
     }
 }");
@@ -468,7 +464,7 @@ class C
 {
     int F(int a)
     <N:0>{</N:0>
-        int x() => <N:1>F(a + 2)</N:1>;
+        <N:1>int x() => F(a + 2);</N:1>
         return 2;
     }
 }");
@@ -488,7 +484,7 @@ class C
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
             diff1.VerifySynthesizedMembers(
-                "C: {<F>g__x0_0#1, <>c__DisplayClass0_0}",
+                "C: {<F>g__x0_0, <>c__DisplayClass0_0}",
                 "C.<>c__DisplayClass0_0: {<>4__this, a}");
 
             var md1 = diff1.GetMetadata();
@@ -1237,7 +1233,7 @@ class C
 
     static object F()
     {
-        int f(int a) <N:0>=> a + 1</N:0>;
+        <N:0>int f(int a) => a + 1;</N:0>
         return G(f);
     }
 }");
@@ -1250,7 +1246,7 @@ class C
 
     static object F()
     {
-        int f(int a) <N:0>=> a + 2</N:0>;
+        <N:0>int f(int a) => a + 2;</N:0>
         return G(f);
     }
 }");
@@ -1296,11 +1292,11 @@ class C
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
 
             diff2.VerifySynthesizedMembers(
-                "C: {<>c}",
-                "C.<>c: {<F>g__f0#2, <F>g__f0#1}");
+                "C.<>c: {<F>g__f0#1}",
+                "C: {<>c}");
 
             // updated:
-            diff2.VerifyIL("C.<>c.<F>g__f0#2(int)", @"
+            diff2.VerifyIL("C.<>c.<F>g__f0#1(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1513,7 +1509,7 @@ class C
 
     static object F()
     {
-        int f1(int a) <N:0>=> a + 1</N:0>;
+        <N:0>int f1(int a) => a + 1;</N:0>
         return G(f1);
     }
 }");
@@ -1526,8 +1522,8 @@ class C
 
     static object F()
     {
-        int f1(int a) <N:0>=> a + 2</N:0>;
-        int f2(int b) <N:1>=> b + 20</N:1>;
+        <N:0>int f1(int a) => a + 2;</N:0>
+        <N:1>int f2(int b) => b + 20;</N:1>
         return G(f1) + G(f2);
     }
 }");
@@ -1540,9 +1536,9 @@ class C
 
     static object F()
     {
-        int f1(int a) <N:0>=> a + 3</N:0>;
-        int f2(int b) <N:1>=> b + 30</N:1>;
-        int f3(int c) <N:2>=> c + 0x300</N:2>;
+        <N:0>int f1(int a) => a + 3;</N:0>
+        <N:1>int f2(int b) => b + 30;</N:1>
+        <N:2>int f3(int c) => c + 0x300;</N:2>
         return G(f1) + G(f2) + G(f3);
     }
 }");
@@ -1555,9 +1551,9 @@ class C
 
     static object F()
     {
-        int f1(int a) <N:0>=> a + 4</N:0>;
-        int f2(int b) <N:1>=> b + 40</N:1>;
-        int f3(int c) <N:2>=> c + 0x400</N:2>;
+        <N:0>int f1(int a) => a + 4;</N:0>
+        <N:1>int f2(int b) => b + 40;</N:1>
+        <N:2>int f3(int c) => c + 0x400;</N:2>
         return G(f1) + G(f2) + G(f3);
     }
 }");
@@ -1585,10 +1581,10 @@ class C
 
             diff1.VerifySynthesizedMembers(
                 "C: {<>c}",
-                "C.<>c: {<F>g__f11_0#1, <F>g__f21_1#1}");
+                "C.<>c: {<F>g__f11_0, <F>g__f21_1#1}");
 
             // updated:
-            diff1.VerifyIL("C.<>c.<F>g__f11_0#1(int)", @"
+            diff1.VerifyIL("C.<>c.<F>g__f11_0(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1616,11 +1612,11 @@ class C
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
 
             diff2.VerifySynthesizedMembers(
-                "C: {<>c}",
-                "C.<>c: {<F>g__f11_0#2, <F>g__f21_1#2, <F>g__f31_2#2, <F>g__f11_0#1, <F>g__f21_1#1}");
+                "C.<>c: {<F>g__f11_0, <F>g__f21_1#1, <F>g__f31_2#2}",
+                "C: {<>c}");
 
             // updated:
-            diff2.VerifyIL("C.<>c.<F>g__f11_0#2(int)", @"
+            diff2.VerifyIL("C.<>c.<F>g__f11_0(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1631,7 +1627,7 @@ class C
 }
 ");
             // updated:
-            diff2.VerifyIL("C.<>c.<F>g__f21_1#2(int)", @"
+            diff2.VerifyIL("C.<>c.<F>g__f21_1#1(int)", @"
 {
   // Code size        5 (0x5)
   .maxstack  2
@@ -1659,11 +1655,11 @@ class C
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f2, f3, GetSyntaxMapFromMarkers(source2, source3), preserveLocalVariables: true)));
 
             diff3.VerifySynthesizedMembers(
-                "C.<>c: {<F>g__f11_0#3, <F>g__f21_1#3, <F>g__f31_2#3, <F>g__f11_0#2, <F>g__f21_1#2, <F>g__f31_2#2, <F>g__f11_0#1, <F>g__f21_1#1}",
-                "C: {<>c}");
+                "C: {<>c}",
+                "C.<>c: {<F>g__f11_0, <F>g__f21_1#1, <F>g__f31_2#2}");
 
             // updated:
-            diff3.VerifyIL("C.<>c.<F>g__f11_0#3(int)", @"
+            diff3.VerifyIL("C.<>c.<F>g__f11_0(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1674,7 +1670,7 @@ class C
 }
 ");
             // updated:
-            diff3.VerifyIL("C.<>c.<F>g__f21_1#3(int)", @"
+            diff3.VerifyIL("C.<>c.<F>g__f21_1#1(int)", @"
 {
   // Code size        5 (0x5)
   .maxstack  2
@@ -1686,7 +1682,7 @@ class C
 ");
 
             // updated:
-            diff3.VerifyIL("C.<>c.<F>g__f31_2#3(int)", @"
+            diff3.VerifyIL("C.<>c.<F>g__f31_2#2(int)", @"
 {
   // Code size        8 (0x8)
   .maxstack  2
