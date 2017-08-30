@@ -166,6 +166,6 @@
     "Nerdbank.FullDuplexStream.dll",
     "Validation.dll",
 	"Humanizer.dll",
-	"Humanizer.Resources.dll"
+	"Humanizer.resources.dll"
   ]
 }
