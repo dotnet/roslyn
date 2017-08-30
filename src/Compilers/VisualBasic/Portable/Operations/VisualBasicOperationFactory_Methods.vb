@@ -440,28 +440,6 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 eventReference, Create(statement.Handler), adds:=adds, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=statement.WasCompilerGenerated)
         End Function
 
-        Private Shared Function GetConversionKind(kind As VisualBasic.ConversionKind) As Semantics.ConversionKind
-            Dim operationKind = Semantics.ConversionKind.Invalid
-
-            If kind.HasFlag(VisualBasic.ConversionKind.UserDefined) Then
-                operationKind = Semantics.ConversionKind.OperatorMethod
-            ElseIf Conversions.IsIdentityConversion(kind) OrElse
-                   kind.HasFlag(VisualBasic.ConversionKind.Reference) OrElse
-                   kind.HasFlag(VisualBasic.ConversionKind.TypeParameter) OrElse
-                   kind.HasFlag(VisualBasic.ConversionKind.Array) OrElse
-                   kind.HasFlag(VisualBasic.ConversionKind.Value) Then
-                operationKind = Semantics.ConversionKind.Cast
-            ElseIf Conversions.NoConversion(kind) Then
-                operationKind = Semantics.ConversionKind.Invalid
-            ElseIf kind.HasFlag(VisualBasic.ConversionKind.InterpolatedString) Then
-                operationKind = Semantics.ConversionKind.InterpolatedString
-            Else
-                operationKind = Semantics.ConversionKind.Basic
-            End If
-
-            Return operationKind
-        End Function
-
         Friend Class Helper
             Friend Shared Function DeriveUnaryOperatorKind(operatorKind As VisualBasic.UnaryOperatorKind) As UnaryOperatorKind
                 Select Case operatorKind And VisualBasic.UnaryOperatorKind.OpMask

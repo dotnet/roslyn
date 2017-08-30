@@ -682,7 +682,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 Lazy<IOperation> operand = new Lazy<IOperation>(() => Create(boundConversion.Operand));
                 SyntaxNode syntax = boundConversion.Syntax;
-                Conversion conversion = _semanticModel.GetConversion(syntax);
+                Conversion conversion = boundConversion.Conversion;
                 bool isExplicit = boundConversion.ExplicitCastInCode;
                 bool isTryCast = false;
                 // Checked conversions only matter if the conversion is a Numeric conversion. Don't have true unless the conversion is actually numeric.
@@ -697,7 +697,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             Lazy<IOperation> operand = new Lazy<IOperation>(() => Create(boundAsOperator.Operand));
             SyntaxNode syntax = boundAsOperator.Syntax;
-            Conversion conversion = _semanticModel.GetConversion(syntax);
+            Conversion conversion = boundAsOperator.Conversion;
             bool isExplicit = true;
             bool isTryCast = true;
             bool isChecked = false;
