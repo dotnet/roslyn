@@ -61,8 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             }
 
             var endPos = GetEndPositionIncludingLastNewLine(trivia, parentTriviaList, indexInParent);
-
-            // Now, exclude the last newline if there is one.
             endPos = GetEndPositionExludingLastNewLine(syntaxTree, endPos, cancellationToken);
 
             var span = TextSpan.FromBounds(startPos, endPos);
