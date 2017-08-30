@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IOperation VisitDelegateCreationExpression(IDelegateCreationExpression operation, object argument)
         {
-            return new DelegateCreationExpression(operation.Target, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new DelegateCreationExpression(Visit(operation.Target), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitLiteralExpression(ILiteralExpression operation, object argument)
