@@ -164,6 +164,8 @@
     "Microsoft.VisualStudio.Threading.dll",
     "Microsoft.VisualStudio.Validation.dll",
     "Nerdbank.FullDuplexStream.dll",
-    "Validation.dll"
+    "Validation.dll",
+	"Humanizer.dll",
+	"Humanizer.Resources.dll"
   ]
 }
