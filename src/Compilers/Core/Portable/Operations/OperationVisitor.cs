@@ -290,6 +290,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
+        public virtual void VisitDelegateCreationExpression(IDelegateCreationExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
         public virtual void VisitLiteralExpression(ILiteralExpression operation)
         {
             DefaultVisit(operation);
@@ -751,6 +756,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual TResult VisitAnonymousFunctionExpression(IAnonymousFunctionExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitDelegateCreationExpression(IDelegateCreationExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

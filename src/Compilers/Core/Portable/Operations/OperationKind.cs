@@ -141,6 +141,8 @@ namespace Microsoft.CodeAnalysis
         DynamicObjectCreationExpression = 0x125,
         /// <summary>Indicates an <see cref="IDynamicMemberReferenceExpression"/>.</summary>
         DynamicMemberReferenceExpression = 0x126,
+        /// <summary>Indicates a <see cref="IDelegateCreationExpression"/>.</summary>
+        DelegateCreationExpression = 0x127,
 
         // Expressions that occur only in C#.
 
