@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void IPropertyReferenceExpression_PropertyReferenceInDerivedTypeUsesDerivedTypeAsInstanceType()
+        public void IPropertyReferenceExpression_PropertyReferenceInDerivedTypeUsesBaseTypeAsInstanceType()
         {
             string source = @"
 class C

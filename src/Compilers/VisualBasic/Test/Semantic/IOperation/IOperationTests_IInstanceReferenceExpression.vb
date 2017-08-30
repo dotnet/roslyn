@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -37,7 +37,7 @@ IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub IInstanceReferenceExpression_BaseNoMemberReferene()
+        Public Sub IInstanceReferenceExpression_BaseNoMemberReference()
             Dim source = <![CDATA[
 Option Strict On
 
