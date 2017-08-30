@@ -91,13 +91,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 overridableMembers = _provider.FilterOverrides(overridableMembers, returnType);
                 var symbolDisplayService = _document.GetLanguageService<ISymbolDisplayService>();
 
-                var resolvableMembers = overridableMembers.Where(m => CanSerializeSymbolKey(m, semanticModel.Compilation));
+                var resolvableMembers = overridableMembers.Where(m => CanResolveSymbolKey(m, semanticModel.Compilation));
 
                 return overridableMembers.Select(m => CreateItem(
                     m, symbolDisplayService, semanticModel, startToken, modifiers)).ToList();
             }
 
-            private bool CanSerializeSymbolKey(ISymbol m, Compilation compilation)
+            private bool CanResolveSymbolKey(ISymbol m, Compilation compilation)
             {
                 // SymbolKey doesn't guarantee roundtrip-ability, which we need in order to generate overrides.
                 // Preemptively filter out those methods whose SymbolKeys we won't be able to round trip.

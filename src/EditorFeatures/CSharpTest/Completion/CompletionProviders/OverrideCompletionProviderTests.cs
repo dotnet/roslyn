@@ -2666,7 +2666,7 @@ namespace ClassLibrary7
     </Project>
 </Workspace>");
 
-            // P3 has a P2P ref to Project P2 and uses the type "Missing" from P2
+            // P3 has a project ref to Project P2 and uses the type "Missing" from P2
             // as the return type of a virtual method.
             // P1 has a metadata reference to P3 and therefore doesn't get the transitive
             // reference to P2. If we try to override Goo, the missing "Missing" type will
@@ -2674,11 +2674,10 @@ namespace ClassLibrary7
             using (var workspace = TestWorkspace.Create(text))
             {
                 var compilation = await workspace.CurrentSolution.Projects.First(p => p.Name == "P3").GetCompilationAsync();
-                
-                // CompilationExtensions is in the MS.CA.Test.Utilities namespace which has a "Traits" type that conflicts with the one in 
-                // Roslyn.Test.Utilities
-                var reference = MetadataReference.CreateFromImage(Test.Utilities.CompilationExtensions.EmitToArray(compilation));
 
+                // CompilationExtensions is in the Microsoft.CodeAnalysis.Test.Utilities namespace 
+                // which has a "Traits" type that conflicts with the one in Roslyn.Test.Utilities
+                var reference = MetadataReference.CreateFromImage(Test.Utilities.CompilationExtensions.EmitToArray(compilation));
                 var p1 = workspace.CurrentSolution.Projects.First(p => p.Name == "P1");
                 var updatedP1 = p1.AddMetadataReference(reference);
                 workspace.ChangeSolution(updatedP1.Solution);

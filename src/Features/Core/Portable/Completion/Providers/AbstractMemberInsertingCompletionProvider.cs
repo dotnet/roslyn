@@ -104,7 +104,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var memberContainingDocument = await GenerateMemberAndUsingsAsync(document, completionItem, line, cancellationToken).ConfigureAwait(false);
             if (memberContainingDocument == null)
             {
-                // Generating the new document failed, return no changes.
+                // Generating the new document failed because we somehow couldn't resolve
+                // the underlying symbol's SymbolKey. At this point, we won't be able to 
+                // make any changes, so just return the document we started with.
                 return document;
             }
 
@@ -141,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             if (overriddenMember == null)
             {
-                // Unfortunately, SymbolKey resolution failed. We have to bail.
+                // Unfortunately, SymbolKey resolution failed. Bail.
                 return null;
             }
 
