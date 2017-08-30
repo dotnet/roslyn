@@ -25,6 +25,10 @@
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="snapshotService.servicehub.service.json" />
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="codeAnalysisService.servicehub.service.json" />
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="remoteSymbolSearchUpdateEngine.servicehub.service.json" />
+    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="remoteHostService64.servicehub.service.json" />
+    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="snapshotService64.servicehub.service.json" />
+    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="codeAnalysisService64.servicehub.service.json" />
+    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="remoteSymbolSearchUpdateEngine64.servicehub.service.json" />
   </Assets>
   <Prerequisites>
     <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,16.0)" DisplayName="Visual Studio core editor" />

@@ -393,5 +393,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         SolutionCreator_AssetDifferences,
         Extension_InfoBar,
         Experiment_ABTesting,
+        AssetStorage_ForceGC,
+        RemoteHost_Bitness,
     }
 }

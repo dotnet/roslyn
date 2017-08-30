@@ -18,16 +18,21 @@ namespace Microsoft.CodeAnalysis.Remote
     internal class AssetStorage
     {
         // TODO: think of a way to use roslyn option service in OOP
-        public static readonly AssetStorage Default = new AssetStorage(cleanupInterval: TimeSpan.FromMinutes(1), purgeAfter: TimeSpan.FromMinutes(3));
+        public static readonly AssetStorage Default =
+            new AssetStorage(cleanupInterval: TimeSpan.FromMinutes(1), purgeAfter: TimeSpan.FromMinutes(3), gcAfter: TimeSpan.FromMinutes(5));
 
         private readonly TimeSpan _cleanupIntervalTimeSpan;
         private readonly TimeSpan _purgeAfterTimeSpan;
+        private readonly TimeSpan _gcAfterTimeSpan;
 
         private readonly ConcurrentDictionary<Checksum, Entry> _globalAssets =
             new ConcurrentDictionary<Checksum, Entry>(concurrencyLevel: 4, capacity: 10);
 
         private readonly ConcurrentDictionary<Checksum, Entry> _assets =
             new ConcurrentDictionary<Checksum, Entry>(concurrencyLevel: 4, capacity: 10);
+
+        private DateTime _lastGCRun;
+        private DateTime _lastActivityTime;
 
         private volatile AssetSource _assetSource;
 
@@ -36,10 +41,14 @@ namespace Microsoft.CodeAnalysis.Remote
             // constructor for testing
         }
 
-        public AssetStorage(TimeSpan cleanupInterval, TimeSpan purgeAfter)
+        public AssetStorage(TimeSpan cleanupInterval, TimeSpan purgeAfter, TimeSpan gcAfter)
         {
             _cleanupIntervalTimeSpan = cleanupInterval;
             _purgeAfterTimeSpan = purgeAfter;
+            _gcAfterTimeSpan = gcAfter;
+
+            _lastActivityTime = DateTime.UtcNow;
+            _lastGCRun = DateTime.UtcNow;
 
             Task.Run(CleanAssetsAsync, CancellationToken.None);
         }
@@ -56,16 +65,22 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public bool TryAddGlobalAsset(Checksum checksum, object value)
         {
+            UpdateLastActivityTime();
+
             return _globalAssets.TryAdd(checksum, new Entry(value));
         }
 
         public bool TryAddAsset(Checksum checksum, object value)
         {
+            UpdateLastActivityTime();
+
             return _assets.TryAdd(checksum, new Entry(value));
         }
 
         public IEnumerable<T> GetGlobalAssetsOfType<T>(CancellationToken cancellationToken)
         {
+            UpdateLastActivityTime();
+
             foreach (var asset in _globalAssets)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -80,6 +95,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public bool TryGetAsset<T>(Checksum checksum, out T value)
         {
+            UpdateLastActivityTime();
+
             value = default(T);
             using (Logger.LogBlock(FunctionId.AssetStorage_TryGetAsset, Checksum.GetChecksumLogInfo, checksum, CancellationToken.None))
             {
@@ -97,6 +114,11 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+        public void UpdateLastActivityTime()
+        {
+            _lastActivityTime = DateTime.UtcNow;
+        }
+
         private void Update(Checksum checksum, Entry entry)
         {
             // entry is reference type. we update it directly. 
@@ -110,14 +132,50 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 CleanAssets();
 
+                ForceGC();
+
                 await Task.Delay(_cleanupIntervalTimeSpan).ConfigureAwait(false);
             }
         }
 
+        private void ForceGC()
+        {
+            // if there was no activity since last GC run. we don't have anything to do
+            if (_lastGCRun >= _lastActivityTime)
+            {
+                return;
+            }
+
+            var current = DateTime.UtcNow;
+            if (current - _lastActivityTime < _gcAfterTimeSpan)
+            {
+                // we are having activities.
+                return;
+            }
+
+            using (Logger.LogBlock(FunctionId.AssetStorage_ForceGC, CancellationToken.None))
+            {
+                // we didn't have activity for 5 min. spend some time to drop 
+                // unused memory
+                for (var i = 0; i < 3; i++)
+                {
+                    GC.Collect();
+                }
+            }
+
+            // update gc run time
+            _lastGCRun = current;
+        }
+
         private void CleanAssets()
         {
-            var current = DateTime.UtcNow;
+            if (_assets.Count == 0)
+            {
+                // no asset, nothing to do.
+                return;
+            }
 
+            var current = DateTime.UtcNow;
             using (Logger.LogBlock(FunctionId.AssetStorage_CleanAssets, CancellationToken.None))
             {
                 foreach (var kvp in _assets.ToArray())

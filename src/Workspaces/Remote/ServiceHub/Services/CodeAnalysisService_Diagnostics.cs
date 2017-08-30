@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -53,18 +54,26 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        private async Task SerializeDiagnosticResultAsync(string streamName, DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder> result, CancellationToken cancellationToken)
+        private async Task<int> SerializeDiagnosticResultAsync(string streamName, DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder> result, CancellationToken cancellationToken)
         {
+            var count = 0;
+
             using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_SerializeDiagnosticResultAsync, GetResultLogInfo, result, cancellationToken))
             using (var stream = await DirectStream.GetAsync(streamName, cancellationToken).ConfigureAwait(false))
             {
                 using (var writer = new ObjectWriter(stream))
                 {
-                    DiagnosticResultSerializer.Serialize(writer, result, cancellationToken);
+                    var info = DiagnosticResultSerializer.Serialize(writer, result, cancellationToken);
+
+                    // save log for debugging
+                    Log(TraceEventType.Information, $"diagnostics: {info.diagnostics}, telemetry: {info.telemetry}, exceptions: {info.exceptions}");
+
                 }
 
                 await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
+
+            return count;
         }
 
         private static string GetResultLogInfo(DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder> result)
