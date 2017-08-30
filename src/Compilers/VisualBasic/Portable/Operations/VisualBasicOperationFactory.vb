@@ -507,7 +507,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function CreateBoundTryCastOperation(boundTryCast As BoundTryCast) As IConversionExpression
             Dim operand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundTryCast.Operand))
             Dim syntax As SyntaxNode = boundTryCast.Syntax
-            Dim conversion As Conversion = New Conversion(New KeyValuePair(Of VisualBasic.ConversionKind, MethodSymbol)(boundTryCast.ConversionKind, Nothing))
+            Dim conversion As Conversion = New Conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(boundTryCast.ConversionKind, Nothing))
             Dim isExplicitCastInCode As Boolean = True
             Dim isTryCast As Boolean = True
             Dim isChecked As Boolean = False
@@ -520,7 +520,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function CreateBoundDirectCastOperation(boundDirectCast As BoundDirectCast) As IConversionExpression
             Dim operand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundDirectCast.Operand))
             Dim syntax As SyntaxNode = boundDirectCast.Syntax
-            Dim conversion As Conversion = New Conversion(New KeyValuePair(Of VisualBasic.ConversionKind, MethodSymbol)(boundDirectCast.ConversionKind, Nothing))
+            Dim conversion As Conversion = New Conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(boundDirectCast.ConversionKind, Nothing))
             Dim isExplicit As Boolean = True
             Dim isTryCast As Boolean = False
             Dim isChecked As Boolean = False
@@ -543,7 +543,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 operand = New Lazy(Of IOperation)(Function() Create(boundConversion.Operand))
             End If
 
-            Dim conversion = New Conversion(New KeyValuePair(Of VisualBasic.ConversionKind, MethodSymbol)(boundConversion.ConversionKind, methodSymbol))
+            Dim conversion = New Conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(boundConversion.ConversionKind, methodSymbol))
             Dim syntax As SyntaxNode = boundConversion.Syntax
             Dim isExplicit As Boolean = boundConversion.ExplicitCastInCode
             Dim isTryCast As Boolean = False
