@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.VisualBasic.Language
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -365,11 +366,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim inferredType As TupleTypeSymbol = Nothing
             If hasInferredType Then
-                Dim disallowInferredNames = Me.Compilation.LanguageVersion.DisallowInferredTupleElementNames()
+                Dim allowInferredNames = Feature.InferredTupleNames.IsAvailable(Me.Compilation)
+                ' Me.Compilation.LanguageVersion.DisallowInferredTupleElementNames()
 
                 inferredType = TupleTypeSymbol.Create(node.GetLocation, elements, locations, elementNames, Me.Compilation,
                                                       shouldCheckConstraints:=True,
-                                                      errorPositions:=If(disallowInferredNames, inferredPositions, Nothing),
+                                                      errorPositions:=If(allowInferredNames, Nothing, inferredPositions),
                                                       syntax:=node, diagnostics:=diagnostics)
             End If
 

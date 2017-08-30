@@ -4,8 +4,7 @@ Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports VbObjectDisplay = Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay.ObjectDisplay
 Imports Parser = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Parser
-Imports Feature = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FeatureExtensions
+Imports Microsoft.CodeAnalysis.VisualBasic.Language
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 

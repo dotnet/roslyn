@@ -18,6 +18,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports CoreInternalSyntax = Microsoft.CodeAnalysis.Syntax.InternalSyntax
+Imports Microsoft.CodeAnalysis.VisualBasic.Language
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 

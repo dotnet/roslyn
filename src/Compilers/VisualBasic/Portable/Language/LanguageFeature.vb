@@ -2,7 +2,7 @@
 
 Imports System.Runtime.CompilerServices
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
+Namespace Microsoft.CodeAnalysis.VisualBasic.Language
 
     Friend Enum Feature
         AutoProperties
@@ -36,7 +36,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         InferredTupleNames
     End Enum
 
+    <HideModuleName>
     Friend Module FeatureExtensions
+
+        <Extension>
+        Friend Function IsPrototype(feature As Feature) As Boolean
+            Select Case feature
+                Case Feature.IOperation
+                    Return True
+            End Select
+            Return False
+        End Function
+
         <Extension>
         Friend Function GetFeatureFlag(feature As Feature) As String
             Select Case feature
@@ -89,8 +100,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case Feature.InferredTupleNames
                     Return LanguageVersion.VisualBasic15_3
-
                 Case Else
+                    If feature.IsPrototype Then Return CType(Integer.MinValue, LanguageVersion)
+
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select
 
@@ -173,8 +185,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function IsInLanguageVersion(feature As Feature, options As VisualBasicParseOptions) As Boolean
             Dim required = feature.GetLanguageVersion()
             Dim current = options.LanguageVersion
-            Return required <= current
+            Return CheckVersionNumbers(required, current)
         End Function
+
+        <Extension>
+        Friend Function IsInLanguageVersion(feature As Feature, options As VisualBasicCompilation) As Boolean
+            Dim required = feature.GetLanguageVersion()
+            Dim current = options.LanguageVersion
+            Return CheckVersionNumbers(required, current)
+        End Function
+
+        Private Function CheckVersionNumbers(required As LanguageVersion, current As LanguageVersion) As Boolean
+            Return (Integer.MinValue < required) AndAlso (required <= current)
+        End Function
+
 
         ''' <summary>
         ''' Check to see if a language <paramref name="feature"/> is enabled via <see cref="VisualBasicParseOptions.Features"/>.
@@ -186,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         <Extension>
         Private Function CheckFeatures(feature As Feature, options As VisualBasicParseOptions) As Boolean
             Dim featureFlag = feature.GetFeatureFlag()
-            Return ((featureFlag IsNot Nothing) AndAlso options.Features.ContainsKey(featureFlag))
+            Return If(featureFlag Is Nothing, False, options.Features.ContainsKey(featureFlag))
         End Function
 
         ''' <summary>Report the unavailability of a language feature.</summary>
@@ -197,10 +221,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <returns>
         ''' If Feature is unavaible return the <paramref name="node"/> with the unavailable diagnostic attached to it.</returns>
         <Extension>
-        Friend Function ReportFeatureUnavailable(Of TNode As VisualBasicSyntaxNode)(node As TNode, feature As Feature, options As VisualBasicParseOptions) As TNode
+        Friend Function ReportFeatureUnavailable(Of TNode As Syntax.InternalSyntax.VisualBasicSyntaxNode)(node As TNode, feature As Feature, options As VisualBasicParseOptions) As TNode
             Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
             Dim requiredVersion As New VisualBasicRequiredLanguageVersion(feature.GetLanguageVersion())
-            Return Parser.ReportSyntaxError(node, ERRID.ERR_LanguageVersion, options.LanguageVersion.GetErrorName(), featureName, requiredVersion)
+            Return Syntax.InternalSyntax.Parser.ReportSyntaxError(node, ERRID.ERR_LanguageVersion, options.LanguageVersion.GetErrorName(), featureName, requiredVersion)
         End Function
 
         ''' <summary>
@@ -213,7 +237,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="options">The parse options being used.</param>
         <Extension>
         Friend Function IsAvailable(feature As Feature, options As VisualBasicParseOptions) As Boolean
-            Return feature.CheckFeatures(options) OrElse feature.IsInLanguageVersion(options)
+            Return feature.IsInLanguageVersion(options) OrElse feature.CheckFeatures(options)
+        End Function
+
+        ''' <summary>
+        ''' Check to see if a language <paramref name="feature"/> is available with these <paramref name="compilation"/>.
+        ''' </summary>
+        ''' <param name="feature">Language feature to check is available.</param>
+        ''' <param name="compilation">The <see cref="VisualBasicCompilation"/> being used.</param>
+        <Extension>
+        Friend Function IsAvailable(feature As Feature, compilation As VisualBasicCompilation) As Boolean
+            Return feature.IsInLanguageVersion(compilation)
         End Function
 
         ''' <summary>
@@ -225,7 +259,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <param name="feature">Language feature to check is available.</param>
         ''' <param name="options">The parse options being used.</param>
         <Extension>
-        Friend Function CheckFeatureAvailability(Of TNode As VisualBasicSyntaxNode)(node As TNode, feature As Feature, options As VisualBasicParseOptions) As TNode
+        Friend Function CheckFeatureAvailability(Of TNode As Syntax.InternalSyntax.VisualBasicSyntaxNode)(node As TNode, feature As Feature, options As VisualBasicParseOptions) As TNode
             Return If(feature.IsAvailable(options), node, node.ReportFeatureUnavailable(feature, options))
         End Function
 
