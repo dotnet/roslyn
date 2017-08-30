@@ -1765,12 +1765,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             IOperation result = null;
             var csmethod = method.EnsureCSharpSymbolOrNull<IMethodSymbol, MethodSymbol>(nameof(method));
-            var body = LowerMethodBody(csmethod);
 
-            if (body != null)
+            if (csmethod != null)
             {
-                var operationFactory = new Semantics.CSharpOperationFactory(null);
-                result = operationFactory.Create(body);
+                var body = LowerMethodBody(csmethod);
+
+                if (body != null)
+                {
+                    var operationFactory = new Semantics.CSharpOperationFactory(null);
+                    result = operationFactory.Create(body);
+                }
             }
 
             return result;

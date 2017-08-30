@@ -1847,11 +1847,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function GetOperationCore(method As IMethodSymbol, Optional cancellationToken As CancellationToken = Nothing) As IOperation
             Dim result As IOperation = Nothing
             Dim vbmethod = method.EnsureVbSymbolOrNothing(Of MethodSymbol)(NameOf(method))
-            Dim body = LowerMethodBody(vbmethod)
 
-            If body IsNot Nothing Then
-                Dim operationFactory = New Semantics.VisualBasicOperationFactory(Nothing)
-                result = operationFactory.Create(body)
+            If vbmethod IsNot Nothing Then
+                Dim body = LowerMethodBody(vbmethod)
+
+                If body IsNot Nothing Then
+                    Dim operationFactory = New Semantics.VisualBasicOperationFactory(Nothing)
+                    result = operationFactory.Create(body)
+                End If
             End If
 
             Return result
