@@ -59,18 +59,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             var nestedIfDirectiveTrivia = 0;
             for (var i = indexInParent; i < parentTriviaList.Count; i++)
             {
-                if (parentTriviaList[i].IsKind(SyntaxKind.IfDirectiveTrivia))
+                var currentTrivia = parentTriviaList[i];
+                if (currentTrivia.IsKind(SyntaxKind.IfDirectiveTrivia))
                 {
                     nestedIfDirectiveTrivia++;
+                    continue;
                 }
 
-                if (parentTriviaList[i].IsKind(SyntaxKind.EndIfDirectiveTrivia) ||
-                    parentTriviaList[i].IsKind(SyntaxKind.ElifDirectiveTrivia) ||
-                    parentTriviaList[i].IsKind(SyntaxKind.ElseDirectiveTrivia))
+                var isEndIf = currentTrivia.IsKind(SyntaxKind.EndIfDirectiveTrivia);
+                if (isEndIf ||
+                    currentTrivia.IsKind(SyntaxKind.ElifDirectiveTrivia) ||
+                    currentTrivia.IsKind(SyntaxKind.ElseDirectiveTrivia))
                 {
                     if (nestedIfDirectiveTrivia > 0)
                     {
-                        nestedIfDirectiveTrivia--;
+                        if (isEndIf)
+                        {
+                            nestedIfDirectiveTrivia--;
+                        }
                     }
                     else
                     {
