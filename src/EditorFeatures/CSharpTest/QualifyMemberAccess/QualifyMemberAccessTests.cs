@@ -1204,5 +1204,41 @@ CodeStyleOptions.QualifyEventAccess);
 }",
 CodeStyleOptions.QualifyPropertyAccess);
         }
+
+        [WorkItem(21519, "https://github.com/dotnet/roslyn/issues/21519")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyPropertyAccess_InAccessorWithBodyAndExpressionBody1()
+        {
+            await TestAsyncWithOption(
+@"public class C
+{
+    public string Foo { get; set; }
+    public string Bar { get { return [|Foo|]; } => Foo; }
+}",
+@"public class C
+{
+    public string Foo { get; set; }
+    public string Bar { get { return this.Foo; } => Foo; }
+}",
+CodeStyleOptions.QualifyPropertyAccess);
+        }
+
+        [WorkItem(21519, "https://github.com/dotnet/roslyn/issues/21519")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyPropertyAccess_InAccessorWithBodyAndExpressionBody2()
+        {
+            await TestAsyncWithOption(
+@"public class C
+{
+    public string Foo { get; set; }
+    public string Bar { get { return Foo; } => [|Foo|]; }
+}",
+@"public class C
+{
+    public string Foo { get; set; }
+    public string Bar { get { return Foo; } => this.Foo; }
+}",
+CodeStyleOptions.QualifyPropertyAccess);
+        }
     }
 }
