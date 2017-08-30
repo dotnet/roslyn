@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Kind of binary operation.
         /// </summary>
-        BinaryOperationKind BinaryOperationKind { get; }
+        BinaryOperatorKind OperatorKind { get; }
         /// <summary>
         /// Left operand.
         /// </summary>
@@ -32,5 +32,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// value types.
         /// </summary>
         bool IsLifted { get; }
+        /// <summary>
+        /// <code>true</code> if this is a 'checked' binary operator.
+        /// </summary>
+        bool IsChecked { get; }
+        /// <summary>
+        /// <code>true</code> if the comparison is text based for string or object comparison in VB.
+        /// </summary>
+        bool IsCompareText { get; }
     }
 }

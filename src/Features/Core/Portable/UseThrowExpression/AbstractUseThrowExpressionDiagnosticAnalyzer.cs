@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 return false;
             }
 
-            if (binaryOperator.GetSimpleBinaryOperationKind() != SimpleBinaryOperationKind.Equals)
+            if (binaryOperator.OperatorKind != BinaryOperatorKind.Equals)
             {
                 return false;
             }

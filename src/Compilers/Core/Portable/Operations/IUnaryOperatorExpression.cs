@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Kind of unary operation.
         /// </summary>
-        UnaryOperationKind UnaryOperationKind { get; }
+        UnaryOperatorKind OperatorKind { get; }
         /// <summary>
         /// Single operand.
         /// </summary>
@@ -29,5 +29,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// value types.
         /// </summary>
         bool IsLifted { get; }
+
+        /// <summary>
+        /// <code>true</code> if overflow checking is performed for the arithmetic operation.
+        /// </summary>
+        bool IsChecked { get; }
     }
 }

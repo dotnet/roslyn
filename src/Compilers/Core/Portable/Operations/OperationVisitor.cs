@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitLabelStatement(ILabelStatement operation)
+        public virtual void VisitLabeledStatement(ILabeledStatement operation)
         {
             DefaultVisit(operation);
         }
@@ -570,7 +570,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitLabelStatement(ILabelStatement operation, TArgument argument)
+        public virtual TResult VisitLabeledStatement(ILabeledStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
