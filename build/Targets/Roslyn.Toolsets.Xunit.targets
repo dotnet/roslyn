@@ -15,6 +15,8 @@
 
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <ForceGenerationOfBindingRedirects>true</ForceGenerationOfBindingRedirects>
+
+    <RuntimeIdentifier Condition="'$(TargetFramework)' == 'net461' AND '$(RuntimeIdentifier)' == '' AND '$(OS)' == 'Windows_NT'">win7</RuntimeIdentifier>
   </PropertyGroup>
     
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
@@ -48,6 +50,13 @@
   <Target Name="Test" DependsOnTargets="Build">
     <MakeDir Directories="$(XUnitTestResultsDirectory)" />
     <Exec Command="&quot;$(XUnitPath)&quot; $(XUnitArguments)" />
+  </Target>
+
+  <!-- Work around for https://github.com/dotnet/sdk/issues/1552 -->
+  <Target Name="WorkaroundConflictResolution" AfterTargets="_ComputeActiveTFMFileDependencies" Condition="'$(PlatformTarget)' == 'AnyCPU' AND '$(TargetFrameworkIdentifier)' == '.NETFramework'" >
+    <ItemGroup>
+      <_ActiveTFMFileDependencies Remove="@(_ActiveTFMFileDependencies->WithMetadataValue('FileGroup', 'RuntimeTarget'))" />
+    </ItemGroup>
   </Target>
 
   <!-- Add a default test app.config, if the project doesn't already have one-->
