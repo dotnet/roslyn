@@ -19,13 +19,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property InConversion As CommonConversion
             Get
-                Return If(InConversionInternal.Exists, InConversionInternal.ToCommonConversion(), New CommonConversion(exists:=True, isIdentity:=True, isNumeric:=False, isReference:=False, methodSymbol:=Nothing))
+                Return InConversionInternal.ToCommonConversion()
             End Get
         End Property
 
         Public Overrides ReadOnly Property OutConversion As CommonConversion
             Get
-                Return If(OutConversionInternal.Exists, OutConversionInternal.ToCommonConversion(), New CommonConversion(exists:=True, isIdentity:=True, isNumeric:=False, isReference:=False, methodSymbol:=Nothing))
+                Return OutConversionInternal.ToCommonConversion()
             End Get
         End Property
     End Class

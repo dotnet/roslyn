@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 End If
                 Return New Conversion(KeyValuePair.Create(conversionKind, method))
             End If
-            Return New Conversion(Nothing) 'NoConversion
+            Return New Conversion(Conversions.Identity)
         End Function
 
         Private Function DeriveArgument(index As Integer, argument As BoundExpression, parameters As ImmutableArray(Of VisualBasic.Symbols.ParameterSymbol)) As IArgument
@@ -118,8 +118,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                             kind,
                             parameter,
                             value,
-                            inConversion:=New Conversion(Nothing), 'NoConversion,
-                            outConversion:=New Conversion(Nothing), 'NoConversion,
+                            inConversion:=New Conversion(Conversions.Identity),
+                            outConversion:=New Conversion(Conversions.Identity),
                             semanticModel:=_semanticModel,
                             syntax:=value.Syntax,
                             type:=Nothing,
@@ -138,8 +138,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                             kind,
                             parameter,
                             value,
-                            inConversion:=New Conversion(Nothing), 'NoConversion,
-                            outConversion:=New Conversion(Nothing), 'NoConversion,
+                            inConversion:=New Conversion(Conversions.Identity),
+                            outConversion:=New Conversion(Conversions.Identity),
                             semanticModel:=_semanticModel,
                             syntax:=value.Syntax,
                             type:=Nothing,
