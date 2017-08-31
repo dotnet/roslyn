@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.Host
+Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -30,6 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Friend ReadOnly AsyncCompletionService As IAsyncCompletionService
         Friend ReadOnly SignatureHelpCommandHandler As SignatureHelpCommandHandler
+        Friend ReadOnly FormatCommandHandler As FormatCommandHandler
         Friend ReadOnly CompletionCommandHandler As CompletionCommandHandler
         Friend ReadOnly IntelliSenseCommandHandler As IntelliSenseCommandHandler
 
@@ -47,6 +49,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         extraCompletionProviders As IEnumerable(Of Lazy(Of CompletionProvider, OrderableLanguageAndRoleMetadata)),
                         extraSignatureHelpProviders As IEnumerable(Of Lazy(Of ISignatureHelpProvider, OrderableLanguageMetadata)),
                         Optional extraExportedTypes As List(Of Type) = Nothing,
+                        Optional includeFormatCommandHandler As Boolean = False,
                         Optional workspaceKind As String = Nothing)
             MyBase.New(workspaceElement, CreatePartCatalog(extraExportedTypes), workspaceKind:=workspaceKind)
 
@@ -75,6 +78,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 GetExports(Of IAsynchronousOperationListener, FeatureMetadata)())
 
             Me.IntelliSenseCommandHandler = New IntelliSenseCommandHandler(CompletionCommandHandler, SignatureHelpCommandHandler, Nothing)
+
+            Me.FormatCommandHandler = If(includeFormatCommandHandler,
+                New FormatCommandHandler(
+                    GetService(Of IWaitIndicator),
+                    GetService(Of ITextUndoHistoryRegistry),
+                    GetService(Of IEditorOperationsFactoryService)),
+                Nothing)
         End Sub
 
         Private Shared Function CreatePartCatalog(types As List(Of Type)) As ComposableCatalog
@@ -108,7 +118,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 documentElement As XElement,
                 Optional extraCompletionProviders As CompletionProvider() = Nothing,
                 Optional extraSignatureHelpProviders As ISignatureHelpProvider() = Nothing,
-                Optional extraExportedTypes As List(Of Type) = Nothing) As TestState
+                Optional extraExportedTypes As List(Of Type) = Nothing,
+                Optional includeFormatCommandHandler As Boolean = False) As TestState
             Return New TestState(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -119,7 +130,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 </Workspace>,
                 CreateLazyProviders(extraCompletionProviders, LanguageNames.CSharp, roles:=Nothing),
                 CreateLazyProviders(extraSignatureHelpProviders, LanguageNames.CSharp),
-                extraExportedTypes)
+                extraExportedTypes,
+                includeFormatCommandHandler)
         End Function
 
         Public Shared Function CreateTestStateFromWorkspace(
@@ -133,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 CreateLazyProviders(extraCompletionProviders, LanguageNames.VisualBasic, roles:=Nothing),
                 CreateLazyProviders(extraSignatureHelpProviders, LanguageNames.VisualBasic),
                 extraExportedTypes,
-                workspaceKind)
+                workspaceKind:=workspaceKind)
         End Function
 
 #Region "IntelliSense Operations"
@@ -287,15 +299,25 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
 #Region "Signature Help and Completion Operations"
 
-        Private Sub ExecuteCommand(Of TCommandArgs As CommandArgs)(args As TCommandArgs, finalHandler As Action)
-            Dim sigHelpHandler = DirectCast(SignatureHelpCommandHandler, ICommandHandler(Of TCommandArgs))
-            Dim compHandler = DirectCast(DirectCast(CompletionCommandHandler, Object), ICommandHandler(Of TCommandArgs))
+        Private Sub ExecuteTypeCharCommand(args As TypeCharCommandArgs, finalHandler As Action)
+            Dim sigHelpHandler = DirectCast(SignatureHelpCommandHandler, ICommandHandler(Of TypeCharCommandArgs))
+            Dim formatHandler = DirectCast(FormatCommandHandler, ICommandHandler(Of TypeCharCommandArgs))
+            Dim compHandler = DirectCast(CompletionCommandHandler, ICommandHandler(Of TypeCharCommandArgs))
 
-            sigHelpHandler.ExecuteCommand(args, Sub() compHandler.ExecuteCommand(args, finalHandler))
+            If formatHandler Is Nothing Then
+                sigHelpHandler.ExecuteCommand(
+                    args, Sub() compHandler.ExecuteCommand(
+                                    args, finalHandler))
+            Else
+                formatHandler.ExecuteCommand(
+                    args, Sub() sigHelpHandler.ExecuteCommand(
+                                    args, Sub() compHandler.ExecuteCommand(
+                                                    args, finalHandler)))
+            End If
         End Sub
 
         Public Overloads Sub SendTypeChars(typeChars As String)
-            MyBase.SendTypeChars(typeChars, Sub(a, n) ExecuteCommand(a, n))
+            MyBase.SendTypeChars(typeChars, Sub(a, n) ExecuteTypeCharCommand(a, n))
         End Sub
 
         Public Overloads Sub SendBackspace()
@@ -311,7 +333,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Sub SendTypeCharsToSpecificViewAndBuffer(typeChars As String, view As IWpfTextView, buffer As ITextBuffer)
             For Each ch In typeChars
                 Dim localCh = ch
-                ExecuteCommand(New TypeCharCommandArgs(view, buffer, localCh), Sub() EditorOperations.InsertText(localCh.ToString()))
+                ExecuteTypeCharCommand(New TypeCharCommandArgs(view, buffer, localCh), Sub() EditorOperations.InsertText(localCh.ToString()))
             Next
         End Sub
 #End Region

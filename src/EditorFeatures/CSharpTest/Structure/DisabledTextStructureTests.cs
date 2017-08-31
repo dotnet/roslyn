@@ -121,6 +121,77 @@ class P {
                 Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
+        [WorkItem(459257, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=459257")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task NestedDisabledCodePreProcessorDirectivesWithElseShouldCollapseEntireDisabledRegion()
+        {
+            const string code = @"
+class P {
+#if Goo
+{|span:    void $$M()
+    {
+#if Bar
+       M();
+#else
+
+#endif
+        }|}
+#endif
+    }
+";
+
+            await VerifyBlockSpansAsync(code,
+                Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [WorkItem(459257, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=459257")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task NestedDisabledCodePreProcessorDirectivesWithElifShouldCollapseEntireDisabledRegion()
+        {
+            const string code = @"
+class P {
+#if Goo
+{|span:    void $$M()
+    {
+#if Bar
+       M();
+#elif Baz
+
+#endif
+        }|}
+#endif
+    }
+";
+
+            await VerifyBlockSpansAsync(code,
+                Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [WorkItem(459257, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=459257")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task NestedDisabledCodePreProcessorDirectivesWithElseAndElifShouldCollapseEntireDisabledRegion()
+        {
+            const string code = @"
+class P {
+#if Goo
+{|span:    void $$M()
+    {
+#if Bar
+       M();
+#else
+
+#elif Baz
+
+#endif
+        }|}
+#endif
+    }
+";
+
+            await VerifyBlockSpansAsync(code,
+                Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
         [WorkItem(1070677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion2()

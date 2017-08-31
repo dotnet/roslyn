@@ -10224,6 +10224,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to leading digit separator.
+        /// </summary>
+        internal static string IDS_FeatureLeadingDigitSeparator {
+            get {
+                return ResourceManager.GetString("IDS_FeatureLeadingDigitSeparator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to local functions.
         /// </summary>
         internal static string IDS_FeatureLocalFunctions {
