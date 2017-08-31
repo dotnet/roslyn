@@ -1292,8 +1292,8 @@ class C
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
 
             diff2.VerifySynthesizedMembers(
-                "C.<>c: {<F>g__f0#1}",
-                "C: {<>c}");
+                "C: {<>c}",
+                "C.<>c: {<F>g__f0#1}");
 
             // updated:
             diff2.VerifyIL("C.<>c.<F>g__f0#1(int)", @"
@@ -1301,6 +1301,97 @@ class C
   // Code size        4 (0x4)
   .maxstack  2
   IL_0000:  ldarg.1
+  IL_0001:  ldc.i4.2
+  IL_0002:  add
+  IL_0003:  ret
+}
+");
+        }
+
+        [Fact]
+        public void LocalFunctions_UpdateAfterAdd_NoDelegatePassing()
+        {
+            var source0 = MarkedSource(@"
+using System;
+
+class C
+{
+    static object F()
+    {
+        return 0;
+    }
+}");
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+    static object F()
+    {
+        <N:0>int f(int a) => a + 1;</N:0>
+        return 1;
+    }
+}");
+            var source2 = MarkedSource(@"
+using System;
+
+class C
+{
+    static object F()
+    {
+        <N:0>int f(int a) => a + 2;</N:0>
+        return 2;
+    }
+}");
+
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var compilation2 = compilation1.WithSource(source2.Tree);
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            // new lambda "<F>b__0#1" has been added:
+            diff1.VerifySynthesizedMembers(
+                "C: {<F>g__f0#1}");
+
+            // added:
+            diff1.VerifyIL("C.<F>g__f0#1(int)", @"
+{
+  // Code size        4 (0x4)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  add
+  IL_0003:  ret
+}
+");
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+
+            diff2.VerifySynthesizedMembers(
+                "C: {<F>g__f0#1}");
+
+            // updated:
+            diff2.VerifyIL("C.<F>g__f0#1(int)", @"
+{
+  // Code size        4 (0x4)
+  .maxstack  2
+  IL_0000:  ldarg.0
   IL_0001:  ldc.i4.2
   IL_0002:  add
   IL_0003:  ret
