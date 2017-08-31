@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 protected override bool TryTake_NoLock(DocumentId key, out WorkItem workInfo)
                 {
-                    workInfo = default(WorkItem);
+                    workInfo = default;
                     if (_documentWorkQueue.TryGetValue(key.ProjectId, out var documentMap) &&
                         documentMap.TryGetValue(key, out workInfo))
                     {
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     // there must be at least one item in the map when this is called unless host is shutting down.
                     if (_documentWorkQueue.Count == 0)
                     {
-                        workItem = default(WorkItem);
+                        workItem = default;
                         return false;
                     }
 

@@ -15,6 +15,7 @@
     <MicrosoftVisualStudioTextUIWpfFixedVersion>14.0.23205</MicrosoftVisualStudioTextUIWpfFixedVersion>
     <MicrosoftVisualStudioUtilitiesFixedVersion>14.0.23205</MicrosoftVisualStudioUtilitiesFixedVersion>
     <MicrosoftVSSDKBuildToolsFixedVersion>14.3.25420</MicrosoftVSSDKBuildToolsFixedVersion>
+    <MicrosoftVisualStudioComponentModelHostFixedVersion>14.0.25424</MicrosoftVisualStudioComponentModelHostFixedVersion>
     <NETStandardLibraryFixedVersion>2.0.0-beta-25123-01</NETStandardLibraryFixedVersion>
     <NewtonsoftJsonFixedVersion>9.0.1</NewtonsoftJsonFixedVersion>
     <SystemCollectionsImmutableFixedVersion>1.1.36</SystemCollectionsImmutableFixedVersion>

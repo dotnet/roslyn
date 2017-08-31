@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 cancellationToken);
 
             var extractedInterfaceSymbol = CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
-                attributes: default(ImmutableArray<AttributeData>),
+                attributes: default,
                 accessibility: ShouldIncludeAccessibilityModifier(refactoringResult.TypeNode) ? refactoringResult.TypeToExtractFrom.DeclaredAccessibility : Accessibility.NotApplicable,
                 modifiers: new DeclarationModifiers(),
                 typeKind: TypeKind.Interface,

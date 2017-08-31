@@ -312,22 +312,22 @@ class C
     void Main()
     {
         int
-            foo() => 5;
+            goo() => 5;
 
         int
-            foo() { return 5; }
+            goo() { return 5; }
 
         int
-            foo<T>() => 5;
+            goo<T>() => 5;
 
         int
-            foo<T>() { return 5; }
+            goo<T>() { return 5; }
 
         int
-            foo<T>() where T : IFace => 5;
+            goo<T>() where T : IFace => 5;
 
         int
-            foo<T>() where T : IFace { return 5; }
+            goo<T>() where T : IFace { return 5; }
     }
 }");
             Assert.NotNull(file);
@@ -339,43 +339,43 @@ class C
     void M()
     {
         int
-            foo() where T : IFace => 5;
+            goo() where T : IFace => 5;
         int
-            foo() where T : IFace { return 5; }
+            goo() where T : IFace { return 5; }
         int
-            foo<T>) { }
+            goo<T>) { }
     }
 }";
             file = ParseFile(errorText);
 
             CreateStandardCompilation(errorText).VerifyDiagnostics(
                 // (11,19): error CS1003: Syntax error, '(' expected
-                //             foo<T>) { }
+                //             goo<T>) { }
                 Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(", ")").WithLocation(11, 19),
                 // (7,19): error CS0080: Constraints are not allowed on non-generic declarations
-                //             foo() where T : IFace => 5;
+                //             goo() where T : IFace => 5;
                 Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(7, 19),
-                // (9,13): error CS0128: A local variable or function named 'foo' is already defined in this scope
-                //             foo() where T : IFace { return 5; }
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "foo").WithArguments("foo").WithLocation(9, 13),
+                // (9,13): error CS0128: A local variable or function named 'goo' is already defined in this scope
+                //             goo() where T : IFace { return 5; }
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "goo").WithArguments("goo").WithLocation(9, 13),
                 // (9,19): error CS0080: Constraints are not allowed on non-generic declarations
-                //             foo() where T : IFace { return 5; }
+                //             goo() where T : IFace { return 5; }
                 Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(9, 19),
-                // (11,13): error CS0128: A local variable or function named 'foo' is already defined in this scope
-                //             foo<T>) { }
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "foo").WithArguments("foo").WithLocation(11, 13),
-                // (11,13): error CS0161: 'foo<T>()': not all code paths return a value
-                //             foo<T>) { }
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "foo").WithArguments("foo<T>()").WithLocation(11, 13),
-                // (7,13): warning CS8321: The local function 'foo' is declared but never used
-                //             foo() where T : IFace => 5;
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "foo").WithArguments("foo").WithLocation(7, 13),
-                // (9,13): warning CS8321: The local function 'foo' is declared but never used
-                //             foo() where T : IFace { return 5; }
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "foo").WithArguments("foo").WithLocation(9, 13),
-                // (11,13): warning CS8321: The local function 'foo' is declared but never used
-                //             foo<T>) { }
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "foo").WithArguments("foo").WithLocation(11, 13));
+                // (11,13): error CS0128: A local variable or function named 'goo' is already defined in this scope
+                //             goo<T>) { }
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "goo").WithArguments("goo").WithLocation(11, 13),
+                // (11,13): error CS0161: 'goo<T>()': not all code paths return a value
+                //             goo<T>) { }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "goo").WithArguments("goo<T>()").WithLocation(11, 13),
+                // (7,13): warning CS8321: The local function 'goo' is declared but never used
+                //             goo() where T : IFace => 5;
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "goo").WithArguments("goo").WithLocation(7, 13),
+                // (9,13): warning CS8321: The local function 'goo' is declared but never used
+                //             goo() where T : IFace { return 5; }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "goo").WithArguments("goo").WithLocation(9, 13),
+                // (11,13): warning CS8321: The local function 'goo' is declared but never used
+                //             goo<T>) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "goo").WithArguments("goo").WithLocation(11, 13));
 
             var m = Assert.IsType<MethodDeclarationSyntax>(file.DescendantNodes()
                 .Where(n => n.Kind() == SyntaxKind.MethodDeclaration)

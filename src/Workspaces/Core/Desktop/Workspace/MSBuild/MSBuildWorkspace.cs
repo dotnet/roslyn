@@ -9,15 +9,13 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Build.Construction;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
@@ -167,7 +165,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <summary>
         /// Open a solution file and all referenced projects.
         /// </summary>
-        public async Task<Solution> OpenSolutionAsync(string solutionFilePath, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<Solution> OpenSolutionAsync(string solutionFilePath, CancellationToken cancellationToken = default)
         {
             if (solutionFilePath == null)
             {
@@ -189,7 +187,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <summary>
         /// Open a project file and all referenced projects.
         /// </summary>
-        public async Task<Project> OpenProjectAsync(string projectFilePath, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<Project> OpenProjectAsync(string projectFilePath, CancellationToken cancellationToken = default)
         {
             if (projectFilePath == null)
             {

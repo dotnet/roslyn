@@ -73,7 +73,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                         Return statement.FullSpan.End
                     ElseIf TypeOf containingNode Is MethodBlockBaseSyntax
                         ' Something like
-                        ' Sub Foo(o as integer)
+                        ' Sub Goo(o as integer)
                         ' [| End Sub |]
                         Return DirectCast(containingNode, MethodBlockBaseSyntax).EndBlockStatement.SpanStart
                     Else

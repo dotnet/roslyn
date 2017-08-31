@@ -162,7 +162,7 @@ End Module
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
     <file name="a.vb">
-Namespace System.Foo        
+Namespace System.Goo        
     Public Partial Class C
         Public Partial Class D
             Public Shared a as S
@@ -180,7 +180,7 @@ End Namespace
     </file>
     <file name="b.vb">
 Namespace System
-    Namespace Foo        
+    Namespace Goo        
         Public Class Q
         End Class
         Public Partial Class C
@@ -203,12 +203,12 @@ End Namespace
             Dim nsSystem = DirectCast(globalNSmembers(0), NamespaceSymbol)
 
             Dim systemMembers = nsSystem.GetMembers().AsEnumerable().OrderBy(Function(s) s.Name).ToArray()
-            Dim nsFoo = DirectCast(systemMembers(0), NamespaceSymbol)
+            Dim nsGoo = DirectCast(systemMembers(0), NamespaceSymbol)
             Dim classR = DirectCast(systemMembers(1), NamedTypeSymbol)
 
-            Dim fooMembers = nsFoo.GetMembers().AsEnumerable().OrderBy(Function(s) s.Name).ToArray()
-            Dim classC = DirectCast(fooMembers(0), NamedTypeSymbol)
-            Dim classQ = DirectCast(fooMembers(1), NamedTypeSymbol)
+            Dim gooMembers = nsGoo.GetMembers().AsEnumerable().OrderBy(Function(s) s.Name).ToArray()
+            Dim classC = DirectCast(gooMembers(0), NamedTypeSymbol)
+            Dim classQ = DirectCast(gooMembers(1), NamedTypeSymbol)
 
             Dim cMembers = classC.GetMembers().AsEnumerable().OrderBy(Function(s) s.Name).ToArray()
             Dim classD = DirectCast(cMembers(1), NamedTypeSymbol)
@@ -249,7 +249,7 @@ End Namespace
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
     <file name="a.vb">
-Namespace System.Foo        
+Namespace System.Goo        
     Public Partial Class C(Of T, U)
         Public Partial Class D(Of V)
             public shared j as V, k as U
@@ -265,10 +265,10 @@ End Namespace
             Dim nsSystem = DirectCast(globalNSmembers(0), NamespaceSymbol)
 
             Dim systemMembers = nsSystem.GetMembers().AsEnumerable().OrderBy(Function(s) s.Name).ToArray()
-            Dim nsFoo = DirectCast(systemMembers(0), NamespaceSymbol)
+            Dim nsGoo = DirectCast(systemMembers(0), NamespaceSymbol)
 
-            Dim fooMembers = nsFoo.GetMembers().AsEnumerable().OrderBy(Function(s) s.Name).ToArray()
-            Dim classC = DirectCast(fooMembers(0), NamedTypeSymbol)
+            Dim gooMembers = nsGoo.GetMembers().AsEnumerable().OrderBy(Function(s) s.Name).ToArray()
+            Dim classC = DirectCast(gooMembers(0), NamedTypeSymbol)
 
             Dim cMembers = classC.GetMembers().AsEnumerable().OrderBy(Function(s) s.Name).ToArray()
             Dim classD = DirectCast(cMembers(1), NamedTypeSymbol)
@@ -288,7 +288,7 @@ End Namespace
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="Compilation">
     <file name="a.vb">
-Namespace System.Foo        
+Namespace System.Goo        
     Public Class C
         Public Shared a As Q(Of Environment, R)
         Public Shared b As IComparable(Of R)
@@ -298,7 +298,7 @@ End Namespace
     </file>
     <file name="b.vb">
 Namespace System
-    Namespace Foo        
+    Namespace Goo        
         Public Class Q(Of T, U)
         End Class
     End Namespace
@@ -320,12 +320,12 @@ End Namespace
             Dim nsSystem = DirectCast(globalNSmembers(0), NamespaceSymbol)
 
             Dim systemMembers = nsSystem.GetMembers().AsEnumerable().OrderBy(Function(s) s.Name).ToArray()
-            Dim nsFoo = DirectCast(systemMembers(0), NamespaceSymbol)
+            Dim nsGoo = DirectCast(systemMembers(0), NamespaceSymbol)
             Dim classR = DirectCast(systemMembers(1), NamedTypeSymbol)
 
-            Dim fooMembers = nsFoo.GetMembers().AsEnumerable().OrderBy(Function(s) s.Name).ToArray()
-            Dim classC = DirectCast(fooMembers(0), NamedTypeSymbol)
-            Dim classQ = DirectCast(fooMembers(1), NamedTypeSymbol)
+            Dim gooMembers = nsGoo.GetMembers().AsEnumerable().OrderBy(Function(s) s.Name).ToArray()
+            Dim classC = DirectCast(gooMembers(0), NamedTypeSymbol)
+            Dim classQ = DirectCast(gooMembers(1), NamedTypeSymbol)
 
             Dim cMembers = classC.GetMembers().AsEnumerable().OrderBy(Function(s) s.Name).ToArray()
             Dim fieldA = DirectCast(cMembers(1), FieldSymbol)
@@ -356,7 +356,7 @@ End Namespace
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="Compilation">
     <file name="a.vb">
-Namespace System.Foo        
+Namespace System.Goo        
     Public Partial Class C
         Public Partial Class D
             Public Shared a as D.S
@@ -371,7 +371,7 @@ End Namespace
     </file>
     <file name="b.vb">
 Namespace System
-    Namespace Foo        
+    Namespace Goo        
         Public Class Q(Of T)
             Public Class V
             End Class
@@ -403,7 +403,7 @@ End Namespace
             Dim nsSystem = DirectCast(globalNSmembers(0), NamespaceSymbol)
 
             Dim systemMembers = nsSystem.GetMembers().AsEnumerable().OrderBy(Function(s) s.Name).ToArray()
-            Dim nsFoo = DirectCast(systemMembers(0), NamespaceSymbol)
+            Dim nsGoo = DirectCast(systemMembers(0), NamespaceSymbol)
             Dim nsR = DirectCast(systemMembers(1), NamespaceSymbol)
 
             Dim rMembers = nsR.GetMembers().AsEnumerable().OrderBy(Function(s) s.Name).ToArray()
@@ -413,9 +413,9 @@ End Namespace
             Dim wMembers = moduleW.GetMembers().AsEnumerable().OrderBy(Function(s) s.Name).ToArray()
             Dim classCC = DirectCast(wMembers(0), NamedTypeSymbol)
 
-            Dim fooMembers = nsFoo.GetMembers().AsEnumerable().OrderBy(Function(s) s.Name).ToArray()
-            Dim classC = DirectCast(fooMembers(0), NamedTypeSymbol)
-            Dim classQ = DirectCast(fooMembers(1), NamedTypeSymbol)
+            Dim gooMembers = nsGoo.GetMembers().AsEnumerable().OrderBy(Function(s) s.Name).ToArray()
+            Dim classC = DirectCast(gooMembers(0), NamedTypeSymbol)
+            Dim classQ = DirectCast(gooMembers(1), NamedTypeSymbol)
 
             Dim cMembers = classC.GetMembers().AsEnumerable().OrderBy(Function(s) s.Name).ToArray()
             Dim classD = DirectCast(cMembers(1), NamedTypeSymbol)
@@ -457,7 +457,7 @@ End Namespace
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="Compilation">
     <file name="a.vb">
-Namespace System.Foo.Bar        
+Namespace System.Goo.Bar        
     Public Class C
         Public Shared a As A.Q(Of Environment, R)
         Public Shared b As System.IComparable(Of R)
@@ -467,7 +467,7 @@ End Namespace
     </file>
     <file name="b.vb">
 Namespace System
-    Namespace Foo   
+    Namespace Goo   
         Public Class A     
             Public Class Q(Of T, U)
             End Class
@@ -491,12 +491,12 @@ End Namespace
             Dim nsSystem = DirectCast(globalNSmembers(0), NamespaceSymbol)
 
             Dim systemMembers = nsSystem.GetMembers().AsEnumerable().OrderBy(Function(s) s.Name).ToArray()
-            Dim nsFoo = DirectCast(systemMembers(0), NamespaceSymbol)
+            Dim nsGoo = DirectCast(systemMembers(0), NamespaceSymbol)
             Dim classR = DirectCast(systemMembers(1), NamedTypeSymbol)
 
-            Dim fooMembers = nsFoo.GetMembers().AsEnumerable().OrderBy(Function(s) s.Name).ToArray()
-            Dim classA = DirectCast(fooMembers(0), NamedTypeSymbol)
-            Dim nsBar = DirectCast(fooMembers(1), NamespaceSymbol)
+            Dim gooMembers = nsGoo.GetMembers().AsEnumerable().OrderBy(Function(s) s.Name).ToArray()
+            Dim classA = DirectCast(gooMembers(0), NamedTypeSymbol)
+            Dim nsBar = DirectCast(gooMembers(1), NamespaceSymbol)
 
             Dim aMembers = classA.GetMembers().AsEnumerable().OrderBy(Function(s) s.Name).ToArray()
             Dim classQ = DirectCast(aMembers(1), NamedTypeSymbol)
@@ -1004,7 +1004,7 @@ Class A
     public a as IEnumerable(Of String)
     public b as IEnumerable
     public c as IComparer ' ambiguous
-    public d As Foo    
+    public d As Goo    
 End Class        
     </file>
     <file name="b.vb">
@@ -1014,7 +1014,7 @@ Namespace N
     Interface IComparer
     End Interface
     Module K
-        Class Foo
+        Class Goo
         End Class
     End Module
 End Namespace 
@@ -1022,7 +1022,7 @@ Namespace N2
     Class IComparer
     End Class
     Module L
-        Class Foo
+        Class Goo
         End Class
     End Module
 End Namespace       
@@ -1033,8 +1033,8 @@ End Namespace
 BC30561: 'IComparer' is ambiguous, imported from the namespaces or types 'System.Collections, N, N2'.
     public c as IComparer ' ambiguous
                 ~~~~~~~~~
-BC30561: 'Foo' is ambiguous, imported from the namespaces or types 'N.K, N2.L'.
-    public d As Foo    
+BC30561: 'Goo' is ambiguous, imported from the namespaces or types 'N.K, N2.L'.
+    public d As Goo    
                 ~~~
                                  </errors>
 
@@ -1056,7 +1056,7 @@ Class A
     public a as IEnumerable(Of String)
     public b as IEnumerable
     public c as IComparer ' ambiguous
-    public d as Foo 'ambiguous
+    public d as Goo 'ambiguous
 End Class        
     </file>
     <file name="b.vb">
@@ -1066,7 +1066,7 @@ Namespace N
     Interface IComparer
     End Interface
     Module K
-        Class Foo
+        Class Goo
         End Class
     End Module
 End Namespace 
@@ -1074,7 +1074,7 @@ Namespace N2
     Class IComparer
     End Class
     Module L
-        Class Foo
+        Class Goo
         End Class
     End Module
 End Namespace       
@@ -1085,8 +1085,8 @@ End Namespace
 BC30561: 'IComparer' is ambiguous, imported from the namespaces or types 'System.Collections, N, N2'.
     public c as IComparer ' ambiguous
                 ~~~~~~~~~
-BC30561: 'Foo' is ambiguous, imported from the namespaces or types 'N.K, N2.L'.
-    public d as Foo 'ambiguous
+BC30561: 'Goo' is ambiguous, imported from the namespaces or types 'N.K, N2.L'.
+    public d as Goo 'ambiguous
                 ~~~
                                  </errors>
 
@@ -1342,7 +1342,7 @@ End Namespace
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
     <file name="a.vb">
-Namespace Foo
+Namespace Goo
     Namespace Global.NotOk1
     End Namespace
     Namespace Global
@@ -1375,7 +1375,7 @@ BC31544: Global namespace may not be nested in another namespace.
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="Compilation">
     <file name="a.vb">
-Namespace Foo%
+Namespace Goo%
 End Namespace
 
 Namespace A.B.Cat$.Dog@.E
@@ -1386,7 +1386,7 @@ End Namespace
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30468: Type declaration characters are not valid in this context.
-Namespace Foo%
+Namespace Goo%
           ~~~~
 BC30468: Type declaration characters are not valid in this context.
 Namespace A.B.Cat$.Dog@.E

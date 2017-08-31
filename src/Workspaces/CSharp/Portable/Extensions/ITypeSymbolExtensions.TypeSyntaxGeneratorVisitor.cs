@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 foreach (var element in symbol.TupleElements)
                 {   
-                    var name = element.IsImplicitlyDeclared ? default(SyntaxToken) : SyntaxFactory.Identifier(element.Name);
+                    var name = element.IsImplicitlyDeclared ? default : SyntaxFactory.Identifier(element.Name);
                     list = list.Add(SyntaxFactory.TupleElement(element.Type.GenerateTypeSyntax(), name));
                 }
 

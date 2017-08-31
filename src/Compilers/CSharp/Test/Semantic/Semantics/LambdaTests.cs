@@ -233,18 +233,18 @@ interface I : IComparable<IComparable<I>> { }
 
 class C
 {
-    static void Foo(Func<IComparable<I>> x) { }
-    static void Foo(Func<I> x) {}
+    static void Goo(Func<IComparable<I>> x) { }
+    static void Goo(Func<I> x) {}
     static void M()
     {
-        Foo(() => null);
+        Goo(() => null);
     }
 }
 ";
             CreateStandardCompilation(source).VerifyDiagnostics(
-                // (12,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Foo(Func<IComparable<I>>)' and 'C.Foo(Func<I>)'
-                //         Foo(() => null);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("C.Foo(System.Func<System.IComparable<I>>)", "C.Foo(System.Func<I>)").WithLocation(12, 9));
+                // (12,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Goo(Func<IComparable<I>>)' and 'C.Goo(Func<I>)'
+                //         Goo(() => null);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("C.Goo(System.Func<System.IComparable<I>>)", "C.Goo(System.Func<I>)").WithLocation(12, 9));
         }
 
         [WorkItem(539976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539976")]
@@ -276,8 +276,8 @@ class C
 using System;
 public static class A
 {
-    public static void Foo(Func<B, object> func) { }
-    public static void Foo(Func<C, object> func) { }
+    public static void Goo(Func<B, object> func) { }
+    public static void Goo(Func<C, object> func) { }
 }
 
 public class B
@@ -305,7 +305,7 @@ class Program
 {
     static void Main()
     {
-        A.Foo(x => x.GetUrl());
+        A.Goo(x => x.GetUrl());
     }
 }
 ";
@@ -328,11 +328,11 @@ using stdole;
 
 public static class A
 {
-    public static void Foo(Func<X> func) 
+    public static void Goo(Func<X> func) 
     { 
         System.Console.WriteLine(""X"");
 }
-    public static void Foo(Func<Y> func) 
+    public static void Goo(Func<Y> func) 
     { 
         System.Console.WriteLine(""Y"");
     }
@@ -352,7 +352,7 @@ public class Program
 {
     public static void Main()
     {
-        A.Foo(() => delegate { });
+        A.Goo(() => delegate { });
     }
 }
 ";
@@ -427,9 +427,9 @@ End Namespace
 
 
 Public Module M
-  Sub Foo(x as Action(Of String))
+  Sub Goo(x as Action(Of String))
   End Sub
-  Sub Foo(x as Action(Of GC))
+  Sub Goo(x as Action(Of GC))
   End Sub
 End Module
 ";
@@ -444,7 +444,7 @@ class Program
 {
     static void Main()
     {
-        M.Foo(x => { });
+        M.Goo(x => { });
     }
 }
 ";
@@ -788,11 +788,11 @@ class Program
 {
     static void Main()
     {
-        Foo(() => () => { var x = (IEnumerable<int>)null; return x; });
+        Goo(() => () => { var x = (IEnumerable<int>)null; return x; });
     }
  
-    static void Foo(Func<Func<IEnumerable>> x) { }
-    static void Foo(Func<Func<IFormattable>> x) { }
+    static void Goo(Func<Func<IEnumerable>> x) { }
+    static void Goo(Func<Func<IFormattable>> x) { }
 }
 ";
             var compilation = CreateStandardCompilation(source);
@@ -804,7 +804,7 @@ class Program
             // Used to throw a NRE because of the ExpressionSyntax's null SyntaxTree.
             model.GetSpeculativeSymbolInfo(
                 invocation.SpanStart,
-                SyntaxFactory.ParseExpression("Foo(() => () => { var x = null; return x; })"), // cast removed
+                SyntaxFactory.ParseExpression("Goo(() => () => { var x = null; return x; })"), // cast removed
                 SpeculativeBindingOption.BindAsExpression);
         }
 
@@ -1290,11 +1290,11 @@ class Program
     static void Main()
     {
         ICloneable c = """";
-        Foo(() => (c.Clone()), null);
+        Goo(() => (c.Clone()), null);
     }
  
-    static void Foo(Action x, string y) { }
-    static void Foo(Func<object> x, object y) { Console.WriteLine(42); }
+    static void Goo(Action x, string y) { }
+    static void Goo(Func<object> x, object y) { Console.WriteLine(42); }
 }", options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
@@ -2007,7 +2007,7 @@ class Program
     static void Main(string[] args)
     {
         var z = args.Select(a => a.
-        var foo = 
+        var goo = 
     }
 }";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source);

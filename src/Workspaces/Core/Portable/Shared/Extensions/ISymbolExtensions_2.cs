@@ -9,8 +9,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (symbolOpt is IParameterSymbol && symbolOpt.IsImplicitlyDeclared)
             {
-                var method = symbolOpt.ContainingSymbol as IMethodSymbol;
-                if (method != null)
+                if (symbolOpt.ContainingSymbol is IMethodSymbol method)
                 {
                     if (method.MethodKind == MethodKind.EventAdd ||
                         method.MethodKind == MethodKind.EventRemove ||

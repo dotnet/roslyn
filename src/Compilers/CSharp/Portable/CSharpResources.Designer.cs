@@ -2375,7 +2375,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /embed switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded)..
+        ///   Looks up a localized string similar to /embed switch is only supported when emitting a PDB..
         /// </summary>
         internal static string ERR_CannotEmbedWithoutPdb {
             get {
@@ -3721,6 +3721,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_DynamicLocalFunctionParamsParameter {
             get {
                 return ResourceManager.GetString("ERR_DynamicLocalFunctionParamsParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot pass argument with dynamic type to generic local function &apos;{0}&apos; with inferred type arguments..
+        /// </summary>
+        internal static string ERR_DynamicLocalFunctionTypeParameter {
+            get {
+                return ResourceManager.GetString("ERR_DynamicLocalFunctionTypeParameter", resourceCulture);
             }
         }
         
@@ -7532,15 +7541,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Only methods, classes, structs, or interfaces may be partial.
-        /// </summary>
-        internal static string ERR_PartialMethodOnlyMethods {
-            get {
-                return ResourceManager.GetString("ERR_PartialMethodOnlyMethods", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to A partial method may not have multiple implementing declarations.
         /// </summary>
         internal static string ERR_PartialMethodOnlyOneActual {
@@ -8351,7 +8351,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot return or a member of parameter &apos;{0}&apos; by reference because it is not a ref or out parameter.
+        ///   Looks up a localized string similar to Cannot return a member of parameter &apos;{0}&apos; by reference because it is not a ref or out parameter.
         /// </summary>
         internal static string ERR_RefReturnParameter2 {
             get {
@@ -8765,7 +8765,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Instance of type &apos;{0}&apos; cannot be used inside an anonymous function, query expression, iterator block or async method.
+        ///   Looks up a localized string similar to Instance of type &apos;{0}&apos; cannot be used inside a nested function, query expression, iterator block or async method.
         /// </summary>
         internal static string ERR_SpecialByRefInLambda {
             get {
@@ -10301,6 +10301,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureLambda {
             get {
                 return ResourceManager.GetString("IDS_FeatureLambda", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to leading digit separator.
+        /// </summary>
+        internal static string IDS_FeatureLeadingDigitSeparator {
+            get {
+                return ResourceManager.GetString("IDS_FeatureLeadingDigitSeparator", resourceCulture);
             }
         }
         

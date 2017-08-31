@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert((object)method != null);
                         var oldSyntax = _factory.Syntax;
                         _factory.Syntax = (mg.ReceiverOpt ?? mg).Syntax;
-                        var receiver = (method.IsStatic && !oldNode.IsExtensionMethod) ? _factory.Type(method.ContainingType) : VisitExpression(mg.ReceiverOpt);
+                        var receiver = (method.IsStatic && !oldNode.IsExtensionMethod) ? _factory.Type(method.ContainingType) : mg.ReceiverOpt;
                         _factory.Syntax = oldSyntax;
                         return new BoundDelegateCreationExpression(syntax, argument: receiver, methodOpt: method, isExtensionMethod: oldNode.IsExtensionMethod, type: rewrittenType);
                     }
@@ -650,16 +650,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < numElements; i++)
             {
-                var field = srcElementFields[i];
-
-                DiagnosticInfo useSiteInfo = field.GetUseSiteDiagnostic();
-                if ((object)useSiteInfo != null && useSiteInfo.Severity == DiagnosticSeverity.Error)
-                {
-                    Symbol.ReportUseSiteDiagnostic(useSiteInfo, _diagnostics, syntax.Location);
-                }
-                var fieldAccess = MakeTupleFieldAccess(syntax, field, savedTuple, null, LookupResultKind.Empty);
+                var fieldAccess = MakeTupleFieldAccessAndReportUseSiteDiagnostics(savedTuple, syntax, srcElementFields[i]);
                 var convertedFieldAccess = MakeConversionNode(syntax, fieldAccess, elementConversions[i], destElementTypes[i], @checked, explicitCastInCode);
-
                 fieldAccessorsBuilder.Add(convertedFieldAccess);
             }
 

@@ -227,12 +227,12 @@ End Class
 Module Program
     Sub Main(args As String())
         With New C1()
-            .Foo()
+            .Goo()
         End With
     End Sub
 
     &lt;Extension()&gt;
-    Public Sub Foo(ByRef x As C1)
+    Public Sub Goo(ByRef x As C1)
     End Sub
 End Module
     </file>
@@ -248,7 +248,7 @@ expectedOutput:="").
   IL_0000:  newobj     "Sub C1..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloca.s   V_0
-  IL_0008:  call       "Sub Program.Foo(ByRef C1)"
+  IL_0008:  call       "Sub Program.Goo(ByRef C1)"
   IL_000d:  ldnull
   IL_000e:  pop
   IL_000f:  ret
@@ -529,7 +529,7 @@ Imports System.Runtime.CompilerServices
 
 Structure C1
     Public field As Integer
-    Public Property FooProp As Integer
+    Public Property GooProp As Integer
 End Structure
 
 Class C2
@@ -581,7 +581,7 @@ Imports System.Runtime.CompilerServices
 
 Structure C1
     Public field As Integer
-    Public Property FooProp As Integer
+    Public Property GooProp As Integer
 End Structure
 
 Class C2
@@ -635,7 +635,7 @@ Imports System.Runtime.CompilerServices
 
 Structure C1
     Public field As Integer
-    Public Property FooProp As Integer
+    Public Property GooProp As Integer
 End Structure
 
 Class C2
@@ -868,12 +868,12 @@ Class Clazz
     Public Shared Sub Main(args() As String)
         Using s = New STRUCT()
             With s
-                Foo(.D)
+                Goo(.D)
             End With
             Console.Write(s.D)
         End Using
     End Sub
-    Public Shared Sub Foo(ByRef x As Integer)
+    Public Shared Sub Goo(ByRef x As Integer)
         x = 123
     End Sub
 End Class
@@ -897,7 +897,7 @@ expectedOutput:="0").
   IL_0009:  ldfld      "STRUCT.D As Integer"
   IL_000e:  stloc.1
   IL_000f:  ldloca.s   V_1
-  IL_0011:  call       "Sub Clazz.Foo(ByRef Integer)"
+  IL_0011:  call       "Sub Clazz.Goo(ByRef Integer)"
   IL_0016:  ldloc.0
   IL_0017:  ldfld      "STRUCT.D As Integer"
   IL_001c:  call       "Sub System.Console.Write(Integer)"
@@ -2390,10 +2390,10 @@ Class Clazz
         Console.Write(FLD2.D)
         Console.Write(" ")
         With FLD1
-            Foo(.D, 1)
+            Goo(.D, 1)
         End With
         With FLD2
-            Foo(.D, 1)
+            Goo(.D, 1)
         End With
         Console.Write(FLD1.D)
         Console.Write(" ")
@@ -2403,16 +2403,16 @@ Class Clazz
 
     Public Shared Sub Main(args() As String)
         With FLD1
-            Foo(.D, 2)
+            Goo(.D, 2)
         End With
         With FLD2
-            Foo(.D, 2)
+            Goo(.D, 2)
         End With
         Console.Write(FLD1.D)
         Console.Write(" ")
         Console.Write(FLD2.D)
     End Sub
-    Public Shared Sub Foo(ByRef x As Integer, val As Integer)
+    Public Shared Sub Goo(ByRef x As Integer, val As Integer)
         x = val
     End Sub
 End Class
@@ -2928,14 +2928,14 @@ Class Clazz
 
         Dim result = From x In source Select DirectCast(Function()
                                                             With x
-                                                                Foo(.D)
+                                                                Goo(.D)
                                                             End With
                                                             Return x
                                                         End Function, Func(Of STRUCT))()
 
         Console.Write(result.FirstOrDefault.D)
     End Sub
-    Public Shared Sub Foo(ByRef x As Integer)
+    Public Shared Sub Goo(ByRef x As Integer)
         x = 123
     End Sub
 End Class
@@ -2953,7 +2953,7 @@ End Class
   IL_0006:  ldfld      "STRUCT.D As Integer"
   IL_000b:  stloc.0
   IL_000c:  ldloca.s   V_0
-  IL_000e:  call       "Sub Clazz.Foo(ByRef Integer)"
+  IL_000e:  call       "Sub Clazz.Goo(ByRef Integer)"
   IL_0013:  ldarg.0
   IL_0014:  ldfld      "Clazz._Closure$__1-0.$VB$Local_x As STRUCT"
   IL_0019:  ret
@@ -3362,13 +3362,13 @@ Module Program
     Sub Main(args As String())
         With New C1(23)
             Console.WriteLine(.Field)
-            .Foo()
+            .Goo()
             Console.WriteLine(.Field)
         End With
     End Sub
 
     &lt;Extension()&gt;
-    Public Sub Foo(ByRef x As C1)
+    Public Sub Goo(ByRef x As C1)
         x = New C1(42)
         Console.WriteLine(x.Field)
     End Sub

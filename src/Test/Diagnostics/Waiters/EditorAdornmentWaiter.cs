@@ -16,7 +16,7 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
             var task = base.CreateWaitTask();
             return task.SafeContinueWith(_ =>
                 {
-                    Action a = () => { };
+                    void a() { }
                     Dispatcher.CurrentDispatcher.Invoke(a, DispatcherPriority.ApplicationIdle);
                 },
                 CancellationToken.None,

@@ -25,16 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.Property);
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.NamedType);
 
+            // PROTOTYPE(NullableReferenceTypes): AllInOneCSharpCode has no ! operator.
             var syntaxKindsMissing = new HashSet<SyntaxKind>();
-
-            // AllInOneCSharpCode has no deconstruction or declaration expression
-            syntaxKindsMissing.Add(SyntaxKind.SingleVariableDesignation);
-            syntaxKindsMissing.Add(SyntaxKind.ParenthesizedVariableDesignation);
-            syntaxKindsMissing.Add(SyntaxKind.ForEachVariableStatement);
-            syntaxKindsMissing.Add(SyntaxKind.DeclarationExpression);
-            syntaxKindsMissing.Add(SyntaxKind.DiscardDesignation);
-
-            // AllInOneCSharpCode has no ! operator.
             syntaxKindsMissing.Add(SyntaxKind.SuppressNullableWarningExpression);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();

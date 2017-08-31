@@ -3287,15 +3287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression GenerateNullCoalescingBadBinaryOpsError(BinaryExpressionSyntax node, BoundExpression leftOperand, BoundExpression rightOperand, Conversion leftConversion, DiagnosticBag diagnostics)
         {
-
-            if (leftOperand.IsLiteralDefault() || rightOperand.IsLiteralDefault())
-            {
-                Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefault, node, node.OperatorToken.Text, "default");
-            }
-            else
-            {
-                Error(diagnostics, ErrorCode.ERR_BadBinaryOps, node, SyntaxFacts.GetText(node.OperatorToken.Kind()), leftOperand.Display, rightOperand.Display);
-            }
+            Error(diagnostics, ErrorCode.ERR_BadBinaryOps, node, SyntaxFacts.GetText(node.OperatorToken.Kind()), leftOperand.Display, rightOperand.Display);
 
             return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
                 leftConversion, CreateErrorType(), hasErrors: true);
@@ -3309,6 +3301,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If either operand is bad, bail out preventing more cascading errors
             if (leftOperand.HasAnyErrors || rightOperand.HasAnyErrors)
             {
+                return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
+                    Conversion.NoConversion, CreateErrorType(), hasErrors: true);
+            }
+
+            if (leftOperand.IsLiteralDefault())
+            {
+                Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefault, node, node.OperatorToken.Text, "default");
+
                 return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
                     Conversion.NoConversion, CreateErrorType(), hasErrors: true);
             }

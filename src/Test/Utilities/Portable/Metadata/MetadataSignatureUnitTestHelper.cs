@@ -27,12 +27,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             foreach (var signature in expectedSignatures)
             {
-                List<string> actualSignatures = null;
                 var expectedSignature = signature.ExpectedSignature;
 
                 if (!VerifyMemberSignatureHelper(
                     appDomainHost, signature.FullyQualifiedTypeName, signature.MemberName,
-                    ref expectedSignature, out actualSignatures))
+                    ref expectedSignature, out var actualSignatures))
                 {
                     succeeded = false;
                 }

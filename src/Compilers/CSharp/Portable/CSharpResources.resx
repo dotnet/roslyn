@@ -2063,9 +2063,6 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_PartialMethodCannotHaveOutParameters" xml:space="preserve">
     <value>A partial method cannot have out parameters</value>
   </data>
-  <data name="ERR_PartialMethodOnlyMethods" xml:space="preserve">
-    <value>Only methods, classes, structs, or interfaces may be partial</value>
-  </data>
   <data name="ERR_PartialMethodNotExplicit" xml:space="preserve">
     <value>A partial method may not explicitly implement an interface method</value>
   </data>
@@ -3909,7 +3906,7 @@ You should consider suppressing the warning only if you're sure that you don't w
     <value>Indexed property '{0}' must have all arguments optional</value>
   </data>
   <data name="ERR_SpecialByRefInLambda" xml:space="preserve">
-    <value>Instance of type '{0}' cannot be used inside an anonymous function, query expression, iterator block or async method</value>
+    <value>Instance of type '{0}' cannot be used inside a nested function, query expression, iterator block or async method</value>
   </data>
   <data name="ERR_SecurityAttributeMissingAction" xml:space="preserve">
     <value>First argument to a security attribute must be a valid SecurityAction</value>
@@ -4821,7 +4818,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Cannot return a parameter by reference '{0}' because it is not a ref or out parameter</value>
   </data>
   <data name="ERR_RefReturnParameter2" xml:space="preserve">
-    <value>Cannot return or a member of parameter '{0}' by reference because it is not a ref or out parameter</value>
+    <value>Cannot return a member of parameter '{0}' by reference because it is not a ref or out parameter</value>
   </data>
   <data name="ERR_RefReturnLocal" xml:space="preserve">
     <value>Cannot return local '{0}' by reference because it is not a ref local</value>
@@ -4989,7 +4986,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>/sourcelink switch is only supported when emitting PDB.</value>
   </data>
   <data name="ERR_CannotEmbedWithoutPdb" xml:space="preserve">
-    <value>/embed switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded).</value>
+    <value>/embed switch is only supported when emitting a PDB.</value>
   </data>
   <data name="ERR_InvalidInstrumentationKind" xml:space="preserve">
     <value>Invalid instrumentation kind: {0}</value>
@@ -5254,5 +5251,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_InvalidDebugInfo" xml:space="preserve">
     <value>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}'</value>
+  </data>
+  <data name="ERR_DynamicLocalFunctionTypeParameter" xml:space="preserve">
+    <value>Cannot pass argument with dynamic type to generic local function '{0}' with inferred type arguments.</value>
+  </data>
+  <data name="IDS_FeatureLeadingDigitSeparator" xml:space="preserve">
+    <value>leading digit separator</value>
   </data>
 </root>

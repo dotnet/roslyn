@@ -148,8 +148,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return result;
                 }
 
-                DiagnosticAnalysisResult analysisResult;
-                if (!result.TryGetValue(compilerAnalyzer, out analysisResult))
+                if (!result.TryGetValue(compilerAnalyzer, out var analysisResult))
                 {
                     // no result from compiler analyzer
                     return result;
@@ -176,8 +175,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public async Task<IEnumerable<DiagnosticData>> ComputeDiagnosticsAsync(
                 CompilationWithAnalyzers analyzerDriverOpt, Document document, DiagnosticAnalyzer analyzer, AnalysisKind kind, TextSpan? spanOpt, CancellationToken cancellationToken)
             {
-                var documentAnalyzer = analyzer as DocumentDiagnosticAnalyzer;
-                if (documentAnalyzer != null)
+                if (analyzer is DocumentDiagnosticAnalyzer documentAnalyzer)
                 {
                     var diagnostics = await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(document, documentAnalyzer, kind, analyzerDriverOpt?.Compilation, cancellationToken).ConfigureAwait(false);
                     return ConvertToLocalDiagnostics(document, diagnostics);
@@ -278,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing,
                 out ImmutableArray<DiagnosticAnalyzer> analyzers)
             {
-                analyzers = default(ImmutableArray<DiagnosticAnalyzer>);
+                analyzers = default;
 
                 // we don't have analyzer driver, nothing to reduce.
                 if (analyzerDriverOpt == null)
@@ -331,8 +329,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     foreach (var analyzer in ideAnalyzers)
                     {
-                        var documentAnalyzer = analyzer as DocumentDiagnosticAnalyzer;
-                        if (documentAnalyzer != null)
+                        if (analyzer is DocumentDiagnosticAnalyzer documentAnalyzer)
                         {
                             foreach (var document in project.Documents)
                             {
@@ -350,8 +347,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             }
                         }
 
-                        var projectAnalyzer = analyzer as ProjectDiagnosticAnalyzer;
-                        if (projectAnalyzer != null)
+                        if (analyzer is ProjectDiagnosticAnalyzer projectAnalyzer)
                         {
                             builder.AddCompilationDiagnostics(await ComputeProjectDiagnosticAnalyzerDiagnosticsAsync(project, projectAnalyzer, compilationOpt, cancellationToken).ConfigureAwait(false));
                         }

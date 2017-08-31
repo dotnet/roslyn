@@ -5392,42 +5392,42 @@ public class C
 
             WithRuntimeInstance(comp, new[] { MscorlibRef }, runtime =>
             {
-            var context = CreateMethodContext(runtime, "C.M");
+                var context = CreateMethodContext(runtime, "C.M");
 
-            var expectedError = "error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.";
-            var expectedMissingAssemblyIdentity = new AssemblyIdentity("Lib");
+                var expectedError = "error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.";
+                var expectedMissingAssemblyIdentity = new AssemblyIdentity("Lib");
 
-            ResultProperties resultProperties;
-            string actualError;
-            ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
+                ResultProperties resultProperties;
+                string actualError;
+                ImmutableArray<AssemblyIdentity> actualMissingAssemblyIdentities;
 
-            Action<string> verify = expr =>
-            {
-                context.CompileExpression(
-                    expr,
-                    DkmEvaluationFlags.TreatAsExpression,
-                    NoAliases,
-                    DebuggerDiagnosticFormatter.Instance,
-                    out resultProperties,
-                    out actualError,
-                    out actualMissingAssemblyIdentities,
-                    EnsureEnglishUICulture.PreferredOrNull,
-                    testData: null);
-                Assert.Equal(expectedError, actualError);
-                Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
-            };
+                void verify(string expr)
+                {
+                    context.CompileExpression(
+                        expr,
+                        DkmEvaluationFlags.TreatAsExpression,
+                        NoAliases,
+                        DebuggerDiagnosticFormatter.Instance,
+                        out resultProperties,
+                        out actualError,
+                        out actualMissingAssemblyIdentities,
+                        EnsureEnglishUICulture.PreferredOrNull,
+                        testData: null);
+                    Assert.Equal(expectedError, actualError);
+                    Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
+                }
 
-            verify("M(null)");
-            verify("field");
-            verify("field.Method");
-            verify("parameter");
-            verify("parameter.Method");
-            verify("local");
-            verify("local.Method");
+                verify("M(null)");
+                verify("field");
+                verify("field.Method");
+                verify("parameter");
+                verify("parameter.Method");
+                verify("local");
+                verify("local.Method");
 
-            // Note that even expressions that don't require the missing type will fail because
-            // the method we synthesize refers to the original locals and parameters.
-            verify("0");
+                // Note that even expressions that don't require the missing type will fail because
+                // the method we synthesize refers to the original locals and parameters.
+                verify("0");
             });
         }
 

@@ -971,7 +971,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var diagnostic in constantValueDiagnostics)
                 {
                     diagnostics.Add(diagnostic);
-                    hasErrors = true;
+                    if (diagnostic.Severity == DiagnosticSeverity.Error)
+                    {
+                        hasErrors = true;
+                    }
                 }
             }
 
@@ -2543,8 +2546,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // It is possible that the conversion from lambda to delegate is just fine, and 
             // that we ended up here because the target type, though itself is not an error
             // type, contains a type argument which is an error type. For example, converting
-            // (Foo foo)=>{} to Action<Foo> is a perfectly legal conversion even if Foo is undefined!
-            // In that case we have already reported an error that Foo is undefined, so just bail out.
+            // (Goo goo)=>{} to Action<Goo> is a perfectly legal conversion even if Goo is undefined!
+            // In that case we have already reported an error that Goo is undefined, so just bail out.
 
             if (reason == LambdaConversionResult.Success)
             {

@@ -264,6 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(ds.SemicolonToken.IsMissing);
         }
 
+        [Fact]
         public void TestLocalDeclarationStatementWithNamedTuple()
         {
             var text = "(T x, (U k, V l, W m) y) a;";

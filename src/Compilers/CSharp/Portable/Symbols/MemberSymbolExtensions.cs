@@ -422,6 +422,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return sms?.IsPartialDefinition == true;
         }
 
+        internal static bool ContainsTupleNames(this Symbol member)
+        {
+            switch (member.Kind)
+            {
+                case SymbolKind.Method:
+                    var method = (MethodSymbol)member;
+                    return method.ReturnType.TypeSymbol.ContainsTupleNames() || method.Parameters.Any(p => p.Type.TypeSymbol.ContainsTupleNames());
+                case SymbolKind.Property:
+                    return ((PropertySymbol)member).Type.TypeSymbol.ContainsTupleNames();
+                case SymbolKind.Event:
+                    return ((EventSymbol)member).Type.TypeSymbol.ContainsTupleNames();
+                default:
+                    // We currently don't need to use this method for fields or locals
+                    throw ExceptionUtilities.UnexpectedValue(member.Kind);
+            }
+        }
+
         internal static ImmutableArray<Symbol> GetExplicitInterfaceImplementations(this Symbol member)
         {
             switch (member.Kind)

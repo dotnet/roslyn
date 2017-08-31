@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-                var builtInAnalyzer = analyzer as IBuiltInAnalyzer;
-                if (builtInAnalyzer != null)
+                if (analyzer is IBuiltInAnalyzer builtInAnalyzer)
                 {
                     category = builtInAnalyzer.GetAnalyzerCategory();
                 }

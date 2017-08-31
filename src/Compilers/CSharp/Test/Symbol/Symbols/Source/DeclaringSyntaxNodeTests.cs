@@ -358,7 +358,7 @@ class C1 {
                     Assert.Equal(1, members.Length);
                     Assert.Equal(member, members[0]);
 
-                    // IsImplicitlyDeclared: Return false. The foo = bar clause in 
+                    // IsImplicitlyDeclared: Return false. The goo = bar clause in 
                     //                       the new { } clause serves as the declaration.
                     Assert.False(member.IsImplicitlyDeclared);
 
@@ -433,7 +433,7 @@ namespace N1 {
         }
         class C3<W> {
             IEnumerable<U> f2;
-            Foo<Bar> f3;
+            Goo<Bar> f3;
         }
     }
 
@@ -590,7 +590,7 @@ class C1
     {
         int loc1, loc2 = 4, loc3;
         const int loc4 = 6, loc5 = 7;
-        using (IDisposable loc6 = foo()) {}
+        using (IDisposable loc6 = goo()) {}
         for (int loc7 = 0; loc7 < 10; ++loc7) {}
         foreach (int loc8 in new int[] {1,3,4}) {}
     }
@@ -654,14 +654,14 @@ using ListOfIntAlias=System.Collections.Generic.List<int>;
 
 namespace N1
 {
-    using FooAlias=Con;
+    using GooAlias=Con;
 }
 ";
             var tree = Parse(text);
             var comp = CreateStandardCompilation(tree);
             CheckDeclaringSyntax<UsingDirectiveSyntax>(comp, tree, "ConsoleAlias", SymbolKind.Alias);
             CheckDeclaringSyntax<UsingDirectiveSyntax>(comp, tree, "ListOfIntAlias", SymbolKind.Alias);
-            CheckDeclaringSyntax<UsingDirectiveSyntax>(comp, tree, "FooAlias", SymbolKind.Alias);
+            CheckDeclaringSyntax<UsingDirectiveSyntax>(comp, tree, "GooAlias", SymbolKind.Alias);
         }
 
         [Fact]

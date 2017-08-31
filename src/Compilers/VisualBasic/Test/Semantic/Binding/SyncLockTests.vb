@@ -50,7 +50,7 @@ Class Program
         SyncLock x
         End SyncLock
     End Sub
-    Private Shared Sub Foo(Of T As D)(x As T)
+    Private Shared Sub Goo(Of T As D)(x As T)
         SyncLock x
         End SyncLock
     End Sub
@@ -212,7 +212,7 @@ End Module
 <compilation name="SyncLockMe_InvalidCase">
     <file name="a.vb">
 Structure S1
-    Sub FOO()
+    Sub GOO()
         SyncLock Me
         End SyncLock
     End Sub
@@ -243,7 +243,7 @@ End Class
 <compilation name="SyncLockMultiResource">
     <file name="a.vb">
 Public Class D
-    Public Sub foo()
+    Public Sub goo()
         Dim x1, x2 As New Object
         SyncLock x1,x2
         End SyncLock
@@ -268,7 +268,7 @@ End Class
 <compilation name="SyncLockMalformed">
     <file name="a.vb">
 Public Class D
-    Public Sub foo()
+    Public Sub goo()
         SyncLock
         End SyncLock
         SyncLock SyncLock

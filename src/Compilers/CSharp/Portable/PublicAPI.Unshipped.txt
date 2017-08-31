@@ -1,14 +1,6 @@
-Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp7_1 = 701 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp7_2 = 702 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
-Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts
 Microsoft.CodeAnalysis.CSharp.Syntax.ArrayRankSpecifierSyntax.QuestionToken.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.ArrayRankSpecifierSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken openBracketToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax> sizes, Microsoft.CodeAnalysis.SyntaxToken closeBracketToken, Microsoft.CodeAnalysis.SyntaxToken questionToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.ArrayRankSpecifierSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ArrayRankSpecifierSyntax.WithQuestionToken(Microsoft.CodeAnalysis.SyntaxToken questionToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.ArrayRankSpecifierSyntax
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.ConflictMarkerTrivia = 8564 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.DefaultLiteralExpression = 8755 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.MapSpecifiedToEffectiveVersion(this Microsoft.CodeAnalysis.CSharp.LanguageVersion version) -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
-static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.ToDisplayString(this Microsoft.CodeAnalysis.CSharp.LanguageVersion version) -> string
-static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.TryParse(this string version, out Microsoft.CodeAnalysis.CSharp.LanguageVersion result) -> bool
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.SuppressNullableWarningExpression = 9053 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ArrayRankSpecifier(Microsoft.CodeAnalysis.SyntaxToken openBracketToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax> sizes, Microsoft.CodeAnalysis.SyntaxToken closeBracketToken, Microsoft.CodeAnalysis.SyntaxToken questionToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.ArrayRankSpecifierSyntax
-static Microsoft.CodeAnalysis.CSharp.SyntaxFacts.IsReservedTupleElementName(string elementName) -> bool
-static Microsoft.CodeAnalysis.CSharp.SyntaxFacts.TryGetInferredMemberName(this Microsoft.CodeAnalysis.SyntaxNode syntax) -> string

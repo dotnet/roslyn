@@ -15,7 +15,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
             Dim code =
 <Code>
 Class C
-    Sub Foo($$s As String)
+    Sub Goo($$s As String)
     End Sub
 End Class
 </Code>

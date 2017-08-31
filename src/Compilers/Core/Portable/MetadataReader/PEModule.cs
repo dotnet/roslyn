@@ -3105,7 +3105,7 @@ namespace Microsoft.CodeAnalysis
             // we shouldn't ask for method IL if we don't have PE image
             Debug.Assert(_peReaderOpt != null);
 
-            MethodDefinition method = this.MetadataReader.GetMethodDefinition(methodHandle);
+            MethodDefinition method = MetadataReader.GetMethodDefinition(methodHandle);
             if ((method.ImplAttributes & MethodImplAttributes.CodeTypeMask) != MethodImplAttributes.IL ||
                  method.RelativeVirtualAddress == 0)
             {

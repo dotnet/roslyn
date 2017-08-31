@@ -1,12 +1,4 @@
-*REMOVED*Microsoft.CodeAnalysis.Compilation.Emit(System.IO.Stream peStream, System.IO.Stream pdbStream = null, System.IO.Stream xmlDocumentationStream = null, System.IO.Stream win32Resources = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ResourceDescription> manifestResources = null, Microsoft.CodeAnalysis.Emit.EmitOptions options = null, Microsoft.CodeAnalysis.IMethodSymbol debugEntryPoint = null, System.IO.Stream sourceLinkStream = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.EmbeddedText> embeddedTexts = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Emit.EmitResult
-*REMOVED*Microsoft.CodeAnalysis.Emit.EmitOptions.EmitOptions(bool metadataOnly = false, Microsoft.CodeAnalysis.Emit.DebugInformationFormat debugInformationFormat = (Microsoft.CodeAnalysis.Emit.DebugInformationFormat)0, string pdbFilePath = null, string outputNameOverride = null, int fileAlignment = 0, ulong baseAddress = 0, bool highEntropyVirtualAddressSpace = false, Microsoft.CodeAnalysis.SubsystemVersion subsystemVersion = default(Microsoft.CodeAnalysis.SubsystemVersion), string runtimeMetadataVersion = null, bool tolerateErrors = false, bool includePrivateMembers = false, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Emit.InstrumentationKind> instrumentationKinds = default(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Emit.InstrumentationKind>)) -> void
 Microsoft.CodeAnalysis.CommandLineArguments.DisplayLangVersions.get -> bool
-Microsoft.CodeAnalysis.CommandLineArguments.OutputRefFilePath.get -> string
-Microsoft.CodeAnalysis.CommandLineArguments.RuleSetPath.get -> string
-Microsoft.CodeAnalysis.CommandLineReference.CommandLineReference(string reference, Microsoft.CodeAnalysis.MetadataReferenceProperties properties) -> void
-Microsoft.CodeAnalysis.CommandLineSourceFile.CommandLineSourceFile(string path, bool isScript) -> void
-Microsoft.CodeAnalysis.Compilation.Emit(System.IO.Stream peStream, System.IO.Stream pdbStream = null, System.IO.Stream xmlDocumentationStream = null, System.IO.Stream win32Resources = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ResourceDescription> manifestResources = null, Microsoft.CodeAnalysis.Emit.EmitOptions options = null, Microsoft.CodeAnalysis.IMethodSymbol debugEntryPoint = null, System.IO.Stream sourceLinkStream = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.EmbeddedText> embeddedTexts = null, System.IO.Stream metadataPEStream = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Emit.EmitResult
-Microsoft.CodeAnalysis.Compilation.Emit(System.IO.Stream peStream, System.IO.Stream pdbStream, System.IO.Stream xmlDocumentationStream, System.IO.Stream win32Resources, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ResourceDescription> manifestResources, Microsoft.CodeAnalysis.Emit.EmitOptions options, Microsoft.CodeAnalysis.IMethodSymbol debugEntryPoint, System.IO.Stream sourceLinkStream, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.EmbeddedText> embeddedTexts, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.Emit.EmitResult
 Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, params Microsoft.CodeAnalysis.OperationKind[] operationKinds) -> void
 Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, params Microsoft.CodeAnalysis.OperationKind[] operationKinds) -> void
 Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext
@@ -41,7 +33,6 @@ Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.OperationBloc
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.OperationBlockEndActionsCount.set -> void
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.OperationBlockStartActionsCount.get -> int
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.OperationBlockStartActionsCount.set -> void
-Microsoft.CodeAnalysis.Emit.EmitOptions.EmitOptions(bool metadataOnly = false, Microsoft.CodeAnalysis.Emit.DebugInformationFormat debugInformationFormat = (Microsoft.CodeAnalysis.Emit.DebugInformationFormat)0, string pdbFilePath = null, string outputNameOverride = null, int fileAlignment = 0, ulong baseAddress = 0, bool highEntropyVirtualAddressSpace = false, Microsoft.CodeAnalysis.SubsystemVersion subsystemVersion = default(Microsoft.CodeAnalysis.SubsystemVersion), string runtimeMetadataVersion = null, bool tolerateErrors = false, bool includePrivateMembers = true, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Emit.InstrumentationKind> instrumentationKinds = default(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Emit.InstrumentationKind>)) -> void
 Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.IOperation.Accept(Microsoft.CodeAnalysis.Semantics.OperationVisitor visitor) -> void
 Microsoft.CodeAnalysis.IOperation.Accept<TArgument, TResult>(Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult> visitor, TArgument argument) -> TResult
@@ -112,6 +103,7 @@ Microsoft.CodeAnalysis.OperationKind.ReturnStatement = 11 -> Microsoft.CodeAnaly
 Microsoft.CodeAnalysis.OperationKind.SingleValueCaseClause = 1034 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.SizeOfExpression = 514 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.StopStatement = 80 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.SuppressNullableWarningExpression = 519 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.SwitchCase = 1033 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.SwitchStatement = 4 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.SyntheticLocalReferenceExpression = 263 -> Microsoft.CodeAnalysis.OperationKind
@@ -127,8 +119,6 @@ Microsoft.CodeAnalysis.OperationKind.VariableDeclarationStatement = 3 -> Microso
 Microsoft.CodeAnalysis.OperationKind.WithStatement = 82 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.YieldBreakStatement = 12 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.YieldReturnStatement = 16 -> Microsoft.CodeAnalysis.OperationKind
-Microsoft.CodeAnalysis.ParseOptions.Errors.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>
-Microsoft.CodeAnalysis.ParseOptions.SpecifiedKind.get -> Microsoft.CodeAnalysis.SourceCodeKind
 Microsoft.CodeAnalysis.SemanticModel.GetOperation(Microsoft.CodeAnalysis.SyntaxNode node, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.ArgumentKind
 Microsoft.CodeAnalysis.Semantics.ArgumentKind.DefaultValue = 3 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
@@ -487,6 +477,8 @@ Microsoft.CodeAnalysis.Semantics.ISingleValueCaseClause.Equality.get -> Microsof
 Microsoft.CodeAnalysis.Semantics.ISingleValueCaseClause.Value.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.ISizeOfExpression
 Microsoft.CodeAnalysis.Semantics.IStopStatement
+Microsoft.CodeAnalysis.Semantics.ISuppressNullableWarningExpression
+Microsoft.CodeAnalysis.Semantics.ISuppressNullableWarningExpression.Expression.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.ISwitchCase
 Microsoft.CodeAnalysis.Semantics.ISwitchCase.Body.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.Semantics.ISwitchCase.Clauses.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.ICaseClause>
@@ -676,7 +668,6 @@ Microsoft.CodeAnalysis.SyntaxTriviaList.SyntaxTriviaList(params Microsoft.CodeAn
 abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.OperationKind> operationKinds) -> void
 abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationBlockEndAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void
 abstract Microsoft.CodeAnalysis.SemanticModel.GetOperationCore(Microsoft.CodeAnalysis.SyntaxNode node, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.IOperation
-const Microsoft.CodeAnalysis.LanguageNames.FSharp = "F#" -> string
 override Microsoft.CodeAnalysis.Optional<T>.ToString() -> string
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.Visit(Microsoft.CodeAnalysis.IOperation operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitAddressOfExpression(Microsoft.CodeAnalysis.Semantics.IAddressOfExpression operation) -> void
@@ -752,7 +743,6 @@ override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitVariableDeclarati
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitWhileUntilLoopStatement(Microsoft.CodeAnalysis.Semantics.IWhileUntilLoopStatement operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitWithStatement(Microsoft.CodeAnalysis.Semantics.IWithStatement operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitYieldBreakStatement(Microsoft.CodeAnalysis.Semantics.IReturnStatement operation) -> void
-static Microsoft.CodeAnalysis.Compilation.GetRequiredLanguageVersion(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> string
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.Descendants(this Microsoft.CodeAnalysis.IOperation operation) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.IOperation>
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.DescendantsAndSelf(this Microsoft.CodeAnalysis.IOperation operation) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.IOperation>
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.GetDeclaredVariables(this Microsoft.CodeAnalysis.Semantics.IVariableDeclarationStatement declarationStatement) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
@@ -835,6 +825,7 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitReturnStatement(M
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitSingleValueCaseClause(Microsoft.CodeAnalysis.Semantics.ISingleValueCaseClause operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitSizeOfExpression(Microsoft.CodeAnalysis.Semantics.ISizeOfExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitStopStatement(Microsoft.CodeAnalysis.Semantics.IStopStatement operation) -> void
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitSuppressNullableWarningExpression(Microsoft.CodeAnalysis.Semantics.ISuppressNullableWarningExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitSwitchCase(Microsoft.CodeAnalysis.Semantics.ISwitchCase operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitSwitchStatement(Microsoft.CodeAnalysis.Semantics.ISwitchStatement operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitSyntheticLocalReferenceExpression(Microsoft.CodeAnalysis.Semantics.ISyntheticLocalReferenceExpression operation) -> void
@@ -910,6 +901,7 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.Vi
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitSingleValueCaseClause(Microsoft.CodeAnalysis.Semantics.ISingleValueCaseClause operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitSizeOfExpression(Microsoft.CodeAnalysis.Semantics.ISizeOfExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitStopStatement(Microsoft.CodeAnalysis.Semantics.IStopStatement operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitSuppressNullableWarningExpression(Microsoft.CodeAnalysis.Semantics.ISuppressNullableWarningExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitSwitchCase(Microsoft.CodeAnalysis.Semantics.ISwitchCase operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitSwitchStatement(Microsoft.CodeAnalysis.Semantics.ISwitchStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitSyntheticLocalReferenceExpression(Microsoft.CodeAnalysis.Semantics.ISyntheticLocalReferenceExpression operation, TArgument argument) -> TResult

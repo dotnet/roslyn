@@ -269,28 +269,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Property(WellKnownMember member)
         {
-            var propertySym = WellKnownMember(member) as PropertySymbol;
-            //if (propertySym == null) return BoundBadExpression
-            Binder.ReportUseSiteDiagnostics(propertySym, Diagnostics, Syntax);
-            Debug.Assert(propertySym.IsStatic);
-            return Call(null, propertySym.GetMethod);
+            return Property(null, member);
         }
 
-        public BoundExpression Property(BoundExpression receiver, WellKnownMember member)
+        public BoundExpression Property(BoundExpression receiverOpt, WellKnownMember member)
         {
-            var propertySym = WellKnownMember(member) as PropertySymbol;
-            Debug.Assert(!propertySym.IsStatic);
-            Debug.Assert(receiver.Type.GetMembers(propertySym.Name).OfType<PropertySymbol>().Single() == propertySym);
-            //if (propertySym == null) return BoundBadExpression
+            var propertySym = (PropertySymbol)WellKnownMember(member);
+            Debug.Assert(receiverOpt == null ||
+                receiverOpt.Type.GetMembers(propertySym.Name).OfType<PropertySymbol>().Single() == propertySym);
             Binder.ReportUseSiteDiagnostics(propertySym, Diagnostics, Syntax);
-            Debug.Assert(!propertySym.IsStatic);
-            return Call(receiver, propertySym.GetMethod);
+            return Property(receiverOpt, propertySym);
         }
 
-        public BoundExpression Property(BoundExpression receiver, PropertySymbol property)
+        public BoundExpression Property(BoundExpression receiverOpt, PropertySymbol property)
         {
-            Debug.Assert(!property.IsStatic);
-            return Call(receiver, property.GetMethod); // TODO: should we use property.GetBaseProperty().GetMethod to ensure we generate a call to the overridden method?
+            Debug.Assert((receiverOpt == null) == property.IsStatic);
+            return Call(receiverOpt, property.GetMethod); // TODO: should we use property.GetBaseProperty().GetMethod to ensure we generate a call to the overridden method?
         }
 
         public NamedTypeSymbol SpecialType(SpecialType st)
@@ -597,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if ((object)method == null)
             {
-                return new BoundBadExpression(Syntax, default(LookupResultKind), ImmutableArray<Symbol>.Empty, args.AsImmutableOrNull(), receiver);
+                return new BoundBadExpression(Syntax, default(LookupResultKind), ImmutableArray<Symbol>.Empty, args.AsImmutable(), receiver);
             }
 
             return Call(null, method, args);

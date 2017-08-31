@@ -182,7 +182,7 @@ End Class
 
         <Fact()>
         Public Sub FaultyResourceDataProvider()
-            Dim c1 = VisualBasicCompilation.Create("foo", references:={MscorlibRef}, options:=TestOptions.ReleaseDll)
+            Dim c1 = VisualBasicCompilation.Create("goo", references:={MscorlibRef}, options:=TestOptions.ReleaseDll)
             Dim result = c1.Emit(New MemoryStream(),
                                  manifestResources:={New ResourceDescription("r2", "file", Function()
                                                                                                Throw New Exception("bad stuff")
@@ -209,7 +209,7 @@ End Module
               </file></compilation>)
 
             Dim output As New IO.MemoryStream
-            Dim resourceFileName = "RoslynResourceFile.foo"
+            Dim resourceFileName = "RoslynResourceFile.goo"
 
             Dim r1Name As String = "some.dotted.NAME"
             Dim r2Name As String = "another.DoTtEd.NAME"
@@ -385,8 +385,8 @@ End Module
 
             Dim result As EmitResult = c1.Emit(output, manifestResources:=New ResourceDescription(1) _
                 {
-                    New ResourceDescription("A", "x.foo", dataProvider, True),
-                    New ResourceDescription("A", "y.foo", dataProvider, True)
+                    New ResourceDescription("A", "x.goo", dataProvider, True),
+                    New ResourceDescription("A", "y.goo", dataProvider, True)
                 })
 
             ' error BC31502: Resource name 'A' cannot be used more than once.
@@ -412,7 +412,7 @@ End Module
             Dim result As EmitResult = c1.Emit(output, manifestResources:=
                 {
                     New ResourceDescription(r1Name, Function() New IO.MemoryStream(arrayOfEmbeddedData), True),
-                    New ResourceDescription("A", "y.foo", dataProvider, True)
+                    New ResourceDescription("A", "y.goo", dataProvider, True)
                 })
 
             Assert.False(result.Success)
@@ -420,7 +420,7 @@ End Module
 
             result = c1.Emit(output, manifestResources:=
                 {
-                    New ResourceDescription("A", "y.foo", dataProvider, True),
+                    New ResourceDescription("A", "y.goo", dataProvider, True),
                     New ResourceDescription(r1Name, Function() New IO.MemoryStream(arrayOfEmbeddedData), True)
                 })
 
@@ -429,7 +429,7 @@ End Module
 
             result = c1.Emit(output, manifestResources:=
                 {
-                    New ResourceDescription("A", "y.foo", dataProvider, True)
+                    New ResourceDescription("A", "y.goo", dataProvider, True)
                 })
 
             Assert.False(result.Success)
@@ -680,8 +680,8 @@ End Module
             ' file name ignored for embedded manifest resources
             result = c1.Emit(output, manifestResources:=New ResourceDescription(1) _
                 {
-                    New ResourceDescription("A", "x.foo", dataProvider, True, isEmbedded:=True, checkArgs:=True),
-                    New ResourceDescription("A", "x.foo", dataProvider, True, isEmbedded:=False, checkArgs:=True)
+                    New ResourceDescription("A", "x.goo", dataProvider, True, isEmbedded:=True, checkArgs:=True),
+                    New ResourceDescription("A", "x.goo", dataProvider, True, isEmbedded:=False, checkArgs:=True)
                 })
 
             ' error BC31502: Resource name 'A' cannot be used more than once.
@@ -707,12 +707,12 @@ End Module
 
             Dim result = c1.Emit(output, manifestResources:=New ResourceDescription(1) _
                 {
-                    New ResourceDescription("A", "x.foo", dataProvider, True),
-                    New ResourceDescription("B", "x.foo", dataProvider, True)
+                    New ResourceDescription("A", "x.goo", dataProvider, True),
+                    New ResourceDescription("B", "x.goo", dataProvider, True)
                 })
 
-            ' error BC35003: Each linked resource and module must have a unique filename. Filename 'x.foo' is specified more than once in this assembly.
-            result.Diagnostics.Verify(Diagnostic(ERRID.ERR_DuplicateResourceFileName1).WithArguments("x.foo"))
+            ' error BC35003: Each linked resource and module must have a unique filename. Filename 'x.goo' is specified more than once in this assembly.
+            result.Diagnostics.Verify(Diagnostic(ERRID.ERR_DuplicateResourceFileName1).WithArguments("x.goo"))
 
             result = c1.Emit(output, manifestResources:=New ResourceDescription(0) _
                 {
@@ -723,7 +723,7 @@ End Module
 
             Dim netModule1 = TestReferences.SymbolsTests.netModule.netModule1
 
-            c1 = VisualBasicCompilation.Create("foo", references:={MscorlibRef, netModule1}, options:=TestOptions.ReleaseDll)
+            c1 = VisualBasicCompilation.Create("goo", references:={MscorlibRef, netModule1}, options:=TestOptions.ReleaseDll)
 
             result = c1.Emit(output, manifestResources:=New ResourceDescription(0) _
                 {
@@ -762,8 +762,8 @@ End Module
             ' file name ignored for embedded manifest resources
             result = c1.Emit(output, manifestResources:=New ResourceDescription(1) _
                 {
-                    New ResourceDescription("A", "x.foo", dataProvider, True, isEmbedded:=True, checkArgs:=True),
-                    New ResourceDescription("B", "x.foo", dataProvider, True, isEmbedded:=False, checkArgs:=True)
+                    New ResourceDescription("A", "x.goo", dataProvider, True, isEmbedded:=True, checkArgs:=True),
+                    New ResourceDescription("B", "x.goo", dataProvider, True, isEmbedded:=False, checkArgs:=True)
                 })
 
             result.Diagnostics.Verify()
@@ -786,27 +786,27 @@ End Module
 
             Dim result As EmitResult = c1.Emit(output, manifestResources:=New ResourceDescription(1) _
                 {
-                    New ResourceDescription("A", "x.foo", dataProvider, True),
-                    New ResourceDescription("A", "x.foo", dataProvider, True)
+                    New ResourceDescription("A", "x.goo", dataProvider, True),
+                    New ResourceDescription("A", "x.goo", dataProvider, True)
                 })
 
             ' error BC31502: Resource name 'A' cannot be used more than once.
-            ' error BC35003: Each linked resource and module must have a unique filename. Filename 'x.foo' is specified more than once in this assembly.
+            ' error BC35003: Each linked resource and module must have a unique filename. Filename 'x.goo' is specified more than once in this assembly.
             result.Diagnostics.Verify(
                 Diagnostic(ERRID.ERR_DuplicateResourceName1).WithArguments("A"),
-                Diagnostic(ERRID.ERR_DuplicateResourceFileName1).WithArguments("x.foo"))
+                Diagnostic(ERRID.ERR_DuplicateResourceFileName1).WithArguments("x.goo"))
 
             result = c1.Emit(output, manifestResources:=New ResourceDescription(2) _
                 {
-                    New ResourceDescription("A", "x.foo", dataProvider, True),
-                    New ResourceDescription("B", "x.foo", dataProvider, True),
-                    New ResourceDescription("B", "y.foo", dataProvider, True)
+                    New ResourceDescription("A", "x.goo", dataProvider, True),
+                    New ResourceDescription("B", "x.goo", dataProvider, True),
+                    New ResourceDescription("B", "y.goo", dataProvider, True)
                 })
 
-            ' error BC35003: Each linked resource andmust have a unique filename. Filename 'x.foo' is specified more than once in this assembly.
+            ' error BC35003: Each linked resource andmust have a unique filename. Filename 'x.goo' is specified more than once in this assembly.
             ' error BC31502: Resource name 'B' cannot be used more than once.
             result.Diagnostics.Verify(
-                Diagnostic(ERRID.ERR_DuplicateResourceFileName1).WithArguments("x.foo"),
+                Diagnostic(ERRID.ERR_DuplicateResourceFileName1).WithArguments("x.goo"),
                 Diagnostic(ERRID.ERR_DuplicateResourceName1).WithArguments("B"))
         End Sub
     End Class

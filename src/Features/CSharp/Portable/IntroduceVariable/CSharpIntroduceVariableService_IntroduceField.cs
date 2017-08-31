@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             newQualifiedName = newQualifiedName.WithAdditionalAnnotations(Simplifier.Annotation);
 
             var newFieldDeclaration = SyntaxFactory.FieldDeclaration(
-                default(SyntaxList<AttributeListSyntax>),
+                default,
                 MakeFieldModifiers(isConstant, inScript: oldType.IsScriptClass),
                 SyntaxFactory.VariableDeclaration(
                     GetTypeSymbol(document, expression, cancellationToken).GenerateTypeSyntax(),

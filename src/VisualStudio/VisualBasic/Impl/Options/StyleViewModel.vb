@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
@@ -206,6 +207,34 @@ Class Customer
 end class
 "
 
+        Private Shared ReadOnly s_preferInferredTupleName As String = $"
+Class Customer
+    Public Sub New(name as String, age As Integer)
+//[
+        ' {ServicesVSResources.Prefer_colon}
+        Dim tuple = (name, age)
+
+        ' {ServicesVSResources.Over_colon}
+        Dim tuple = (name:=name, age:=age)
+//]
+    End Sub
+end class
+"
+
+        Private Shared ReadOnly s_preferInferredAnonymousTypeMemberName As String = $"
+Class Customer
+    Public Sub New(name as String, age As Integer)
+//[
+        ' {ServicesVSResources.Prefer_colon}
+        Dim anon = New With {{ name, age }}
+
+        ' {ServicesVSResources.Over_colon}
+        Dim anon = New With {{ .name = name, .age = age }}
+//]
+    End Sub
+end class
+"
+
         Private Shared ReadOnly s_preferCoalesceExpression As String = $"
 Imports System
 
@@ -238,6 +267,25 @@ Class Customer
         ' {ServicesVSResources.Over_colon}
         Dim v = If(o Is Nothing, Nothing, o.ToString())    ' {ServicesVSResources.or}
         Dim v = If(o IsNot Nothing, o.ToString(), Nothing)
+//]
+    End Sub
+End Class"
+
+        Private Shared ReadOnly s_preferIsNothingCheckOverReferenceEquals As String = $"
+Imports System
+
+Class Customer
+    Sub New(value as object)
+//[
+        ' {ServicesVSResources.Prefer_colon}
+        If value Is Nothing
+            Return
+        End If
+
+        ' {ServicesVSResources.Over_colon}
+        If Object.ReferenceEquals(value, Nothing)
+            Return
+        End If
 //]
     End Sub
 End Class"
@@ -281,10 +329,13 @@ End Class"
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferObjectInitializer, ServicesVSResources.Prefer_object_initializer, s_preferObjectInitializer, s_preferObjectInitializer, Me, optionSet, expressionPreferencesGroupTitle))
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferCollectionInitializer, ServicesVSResources.Prefer_collection_initializer, s_preferCollectionInitializer, s_preferCollectionInitializer, Me, optionSet, expressionPreferencesGroupTitle))
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferExplicitTupleNames, ServicesVSResources.Prefer_explicit_tuple_name, s_preferExplicitTupleName, s_preferExplicitTupleName, Me, optionSet, expressionPreferencesGroupTitle))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(VisualBasicCodeStyleOptions.PreferInferredTupleNames, ServicesVSResources.Prefer_inferred_tuple_names, s_preferInferredTupleName, s_preferInferredTupleName, Me, optionSet, expressionPreferencesGroupTitle))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(VisualBasicCodeStyleOptions.PreferInferredAnonymousTypeMemberNames, ServicesVSResources.Prefer_inferred_anonymous_type_member_names, s_preferInferredAnonymousTypeMemberName, s_preferInferredAnonymousTypeMemberName, Me, optionSet, expressionPreferencesGroupTitle))
 
             ' nothing preferences
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferCoalesceExpression, ServicesVSResources.Prefer_coalesce_expression, s_preferCoalesceExpression, s_preferCoalesceExpression, Me, optionSet, nothingPreferencesGroupTitle))
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferNullPropagation, ServicesVSResources.Prefer_null_propagation, s_preferNullPropagation, s_preferNullPropagation, Me, optionSet, nothingPreferencesGroupTitle))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, BasicVSResources.Prefer_Is_Nothing_over_ReferenceEquals, s_preferIsNothingCheckOverReferenceEquals, s_preferIsNothingCheckOverReferenceEquals, Me, optionSet, nothingPreferencesGroupTitle))
         End Sub
     End Class
 End Namespace

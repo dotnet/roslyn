@@ -95,7 +95,7 @@ class C : Abracadabra
             var source = @"
 class C
 {
-    public void Foo()
+    public void Goo()
     {
         int x;
     }
@@ -271,9 +271,15 @@ namespace N1
                     {
                         var symbol = symbolDeclaredEvent.Symbol;
                         var added = declaredSymbolNames.Add(symbol.Name);
-                        Assert.True(added, "Unexpected multiple symbol declared events for symbol " + symbol);
-                        var method = symbol as Symbols.MethodSymbol;
-                        Assert.Null(method?.PartialDefinitionPart); // we should never get a partial method's implementation part
+                        if (!added)
+                        {
+                            var method = symbol as Symbols.MethodSymbol;
+                            Assert.NotNull(method);
+
+                            var isPartialMethod = method.PartialDefinitionPart != null ||
+                                                  method.PartialImplementationPart != null;
+                            Assert.True(isPartialMethod, "Unexpected multiple symbol declared events for symbol " + symbol);
+                        }
                     }
                     else
                     {
@@ -293,7 +299,7 @@ namespace N1
         public void TestEventQueueCompletionForEmptyCompilation()
         {
             var compilation = CreateCompilationWithMscorlib45(SpecializedCollections.EmptyEnumerable<SyntaxTree>()).WithEventQueue(new AsyncQueue<CompilationEvent>());
-            
+
             // Force complete compilation event queue
             var unused = compilation.GetDiagnostics();
 

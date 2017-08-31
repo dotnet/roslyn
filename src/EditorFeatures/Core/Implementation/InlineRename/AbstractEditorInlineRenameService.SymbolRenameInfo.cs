@@ -93,9 +93,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             /// contains the current replacementText.
             /// 
             /// These cases are currently handled:
-            ///     - Escaped identifiers                          [foo] => foo
-            ///     - Type suffixes in VB                          foo$ => foo
-            ///     - Qualified names from complexification        A.foo => foo
+            ///     - Escaped identifiers                          [goo] => goo
+            ///     - Type suffixes in VB                          goo$ => goo
+            ///     - Qualified names from complexification        A.goo => goo
             ///     - Optional Attribute suffixes                  XAttribute => X
             ///         Careful here:                              XAttribute => XAttribute if renamesymbol is XAttributeAttribute
             ///     - Compiler-generated EventHandler suffix       XEventHandler => X

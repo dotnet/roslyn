@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     }
                 }
 
-                return default(ImmutableArray<CodeAction>);
+                return default;
             }
         }
 

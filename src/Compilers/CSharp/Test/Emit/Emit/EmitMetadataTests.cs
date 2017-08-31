@@ -1733,7 +1733,7 @@ class A : B<A> {}
             CompileAndVerify(@"
 class C<T> 
 {
-    void foo() 
+    void goo() 
     {
         System.Collections.Generic.Dictionary<int, T> d = new System.Collections.Generic.Dictionary<int, T>();
     }
@@ -2065,14 +2065,14 @@ public static class C
 {
     private static string msg = ""Hello"";
 
-    private static void Foo()
+    private static void Goo()
     {
         System.Console.WriteLine(msg);
     }
 
     public static void Main()
     {
-        Foo();
+        Goo();
     }
 }
 ";

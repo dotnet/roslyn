@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // search paths
             var providerSP = new VirtualizedStrongNameProvider(
                 existingFullPaths: fs,
-                searchPaths: ImmutableArray.Create(@"C:\foo", dir, subdir));
+                searchPaths: ImmutableArray.Create(@"C:\goo", dir, subdir));
 
             path = providerSP.ResolveStrongNameKeyFile(fileName);
             Assert.Equal(filePath, path, StringComparer.OrdinalIgnoreCase);

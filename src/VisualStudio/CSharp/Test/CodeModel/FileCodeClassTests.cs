@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
         public FileCodeClassTests()
             : base(@"using System;
 
-public abstract class Foo : IDisposable, ICloneable
+public abstract class Goo : IDisposable, ICloneable
 {
 }
 
@@ -44,7 +44,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void IsAbstract()
         {
-            CodeClass cc = GetCodeClass("Foo");
+            CodeClass cc = GetCodeClass("Goo");
 
             Assert.True(cc.IsAbstract);
         }
@@ -53,7 +53,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Bases()
         {
-            CodeClass cc = GetCodeClass("Foo");
+            CodeClass cc = GetCodeClass("Goo");
 
             var bases = cc.Bases;
 
@@ -64,7 +64,7 @@ public class Bar
 
             var parentClass = bases.Parent as CodeClass;
             Assert.NotNull(parentClass);
-            Assert.Equal(parentClass.FullName, "Foo");
+            Assert.Equal(parentClass.FullName, "Goo");
 
             Assert.True(bases.Item("object") is CodeClass);
         }
@@ -73,7 +73,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void ImplementedInterfaces()
         {
-            CodeClass cc = GetCodeClass("Foo");
+            CodeClass cc = GetCodeClass("Goo");
 
             var interfaces = cc.ImplementedInterfaces;
 
@@ -84,7 +84,7 @@ public class Bar
 
             var parentClass = interfaces.Parent as CodeClass;
             Assert.NotNull(parentClass);
-            Assert.Equal(parentClass.FullName, "Foo");
+            Assert.Equal(parentClass.FullName, "Goo");
 
             Assert.True(interfaces.Item("System.IDisposable") is CodeInterface);
             Assert.True(interfaces.Item("ICloneable") is CodeInterface);
@@ -94,7 +94,7 @@ public class Bar
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void KindTest()
         {
-            CodeClass cc = GetCodeClass("Foo");
+            CodeClass cc = GetCodeClass("Goo");
 
             Assert.Equal(vsCMElement.vsCMElementClass, cc.Kind);
         }

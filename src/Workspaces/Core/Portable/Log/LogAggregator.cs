@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         {
             if (values.Count == 0)
             {
-                return default(StatisticResult);
+                return default;
             }
 
             var max = int.MinValue;

@@ -378,10 +378,10 @@ struct TestCase
 {
     public async Task<int> Run()
     {
-        return await Foo();
+        return await Goo();
     }
 
-    public async Task<int> Foo()
+    public async Task<int> Goo()
     {
         return await Task.Factory.StartNew(() => 42);
     }
@@ -416,10 +416,10 @@ struct TestCase
 {
     public IEnumerable<int> Run()
     {
-        yield return Foo();
+        yield return Goo();
     }
 
-    public int Foo()
+    public int Goo()
     {
         return 42;
     }

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             IReadOnlyDictionary<string, object> allRawConventions,
             out NamingStyle namingStyle)
         {
-            namingStyle = default(NamingStyle);
+            namingStyle = default;
             if (!TryGetNamingStyleTitle(namingRuleName, allRawConventions, out string namingStyleTitle))
             {
                 return false;
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     capitalization = Capitalization.AllLower;
                     return true;
                 default:
-                    capitalization = default(Capitalization);
+                    capitalization = default;
                     return false;
             }
         }

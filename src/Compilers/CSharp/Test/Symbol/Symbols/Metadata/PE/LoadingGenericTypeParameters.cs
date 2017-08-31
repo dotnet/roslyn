@@ -48,10 +48,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal("C1_T", varC1_T.Name);
             Assert.Equal("C1_T", varC1_T.ToTestDisplayString());
             Assert.Equal(0, varC1_T.GetMembers().Length);
-            Assert.Equal(0, varC1_T.GetMembers("foo").Length);
+            Assert.Equal(0, varC1_T.GetMembers("goo").Length);
             Assert.Equal(0, varC1_T.GetTypeMembers().Length);
-            Assert.Equal(0, varC1_T.GetTypeMembers("foo").Length);
-            Assert.Equal(0, varC1_T.GetTypeMembers("foo", 1).Length);
+            Assert.Equal(0, varC1_T.GetTypeMembers("goo").Length);
+            Assert.Equal(0, varC1_T.GetTypeMembers("goo", 1).Length);
             Assert.False(varC1_T.HasConstructorConstraint);
             Assert.False(varC1_T.HasReferenceTypeConstraint);
             Assert.False(varC1_T.HasValueTypeConstraint);

@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
-using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestName()
         {
-            var text = "foo";
+            var text = "goo";
             var expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestParenthesizedExpression()
         {
-            var text = "(foo)";
+            var text = "(goo)";
             var expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
@@ -1853,6 +1853,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(qs.Body.Continuation);
         }
 
+        [Fact]
         public void TestFromGroupBy()
         {
             var text = "from a in A group b by c";
@@ -1864,10 +1865,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, expr.Errors().Length);
 
             var qs = (QueryExpressionSyntax)expr;
-            Assert.Equal(1, qs.Body.Clauses.Count);
-            Assert.Equal(SyntaxKind.FromClause, qs.Body.Clauses[0].Kind());
+            Assert.Equal(0, qs.Body.Clauses.Count);
 
-            var fs = (FromClauseSyntax)qs.Body.Clauses[0];
+            var fs = qs.FromClause;
             Assert.NotNull(fs.FromKeyword);
             Assert.False(fs.FromKeyword.IsMissing);
             Assert.Null(fs.Type);
@@ -1892,6 +1892,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(qs.Body.Continuation);
         }
 
+        [Fact]
         public void TestFromGroupByIntoSelect()
         {
             var text = "from a in A group b by c into d select e";
@@ -1903,10 +1904,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, expr.Errors().Length);
 
             var qs = (QueryExpressionSyntax)expr;
-            Assert.Equal(1, qs.Body.Clauses.Count);
-            Assert.Equal(SyntaxKind.FromClause, qs.Body.Clauses[0].Kind());
+            Assert.Equal(0, qs.Body.Clauses.Count);
 
-            var fs = (FromClauseSyntax)qs.Body.Clauses[0];
+            var fs = qs.FromClause;
             Assert.NotNull(fs.FromKeyword);
             Assert.False(fs.FromKeyword.IsMissing);
             Assert.Null(fs.Type);
@@ -2116,7 +2116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestFromGroupBy1()
         {
-            var text = "from it in foo group x by y";
+            var text = "from it in goo group x by y";
             var expr = SyntaxFactory.ParseExpression(text);
 
             Assert.NotNull(expr);

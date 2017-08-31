@@ -123,8 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             var line = error.iLine;
             var column = error.iCol;
-            var containedDocument = hostDocument as ContainedDocument;
-            if (containedDocument != null)
+            if (hostDocument is ContainedDocument containedDocument)
             {
                 var span = new VsTextSpan
                 {

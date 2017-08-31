@@ -1822,24 +1822,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private static MethodSymbol GetTruthOperator(TypeSymbol type, bool negative)
-        {
-            string name = negative ? WellKnownMemberNames.FalseOperatorName : WellKnownMemberNames.TrueOperatorName;
-            var operators = ((NamedTypeSymbol)type.StrippedType()).GetOperators(name);
-            Debug.Assert(!operators.IsEmpty);
-            for (int i = 0; i < operators.Length; ++i)
-            {
-                Debug.Assert(operators[i].ParameterCount == 1);
-                if (operators[i].ParameterTypes[0] == type)
-                {
-                    return operators[i];
-                }
-            }
-
-            Debug.Assert(false, "How did we bind a user-defined logical operator or dynamic logical Boolean operator without operator false or operator true?");
-            return null;
-        }
-
         private BoundExpression RewriteStringEquality(BoundBinaryOperator oldNode, SyntaxNode syntax, BinaryOperatorKind operatorKind, BoundExpression loweredLeft, BoundExpression loweredRight, TypeSymbol type, SpecialMember member)
         {
             if (oldNode != null && (loweredLeft.ConstantValue == ConstantValue.Null || loweredRight.ConstantValue == ConstantValue.Null))
@@ -2109,14 +2091,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SpecialType.System_Int32:
                         // add operator can take int32 and extend to 64bit if necessary
+                        // however in a case of checked operation, the operation is treated as unsigned with overflow ( add.ovf.un , sub.ovf.un )
+                        // the IL spec is a bit vague whether JIT should sign or zero extend the shorter operand in such case
+                        // and there could be inconsistencies in implementation or bugs.
+                        // As a result, in checked contexts, we will force sign-extending cast to be sure
+                        if (isChecked)
+                        {
+                            var constVal = numericOperand.ConstantValue;
+                            if (constVal == null || constVal.Int32Value < 0)
+                            {
+                                destinationType = SpecialType.System_IntPtr;
+                            }
+                        }
                         break;
                     case SpecialType.System_UInt32:
-                        // add operator treats operands as signed and will sign-extend on x64
-                        // to prevent sign-extending, convert the operand to unsigned native int.
-                        var constVal = numericOperand.ConstantValue;
-                        if (constVal == null || constVal.UInt32Value > int.MaxValue)
                         {
-                            destinationType = SpecialType.System_UIntPtr;
+                            // add operator treats operands as signed and will sign-extend on x64
+                            // to prevent sign-extending, convert the operand to unsigned native int.
+                            var constVal = numericOperand.ConstantValue;
+                            if (constVal == null || constVal.UInt32Value > int.MaxValue)
+                            {
+                                destinationType = SpecialType.System_UIntPtr;
+                            }
                         }
                         break;
                     case SpecialType.System_Int64:
