@@ -112,6 +112,194 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         }
     }
 
+    /// <summary>Analyzer used to test for loop IOperations.</summary>
+    public class BigForTestAnalyzer : DiagnosticAnalyzer
+    {
+        /// <summary>Diagnostic category "Reliability".</summary>
+        private const string ReliabilityCategory = "Reliability";
+
+        public static readonly DiagnosticDescriptor BigForDescriptor = new DiagnosticDescriptor(
+            "BigForRule",
+            "Big For Loop",
+            "For loop iterates more than one million times",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        /// <summary>Gets the set of supported diagnostic descriptors from this analyzer.</summary>
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get { return ImmutableArray.Create(BigForDescriptor); }
+        }
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(AnalyzeOperation, OperationKind.LoopStatement);
+        }
+
+        private void AnalyzeOperation(OperationAnalysisContext operationContext)
+        {
+            ILoopStatement loop = (ILoopStatement)operationContext.Operation;
+            if (loop.LoopKind == LoopKind.For)
+            {
+                IForLoopStatement forLoop = (IForLoopStatement)loop;
+                IOperation forCondition = forLoop.Condition;
+
+                if (forCondition.Kind == OperationKind.BinaryOperatorExpression)
+                {
+                    IBinaryOperatorExpression condition = (IBinaryOperatorExpression)forCondition;
+                    IOperation conditionLeft = condition.LeftOperand;
+                    IOperation conditionRight = condition.RightOperand;
+
+                    if (conditionRight.ConstantValue.HasValue &&
+                        conditionRight.Type.SpecialType == SpecialType.System_Int32 &&
+                        conditionLeft.Kind == OperationKind.LocalReferenceExpression)
+                    {
+                        // Test is known to be a comparison of a local against a constant.
+
+                        int testValue = (int)conditionRight.ConstantValue.Value;
+                        ILocalSymbol testVariable = ((ILocalReferenceExpression)conditionLeft).Local;
+
+                        if (forLoop.Before.Length == 1)
+                        {
+                            IOperation setup = forLoop.Before[0];
+                            if (setup.Kind == OperationKind.ExpressionStatement && ((IExpressionStatement)setup).Expression.Kind == OperationKind.SimpleAssignmentExpression)
+                            {
+                                ISimpleAssignmentExpression setupAssignment = (ISimpleAssignmentExpression)((IExpressionStatement)setup).Expression;
+                                if (setupAssignment.Target.Kind == OperationKind.LocalReferenceExpression &&
+                                    ((ILocalReferenceExpression)setupAssignment.Target).Local == testVariable &&
+                                    setupAssignment.Value.ConstantValue.HasValue &&
+                                    setupAssignment.Value.Type.SpecialType == SpecialType.System_Int32)
+                                {
+                                    // Setup is known to be an assignment of a constant to the local used in the test.
+
+                                    int initialValue = (int)setupAssignment.Value.ConstantValue.Value;
+
+                                    if (forLoop.AtLoopBottom.Length == 1)
+                                    {
+                                        IOperation advance = forLoop.AtLoopBottom[0];
+                                        if (advance.Kind == OperationKind.ExpressionStatement)
+                                        {
+                                            IOperation advanceExpression = ((IExpressionStatement)advance).Expression;
+                                            SemanticModel semanticModel = operationContext.Compilation.GetSemanticModel(advance.Syntax.SyntaxTree);
+
+                                            IOperation advanceIncrement;
+                                            BinaryOperatorKind advanceOperationCode;
+                                            GetOperationKindAndValue(semanticModel, testVariable, advanceExpression, out advanceOperationCode, out advanceIncrement);
+
+                                            if (advanceIncrement != null)
+                                            {
+                                                int incrementValue = (int)advanceIncrement.ConstantValue.Value;
+                                                if (advanceOperationCode == BinaryOperatorKind.Subtract)
+                                                {
+                                                    advanceOperationCode = BinaryOperatorKind.Add;
+                                                    incrementValue = -incrementValue;
+                                                }
+
+                                                if (advanceOperationCode == BinaryOperatorKind.Add &&
+                                                    incrementValue != 0 &&
+                                                    (condition.OperatorKind == BinaryOperatorKind.LessThan ||
+                                                     condition.OperatorKind == BinaryOperatorKind.LessThanOrEqual ||
+                                                     condition.OperatorKind == BinaryOperatorKind.NotEquals ||
+                                                     condition.OperatorKind == BinaryOperatorKind.GreaterThan ||
+                                                     condition.OperatorKind == BinaryOperatorKind.GreaterThanOrEqual))
+                                                {
+                                                    int iterationCount = (testValue - initialValue) / incrementValue;
+                                                    if (iterationCount >= 1000000)
+                                                    {
+                                                        Report(operationContext, forLoop.Syntax, BigForDescriptor);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void GetOperationKindAndValue(
+            SemanticModel semanticModel, ILocalSymbol testVariable, IOperation advanceExpression,
+            out BinaryOperatorKind advanceOperationCode, out IOperation advanceIncrement)
+        {
+            advanceIncrement = null;
+            advanceOperationCode = BinaryOperatorKind.None;
+
+            if (advanceExpression.Kind == OperationKind.SimpleAssignmentExpression)
+            {
+                ISimpleAssignmentExpression advanceAssignment = (ISimpleAssignmentExpression)advanceExpression;
+
+                if (advanceAssignment.Target.Kind == OperationKind.LocalReferenceExpression &&
+                    ((ILocalReferenceExpression)advanceAssignment.Target).Local == testVariable &&
+                    advanceAssignment.Value.Kind == OperationKind.BinaryOperatorExpression &&
+                    advanceAssignment.Value.Type.SpecialType == SpecialType.System_Int32)
+                {
+                    // Advance is known to be an assignment of a binary operation to the local used in the test.
+
+                    IBinaryOperatorExpression advanceOperation = (IBinaryOperatorExpression)advanceAssignment.Value;
+                    if (!advanceOperation.UsesOperatorMethod &&
+                        advanceOperation.LeftOperand.Kind == OperationKind.LocalReferenceExpression &&
+                        ((ILocalReferenceExpression)advanceOperation.LeftOperand).Local == testVariable &&
+                        advanceOperation.RightOperand.ConstantValue.HasValue &&
+                        advanceOperation.RightOperand.Type.SpecialType == SpecialType.System_Int32)
+                    {
+                        // Advance binary operation is known to involve a reference to the local used in the test and a constant.
+                        advanceIncrement = advanceOperation.RightOperand;
+                        advanceOperationCode = advanceOperation.OperatorKind;
+                    }
+                }
+            }
+            else if (advanceExpression.Kind == OperationKind.CompoundAssignmentExpression)
+            {
+                ICompoundAssignmentExpression advanceAssignment = (ICompoundAssignmentExpression)advanceExpression;
+
+                if (advanceAssignment.Target.Kind == OperationKind.LocalReferenceExpression &&
+                    ((ILocalReferenceExpression)advanceAssignment.Target).Local == testVariable &&
+                    advanceAssignment.Value.ConstantValue.HasValue &&
+                    advanceAssignment.Value.Type.SpecialType == SpecialType.System_Int32)
+                {
+                    // Advance binary operation is known to involve a reference to the local used in the test and a constant.
+                    advanceIncrement = advanceAssignment.Value;
+                    advanceOperationCode = advanceAssignment.OperatorKind;
+                }
+            }
+            else if (advanceExpression.Kind == OperationKind.IncrementExpression)
+            {
+                IIncrementExpression advanceAssignment = (IIncrementExpression)advanceExpression;
+
+                if (advanceAssignment.Target.Kind == OperationKind.LocalReferenceExpression &&
+                    ((ILocalReferenceExpression)advanceAssignment.Target).Local == testVariable)
+                {
+                    // Advance binary operation is known to involve a reference to the local used in the test and a constant.
+                    advanceIncrement = CreateIncrementOneLiteralExpression(semanticModel, advanceAssignment);
+                    advanceOperationCode = BinaryOperatorKind.Add;
+                }
+            }
+        }
+
+        private static ILiteralExpression CreateIncrementOneLiteralExpression(SemanticModel semanticModel, IIncrementExpression increment)
+        {
+            string text = increment.Syntax.ToString();
+            SyntaxNode syntax = increment.Syntax;
+            ITypeSymbol type = increment.Type;
+            Optional<object> constantValue = new Optional<object>(1);
+            return new LiteralExpression(semanticModel, syntax, type, constantValue, increment.IsImplicit);
+        }
+
+        private static int Abs(int value)
+        {
+            return value < 0 ? -value : value;
+        }
+
+        private void Report(OperationAnalysisContext context, SyntaxNode syntax, DiagnosticDescriptor descriptor)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(descriptor, syntax.GetLocation()));
+        }
+    }
+
     /// <summary>Analyzer used to test switch IOperations.</summary>
     public class SwitchTestAnalyzer : DiagnosticAnalyzer
     {
