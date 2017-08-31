@@ -794,8 +794,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
+            Dim bindingRoot = DirectCast(GetBindingRoot(node), VisualBasicSyntaxNode)
+
+            Dim result As BoundNode = Nothing
+            Dim statementOrRootOperation = GetStatementOrRootOperation(bindingRoot, options, result, cancellationToken)
+
+            ' we might optimize it later
+            Return statementOrRootOperation.DescendantsAndSelf().FirstOrDefault(Function(o) o.Syntax Is node)
+        End Function
+
+        Private Function GetStatementOrRootOperation(node As VisualBasicSyntaxNode, options As GetOperationOptions, ByRef result As BoundNode, cancellationToken As CancellationToken) As IOperation
+            Debug.Assert(node Is GetBindingRoot(node))
+
             Dim summary = GetBoundNodeSummary(node)
-            Dim result As BoundNode
             Select Case options
                 Case GetOperationOptions.Highest
                     result = summary.HighestBoundNode

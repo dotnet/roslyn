@@ -961,6 +961,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override IOperation GetOperationWorker(CSharpSyntaxNode node, GetOperationOptions options, CancellationToken cancellationToken)
         {
+            var bindingRoot = GetBindingRoot(node);
+
+            var statementOrRootOperation = GetStatementOrRootOperation(bindingRoot, options, cancellationToken);
+
+            // we might optimize it later
+            return statementOrRootOperation.DescendantsAndSelf().FirstOrDefault(o => o.Syntax == node);
+        }
+
+        private IOperation GetStatementOrRootOperation(CSharpSyntaxNode node, GetOperationOptions options, CancellationToken cancellationToken)
+        {
+            Debug.Assert(node == GetBindingRoot(node));
+
             CSharpSyntaxNode bindableNode;
 
             BoundNode lowestBoundNode;
@@ -1293,17 +1305,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             StatementSyntax enclosingStatement = null;
 
+#if DEBUG
             for (CSharpSyntaxNode current = node; current != this.Root; current = current.ParentOrStructuredTriviaParent)
             {
+                // make sure we never go out of Root
                 Debug.Assert(current != null, "How did we get outside the root?");
+            }
+#endif
 
-                if (enclosingStatement == null)
+            for (CSharpSyntaxNode current = node; current != this.Root; current = current.ParentOrStructuredTriviaParent)
+            {
+                enclosingStatement = current as StatementSyntax;
+                if (enclosingStatement != null)
                 {
-                    enclosingStatement = current as StatementSyntax;
+                    return enclosingStatement;
                 }
             }
 
-            return enclosingStatement ?? this.Root;
+            return this.Root;
         }
 
         // We want the binder in which this syntax node is going to be bound, NOT the binder which
@@ -1551,7 +1570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             while (node != null);
 
-done:
+            done:
             return GetEnclosingBinderInternalWithinRoot(AdjustStartingNodeAccordingToNewRoot(startingNode, queryClause.Syntax),
                                       position, queryClause.Binder, queryClause.Syntax);
         }

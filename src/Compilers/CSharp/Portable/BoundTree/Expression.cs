@@ -128,4 +128,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Expression);
     }
+
+    internal partial class BoundMethodGroup
+    {
+        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.ReceiverOpt);
+    }
+
+    internal partial class BoundPropertyGroup
+    {
+        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.ReceiverOpt);
+    }
 }

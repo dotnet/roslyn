@@ -186,32 +186,6 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return builder.ToImmutableAndFree()
         End Function
 
-        Private Function GetSwitchStatementCases(caseBlocks As ImmutableArray(Of BoundCaseBlock)) As ImmutableArray(Of ISwitchCase)
-            Return caseBlocks.SelectAsArray(
-                Function(boundCaseBlock)
-                    ' `CaseElseClauseSyntax` is bound to `BoundCaseStatement` with an empty list of case clauses,
-                    ' so we explicitly create an IOperation node for Case-Else clause to differentiate it from Case clause.
-                    Dim clauses As ImmutableArray(Of ICaseClause)
-                    Dim caseStatement = boundCaseBlock.CaseStatement
-                    Dim isImplicit As Boolean = boundCaseBlock.WasCompilerGenerated
-                    If caseStatement.CaseClauses.IsEmpty AndAlso caseStatement.Syntax.Kind() = SyntaxKind.CaseElseStatement Then
-                        clauses = ImmutableArray.Create(Of ICaseClause)(
-                                                                    New DefaultCaseClause(
-                                                                        _semanticModel,
-                                                                        caseStatement.Syntax,
-                                                                        type:=Nothing,
-                                                                        constantValue:=Nothing,
-                                                                        isImplicit:=isImplicit))
-                    Else
-                        clauses = caseStatement.CaseClauses.SelectAsArray(Function(n) DirectCast(Create(n), ICaseClause))
-                    End If
-
-                    Dim body = ImmutableArray.Create(Create(boundCaseBlock.Body))
-                    Dim syntax = boundCaseBlock.Syntax
-                    Return DirectCast(New SwitchCase(clauses, body, _semanticModel, syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=isImplicit), ISwitchCase)
-                End Function)
-        End Function
-
         Private Shared Function GetSingleValueCaseClauseValue(clause As BoundSimpleCaseClause) As BoundExpression
             If clause.ValueOpt IsNot Nothing Then
                 Return clause.ValueOpt
