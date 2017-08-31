@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -99,7 +99,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (j 
             Right: IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 1')
                 Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
                 Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-      IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
+      IBranchStatement (BranchKind.Break, Label: label_0) (OperationKind.BranchStatement) (Syntax: 'break;')
 ";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
@@ -146,7 +146,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (j 
             Right: IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 1')
                 Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
                 Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-      IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
+      IBranchStatement (BranchKind.Break, Label: label_0) (OperationKind.BranchStatement) (Syntax: 'break;')
 ";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
         }
@@ -197,7 +197,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (i 
         Condition: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i > 2')
             Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
             Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
-        IfTrue: IBranchStatement (BranchKind.Continue) (OperationKind.BranchStatement) (Syntax: 'continue;')
+        IfTrue: IBranchStatement (BranchKind.Continue, Label: label_0) (OperationKind.BranchStatement) (Syntax: 'continue;')
         IfFalse: null
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'j = j + 1;')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'j = j + 1')
@@ -255,7 +255,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (i 
         Condition: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i > 3')
             Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
             Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
-        IfTrue: IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
+        IfTrue: IBranchStatement (BranchKind.Break, Label: label_0) (OperationKind.BranchStatement) (Syntax: 'break;')
         IfFalse: null
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'j = j + 1;')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'j = j + 1')
@@ -296,7 +296,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (;;
         Condition: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i > 4')
             Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
             Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
-        IfTrue: IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
+        IfTrue: IBranchStatement (BranchKind.Break, Label: label_0) (OperationKind.BranchStatement) (Syntax: 'break;')
         IfFalse: null
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i = i + 2;')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = i + 2')
@@ -760,7 +760,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
               Condition: IBinaryOperatorExpression (BinaryOperatorKind.Equals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'j == 5')
                   Left: ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
                   Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
-              IfTrue: IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
+              IfTrue: IBranchStatement (BranchKind.Break, Label: label_0) (OperationKind.BranchStatement) (Syntax: 'break;')
               IfFalse: null
 ";
             VerifyOperationTreeForTest<ForStatementSyntax>(source, expectedOperationTree);
@@ -831,7 +831,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (in
                       Left: ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
                       Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
                   Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-              IfTrue: IBranchStatement (BranchKind.Continue) (OperationKind.BranchStatement) (Syntax: 'continue;')
+              IfTrue: IBranchStatement (BranchKind.Continue, Label: label_0) (OperationKind.BranchStatement) (Syntax: 'continue;')
               IfFalse: null
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i = i + 1;')
               Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = i + 1')

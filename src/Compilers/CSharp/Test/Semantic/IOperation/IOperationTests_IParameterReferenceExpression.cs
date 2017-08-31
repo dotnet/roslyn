@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -760,13 +760,13 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) 
   Sections:
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'case var y  ... break;')
           Clauses:
-              IPatternCaseClause (Label Symbol: case var y when (x >= 10):) (CaseKind.Pattern) (OperationKind.PatternCaseClause) (Syntax: 'case var y  ...  (x >= 10):')
+              IPatternCaseClause (Label: case var y when (x >= 10):) (CaseKind.Pattern) (OperationKind.PatternCaseClause) (Syntax: 'case var y  ...  (x >= 10):')
                 Pattern: IDeclarationPattern (Declared Symbol: System.Int32 y) (OperationKind.DeclarationPattern) (Syntax: 'var y')
                 Guard Expression: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x >= 10')
                     Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
                     Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
           Body:
-              IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
+              IBranchStatement (BranchKind.Break, Label: label_1) (OperationKind.BranchStatement) (Syntax: 'break;')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -799,18 +799,18 @@ ISwitchStatement (2 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) 
   Sections:
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'case var y  ... break;')
           Clauses:
-              IPatternCaseClause (Label Symbol: case var y when (x >= 10):) (CaseKind.Pattern) (OperationKind.PatternCaseClause) (Syntax: 'case var y  ...  (x >= 10):')
+              IPatternCaseClause (Label: case var y when (x >= 10):) (CaseKind.Pattern) (OperationKind.PatternCaseClause) (Syntax: 'case var y  ...  (x >= 10):')
                 Pattern: IDeclarationPattern (Declared Symbol: System.Int32 y) (OperationKind.DeclarationPattern) (Syntax: 'var y')
                 Guard Expression: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x >= 10')
                     Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
                     Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
           Body:
-              IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
+              IBranchStatement (BranchKind.Break, Label: label_1) (OperationKind.BranchStatement) (Syntax: 'break;')
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'default:/*< ... break;')
           Clauses:
               IDefaultCaseClause (CaseKind.Default) (OperationKind.DefaultCaseClause) (Syntax: 'default:')
           Body:
-              IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
+              IBranchStatement (BranchKind.Break, Label: label_1) (OperationKind.BranchStatement) (Syntax: 'break;')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

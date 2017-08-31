@@ -28,7 +28,7 @@ class C
             string expectedOperationTree = @"
 IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
   IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'if (p < 0) p = 0;')
-    IConditionalGotoStatement (JumpIfTrue: False) (OperationKind.ConditionalGotoStatement) (Syntax: 'p < 0')
+    IConditionalGotoStatement (JumpIfTrue: False, Target: label_0) (OperationKind.ConditionalGotoStatement) (Syntax: 'p < 0')
       Condition: IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'p < 0')
           Left: IParameterReferenceExpression: p (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'p')
           Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -36,7 +36,7 @@ IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }'
       Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'p = 0')
           Left: IParameterReferenceExpression: p (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'p')
           Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-    ILabeledStatement (OperationKind.LabeledStatement) (Syntax: 'if (p < 0) p = 0;')
+    ILabeledStatement (Label: label_0) (OperationKind.LabeledStatement) (Syntax: 'if (p < 0) p = 0;')
       Statement: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -61,7 +61,7 @@ class C
             string expectedOperationTree = @"
 IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
   IBlockStatement (6 statements) (OperationKind.BlockStatement) (Syntax: 'if (p < 0)  ... else p = 1;')
-    IConditionalGotoStatement (JumpIfTrue: False) (OperationKind.ConditionalGotoStatement) (Syntax: 'p < 0')
+    IConditionalGotoStatement (JumpIfTrue: False, Target: label_0) (OperationKind.ConditionalGotoStatement) (Syntax: 'p < 0')
       Condition: IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'p < 0')
           Left: IParameterReferenceExpression: p (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'p')
           Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -69,14 +69,14 @@ IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }'
       Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'p = 0')
           Left: IParameterReferenceExpression: p (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'p')
           Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-    IBranchStatement (BranchKind.GoTo) (OperationKind.BranchStatement) (Syntax: 'if (p < 0)  ... else p = 1;')
-    ILabeledStatement (OperationKind.LabeledStatement) (Syntax: 'if (p < 0)  ... else p = 1;')
+    IBranchStatement (BranchKind.GoTo, Label: label_1) (OperationKind.BranchStatement) (Syntax: 'if (p < 0)  ... else p = 1;')
+    ILabeledStatement (Label: label_0) (OperationKind.LabeledStatement) (Syntax: 'if (p < 0)  ... else p = 1;')
       Statement: null
     IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'p = 1;')
       Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'p = 1')
           Left: IParameterReferenceExpression: p (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'p')
           Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-    ILabeledStatement (OperationKind.LabeledStatement) (Syntax: 'if (p < 0)  ... else p = 1;')
+    ILabeledStatement (Label: label_1) (OperationKind.LabeledStatement) (Syntax: 'if (p < 0)  ... else p = 1;')
       Statement: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;

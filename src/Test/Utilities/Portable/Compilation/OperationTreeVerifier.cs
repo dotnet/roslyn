@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private readonly Compilation _compilation;
         private readonly IOperation _root;
         private readonly StringBuilder _builder;
+        private readonly IDictionary<ILabelSymbol, int> _labelIds;
 
         private const string indent = "  ";
         private string _currentIndent;
@@ -32,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _compilation = compilation;
             _root = root;
             _builder = new StringBuilder();
+            _labelIds = new Dictionary<ILabelSymbol, int>();
 
             _currentIndent = new string(' ', initialIndent);
             _pendingIndent = true;
@@ -221,6 +223,33 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var typeStr = type != null ? type.ToTestDisplayString() : "null";
             LogString($"{header}: {typeStr}");
+        }
+
+        private void LogLabel(ILabelSymbol label, string header = "Label")
+        {
+            var labelStr = "null";
+
+            if (label != null)
+            {
+                var isKnownLabel = _labelIds.TryGetValue(label, out int labelId);
+
+                if (!isKnownLabel)
+                {
+                    labelId = _labelIds.Count;
+                    _labelIds.Add(label, labelId);
+                }            
+
+                if (label.IsImplicitlyDeclared)
+                {
+                    labelStr = $"label_{labelId}";
+                }
+                else
+                {
+                    labelStr = label.Name;
+                }
+            }
+
+            LogString($"{header}: {labelStr}");
         }
 
         private static string FormatBoolProperty(string propertyName, bool value) => $"{propertyName}: {(value ? "True" : "False")}";
@@ -474,12 +503,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(ILabeledStatement));
 
-            // TODO: Put a better workaround to skip compiler generated labels.
-            if (!operation.Label.IsImplicitlyDeclared)
-            {
-                LogString($" (Label: {operation.Label.Name})");
-            }
-
+            LogLabel(operation.Label, " (Label");
+            LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Statement, "Statement");
@@ -488,9 +513,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitBranchStatement(IBranchStatement operation)
         {
             LogString(nameof(IBranchStatement));
-            var kindStr = $"{nameof(BranchKind)}.{operation.BranchKind}";
-            var labelStr = !operation.Target.IsImplicitlyDeclared ? $", Label: {operation.Target.Name}" : string.Empty;
-            LogString($" ({kindStr}{labelStr})");
+            LogString($" ({nameof(BranchKind)}.{operation.BranchKind}, ");
+            LogLabel(operation.Target, "Label");
+            LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
             base.VisitBranchStatement(operation);
@@ -1321,7 +1346,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitPatternCaseClause(IPatternCaseClause operation)
         {
             LogString(nameof(IPatternCaseClause));
-            LogSymbol(operation.Label, " (Label Symbol");
+            LogLabel(operation.Label, " (Label");
             LogString(")");
             LogCaseClauseCommon(operation);
 
@@ -1333,13 +1358,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IConditionalGotoStatement));
             LogString($" (JumpIfTrue: {operation.JumpIfTrue}");
-
-            // TODO: Put a better workaround to skip compiler generated labels.
-            if (!operation.Target.IsImplicitlyDeclared)
-            {
-                LogString($", Target: {operation.Target.Name}");
-            }
-
+            LogLabel(operation.Target, ", Target");
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 

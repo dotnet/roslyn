@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -188,7 +188,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""While-loop break"") (Syntax: '""While-loop break""')
                         InConversion: null
                         OutConversion: null
-            IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
+            IBranchStatement (BranchKind.Break, Label: label_0) (OperationKind.BranchStatement) (Syntax: 'break;')
         IfFalse: null
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... tatement"");')
         Expression: IInvocationExpression (void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... statement"")')
@@ -553,7 +553,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
             Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 9) (Syntax: '9')
         IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-            IBranchStatement (BranchKind.Continue) (OperationKind.BranchStatement) (Syntax: 'continue;')
+            IBranchStatement (BranchKind.Continue, Label: label_0) (OperationKind.BranchStatement) (Syntax: 'continue;')
         IfFalse: null
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... iteLine(i);')
         Expression: IInvocationExpression (void System.Console.WriteLine(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... riteLine(i)')
