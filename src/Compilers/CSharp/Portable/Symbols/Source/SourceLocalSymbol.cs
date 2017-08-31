@@ -84,6 +84,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _scopeBinder.ScopeDesignator; }
         }
 
+        internal override uint RefEscapeScope
+        {
+            get
+            {
+                return _refEscapeScope;
+            }
+        }
+
+        internal override uint ValEscapeScope
+        {
+            get
+            {
+                return _valEscapeScope;
+            }
+        }
+
         /// <summary>
         /// Binder that should be used to bind type syntax for the local.
         /// </summary>
@@ -378,11 +394,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Interlocked.CompareExchange(ref _type, newType, null);
             }
-
-            // to handle error self-referential cases we will default to the current scope
-            _valEscapeScope = _type.IsByRefLikeType ?
-                                _scopeBinder.LocalScopeDepth : 
-                                Binder.ExternalScope;
         }
 
         /// <summary>
@@ -514,7 +525,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _initializerBinder = initializerBinder;
 
                 // default to the current scope in case we need to handle self-referential error cases.
-                _refEscapeScope = _scopeBinder.LocalScopeDepth; 
+                _refEscapeScope = _scopeBinder.LocalScopeDepth;
+                _valEscapeScope = _scopeBinder.LocalScopeDepth;
             }
 
             protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
@@ -584,22 +596,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(value <= _valEscapeScope);
                 _valEscapeScope = value;
-            }
-
-            internal override uint RefEscapeScope
-            {
-                get
-                {
-                    return _refEscapeScope;
-                }
-            }
-
-            internal override uint ValEscapeScope
-            {
-                get
-                {
-                    return _valEscapeScope;
-                }
             }
         }
 
