@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -868,7 +868,6 @@ Class C
         Return 0
     End Operator
 
-
     Public Shared Narrowing Operator CType(ByVal i As Integer) As C
         Return New C()
     End Operator
@@ -907,7 +906,6 @@ Class C
     Public Shared Widening Operator CType(ByVal c As C) As Integer
         Return 0
     End Operator
-
 
     Public Shared Narrowing Operator CType(ByVal i As Integer) As C
         Return New C()
@@ -972,6 +970,42 @@ BC33037: Cannot copy the value of 'ByRef' parameter 'a' back to the matching arg
            ~
 ]]>.Value
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub TestCloneInOutConversion()
+            Dim source = <![CDATA[
+Class C
+    Public Shared Widening Operator CType(ByVal c As C) As Integer
+        Return 0
+    End Operator
+
+    Public Shared Narrowing Operator CType(ByVal i As Integer) As C
+        Return New C()
+    End Operator
+End Class
+
+Class Program
+    Sub M1()
+        Dim x = New C()
+        Dim y = New C()
+        Dim z = New C()
+        M2(x, y, z)
+    End Sub
+
+    Sub M2(ByRef a As Integer, ByRef b As Double, ByRef c As C)
+    End Sub
+End Class]]>.Value            
+
+            Dim fileName = "a.vb"
+            Dim syntaxTree = Parse(source, fileName, options:=Nothing)
+
+            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, DefaultVbReferences.Concat({ValueTupleRef, SystemRuntimeFacadeRef}))
+            Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
+            Dim model = compilation.GetSemanticModel(tree)
+
+            VerifyClone(model)
         End Sub
     End Class
 End Namespace
