@@ -782,7 +782,8 @@ namespace System
     {
     }
 }";
-                var comp = CreateCompilation(source, options: TestOptions.DebugDll, references: new[] { refLib, AssemblyMetadata.Create(module).GetReference() });
+                // PROTOTYPE(NullableReferenceTypes): C#8 projects require System.Attribute.
+                var comp = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7, references: new[] { refLib, AssemblyMetadata.Create(module).GetReference() });
                 comp.VerifyDiagnostics();
 
                 using (var runtime = RuntimeInstance.Create(new[] { comp.ToModuleInstance(), moduleInstance }))
@@ -1000,6 +1001,13 @@ namespace System
             {
                 _builder = builder;
                 _objectType = new NamespaceTypeDefinitionNoBase(objectType);
+            }
+
+            internal override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes()
+            {
+                var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+                GetEmbeddedAttributes(builder);
+                return builder.ToImmutableAndFree();
             }
 
             internal override IEnumerable<INamespaceTypeDefinition> GetTopLevelTypesCore(EmitContext context)

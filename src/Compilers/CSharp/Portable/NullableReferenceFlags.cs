@@ -21,20 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         internal static NullableReferenceFlags GetNullableReferenceFlags(this CSharpParseOptions options)
         {
-            if ((object)options != null)
+            if ((object)options != null && options.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking))
             {
-                var feature = MessageID.IDS_FeatureStaticNullChecking.RequiredFeature();
-                if (options.Features.TryGetValue(feature, out var value))
+                if (options.Features.TryGetValue("staticNullChecking", out var value) &&
+                    int.TryParse(value, out var flags))
                 {
-                    if (value == "true")
-                    {
-                        return NullableReferenceFlags.Enabled;
-                    }
-                    if (int.TryParse(value, out var flags))
-                    {
-                        return NullableReferenceFlags.Enabled | (NullableReferenceFlags)flags;
-                    }
+                    return NullableReferenceFlags.Enabled | (NullableReferenceFlags)flags;
                 }
+                return NullableReferenceFlags.Enabled;
             }
             return NullableReferenceFlags.None;
         }

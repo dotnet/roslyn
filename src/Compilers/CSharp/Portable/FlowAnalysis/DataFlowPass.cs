@@ -2288,6 +2288,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     VisitArgumentAsRvalue(arguments[i], constructor.Parameters[i], expanded: false);
 
+                    // PROTOTYPE(NullableReferenceTypes): node.Declarations includes
+                    // explicitly -named properties only. For now, skip expressions
+                    // with implicit names. See StaticNullChecking.AnonymousTypes_05.
+                    if (node.Declarations.Length < arguments.Length)
+                    {
+                        continue;
+                    }
+
                     PropertySymbol property = node.Declarations[i].Property;
 
                     if (IsTrackableAnonymousTypeProperty(property))
@@ -2437,7 +2445,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 VisitRvalue(binary.Right);
                 Debug.Assert(!IsConditionalState);
-                Debug.Assert(this.State.Reachable);
+                // At this point, State.Reachable may be false for
+                // invalid code such as `s + throw new Exception()`.
                 bool? rightIsNotNull = this.State.ResultIsNotNull;
 
                 if (warnOnNullReferenceArgument)
@@ -2448,7 +2457,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AfterRightChildHasBeenVisited(binary);
 
                 Debug.Assert(!IsConditionalState);
-                Debug.Assert(this.State.Reachable);
                 this.State.ResultIsNotNull = InferResultNullability(binary, leftIsNotNull, rightIsNotNull);
 
                 BinaryOperatorKind op = binary.OperatorKind.Operator();
@@ -2813,6 +2821,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return null;
                         }
 
+                    case ConversionKind.Unboxing:
                     case ConversionKind.ExplicitDynamic:
                     case ConversionKind.ImplicitDynamic:
                     case ConversionKind.NoConversion:
@@ -2844,6 +2853,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ConversionKind.ExplicitReference:
                         // Inherit state from the operand
                         return operandIsNotNull;
+
+                    case ConversionKind.Deconstruction:
+                        // Can reach here, with a error type, when the
+                        // Deconstruct method is missing or inaccessible.
+                        return null;
 
                     default:
                         Debug.Assert(false);

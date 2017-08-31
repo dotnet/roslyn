@@ -1013,7 +1013,7 @@ public interface I {}";
 
             var comp = CSharpCompilation.Create(
                 "DupSignedRefs",
-                new[] { SyntaxFactory.ParseSyntaxTree(text) },
+                new[] { SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Regular) },
                 new[] { MetadataReference.CreateFromFile(p1), MetadataReference.CreateFromFile(p2) },
                 TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
 

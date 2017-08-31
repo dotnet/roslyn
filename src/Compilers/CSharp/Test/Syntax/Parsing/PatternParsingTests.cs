@@ -72,11 +72,7 @@ class C
     }
     public static void NeverReturns() => throw new NullReferenceException();
 }";
-            CreateStandardCompilation(test).VerifyDiagnostics(
-                // (9,13): hidden CS8607: Expression is probably never null.
-                //         s = s ?? throw new NullReferenceException();
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "s").WithLocation(9, 13)
-                );
+            CreateStandardCompilation(test).VerifyDiagnostics();
             CreateStandardCompilation(test, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (6,14): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
                 //         void NeverReturnsFunction() => throw new NullReferenceException();

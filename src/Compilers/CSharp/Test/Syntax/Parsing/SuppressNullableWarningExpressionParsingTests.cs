@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         {
             UsingNode(
                 "o = o!",
-                TestOptions.Regular.WithNullCheckingFeature(NullableReferenceFlags.None));
+                TestOptions.Regular8);
             N(SyntaxKind.SimpleAssignmentExpression);
             {
                 N(SyntaxKind.IdentifierName);
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 
             UsingNode(
                 "o = o!!",
-                TestOptions.Regular.WithNullCheckingFeature(NullableReferenceFlags.None));
+                TestOptions.Regular8);
             N(SyntaxKind.SimpleAssignmentExpression);
             {
                 N(SyntaxKind.IdentifierName);
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 
             UsingNode(
                 "o = !o!",
-                TestOptions.Regular.WithNullCheckingFeature(NullableReferenceFlags.None));
+                TestOptions.Regular8);
             N(SyntaxKind.SimpleAssignmentExpression);
             {
                 N(SyntaxKind.IdentifierName);
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         {
             UsingNode(
                 "o = o!!=null",
-                TestOptions.Regular.WithNullCheckingFeature(NullableReferenceFlags.None));
+                TestOptions.Regular8);
             N(SyntaxKind.SimpleAssignmentExpression);
             {
                 N(SyntaxKind.IdentifierName);
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         {
             UsingNode(
                 "o = o!==null",
-                TestOptions.Regular.WithNullCheckingFeature(NullableReferenceFlags.None),
+                TestOptions.Regular8,
                 // (1,8): error CS1525: Invalid expression term '='
                 // o = o!==null
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(1, 8));
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         {
             UsingNode(
                 "o!?.ToString()",
-                TestOptions.Regular.WithNullCheckingFeature(NullableReferenceFlags.None));
+                TestOptions.Regular8);
             N(SyntaxKind.ConditionalAccessExpression);
             {
                 N(SyntaxKind.SuppressNullableWarningExpression);

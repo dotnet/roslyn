@@ -3158,8 +3158,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool HaveNullableOptOutForDefinition(Symbol definition)
         {
-            return definition.NullableOptOut &&
-                (this.GetNullableReferenceFlags() & NullableReferenceFlags.AllowMemberOptOut) != 0;
+            // PROTOTYPE(NullableReferenceTypes): Checking NullableOptOut can result in cycle
+            // decoding attributes. See StaticNullChecking.NullableOptOut_DecodeAttributeCycle_02.
+            //return definition.NullableOptOut &&
+            //    (this.GetNullableReferenceFlags() & NullableReferenceFlags.AllowMemberOptOut) != 0;
+            return false;
         }
 
         internal TypeSymbolWithAnnotations GetFieldTypeWithAdjustedNullableAnnotations(FieldSymbol field, ConsList<FieldSymbol> fieldsBeingBound)

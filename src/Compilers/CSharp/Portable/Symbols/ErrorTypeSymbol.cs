@@ -576,6 +576,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             return _hashCode;
         }
+
+        internal override bool NullableOptOut => _originalDefinition.NullableOptOut;
     }
 
     internal sealed class ConstructedErrorTypeSymbol : SubstitutedErrorTypeSymbol

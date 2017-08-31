@@ -6404,7 +6404,8 @@ public class C
             Assert.Equal("", outWriter.ToString().Trim());
 
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/preferreduilang:en", "/nostdlib", "/t:library", src.ToString() }).Run(outWriter);
+            // PROTOTYPE(NullableReferenceTypes): C#8 projects require System.Attribute.
+            exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/preferreduilang:en", "/nostdlib", "/t:library", "/langversion:7", src.ToString() }).Run(outWriter);
             Assert.Equal(1, exitCode);
             Assert.Equal("{FILE}(1,14): error CS0518: Predefined type 'System.Object' is not defined or imported",
                          outWriter.ToString().Replace(Path.GetFileName(src.Path), "{FILE}").Trim());
@@ -6412,7 +6413,8 @@ public class C
             // Bug#15021: breaking change - empty source no error with /nostdlib
             src.WriteAllText("namespace System { }");
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/nostdlib", "/t:library", "/runtimemetadataversion:v4.0.30319", src.ToString() }).Run(outWriter);
+            // PROTOTYPE(NullableReferenceTypes): C#8 projects require System.Attribute.
+            exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/nostdlib", "/t:library", "/langversion:7", "/runtimemetadataversion:v4.0.30319", src.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
 
@@ -7998,10 +8000,12 @@ using System.Diagnostics; // Unused.
             Assert.Equal(0, parsedArgs.Errors.Length);
             Assert.Equal("-_+@%#*^", parsedArgs.EmitOptions.RuntimeMetadataVersion);
 
-            var comp = CreateCompilation(string.Empty);
+            // PROTOTYPE(NullableReferenceTypes): C#8 projects require System.Attribute.
+            var comp = CreateCompilation(string.Empty, parseOptions: TestOptions.Regular7);
             Assert.Equal(ModuleMetadata.CreateFromImage(comp.EmitToArray(new EmitOptions(runtimeMetadataVersion: "v4.0.30319"))).Module.MetadataVersion, "v4.0.30319");
 
-            comp = CreateCompilation(string.Empty);
+            // PROTOTYPE(NullableReferenceTypes): C#8 projects require System.Attribute.
+            comp = CreateCompilation(string.Empty, parseOptions: TestOptions.Regular7);
             Assert.Equal(ModuleMetadata.CreateFromImage(comp.EmitToArray(new EmitOptions(runtimeMetadataVersion: "_+@%#*^"))).Module.MetadataVersion, "_+@%#*^");
         }
 
@@ -9262,7 +9266,7 @@ public class C
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var csc = new MockCSharpCompiler(null, dir.Path,
-                new[] { "/nologo", "/out:a.exe", "/refout:ref/a.dll", "/doc:doc.xml", "/deterministic", "a.cs" });
+                new[] { "/nologo", "/out:a.exe", "/refout:ref/a.dll", "/doc:doc.xml", "/deterministic", "/langversion:7", "a.cs" });
 
             int exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
@@ -9378,7 +9382,7 @@ class C
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var csc = new MockCSharpCompiler(null, dir.Path,
-                new[] { "/nologo", "/out:a.dll", "/refonly", "/debug", "/deterministic", "/doc:doc.xml", "a.cs" });
+                new[] { "/nologo", "/out:a.dll", "/refonly", "/debug", "/deterministic", "/langversion:7", "/doc:doc.xml", "a.cs" });
             int exitCode = csc.Run(outWriter);
             Assert.Equal("", outWriter.ToString());
             Assert.Equal(0, exitCode);

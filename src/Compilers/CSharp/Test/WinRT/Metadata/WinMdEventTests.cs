@@ -2360,12 +2360,6 @@ public partial class A : I
                 verify: OSVersion.IsWin8);
 
             verifier.VerifyDiagnostics(
-                // (14,16): hidden CS8606: Result of the comparison is possibly always false.
-                //         return d.d1 == null;
-                Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, "d.d1 == null").WithLocation(14, 16),
-                // (26,16): hidden CS8606: Result of the comparison is possibly always false.
-                //         return d.d1 == null;
-                Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, "d.d1 == null").WithLocation(26, 16),
                 // (7,42): warning CS0067: The event 'A.d2' is never used
                 //     public event genericDelegate<object> d2;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "d2").WithArguments("A.d2").WithLocation(7, 42),

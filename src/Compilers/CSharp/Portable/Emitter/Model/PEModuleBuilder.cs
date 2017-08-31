@@ -412,6 +412,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
+        internal void GetEmbeddedAttributes(ArrayBuilder<NamedTypeSymbol> builder)
+        {
+            // PROTOTYPE(NullableReferenceTypes): Handle NullableAttribute consistently
+            // with other embedded attributes. For now, we include the type explicitly.
+            var diagnostics = DiagnosticBag.GetInstance();
+            builder.AddIfNotNull(SourceModule.GetNullableAttribute(diagnostics));
+            diagnostics.Free();
+        }
+
         private static void GetExportedTypes(NamespaceOrTypeSymbol symbol, int parentIndex, ArrayBuilder<Cci.ExportedType> builder)
         {
             int index;
