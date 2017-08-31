@@ -39,6 +39,7 @@ try
     {
         "dev15.4.x" { }
         "master" { }
+        "features/remotels" { }
         default
         {
             if (-not $test)
