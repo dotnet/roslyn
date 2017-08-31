@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IOperation VisitIsTypeExpression(IIsTypeExpression operation, object argument)
         {
-            return new IsTypeExpression(Visit(operation.Operand), operation.IsType, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new IsTypeExpression(Visit(operation.Operand), operation.IsType, operation.IsNotTypeExpression, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitSizeOfExpression(ISizeOfExpression operation, object argument)
