@@ -218,7 +218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Language
         ''' <param name="options">The parse options being used.</param>
         ''' <param name="node">The node to attach the diagnostic to, when feature is unavailable.</param>
         ''' <returns>
-        ''' If Feature is unavaible return the <paramref name="node"/> with the unavailable diagnostic attached to it.</returns>
+        ''' If Feature is unavailable return the <paramref name="node"/> with the unavailable diagnostic attached to it.</returns>
         <Extension>
         Friend Function ReportFeatureUnavailable(Of TNode As Syntax.InternalSyntax.VisualBasicSyntaxNode)(node As TNode, feature As Feature, options As VisualBasicParseOptions) As TNode
             Dim f = feature.GetNameAndRequiredVersion()
@@ -282,7 +282,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Language
         ''' <param name="options">The parse options being used.</param>
         ''' <param name="location">The location to report the diagnostic.</param>
         <Extension>
-        Friend Function CheckFeatureAvailable(feature As Feature, options As VisualBasicParseOptions, location As Location) As Diagnostic
+        Friend Function CheckFeatureAvailability(feature As Feature, options As VisualBasicParseOptions, location As Location) As Diagnostic
             Return If(feature.IsAvailable(options), Nothing, ReportFeatureUnavailable(feature, options, location))
         End Function
 

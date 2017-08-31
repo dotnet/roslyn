@@ -788,7 +788,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                                         If cast.Keyword.Kind = SyntaxKind.CObjKeyword Then
                                             Dim result = Feature.CObjInAttributeArguments.
-                                                                 CheckFeatureAvailable(DirectCast(cast.SyntaxTree, VisualBasicSyntaxTree).Options,
+                                                                 CheckFeatureAvailability(DirectCast(cast.SyntaxTree, VisualBasicSyntaxTree).Options,
                                                                                           cast.Keyword.GetLocation())
                                             If result IsNot Nothing Then diagBag.Add(result)
                                         End If

@@ -469,7 +469,7 @@ DoneWithErrorReporting:
                        implementingProperty.GetMethod IsNot Nothing AndAlso implementingProperty.SetMethod IsNot Nothing Then
                     With implementedMemberSyntax
                         Dim result = Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite.
-                                         CheckFeatureAvailable(DirectCast(.SyntaxTree, VisualBasicSyntaxTree).Options,
+                                         CheckFeatureAvailability(DirectCast(.SyntaxTree, VisualBasicSyntaxTree).Options,
                                                                   .GetLocation())
                         If result IsNot Nothing Then
                             errorReported = True
