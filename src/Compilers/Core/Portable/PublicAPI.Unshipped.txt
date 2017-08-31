@@ -187,15 +187,6 @@ Microsoft.CodeAnalysis.Semantics.CommonConversion.IsNumeric.get -> bool
 Microsoft.CodeAnalysis.Semantics.CommonConversion.IsReference.get -> bool
 Microsoft.CodeAnalysis.Semantics.CommonConversion.IsUserDefined.get -> bool
 Microsoft.CodeAnalysis.Semantics.CommonConversion.MethodSymbol.get -> Microsoft.CodeAnalysis.IMethodSymbol
-Microsoft.CodeAnalysis.Semantics.ConversionKind
-Microsoft.CodeAnalysis.Semantics.ConversionKind.Basic = 3 -> Microsoft.CodeAnalysis.Semantics.ConversionKind
-Microsoft.CodeAnalysis.Semantics.ConversionKind.CSharp = 4 -> Microsoft.CodeAnalysis.Semantics.ConversionKind
-Microsoft.CodeAnalysis.Semantics.ConversionKind.Cast = 1 -> Microsoft.CodeAnalysis.Semantics.ConversionKind
-Microsoft.CodeAnalysis.Semantics.ConversionKind.InterpolatedString = 6 -> Microsoft.CodeAnalysis.Semantics.ConversionKind
-Microsoft.CodeAnalysis.Semantics.ConversionKind.Invalid = 15 -> Microsoft.CodeAnalysis.Semantics.ConversionKind
-Microsoft.CodeAnalysis.Semantics.ConversionKind.None = 0 -> Microsoft.CodeAnalysis.Semantics.ConversionKind
-Microsoft.CodeAnalysis.Semantics.ConversionKind.OperatorMethod = 5 -> Microsoft.CodeAnalysis.Semantics.ConversionKind
-Microsoft.CodeAnalysis.Semantics.ConversionKind.TryCast = 2 -> Microsoft.CodeAnalysis.Semantics.ConversionKind
 Microsoft.CodeAnalysis.Semantics.IAddressOfExpression
 Microsoft.CodeAnalysis.Semantics.IAddressOfExpression.Reference.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IAnonymousObjectCreationExpression

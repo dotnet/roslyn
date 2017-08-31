@@ -124,53 +124,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             return builder.ToImmutableAndFree();
         }
 
-        private static ConversionKind GetConversionKind(CSharp.ConversionKind kind)
-        {
-            switch (kind)
-            {
-                case CSharp.ConversionKind.ExplicitUserDefined:
-                case CSharp.ConversionKind.ImplicitUserDefined:
-                    return Semantics.ConversionKind.OperatorMethod;
-
-                case CSharp.ConversionKind.ExplicitReference:
-                case CSharp.ConversionKind.ImplicitReference:
-                case CSharp.ConversionKind.Boxing:
-                case CSharp.ConversionKind.Unboxing:
-                case CSharp.ConversionKind.Identity:
-                    return Semantics.ConversionKind.Cast;
-
-                case CSharp.ConversionKind.AnonymousFunction:
-                case CSharp.ConversionKind.ExplicitDynamic:
-                case CSharp.ConversionKind.ImplicitDynamic:
-                case CSharp.ConversionKind.ExplicitEnumeration:
-                case CSharp.ConversionKind.ImplicitEnumeration:
-                case CSharp.ConversionKind.ImplicitThrow:
-                case CSharp.ConversionKind.ImplicitTupleLiteral:
-                case CSharp.ConversionKind.ImplicitTuple:
-                case CSharp.ConversionKind.ExplicitTupleLiteral:
-                case CSharp.ConversionKind.ExplicitTuple:
-                case CSharp.ConversionKind.ExplicitNullable:
-                case CSharp.ConversionKind.ImplicitNullable:
-                case CSharp.ConversionKind.ExplicitNumeric:
-                case CSharp.ConversionKind.ImplicitNumeric:
-                case CSharp.ConversionKind.ImplicitConstant:
-                case CSharp.ConversionKind.IntegerToPointer:
-                case CSharp.ConversionKind.IntPtr:
-                case CSharp.ConversionKind.DefaultOrNullLiteral:
-                case CSharp.ConversionKind.NullToPointer:
-                case CSharp.ConversionKind.PointerToInteger:
-                case CSharp.ConversionKind.PointerToPointer:
-                case CSharp.ConversionKind.PointerToVoid:
-                    return Semantics.ConversionKind.CSharp;
-
-                case CSharp.ConversionKind.InterpolatedString:
-                    return Semantics.ConversionKind.InterpolatedString;
-
-                default:
-                    return Semantics.ConversionKind.Invalid;
-            }
-        }
-
         private static ITypeSymbol GetArrayCreationElementType(BoundArrayCreation creation)
         {
             IArrayTypeSymbol arrayType = creation.Type as IArrayTypeSymbol;
