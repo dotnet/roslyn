@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim vbDestination = destination.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(destination))
 
-            Dim boundExpression = TryCast(Me.GetLowerBoundNode(expression), boundExpression)
+            Dim boundExpression = TryCast(Me.GetLowerBoundNode(expression), BoundExpression)
 
             If boundExpression Is Nothing OrElse vbDestination.IsErrorType() Then
                 Return New Conversion(Nothing)  ' NoConversion
@@ -177,17 +177,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
 
-            Dim expressionSyntax = TryCast(parent, expressionSyntax)
+            Dim expressionSyntax = TryCast(parent, ExpressionSyntax)
             If expressionSyntax IsNot Nothing Then
                 Return SyntaxFactory.GetStandaloneExpression(expressionSyntax)
             End If
 
-            Dim statementSyntax = TryCast(parent, statementSyntax)
+            Dim statementSyntax = TryCast(parent, StatementSyntax)
             If statementSyntax IsNot Nothing AndAlso IsStandaloneStatement(statementSyntax) Then
                 Return statementSyntax
             End If
 
-            Dim attributeSyntax = TryCast(parent, attributeSyntax)
+            Dim attributeSyntax = TryCast(parent, AttributeSyntax)
             If attributeSyntax IsNot Nothing Then
                 Return attributeSyntax
             End If
@@ -798,9 +798,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim result As BoundNode = Nothing
             Dim statementOrRootOperation = GetStatementOrRootOperation(bindingRoot, options, result, cancellationToken)
+            If statementOrRootOperation Is Nothing Then
+                Return Nothing
+            End If
 
             ' we might optimize it later
-            Return statementOrRootOperation.DescendantsAndSelf().FirstOrDefault(Function(o) o.Syntax Is node)
+            Return statementOrRootOperation.DescendantsAndSelf().FirstOrDefault(Function(o) Not o.IsImplicit AndAlso o.Syntax Is node)
         End Function
 
         Private Function GetStatementOrRootOperation(node As VisualBasicSyntaxNode, options As GetOperationOptions, ByRef result As BoundNode, cancellationToken As CancellationToken) As IOperation

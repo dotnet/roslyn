@@ -961,17 +961,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override IOperation GetOperationWorker(CSharpSyntaxNode node, GetOperationOptions options, CancellationToken cancellationToken)
         {
-            var bindingRoot = GetBindingRoot(node);
+            var bindingRoot = GetBindingRootOrFieldInitializer(node);
 
             var statementOrRootOperation = GetStatementOrRootOperation(bindingRoot, options, cancellationToken);
+            if (statementOrRootOperation == null)
+            {
+                return null;
+            }
 
             // we might optimize it later
-            return statementOrRootOperation.DescendantsAndSelf().FirstOrDefault(o => o.Syntax == node);
+            return statementOrRootOperation.DescendantsAndSelf().FirstOrDefault(o => !o.IsImplicit && o.Syntax == node);
+        }
+
+        private CSharpSyntaxNode GetBindingRootOrFieldInitializer(CSharpSyntaxNode node)
+        {
+            var bindingRoot = GetBindingRoot(node);
+
+            // if binding root is field variable declarator, make it initializer
+            var variableDeclarator = bindingRoot as VariableDeclaratorSyntax;
+            if (variableDeclarator != null && 
+                variableDeclarator.Parent?.Parent.IsKind(SyntaxKind.FieldDeclaration) == true &&
+                variableDeclarator.Initializer?.FullSpan.Contains(node.Span) == true)
+            {
+                // we need to do this since node map doesn't contain bound node for field variable declarator
+                bindingRoot = variableDeclarator.Initializer;
+            }
+
+            return bindingRoot;
         }
 
         private IOperation GetStatementOrRootOperation(CSharpSyntaxNode node, GetOperationOptions options, CancellationToken cancellationToken)
         {
-            Debug.Assert(node == GetBindingRoot(node));
+            Debug.Assert(node == GetBindingRootOrFieldInitializer(node));
 
             CSharpSyntaxNode bindableNode;
 
