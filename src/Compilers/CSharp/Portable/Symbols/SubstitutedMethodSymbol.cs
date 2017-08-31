@@ -369,9 +369,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // may still be considered equal, we do not want to give different hashcode to such types.
             //
             // Example:
-            //   Having original method A<U>.Foo<V>() we create two _unconstructed_ methods
-            //    A<int>.Foo<V'>
-            //    A<int>.Foo<V">     
+            //   Having original method A<U>.Goo<V>() we create two _unconstructed_ methods
+            //    A<int>.Goo<V'>
+            //    A<int>.Goo<V">     
             //  Note that V' and V" are type parameters substituted via alpha-renaming of original V
             //  These are different objects, but represent the same "type parameter at index 1"
             //

@@ -29,8 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.M
         Protected Overloads Function TestRenameTypeToMatchFileAsync(
             originalCode As XElement,
             Optional expectedCode As XElement = Nothing,
-            Optional expectedCodeAction As Boolean = True,
-            Optional ignoreTrivia As Boolean = True
+            Optional expectedCodeAction As Boolean = True
         ) As Task
 
             Dim expectedText As String = Nothing
@@ -39,18 +38,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.M
             End If
 
             Return MyBase.TestRenameTypeToMatchFileAsync(
-                originalCode.ConvertTestSourceTag(), expectedText, expectedCodeAction, ignoreTrivia)
+                originalCode.ConvertTestSourceTag(), expectedText, expectedCodeAction)
         End Function
 
         Protected Overloads Function TestRenameFileToMatchTypeAsync(
             originalCode As XElement,
             Optional expectedDocumentName As String = Nothing,
-            Optional expectedCodeAction As Boolean = True,
-            Optional ignoreTrivia As Boolean = True
+            Optional expectedCodeAction As Boolean = True
         ) As Task
 
             Return MyBase.TestRenameFileToMatchTypeAsync(
-                originalCode.ConvertTestSourceTag(), expectedDocumentName, expectedCodeAction, ignoreTrivia)
+                originalCode.ConvertTestSourceTag(), expectedDocumentName, expectedCodeAction)
         End Function
 
         Protected Overloads Function TestMoveTypeToNewFileAsync(
@@ -60,8 +58,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.M
             destinationDocumentText As XElement,
             Optional destinationDocumentContainers As ImmutableArray(Of String) = Nothing,
             Optional expectedCodeAction As Boolean = True,
-            Optional index As Integer = 0,
-            Optional ignoreTrivia As Boolean = True
+            Optional index As Integer = 0
         ) As Task
 
             Dim originalCodeText = originalCode.ConvertTestSourceTag()
@@ -75,8 +72,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.M
                 expectedDestinationText,
                 destinationDocumentContainers,
                 expectedCodeAction,
-                index,
-                ignoreTrivia)
+                index)
         End Function
     End Class
 End Namespace

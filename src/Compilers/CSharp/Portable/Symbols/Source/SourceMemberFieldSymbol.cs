@@ -453,6 +453,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             diagnosticsForFirstDeclarator.Add(ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclarator, typeSyntax.Location);
                         }
+                        else if (this.IsConst && this.ContainingType.IsScriptClass)
+                        {
+                            // For const var in script, we won't try to bind the initializer (case below), as it can lead to an unbound recursion
+                            type = null;
+                        }
                         else
                         {
                             fieldsBeingBound = new ConsList<FieldSymbol>(this, fieldsBeingBound);

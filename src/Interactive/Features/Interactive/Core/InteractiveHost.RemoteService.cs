@@ -54,8 +54,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 int processExitHandling = 0;
 
-                EventHandler localHandler = null;
-                localHandler = async (_, __) =>
+                async void localHandler(object _, EventArgs __)
                 {
                     try
                     {
@@ -73,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
-                };
+                }
 
                 // hook the event only once per process:
                 if (Interlocked.Exchange(ref processExitHandling, ProcessExitHooked) == 0)

@@ -1784,7 +1784,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to /embed switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded)..
+        '''  Looks up a localized string similar to /embed switch is only supported when emitting a PDB..
         '''</summary>
         Friend ReadOnly Property ERR_CannotEmbedWithoutPdb() As String
             Get
@@ -12033,6 +12033,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property FEATURE_Iterators() As String
             Get
                 Return ResourceManager.GetString("FEATURE_Iterators", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to leading digit separator.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_LeadingDigitSeparator() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_LeadingDigitSeparator", resourceCulture)
             End Get
         End Property
         

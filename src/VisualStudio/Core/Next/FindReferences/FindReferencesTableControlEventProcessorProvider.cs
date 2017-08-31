@@ -30,8 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         {
             public override void PreprocessNavigate(ITableEntryHandle entry, TableEntryNavigateEventArgs e)
             {
-                var supportsNavigation = entry.Identity as ISupportsNavigation;
-                if (supportsNavigation != null)
+                if (entry.Identity is ISupportsNavigation supportsNavigation)
                 {
                     if (supportsNavigation.TryNavigateTo(e.IsPreview))
                     {

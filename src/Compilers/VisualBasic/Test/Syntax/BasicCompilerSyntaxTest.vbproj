@@ -1,12 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{91F6F646-4F6E-449A-9AB4-2986348F329D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Compilers.VisualBasic.Syntax.UnitTests</AssemblyName>
     <TargetFramework>net46</TargetFramework>
@@ -14,43 +13,17 @@
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
-      <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
-      <Name>TestUtilities.Desktop</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj">
-      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
-      <Name>TestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\CSharp\Portable\CSharpCodeAnalysis.csproj">
-      <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
-      <Name>CSharpCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Resources\Core\CompilerTestResources.csproj">
-      <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
-      <Name>CompilerTestResources</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Utilities\VisualBasic\BasicCompilerTestUtilities.vbproj">
-      <Project>{4371944A-D3BA-4B5B-8285-82E5FFC6D1F8}</Project>
-      <Name>BasicCompilerTestUtilities</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj" />
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj" />
+    <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\CSharp\Portable\CSharpCodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\Test\Resources\Core\CompilerTestResources.csproj" />
+    <ProjectReference Include="..\..\..\Test\Utilities\VisualBasic\BasicCompilerTestUtilities.vbproj" />
+    <ProjectReference Include="..\..\Portable\BasicCodeAnalysis.vbproj" />
     <ProjectReference Include="..\..\Portable\BasicCodeAnalysis.vbproj">
-      <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
-      <Name>BasicCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Portable\BasicCodeAnalysis.vbproj">
-      <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
-      <Name>BasicCodeAnalysis</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
-      <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
-      <Name>PdbUtilities</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -62,66 +35,18 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
+    <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Generated\Syntax.Test.xml.Generated.vb" />
-    <Compile Include="IncrementalParser\IncrementalParser.vb" />
-    <Compile Include="IncrementalParser\IPEndBlockStatements.vb" />
-    <Compile Include="IncrementalParser\SyntaxDifferences.vb" />
-    <Compile Include="LocationTests.vb" />
-    <Compile Include="Parser\DeclarationTests.vb" />
-    <Compile Include="Parser\ParserRegressionTests.vb" />
-    <Compile Include="Parser\InterpolatedStringParsingTests.vb" />
-    <Compile Include="Parser\ParseAsyncTests.vb" />
-    <Compile Include="Parser\ParseAttributes.vb" />
-    <Compile Include="Parser\ParseDeclarationTests.vb" />
-    <Compile Include="Parser\ParseDirectives.vb" />
-    <Compile Include="Parser\ParseErrorTests.vb" />
-    <Compile Include="Parser\ParseExpression.vb" />
-    <Compile Include="Parser\ParseImports.vb" />
-    <Compile Include="Parser\ParseIteratorTests.vb" />
-    <Compile Include="Parser\ParseLanguageVersionTests.vb" />
-    <Compile Include="Parser\ParseMethods.vb" />
-    <Compile Include="Parser\VisualBasicParseOptionsTests.vb" />
-    <Compile Include="Parser\ParseSpecifiers.vb" />
-    <Compile Include="Parser\ParseStatements.vb" />
-    <Compile Include="Parser\ParseVarDecl.vb" />
-    <Compile Include="Parser\ParseXml.vb" />
-    <Compile Include="Parser\XmlDocComments.vb" />
-    <Compile Include="PreprocessorEETests.vb" />
-    <Compile Include="QuickTokenTableTests.vb" />
-    <Compile Include="Resource.Designer.vb">
+    <Compile Update="Resource.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resource.resx</DependentUpon>
     </Compile>
-    <Compile Include="Scanner\ScanConditionalTests.vb" />
-    <Compile Include="Scanner\ScanErrorTests.vb" />
-    <Compile Include="Scanner\ScannerTests.vb" />
-    <Compile Include="Scanner\XmlScannerTests.vb" />
-    <Compile Include="Syntax\ConstantExpressionEvaluatorTests.vb" />
-    <Compile Include="Syntax\GeneratedTests.vb" />
-    <Compile Include="Syntax\LambdaUtilitiesTests.vb" />
-    <Compile Include="Syntax\ManualTests.vb" />
-    <Compile Include="Syntax\SeparatedSyntaxListTests.vb" />
-    <Compile Include="Syntax\SerializationTests.vb" />
-    <Compile Include="Syntax\StatementSyntaxWalkerTests.vb" />
-    <Compile Include="Syntax\SyntaxAnnotationTests.vb" />
-    <Compile Include="Syntax\SyntaxEquivalenceTests.vb" />
-    <Compile Include="Syntax\SyntaxFactoryTests.vb" />
-    <Compile Include="Syntax\SyntaxFactsTest.vb" />
-    <Compile Include="Syntax\SyntaxNormalizerTests.vb" />
-    <Compile Include="Syntax\SyntaxListTests.vb" />
-    <Compile Include="Syntax\SyntaxRewriterTests.vb" />
-    <Compile Include="Syntax\SyntaxSubmissionsTests.vb" />
-    <Compile Include="Syntax\SyntaxTokenFactoryTests.vb" />
-    <Compile Include="Syntax\SyntaxTokenListTests.vb" />
-    <Compile Include="Syntax\SyntaxTreeTests.vb" />
-    <Compile Include="Syntax\SyntaxTriviaListTests.vb" />
-    <Compile Include="TestSyntaxNodes.vb" />
     <Content Include="Syntax\VBAllInOne.txt" />
     <None Include="Resources\VBAllInOne.vb" />
+    <Compile Remove="Resources\VBAllInOne.vb" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="IdentifierComparison = Microsoft.CodeAnalysis.CaseInsensitiveComparison" />
@@ -132,7 +57,7 @@
     <Folder Include="My Project\" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resource.resx">
+    <EmbeddedResource Update="Resource.resx">
       <CustomToolNamespace>My.Resources</CustomToolNamespace>
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resource.Designer.vb</LastGenOutput>

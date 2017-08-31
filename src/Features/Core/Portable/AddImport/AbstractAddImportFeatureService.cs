@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             if (RemoteSupportedLanguages.IsSupported(document.Project.Language))
             {
                 var callbackTarget = new RemoteSymbolSearchService(symbolSearchService, cancellationToken);
-                var result = await document.Project.Solution.TryRunCodeAnalysisRemoteAsync<ImmutableArray<AddImportFixData>>(
+                var result = await document.Project.Solution.TryRunCodeAnalysisRemoteAsync<IList<AddImportFixData>>(
                     RemoteFeatureOptions.AddImportEnabled,
                     callbackTarget,
                     nameof(IRemoteAddImportFeatureService.GetFixesAsync),
@@ -78,9 +78,9 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-                if (!result.IsDefault)
+                if (result != null)
                 {
-                    return result;
+                    return result.ToImmutableArray();
                 }
             }
 
@@ -285,8 +285,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                     // Ignore netmodules.  First, they're incredibly esoteric and barely used.
                     // Second, the SymbolFinder API doesn't even support searching them. 
-                    var assembly = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
-                    if (assembly != null)
+                    if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
                     {
                         findTasks.Add(finder.FindInMetadataSymbolsAsync(
                             assembly, referenceProjectId, reference, exact, linkedTokenSource.Token));

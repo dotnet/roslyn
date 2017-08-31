@@ -96,6 +96,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             _packageInstallerService?.Connect(this.RoslynLanguageName);
             _symbolSearchService?.Connect(this.RoslynLanguageName);
+
+            HACK_AbstractCreateServicesOnUiThread.CreateServicesOnUIThread(ComponentModel, RoslynLanguageName);
         }
 
         protected abstract VisualStudioWorkspaceImpl CreateWorkspace();
@@ -161,8 +163,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var shell = (IVsShell)this.GetService(typeof(SVsShell));
 
-            object result;
-            if (ErrorHandler.Succeeded(shell.GetProperty((int)__VSSPROPID.VSSPROPID_IsInCommandLineMode, out result)))
+            if (ErrorHandler.Succeeded(shell.GetProperty((int)__VSSPROPID.VSSPROPID_IsInCommandLineMode, out var result)))
             {
                 return (bool)result;
             }

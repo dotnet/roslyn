@@ -921,6 +921,12 @@ Additional information: {1}</value>
   <data name="Prefer_simple_default_expression" xml:space="preserve">
     <value>Prefer simple 'default' expression</value>
   </data>
+  <data name="Prefer_inferred_tuple_names" xml:space="preserve">
+    <value>Prefer inferred tuple element names</value>
+  </data>
+  <data name="Prefer_inferred_anonymous_type_member_names" xml:space="preserve">
+    <value>Prefer inferred anonymous type member names</value>
+  </data>
   <data name="Preview_pane" xml:space="preserve">
     <value>Preview pane</value>
   </data>
@@ -952,5 +958,8 @@ Additional information: {1}</value>
   </data>
   <data name="ChangesNotAllowedWhileCodeIsRunning" xml:space="preserve">
     <value>Changes are not allowed while code is running.</value>
+  </data>
+  <data name="Prefer_local_function_over_anonymous_function" xml:space="preserve">
+    <value>Prefere local function over anonymous function</value>
   </data>
 </root>

@@ -87,21 +87,21 @@ interface B {
         public void InheritedTypesCrossTrees()
         {
             var text = @"namespace MT {
-    public interface IFoo { void Foo(); }
-    public interface IFoo<T, R> { R Foo(T t); }
+    public interface IGoo { void Goo(); }
+    public interface IGoo<T, R> { R Goo(T t); }
 }
 ";
             var text1 = @"namespace MT {
-    public interface IBar<T> : IFoo { void Bar(T t); }
+    public interface IBar<T> : IGoo { void Bar(T t); }
 }
 ";
             var text2 = @"namespace NS {
     using System;
     using MT;
-    public class A<T> : IFoo<T, string>, IBar<string> {
-        void IFoo.Foo() { }
+    public class A<T> : IGoo<T, string>, IBar<string> {
+        void IGoo.Goo() { }
         void IBar<string>.Bar(string s) { }
-        public string Foo(T t) { return null; }
+        public string Goo(T t) { return null; }
     }
 
     public class B : A<int> {}
@@ -127,9 +127,9 @@ interface B {
             var i3 = sorted[2] as NamedTypeSymbol;
             Assert.Equal("MT.IBar<System.String>", i1.ToTestDisplayString());
             Assert.Equal(1, i1.Arity);
-            Assert.Equal("MT.IFoo<System.Int32, System.String>", i2.ToTestDisplayString());
+            Assert.Equal("MT.IGoo<System.Int32, System.String>", i2.ToTestDisplayString());
             Assert.Equal(2, i2.Arity);
-            Assert.Equal("MT.IFoo", i3.ToTestDisplayString());
+            Assert.Equal("MT.IGoo", i3.ToTestDisplayString());
             Assert.Equal(0, i3.Arity);
 
             Assert.Equal("B", type1.BaseType.Name);
@@ -154,20 +154,20 @@ interface B {
         public void InheritedTypesCrossComps()
         {
             var text = @"namespace MT {
-    public interface IFoo { void Foo(); }
-    public interface IFoo<T, R> { R Foo(T t); }
+    public interface IGoo { void Goo(); }
+    public interface IGoo<T, R> { R Goo(T t); }
     public interface IEmpty { }
 }
 ";
             var text1 = @"namespace MT {
-    public interface IBar<T> : IFoo, IEmpty { void Bar(T t); }
+    public interface IBar<T> : IGoo, IEmpty { void Bar(T t); }
 }
 ";
             var text2 = @"namespace NS {
     using MT;
-    public class A<T> : IFoo<T, string>, IBar<T>, IFoo {
-        void IFoo.Foo() { }
-        public string Foo(T t) { return null; }
+    public class A<T> : IGoo<T, string>, IBar<T>, IGoo {
+        void IGoo.Goo() { }
+        public string Goo(T t) { return null; }
         void IBar<T>.Bar(T t) { }
     }
 
@@ -210,9 +210,9 @@ interface B {
             Assert.Equal(1, i1.Arity);
             Assert.Equal("MT.IEmpty", i2.ToTestDisplayString());
             Assert.Equal(0, i2.Arity);
-            Assert.Equal("MT.IFoo<System.UInt64, System.String>", i3.ToTestDisplayString());
+            Assert.Equal("MT.IGoo<System.UInt64, System.String>", i3.ToTestDisplayString());
             Assert.Equal(2, i3.Arity);
-            Assert.Equal("MT.IFoo", i4.ToTestDisplayString());
+            Assert.Equal("MT.IGoo", i4.ToTestDisplayString());
             Assert.Equal(0, i4.Arity);
 
             Assert.Equal("B", type1.BaseType.Name);
@@ -244,7 +244,7 @@ interface B {
     {
         private void M() {}
         internal class NestedClass {
-            internal protected interface INestedFoo {}
+            internal protected interface INestedGoo {}
         }
         struct NestedStruct {}
     }
@@ -255,7 +255,7 @@ interface B {
         public struct NestedS<V, V1> {
             class NestedC<R> {}
         }
-        interface INestedFoo<T1, T2, T3> {}
+        interface INestedGoo<T1, T2, T3> {}
     }
 }
 ";
@@ -284,7 +284,7 @@ interface B {
             Assert.Equal(2, type1.GetTypeMembers().Length);
 
             type2 = type1.GetTypeMembers("NestedS", 2).Single() as NamedTypeSymbol;
-            type3 = type1.GetTypeMembers("INestedFoo", 3).SingleOrDefault() as NamedTypeSymbol;
+            type3 = type1.GetTypeMembers("INestedGoo", 3).SingleOrDefault() as NamedTypeSymbol;
 
             Assert.Equal(type1, type2.ContainingSymbol);
             Assert.Equal(Accessibility.Public, type2.DeclaredAccessibility);
@@ -305,31 +305,31 @@ interface B {
             var text = @"
 namespace MT {
     using System.Collections.Generic;
-    public partial interface IFoo<T> { void Foo(); }
+    public partial interface IGoo<T> { void Goo(); }
 }
 ";
             var text1 = @"
 namespace MT {
     using System.Collections.Generic;
-    public partial interface IFoo<T> { T Foo(T t); }
+    public partial interface IGoo<T> { T Goo(T t); }
 }
 
 namespace NS {
     using System;
     using MT;
 
-    public partial class A<T> : IFoo<T>
+    public partial class A<T> : IGoo<T>
     {
-        void IFoo<T>.Foo() { }
+        void IGoo<T>.Goo() { }
     }
 }
 ";
             var text2 = @"
 namespace NS {
     using MT;
-    public partial class A<T> : IFoo<T>
+    public partial class A<T> : IGoo<T>
     {
-        public T Foo(T t) { return default(T); }
+        public T Goo(T t) { return default(T); }
     }
 }
 ";
@@ -345,7 +345,7 @@ namespace NS {
             Assert.Equal(2, type1.Locations.Length);
 
             var i1 = type1.Interfaces[0] as NamedTypeSymbol;
-            Assert.Equal("MT.IFoo<T>", i1.ToTestDisplayString());
+            Assert.Equal("MT.IGoo<T>", i1.ToTestDisplayString());
             Assert.Equal(2, i1.GetMembers().Length);
             Assert.Equal(2, i1.Locations.Length);
         }
@@ -356,13 +356,13 @@ namespace NS {
         {
             #region "Interface Impl"
             var text = @"
-    public interface IFoo  {
+    public interface IGoo  {
         void M0();
     }
 ";
 
             var text1 = @"
-    public class Foo : IFoo  {
+    public class Goo : IGoo  {
         public void M0() {}
     }
 ";
@@ -375,13 +375,13 @@ namespace NS {
 
             #region "Interface Inherit"
             text = @"
-    public interface IFoo  {
+    public interface IGoo  {
         void M0();
     }
 ";
 
             text1 = @"
-    public interface IBar : IFoo  {
+    public interface IBar : IGoo  {
         void M1();
     }
 ";
@@ -788,7 +788,7 @@ namespace System
 {
     public static class Console 
     {
-        public static void Foo() {} 
+        public static void Goo() {} 
     }
 }
 ";
@@ -799,8 +799,8 @@ namespace System
                 assemblyName: "System.Console").EmitToImageReference();
 
             var mainSrc = @"
-System.Console.Foo(); 
-Foo();
+System.Console.Goo(); 
+Goo();
 ";
 
             var main1 = CreateCompilation(
@@ -813,8 +813,8 @@ Foo();
                 Diagnostic(ErrorCode.ERR_SameFullNameAggAgg).WithArguments("System.Console, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Console", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
                 // (1,9): error CS0433: The type 'Console' exists in both 'System.Console, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' and 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
                 Diagnostic(ErrorCode.ERR_SameFullNameAggAgg, "System.Console").WithArguments("System.Console, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Console", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
-                // (2,9): error CS0103: The name 'Foo' does not exist in the current context
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "Foo").WithArguments("Foo"));
+                // (2,9): error CS0103: The name 'Goo' does not exist in the current context
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Goo").WithArguments("Goo"));
 
             var main2 = CreateCompilation(
                 new[] { Parse(mainSrc, options: TestOptions.Script) },
@@ -830,7 +830,7 @@ Foo();
             var text =
 @"namespace NS
 {
-    public interface IFoo<T> {}
+    public interface IGoo<T> {}
 
     internal class A<V, U> {}
 
@@ -841,18 +841,18 @@ Foo();
             var namespaceNS = comp.GlobalNamespace.GetMembers("NS").First() as NamespaceOrTypeSymbol;
             Assert.Equal(3, namespaceNS.GetMembers().Length);
 
-            var ifoo = namespaceNS.GetTypeMembers("IFoo").First();
-            Assert.Equal(namespaceNS, ifoo.ContainingSymbol);
-            Assert.Equal(SymbolKind.NamedType, ifoo.Kind);
-            Assert.Equal(TypeKind.Interface, ifoo.TypeKind);
-            Assert.Equal(Accessibility.Public, ifoo.DeclaredAccessibility);
-            Assert.Equal(1, ifoo.TypeParameters.Length);
-            Assert.Equal("T", ifoo.TypeParameters[0].Name);
-            Assert.Equal(1, ifoo.TypeArguments.Length);
+            var igoo = namespaceNS.GetTypeMembers("IGoo").First();
+            Assert.Equal(namespaceNS, igoo.ContainingSymbol);
+            Assert.Equal(SymbolKind.NamedType, igoo.Kind);
+            Assert.Equal(TypeKind.Interface, igoo.TypeKind);
+            Assert.Equal(Accessibility.Public, igoo.DeclaredAccessibility);
+            Assert.Equal(1, igoo.TypeParameters.Length);
+            Assert.Equal("T", igoo.TypeParameters[0].Name);
+            Assert.Equal(1, igoo.TypeArguments.Length);
 
             // Bug#932083 - Not impl
-            // Assert.False(ifoo.TypeParameters[0].IsReferenceType);
-            // Assert.False(ifoo.TypeParameters[0].IsValueType);
+            // Assert.False(igoo.TypeParameters[0].IsReferenceType);
+            // Assert.False(igoo.TypeParameters[0].IsValueType);
 
             var classA = namespaceNS.GetTypeMembers("A").First();
             Assert.Equal(namespaceNS, classA.ContainingSymbol);
@@ -1202,13 +1202,13 @@ namespace System
             var text = @"
 namespace N
 {
-    public interface IFoo<T, V, U> {}
+    public interface IGoo<T, V, U> {}
     public interface IBar<T> {}
 
     public class A : NotExist<int, int>
     {
         public class BB {}
-        public class B : BB, IFoo<string, byte>
+        public class B : BB, IGoo<string, byte>
         {
         }
     }
@@ -1216,7 +1216,7 @@ namespace N
     public class C : IBar<char, string>
     {
         // NotExist is binding error, Not error symbol
-        public class D : IFoo<char, ulong, NotExist>
+        public class D : IGoo<char, ulong, NotExist>
         {
         }
     }
@@ -1237,7 +1237,7 @@ namespace N
             var typeB = typeA.GetMember<NamedTypeSymbol>("B");
             Assert.Equal("BB", typeB.BaseType.Name);
             var typeBi = typeB.Interfaces.Single();
-            Assert.Equal("IFoo", typeBi.Name);
+            Assert.Equal("IGoo", typeBi.Name);
             Assert.Equal(SymbolKind.ErrorType, typeBi.Kind);
             Assert.Equal(2, typeBi.Arity); //matches arity in source, not arity of desired symbol
 
@@ -1250,7 +1250,7 @@ namespace N
 
             var typeD = typeC.GetMember<NamedTypeSymbol>("D");
             var typeDi = typeD.Interfaces.Single();
-            Assert.Equal("IFoo", typeDi.Name);
+            Assert.Equal("IGoo", typeDi.Name);
             Assert.Equal(3, typeDi.TypeParameters.Length);
             Assert.Equal(SymbolKind.ErrorType, typeDi.TypeArguments[2].Kind);
         }
@@ -1365,20 +1365,20 @@ partial class Derived6 : Base<int, int>, Interface1<int, int> { }
         public void CircularNestedInterfaceDeclaration()
         {
             var text = @"
-class Bar : Bar.IFoo
+class Bar : Bar.IGoo
 {
-    public interface IFoo { Foo GetFoo(); }
+    public interface IGoo { Goo GetGoo(); }
 
-    public class Foo { }
+    public class Goo { }
 
-    public Foo GetFoo() { return null; }
+    public Goo GetGoo() { return null; }
 }";
             var comp = CreateStandardCompilation(text);
             Assert.Empty(comp.GetDiagnostics());
             var bar = comp.GetTypeByMetadataName("Bar");
-            var iFooGetFoo = comp.GetTypeByMetadataName("Bar+IFoo").GetMembers("GetFoo").Single();
-            MethodSymbol getFoo = (MethodSymbol)bar.FindImplementationForInterfaceMember(iFooGetFoo);
-            Assert.Equal("Bar.GetFoo()", getFoo.ToString());
+            var iGooGetGoo = comp.GetTypeByMetadataName("Bar+IGoo").GetMembers("GetGoo").Single();
+            MethodSymbol getGoo = (MethodSymbol)bar.FindImplementationForInterfaceMember(iGooGetGoo);
+            Assert.Equal("Bar.GetGoo()", getGoo.ToString());
         }
 
         [WorkItem(3684, "DevDiv_Projects/Roslyn")]
@@ -1388,11 +1388,11 @@ class Bar : Bar.IFoo
             var text = @"
 public interface I<Q>
 {
-    void Foo();
+    void Goo();
 }
 public class Test1<Q> : I<Q>
 {
-    void I<Q>.Foo() {}
+    void I<Q>.Goo() {}
 }";
             var comp = CreateStandardCompilation(text);
             Assert.Empty(comp.GetDiagnostics());
@@ -1723,21 +1723,21 @@ using System.Collections.Generic;
 
 namespace NS
 {
-    interface IFoo<T, R> where T : struct where R: struct
+    interface IGoo<T, R> where T : struct where R: struct
     {
         R? M<V>(ref T? p1, V? p2) where V: struct;
     }
 
-    struct SFoo<T> : IFoo<T, PlatformID> where T : struct
+    struct SGoo<T> : IGoo<T, PlatformID> where T : struct
     {
-        PlatformID? IFoo<T, PlatformID>.M<V>(ref T? p1, V? p2) { return null; }
+        PlatformID? IGoo<T, PlatformID>.M<V>(ref T? p1, V? p2) { return null; }
     }
 
-    class CFoo
+    class CGoo
     {
         static void Main() 
         {
-            IFoo<float, PlatformID> obj = new SFoo<float>();
+            IGoo<float, PlatformID> obj = new SGoo<float>();
             float? f = null;
             var ret = /*<bind0>*/obj/*</bind0>*/.M<decimal>(ref /*<bind1>*/f/*</bind1>*/, /*<bind2>*/null/*</bind2>*/);
         }
@@ -1760,10 +1760,10 @@ namespace NS
 
             var nodes = GetBindingNodes<SyntaxNode>(comp).ToList();
             var tinfo = model.GetTypeInfo(nodes[0] as IdentifierNameSyntax);
-            // obj: IFoo<float, PlatformID>
+            // obj: IGoo<float, PlatformID>
             Assert.NotNull(tinfo.Type);
             Assert.True(((TypeSymbol)tinfo.Type).IsInterfaceType());
-            Assert.Equal("NS.IFoo<float, System.PlatformID>", tinfo.Type.ToDisplayString());
+            Assert.Equal("NS.IGoo<float, System.PlatformID>", tinfo.Type.ToDisplayString());
             // f: T? -> float?
             tinfo = model.GetTypeInfo(nodes[1] as IdentifierNameSyntax);
             Assert.True(((TypeSymbol)tinfo.Type).IsNullableType());
@@ -1782,7 +1782,7 @@ namespace NS
         {
             var code = @"
 using System;
-class Foo {
+class Goo {
     dynamic X;
     object Y;
     Func<dynamic> Z;
@@ -1790,11 +1790,11 @@ class Foo {
 }
 ";
             var compilation = CreateStandardCompilation(code);
-            var Foo = compilation.GlobalNamespace.GetTypeMembers("Foo")[0];
-            var Dynamic = (Foo.GetMembers("X")[0] as FieldSymbol).Type.TypeSymbol;
-            var Object = (Foo.GetMembers("Y")[0] as FieldSymbol).Type.TypeSymbol;
-            var Func_Dynamic = (Foo.GetMembers("Z")[0] as FieldSymbol).Type.TypeSymbol;
-            var Func_Object = (Foo.GetMembers("W")[0] as FieldSymbol).Type.TypeSymbol;
+            var Goo = compilation.GlobalNamespace.GetTypeMembers("Goo")[0];
+            var Dynamic = (Goo.GetMembers("X")[0] as FieldSymbol).Type.TypeSymbol;
+            var Object = (Goo.GetMembers("Y")[0] as FieldSymbol).Type.TypeSymbol;
+            var Func_Dynamic = (Goo.GetMembers("Z")[0] as FieldSymbol).Type.TypeSymbol;
+            var Func_Object = (Goo.GetMembers("W")[0] as FieldSymbol).Type.TypeSymbol;
 
             var comparator = TypeSymbol.EqualsIgnoringDynamicAndTupleNamesComparer;
             Assert.NotEqual(Object, Dynamic);

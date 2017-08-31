@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var parameter in _methodSymbol.Parameters)
                 {
-                    if (originalBinder.CanAddLookupSymbolInfo(parameter, options, null))
+                    if (originalBinder.CanAddLookupSymbolInfo(parameter, options, result, null))
                     {
                         result.AddSymbol(parameter, parameter.Name, 0);
                     }

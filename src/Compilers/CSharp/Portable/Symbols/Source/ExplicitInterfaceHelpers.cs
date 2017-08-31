@@ -274,8 +274,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(implementingMember, implementedMember))
+            if (implementingMember.ContainsTupleNames() && MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(implementingMember, implementedMember))
             {
+                // it is ok to explicitly implement with no tuple names, for compatibility with C# 6, but otherwise names should match
                 var memberLocation = implementingMember.Locations[0];
                 diagnostics.Add(ErrorCode.ERR_ImplBadTupleNames, memberLocation, implementingMember, implementedMember);
             }

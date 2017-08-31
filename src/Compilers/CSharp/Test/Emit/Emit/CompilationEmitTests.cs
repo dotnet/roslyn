@@ -144,7 +144,7 @@ namespace N {
     }
 }
 
-namespace N.Foo;
+namespace N.Goo;
 ");
 
             EmitResult emitResult;
@@ -175,7 +175,7 @@ namespace N.Foo;
         public void EmitMetadataOnly()
         {
             CSharpCompilation comp = CreateStandardCompilation(@"
-namespace Foo.Bar
+namespace Goo.Bar
 {
     public class Test1
     {
@@ -192,7 +192,7 @@ namespace Foo.Bar
             x = 17;
         }
 
-        public string foo(int a)
+        public string goo(int a)
         {
             return a.ToString();
         }
@@ -215,7 +215,7 @@ namespace Foo.Bar
 
             var srcUsing = @"
 using System;
-using Foo.Bar;
+using Goo.Bar;
 
 class Test2
 {
@@ -2185,7 +2185,7 @@ public class C
             CompileAndVerify(@"
 class C
 {
-    static bool Foo(int i)
+    static bool Goo(int i)
     {
         int y = 10;
         bool x = (y == null); // NYI: Implicit null conversion
@@ -3355,14 +3355,14 @@ using System;
             string source = @"
 public class Test
 {
-    public static decimal Foo(decimal d = 0)
+    public static decimal Goo(decimal d = 0)
     {
         return d;
     }
 
     public static void Main()
     {
-        System.Console.WriteLine(Foo());
+        System.Console.WriteLine(Goo());
     }
 }
 ";
@@ -3963,17 +3963,17 @@ class C
 
         private void TestReferenceToNestedGenericType()
         {
-            string p1 = @"public class Foo<T> { }";
+            string p1 = @"public class Goo<T> { }";
             string p2 = @"using System;
 
 public class Test
 {
     public class C<T> {}
-    public class J<T> : C<Foo<T>> { }
+    public class J<T> : C<Goo<T>> { }
     
     public static void Main()
     {
-        Console.WriteLine(typeof(J<int>).BaseType.Equals(typeof(C<Foo<int>>)) ? 0 : 1);
+        Console.WriteLine(typeof(J<int>).BaseType.Equals(typeof(C<Goo<int>>)) ? 0 : 1);
     }
 }";
             var c1 = CreateStandardCompilation(p1, options: TestOptions.ReleaseDll, assemblyName: Guid.NewGuid().ToString());
@@ -4517,7 +4517,7 @@ class C
         {
             //These tests ensure that users supplying a broken stream implementation via the emit API 
             //get exceptions enabling them to attribute the failure to their code and to debug.
-            string source = @"class Foo {}";
+            string source = @"class Goo {}";
             var compilation = CreateStandardCompilation(source);
 
             var output = new BrokenStream();
@@ -4542,7 +4542,7 @@ class C
         [Fact]
         public void BrokenPortablePdbStream()
         {
-            string source = @"class Foo {}";
+            string source = @"class Goo {}";
             var compilation = CreateStandardCompilation(source);
 
             using (var output = new MemoryStream())
@@ -4560,7 +4560,7 @@ class C
         [Fact]
         public void BrokenPDBStream()
         {
-            string source = @"class Foo {}";
+            string source = @"class Goo {}";
             var compilation = CreateStandardCompilation(source, null, TestOptions.DebugDll);
 
             var output = new MemoryStream();

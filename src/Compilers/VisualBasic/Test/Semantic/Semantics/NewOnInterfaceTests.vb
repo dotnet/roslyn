@@ -1333,24 +1333,24 @@ End Interface
 Imports System
 Imports System.Runtime.InteropServices
 
-Interface Foo1
+Interface Goo1
     Sub Quit()
 End Interface
 
-Interface Foo2
+Interface Goo2
     Event Quit()
 End Interface
 
-<CoClass(GetType(FooClass))>
-Interface Foo
-    Inherits Foo1, Foo2
+<CoClass(GetType(GooClass))>
+Interface Goo
+    Inherits Goo1, Goo2
 End Interface
 
-Class FooClass
-    Implements Foo
-    Public Sub Quit() Implements Foo.Quit
+Class GooClass
+    Implements Goo
+    Public Sub Quit() Implements Goo.Quit
     End Sub
-    Public Event Quit1() Implements Foo.Quit
+    Public Event Quit1() Implements Goo.Quit
 End Class
 ]]>
                         </file>
@@ -1370,23 +1370,23 @@ End Class
 Imports System
 Imports System.Runtime.InteropServices
 
-Interface Foo1
+Interface Goo1
     Sub Quit()
 End Interface
 
-Interface Foo2
+Interface Goo2
     Event Quit()
 End Interface
 
-Interface Foo
-    Inherits Foo1, Foo2
+Interface Goo
+    Inherits Goo1, Goo2
 End Interface
 
-Class FooClass
-    Implements Foo
-    Public Sub Quit() Implements Foo.Quit
+Class GooClass
+    Implements Goo
+    Public Sub Quit() Implements Goo.Quit
     End Sub
-    Public Event Quit1() Implements Foo.Quit
+    Public Event Quit1() Implements Goo.Quit
 End Class
 ]]>
                         </file>
@@ -1394,17 +1394,17 @@ End Class
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
-BC30149: Class 'FooClass' must implement 'Event Quit()' for interface 'Foo2'.
-    Implements Foo
+BC30149: Class 'GooClass' must implement 'Event Quit()' for interface 'Goo2'.
+    Implements Goo
                ~~~
-BC30149: Class 'FooClass' must implement 'Sub Quit()' for interface 'Foo1'.
-    Implements Foo
+BC30149: Class 'GooClass' must implement 'Sub Quit()' for interface 'Goo1'.
+    Implements Goo
                ~~~
 BC31040: 'Quit' exists in multiple base interfaces. Use the name of the interface that declares 'Quit' in the 'Implements' clause instead of the name of the derived interface.
-    Public Sub Quit() Implements Foo.Quit
+    Public Sub Quit() Implements Goo.Quit
                                  ~~~~~~~~
 BC31040: 'Quit' exists in multiple base interfaces. Use the name of the interface that declares 'Quit' in the 'Implements' clause instead of the name of the derived interface.
-    Public Event Quit1() Implements Foo.Quit
+    Public Event Quit1() Implements Goo.Quit
                                     ~~~~~~~~
 </errors>)
         End Sub
@@ -1418,17 +1418,17 @@ BC31040: 'Quit' exists in multiple base interfaces. Use the name of the interfac
 Imports System
 Imports System.Runtime.InteropServices
 
-Interface Foo1
+Interface Goo1
     Sub Quit()
 End Interface
 
-Interface Foo2
+Interface Goo2
     Event Quit()
 End Interface
 
-<CoClass(GetType(FooClass))>
-Interface Foo
-    Inherits Foo1, Foo2
+<CoClass(GetType(GooClass))>
+Interface Goo
+    Inherits Goo1, Goo2
 End Interface
 
 Interface Bar
@@ -1436,25 +1436,25 @@ Interface Bar
 End Interface
 
 Interface BarInner
-    Inherits Foo1, Foo2
+    Inherits Goo1, Goo2
 End Interface
 
-Interface AbcFoo
-    Inherits Bar, Foo
+Interface AbcGoo
+    Inherits Bar, Goo
 End Interface
 
 Interface abcBar
-    Inherits Foo, Bar
+    Inherits Goo, Bar
 End Interface
 
-Class FooClass
+Class GooClass
 End Class
 
-Class AbcFooClass
-    Implements AbcFoo
-    Public Sub Quit() Implements AbcFoo.Quit
+Class AbcGooClass
+    Implements AbcGoo
+    Public Sub Quit() Implements AbcGoo.Quit
     End Sub
-    Public Event Quit1() Implements AbcFoo.Quit
+    Public Event Quit1() Implements AbcGoo.Quit
 End Class
 
 Class abcBarClass
@@ -1469,22 +1469,22 @@ End Class
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
-BC30149: Class 'AbcFooClass' must implement 'Event Quit()' for interface 'Foo2'.
-    Implements AbcFoo
+BC30149: Class 'AbcGooClass' must implement 'Event Quit()' for interface 'Goo2'.
+    Implements AbcGoo
                ~~~~~~
-BC30149: Class 'AbcFooClass' must implement 'Sub Quit()' for interface 'Foo1'.
-    Implements AbcFoo
+BC30149: Class 'AbcGooClass' must implement 'Sub Quit()' for interface 'Goo1'.
+    Implements AbcGoo
                ~~~~~~
 BC31040: 'Quit' exists in multiple base interfaces. Use the name of the interface that declares 'Quit' in the 'Implements' clause instead of the name of the derived interface.
-    Public Sub Quit() Implements AbcFoo.Quit
+    Public Sub Quit() Implements AbcGoo.Quit
                                  ~~~~~~~~~~~
 BC31040: 'Quit' exists in multiple base interfaces. Use the name of the interface that declares 'Quit' in the 'Implements' clause instead of the name of the derived interface.
-    Public Event Quit1() Implements AbcFoo.Quit
+    Public Event Quit1() Implements AbcGoo.Quit
                                     ~~~~~~~~~~~
-BC30149: Class 'abcBarClass' must implement 'Event Quit()' for interface 'Foo2'.
+BC30149: Class 'abcBarClass' must implement 'Event Quit()' for interface 'Goo2'.
     Implements abcBar
                ~~~~~~
-BC30149: Class 'abcBarClass' must implement 'Sub Quit()' for interface 'Foo1'.
+BC30149: Class 'abcBarClass' must implement 'Sub Quit()' for interface 'Goo1'.
     Implements abcBar
                ~~~~~~
 BC31040: 'Quit' exists in multiple base interfaces. Use the name of the interface that declares 'Quit' in the 'Implements' clause instead of the name of the derived interface.
@@ -1510,39 +1510,39 @@ Module Module1
     End Sub
 End Module
 
-Interface Foo1
+Interface Goo1
     Sub Quit()
 End Interface
 
-Interface Foo2
+Interface Goo2
     Event Quit()
 End Interface
 
-<CoClass(GetType(FooClass))>
-Interface Foo
-    Inherits Foo1, Foo2
+<CoClass(GetType(GooClass))>
+Interface Goo
+    Inherits Goo1, Goo2
 End Interface
 
-Interface FooFoo
-    Inherits Foo
+Interface GooGoo
+    Inherits Goo
 End Interface
 
-Class FooClass
-    Implements Foo
-    Public Sub Quit() Implements Foo1.Quit
+Class GooClass
+    Implements Goo
+    Public Sub Quit() Implements Goo1.Quit
     End Sub
-    Public Event Quit1() Implements Foo2.Quit
+    Public Event Quit1() Implements Goo2.Quit
 End Class
 
-Class FooFooClass
-    Implements FooFoo
+Class GooGooClass
+    Implements GooGoo
 
-    WithEvents Instance1 As FooFoo = New FooFooClass
-    WithEvents Instance2 As New FooFooClass
-    WithEvents Instance3 As Foo = New FooClass
-    WithEvents Instance4 As New FooClass
+    WithEvents Instance1 As GooGoo = New GooGooClass
+    WithEvents Instance2 As New GooGooClass
+    WithEvents Instance3 As Goo = New GooClass
+    WithEvents Instance4 As New GooClass
 
-    WithEvents FooInstance As New FooClass
+    WithEvents GooInstance As New GooClass
 
     Public Sub XYZ1() Handles Instance1.Quit
     End Sub
@@ -1556,9 +1556,9 @@ Class FooFooClass
     Public Sub XYZ4() Handles Instance4.Quit
     End Sub
 
-    Public Sub Quit() Implements Foo1.Quit
+    Public Sub Quit() Implements Goo1.Quit
     End Sub
-    Public Event Quit1() Implements Foo2.Quit
+    Public Event Quit1() Implements Goo2.Quit
 End Class
 ]]>
                         </file>
@@ -1589,41 +1589,41 @@ Module Module1
     End Sub
 End Module
 
-Interface Foo1
+Interface Goo1
     Sub Quit()
 End Interface
 
-Interface Foo2
+Interface Goo2
     Event Quit()
 End Interface
 
-<CoClass(GetType(FooClass))>
-Interface Foo
-    Inherits Foo1, Foo2
+<CoClass(GetType(GooClass))>
+Interface Goo
+    Inherits Goo1, Goo2
 End Interface
 
-Interface FooFoo
-    Inherits Foo
+Interface GooGoo
+    Inherits Goo
 End Interface
 
-Class FooClass
-    Implements Foo
-    Public Sub Quit2() Implements Foo1.Quit
+Class GooClass
+    Implements Goo
+    Public Sub Quit2() Implements Goo1.Quit
     End Sub
-    Public Event Quit1() Implements Foo2.Quit
+    Public Event Quit1() Implements Goo2.Quit
 End Class
 
-Class FooFooClass
-    Implements FooFoo
+Class GooGooClass
+    Implements GooGoo
 
-    Dim Instance1 As FooFoo = New FooFooClass
-    Dim Instance2 As New FooFooClass
-    Dim Instance3 As Foo = New FooClass
-    Dim Instance4 As New FooClass
+    Dim Instance1 As GooGoo = New GooGooClass
+    Dim Instance2 As New GooGooClass
+    Dim Instance3 As Goo = New GooClass
+    Dim Instance4 As New GooClass
 
-    WithEvents FooInstance As New FooClass
+    WithEvents GooInstance As New GooClass
 
-    Public Sub Quit2() Implements Foo1.Quit
+    Public Sub Quit2() Implements Goo1.Quit
         AddHandler Instance1.Quit, AddressOf Quit2
         AddHandler Instance2.Quit, AddressOf Quit2
         AddHandler Instance3.Quit, AddressOf Quit2
@@ -1633,7 +1633,7 @@ Class FooFooClass
         RemoveHandler Instance3.Quit, AddressOf Quit2
         RemoveHandler Instance4.Quit, AddressOf Quit2
     End Sub
-    Public Event Quit1() Implements Foo2.Quit
+    Public Event Quit1() Implements Goo2.Quit
 End Class
 ]]>
                         </file>
@@ -1641,16 +1641,16 @@ End Class
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
-BC30456: 'Quit' is not a member of 'FooFooClass'.
+BC30456: 'Quit' is not a member of 'GooGooClass'.
         AddHandler Instance2.Quit, AddressOf Quit2
                    ~~~~~~~~~~~~~~
-BC30456: 'Quit' is not a member of 'FooClass'.
+BC30456: 'Quit' is not a member of 'GooClass'.
         AddHandler Instance4.Quit, AddressOf Quit2
                    ~~~~~~~~~~~~~~
-BC30456: 'Quit' is not a member of 'FooFooClass'.
+BC30456: 'Quit' is not a member of 'GooGooClass'.
         RemoveHandler Instance2.Quit, AddressOf Quit2
                       ~~~~~~~~~~~~~~
-BC30456: 'Quit' is not a member of 'FooClass'.
+BC30456: 'Quit' is not a member of 'GooClass'.
         RemoveHandler Instance4.Quit, AddressOf Quit2
                       ~~~~~~~~~~~~~~
 </errors>)
@@ -1670,47 +1670,47 @@ Module Module1
     End Sub
 End Module
 
-Interface Foo1
-    Function Quit() As Foo
+Interface Goo1
+    Function Quit() As Goo
 End Interface
 
-Interface Foo2
+Interface Goo2
     Event Quit()
 End Interface
 
-<CoClass(GetType(FooClass))>
-Interface Foo
-    Inherits Foo1, Foo2
+<CoClass(GetType(GooClass))>
+Interface Goo
+    Inherits Goo1, Goo2
 End Interface
 
-Interface FooFoo
-    Inherits Foo
+Interface GooGoo
+    Inherits Goo
 End Interface
 
-Class FooClass
-    Implements Foo
-    Public Function Quit2() As Foo Implements Foo1.Quit
+Class GooClass
+    Implements Goo
+    Public Function Quit2() As Goo Implements Goo1.Quit
         Return Nothing
     End Function
-    Public Event Quit1() Implements Foo2.Quit
+    Public Event Quit1() Implements Goo2.Quit
 End Class
 
-Class FooFooClass
-    Implements FooFoo
+Class GooGooClass
+    Implements GooGoo
 
-    Dim Instance1 As FooFoo = New FooFooClass
-    Dim Instance3 As Foo = New FooClass
+    Dim Instance1 As GooGoo = New GooGooClass
+    Dim Instance3 As Goo = New GooClass
 
-    WithEvents FooInstance As New FooClass
+    WithEvents GooInstance As New GooClass
 
-    Public Function Quit3() As Foo Implements Foo1.Quit
+    Public Function Quit3() As Goo Implements Goo1.Quit
         Return Nothing
     End Function
     Public Sub Quit2()
         AddHandler (((Instance1).Quit.Quit).Quit), AddressOf Quit2
         RemoveHandler Instance3.Quit.Quit.Quit.Quit.Quit.Quit, AddressOf Quit2
     End Sub
-    Public Event Quit1() Implements Foo2.Quit
+    Public Event Quit1() Implements Goo2.Quit
 End Class
 ]]>
                         </file>
@@ -1726,7 +1726,7 @@ End Class
                 <compilation name="abc">
                     <file name="c.vb">
 Imports System
-Public Interface Foo
+Public Interface Goo
     Sub Bar()
 End Interface
                     </file>
@@ -1738,8 +1738,8 @@ End Interface
                 <compilation>
                     <file name="c.vb">
 Imports System
-Public Interface Foo2
-    Inherits Foo
+Public Interface Goo2
+    Inherits Goo
 End Interface
                     </file>
                 </compilation>
@@ -1751,8 +1751,8 @@ End Interface
                     <file name="c.vb">
 Imports System
 Class Clazz
-    Implements Foo2
-    Public Sub Bar() Implements Foo2.Bar
+    Implements Goo2
+    Public Sub Bar() Implements Goo2.Bar
     End Sub
 End Class
                     </file>
@@ -1760,14 +1760,14 @@ End Class
             Dim compilation3 = CreateCompilationWithMscorlibAndReferences(vbSource3, {New VisualBasicCompilationReference(compilation2)})
             compilation3.AssertTheseDiagnostics(
 <expected>
-BC30652: Reference required to assembly 'abc, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'Foo'. Add one to your project.
-    Implements Foo2
+BC30652: Reference required to assembly 'abc, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'Goo'. Add one to your project.
+    Implements Goo2
                ~~~~
-BC30652: Reference required to assembly 'abc, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'Foo'. Add one to your project.
-    Public Sub Bar() Implements Foo2.Bar
+BC30652: Reference required to assembly 'abc, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'Goo'. Add one to your project.
+    Public Sub Bar() Implements Goo2.Bar
                                 ~~~~
-BC30401: 'Bar' cannot implement 'Bar' because there is no matching sub on interface 'Foo2'.
-    Public Sub Bar() Implements Foo2.Bar
+BC30401: 'Bar' cannot implement 'Bar' because there is no matching sub on interface 'Goo2'.
+    Public Sub Bar() Implements Goo2.Bar
                                 ~~~~~~~~
 </expected>)
         End Sub
@@ -1807,7 +1807,7 @@ Imports System
  
 Module Program
     Sub Main(args As String())
-        Dim foo = New NS.MyD(Sub()
+        Dim goo = New NS.MyD(Sub()
                              End Sub)
     End Sub
 End Module
@@ -1828,7 +1828,7 @@ End Namespace
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
 BC30375: 'New' cannot be used on an interface.
-        Dim foo = New NS.MyD(Sub()
+        Dim goo = New NS.MyD(Sub()
                   ~~~~~~~~~~~~~~~~~
 BC30602: Interface members must be methods, properties, events, or type definitions.
         Private p As Action

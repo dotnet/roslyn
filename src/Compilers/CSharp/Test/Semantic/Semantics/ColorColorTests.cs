@@ -1440,14 +1440,14 @@ class F
 @"class A
 {
     delegate void D();
-    static void Foo() { }
+    static void Goo() { }
     class B
     {
-        const int Foo = 123;
+        const int Goo = 123;
         static void Main()
         {
-            Foo();
-            Bar(Foo);
+            Goo();
+            Bar(Goo);
         }
         static void Bar(int x) { }
         static void Bar(D x) { }
@@ -1463,16 +1463,16 @@ class F
             var text =
 @"class A
 {
-    static void Foo(object x) { }
+    static void Goo(object x) { }
     class B
     {
-        class Foo
+        class Goo
         {
             public const int N = 3;
         }
         static void Main()
         {
-            Foo(Foo.N);
+            Goo(Goo.N);
         }
         static void Bar(int x) { }
     }
@@ -1548,13 +1548,13 @@ static class Test
         public void ShadowedTypeReceiver_1()
         {
             const string source1 = @"
-namespace Foo
+namespace Goo
 {
     public class A { public static int I { get { return -42; } } }
 }";
 
             const string source2 = @"
-namespace Foo
+namespace Goo
 {
     public class A { public static int I { get { return 42; } } }
 
@@ -1575,13 +1575,13 @@ namespace Foo
             CompileAndVerify(source2, new[] { ref1 }, expectedOutput: "42").VerifyDiagnostics(
                 // (8,16): warning CS0436: The type 'A' in '' conflicts with the imported type 'A' in '04f2260a-2ee6-4e74-938a-c47b6dc61d9c, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         static A A { get { return null; } }
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Foo.A", refIdentity, "Foo.A").WithLocation(8, 16),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Goo.A", refIdentity, "Goo.A").WithLocation(8, 16),
                 // (8,39): warning CS0436: The type 'A' in '' conflicts with the imported type 'A' in '59c700fa-e88d-45e4-acec-fd0bae894f9d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         static A A { get { return new A(); } }
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Foo.A", refIdentity, "Foo.A").WithLocation(8, 39),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Goo.A", refIdentity, "Goo.A").WithLocation(8, 39),
                 // (12,38): warning CS0436: The type 'A' in '' conflicts with the imported type 'A' in '04f2260a-2ee6-4e74-938a-c47b6dc61d9c, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //             System.Console.WriteLine(A.I);
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Foo.A", refIdentity, "Foo.A").WithLocation(12, 38));
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Goo.A", refIdentity, "Goo.A").WithLocation(12, 38));
         }
 
         [WorkItem(938389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938389")]
@@ -1589,13 +1589,13 @@ namespace Foo
         public void ShadowedTypeReceiver_2()
         {
             const string source1 = @"
-namespace Foo
+namespace Goo
 {
     public class A { public int I { get { return -42; } } }
 }";
 
             const string source2 = @"
-namespace Foo
+namespace Goo
 {
     public class A { public int I { get { return 42; } } }
 
@@ -1616,10 +1616,10 @@ namespace Foo
             CompileAndVerify(source2, new[] { ref1 }, expectedOutput: "42").VerifyDiagnostics(
                 // (8,16): warning CS0436: The type 'A' in '' conflicts with the imported type 'A' in '59c700fa-e88d-45e4-acec-fd0bae894f9d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         static A A { get { return new A(); } }
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Foo.A", refIdentity, "Foo.A").WithLocation(8, 16),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Goo.A", refIdentity, "Goo.A").WithLocation(8, 16),
                 // (8,39): warning CS0436: The type 'A' in '' conflicts with the imported type 'A' in '59c700fa-e88d-45e4-acec-fd0bae894f9d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         static A A { get { return new A(); } }
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Foo.A", refIdentity, "Foo.A").WithLocation(8, 39));
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Goo.A", refIdentity, "Goo.A").WithLocation(8, 39));
         }
 
         [WorkItem(938389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938389")]
@@ -1627,13 +1627,13 @@ namespace Foo
         public void ShadowedTypeReceiver_3()
         {
             const string source1 = @"
-namespace Foo
+namespace Goo
 {
     public class A { public int I { get { return -42; } } }
 }";
 
             const string source2 = @"
-namespace Foo
+namespace Goo
 {
     public class A { public static int I { get { return 42; } } }
 
@@ -1654,13 +1654,13 @@ namespace Foo
             CompileAndVerify(source2, new[] { ref1 }, expectedOutput: "42").VerifyDiagnostics(
                 // (8,16): warning CS0436: The type 'A' in '' conflicts with the imported type 'A' in '499975c2-0b0d-4d9b-8f1f-4d91133627db, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         static A A { get { return null; } }
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Foo.A", refIdentity, "Foo.A").WithLocation(8, 16),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Goo.A", refIdentity, "Goo.A").WithLocation(8, 16),
                 // (8,39): warning CS0436: The type 'A' in '' conflicts with the imported type 'A' in '59c700fa-e88d-45e4-acec-fd0bae894f9d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         static A A { get { return new A(); } }
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Foo.A", refIdentity, "Foo.A").WithLocation(8, 39),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Goo.A", refIdentity, "Goo.A").WithLocation(8, 39),
                 // (12,38): warning CS0436: The type 'A' in '' conflicts with the imported type 'A' in '499975c2-0b0d-4d9b-8f1f-4d91133627db, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //             System.Console.WriteLine(A.I);
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Foo.A", refIdentity, "Foo.A").WithLocation(12, 38));
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Goo.A", refIdentity, "Goo.A").WithLocation(12, 38));
         }
 
         [WorkItem(938389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938389")]
@@ -1668,13 +1668,13 @@ namespace Foo
         public void ShadowedTypeReceiver_4()
         {
             const string source1 = @"
-namespace Foo
+namespace Goo
 {
     public class A { public static int I { get { return -42; } } }
 }";
 
             const string source2 = @"
-namespace Foo
+namespace Goo
 {
     public class A { public int I { get { return 42; } } }
 
@@ -1695,10 +1695,10 @@ namespace Foo
             CompileAndVerify(source2, new[] { ref1 }, expectedOutput: "42").VerifyDiagnostics(
                 // (8,16): warning CS0436: The type 'A' in '' conflicts with the imported type 'A' in 'cb07e894-1bb8-4db2-93ba-747f45e89f22, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         static A A { get { return new A(); } }
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Foo.A", refIdentity, "Foo.A").WithLocation(8, 16),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Goo.A", refIdentity, "Goo.A").WithLocation(8, 16),
                 // (8,39): warning CS0436: The type 'A' in '' conflicts with the imported type 'A' in 'cb07e894-1bb8-4db2-93ba-747f45e89f22, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         static A A { get { return new A(); } }
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Foo.A", refIdentity, "Foo.A").WithLocation(8, 39));
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Goo.A", refIdentity, "Goo.A").WithLocation(8, 39));
         }
 
         [WorkItem(1095020, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1095020")]
@@ -2062,6 +2062,81 @@ class C
                 //         var E = E.A;
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "E").WithArguments("E").WithLocation(11, 17)
                 );
+        }
+
+        [WorkItem(19458, "https://github.com/dotnet/roslyn/issues/19458")]
+        [Fact]
+        public void VersionUnificationConstColorColorEnum()
+        {
+            string sourceRefLib = @"
+public enum Color { Red }
+";
+
+            var refLib = CreateCompilation(
+                sourceRefLib,
+                assemblyName: "RefLib",
+                references: new[] { TestReferences.NetFx.v2_0_50727.mscorlib });
+
+            refLib.VerifyEmitDiagnostics();
+
+            string sourceMain = @"
+class M
+{
+    void F()
+    {
+        const Color Color = Color.Red;
+        _ = Color; // to avoid unused local warning
+    }
+}
+";
+
+            var main = CreateCompilation(
+                sourceMain,
+                assemblyName: "Main",
+                references: new MetadataReference[]
+                {
+                    new CSharpCompilationReference(refLib),
+                    TestReferences.NetFx.v4_0_30319.mscorlib
+                });
+
+            var unifyReferenceWarning =
+                // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'RefLib' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments(
+                    "mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                    "RefLib",
+                    "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                    "mscorlib");
+
+            main.VerifyEmitDiagnostics(unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning);
+        }
+
+        [WorkItem(19458, "https://github.com/dotnet/roslyn/issues/19458")]
+        [Fact]
+        public void ObsoleteConstColorColorEnum()
+        {
+            string source = @"
+enum Color
+{
+    [System.Obsolete] Red
+}
+
+class M
+{
+    void F()
+    {
+        const Color Color = Color.Red;
+        _ = Color; // to avoid unused local warning
+    }
+}
+";
+
+            var compilation = CreateStandardCompilation(source, assemblyName: "Main");
+
+            DiagnosticDescription obsoleteWarning =
+                // warning CS0612: 'Color.Red' is obsolete
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Color.Red").WithArguments("Color.Red").WithLocation(11, 29);
+
+            compilation.VerifyEmitDiagnostics(obsoleteWarning, obsoleteWarning);
         }
     }
 }

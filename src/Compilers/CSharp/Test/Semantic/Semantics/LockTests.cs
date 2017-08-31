@@ -245,7 +245,7 @@ struct Conv
             var source = @"
 class C
 {
-    public void foo()
+    public void goo()
     {
         int? a = null;
         lock (a)
@@ -433,7 +433,7 @@ class Test
             var source = @"
 class D
 {
-    public void foo()
+    public void goo()
     {
             lock (varnew object)
             {

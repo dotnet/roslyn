@@ -107,7 +107,7 @@ unsafe class C
             var text = @"
 class C
 {
-    unsafe void Foo()
+    unsafe void Goo()
     {
     }
 }
@@ -115,7 +115,7 @@ class C
 
             CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll.WithAllowUnsafe(false)).VerifyDiagnostics(
                 // (4,17): error CS0227: Unsafe code may only appear if compiling with /unsafe
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Foo"));
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Goo"));
 
             CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
@@ -126,7 +126,7 @@ class C
             var text = @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         unsafe { }
     }
@@ -146,7 +146,7 @@ class C
             var text = @"
 unsafe class C
 {
-    System.Collections.Generic.IEnumerator<int> Foo()
+    System.Collections.Generic.IEnumerator<int> Goo()
     {
         yield return 1;
     }
@@ -162,7 +162,7 @@ unsafe class C
             var text = @"
 class C
 {
-    unsafe System.Collections.Generic.IEnumerator<int> Foo()
+    unsafe System.Collections.Generic.IEnumerator<int> Goo()
     {
         yield return 1;
     }
@@ -171,7 +171,7 @@ class C
 
             CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,56): error CS1629: Unsafe code may not appear in iterators
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "Foo"));
+                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "Goo"));
         }
 
         [Fact]
@@ -180,7 +180,7 @@ class C
             var text = @"
 class C
 {
-    System.Collections.Generic.IEnumerator<int> Foo()
+    System.Collections.Generic.IEnumerator<int> Goo()
     {
         unsafe { }
         yield return 1;
@@ -199,7 +199,7 @@ class C
             var text = @"
 unsafe class C
 {
-    System.Collections.Generic.IEnumerator<int> Foo()
+    System.Collections.Generic.IEnumerator<int> Goo()
     {
         unsafe { }
         yield return 1;
@@ -219,7 +219,7 @@ unsafe class C
             var text = @"
 unsafe class C
 {
-    System.Collections.Generic.IEnumerator<int> Foo()
+    System.Collections.Generic.IEnumerator<int> Goo()
     {
         System.Action a = () => { unsafe { } };
         yield return 1;
@@ -971,47 +971,47 @@ class C : I
 {{
     {1} static void Main()
     {{
-        {{ Foo(); }}
-        {{ Foo(null); }}
-        {{ Foo((int*)1); }}
-        {{ Foo(new int*[2]); }}
+        {{ Goo(); }}
+        {{ Goo(null); }}
+        {{ Goo((int*)1); }}
+        {{ Goo(new int*[2]); }}
     }}
 
-    {1} static void Foo(params int*[] x) {{ }}
+    {1} static void Goo(params int*[] x) {{ }}
 }}
 ";
 
             CompareUnsafeDiagnostics(template,
                 // (12,29): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //      static void Foo(params int*[] x) { }
+                //      static void Goo(params int*[] x) { }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"),
                 // (6,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { Foo(); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Foo()"),
+                //         { Goo(); }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Goo()"),
                 // (7,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { Foo(null); }
+                //         { Goo(null); }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "null"),
                 // (7,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { Foo(null); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Foo(null)"),
+                //         { Goo(null); }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Goo(null)"),
                 // (8,16): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { Foo((int*)1); }
+                //         { Goo((int*)1); }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"),
                 // (8,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { Foo((int*)1); }
+                //         { Goo((int*)1); }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "(int*)1"),
                 // (8,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { Foo((int*)1); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Foo((int*)1)"),
+                //         { Goo((int*)1); }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Goo((int*)1)"),
                 // (9,19): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { Foo(new int*[2]); }
+                //         { Goo(new int*[2]); }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"),
                 // (9,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { Foo(new int*[2]); }
+                //         { Goo(new int*[2]); }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "new int*[2]"),
                 // (9,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { Foo(new int*[2]); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Foo(new int*[2])")
+                //         { Goo(new int*[2]); }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Goo(new int*[2])")
                 );
         }
 
@@ -1024,37 +1024,37 @@ class C : I
 {{
     {1} static void Main()
     {{
-        {{ Foo(); }}
-        {{ Foo(null); }}
-        {{ Foo((int*)1); }}
+        {{ Goo(); }}
+        {{ Goo(null); }}
+        {{ Goo((int*)1); }}
     }}
 
-    {1} static void Foo(int* p = null) {{ }}
+    {1} static void Goo(int* p = null) {{ }}
 }}
 ";
 
             CompareUnsafeDiagnostics(template,
                 // (11,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //      static void Foo(int* p = null) { }
+                //      static void Goo(int* p = null) { }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"),
                 // (6,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { Foo(); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Foo()"),
+                //         { Goo(); }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Goo()"),
                 // (7,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { Foo(null); }
+                //         { Goo(null); }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "null"),
                 // (7,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { Foo(null); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Foo(null)"),
+                //         { Goo(null); }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Goo(null)"),
                 // (8,16): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { Foo((int*)1); }
+                //         { Goo((int*)1); }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"),
                 // (8,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { Foo((int*)1); }
+                //         { Goo((int*)1); }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "(int*)1"),
                 // (8,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { Foo((int*)1); }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Foo((int*)1)")
+                //         { Goo((int*)1); }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Goo((int*)1)")
                 );
         }
 
@@ -1403,24 +1403,24 @@ class C : I
         D d;
         {{ d = delegate {{ }}; }}
         {{ d = null; }}
-        {{ d = Foo; }}
+        {{ d = Goo; }}
     }}
 
     {1} delegate void D(int* x = null);
-    {1} static void Foo(int* x = null) {{ }}
+    {1} static void Goo(int* x = null) {{ }}
 }}
 ";
 
             CompareUnsafeDiagnostics(template,
                 // (9,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         { d = Foo; }
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Foo"),
+                //         { d = Goo; }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Goo"),
 
                 // (12,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //      delegate void D(int* x = null);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"),
                 // (13,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //      static void Foo(int* x = null) { }
+                //      static void Goo(int* x = null) { }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*"));
         }
 
@@ -1453,24 +1453,24 @@ class C : I
             var template = @"
 {0} class Test
 {{
-    {1} static void Foo(void* p) {{ }}
+    {1} static void Goo(void* p) {{ }}
     {1} static void Main()
     {{
-        Foo(null);
+        Goo(null);
     }}
 }}
 ";
 
             CompareUnsafeDiagnostics(template,
                 // (4,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //      static void Foo(void* p) { }
+                //      static void Goo(void* p) { }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*"),
                 // (7,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         Foo(null);
+                //         Goo(null);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "null"),
                 // (7,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         Foo(null);
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Foo(null)")
+                //         Goo(null);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Goo(null)")
                 );
         }
 
@@ -3108,18 +3108,18 @@ unsafe class C
 {
     int M(int param)
     {
-        var z = from x in new int[2] select Foo(&x);
+        var z = from x in new int[2] select Goo(&x);
 
         return 0;
     }
 
-    int Foo(int* p) { return 0; }
+    int Goo(int* p) { return 0; }
 }
 ";
             // NOTE: this is a breaking change - dev10 allows this.
             CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,50): error CS0211: Cannot take the address of the given expression
-                //         var z = from x in new int[2] select Foo(&x);
+                //         var z = from x in new int[2] select Goo(&x);
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "x").WithArguments("x"));
         }
 
@@ -3208,7 +3208,7 @@ unsafe class C : Base
         p = &1; //CS0211 (can't addr)
         p = &array[0]; //CS0212 (need fixed)
         p = &(local = 1); //CS0211
-        p = &foo; //CS0103 (no foo)
+        p = &goo; //CS0103 (no goo)
         p = &base.f; //CS0212
         p = &(local + local); //CS0211
         p = &M(local); //CS0211
@@ -3249,7 +3249,7 @@ unsafe class C : Base
         return 0;
     }
 
-    int Foo(int* p) { return 0; }
+    int Goo(int* p) { return 0; }
 
     static void Main() { }
 }
@@ -3277,9 +3277,9 @@ enum Color
                 // (25,15): error CS0211: Cannot take the address of the given expression
                 //         p = &(local = 1); //CS0211
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "local = 1"),
-                // (26,14): error CS0103: The name 'foo' does not exist in the current context
-                //         p = &foo; //CS0103 (no foo)
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "foo").WithArguments("foo"),
+                // (26,14): error CS0103: The name 'goo' does not exist in the current context
+                //         p = &goo; //CS0103 (no goo)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "goo").WithArguments("goo"),
                 // (27,13): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
                 //         p = &base.f; //CS0212
                 Diagnostic(ErrorCode.ERR_FixedNeeded, "&base.f"),
@@ -3762,7 +3762,7 @@ unsafe public struct Test
 {
     private delegate int D();
     public fixed int i[1];
-    public int foo()
+    public int goo()
     {
         Test t = this;
         t.i[0] = 5;
@@ -6265,7 +6265,7 @@ unsafe class C
     int f;
     int[] a;
 
-    void Foo()
+    void Goo()
     {
         fixed (int* q = &f, r = &q[1]) //CS0213
         {
@@ -7723,17 +7723,17 @@ class C
             var text = @"
 class C
 {
-  class Foo3 { 
+  class Goo3 { 
      internal struct Struct1<U> {} 
   }
 
-  unsafe void NMethodCecilNameHelper_Parameter_AllTogether<U>(ref Foo3.Struct1<int>**[][,,] ppi) { }
+  unsafe void NMethodCecilNameHelper_Parameter_AllTogether<U>(ref Goo3.Struct1<int>**[][,,] ppi) { }
 }
 ";
             CreateStandardCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
-                // (8,67): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C.Foo3.Struct1<int>')
-                //   unsafe void NMethodCecilNameHelper_Parameter_AllTogether<U>(ref Foo3.Struct1<int>**[][,,] ppi) { }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "Foo3.Struct1<int>*").WithArguments("C.Foo3.Struct1<int>").WithLocation(8, 67));
+                // (8,67): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C.Goo3.Struct1<int>')
+                //   unsafe void NMethodCecilNameHelper_Parameter_AllTogether<U>(ref Goo3.Struct1<int>**[][,,] ppi) { }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "Goo3.Struct1<int>*").WithArguments("C.Goo3.Struct1<int>").WithLocation(8, 67));
         }
 
 
@@ -8091,7 +8091,7 @@ public class Test
             var text = @"
 class C
 {
-    unsafe void Foo(object obj)
+    unsafe void Goo(object obj)
     {
         var x = (int*)obj;
     }

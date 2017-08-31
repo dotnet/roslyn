@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var speculatedExpressionOuterType = GetOuterCastType(speculatedExpression, speculationAnalyzer.SpeculativeSemanticModel, out var discarded) ?? typeInfo.ConvertedType;
             if (speculatedExpressionOuterType == null)
             {
-                return default(Conversion);
+                return default;
             }
 
             return speculationAnalyzer.SpeculativeSemanticModel.ClassifyConversion(speculatedExpression, speculatedExpressionOuterType);
@@ -151,23 +151,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             //
             // IOW, given the following method...
             //
-            // static void Foo(params object[] x) { }
+            // static void Goo(params object[] x) { }
             //
             // ...we should remove this cast...
             //
-            // Foo((object[])null);
+            // Goo((object[])null);
             //
             // ...but not this cast...
             //
-            // Foo((object)null);
+            // Goo((object)null);
 
-            var argument = cast.WalkUpParentheses().Parent as ArgumentSyntax;
-            if (argument != null)
+            if (cast.WalkUpParentheses().Parent is ArgumentSyntax argument)
             {
                 // If there are any arguments to the right, we can assume that this is not a
                 // *single* argument passed to a params parameter.
-                var argumentList = argument.Parent as BaseArgumentListSyntax;
-                if (argumentList != null)
+                if (argument.Parent is BaseArgumentListSyntax argumentList)
                 {
                     var argumentIndex = argumentList.Arguments.IndexOf(argument);
                     if (argumentIndex < argumentList.Arguments.Count - 1)

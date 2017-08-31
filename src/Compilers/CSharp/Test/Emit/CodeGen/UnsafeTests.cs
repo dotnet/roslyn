@@ -138,10 +138,10 @@ unsafe class C
         S2* p2 = &s.s;
         int* p3 = &s.s.x;
 
-        Foo(s, p1, p2, p3);
+        Goo(s, p1, p2, p3);
     }
 
-    void Foo(S1 s, S1* p1, S2* p2, int* p3) { }
+    void Goo(S1 s, S1* p1, S2* p2, int* p3) { }
 }
 
 struct S1
@@ -180,7 +180,7 @@ struct S2
   IL_001d:  ldloc.1
   IL_001e:  ldloc.2
   IL_001f:  ldloc.3
-  IL_0020:  call       ""void C.Foo(S1, S1*, S2*, int*)""
+  IL_0020:  call       ""void C.Goo(S1, S1*, S2*, int*)""
   IL_0025:  ret
 }
 ");
@@ -195,10 +195,10 @@ unsafe class C
     static void M()
     {
         int x = 123;
-        Foo(&x); // should not optimize into 'Foo(&123)'
+        Goo(&x); // should not optimize into 'Goo(&123)'
     }
 
-    static void Foo(int* p) { }
+    static void Goo(int* p) { }
 }
 ";
             var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll);
@@ -211,7 +211,7 @@ unsafe class C
   IL_0002:  stloc.0
   IL_0003:  ldloca.s   V_0
   IL_0005:  conv.u
-  IL_0006:  call       ""void C.Foo(int*)""
+  IL_0006:  call       ""void C.Goo(int*)""
   IL_000b:  ret
 }
 ");
@@ -5513,6 +5513,7 @@ unsafe class C
 ");
         }
 
+        [WorkItem(18871, "https://github.com/dotnet/roslyn/issues/18871")]
         [WorkItem(546750, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546750")]
         [Fact]
         public void NumericAdditionChecked_SizeOne()
@@ -5536,6 +5537,25 @@ unsafe class C
             p = p + u;
             p = p + l;
             p = p + ul;
+            p = p + (-2);
+        }
+    }
+
+    void Test1(int i, uint u, long l, ulong ul)
+    {
+        checked
+        {
+            byte b = 3;
+            byte* p = &b;
+            p = p - 2;
+            p = p - 3u;
+            p = p - 4l;
+            p = p - 5ul;
+            p = p - i;
+            p = p - u;
+            p = p - l;
+            p = p - ul;
+            p = p - (-1);
         }
     }
 }
@@ -5543,9 +5563,11 @@ unsafe class C
             // NOTE: even when not optimized.
             // NOTE: additional conversions applied to constants of type int and uint.
             // NOTE: identical to unchecked except "add" becomes "add.ovf.un".
-            CompileAndVerify(text, options: TestOptions.UnsafeDebugDll).VerifyIL("C.Test", @"
+            var comp = CompileAndVerify(text, options: TestOptions.UnsafeDebugDll);
+
+            comp.VerifyIL("C.Test", @"
 {
-  // Code size       50 (0x32)
+  // Code size       57 (0x39)
   .maxstack  2
   .locals init (byte V_0, //b
                 byte* V_1) //p
@@ -5578,26 +5600,189 @@ unsafe class C
   IL_001b:  stloc.1
   IL_001c:  ldloc.1
   IL_001d:  ldarg.1
-  IL_001e:  add.ovf.un
-  IL_001f:  stloc.1
-  IL_0020:  ldloc.1
-  IL_0021:  ldarg.2
-  IL_0022:  conv.u
-  IL_0023:  add.ovf.un
-  IL_0024:  stloc.1
-  IL_0025:  ldloc.1
-  IL_0026:  ldarg.3
-  IL_0027:  conv.i
-  IL_0028:  add.ovf.un
-  IL_0029:  stloc.1
-  IL_002a:  ldloc.1
-  IL_002b:  ldarg.s    V_4
-  IL_002d:  conv.u
-  IL_002e:  add.ovf.un
-  IL_002f:  stloc.1
-  IL_0030:  nop
-  IL_0031:  ret
+  IL_001e:  conv.i
+  IL_001f:  add.ovf.un
+  IL_0020:  stloc.1
+  IL_0021:  ldloc.1
+  IL_0022:  ldarg.2
+  IL_0023:  conv.u
+  IL_0024:  add.ovf.un
+  IL_0025:  stloc.1
+  IL_0026:  ldloc.1
+  IL_0027:  ldarg.3
+  IL_0028:  conv.i
+  IL_0029:  add.ovf.un
+  IL_002a:  stloc.1
+  IL_002b:  ldloc.1
+  IL_002c:  ldarg.s    V_4
+  IL_002e:  conv.u
+  IL_002f:  add.ovf.un
+  IL_0030:  stloc.1
+  IL_0031:  ldloc.1
+  IL_0032:  ldc.i4.s   -2
+  IL_0034:  conv.i
+  IL_0035:  add.ovf.un
+  IL_0036:  stloc.1
+  IL_0037:  nop
+  IL_0038:  ret
 }");
+
+            comp.VerifyIL("C.Test1", @"
+{
+  // Code size       56 (0x38)
+  .maxstack  2
+  .locals init (byte V_0, //b
+                byte* V_1) //p
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ldc.i4.3
+  IL_0003:  stloc.0
+  IL_0004:  ldloca.s   V_0
+  IL_0006:  conv.u
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.1
+  IL_0009:  ldc.i4.2
+  IL_000a:  sub.ovf.un
+  IL_000b:  stloc.1
+  IL_000c:  ldloc.1
+  IL_000d:  ldc.i4.3
+  IL_000e:  sub.ovf.un
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.1
+  IL_0011:  ldc.i4.4
+  IL_0012:  conv.i8
+  IL_0013:  conv.i
+  IL_0014:  sub.ovf.un
+  IL_0015:  stloc.1
+  IL_0016:  ldloc.1
+  IL_0017:  ldc.i4.5
+  IL_0018:  conv.i8
+  IL_0019:  conv.u
+  IL_001a:  sub.ovf.un
+  IL_001b:  stloc.1
+  IL_001c:  ldloc.1
+  IL_001d:  ldarg.1
+  IL_001e:  conv.i
+  IL_001f:  sub.ovf.un
+  IL_0020:  stloc.1
+  IL_0021:  ldloc.1
+  IL_0022:  ldarg.2
+  IL_0023:  conv.u
+  IL_0024:  sub.ovf.un
+  IL_0025:  stloc.1
+  IL_0026:  ldloc.1
+  IL_0027:  ldarg.3
+  IL_0028:  conv.i
+  IL_0029:  sub.ovf.un
+  IL_002a:  stloc.1
+  IL_002b:  ldloc.1
+  IL_002c:  ldarg.s    V_4
+  IL_002e:  conv.u
+  IL_002f:  sub.ovf.un
+  IL_0030:  stloc.1
+  IL_0031:  ldloc.1
+  IL_0032:  ldc.i4.m1
+  IL_0033:  conv.i
+  IL_0034:  sub.ovf.un
+  IL_0035:  stloc.1
+  IL_0036:  nop
+  IL_0037:  ret
+}");
+        }
+
+        [Fact]
+        public void CheckedSignExtend()
+        {
+            var text = @"
+using System;
+
+unsafe struct S
+{
+    static void Main()
+    {
+        byte* ptr1 = default(byte*);
+
+        ptr1 = (byte*)2;
+        checked
+        {
+            // should not overflow regardless of 32/64 bit
+            ptr1 = ptr1 + 2147483649;
+        }
+
+        Console.WriteLine((long)ptr1);
+
+        byte* ptr = (byte*)2;
+        try
+        { 
+            checked
+            {
+                int i = -1;
+                // should overflow regardless of 32/64 bit
+                ptr = ptr + i;
+            }
+            Console.WriteLine((long)ptr);
+        }
+        catch (OverflowException)
+        {
+            Console.WriteLine(""overflow"");
+            Console.WriteLine((long)ptr);
+        }
+    }
+}
+";
+
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2147483651
+overflow
+2").VerifyIL("S.Main", @"
+{
+  // Code size       67 (0x43)
+  .maxstack  2
+  .locals init (byte* V_0, //ptr1
+                byte* V_1, //ptr
+                int V_2) //i
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""byte*""
+  IL_0008:  ldc.i4.2
+  IL_0009:  conv.i
+  IL_000a:  stloc.0
+  IL_000b:  ldloc.0
+  IL_000c:  ldc.i4     0x80000001
+  IL_0011:  conv.u
+  IL_0012:  add.ovf.un
+  IL_0013:  stloc.0
+  IL_0014:  ldloc.0
+  IL_0015:  conv.u8
+  IL_0016:  call       ""void System.Console.WriteLine(long)""
+  IL_001b:  ldc.i4.2
+  IL_001c:  conv.i
+  IL_001d:  stloc.1
+  .try
+  {
+    IL_001e:  ldc.i4.m1
+    IL_001f:  stloc.2
+    IL_0020:  ldloc.1
+    IL_0021:  ldloc.2
+    IL_0022:  conv.i
+    IL_0023:  add.ovf.un
+    IL_0024:  stloc.1
+    IL_0025:  ldloc.1
+    IL_0026:  conv.u8
+    IL_0027:  call       ""void System.Console.WriteLine(long)""
+    IL_002c:  leave.s    IL_0042
+  }
+  catch System.OverflowException
+  {
+    IL_002e:  pop
+    IL_002f:  ldstr      ""overflow""
+    IL_0034:  call       ""void System.Console.WriteLine(string)""
+    IL_0039:  ldloc.1
+    IL_003a:  conv.u8
+    IL_003b:  call       ""void System.Console.WriteLine(long)""
+    IL_0040:  leave.s    IL_0042
+  }
+  IL_0042:  ret
+}
+");
         }
 
         [Fact]
@@ -8179,11 +8364,11 @@ class Program
 {
     static void Main()
     {
-        Foo(x => { });
+        Goo(x => { });
     }
 
-    static void Foo(F1 f) { Console.WriteLine(1); }
-    static void Foo(F2 f) { Console.WriteLine(2); }
+    static void Goo(F1 f) { Console.WriteLine(1); }
+    static void Goo(F2 f) { Console.WriteLine(2); }
 }
 
 unsafe delegate void F1(int* x);
@@ -8493,6 +8678,7 @@ unsafe public struct FixedStruct
 ");
         }
 
+        [Fact]
         public void FixedBufferAndStatementWithFixedArrayElementAsInitializerExe()
         {
             var text = @"
@@ -8569,7 +8755,7 @@ using System.Collections.Generic;
 
 unsafe class C<T> where T : struct
 {
-    public void Foo()
+    public void Goo()
     {
         Func<T, char> d = delegate
         {
@@ -8589,7 +8775,7 @@ class A
 {
     static void Main()
     {
-        new C<int>().Foo();
+        new C<int>().Goo();
     }
 }
 ";

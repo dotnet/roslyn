@@ -22,7 +22,7 @@ class C
 
 struct S
 {
-    int Foo() { }
+    int Goo() { }
     void Bar() { }
 }";
 
@@ -71,7 +71,7 @@ struct S
             VisualStudio.Editor.SelectTypeNavBarItem("S");
 
             VerifyLeftSelected("S");
-            VerifyRightSelected("Foo()");
+            VerifyRightSelected("Goo()");
             VisualStudio.Editor.Verify.CurrentLineText("$$struct S", assertCaretPosition: true, trimWhitespace: true);
         }
 
@@ -81,21 +81,21 @@ struct S
             SetUpEditor(@"
 struct S$$
 {
-    int Foo() { }
+    int Goo() { }
     void Bar() { }
 }");
             VisualStudio.Editor.ExpandMemberNavBar();
             var expectedItems = new[]
             {
                 "Bar()",
-                "Foo()",
+                "Goo()",
             };
             Assert.Equal(expectedItems, VisualStudio.Editor.GetMemberNavBarItems());
             VisualStudio.Editor.SelectMemberNavBarItem("Bar()");
             VisualStudio.Editor.Verify.CurrentLineText("void $$Bar() { }", assertCaretPosition: true, trimWhitespace: true);
 
             VisualStudio.ExecuteCommand("Edit.LineUp");
-            VerifyRightSelected("Foo()");
+            VerifyRightSelected("Goo()");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
@@ -110,7 +110,7 @@ class C
 
 struct S
 {
-    int Foo() { }
+    int Goo() { }
     void Bar() { }
 }");
             VisualStudio.ExecuteCommand("Window.Split");
@@ -118,9 +118,9 @@ struct S
             VerifyLeftSelected("C");
             VerifyRightSelected("this[int index]");
             VisualStudio.ExecuteCommand("Window.NextSplitPane");
-            VisualStudio.Editor.PlaceCaret("Foo", charsOffset: 1);
+            VisualStudio.Editor.PlaceCaret("Goo", charsOffset: 1);
             VerifyLeftSelected("S");
-            VerifyRightSelected("Foo()");
+            VerifyRightSelected("Goo()");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)]

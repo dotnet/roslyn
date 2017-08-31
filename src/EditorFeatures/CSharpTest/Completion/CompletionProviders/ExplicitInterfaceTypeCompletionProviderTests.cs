@@ -37,6 +37,19 @@ class C : IList
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(459044, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=459044")]
+        public async Task TestInMisplacedUsing()
+        {
+            var markup = @"
+class C
+{
+    using ($$)
+}
+";
+            await VerifyNoItemsExistAsync(markup); // no crash
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestAtStartOfStruct()
         {
             var markup = @"
@@ -81,7 +94,7 @@ using System.Collections;
 
 class C : IList
 {
-    void Foo() { }
+    void Goo() { }
     int $$
 }
 ";
@@ -100,7 +113,7 @@ using System.Collections;
 
 class C : IList
 {
-    int Foo() => 0;
+    int Goo() => 0;
     int $$
 }
 ";
@@ -119,7 +132,7 @@ using System.Collections;
 
 class C : IList
 {
-    int Foo() => 0;
+    int Goo() => 0;
     int $$
 
     [Attr]
@@ -141,7 +154,7 @@ using System.Collections;
 
 class C : IList
 {
-    int Foo() => 0;
+    int Goo() => 0;
     int $$
 
     public int Bar();
@@ -162,7 +175,7 @@ using System.Collections;
 
 class C : IList
 {
-    int Foo() => 0;
+    int Goo() => 0;
     int $$
 
     int Bar();
@@ -183,7 +196,7 @@ using System.Collections;
 
 class C : IList
 {
-    int Foo() => 0;
+    int Goo() => 0;
     int $$
 
     X Bar();
@@ -204,7 +217,7 @@ using System.Collections;
 
 class C : IList
 {
-    void Foo()
+    void Goo()
     {
         int $$
     }

@@ -400,7 +400,7 @@ public partial class C1
         public void BadVisInterfacePartial()
         {
             var text = @"
-interface IFoo
+interface IGoo
 {
     void Moo();
 }
@@ -419,7 +419,7 @@ public partial interface IBar
 {
 }
 
-partial interface IBar : IFoo, IBam
+partial interface IBar : IGoo, IBam
 {
 }
 
@@ -432,11 +432,11 @@ partial interface IBar : IBaz, IBaz
                 // (25,32): error CS0528: 'IBaz' is already listed in interface list
                 // partial interface IBar : IBaz, IBaz
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "IBaz").WithArguments("IBaz").WithLocation(25, 32),
-                // (21,19): error CS0061: Inconsistent accessibility: base interface 'IFoo' is less accessible than interface 'IBar'
-                // partial interface IBar : IFoo, IBam
-                Diagnostic(ErrorCode.ERR_BadVisBaseInterface, "IBar").WithArguments("IBar", "IFoo").WithLocation(21, 19),
+                // (21,19): error CS0061: Inconsistent accessibility: base interface 'IGoo' is less accessible than interface 'IBar'
+                // partial interface IBar : IGoo, IBam
+                Diagnostic(ErrorCode.ERR_BadVisBaseInterface, "IBar").WithArguments("IBar", "IGoo").WithLocation(21, 19),
                 // (21,19): error CS0061: Inconsistent accessibility: base interface 'IBam' is less accessible than interface 'IBar'
-                // partial interface IBar : IFoo, IBam
+                // partial interface IBar : IGoo, IBam
                 Diagnostic(ErrorCode.ERR_BadVisBaseInterface, "IBar").WithArguments("IBar", "IBam").WithLocation(21, 19),
                 // (25,19): error CS0061: Inconsistent accessibility: base interface 'IBaz' is less accessible than interface 'IBar'
                 // partial interface IBar : IBaz, IBaz
@@ -1581,7 +1581,7 @@ using System.Collections.Generic;
 
 class Z
 {
-    public IEnumerable<object> foo(A a)
+    public IEnumerable<object> goo(A a)
     { 
         return a;
     }
@@ -1831,23 +1831,23 @@ class C : PublicClass.ProtectedClass
  
 class B : I<object>
 {
-    public static void Foo<T>(I<T> x)
+    public static void Goo<T>(I<T> x)
     {
     }
  
-    public static void Foo<T>() where T : I<>
+    public static void Goo<T>() where T : I<>
     {
     }
  
     static void Main()
     {
-        Foo(new B());
+        Goo(new B());
     }
 }";
             var comp = CreateStandardCompilation(Parse(text));
             comp.VerifyDiagnostics(
                 // (9,43): error CS7003: Unexpected use of an unbound generic name
-                //     public static void Foo<T>() where T : I<>
+                //     public static void Goo<T>() where T : I<>
                 Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "I<>")
                 );
         }

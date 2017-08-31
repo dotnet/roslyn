@@ -2352,7 +2352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.ReceiverOpt != null)
             {
-                // An explicit or implicit receiver, for example in an expression such as (x.Foo is Action, or Foo is Action), is considered to be read.
+                // An explicit or implicit receiver, for example in an expression such as (x.Goo is Action, or Goo is Action), is considered to be read.
                 VisitRvalue(node.ReceiverOpt);
             }
 

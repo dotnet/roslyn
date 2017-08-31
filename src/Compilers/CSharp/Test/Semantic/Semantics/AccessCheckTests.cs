@@ -719,7 +719,7 @@ class A
     static private int priv;
     static public int pub;
     protected int prot;
-    static private Foo unknowntype;
+    static private Goo unknowntype;
     
     private class K {}
 

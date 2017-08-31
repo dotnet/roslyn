@@ -12410,5 +12410,40 @@ DashDash
                 stringMapper:=Function(o) StringReplace(o, System.IO.Path.Combine(TestHelpers.AsXmlCommentText(path), "- - -.xml"), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
+        <Fact>
+        <WorkItem(410932, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=410932")>
+        Public Sub LookupOnCrefTypeParameter()
+
+            Dim sources =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Public Class Test
+    Function F(Of T)() As T
+    End Function
+
+    ''' <summary>
+    ''' <see cref="F(Of U)()"/>
+    ''' </summary>
+    Public Sub S()
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+                sources,
+                options:=TestOptions.ReleaseDll)
+
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model = compilation.GetSemanticModel(tree)
+
+            Dim name = FindNodesOfTypeFromText(Of NameSyntax)(tree, "U").Single()
+            Dim typeParameter = DirectCast(model.GetSymbolInfo(name).Symbol, TypeParameterSymbol)
+            Assert.Empty(model.LookupSymbols(name.SpanStart, typeParameter, "GetAwaiter"))
+        End Sub
+
     End Class
 End Namespace

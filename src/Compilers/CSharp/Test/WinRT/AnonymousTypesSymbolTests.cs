@@ -100,10 +100,10 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(Foo<int>()());
+        Console.WriteLine(Goo<int>()());
     }
 
-    static Func<object> Foo<T>()
+    static Func<object> Goo<T>()
     {
         T x2 = default(T);
         return (Func<object>) (() => new { x2 });
@@ -125,10 +125,10 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(Foo<int>()());
+        Console.WriteLine(Goo<int>()());
     }
 
-    static Func<object> Foo<T>()
+    static Func<object> Goo<T>()
     {
         T x2 = default(T);
         Func<object> x3 = () => new { x2 };
@@ -151,12 +151,12 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(Foo<int>());
-        Console.WriteLine(Foo<string>());
-        Console.WriteLine(Foo<int?>());
+        Console.WriteLine(Goo<int>());
+        Console.WriteLine(Goo<string>());
+        Console.WriteLine(Goo<int?>());
     }
 
-    static object Foo<T>()
+    static object Goo<T>()
     {
         T x2 = default(T);
         return new { x2 };
@@ -182,13 +182,13 @@ class Program
 {
     static void Main(string[] args)
     {
-        foreach(var x in Foo<int>())
+        foreach(var x in Goo<int>())
         {
             Console.Write(x);
         }
     }
 
-    static IEnumerable<object> Foo<T>()
+    static IEnumerable<object> Goo<T>()
     {
         T x2 = default(T);
         yield return new { x2 }.ToString();
@@ -211,10 +211,10 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(Foo<int>()());
+        Console.WriteLine(Goo<int>()());
     }
 
-    static Func<object> Foo<T>()
+    static Func<object> Goo<T>()
     {
         T x2 = default(T);
         return (Func<object>) (() => new { });

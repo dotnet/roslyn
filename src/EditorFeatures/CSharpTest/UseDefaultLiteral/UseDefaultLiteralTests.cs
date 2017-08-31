@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultLiteral
 @"
 class C
 {
-    void Foo(string s = [||]default(string))
+    void Goo(string s = [||]default(string))
     {
     }
 }", parameters: new TestParameters(
@@ -43,14 +43,14 @@ class C
 @"
 class C
 {
-    void Foo(string s = [||]default(string))
+    void Goo(string s = [||]default(string))
     {
     }
 }",
 @"
 class C
 {
-    void Foo(string s = default)
+    void Goo(string s = default)
     {
     }
 }", parseOptions: s_parseOptions);
@@ -63,7 +63,7 @@ class C
 @"
 class C
 {
-    void Foo(string s)
+    void Goo(string s)
     {
         if (s == [||]default(string)) { }
     }
@@ -71,7 +71,7 @@ class C
 @"
 class C
 {
-    void Foo(string s)
+    void Goo(string s)
     {
         if (s == default) { }
     }
@@ -85,7 +85,7 @@ class C
 @"
 class C
 {
-    string Foo()
+    string Goo()
     {
         return [||]default(string);
     }
@@ -93,7 +93,7 @@ class C
 @"
 class C
 {
-    string Foo()
+    string Goo()
     {
         return default;
     }
@@ -107,7 +107,7 @@ class C
 @"
 class C
 {
-    string Foo()
+    string Goo()
     {
         return [||]default(int);
     }
@@ -123,7 +123,7 @@ using System;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<string> f = () => [||]default(string);
     }
@@ -133,7 +133,7 @@ using System;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<string> f = () => [||]default;
     }
@@ -149,7 +149,7 @@ using System;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<string> f = () => [||]default(int);
     }
@@ -163,7 +163,7 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string s = [||]default(string);
     }
@@ -171,7 +171,7 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string s = default;
     }
@@ -185,7 +185,7 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string s = [||]default(int);
     }
@@ -199,7 +199,7 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         var s = [||]default(string);
     }
@@ -213,7 +213,7 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         Bar([||]default(string));
     }
@@ -223,7 +223,7 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         Bar(default);
     }
@@ -239,7 +239,7 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         Bar([||]default(string));
     }
@@ -256,7 +256,7 @@ class C
 @"
 class C
 {
-    void Foo(bool b)
+    void Goo(bool b)
     {
         var v = b ? [||]default(string) : default(string);
     }
@@ -264,7 +264,7 @@ class C
 @"
 class C
 {
-    void Foo(bool b)
+    void Goo(bool b)
     {
         var v = b ? default : default(string);
     }
@@ -278,7 +278,7 @@ class C
 @"
 class C
 {
-    void Foo(bool b)
+    void Goo(bool b)
     {
         var v = b ? default(string) : [||]default(string);
     }
@@ -286,7 +286,7 @@ class C
 @"
 class C
 {
-    void Foo(bool b)
+    void Goo(bool b)
     {
         var v = b ? default(string) : default;
     }
@@ -300,7 +300,7 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string s1 = {|FixAllInDocument:default|}(string);
         string s2 = default(string);
@@ -309,7 +309,7 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string s1 = default;
         string s2 = default;
@@ -324,7 +324,7 @@ class C
 @"
 class C
 {
-    void Foo(bool b)
+    void Goo(bool b)
     {
         string s1 = b ? {|FixAllInDocument:default|}(string) : default(string);
     }
@@ -332,7 +332,7 @@ class C
 @"
 class C
 {
-    void Foo(bool b)
+    void Goo(bool b)
     {
         string s1 = b ? default : default(string);
     }
@@ -346,7 +346,7 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string s1 = {|FixAllInDocument:default|}(string);
         string s2 = default(int);
@@ -355,11 +355,80 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string s1 = default;
         string s2 = default(int);
     }
+}", parseOptions: s_parseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestDoNotOfferIfTypeWouldChange()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+struct S
+{
+    void M()
+    {
+        var s = new S();
+        s.Equals([||]default(S));
+    }
+
+    public override bool Equals(object obj)
+    {
+        return base.Equals(obj);
+    }
+}", new TestParameters(parseOptions: s_parseOptions));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestDoNotOfferIfTypeWouldChange2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+struct S<T>
+{
+    void M()
+    {
+        var s = new S<int>();
+        s.Equals([||]default(S<int>));
+    }
+
+    public override bool Equals(object obj)
+    {
+        return base.Equals(obj);
+    }
+}", new TestParameters(parseOptions: s_parseOptions));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestOnShadowedMethod()
+        {
+            await TestAsync(
+@"
+struct S
+{
+    void M()
+    {
+        var s = new S();
+        s.Equals([||]default(S));
+    }
+
+    public new bool Equals(S s) => true;
+}",
+
+@"
+struct S
+{
+    void M()
+    {
+        var s = new S();
+        s.Equals(default);
+    }
+
+    public new bool Equals(S s) => true;
 }", parseOptions: s_parseOptions);
         }
     }

@@ -183,6 +183,7 @@ class C
 class C
 {
     private string S => null;
+
     public string S1 { get; }
 
     public C(string s)
@@ -261,8 +262,8 @@ class C
 @"
 class C
 {
-    private int s;
     private readonly string s1;
+    private int s;
 
     public C(string s)
     {
@@ -384,7 +385,7 @@ class C
     public C(string s, string t)
     {
         this.s = s;
-        this.t = t;
+        this.t = t;   
     }
 }");
         }
@@ -440,6 +441,7 @@ class C
     public C(string s)
     {
         if (true) { }
+
         this.s = s;
     }
 }");
@@ -562,7 +564,7 @@ class C
     public C(string s, string t)
     {
         S = s;
-        T = t;
+        T = t;   
     }
 
     public string S { get; }
@@ -591,7 +593,7 @@ class C
     {
         this.s = s;
     }
-}", ignoreTrivia: false);
+}");
         }
     }
 }

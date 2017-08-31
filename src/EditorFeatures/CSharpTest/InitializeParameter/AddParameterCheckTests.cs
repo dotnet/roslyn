@@ -425,7 +425,7 @@ class C
         {
             throw new ArgumentNullException(nameof(s));
         }
-        
+
         Init();
     }
 }");
@@ -454,7 +454,7 @@ class C
         {
             throw new ArgumentNullException(nameof(s));
         }
-        
+
         Init();
     }
 }", parameters: new TestParameters(options:
@@ -719,7 +719,7 @@ class C
 {
     public C()
     {
-        void Foo([||]string s)
+        void Goo([||]string s)
         {
         }
     }
@@ -857,7 +857,7 @@ class C
         if (s == null)
             throw new ArgumentNullException(nameof(s));
     }
-}", ignoreTrivia: false,
+}",
     parameters: new TestParameters(options:
         Option(CSharpCodeStyleOptions.PreferBraces, CodeStyleOptions.FalseWithNoneEnforcement)));
         }
@@ -886,7 +886,7 @@ class C
             throw new ArgumentNullException(nameof(s));
         }
     }
-}", ignoreTrivia: false);
+}");
         }
     }
 }

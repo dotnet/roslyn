@@ -1,25 +1,20 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{0792DC0A-6F5A-44E8-BB08-0A8241083E38}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.MSBuild.Util</RootNamespace>
     <AssemblyName>Roslyn.MSBuild.Util</AssemblyName>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <TargetFramework>netstandard1.3</TargetFramework>
-    <SignAssembly>true</SignAssembly>
+    <TargetFramework>net46</TargetFramework>
     <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <Compile Include="FindNuGetAssetsForVsix.cs" />
-    <Compile Include="WriteCodeFragmentEx.cs" />
     <None Include="Key.snk" />
     <NuSpecFile Include="$(MSBuildThisFileDirectory)\BuildUtil.nuspec">
       <Visible>False</Visible>

@@ -369,7 +369,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
             }
 
             [Fact]
@@ -465,7 +465,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
             }
 
             [Fact]
@@ -565,7 +565,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
             }
 
             #endregion
@@ -690,7 +690,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
             }
 
             [Fact]
@@ -810,7 +810,7 @@ class Class2
 
 
 
-                await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
             }
 
             [Fact]
@@ -939,7 +939,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
             }
         }
 
@@ -1066,7 +1066,7 @@ class Class2
 
 
 
-                await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
             }
         }
 

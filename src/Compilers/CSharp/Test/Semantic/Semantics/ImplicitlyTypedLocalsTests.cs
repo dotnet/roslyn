@@ -62,19 +62,19 @@ class Program
 {
     static void Main(string[] args)
     {
-        var x = y.Foo(x);
-        var y = x.Foo(y);
+        var x = y.Goo(x);
+        var y = x.Goo(y);
     }
 }";
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (6,23): error CS0841: Cannot use local variable 'x' before it is declared
-                //         var x = y.Foo(x);
+                //         var x = y.Goo(x);
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(6, 23),
                 // (6,17): error CS0841: Cannot use local variable 'y' before it is declared
-                //         var x = y.Foo(x);
+                //         var x = y.Goo(x);
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y").WithLocation(6, 17),
                 // (7,23): error CS0841: Cannot use local variable 'y' before it is declared
-                //         var y = x.Foo(y);
+                //         var y = x.Goo(y);
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y").WithLocation(7, 23)
                 );
         }

@@ -119,8 +119,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             foreach (var analyzerId in analyzerIds)
             {
-                DiagnosticAnalyzer analyzer;
-                if (analyzerMap.TryGetValue(analyzerId, out analyzer))
+                if (analyzerMap.TryGetValue(analyzerId, out var analyzer))
                 {
                     builder.Add(analyzer);
                 }

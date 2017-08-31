@@ -197,26 +197,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (expr1.Kind)
             {
                 case BoundKind.Local:
-                    var local1 = expr1 as BoundLocal;
-                    var local2 = expr2 as BoundLocal;
+                    var local1 = (BoundLocal)expr1;
+                    var local2 = (BoundLocal)expr2;
                     return local1.LocalSymbol == local2.LocalSymbol;
                 case BoundKind.FieldAccess:
-                    var field1 = expr1 as BoundFieldAccess;
-                    var field2 = expr2 as BoundFieldAccess;
+                    var field1 = (BoundFieldAccess)expr1;
+                    var field2 = (BoundFieldAccess)expr2;
                     return field1.FieldSymbol == field2.FieldSymbol &&
                         (field1.FieldSymbol.IsStatic || IsSameLocalOrField(field1.ReceiverOpt, field2.ReceiverOpt));
                 case BoundKind.EventAccess:
-                    var event1 = expr1 as BoundEventAccess;
-                    var event2 = expr2 as BoundEventAccess;
+                    var event1 = (BoundEventAccess)expr1;
+                    var event2 = (BoundEventAccess)expr2;
                     return event1.EventSymbol == event2.EventSymbol &&
                         (event1.EventSymbol.IsStatic || IsSameLocalOrField(event1.ReceiverOpt, event2.ReceiverOpt));
                 case BoundKind.Parameter:
-                    var param1 = expr1 as BoundParameter;
-                    var param2 = expr2 as BoundParameter;
+                    var param1 = (BoundParameter)expr1;
+                    var param2 = (BoundParameter)expr2;
                     return param1.ParameterSymbol == param2.ParameterSymbol;
                 case BoundKind.RangeVariable:
-                    var rangeVar1 = expr1 as BoundRangeVariable;
-                    var rangeVar2 = expr2 as BoundRangeVariable;
+                    var rangeVar1 = (BoundRangeVariable)expr1;
+                    var rangeVar2 = (BoundRangeVariable)expr2;
                     return rangeVar1.RangeVariableSymbol == rangeVar2.RangeVariableSymbol;
                 case BoundKind.ThisReference:
                 case BoundKind.PreviousSubmissionReference:

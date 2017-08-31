@@ -59,11 +59,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 parameterList: ParameterGenerator.GenerateParameterList(constructor.Parameters, isExplicit: false, options: options),
                 initializer: GenerateConstructorInitializer(constructor),
                 body: hasNoBody ? null : GenerateBlock(constructor),
-                semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default(SyntaxToken));
+                semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default);
 
             declaration = UseExpressionBodyIfDesired(workspace, declaration, parseOptions);
 
-            return AddCleanupAnnotationsTo(
+            return AddFormatterAndCodeGeneratorAnnotationsTo(
                 ConditionallyAddDocumentationCommentTo(declaration, constructor, options));
         }
 
@@ -74,7 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 var expressionBodyPreference = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors).Value;
                 if (declaration.Body.TryConvertToExpressionBody(
-                        options, expressionBodyPreference, out var expressionBody, out var semicolonToken))
+                        declaration.Kind(), options, expressionBodyPreference,
+                        out var expressionBody, out var semicolonToken))
                 {
                     return declaration.WithBody(null)
                                       .WithExpressionBody(expressionBody)
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IMethodSymbol constructor)
         {
             var statements = CodeGenerationConstructorInfo.GetStatements(constructor) == null
-                ? default(SyntaxList<StatementSyntax>)
+                ? default
                 : StatementGenerator.GenerateStatements(CodeGenerationConstructorInfo.GetStatements(constructor));
 
             return SyntaxFactory.Block(statements);

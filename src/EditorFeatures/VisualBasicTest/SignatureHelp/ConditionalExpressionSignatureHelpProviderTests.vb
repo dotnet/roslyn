@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
         Public Async Function TestInvocationForIf() As Task
             Dim markup = <a><![CDATA[
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x = If($$
     End Sub
 End Class
@@ -45,7 +45,7 @@ End Class
         Public Async Function TestInvocationForIfAfterComma() As Task
             Dim markup = <a><![CDATA[
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x = If(True, $$
     End Sub
 End Class

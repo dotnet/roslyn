@@ -22,8 +22,8 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Interactive
             TestPath(@"""blah" + "\r\n" + @"""", expected: "blah", validArg: false);
             TestPath(@"""blah""" + "\r\n" + @"""", expected: "blah", validArg: true, readToEnd: false);
 
-            TestPath(@"""blah//foo", expected: "blah//foo", validArg: false);
-            TestPath(@"""blah//foo""", expected: "blah//foo", validArg: true);
+            TestPath(@"""blah//goo", expected: "blah//goo", validArg: false);
+            TestPath(@"""blah//goo""", expected: "blah//goo", validArg: true);
         }
 
         private void TestPath(string args, string expected, bool validArg, bool? readToEnd = null)

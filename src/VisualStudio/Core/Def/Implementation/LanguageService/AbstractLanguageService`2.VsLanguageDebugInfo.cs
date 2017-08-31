@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             public int GetLocationOfName(string pszName, out string pbstrMkDoc, out VsTextSpan pspanLocation)
             {
                 pbstrMkDoc = null;
-                pspanLocation = default(VsTextSpan);
+                pspanLocation = default;
                 return VSConstants.E_NOTIMPL;
             }
 
@@ -278,7 +278,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 if (textBuffer != null)
                 {
                     var snapshot = textBuffer.CurrentSnapshot;
-                    Document document = snapshot.AsText().GetDocumentWithFrozenPartialSemanticsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                    Document document = snapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
                     if (document != null)
                     {
                         var point = snapshot.GetPoint(iLine, iCol);

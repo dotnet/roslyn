@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// meaning that the code is compiled by using the Roslyn compiler server, rather
     /// than vbc.exe. The two should be functionally identical, but the compiler server
     /// should be significantly faster with larger projects and have a smaller memory
-    /// footprint.
+    /// gootprint.
     /// </summary>
     public class Vbc : ManagedCompiler
     {
@@ -505,10 +505,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             // If not design time build and the globalSessionGuid property was set then add a -globalsessionguid:<guid>
             bool designTime = false;
-            if (this.HostObject != null)
+            if (this.HostObject is IVbcHostObject vbHost)
             {
-                var vbHost = this.HostObject as IVbcHostObject;
                 designTime = vbHost.IsDesignTime();
+            }
+            else if (this.HostObject != null)
+            {
+                throw new InvalidOperationException(string.Format(ErrorString.General_IncorrectHostObject, "Vbc", "IVbcHostObject"));
             }
             if (!designTime)
             {
@@ -775,10 +778,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// accordingly.
         ///
         /// Example:
-        ///     If we attempted to pass in Platform="foobar", then this method would
+        ///     If we attempted to pass in Platform="goobar", then this method would
         ///     set HostCompilerSupportsAllParameters=true, but it would throw an 
         ///     exception because the host compiler fully supports
-        ///     the Platform parameter, but "foobar" is an illegal value.
+        ///     the Platform parameter, but "goobar" is an illegal value.
         ///
         /// Example:
         ///     If we attempted to pass in NoConfig=false, then this method would set
@@ -1004,12 +1007,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 // NOTE: For compat reasons this must remain IVbcHostObject
                 // we can dynamically test for smarter interfaces later..
-                using (RCWForCurrentContext<IVbcHostObject> hostObject = new RCWForCurrentContext<IVbcHostObject>(this.HostObject as IVbcHostObject))
+                if (HostObject is IVbcHostObject hostObjectCOM)
                 {
-                    IVbcHostObject vbcHostObject = hostObject.RCW;
-
-                    if (vbcHostObject != null)
+                    using (RCWForCurrentContext<IVbcHostObject> hostObject = new RCWForCurrentContext<IVbcHostObject>(hostObjectCOM))
                     {
+                        IVbcHostObject vbcHostObject = hostObject.RCW;
                         bool hostObjectSuccessfullyInitialized = InitializeHostCompiler(vbcHostObject);
 
                         // If we're currently only in design-time (as opposed to build-time),
@@ -1061,10 +1063,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                             return HostObjectInitializationStatus.NoActionReturnFailure;
                         }
                     }
-                    else
-                    {
-                        Log.LogErrorWithCodeFromResources("General_IncorrectHostObject", "Vbc", "IVbcHostObject");
-                    }
+                }
+                else
+                {
+                    Log.LogErrorWithCodeFromResources("General_IncorrectHostObject", "Vbc", "IVbcHostObject");
                 }
             }
 

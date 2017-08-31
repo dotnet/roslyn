@@ -751,9 +751,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private bool ScanExternAliasDirective()
         {
             // The check also includes the ending semicolon so that we can disambiguate among:
-            //   extern alias foo;
-            //   extern alias foo();
-            //   extern alias foo { get; }
+            //   extern alias goo;
+            //   extern alias goo();
+            //   extern alias goo { get; }
 
             return this.CurrentToken.Kind == SyntaxKind.ExternKeyword
                 && this.PeekToken(1).Kind == SyntaxKind.IdentifierToken && this.PeekToken(1).ContextualKind == SyntaxKind.AliasKeyword
@@ -818,7 +818,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 //new directive.  e.g.
                 //
                 //    using 
-                //    namespace Foo {
+                //    namespace Goo {
                 //        //...
                 //    }
                 //
@@ -1102,74 +1102,57 @@ tryAgain:
                 nameEquals, nameColon, this.ParseExpressionCore());
         }
 
-        [Flags]
-        private enum SyntaxModifier
-        {
-            None = 0,
-            Public = 0x0001,
-            Internal = 0x0002,
-            Protected = 0x0004,
-            Private = 0x0008,
-            Sealed = 0x0010,
-            Abstract = 0x0020,
-            Static = 0x0040,
-            Virtual = 0x0080,
-            Extern = 0x0100,
-            New = 0x0200,
-            Override = 0x0400,
-            ReadOnly = 0x0800,
-            Volatile = 0x1000,
-            Unsafe = 0x2000,
-            Partial = 0x4000,
-            Async = 0x8000,
-        }
+        private static DeclarationModifiers GetModifier(SyntaxToken token)
+            => GetModifier(token.Kind, token.ContextualKind);
 
-        private const SyntaxModifier AccessModifiers = SyntaxModifier.Public | SyntaxModifier.Internal | SyntaxModifier.Protected | SyntaxModifier.Private;
-
-        private static SyntaxModifier GetModifier(SyntaxToken token)
+        internal static DeclarationModifiers GetModifier(SyntaxKind kind, SyntaxKind contextualKind)
         {
-            switch (token.Kind)
+            switch (kind)
             {
                 case SyntaxKind.PublicKeyword:
-                    return SyntaxModifier.Public;
+                    return DeclarationModifiers.Public;
                 case SyntaxKind.InternalKeyword:
-                    return SyntaxModifier.Internal;
+                    return DeclarationModifiers.Internal;
                 case SyntaxKind.ProtectedKeyword:
-                    return SyntaxModifier.Protected;
+                    return DeclarationModifiers.Protected;
                 case SyntaxKind.PrivateKeyword:
-                    return SyntaxModifier.Private;
+                    return DeclarationModifiers.Private;
                 case SyntaxKind.SealedKeyword:
-                    return SyntaxModifier.Sealed;
+                    return DeclarationModifiers.Sealed;
                 case SyntaxKind.AbstractKeyword:
-                    return SyntaxModifier.Abstract;
+                    return DeclarationModifiers.Abstract;
                 case SyntaxKind.StaticKeyword:
-                    return SyntaxModifier.Static;
+                    return DeclarationModifiers.Static;
                 case SyntaxKind.VirtualKeyword:
-                    return SyntaxModifier.Virtual;
+                    return DeclarationModifiers.Virtual;
                 case SyntaxKind.ExternKeyword:
-                    return SyntaxModifier.Extern;
+                    return DeclarationModifiers.Extern;
                 case SyntaxKind.NewKeyword:
-                    return SyntaxModifier.New;
+                    return DeclarationModifiers.New;
                 case SyntaxKind.OverrideKeyword:
-                    return SyntaxModifier.Override;
+                    return DeclarationModifiers.Override;
                 case SyntaxKind.ReadOnlyKeyword:
-                    return SyntaxModifier.ReadOnly;
+                    return DeclarationModifiers.ReadOnly;
                 case SyntaxKind.VolatileKeyword:
-                    return SyntaxModifier.Volatile;
+                    return DeclarationModifiers.Volatile;
                 case SyntaxKind.UnsafeKeyword:
-                    return SyntaxModifier.Unsafe;
+                    return DeclarationModifiers.Unsafe;
+                case SyntaxKind.PartialKeyword:
+                    return DeclarationModifiers.Partial;
+                case SyntaxKind.AsyncKeyword:
+                    return DeclarationModifiers.Async;
                 case SyntaxKind.IdentifierToken:
-                    switch (token.ContextualKind)
+                    switch (contextualKind)
                     {
                         case SyntaxKind.PartialKeyword:
-                            return SyntaxModifier.Partial;
+                            return DeclarationModifiers.Partial;
                         case SyntaxKind.AsyncKeyword:
-                            return SyntaxModifier.Async;
+                            return DeclarationModifiers.Async;
                     }
 
                     goto default;
                 default:
-                    return SyntaxModifier.None;
+                    return DeclarationModifiers.None;
             }
         }
 
@@ -1180,19 +1163,15 @@ tryAgain:
 
         private static bool IsPossibleModifier(SyntaxToken token)
         {
-            return GetModifier(token) != SyntaxModifier.None;
+            return GetModifier(token) != DeclarationModifiers.None;
         }
 
         private void ParseModifiers(SyntaxListBuilder tokens)
         {
-            SyntaxModifier mods = 0;
-            bool seenNoDuplicates = true;
-            bool seenNoAccessibilityDuplicates = true;
-
             while (true)
             {
                 var newMod = GetModifier(this.CurrentToken);
-                if (newMod == SyntaxModifier.None)
+                if (newMod == DeclarationModifiers.None)
                 {
                     break;
                 }
@@ -1200,59 +1179,45 @@ tryAgain:
                 SyntaxToken modTok;
                 switch (newMod)
                 {
-                    case SyntaxModifier.Partial:
+                    case DeclarationModifiers.Partial:
+                        var nextToken = PeekToken(1);
+                        var isPartialType = this.IsPartialType();
+                        var isPartialMember = this.IsPartialMember();
+                        if (isPartialType || isPartialMember)
                         {
-                            var nextToken = PeekToken(1);
-                            if (this.IsPartialType())
-                            {
-                                modTok = ConvertToKeyword(this.EatToken());
-                                modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeaturePartialTypes);
-                            }
-                            else if (this.IsPartialMember())
-                            {
-                                modTok = ConvertToKeyword(this.EatToken());
-                                modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeaturePartialMethod);
-                            }
-                            else if (nextToken.Kind == SyntaxKind.NamespaceKeyword)
-                            {
-                                goto default;
-                            }
-                            else if (nextToken.Kind == SyntaxKind.EnumKeyword || nextToken.Kind == SyntaxKind.DelegateKeyword)
-                            {
-                                modTok = ConvertToKeyword(this.EatToken());
-                                modTok = this.AddError(modTok, ErrorCode.ERR_PartialMisplaced);
-                            }
-                            else if (!IsPossibleStartOfTypeDeclaration(nextToken.Kind) || GetModifier(nextToken) == SyntaxModifier.None)
-                            {
-                                return;
-                            }
-                            else
-                            {
-                                modTok = ConvertToKeyword(this.EatToken());
-                                modTok = this.AddError(modTok, ErrorCode.ERR_PartialMisplaced);
-                            }
-
-                            break;
+                            // Standard legal cases.
+                            modTok = ConvertToKeyword(this.EatToken());
+                            modTok = CheckFeatureAvailability(modTok,
+                                isPartialType ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod);
                         }
-                    case SyntaxModifier.Async:
+                        else if (
+                            nextToken.Kind == SyntaxKind.EnumKeyword ||
+                            nextToken.Kind == SyntaxKind.DelegateKeyword ||
+                            nextToken.Kind == SyntaxKind.NamespaceKeyword ||
+                            (IsPossibleStartOfTypeDeclaration(nextToken.Kind) && GetModifier(nextToken) != DeclarationModifiers.None))
                         {
-                            if (ShouldAsyncBeTreatedAsModifier(parsingStatementNotDeclaration: false))
-                            {
-                                modTok = ConvertToKeyword(this.EatToken());
-                                modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureAsync);
-                                break;
-                            }
+                            // Error tolerance cases.  Will report an error about these post parsing.
+                            modTok = ConvertToKeyword(this.EatToken());
+                        }
+                        else
+                        {
                             return;
                         }
-                    default:
-                        {
-                            modTok = this.EatToken();
-                            break;
-                        }
-                }
 
-                ReportDuplicateModifiers(ref modTok, newMod, mods, ref seenNoDuplicates, ref seenNoAccessibilityDuplicates);
-                mods |= newMod;
+                        break;
+                    case DeclarationModifiers.Async:
+                        if (!ShouldAsyncBeTreatedAsModifier(parsingStatementNotDeclaration: false))
+                        {
+                            return;
+                        }
+
+                        modTok = ConvertToKeyword(this.EatToken());
+                        modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureAsync);
+                        break;
+                    default:
+                        modTok = this.EatToken();
+                        break;
+                }
 
                 tokens.Add(modTok);
             }
@@ -1311,7 +1276,7 @@ tryAgain:
                 {
                     // We've seen "async TypeName".  Now we have to determine if we should we treat 
                     // 'async' as a modifier.  Or is the user actually writing something like 
-                    // "public async Foo" where 'async' is actually the return type.
+                    // "public async Goo" where 'async' is actually the return type.
 
                     if (IsPossibleMemberName())
                     {
@@ -1381,37 +1346,7 @@ tryAgain:
 
         private static bool IsNonContextualModifier(SyntaxToken nextToken)
         {
-            return GetModifier(nextToken) != SyntaxModifier.None && !SyntaxFacts.IsContextualKeyword(nextToken.ContextualKind);
-        }
-
-        private void ReportDuplicateModifiers(ref SyntaxToken modTok, SyntaxModifier newMod, SyntaxModifier mods, ref bool seenNoDuplicates, ref bool seenNoAccessibilityDuplicates)
-        {
-            if ((mods & newMod) != 0)
-            {
-                if (seenNoDuplicates)
-                {
-                    modTok = this.AddError(modTok, ErrorCode.ERR_DuplicateModifier, SyntaxFacts.GetText(modTok.Kind));
-                    seenNoDuplicates = false;
-                }
-            }
-            else
-            {
-                if ((mods & AccessModifiers) != 0 && (newMod & AccessModifiers) != 0)
-                {
-                    // Can't have two different access modifiers.
-                    // Exception: "internal protected" or "protected internal" is allowed.
-                    if (!(((newMod == SyntaxModifier.Protected) && (mods & SyntaxModifier.Internal) != 0) ||
-                            ((newMod == SyntaxModifier.Internal) && (mods & SyntaxModifier.Protected) != 0)))
-                    {
-                        if (seenNoAccessibilityDuplicates)
-                        {
-                            modTok = this.AddError(modTok, ErrorCode.ERR_BadMemberProtection);
-                        }
-
-                        seenNoAccessibilityDuplicates = false;
-                    }
-                }
-            }
+            return GetModifier(nextToken) != DeclarationModifiers.None && !SyntaxFacts.IsContextualKeyword(nextToken.ContextualKind);
         }
 
         private bool IsPartialType()
@@ -1780,8 +1715,8 @@ tryAgain:
         private bool IsPossibleAggregateClauseStartOrStop()
         {
             return this.CurrentToken.Kind == SyntaxKind.ColonToken
-                || this.IsPossibleTypeParameterConstraintClauseStart()
-                || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
+                || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
+                || this.IsCurrentTokenWhereOfConstraintClause();
         }
 
         private BaseListSyntax ParseBaseList()
@@ -1796,42 +1731,26 @@ tryAgain:
             try
             {
                 // first type
-                if (this.IsPossibleTypeParameterConstraintClauseStart())
-                {
-                    list.Add(_syntaxFactory.SimpleBaseType(this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_TypeExpected)));
-                }
-                else
-                {
-                    TypeSyntax firstType = this.ParseType();
+                TypeSyntax firstType = this.ParseType();
+                list.Add(_syntaxFactory.SimpleBaseType(firstType));
 
-                    list.Add(_syntaxFactory.SimpleBaseType(firstType));
-
-                    // any additional types
-                    while (true)
+                // any additional types
+                while (true)
+                {
+                    if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken ||
+                        this.IsCurrentTokenWhereOfConstraintClause())
                     {
-                        if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
-                            || this.IsPossibleTypeParameterConstraintClauseStart())
-                        {
-                            break;
-                        }
-                        else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleType())
-                        {
-                            list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-                            if (this.IsPossibleTypeParameterConstraintClauseStart())
-                            {
-                                list.Add(_syntaxFactory.SimpleBaseType(this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_TypeExpected)));
-                            }
-                            else
-                            {
-                                list.Add(_syntaxFactory.SimpleBaseType(this.ParseType()));
-                            }
-
-                            continue;
-                        }
-                        else if (this.SkipBadBaseListTokens(ref colon, list, SyntaxKind.CommaToken) == PostSkipAction.Abort)
-                        {
-                            break;
-                        }
+                        break;
+                    }
+                    else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleType())
+                    {
+                        list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
+                        list.Add(_syntaxFactory.SimpleBaseType(this.ParseType()));
+                        continue;
+                    }
+                    else if (this.SkipBadBaseListTokens(ref colon, list, SyntaxKind.CommaToken) == PostSkipAction.Abort)
+                    {
+                        break;
                     }
                 }
 
@@ -1847,11 +1766,11 @@ tryAgain:
         {
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref colon, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleAttribute(),
-                p => p.CurrentToken.Kind == SyntaxKind.OpenBraceToken || p.IsPossibleTypeParameterConstraintClauseStart() || p.IsTerminator(),
+                p => p.CurrentToken.Kind == SyntaxKind.OpenBraceToken || p.IsCurrentTokenWhereOfConstraintClause() || p.IsTerminator(),
                 expected);
         }
 
-        private bool IsPossibleTypeParameterConstraintClauseStart()
+        private bool IsCurrentTokenWhereOfConstraintClause()
         {
             return
                 this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword &&
@@ -1870,7 +1789,7 @@ tryAgain:
         private TypeParameterConstraintClauseSyntax ParseTypeParameterConstraintClause()
         {
             var where = this.EatContextualToken(SyntaxKind.WhereKeyword);
-            var name = (this.IsPossibleTypeParameterConstraintClauseStart() || !IsTrueIdentifier())
+            var name = !IsTrueIdentifier()
                 ? this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_IdentifierExpected)
                 : this.ParseIdentifierName();
 
@@ -1880,7 +1799,7 @@ tryAgain:
             try
             {
                 // first bound
-                if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken || this.IsPossibleTypeParameterConstraintClauseStart())
+                if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken || this.IsCurrentTokenWhereOfConstraintClause())
                 {
                     bounds.Add(_syntaxFactory.TypeConstraint(this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_TypeExpected)));
                 }
@@ -1900,7 +1819,7 @@ tryAgain:
                         else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleTypeParameterConstraint())
                         {
                             bounds.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-                            if (this.IsPossibleTypeParameterConstraintClauseStart())
+                            if (this.IsCurrentTokenWhereOfConstraintClause())
                             {
                                 bounds.Add(_syntaxFactory.TypeConstraint(this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_TypeExpected)));
                                 break;
@@ -1968,7 +1887,7 @@ tryAgain:
             Debug.Assert(list.Count > 0);
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref tmp, list,
                 p => this.CurrentToken.Kind != SyntaxKind.CommaToken && !this.IsPossibleTypeParameterConstraint(),
-                p => this.CurrentToken.Kind == SyntaxKind.OpenBraceToken || this.IsPossibleTypeParameterConstraintClauseStart() || this.IsTerminator(),
+                p => this.CurrentToken.Kind == SyntaxKind.OpenBraceToken || this.IsCurrentTokenWhereOfConstraintClause() || this.IsTerminator(),
                 expected);
         }
 
@@ -2313,7 +2232,7 @@ tryAgain:
 
                 // Check for misplaced modifiers.  if we see any, then consider this member
                 // terminated and restart parsing.
-                if (GetModifier(this.CurrentToken) != SyntaxModifier.None &&
+                if (GetModifier(this.CurrentToken) != DeclarationModifiers.None &&
                     this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword &&
                     this.CurrentToken.ContextualKind != SyntaxKind.AsyncKeyword &&
                     IsComplete(type))
@@ -2530,13 +2449,13 @@ parse_member_name:;
             var kind = this.PeekToken(1).Kind;
             switch (kind)
             {
-                case SyntaxKind.DotToken:                   // Foo.     explicit
-                case SyntaxKind.ColonColonToken:            // Foo::    explicit
-                case SyntaxKind.LessThanToken:            // Foo<     explicit or generic method
-                case SyntaxKind.OpenBraceToken:        // Foo {    property
-                case SyntaxKind.EqualsGreaterThanToken:     // Foo =>   property
+                case SyntaxKind.DotToken:                   // Goo.     explicit
+                case SyntaxKind.ColonColonToken:            // Goo::    explicit
+                case SyntaxKind.LessThanToken:            // Goo<     explicit or generic method
+                case SyntaxKind.OpenBraceToken:        // Goo {    property
+                case SyntaxKind.EqualsGreaterThanToken:     // Goo =>   property
                     return false;
-                case SyntaxKind.OpenParenToken:             // Foo(     method
+                case SyntaxKind.OpenParenToken:             // Goo(     method
                     return isEvent;
                 default:
                     return true;
@@ -2740,7 +2659,7 @@ parse_member_name:;
         {
             if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
             {
-                // void Foo<T (
+                // void Goo<T (
                 return true;
             }
 
@@ -2756,7 +2675,7 @@ parse_member_name:;
                 return true;
             }
 
-            if (IsPossibleTypeParameterConstraintClauseStart())
+            if (IsCurrentTokenWhereOfConstraintClause())
             {
                 // class C<T where T :
                 return true;
@@ -3884,25 +3803,14 @@ tryAgain:
             this.ParseAttributeDeclarations(attributes);
             this.ParseParameterModifiers(modifiers);
 
-            var hasArgList = this.CurrentToken.Kind == SyntaxKind.ArgListKeyword;
-
-            TypeSyntax type = null;
-            if (!hasArgList)
+            TypeSyntax type;
+            SyntaxToken name;
+            if (this.CurrentToken.Kind != SyntaxKind.ArgListKeyword)
             {
                 type = this.ParseType(mode: ParseTypeMode.Parameter);
-            }
-            else if (this.IsPossibleType())
-            {
-                type = this.ParseType(mode: ParseTypeMode.Parameter);
-                type = WithAdditionalDiagnostics(type, this.GetExpectedTokenError(SyntaxKind.CloseParenToken, SyntaxKind.IdentifierToken, 0, type.Width));
-            }
-
-            SyntaxToken name = null;
-            if (!hasArgList)
-            {
                 name = this.ParseIdentifierToken();
 
-                // When the user type "int foo[]", give them a useful error
+                // When the user type "int goo[]", give them a useful error
                 if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind == SyntaxKind.CloseBracketToken)
                 {
                     var open = this.EatToken();
@@ -3911,19 +3819,11 @@ tryAgain:
                     name = AddTrailingSkippedSyntax(name, SyntaxList.List(open, close));
                 }
             }
-            else if (this.IsPossibleName())
-            {
-                // Current token is an identifier token, we expected a CloseParenToken.
-                // Get the expected token error for the missing token with correct diagnostic
-                // span and then parse the identifier token.
-
-                SyntaxDiagnosticInfo diag = this.GetExpectedTokenError(SyntaxKind.CloseParenToken, SyntaxKind.IdentifierToken);
-                name = this.ParseIdentifierToken();
-                name = WithAdditionalDiagnostics(name, diag);
-            }
             else
             {
-                // name is not optional on ParameterSyntax
+                // We store an __arglist parameter as a parameter with null type and whose 
+                // .Identifier has the kind ArgListKeyword.
+                type = null;
                 name = this.EatToken(SyntaxKind.ArgListKeyword);
             }
 
@@ -4960,7 +4860,8 @@ tryAgain:
             if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
             {
                 if (!IsCurrentTokenPartialKeywordOfPartialMethodOrType() &&
-                    !IsCurrentTokenQueryKeywordInQuery())
+                    !IsCurrentTokenQueryKeywordInQuery() &&
+                    !IsCurrentTokenWhereOfConstraintClause())
                 {
                     return true;
                 }
@@ -4999,7 +4900,7 @@ tryAgain:
             var ctk = this.CurrentToken.Kind;
             if (ctk == SyntaxKind.IdentifierToken)
             {
-                // Error tolerance for IntelliSense. Consider the following case: [EditorBrowsable( partial class Foo {
+                // Error tolerance for IntelliSense. Consider the following case: [EditorBrowsable( partial class Goo {
                 // } Because we're parsing an attribute argument we'll end up consuming the "partial" identifier and
                 // we'll eventually end up in an pretty confused state.  Because of that it becomes very difficult to
                 // show the correct parameter help in this case.  So, when we see "partial" we check if it's being used
@@ -5068,7 +4969,7 @@ tryAgain:
                 // remaining parameter & commas
                 while (true)
                 {
-                    if (this.CurrentToken.Kind == SyntaxKind.GreaterThanToken || this.IsPossibleTypeParameterConstraintClauseStart())
+                    if (this.CurrentToken.Kind == SyntaxKind.GreaterThanToken || this.IsCurrentTokenWhereOfConstraintClause())
                     {
                         break;
                     }
@@ -5105,7 +5006,7 @@ tryAgain:
 
         private TypeParameterSyntax ParseTypeParameter()
         {
-            if (this.IsPossibleTypeParameterConstraintClauseStart())
+            if (this.IsCurrentTokenWhereOfConstraintClause())
             {
                 return _syntaxFactory.TypeParameter(
                     default(SyntaxList<AttributeListSyntax>),
@@ -5194,9 +5095,37 @@ tryAgain:
                 return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
             }
 
-            if (!this.ScanPossibleTypeArgumentList())
+            // We're in an expression context, and we have a < token.  This could be a 
+            // type argument list, or it could just be a relational expression.  
+            //
+            // Scan just the type argument list portion (i.e. the part from < to > ) to
+            // see what we think it could be.  This will give us one of three possibilities:
+            //
+            //      result == ScanTypeFlags.NotType.
+            //
+            // This is absolutely not a type-argument-list.  Just return that result immediately.
+            //
+            //      result != ScanTypeFlags.NotType && isDefinitelyTypeArgumentList.
+            //
+            // This is absolutely a type-argument-list.  Just return that result immediately
+            // 
+            //      result != ScanTypeFlags.NotType && !isDefinitelyTypeArgumentList.
+            //
+            // This could be a type-argument list, or it could be an expression.  Need to see
+            // what came after the last '>' to find out which it is.
+
+            SyntaxToken lastTokenOfList = null;
+            ScanTypeFlags possibleTypeArgumentFlags = ScanPossibleTypeArgumentList(
+                ref lastTokenOfList, out bool isDefinitelyTypeArgumentList);
+
+            if (possibleTypeArgumentFlags == ScanTypeFlags.NotType)
             {
                 return ScanTypeArgumentListKind.NotTypeArgumentList;
+            }
+
+            if (isDefinitelyTypeArgumentList)
+            {
+                return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
             }
 
             // Scan for a type argument list. If we think it's a type argument list
@@ -5263,14 +5192,11 @@ tryAgain:
             }
         }
 
-        private bool ScanPossibleTypeArgumentList()
+        private ScanTypeFlags ScanPossibleTypeArgumentList(
+            ref SyntaxToken lastTokenOfList, out bool isDefinitelyTypeArgumentList)
         {
-            SyntaxToken lastTokenOfList = null;
-            return ScanPossibleTypeArgumentList(ref lastTokenOfList) != ScanTypeFlags.NotType;
-        }
+            isDefinitelyTypeArgumentList = false;
 
-        private ScanTypeFlags ScanPossibleTypeArgumentList(ref SyntaxToken lastTokenOfList)
-        {
             if (this.CurrentToken.Kind == SyntaxKind.LessThanToken)
             {
                 ScanTypeFlags result = ScanTypeFlags.GenericTypeOrExpression;
@@ -5298,6 +5224,81 @@ tryAgain:
                             return ScanTypeFlags.NotType;
 
                         case ScanTypeFlags.MustBeType:
+                            // We're currently scanning a possible type-argument list.  But we're
+                            // not sure if this is actually a type argument list, or is maybe some
+                            // complex relational expression with <'s and >'s.  One thing we can
+                            // tell though is that if we have a predefined type (like 'int' or 'string')
+                            // before a comma or > then this is definitely a type argument list. i.e.
+                            // if you have:
+                            // 
+                            //      var v = ImmutableDictionary<int,
+                            //
+                            // then there's no legal interpretation of this as an expression (since a
+                            // standalone predefined type is not a valid simple term.  Contrast that
+                            // with :
+                            //
+                            //  var v = ImmutableDictionary<Int32,
+                            //
+                            // Here this might actualy be a relational expression and the comma is meant
+                            // to separate out the variable declarator 'v' from the next variable.
+                            //
+                            // Note: we check if we got 'MustBeType' which triggers for predefined types,
+                            // (int, string, etc.), or array types (Goo[], A<T>[][] etc.), or pointer types
+                            // of things that must be types (int*, void**, etc.).
+                            isDefinitelyTypeArgumentList = DetermineIfDefinitelyTypeArgumentList(isDefinitelyTypeArgumentList);
+                            result = ScanTypeFlags.GenericTypeOrMethod;
+                            break;
+
+                        // case ScanTypeFlags.TupleType:
+                        // It would be nice if we saw a tuple to state that we definitely had a 
+                        // type argument list.  However, there are cases where this would not be
+                        // true.  For example:
+                        //
+                        // public class C
+                        // {
+                        //     public static void Main()
+                        //     {
+                        //         XX X = default;
+                        //         int a = 1, b = 2;
+                        //         bool z = X < (a, b), w = false;
+                        //     }
+                        // }
+                        //
+                        // struct XX
+                        // {
+                        //     public static bool operator <(XX x, (int a, int b) arg) => true;
+                        //     public static bool operator >(XX x, (int a, int b) arg) => false;
+                        // }
+
+                        case ScanTypeFlags.NullableType:
+                            // See above.  If we have X<Y?,  or X<Y?>, then this is definitely a type argument list.
+                            isDefinitelyTypeArgumentList = DetermineIfDefinitelyTypeArgumentList(isDefinitelyTypeArgumentList);
+                            if (isDefinitelyTypeArgumentList)
+                            {
+                                result = ScanTypeFlags.GenericTypeOrMethod;
+                            }
+
+                            // Note: we intentionally fall out without setting 'result'. 
+                            // Seeing a nullable type (not followed by a , or > ) is not enough 
+                            // information for us to determine what this is yet.  i.e. the user may have:
+                            //
+                            //      X < Y ? Z : W
+                            //
+                            // We'd see a nullable type here, but htis is definitley not a type arg list.
+
+                            break;
+
+                        case ScanTypeFlags.GenericTypeOrExpression:
+                            // See above.  If we have  X<Y<Z>,  then this would definitely be a type argument list.
+                            // However, if we have  X<Y<Z>> then this might not be type argument list.  This could just
+                            // be some sort of expression where we're comparing, and then shifting values.
+                            if (!isDefinitelyTypeArgumentList)
+                            {
+                                isDefinitelyTypeArgumentList = this.CurrentToken.Kind == SyntaxKind.CommaToken;
+                                result = ScanTypeFlags.GenericTypeOrMethod;
+                            }
+                            break;
+
                         case ScanTypeFlags.GenericTypeOrMethod:
                             result = ScanTypeFlags.GenericTypeOrMethod;
                             break;
@@ -5316,6 +5317,18 @@ tryAgain:
             }
 
             return ScanTypeFlags.NonGenericTypeOrExpression;
+        }
+
+        private bool DetermineIfDefinitelyTypeArgumentList(bool isDefinitelyTypeArgumentList)
+        {
+            if (!isDefinitelyTypeArgumentList)
+            {
+                isDefinitelyTypeArgumentList =
+                    this.CurrentToken.Kind == SyntaxKind.CommaToken ||
+                    this.CurrentToken.Kind == SyntaxKind.GreaterThanToken;
+            }
+
+            return isDefinitelyTypeArgumentList;
         }
 
         // ParseInstantiation: Parses the generic argument/parameter parts of the name.
@@ -5695,8 +5708,8 @@ tryAgain:
                 }
 
                 // If the left hand side is not an identifier name then the user has done
-                // something like Foo.Bar::Blah. We've already made an error node for the
-                // ::, so just pretend that they typed Foo.Bar.Blah and continue on.
+                // something like Goo.Bar::Blah. We've already made an error node for the
+                // ::, so just pretend that they typed Goo.Bar.Blah and continue on.
 
                 var identifierLeft = left as IdentifierNameSyntax;
                 if (identifierLeft == null)
@@ -5739,7 +5752,8 @@ tryAgain:
             NotType,
 
             /// <summary>
-            /// Definitely a type name: either a predefined type (int, string, etc.) or an array type name (ending with a bracket).
+            /// Definitely a type name: either a predefined type (int, string, etc.) or an array
+            /// type (ending with a [] brackets), or a pointer type (ending with *s).
             /// </summary>
             MustBeType,
 
@@ -5849,7 +5863,7 @@ tryAgain:
             lastTokenOfType = this.EatToken();
             if (this.CurrentToken.Kind == SyntaxKind.LessThanToken)
             {
-                return this.ScanPossibleTypeArgumentList(ref lastTokenOfType);
+                return this.ScanPossibleTypeArgumentList(ref lastTokenOfType, out _);
             }
             else
             {
@@ -6959,8 +6973,8 @@ tryAgain:
                 return false;
             }
 
-            SyntaxModifier modifier = GetModifier(nextToken);
-            if (modifier == SyntaxModifier.Partial)
+            DeclarationModifiers modifier = GetModifier(nextToken);
+            if (modifier == DeclarationModifiers.Partial)
             {
                 if (SyntaxFacts.IsPredefinedType(PeekToken(2).Kind))
                 {
@@ -6974,7 +6988,7 @@ tryAgain:
                     return false;
                 }
             }
-            else if (modifier != SyntaxModifier.None)
+            else if (modifier != DeclarationModifiers.None)
             {
                 return false;
             }
@@ -9970,10 +9984,10 @@ tryAgain:
             }
 
             // If we have any of the following, we know it must be a cast:
-            // 1) (Foo*)bar;
-            // 2) (Foo?)bar;
+            // 1) (Goo*)bar;
+            // 2) (Goo?)bar;
             // 3) "(int)bar" or "(int[])bar"
-            // 4) (G::Foo)bar
+            // 4) (G::Goo)bar
             if (type == ScanTypeFlags.PointerOrMultiplication ||
                 type == ScanTypeFlags.NullableType ||
                 type == ScanTypeFlags.MustBeType ||

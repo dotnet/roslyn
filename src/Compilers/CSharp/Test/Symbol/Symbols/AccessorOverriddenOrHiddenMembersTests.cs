@@ -931,7 +931,7 @@ class Derived : Base
             const string sourceFromReproSteps = @"
 class A
 {
-    void Foo()
+    void Goo()
     {
         var d = new Disposable();
         d.Dispose();

@@ -318,7 +318,7 @@ this[1]
             var c = CreateSubmission(@"
 namespace N1
 {
-   class A { public int Foo() { return 2; }}
+   class A { public int Goo() { return 2; }}
 }
 ");
             c.VerifyDiagnostics(
@@ -337,23 +337,23 @@ namespace N1
             // be declared within the Script class.
             //
             // Consider the following code parsed with ParseOptions(kind: SourceCodeKind.Script) and added
-            // to a compilation with CompilationOptions(scriptClassName: "Foo.Script").
+            // to a compilation with CompilationOptions(scriptClassName: "Goo.Script").
             //
             // public class A { }
-            // namespace Foo
+            // namespace Goo
             // {
             //     public class B : Script.A { }
             // }
             //
             // The resulting compilation will contain the following types in the global namespace.
             //
-            //   * Foo.Script
-            //   * Foo.Script.A
-            //   * Foo.B : Foo.Script.A
+            //   * Goo.Script
+            //   * Goo.Script.A
+            //   * Goo.B : Goo.Script.A
 
             string test = @"
 public class A { }
-namespace Foo
+namespace Goo
 {
     public class B : Script.A { }
 }
@@ -362,22 +362,22 @@ namespace Foo
 
             var compilation = CSharpCompilation.Create(
                 assemblyName: "Test",
-                options: TestOptions.ReleaseExe.WithScriptClassName("Foo.Script"),
+                options: TestOptions.ReleaseExe.WithScriptClassName("Goo.Script"),
                 syntaxTrees: new[] { tree });
 
             var global = compilation.GlobalNamespace;
 
-            var foo = global.GetMembers().Single() as NamespaceSymbol;
-            Assert.Equal("Foo", foo.Name);
+            var goo = global.GetMembers().Single() as NamespaceSymbol;
+            Assert.Equal("Goo", goo.Name);
 
-            var script = foo.GetTypeMembers("Script").Single();
-            Assert.Equal("Foo.Script", script.ToTestDisplayString());
+            var script = goo.GetTypeMembers("Script").Single();
+            Assert.Equal("Goo.Script", script.ToTestDisplayString());
 
             var a = script.GetTypeMembers("A").Single();
-            Assert.Equal("Foo.Script.A", a.ToTestDisplayString());
+            Assert.Equal("Goo.Script.A", a.ToTestDisplayString());
 
-            var b = foo.GetTypeMembers("B").Single();
-            Assert.Equal("Foo.B", b.ToTestDisplayString());
+            var b = goo.GetTypeMembers("B").Single();
+            Assert.Equal("Goo.B", b.ToTestDisplayString());
             Assert.Same(a, b.BaseType);
         }
 
@@ -385,7 +385,7 @@ namespace Foo
         public void NamespaceWithBothInteractiveAndNoninteractiveImplicitTypes()
         {
             string test = @"
-namespace Foo { void F() { } }
+namespace Goo { void F() { } }
 void G() { }
 G();
 ";
@@ -393,14 +393,14 @@ G();
 
             var compilation = CSharpCompilation.Create(
                 assemblyName: "Test",
-                options: TestOptions.ReleaseExe.WithScriptClassName("Foo.Script"),
+                options: TestOptions.ReleaseExe.WithScriptClassName("Goo.Script"),
                 syntaxTrees: new[] { tree });
 
             var global = compilation.GlobalNamespace;
             var members = global.GetMembers();
 
             Assert.Equal(1, members.Length);
-            Assert.Equal("Foo", members[0].Name);
+            Assert.Equal("Goo", members[0].Name);
             Assert.IsAssignableFrom(typeof(NamespaceSymbol), members[0]);
             var ns = (NamespaceSymbol)members[0];
             members = ns.GetMembers();
@@ -705,12 +705,12 @@ class Y : M
         [Fact]
         public void PrivateNested()
         {
-            var c0 = CreateSubmission(@"public class C { private static int foo() { return 1; } }");
-            var c1 = CreateSubmission(@"C.foo()", previous: c0);
+            var c0 = CreateSubmission(@"public class C { private static int goo() { return 1; } }");
+            var c1 = CreateSubmission(@"C.goo()", previous: c0);
 
             c1.VerifyDiagnostics(
                 // error CS0122: '{0}' is inaccessible due to its protection level
-                Diagnostic(ErrorCode.ERR_BadAccess, "foo").WithArguments("C.foo()"));
+                Diagnostic(ErrorCode.ERR_BadAccess, "goo").WithArguments("C.goo()"));
         }
 
         [Fact]
@@ -809,7 +809,7 @@ int z() { return 3; }
 int w = 4;
 ");
             var c1 = CreateSubmission(@"
-static int Foo() { return x; }
+static int Goo() { return x; }
 static int Bar { get { return y; } set { return z(); } }
 static int Baz = w;
 ", previous: c0);
@@ -826,35 +826,35 @@ static int Baz = w;
         public void AccessToGlobalMemberFromNestedClass1()
         {
             var c0 = CreateSubmission(@"
-int foo() { return 1; }
+int goo() { return 1; }
 
 class D 
 {
-    int bar() { return foo(); }
+    int bar() { return goo(); }
 }
 ");
 
             c0.VerifyDiagnostics(
-                // (6,24): error CS0120: An object reference is required for the non-static field, method, or property 'foo()'
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "foo").WithArguments("foo()"));
+                // (6,24): error CS0120: An object reference is required for the non-static field, method, or property 'goo()'
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "goo").WithArguments("goo()"));
         }
 
         [Fact]
         public void AccessToGlobalMemberFromNestedClass2()
         {
             var c0 = CreateSubmission(@"
-int foo() { return 1; }
+int goo() { return 1; }
 ");
             var c1 = CreateSubmission(@"
 class D 
 {
-    int bar() { return foo(); }
+    int bar() { return goo(); }
 }
 ", previous: c0);
 
             c1.VerifyDiagnostics(
-                // (4,24): error CS0120: An object reference is required for the non-static field, method, or property 'foo()'
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "foo").WithArguments("foo()"));
+                // (4,24): error CS0120: An object reference is required for the non-static field, method, or property 'goo()'
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "goo").WithArguments("goo()"));
         }
 
         /// <summary>
@@ -901,7 +901,7 @@ class D
         public void HostObjectBinding_InStaticContext()
         {
             var source = @"
-static int Foo() { return x; }
+static int Goo() { return x; }
 static int Bar { get { return Y; } set { return Z(); } }
 static int Baz = w;
 ";
@@ -1355,6 +1355,26 @@ goto Label;");
                 // (1,34): error CS7019: Type of 'x' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // System.Console.WriteLine(out var x, x);
                 Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x").WithArguments("x").WithLocation(1, 34)
+                );
+        }
+
+        [Fact]
+        [WorkItem(17779, "https://github.com/dotnet/roslyn/issues/17779")]
+        public void TestScriptWithConstVar()
+        {
+            var script = CreateCompilation(
+                source: @"string F() => null; const var x = F();",
+                parseOptions: TestOptions.Script,
+                options: TestOptions.DebugExe,
+                references: new MetadataReference[] { TaskFacadeAssembly(), MscorlibRef_v20 });
+
+            script.VerifyDiagnostics(
+                // (1,27): error CS0822: Implicitly-typed variables cannot be constant
+                // string F() => null; const var x = F();
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "var").WithLocation(1, 27),
+                // (1,35): error CS0120: An object reference is required for the non-static field, method, or property 'F()'
+                // string F() => null; const var x = F();
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "F").WithArguments("F()").WithLocation(1, 35)
                 );
         }
 

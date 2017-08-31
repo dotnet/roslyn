@@ -89,7 +89,7 @@ End Module
 <compilation>
     <file name="a.vb">
 Class C1
-    Public Sub Foo1(x as Blech) 
+    Public Sub Goo1(x as Blech) 
     End Sub
     Public Sub Bar1()
         NoSuchMethod("from C1")
@@ -104,12 +104,12 @@ End Class
     </file>
     <file name="b.vb">
 Partial Class C2
-    Public Sub Foo2(x as Blech) 
+    Public Sub Goo2(x as Blech) 
     End Sub
 End Class
 
 Class C3
-    Public Sub Foo3(x as Blech) 
+    Public Sub Goo3(x as Blech) 
     End Sub
     Public Sub Bar3()
         NoSuchMethod("from C3")
@@ -121,30 +121,30 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(compilation.GetDeclarationDiagnostics(),
 <expected>
 BC30002: Type 'Blech' is not defined.
-    Public Sub Foo1(x as Blech) 
+    Public Sub Goo1(x as Blech) 
                          ~~~~~
 BC30002: Type 'Blech' is not defined.
-    Public Sub Foo2(x as Blech) 
+    Public Sub Goo2(x as Blech) 
                          ~~~~~
 BC30002: Type 'Blech' is not defined.
-    Public Sub Foo3(x as Blech) 
+    Public Sub Goo3(x as Blech) 
                          ~~~~~
 </expected>)
 
             CompilationUtils.AssertTheseDiagnostics(compilation.GetSemanticModel(CompilationUtils.GetTree(compilation, "a.vb")).GetDeclarationDiagnostics(),
 <expected>
 BC30002: Type 'Blech' is not defined.
-    Public Sub Foo1(x as Blech) 
+    Public Sub Goo1(x as Blech) 
                          ~~~~~
 </expected>)
 
             CompilationUtils.AssertTheseDiagnostics(compilation.GetSemanticModel(CompilationUtils.GetTree(compilation, "b.vb")).GetDeclarationDiagnostics(),
 <expected>
 BC30002: Type 'Blech' is not defined.
-    Public Sub Foo2(x as Blech) 
+    Public Sub Goo2(x as Blech) 
                          ~~~~~
 BC30002: Type 'Blech' is not defined.
-    Public Sub Foo3(x as Blech) 
+    Public Sub Goo3(x as Blech) 
                          ~~~~~
 </expected>)
         End Sub
@@ -156,7 +156,7 @@ BC30002: Type 'Blech' is not defined.
 <compilation>
     <file name="a.vb">
 Class C1
-    Public Sub Foo1(x as Blech) 
+    Public Sub Goo1(x as Blech) 
     End Sub
     Public Sub Bar1()
         NoSuchMethod("from C1")
@@ -171,12 +171,12 @@ End Class
     </file>
     <file name="b.vb">
 Partial Class C2
-    Public Sub Foo2(x as Blech) 
+    Public Sub Goo2(x as Blech) 
     End Sub
 End Class
 
 Class C3
-    Public Sub Foo3(x as Blech) 
+    Public Sub Goo3(x as Blech) 
     End Sub
     Public Sub Bar3()
         NoSuchMethod("from C3")
@@ -188,7 +188,7 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(compilation.GetDiagnostics(),
 <expected>
 BC30002: Type 'Blech' is not defined.
-    Public Sub Foo1(x as Blech) 
+    Public Sub Goo1(x as Blech) 
                          ~~~~~
 BC30451: 'NoSuchMethod' is not declared. It may be inaccessible due to its protection level.
         NoSuchMethod("from C1")
@@ -197,10 +197,10 @@ BC30451: 'NoSuchMethod' is not declared. It may be inaccessible due to its prote
         NoSuchMethod("from C2")
         ~~~~~~~~~~~~
 BC30002: Type 'Blech' is not defined.
-    Public Sub Foo2(x as Blech) 
+    Public Sub Goo2(x as Blech) 
                          ~~~~~
 BC30002: Type 'Blech' is not defined.
-    Public Sub Foo3(x as Blech) 
+    Public Sub Goo3(x as Blech) 
                          ~~~~~
 BC30451: 'NoSuchMethod' is not declared. It may be inaccessible due to its protection level.
         NoSuchMethod("from C3")
@@ -210,7 +210,7 @@ BC30451: 'NoSuchMethod' is not declared. It may be inaccessible due to its prote
             CompilationUtils.AssertTheseDiagnostics(compilation.GetSemanticModel(CompilationUtils.GetTree(compilation, "a.vb")).GetDiagnostics(),
 <expected>
 BC30002: Type 'Blech' is not defined.
-    Public Sub Foo1(x as Blech) 
+    Public Sub Goo1(x as Blech) 
                          ~~~~~
 BC30451: 'NoSuchMethod' is not declared. It may be inaccessible due to its protection level.
         NoSuchMethod("from C1")
@@ -223,10 +223,10 @@ BC30451: 'NoSuchMethod' is not declared. It may be inaccessible due to its prote
             CompilationUtils.AssertTheseDiagnostics(compilation.GetSemanticModel(CompilationUtils.GetTree(compilation, "b.vb")).GetDiagnostics(),
 <expected>
 BC30002: Type 'Blech' is not defined.
-    Public Sub Foo2(x as Blech) 
+    Public Sub Goo2(x as Blech) 
                          ~~~~~
 BC30002: Type 'Blech' is not defined.
-    Public Sub Foo3(x as Blech) 
+    Public Sub Goo3(x as Blech) 
                          ~~~~~
 BC30451: 'NoSuchMethod' is not declared. It may be inaccessible due to its protection level.
         NoSuchMethod("from C3")
@@ -242,7 +242,7 @@ BC30451: 'NoSuchMethod' is not declared. It may be inaccessible due to its prote
     <file name="a.vb">
 Imports System        
 
-Namespace Foo.Bar
+Namespace Goo.Bar
     Public Class X
         Public x As Integer
         Private y As String
@@ -252,7 +252,7 @@ Namespace Foo.Bar
         Public Sub New()
             x = 7
         End Sub
-        Friend Function foo(arg as String) as Integer
+        Friend Function goo(arg as String) as Integer
             Return x
         End Function
     End Class
@@ -276,7 +276,7 @@ End Namespace
 <compilation>
     <file name="a.vb">
 Imports System
-Imports Foo.Bar        
+Imports Goo.Bar        
 Class M1
     Sub Main()
         X.SayHello()
@@ -1355,19 +1355,19 @@ End Module
 Imports System
 
 MustInherit Class Base
-    Public MustOverride Sub Foo()
+    Public MustOverride Sub Goo()
 End Class
 
 Class Derived
     Inherits Base
     
-    Public Overrides Sub foO()
+    Public Overrides Sub goO()
         Console.WriteLine("Keep calm and carry on.")
     End Sub
 
     Shared Sub Main()
         Dim d as New Derived()
-        d.foo()
+        d.goo()
     End Sub
 End Class
 
@@ -1384,25 +1384,25 @@ Keep calm and carry on.]]>)
 Imports System
 
     MustInherit Class Base
-        Public MustOverride Sub Foo()
+        Public MustOverride Sub Goo()
     End Class
 
     Class Derived
         Inherits Base
-        Public overrides Sub FOo()
+        Public overrides Sub GOo()
         End Sub
     End Class
     
     Class DerivedDerived
         Inherits Derived
 
-        Public Overrides Sub FOO()
+        Public Overrides Sub GOO()
             Console.WriteLine("Keep calm and carry on.")
         End Sub
 
         Shared Sub Main()
             Dim d As New DerivedDerived()
-            d.foo()
+            d.goo()
         End Sub
     End Class
 
@@ -1426,42 +1426,42 @@ Keep calm and carry on.]]>)
 Imports System
 
     MustInherit Class Base
-        Public MustOverride Sub Foo()
-        Public MustOverride Sub foO(x as integer)
+        Public MustOverride Sub Goo()
+        Public MustOverride Sub goO(x as integer)
     End Class
 
     MustInherit Class Derived
         Inherits Base
-        Public Overrides Sub FOo()
+        Public Overrides Sub GOo()
         End Sub
-        Public Overloads MustOverride Sub FoO(z As String)
+        Public Overloads MustOverride Sub GoO(z As String)
     End Class
     
     Class DerivedDerived
         Inherits Derived
 
-        Public Overrides Sub FOO()
+        Public Overrides Sub GOO()
             Console.WriteLine("ABC.")
         End Sub
 
-        Public Overrides Sub fOO(x as Integer)
+        Public Overrides Sub gOO(x as Integer)
             Console.WriteLine("Life is {0}.", x)
         End Sub
  
-        Public Overrides Sub fOo(y as String)
+        Public Overrides Sub gOo(y as String)
             Console.WriteLine("This is a {0}.", y)
         End Sub
 
-        Public Overloads Sub foo(x as integer, y as String)
+        Public Overloads Sub goo(x as integer, y as String)
             Console.WriteLine("All done.")
         End Sub
 
         Shared Sub Main()
             Dim d As Base = New DerivedDerived()
-            d.Foo()
-            d.foO(42)
-            DirectCast(d, Derived).FoO("elderberries")
-            DirectCast(d, DerivedDerived).foo(42, "elderberries")
+            d.Goo()
+            d.goO(42)
+            DirectCast(d, Derived).GoO("elderberries")
+            DirectCast(d, DerivedDerived).goo(42, "elderberries")
         End Sub
     End Class
 
@@ -2225,7 +2225,7 @@ Imports System.Security.Permissions
     
 public class C
     &lt;PrincipalPermission(SecurityAction.Demand, Role:="User1")&gt;
-    public sub foo()
+    public sub goo()
     end sub
 end class
 
@@ -2243,7 +2243,7 @@ End Module
                                  New DeclSecurityEntry() With {
                                     .ActionFlags = DeclarativeSecurityAction.Demand,
                                     .ParentKind = SymbolKind.Method,
-                                    .ParentNameOpt = "foo",
+                                    .ParentNameOpt = "goo",
                                     .PermissionSet =
                                         "." &
                                         ChrW(1) &
@@ -2326,7 +2326,7 @@ Imports System.Security.Permissions
 public class C
     &lt;PrincipalPermission(SecurityAction.Demand, Role:="User1")&gt;
     &lt;PrincipalPermission(SecurityAction.Demand, Role:="User1")&gt;
-    public sub foo()
+    public sub goo()
     end sub
 end class
 
@@ -2344,7 +2344,7 @@ End Module
                                  New DeclSecurityEntry() With {
                                     .ActionFlags = DeclarativeSecurityAction.Demand,
                                     .ParentKind = SymbolKind.Method,
-                                    .ParentNameOpt = "foo",
+                                    .ParentNameOpt = "goo",
                                     .PermissionSet =
                                         "." &
                                         ChrW(2) &
@@ -2445,7 +2445,7 @@ Imports System.Security.Permissions
 public class C
     &lt;PrincipalPermission(SecurityAction.Demand, Role:="User1")&gt;
     &lt;PrincipalPermission(SecurityAction.Assert, Role:="User2")&gt;
-    public sub foo()
+    public sub goo()
     end sub
 end class
 
@@ -2463,7 +2463,7 @@ End Module
                                  New DeclSecurityEntry() With {
                                     .ActionFlags = DeclarativeSecurityAction.Demand,
                                     .ParentKind = SymbolKind.Method,
-                                    .ParentNameOpt = "foo",
+                                    .ParentNameOpt = "goo",
                                     .PermissionSet =
                                         "." &
                                         ChrW(1) &
@@ -2481,7 +2481,7 @@ End Module
                                 New DeclSecurityEntry() With {
                                     .ActionFlags = DeclarativeSecurityAction.Assert,
                                     .ParentKind = SymbolKind.Method,
-                                    .ParentNameOpt = "foo",
+                                    .ParentNameOpt = "goo",
                                     .PermissionSet =
                                         "." &
                                         ChrW(1) &
@@ -2507,14 +2507,14 @@ Imports System.Security.Permissions
     
 public class C1
     &lt;PrincipalPermission(SecurityAction.Demand, Role:="User1")&gt;
-    public sub foo1()
+    public sub goo1()
     end sub
 end class
 
     
 public class C2
     &lt;PrincipalPermission(SecurityAction.Demand, Role:="User1")&gt;
-    public sub foo2()
+    public sub goo2()
     end sub
 end class
 
@@ -2532,7 +2532,7 @@ End Module
                                  New DeclSecurityEntry() With {
                                     .ActionFlags = DeclarativeSecurityAction.Demand,
                                     .ParentKind = SymbolKind.Method,
-                                    .ParentNameOpt = "foo1",
+                                    .ParentNameOpt = "goo1",
                                     .PermissionSet =
                                         "." &
                                         ChrW(1) &
@@ -2550,7 +2550,7 @@ End Module
                                 New DeclSecurityEntry() With {
                                     .ActionFlags = DeclarativeSecurityAction.Demand,
                                     .ParentKind = SymbolKind.Method,
-                                    .ParentNameOpt = "foo2",
+                                    .ParentNameOpt = "goo2",
                                     .PermissionSet =
                                         "." &
                                         ChrW(1) &
@@ -2644,7 +2644,7 @@ Imports System.Security.Permissions
 &lt;PrincipalPermission(SecurityAction.Demand, Role:="User1")&gt;        
 public class C1
     &lt;PrincipalPermission(SecurityAction.Assert, Role:="User2")&gt;
-    public sub foo1()
+    public sub goo1()
     end sub
 end class
 
@@ -2714,7 +2714,7 @@ End Module
                                 New DeclSecurityEntry() With {
                                     .ActionFlags = DeclarativeSecurityAction.Assert,
                                     .ParentKind = SymbolKind.Method,
-                                    .ParentNameOpt = "foo1",
+                                    .ParentNameOpt = "goo1",
                                     .PermissionSet =
                                         "." &
                                         ChrW(1) &
@@ -2749,7 +2749,7 @@ namespace n
 	public class C1
         &lt;PrincipalPermission(SecurityAction.Demand, Role:="User3")&gt;
         &lt;PrincipalPermission(SecurityAction.Assert, Role:="User4")&gt;
-        public sub foo1()
+        public sub goo1()
         end sub
 	end class
 
@@ -2767,7 +2767,7 @@ end namespace
                     Dim ns = DirectCast([module].GlobalNamespace.GetMembers("N").Single, NamespaceSymbol)
                     Dim namedType = DirectCast(ns.GetMembers("C1").Single, NamedTypeSymbol)
                     Dim type = DirectCast(namedType, Microsoft.Cci.ITypeDefinition)
-                    Dim method = DirectCast(namedType.GetMembers("foo1").Single, Microsoft.Cci.IMethodDefinition)
+                    Dim method = DirectCast(namedType.GetMembers("goo1").Single, Microsoft.Cci.IMethodDefinition)
 
                     Dim sourceAssembly = DirectCast(assembly, SourceAssemblySymbol)
                     Dim compilation = sourceAssembly.DeclaringCompilation
