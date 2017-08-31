@@ -24,11 +24,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         /// </summary>
         private static readonly TimeSpan DefaultPollingInterCallSleep = TimeSpan.FromMilliseconds(250);
 
-        /// <summary>
-        /// The value which is used to increase all time-outs by a constant factor. By default, this value is 1.0.
-        /// </summary>
-        private const float TimeoutMultiplier = 1.0f;
-
         private readonly Debugger _debugger;
 
         private Debugger_InProc()
@@ -65,7 +60,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             bool actionSucceeded = false;
 
-            Func<bool> predict = delegate
+            Func<bool> predicate = delegate
             {
                 try
                 {
@@ -91,8 +86,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return actionSucceeded;
             };
 
-            // Repeat the the command if "Operation Not Supported" is thrown.
-            if (!this.TryWaitFor(DebuggerCommandRetryTimeout, predict))
+            // Repeat the command if "Operation Not Supported" is thrown.
+            if (!TryWaitFor(DebuggerCommandRetryTimeout, predicate))
             {
                 string message = string.Format(
                     CultureInfo.InvariantCulture,
@@ -109,9 +104,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         /// <param name="timeout">Timeout to keep polling.</param>
         /// <param name="predicate">Delegate to invoke.</param>
         /// <returns>True if the delegate returned true when polled, otherwise false.</returns>
-        public bool TryWaitFor(TimeSpan timeout, Func<bool> predicate)
+        public static bool TryWaitFor(TimeSpan timeout, Func<bool> predicate)
         {
-            return this.TryWaitFor(timeout, DefaultPollingInterCallSleep, predicate);
+            return TryWaitFor(timeout, DefaultPollingInterCallSleep, predicate);
         }
 
         /// <summary>
@@ -123,9 +118,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         /// <returns>
         /// True if the delegate returned true when polled, otherwise false.
         /// </returns>
-        private bool TryWaitFor(TimeSpan timeout, TimeSpan interval, Func<bool> predicate)
+        private static bool TryWaitFor(TimeSpan timeout, TimeSpan interval, Func<bool> predicate)
         {
-            DateTime endTime = DateTime.UtcNow + this.ApplyTimeoutMultiplier(timeout);
+            DateTime endTime = DateTime.UtcNow + timeout;
             bool validationDelegateSuccess = false;
 
             while (DateTime.UtcNow < endTime)
@@ -134,7 +129,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 // (DateTime.Now < startTime + timeout) as this could lead to cases where the validation
                 // delegate returned true, at the boundary of the valid time, and would return false
                 // when hitting the return statement. 
-                if (predicate.Invoke())
+                if (predicate())
                 {
                     validationDelegateSuccess = true;
                     break;
@@ -144,17 +139,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
 
             return validationDelegateSuccess;
-        }
-
-
-        /// <summary>
-        /// Multiplies the given TimeSpan by the current global timeout multiplier.
-        /// </summary>
-        /// <param name="timeSpan">A timeout value to multiply</param>
-        /// <returns>The product of the given timespan and the global timeout multiplier</returns>
-        private TimeSpan ApplyTimeoutMultiplier(TimeSpan timeSpan)
-        {
-            return TimeSpan.FromMilliseconds(TimeoutMultiplier * timeSpan.TotalMilliseconds);
         }
     }
 }
