@@ -1148,7 +1148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                     return (null, null);
                 }
 
-                operation = compilation.GetOperation(methodSymbol);
+                operation = compilation.GetLowLevelOperation(methodSymbol);
             }
             else
             {

@@ -807,7 +807,7 @@ Public MustInherit Class BasicTestBaseBase
                 Return (Nothing, Nothing, Nothing)
             End If
 
-            operation = compilation.GetOperation(methodSymbol)
+            operation = compilation.GetLowLevelOperation(methodSymbol)
         Else
             operation = semanticModel.GetOperationInternal(node)
         End If
