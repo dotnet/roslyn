@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyEventAssignmentExpression(eventReference, handlerValue, adds, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-            private IParameterReferenceExpression CreateBoundParameterOperation(BoundParameter boundParameter)
+        private IParameterReferenceExpression CreateBoundParameterOperation(BoundParameter boundParameter)
         {
             IParameterSymbol parameter = boundParameter.ParameterSymbol;
             SyntaxNode syntax = boundParameter.Syntax;
@@ -670,13 +670,21 @@ namespace Microsoft.CodeAnalysis.Semantics
             bool isImplicit = boundConversion.WasCompilerGenerated;
             if (boundConversion.ConversionKind == CSharp.ConversionKind.MethodGroup)
             {
-                IMethodSymbol method = boundConversion.SymbolOpt;
-                bool isVirtual = method != null && (method.IsAbstract || method.IsOverride || method.IsVirtual) && !boundConversion.SuppressVirtualCalls;
-                Lazy<IOperation> instance = new Lazy<IOperation>(() => Create((boundConversion.Operand as BoundMethodGroup)?.InstanceOpt));
+                Lazy<IOperation> target = new Lazy<IOperation>(() =>
+                {
+                    BoundMethodGroup boundMethodGroup = (BoundMethodGroup)boundConversion.Operand;
+                    IMethodSymbol method = boundConversion.SymbolOpt;
+                    bool isVirtual = method != null && (method.IsAbstract || method.IsOverride || method.IsVirtual) && !boundConversion.SuppressVirtualCalls;
+                    Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(boundMethodGroup.InstanceOpt));
+                    SyntaxNode bindingSyntax = boundMethodGroup.Syntax;
+                    ITypeSymbol bindingType = boundMethodGroup.Type;
+                    Optional<object> bindingConstantValue = ConvertToOptional(boundMethodGroup.ConstantValue);
+                    return new LazyMethodBindingExpression(method, isVirtual, instance, method, _semanticModel, bindingSyntax, bindingType, bindingConstantValue, isImplicit);
+                });
                 SyntaxNode syntax = boundConversion.Syntax;
                 ITypeSymbol type = boundConversion.Type;
                 Optional<object> constantValue = ConvertToOptional(boundConversion.ConstantValue);
-                return new LazyMethodBindingExpression(method, isVirtual, instance, method, _semanticModel, syntax, type, constantValue, isImplicit);
+                return new LazyDelegateCreationExpression(target, _semanticModel, syntax, type, constantValue, isImplicit);
             }
             else
             {

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -1551,8 +1551,9 @@ class Program
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'DType /*<bi ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'DType /*<bi ... *</bind>*/;')
     Variables: Local_1: Program.DType d1
-    Initializer: IMethodBindingExpression: void Program.M1() (OperationKind.MethodBindingExpression, Type: Program.DType) (Syntax: 'M1')
-        Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M1')
+    Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Program.DType) (Syntax: 'M1')
+        Target: IMethodBindingExpression: void Program.M1() (OperationKind.MethodBindingExpression, Type: null) (Syntax: 'M1')
+            Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -5101,9 +5102,9 @@ class C1
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Action /*<b ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'Action /*<b ... *</bind>*/;')
     Variables: Local_1: System.Action a
-    Initializer: IMethodBindingExpression: void C1.M2() (OperationKind.MethodBindingExpression, Type: System.Action) (Syntax: '(Action)M2')
-        Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'M2')
-
+    Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: '(Action)M2')
+        Target: IMethodBindingExpression: void C1.M2() (OperationKind.MethodBindingExpression, Type: null) (Syntax: 'M2')
+            Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'M2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -5165,8 +5166,9 @@ class C1
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Action /*<b ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Action /*<b ... *</bind>*/;')
     Variables: Local_1: System.Action a
-    Initializer: IMethodBindingExpression: System.Int32 C1.M2() (OperationKind.MethodBindingExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)M2')
-        Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid) (Syntax: 'M2')
+    Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)M2')
+        Target: IMethodBindingExpression: System.Int32 C1.M2() (OperationKind.MethodBindingExpression, Type: null, IsInvalid) (Syntax: 'M2')
+            Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid) (Syntax: 'M2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0407: 'int C1.M2()' has the wrong return type
@@ -5203,8 +5205,9 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: System.Action a
     Initializer: IOperation:  (OperationKind.None) (Syntax: 'new Action((Action)M2)')
         Children(1):
-            IMethodBindingExpression: void C1.M2() (OperationKind.MethodBindingExpression, Type: System.Action) (Syntax: '(Action)M2')
-              Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'M2')
+            IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: '(Action)M2')
+              Target: IMethodBindingExpression: void C1.M2() (OperationKind.MethodBindingExpression, Type: null) (Syntax: 'M2')
+                  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'M2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -5264,8 +5267,9 @@ class C1
             string expectedOperationTree = @"
 IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInvalid) (Syntax: 'new Action((Action)M2)')
   Children(1):
-      IMethodBindingExpression: System.Int32 C1.M2() (OperationKind.MethodBindingExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)M2')
-        Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid) (Syntax: 'M2')
+      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)M2')
+        Target: IMethodBindingExpression: System.Int32 C1.M2() (OperationKind.MethodBindingExpression, Type: null, IsInvalid) (Syntax: 'M2')
+            Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid) (Syntax: 'M2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0407: 'int C1.M2()' has the wrong return type

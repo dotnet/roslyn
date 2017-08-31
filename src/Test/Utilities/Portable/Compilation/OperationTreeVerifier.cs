@@ -920,6 +920,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitAnonymousFunctionExpression(operation);
         }
 
+        public override void VisitDelegateCreationExpression(IDelegateCreationExpression operation)
+        {
+            LogString(nameof(IDelegateCreationExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Target, nameof(operation.Target));
+        }
+
         public override void VisitLiteralExpression(ILiteralExpression operation)
         {
             LogString(nameof(ILiteralExpression));

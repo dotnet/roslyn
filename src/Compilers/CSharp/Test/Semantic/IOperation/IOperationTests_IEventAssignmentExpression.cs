@@ -38,8 +38,9 @@ class C
 IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: System.Void) (Syntax: 't.MyEvent += Handler')
   Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler) (Syntax: 't.MyEvent')
       Instance Receiver: ILocalReferenceExpression: t (OperationKind.LocalReferenceExpression, Type: Test) (Syntax: 't')
-  Handler: IMethodBindingExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodBindingExpression, Type: System.EventHandler) (Syntax: 'Handler')
-      Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'Handler')
+  Handler: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.EventHandler) (Syntax: 'Handler')
+      Target: IMethodBindingExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodBindingExpression, Type: null) (Syntax: 'Handler')
+          Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] { 
                 // file.cs(6,31): warning CS0067: The event 'Test.MyEvent' is never used
@@ -116,8 +117,9 @@ class C
 IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: System.Void) (Syntax: 'Test.MyEvent += Handler')
   Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (Static) (OperationKind.EventReferenceExpression, Type: System.EventHandler) (Syntax: 'Test.MyEvent')
       Instance Receiver: null
-  Handler: IMethodBindingExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodBindingExpression, Type: System.EventHandler) (Syntax: 'Handler')
-      Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'Handler')
+  Handler: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.EventHandler) (Syntax: 'Handler')
+      Target: IMethodBindingExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodBindingExpression, Type: null) (Syntax: 'Handler')
+          Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] { 
                 // file.cs(6,38): warning CS0067: The event 'Test.MyEvent' is never used
@@ -156,8 +158,9 @@ class C
 IEventAssignmentExpression (EventRemove)) (OperationKind.EventAssignmentExpression, Type: System.Void) (Syntax: 'Test.MyEvent -= Handler')
   Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (Static) (OperationKind.EventReferenceExpression, Type: System.EventHandler) (Syntax: 'Test.MyEvent')
       Instance Receiver: null
-  Handler: IMethodBindingExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodBindingExpression, Type: System.EventHandler) (Syntax: 'Handler')
-      Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'Handler')
+  Handler: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.EventHandler) (Syntax: 'Handler')
+      Target: IMethodBindingExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodBindingExpression, Type: null) (Syntax: 'Handler')
+          Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] { 
                 // file.cs(6,38): warning CS0067: The event 'Test.MyEvent' is never used
@@ -242,8 +245,9 @@ class C
 IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: System.Void, IsInvalid) (Syntax: 't.MyEvent += Handler')
   Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (Static) (OperationKind.EventReferenceExpression, Type: System.EventHandler, IsInvalid) (Syntax: 't.MyEvent')
       Instance Receiver: null
-  Handler: IMethodBindingExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodBindingExpression, Type: System.EventHandler) (Syntax: 'Handler')
-      Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'Handler')
+  Handler: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.EventHandler) (Syntax: 'Handler')
+      Target: IMethodBindingExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodBindingExpression, Type: null) (Syntax: 'Handler')
+          Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] {                  
                 // file.cs(18,19): error CS0176: Member 'Test.MyEvent' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -286,8 +290,10 @@ class C
 IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: System.Void, IsInvalid) (Syntax: 'Test.MyEvent += Handler')
   Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler, IsInvalid) (Syntax: 'Test.MyEvent')
       Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Test')
-  Handler: IMethodBindingExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodBindingExpression, Type: System.EventHandler) (Syntax: 'Handler')
-      Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'Handler')";
+  Handler: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.EventHandler) (Syntax: 'Handler')
+      Target: IMethodBindingExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodBindingExpression, Type: null) (Syntax: 'Handler')
+          Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'Handler')
+";
             var expectedDiagnostics = new[] {                  
                 // file.cs(17,19): error CS0120: An object reference is required for the non-static field, method, or property 'Test.MyEvent'
                 //         /*<bind>*/Test.MyEvent += Handler/*<bind>*/;
@@ -325,8 +331,10 @@ class Test
 IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: System.Void) (Syntax: 'MyEvent += Handler')
   Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler) (Syntax: 'MyEvent')
       Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Test) (Syntax: 'MyEvent')
-  Handler: IMethodBindingExpression: void Test.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodBindingExpression, Type: System.EventHandler) (Syntax: 'Handler')
-      Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Test) (Syntax: 'Handler')";
+  Handler: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.EventHandler) (Syntax: 'Handler')
+      Target: IMethodBindingExpression: void Test.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodBindingExpression, Type: null) (Syntax: 'Handler')
+          Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Test) (Syntax: 'Handler')
+";
             var expectedDiagnostics = new[] {                  
                       // file.cs(6,31): warning CS0067: The event 'Test.MyEvent' is never used
                       //     public event EventHandler MyEvent;
