@@ -1540,7 +1540,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         private IBlockStatement CreateBoundStatementListOperation(BoundStatementList boundStatementList)
         {
             Lazy<ImmutableArray<IOperation>> statements =
-                new Lazy<ImmutableArray<IOperation>>(() => boundStatementList.Statements.Select(s => Create(s)).Where(s => s != null && s.Kind != OperationKind.None).ToImmutableArray());
+                new Lazy<ImmutableArray<IOperation>>(() => boundStatementList.Statements.Select(s => Create(s)).Where(s => s != null).ToImmutableArray());
 
             ImmutableArray<ILocalSymbol> locals = ImmutableArray<ILocalSymbol>.Empty;
             SyntaxNode syntax = boundStatementList.Syntax;
@@ -1565,7 +1565,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         private ISequenceExpression CreateBoundSequenceOperation(BoundSequence boundSequence)
         {
             Lazy<ImmutableArray<IOperation>> expressions =
-new Lazy<ImmutableArray<IOperation>>(() => boundSequence.SideEffects.Select(s => Create(s)).Where(s => s != null && s.Kind != OperationKind.None).ToImmutableArray());
+                new Lazy<ImmutableArray<IOperation>>(() => boundSequence.SideEffects.Select(s => Create(s)).Where(s => s != null).ToImmutableArray());
 
             Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundSequence.Value));
             ImmutableArray<ILocalSymbol> locals = boundSequence.Locals.As<ILocalSymbol>();

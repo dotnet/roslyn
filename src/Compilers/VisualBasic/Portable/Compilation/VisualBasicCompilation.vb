@@ -1844,11 +1844,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="method">The method symbol.</param>
         ''' <param name="cancellationToken">An optional cancellation token.</param>
         ''' <returns>The low-level operation corresponding to the method's body.</returns>
-        Protected Overrides Function GetOperationCore(method As IMethodSymbol, Optional cancellationToken As CancellationToken = Nothing) As IOperation
+        Protected Overrides Function GetLowLevelOperationCore(method As IMethodSymbol, Optional cancellationToken As CancellationToken = Nothing) As IOperation
             Dim result As IOperation = Nothing
             Dim vbmethod = method.EnsureVbSymbolOrNothing(Of MethodSymbol)(NameOf(method))
 
-            If vbmethod IsNot Nothing Then
+            If vbmethod IsNot Nothing AndAlso vbmethod.IsFromCompilation(Me) Then
                 Dim body = LowerMethodBody(vbmethod)
 
                 If body IsNot Nothing Then
@@ -1862,28 +1862,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function LowerMethodBody(method As MethodSymbol) As BoundStatement
             Dim result As BoundStatement = Nothing
-            Dim compilationState = New TypeCompilationState(Me, Nothing, Nothing)
-            Dim diagnostics = DiagnosticBag.GetInstance()
-            Dim body = method.GetBoundMethodBody(compilationState, diagnostics)
+            Dim sourceMethod As SourceMethodSymbol = TryCast(method, SourceMethodSymbol)
 
-            If body IsNot Nothing AndAlso Not body.HasErrors Then
-                Dim sawLambdas As Boolean
+            ' We don't want to support synthesized bodies
+            ' (Like auto-property accessors, etc.)
+            If sourceMethod IsNot Nothing AndAlso sourceMethod.BlockSyntax IsNot Nothing Then
+                Dim compilationState = New TypeCompilationState(Me, Nothing, Nothing)
+                Dim diagnostics = DiagnosticBag.GetInstance()
+                Dim body = method.GetBoundMethodBody(compilationState, diagnostics)
 
-                result = LocalRewriter.Rewrite(
-                    body,
-                    method,
-                    compilationState,
-                    previousSubmissionFields:=Nothing,
-                    diagnostics:=diagnostics,
-                    rewrittenNodes:=Nothing,
-                    hasLambdas:=sawLambdas,
-                    symbolsCapturedWithoutCopyCtor:=Nothing,
-                    flags:=LocalRewriter.RewritingFlags.Default,
-                    instrumenterOpt:=DebugInfoInjector.Singleton,
-                    currentMethod:=Nothing)
+                If body IsNot Nothing AndAlso Not body.HasErrors AndAlso Not diagnostics.HasAnyErrors() Then
+                    Dim sawLambdas As Boolean
+
+                    result = LocalRewriter.Rewrite(
+                        body,
+                        method,
+                        compilationState,
+                        previousSubmissionFields:=Nothing,
+                        diagnostics:=diagnostics,
+                        rewrittenNodes:=Nothing,
+                        hasLambdas:=sawLambdas,
+                        symbolsCapturedWithoutCopyCtor:=Nothing,
+                        flags:=LocalRewriter.RewritingFlags.Default,
+                        instrumenterOpt:=DebugInfoInjector.Singleton,
+                        currentMethod:=Nothing)
+                End If
+
+                diagnostics.Free()
             End If
 
-            diagnostics.Free()
             Return result
         End Function
 #End Region

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="method">The method symbol.</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
         /// <returns>The low-level operation corresponding to the method's body.</returns>
-        public static IOperation GetOperation(this Compilation compilation, IMethodSymbol method, CancellationToken cancellationToken = default)
+        public static IOperation GetLowLevelOperation(this Compilation compilation, IMethodSymbol method, CancellationToken cancellationToken = default)
         {
             if (compilation == null)
             {
@@ -26,12 +26,15 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(method));
             }
 
+            // This method implements an experimental feature.
+            // Do not remove the following feature flag check
+            // when releasing IOperation API.
             if (!compilation.IsIOperationFeatureEnabled())
             {
                 throw new InvalidOperationException(CodeAnalysisResources.IOperationFeatureDisabled);
             }
 
-            return compilation.GetOperation(method, cancellationToken);
+            return compilation.GetLowLevelOperation(method, cancellationToken);
         }
     }
 }

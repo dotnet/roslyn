@@ -1761,12 +1761,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="method">The method symbol.</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
         /// <returns>The low-level operation corresponding to the method's body.</returns>
-        protected override IOperation GetOperationCore(IMethodSymbol method, CancellationToken cancellationToken = default)
+        protected override IOperation GetLowLevelOperationCore(IMethodSymbol method, CancellationToken cancellationToken = default)
         {
             IOperation result = null;
             var csmethod = method.EnsureCSharpSymbolOrNull<IMethodSymbol, MethodSymbol>(nameof(method));
 
-            if (csmethod != null)
+            if ((object)csmethod != null && csmethod.IsFromCompilation(this))
             {
                 var body = LowerMethodBody(csmethod);
 
@@ -1783,34 +1783,41 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundStatement LowerMethodBody(MethodSymbol method)
         {
             BoundStatement result = null;
-            var compilationState = new TypeCompilationState(method.ContainingType, this, null);
-            var diagnostics = DiagnosticBag.GetInstance();
-            var body = MethodCompiler.BindMethodBody(method, compilationState, diagnostics);
 
-            if (body != null && !body.HasErrors)
+            // We don't want to support synthesized bodies
+            // (like auto-property accessors, etc.)
+            if (method is SourceMemberMethodSymbol sourceMethod && sourceMethod.BodySyntax != null)
             {
-                const int methodOrdinal = -1;
-                var dynamicAnalysisSpans = ImmutableArray<SourceSpan>.Empty;
+                var compilationState = new TypeCompilationState(method.ContainingType, this, null);
+                var diagnostics = DiagnosticBag.GetInstance();
+                var body = MethodCompiler.BindMethodBody(method, compilationState, diagnostics);
 
-                result = LocalRewriter.Rewrite(
-                    this,
-                    method,
-                    methodOrdinal,
-                    method.ContainingType,
-                    body,
-                    compilationState,
-                    previousSubmissionFields: null,
-                    allowOmissionOfConditionalCalls: true,
-                    instrumentForDynamicAnalysis: false,
-                    debugDocumentProvider: null,
-                    dynamicAnalysisSpans: ref dynamicAnalysisSpans,
-                    diagnostics: diagnostics,
-                    sawLambdas: out bool sawLambdas,
-                    sawLocalFunctions: out bool sawLocalFunctions,
-                    sawAwaitInExceptionHandler: out bool sawAwaitInExceptionHandler);
+                if (body != null && !body.HasErrors && !diagnostics.HasAnyErrors())
+                {
+                    const int methodOrdinal = -1;
+                    var dynamicAnalysisSpans = ImmutableArray<SourceSpan>.Empty;
+
+                    result = LocalRewriter.Rewrite(
+                        this,
+                        method,
+                        methodOrdinal,
+                        method.ContainingType,
+                        body,
+                        compilationState,
+                        previousSubmissionFields: null,
+                        allowOmissionOfConditionalCalls: true,
+                        instrumentForDynamicAnalysis: false,
+                        debugDocumentProvider: null,
+                        dynamicAnalysisSpans: ref dynamicAnalysisSpans,
+                        diagnostics: diagnostics,
+                        sawLambdas: out bool sawLambdas,
+                        sawLocalFunctions: out bool sawLocalFunctions,
+                        sawAwaitInExceptionHandler: out bool sawAwaitInExceptionHandler);
+                }
+
+                diagnostics.Free();
             }
 
-            diagnostics.Free();
             return result;
         }
 

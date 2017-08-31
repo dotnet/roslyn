@@ -1100,9 +1100,9 @@ namespace Microsoft.CodeAnalysis
         /// <param name="method">The method symbol.</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
         /// <returns>The low-level operation corresponding to the method's body.</returns>
-        internal IOperation GetOperation(IMethodSymbol method, CancellationToken cancellationToken = default)
+        internal IOperation GetLowLevelOperation(IMethodSymbol method, CancellationToken cancellationToken = default)
         {
-            return GetOperationCore(method, cancellationToken);
+            return GetLowLevelOperationCore(method, cancellationToken);
         }
 
         /// <summary>
@@ -1111,7 +1111,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="method">The method symbol.</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
         /// <returns>The low-level operation corresponding to the method's body.</returns>
-        protected abstract IOperation GetOperationCore(IMethodSymbol method, CancellationToken cancellationToken = default);
+        protected abstract IOperation GetLowLevelOperationCore(IMethodSymbol method, CancellationToken cancellationToken = default);
 
         #endregion
 
