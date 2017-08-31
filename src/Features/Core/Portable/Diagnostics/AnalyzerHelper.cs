@@ -50,8 +50,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static bool IsOpenFileOnly(this DiagnosticAnalyzer analyzer, Workspace workspace)
         {
-            var builtInAnalyzer = analyzer as IBuiltInAnalyzer;
-            if (builtInAnalyzer != null)
+            if (analyzer is IBuiltInAnalyzer builtInAnalyzer)
             {
                 return builtInAnalyzer.OpenFileOnly(workspace);
             }

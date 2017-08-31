@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -50,42 +49,45 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static async Task<ImmutableArray<SymbolAndProjectId>> FindAllDeclarationsWithNormalQueryInCurrentProcessAsync(
             Project project, SearchQuery query, SymbolFilter criteria, CancellationToken cancellationToken)
         {
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
             var list = ArrayBuilder<SymbolAndProjectId>.GetInstance();
 
-            // get declarations from the compilation's assembly
-            await AddCompilationDeclarationsWithNormalQueryAsync(
-                project, query, criteria, list, cancellationToken).ConfigureAwait(false);
-
-            // get declarations from directly referenced projects and metadata
-            foreach (var assembly in compilation.GetReferencedAssemblySymbols())
+            if (project.SupportsCompilation)
             {
-                var assemblyProject = project.Solution.GetProject(assembly, cancellationToken);
-                if (assemblyProject != null)
-                {
-                    await AddCompilationDeclarationsWithNormalQueryAsync(
-                        assemblyProject, query, criteria, list,
-                        compilation, assembly, cancellationToken).ConfigureAwait(false);
-                }
-                else
-                {
-                    await AddMetadataDeclarationsWithNormalQueryAsync(
-                        project, assembly, compilation.GetMetadataReference(assembly) as PortableExecutableReference,
-                        query, criteria, list, cancellationToken).ConfigureAwait(false);
-                }
-            }
+                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            // Make certain all namespace symbols returned by API are from the compilation
-            // for the passed in project.
-            for (var i = 0; i < list.Count; i++)
-            {
-                var symbolAndProjectId = list[i];
-                if (symbolAndProjectId.Symbol is INamespaceSymbol ns)
+                // get declarations from the compilation's assembly
+                await AddCompilationDeclarationsWithNormalQueryAsync(
+                    project, query, criteria, list, cancellationToken).ConfigureAwait(false);
+
+                // get declarations from directly referenced projects and metadata
+                foreach (var assembly in compilation.GetReferencedAssemblySymbols())
                 {
-                    list[i] = new SymbolAndProjectId(
-                        compilation.GetCompilationNamespace(ns),
-                        project.Id);
+                    var assemblyProject = project.Solution.GetProject(assembly, cancellationToken);
+                    if (assemblyProject != null)
+                    {
+                        await AddCompilationDeclarationsWithNormalQueryAsync(
+                            assemblyProject, query, criteria, list,
+                            compilation, assembly, cancellationToken).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        await AddMetadataDeclarationsWithNormalQueryAsync(
+                            project, assembly, compilation.GetMetadataReference(assembly) as PortableExecutableReference,
+                            query, criteria, list, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+
+                // Make certain all namespace symbols returned by API are from the compilation
+                // for the passed in project.
+                for (var i = 0; i < list.Count; i++)
+                {
+                    var symbolAndProjectId = list[i];
+                    if (symbolAndProjectId.Symbol is INamespaceSymbol ns)
+                    {
+                        list[i] = new SymbolAndProjectId(
+                            compilation.GetCompilationNamespace(ns),
+                            project.Id);
+                    }
                 }
             }
 

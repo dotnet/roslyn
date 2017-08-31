@@ -112,6 +112,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// </summary>
                 public readonly MethodSymbol OriginalMethodSymbol;
 
+                /// <summary>
+                /// Syntax for the block of the nested function.
+                /// </summary>
+                public readonly SyntaxReference BlockSyntax;
+
                 public readonly PooledHashSet<Symbol> CapturedVariables = PooledHashSet<Symbol>.GetInstance();
 
                 public readonly ArrayBuilder<ClosureEnvironment> CapturedEnvironments
@@ -136,10 +141,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                public Closure(MethodSymbol symbol)
+                public SynthesizedClosureMethod SynthesizedLoweredMethod;
+
+                public Closure(MethodSymbol symbol, SyntaxReference blockSyntax)
                 {
                     Debug.Assert(symbol != null);
                     OriginalMethodSymbol = symbol;
+                    BlockSyntax = blockSyntax;
                 }
 
                 public void Free()
@@ -154,9 +162,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public readonly SetWithInsertionOrder<Symbol> CapturedVariables;
                 
                 /// <summary>
-                /// Represents a <see cref="SynthesizedEnvironment"/> that had its environment
-                /// pointer (a local pointing to the environment) captured like a captured
-                /// variable. Assigned in
+                /// True if this environment captures a reference to a class environment
+                /// declared in a higher scope. Assigned by
                 /// <see cref="ComputeLambdaScopesAndFrameCaptures(ParameterSymbol)"/>
                 /// </summary>
                 public bool CapturesParent;
@@ -435,7 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Closure is declared (lives) in the parent scope, but its
                     // variables are in a nested scope
-                    var closure = new Closure(closureSymbol);
+                    var closure = new Closure(closureSymbol, body.Syntax.GetReference());
                     _currentScope.Closures.Add(closure);
 
                     var oldClosure = _currentClosure;

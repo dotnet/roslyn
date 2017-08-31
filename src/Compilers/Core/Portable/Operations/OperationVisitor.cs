@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitLabelStatement(ILabelStatement operation)
+        public virtual void VisitLabeledStatement(ILabeledStatement operation)
         {
             DefaultVisit(operation);
         }
@@ -106,11 +106,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual void VisitEmptyStatement(IEmptyStatement operation)
-        {
-            DefaultVisit(operation);
-        }
-
-        public virtual void VisitThrowStatement(IThrowStatement operation)
         {
             DefaultVisit(operation);
         }
@@ -265,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitConditionalChoiceExpression(IConditionalChoiceExpression operation)
+        public virtual void VisitConditionalExpression(IConditionalExpression operation)
         {
             DefaultVisit(operation);
         }
@@ -560,7 +555,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitLabelStatement(ILabelStatement operation, TArgument argument)
+        public virtual TResult VisitLabeledStatement(ILabeledStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -576,11 +571,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual TResult VisitEmptyStatement(IEmptyStatement operation, TArgument argument)
-        {
-            return DefaultVisit(operation, argument);
-        }
-
-        public virtual TResult VisitThrowStatement(IThrowStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -735,7 +725,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitConditionalChoiceExpression(IConditionalChoiceExpression operation, TArgument argument)
+        public virtual TResult VisitConditionalExpression(IConditionalExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

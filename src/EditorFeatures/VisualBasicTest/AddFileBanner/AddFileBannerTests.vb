@@ -53,7 +53,7 @@ class Program2
 end class
         </Document>
     </Project>
-</Workspace>", ignoreTrivia:=False)
+</Workspace>")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddFileBanner)>
@@ -97,7 +97,7 @@ class Program2
 end class
         </Document>
     </Project>
-</Workspace>", ignoreTrivia:=False)
+</Workspace>")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddFileBanner)>

@@ -1883,15 +1883,40 @@ foreach (var (a, b) in e1) { }
         }
 
         [Fact]
-        public void Lambdas_InLambda()
+        public void Lambdas_InLambda_ChangeInLambdaSignature()
         {
             var src1 = "F(() => { G(x => y); });";
             var src2 = "F(q => { G(() => y); });";
 
             var edits = GetMethodEdits(src1, src2);
 
+            // changes were made to the outer lambda signature:
             edits.VerifyEdits(
                 "Update [() => { G(x => y); }]@4 -> [q => { G(() => y); }]@4");
+        }
+
+        [Fact]
+        public void Lambdas_InLambda_ChangeOnlyInLambdaBody()
+        {
+            var src1 = "F(() => { G(x => y); });";
+            var src2 = "F(() => { G(() => y); });";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            // no changes to the method were made, only within the outer lambda body:
+            edits.VerifyEdits();
+        }
+
+        [Fact]
+        public void Lambdas_Update_ParameterRefness_NoBodyChange()
+        {
+            var src1 = @"F((ref int a) => a = 1);";
+            var src2 = @"F((out int a) => a = 1);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [(ref int a) => a = 1]@4 -> [(out int a) => a = 1]@4");
         }
 
         [Fact]
@@ -2936,12 +2961,12 @@ delegate int D2(out int a);
 
 class C
 {
-    void G1(D1 f) {}
-    void G2(D2 f) {}
+    void G(D1 f) {}
+    void G(D2 f) {}
 
     void F()
     {
-        G1((ref int a) => a = 1);
+        G((ref int a) => a = 1);
     }
 }
 ";
@@ -2953,12 +2978,12 @@ delegate int D2(out int a);
 
 class C
 {
-    void G1(D1 f) {}
-    void G2(D2 f) {}
+    void G(D1 f) {}
+    void G(D2 f) {}
 
     void F()
     {
-        G2((out int a) => a = 1);
+        G((out int a) => a = 1);
     }
 }
 ";
@@ -4661,6 +4686,1972 @@ class Program
         Func<int> f = () => X;
     }
 }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Renamed, "int X", "parameter"));
+        }
+
+        #endregion
+
+        #region Local Functions
+
+        [Fact]
+        public void LocalFunctions_InExpressionStatement()
+        {
+            var src1 = "F(a => a, b => b);";
+            var src2 = "int x(int a) => a + 1; F(b => b, x);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [a => a]@4 -> [int x(int a) => a + 1;]@2",
+                "Move [a => a]@4 -> @2",
+                "Update [F(a => a, b => b);]@2 -> [F(b => b, x);]@25");
+        }
+
+        [Fact]
+        public void LocalFunctions_ReorderAndUpdate()
+        {
+            var src1 = "int x(int a) => a; int y(int b) => b;";
+            var src2 = "int y(int b) => b; int x(int a) => a + 1;";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Reorder [int y(int b) => b;]@21 -> @2",
+                "Update [int x(int a) => a;]@2 -> [int x(int a) => a + 1;]@21");
+        }
+
+        [Fact]
+        public void LocalFunctions_InWhile()
+        {
+            var src1 = "do { /*1*/ } while (F(x));int x(int a) => a + 1;";
+            var src2 = "while (F(a => a)) { /*1*/ }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Insert [while (F(a => a)) { /*1*/ }]@2",
+                "Update [int x(int a) => a + 1;]@28 -> [a => a]@11",
+                "Move [int x(int a) => a + 1;]@28 -> @11",
+                "Move [{ /*1*/ }]@5 -> @20",
+                "Delete [do { /*1*/ } while (F(x));]@2");
+        }
+
+        [Fact]
+        public void LocalFunctions_InLocalFunction_NoChangeInignature()
+        {
+            var src1 = "int x() { int y(int a) => a; return y(b); }";
+            var src2 = "int x() { int y() => c; return y(); }";
+
+            var edits = GetMethodEdits(src1, src2);
+            // no changes to the method were made, only within the outer local function body:
+            edits.VerifyEdits();
+        }
+
+        [Fact]
+        public void LocalFunctions_InLocalFunction_ChangeInignature()
+        {
+            var src1 = "int x() { int y(int a) => a; return y(b); }";
+            var src2 = "int x(int z) { int y() => c; return y(); }";
+
+            var edits = GetMethodEdits(src1, src2);
+            // changes were made to the outer local function signature:
+            edits.VerifyEdits(
+                "Update [int x() { int y(int a) => a; return y(b); }]@2 -> [int x(int z) { int y() => c; return y(); }]@2");
+        }
+
+        [Fact]
+        public void LocalFunctions_InLambda()
+        {
+            var src1 = "F(() => { int y(int a) => a; G(y); });";
+            var src2 = "F(q => { G(() => y); });";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [() => { int y(int a) => a; G(y); }]@4 -> [q => { G(() => y); }]@4");
+        }
+
+        [Fact]
+        public void LocalFunctions_Update_ParameterRefness_NoBodyChange()
+        {
+            var src1 = @"void f(ref int a) => a = 1;";
+            var src2 = @"void f(out int a) => a = 1;";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [void f(ref int a) => a = 1;]@2 -> [void f(out int a) => a = 1;]@2");
+        }
+
+        [Fact]
+        public void LocalFunctions_Insert_Static_Top()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        int f(int a) => a;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunctions_Insert_Static_Nested_ExpressionBodies()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    static int G(Func<int, int> f) => 0;
+    
+    void F()
+    {
+        int localF(int a) => a;
+        G(localF);
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    static int G(Func<int, int> f) => 0;
+
+    void F()
+    {
+        int localF(int a) => a;
+        int localG(int a) => G(localF) + a;
+        G(localG);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunctions_Insert_Static_Nested_BlockBodies()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    static int G(Func<int, int> f) => 0;
+    
+    void F()
+    {
+        int localF(int a) { return a; }
+        G(localF);
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    static int G(Func<int, int> f) => 0;
+
+    void F()
+    {
+        int localF(int a) { return a; }
+        int localG(int a) { return G(localF) + a; }
+        G(localG);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunctions_LocalFunction_Replace_Lambda()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    static int G(Func<int, int> f) => 0;
+    
+    void F()
+    {
+        G(a => a);
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    static int G(Func<int, int> f) => 0;
+
+    void F()
+    {
+        int localF(int a) { return a; }
+        G(localF);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            // To be removed when we will enable EnC for local functions
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.SwitchBetweenLambdaAndLocalFunction, "localF", CSharpFeaturesResources.local_function));
+        }
+
+        [Fact]
+        public void LocalFunctions_Lambda_Replace_LocalFunction()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    static int G(Func<int, int> f) => 0;
+
+    void F()
+    {
+        int localF(int a) { return a; }
+        G(localF);
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    static int G(Func<int, int> f) => 0;
+    
+    void F()
+    {
+        G(a => a);
+    }
+}
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.SwitchBetweenLambdaAndLocalFunction, "a", CSharpFeaturesResources.lambda));
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_Insert_ThisOnly_Top1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    int x = 0;
+
+    void F()
+    {
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    int x = 0;
+
+    void F()
+    {
+        int G(int a) => x; 
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            // TODO: allow creating a new leaf closure
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(1291, "https://github.com/dotnet/roslyn/issues/1291"), WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_Insert_ThisOnly_Top2()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+        int y = 1;
+        {
+            int x = 2;
+            int f1(int a) => y; 
+        }
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+        int y = 1;
+        {
+            int x = 2;
+            var f2 = from a in new[] { 1 } select a + y;
+            var f3 = from a in new[] { 1 } where x > 0 select a;
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "y", "y"),
+                Diagnostic(RudeEditKind.CapturingVariable, "x", "x"));
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_Insert_ThisOnly_Nested1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    int x = 0;
+    int G(Func<int, int> f) => 0;
+
+    void F()
+    {
+        int f(int a) => a;
+        G(f);
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    int x = 0;
+    int G(Func<int, int> f) => 0;
+
+    void F()
+    {
+        int f(int a) => x;
+        int g(int a) => G(f);
+        G(g);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_Insert_ThisOnly_Nested2()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    int x = 0;
+
+    void F()
+    {
+        int f1(int a) 
+        {
+            int f2(int b)
+            {
+                return b;
+            };
+
+            return a;
+        };
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    int x = 0;
+
+    void F()
+    {
+        int f1(int a)
+        {
+            int f2(int b)
+            {
+                return b;
+            };
+
+            int f3(int c)
+            {
+                return c + x;
+            };
+
+            return a;
+        };
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_InsertAndDelete_Scopes1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void G(Func<int, int> f) {}
+
+    int x = 0, y = 0;                      // Group #0
+
+    void F()
+    {
+        int x0 = 0, y0 = 0;                // Group #1 
+
+        { int x1 = 0, y1 = 0;              // Group #2 
+
+            { int x2 = 0, y2 = 0;          // Group #1 
+
+                { int x3 = 0, y3 = 0;      // Group #2 
+
+                    int f1(int a) => x3 + x1;
+                    int f2(int a) => x0 + y0 + x2;
+                    int f3(int a) => x;
+                }
+            }
+        }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void G(Func<int, int> f) {}
+
+    int x = 0, y = 0;                       // Group #0
+
+    void F()
+    {
+        int x0 = 0, y0 = 0;                 // Group #1
+
+        { int x1 = 0, y1 = 0;               // Group #2 
+
+            { int x2 = 0, y2 = 0;           // Group #1
+
+                { int x3 = 0, y3 = 0;       // Group #2 
+
+                    int f1(int a) => x3 + x1;
+                    int f2(int a) => x0 + y0 + x2;
+                    int f3(int a) => x;
+
+                    int f4(int a) => x;         // OK
+                    int f5(int a) => x0 + y0;   // OK
+                    int f6(int a) => x1 + y0;   // error - connecting Group #1 and Group #2
+                    int f7(int a) => x3 + x1;   // error - multi-scope (conservative)
+                    int f8(int a) => x + y0;    // error - connecting Group #0 and Group #1
+                    int f9(int a) => x + x3;    // error - connecting Group #0 and Group #2
+                }
+            }
+        }
+    }
+}
+";
+            var insert = GetTopEdits(src1, src2);
+
+            insert.VerifySemanticDiagnostics();
+
+            var delete = GetTopEdits(src2, src1);
+
+            delete.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_Insert_ForEach1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F()                       
+    {                              
+        foreach (int x0 in new[] { 1 })  // Group #0             
+        {                                // Group #1
+            int x1 = 0;
+
+            int f0(int a) => x0;
+            int f1(int a) => x1;
+        }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void G(Func<int, int> f) {}
+
+    void F()                       
+    {                              
+        foreach (int x0 in new[] { 1 })  // Group #0             
+        {                                // Group #1
+            int x1 = 0;                  
+
+            int f0(int a) => x0;
+            int f1(int a) => x1;
+
+            int f0(int a) => x0;
+            int f2(int a) => x0 + x1;   // error: connecting previously disconnected closures
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_Insert_Switch1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    bool G(Func<int> f) => true;
+
+    int a = 1;
+
+    void F()                       
+    {        
+        int x2 = 1;
+        int f2() => x2;
+
+        switch (a)
+        {
+            case 1:
+                int x0 = 1;
+                int f0() => x0;
+                break;
+
+            case 2:
+                int x1 = 1;
+                int f1() => x1;
+                break;
+        }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    bool G(Func<int> f) => true;
+
+    int a = 1;
+
+    void F()                       
+    {                
+        int x2 = 1;
+        int f2() => x2;
+
+        switch (a)
+        {
+            case 1:
+                int x0 = 1;
+                int f0() => x0;
+                goto case 2;
+
+            case 2:
+                int x1 = 1;
+                int f1() => x1;
+                goto default;
+
+            default:
+                x0 = 1;
+                x1 = 2;
+                int f01() => x0 + x1;   // ok
+                int f02() => x0 + x2;   // error
+                break;
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_Insert_Catch1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    static void F()                       
+    {                              
+        try
+        {
+        }
+        catch (Exception x0)
+        {
+            int x1 = 1;
+            int f0() => x0;
+            int f1() => x1;
+        }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    static void F()                       
+    {                              
+        try
+        {
+        }
+        catch (Exception x0)
+        {
+            int x1 = 1;
+            int f0() => x0;
+            int f1() => x1;
+
+            int f00() => x0; //ok
+            int f01() => F(x0, x1); //error
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_Update_CeaseCapture_This()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    int x = 1;
+
+    void F()
+    {
+        int f(int a) => a + x;
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    int x;
+
+    void F()
+    {
+        int f(int a) => a;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunctions_Update_Signature1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        int f(int a) => a;
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        long f(long a) => a;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "f", CSharpFeaturesResources.local_function));
+        }
+
+        [Fact]
+        public void LocalFunctions_Update_Signature2()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        int f(int a) => a;
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        int f(int a, int b) => a + b;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "f", CSharpFeaturesResources.local_function));
+        }
+
+        [Fact]
+        public void LocalFunctions_Update_Signature3()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        int f(int a) => a;
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        long f(int a) => a;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaReturnType, "f", CSharpFeaturesResources.local_function));
+        }
+
+        [Fact]
+        public void LocalFunctions_Update_Signature_ReturnType1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        int f(int a) { return 1; }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        void f(int a) { }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaReturnType, "f", CSharpFeaturesResources.local_function));
+        }
+
+        [Fact]
+        public void LocalFunctions_Update_Signature_BodySyntaxOnly()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        int f(int a) => a;
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void G1(Func<int, int> f) {}
+    void G2(Func<int, int> f) {}
+
+    void F()
+    {
+        int f(int a) { return a; }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunctions_Update_Signature_ParameterName1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        int f(int a) => 1;
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        int f(int b) => 2;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunctions_Update_Signature_ParameterRefness1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        int f(ref int a) => 1;
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        int f(int a) => 2;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "f", CSharpFeaturesResources.local_function));
+        }
+
+        [Fact]
+        public void LocalFunctions_Update_Signature_ParameterRefness2()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        int f(out int a) => 1;
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        int f(ref int a) => 2;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "f", CSharpFeaturesResources.local_function));
+        }
+
+        [Fact]
+        public void LocalFunctions_Update_Signature_ParameterRefness3()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        int f(ref int a) => 1;
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        int f(out int a) => 1;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "f", CSharpFeaturesResources.local_function));
+        }
+
+        [Fact]
+        public void LocalFunctions_Signature_SemanticErrors()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        Unknown f(Unknown a) => 1;
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        Unknown f(Unknown a) => 2;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            // There are semantics errors in the case. The errors are captured during the emit execution.
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunctions_Update_CapturedParameters1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F(int x1)
+    {
+        int f1(int a1, int a2)
+        {
+            int f2(int a3) => x1 + a2;
+            return a1;
+        };
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F(int x1)
+    {
+        int f1(int a1, int a2)
+        {
+            int f2(int a3) => x1 + a2 + 1;
+            return a1;
+        };
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(2223, "https://github.com/dotnet/roslyn/issues/2223")]
+        public void LocalFunctions_Update_CapturedParameters2()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F(int x1)
+    {
+        int f1(int a1, int a2)
+        {
+            int f2(int a3) => x1 + a2;
+            return a1;
+        };
+
+        int f3(int a1, int a2)
+        {
+            int f4(int a3) => x1 + a2;
+            return a1;
+        };
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F(int x1)
+    {
+        int f1(int a1, int a2)
+        {
+            int f2(int a3) => x1 + a2 + 1;
+            return a1;
+        };
+
+        int f3(int a1, int a2)
+        {
+            int f4(int a3) => x1 + a2 + 1;
+            return a1;
+        };
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_Update_CeaseCapture_Closure1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        int y = 1;
+        int f1(int a1)
+        {
+            int f2(int a2) => y + a2;
+            return a1;
+        };
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        int y = 1;
+        int f1(int a1)
+        {
+            int f2(int a2) => a2;
+            return a1 + y;
+        };
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            // y is no longer captured in f2
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_Update_CeaseCapture_IndexerParameter()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    Func<int, int> this[int a1, int a2] { get { int f(int a3) => a1 + a2; return f; } }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    Func<int, int> this[int a1, int a2] { get { int f(int a3) => a2; return f; } }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_Update_CeaseCapture_MethodParameter1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F(int a1, int a2)
+    {
+        int f2(int a3) => a1 + a2;
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F(int a1, int a2)
+    {
+        int f2(int a3) => a1;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_Update_CeaseCapture_LambdaParameter1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        int f1(int a1, int a2)
+        {
+            int f2(int a3) => a1 + a2;
+            return a1;
+        };
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        int f1(int a1, int a2)
+        {
+            int f2(int a3) => a2;
+            return a1;
+        };
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_Update_CeaseCapture_SetterValueParameter1()
+        {
+    var src1 = @"
+using System;
+
+class C
+{
+    int D
+    {
+        get { return 0; }
+        set { void f() { Console.Write(value); } f(); }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    int D
+    {
+        get { return 0; }
+        set { }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_Update_CeaseCapture_IndexerSetterValueParameter1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    int this[int a1, int a2]
+    {
+        get { return 0; }
+        set { void f() { Console.Write(value); } f(); }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    int this[int a1, int a2]
+    {
+        get { return 0; }
+        set { }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_Update_CeaseCapture_EventAdderValueParameter1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    event Action D
+    {
+        add { void f() { Console.Write(value); } f(); }
+        remove { }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    event Action D
+    {
+        add {  }
+        remove { }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_Update_CeaseCapture_EventRemoverValueParameter1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    event Action D
+    {
+        add {  }
+        remove { void f() { Console.Write(value); } f(); }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    event Action D
+    {
+        add { }
+        remove { }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_Update_DeleteCapture1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        int y = 1;
+        int f1(int a1)
+        {
+            int f2(int a2) => y + a2;
+            return y;
+        };
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F()
+    { // error
+        int f1(int a1)
+        {
+            int f2(int a2) => a2;
+            return a1;
+        };
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_Update_Capturing_IndexerGetterParameter2()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    Func<int, int> this[int a1, int a2] { get { int f(int a3) => a2; return f; } }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    Func<int, int> this[int a1, int a2] { get { int f(int a3) => a1 + a2; return f; } }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_Update_Capturing_IndexerSetterParameter1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    Func<int, int> this[int a1, int a2] { get { return null; } set { int f(int a3) => a2; } }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    Func<int, int> this[int a1, int a2] { get { return null; } set { int f(int a3) => a1 + a2; } }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_Update_Capturing_IndexerSetterValueParameter1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    int this[int a1, int a2]
+    {
+        get { return 0; }
+        set {  }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    int this[int a1, int a2]
+    {
+        get { return 0; }
+        set { void f() { Console.Write(value); } f(); }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_Update_Capturing_EventAdderValueParameter1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    event Action D
+    {
+        add {  }
+        remove { }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    event Action D
+    {
+        add {  }
+        remove { void f() { Console.Write(value); } f(); }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_Update_Capturing_EventRemoverValueParameter1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    event Action D
+    {
+        add {  }
+        remove {  }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    event Action D
+    {
+        add { }
+        remove { void f() { Console.Write(value); } f(); }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_Update_Capturing_MethodParameter1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F(int a1, int a2)
+    {
+        int f2(int a3) => a1;
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F(int a1, int a2)
+    {
+        int f2(int a3) => a1 + a2;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_Update_Capturing_LambdaParameter1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        int f1(int a1, int a2)
+        {
+            int f2(int a3) => a2;
+            return a1;
+        };
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        int f1(int a1, int a2)
+        {
+            int f2(int a3) => a1 + a2;
+            return a1;
+        };
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_Update_StaticToThisOnly1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    int x = 1;
+
+    void F()
+    {
+        int f(int a) => a;
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    int x = 1;
+
+    void F()
+    {
+        int f(int a) => a + x;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_Update_StaticToThisOnly_Partial()
+        {
+            var src1 = @"
+using System;
+
+partial class C
+{
+    int x = 1;
+    partial void F(); // def
+}
+
+partial class C
+{
+    partial void F()  // impl
+    {
+        int f(int a) => a;
+    }
+}
+";
+            var src2 = @"
+using System;
+
+partial class C
+{
+    int x = 1;
+    partial void F(); // def
+}
+
+partial class C
+{
+    partial void F()  // impl
+    {
+        int f(int a) => a + x;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_Update_StaticToThisOnly3()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    int x = 1;
+
+    void F()
+    {
+        int f1(int a1) => a1;
+        int f2(int a2) => a2 + x;
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    int x = 1;
+
+    void F()
+    {
+        int f1(int a1) => a1 + x;
+        int f2(int a2) => a2 + x;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_Update_StaticToClosure1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        int x = 1;
+        int f1(int a1) => a1;
+        int f2(int a2) => a2 + x;
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F()
+    { 
+        int x = 1;       
+        int f1(int a1) 
+        {
+            return a1 + 
+                x+ // 1 
+                x; // 2
+        };
+
+        int f2(int a2) => a2 + x;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_Update_ThisOnlyToClosure1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    int x = 1;
+
+    void F()
+    {
+        int y = 1;
+        int f1(int a1) => a1 + x;
+        int f2(int a2) => a2 + x + y;
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    int x = 1;
+
+    void F()
+    {
+        int y = 1;
+        int f1(int a1) => a1 + x + y;
+        int f2(int a2) => a2 + x + y;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunctions_Update_Nested1()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        int y = 1;
+        int f1(int a1) 
+        {
+            int f2(int a2) => a2 + y;
+            return a1;
+        };
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        int y = 1;
+        int f1(int a1) 
+        {
+            int f2(int a2) => a2 + y;
+            return a1 + y;
+        };
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_Update_Nested2()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        int y = 1;
+        int f1(int a1)
+        {
+            int f2(int a2) => a2;
+            return a1;
+        };
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        int y = 1;
+        int f1(int a1)
+        {
+            int f2(int a2) => a1 + a2;
+            return a1;
+        };
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void LocalFunctions_RenameCapturedLocal()
+        {
+            string src1 = @"
+using System;
+using System.Diagnostics;
+
+class Program
+{
+    static void Main()
+    {
+        int x = 1;
+        int f() => x;
+    }
+}";
+            string src2 = @"
+using System;
+using System.Diagnostics;
+
+class Program
+{
+    static void Main()
+    {
+        int X = 1;
+        int f() => X;
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunctions_RenameCapturedParameter()
+        {
+            string src1 = @"
+        using System;
+        using System.Diagnostics;
+
+        class Program
+        {
+            static void Main(int x)
+            {
+                int f() => x;
+            }
+        }";
+            string src2 = @"
+        using System;
+        using System.Diagnostics;
+
+        class Program
+        {
+            static void Main(int X)
+            {
+                int f() => X;
+            }
+        }";
 
             var edits = GetTopEdits(src1, src2);
 

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new InlineTemporaryCodeRefactoringProvider();
 
-        private async Task TestFixOneAsync(string initial, string expected, bool ignoreTrivia = false)
+        private async Task TestFixOneAsync(string initial, string expected)
         {
             await TestInRegularAndScriptAsync(GetTreeText(initial), GetTreeText(expected));
         }
@@ -178,7 +178,7 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -205,7 +205,7 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -232,7 +232,7 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -268,8 +268,7 @@ class C
     {
         Console.WriteLine((double)3);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -311,8 +310,7 @@ class C
         ((Base)new Derived()).M(""hi"");
     }
 }
-",
-    ignoreTrivia: false);
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -354,8 +352,7 @@ class C
         new Derived().M(3);
     }
 }
-",
-    ignoreTrivia: false);
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -391,7 +388,7 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -440,7 +437,7 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -492,7 +489,7 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [WorkItem(538094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538094")]
@@ -520,7 +517,7 @@ class C
         F(x < x, (x > (f)));
     }
     int f = 0;
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(538094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538094"), WorkItem(541462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541462")]
@@ -548,7 +545,7 @@ class C
         F(x < x, (x > (f)));
     }
     int f = 0;
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(538094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538094")]
@@ -576,8 +573,7 @@ class C
         F(x < x, (x > (int)1));
     }
     int f = 0;
-}",
- ignoreTrivia: false);
+}");
         }
 
         [WorkItem(544924, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544924")]
@@ -611,7 +607,7 @@ class Program
     static void Bar(object a, object b)
     {
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(544613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544613")]
@@ -637,7 +633,7 @@ class Program
         int x = 2;
         var z = new[] { x < x, (x > (1 + 2)) };
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(538131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538131")]
@@ -682,7 +678,7 @@ class Program
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [WorkItem(545657, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545657")]
@@ -716,7 +712,7 @@ class Program
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -762,7 +758,7 @@ class Program
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -798,7 +794,7 @@ class Program
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -828,7 +824,7 @@ class Program
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -858,7 +854,7 @@ class Program
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -890,7 +886,7 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -950,7 +946,7 @@ class Program
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -980,7 +976,7 @@ class Program
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -1010,7 +1006,7 @@ class Program
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -1040,7 +1036,7 @@ class Program
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -1070,7 +1066,7 @@ class Program
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -1100,7 +1096,7 @@ class Program
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -1130,7 +1126,7 @@ class Program
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -1160,7 +1156,7 @@ class Program
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -1190,7 +1186,7 @@ class Program
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -1220,7 +1216,7 @@ class Program
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -1250,7 +1246,7 @@ class Program
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -1280,7 +1276,7 @@ class Program
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -1308,7 +1304,7 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [WorkItem(545342, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545342")]
@@ -1335,7 +1331,7 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -1360,8 +1356,7 @@ class C
         z;
 
         int a = 1;
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -1384,8 +1379,7 @@ ignoreTrivia: false);
         z;
 
         int a = 1;
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -1408,8 +1402,7 @@ ignoreTrivia: false);
         z;
 
         int a = 1;
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(540164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540164")]
@@ -1435,7 +1428,7 @@ ignoreTrivia: false);
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [WorkItem(540156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540156")]
@@ -1462,7 +1455,7 @@ ignoreTrivia: false);
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [WorkItem(540156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540156")]
@@ -1489,7 +1482,7 @@ ignoreTrivia: false);
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [WorkItem(540156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540156")]
@@ -1516,7 +1509,7 @@ ignoreTrivia: false);
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [WorkItem(540186, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540186")]
@@ -1542,7 +1535,7 @@ ignoreTrivia: false);
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [WorkItem(6356, "DevDiv_Projects/Roslyn")]
@@ -1568,7 +1561,7 @@ ignoreTrivia: false);
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [WorkItem(528075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528075")]
@@ -1596,7 +1589,7 @@ class Program
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [WorkItem(541341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541341")]
@@ -1626,7 +1619,7 @@ class Program
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [WorkItem(541341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541341")]
@@ -1656,7 +1649,7 @@ class Program
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [WorkItem(538079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538079")]
@@ -1686,7 +1679,7 @@ class A
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [WorkItem(538079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538079")]
@@ -1718,7 +1711,7 @@ class A
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [WorkItem(538079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538079")]
@@ -1748,7 +1741,7 @@ class A
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [WorkItem(538079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538079")]
@@ -1778,7 +1771,7 @@ class A
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [WorkItem(538079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538079")]
@@ -1808,7 +1801,7 @@ class A
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [WorkItem(540278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540278")]
@@ -1834,8 +1827,7 @@ class A
         //print
         Console.Write(10);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(540278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540278")]
@@ -1862,8 +1854,7 @@ ignoreTrivia: false);
         //print
         Console.Write(10);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(540278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540278")]
@@ -1888,8 +1879,7 @@ ignoreTrivia: false);
         //print
         Console.Write(10);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(540278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540278")]
@@ -1917,8 +1907,7 @@ ignoreTrivia: false);
         Console.Write(10);
 #endif
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(540277, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540277")]
@@ -1941,8 +1930,7 @@ ignoreTrivia: false);
         int j = 110;
         Console.Write(5 + j);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(541694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541694")]
@@ -1976,8 +1964,7 @@ class C
                 break;
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(542647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542647")]
@@ -2008,8 +1995,7 @@ class C
         X();
     }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         [WorkItem(545619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545619")]
@@ -2040,8 +2026,7 @@ class Program
         x();
     }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         [WorkItem(542656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542656")]
@@ -2075,8 +2060,7 @@ class A
         {
         }
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [WorkItem(544626, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544626")]
@@ -2108,8 +2092,7 @@ class C
     }
 
     static void Goo<T>(T y) { }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [WorkItem(544415, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544415")]
@@ -2137,8 +2120,7 @@ unsafe class C
         int x;
         var i = (Int32)(&x);
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [WorkItem(544922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544922")]
@@ -2166,8 +2148,7 @@ unsafe class C
         int x;
         var i = (&x)->ToString();
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [WorkItem(544921, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544921")]
@@ -2195,8 +2176,7 @@ unsafe class C
         int* x = null;
         var i = (Int64)(*x);
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [WorkItem(544614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544614")]
@@ -2224,8 +2204,7 @@ unsafe class C
         int** x = null;
         var i = (*x)[1].ToString();
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [WorkItem(544563, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544563")]
@@ -2269,8 +2248,7 @@ class Program
     {
         Console.WriteLine((Func<int?, int?>)((int? s) => { return s; }));
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -2296,8 +2274,7 @@ class C
     {
         Console.WriteLine((string)null);
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -2320,8 +2297,7 @@ class C
     {
         System.IComparable<long> y = (long)1;
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545161")]
@@ -2354,8 +2330,7 @@ class C
  
     static void Goo(Action<int[]> x) { }
     static void Goo(Action<string[]> x) { }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [WorkItem(544612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544612")]
@@ -2386,8 +2361,7 @@ class C
     }
 
     int this[object x] { set { } }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [WorkItem(542648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542648")]
@@ -2421,8 +2395,7 @@ class Program
         object y = (global::E)-1;
     }
 }",
-            parseOptions: null,
-            ignoreTrivia: false);
+            parseOptions: null);
         }
 
         [WorkItem(544635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544635")]
@@ -2452,8 +2425,7 @@ class Program
         Console.WriteLine(y);
     }
 }",
-            parseOptions: null,
-            ignoreTrivia: false);
+            parseOptions: null);
         }
 
         [WorkItem(544636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544636")]
@@ -2482,8 +2454,7 @@ class Program
         Action b = (Action)Console.WriteLine + Console.WriteLine;
     }
 }",
-            parseOptions: null,
-            ignoreTrivia: false);
+            parseOptions: null);
         }
 
         [WorkItem(544978, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544978")]
@@ -2512,8 +2483,7 @@ class Program
         object b = (Action)Console.WriteLine;
     }
 }",
-            parseOptions: null,
-            ignoreTrivia: false);
+            parseOptions: null);
         }
 
         [WorkItem(545103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545103")]
@@ -2547,8 +2517,7 @@ class A<T>
         }
     }
 }",
-            parseOptions: null,
-            ignoreTrivia: false);
+            parseOptions: null);
         }
 
         [WorkItem(545170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545170")]
@@ -2579,8 +2548,7 @@ class Program
         var z = new Func<string, bool>(y => true);
     }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         [WorkItem(545523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545523")]
@@ -2609,8 +2577,7 @@ class Program
         Type b = new ArgumentException().GetType();
     }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -2644,8 +2611,7 @@ class Program
             Console.WriteLine(x);
     }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -2679,8 +2645,7 @@ class Program
             Console.WriteLine(x);
     }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -2714,8 +2679,7 @@ class Program
             Console.WriteLine(x);
     }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         [WorkItem(545601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545601")]
@@ -2748,8 +2712,7 @@ class C
         IComparable<long> c = Goo<long>(1, 1);
     }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         [WorkItem(545601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545601")]
@@ -2782,8 +2745,7 @@ class C
 
     static void Goo(object[] o) { }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         [WorkItem(545601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545601")]
@@ -2814,8 +2776,7 @@ class C
 
     static void Goo(int x, int y) { }
     static void Goo(long x, long y) { }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545601")]
@@ -2848,8 +2809,7 @@ class C
 
     static void Goo(Func<int> x, Func<int> y) { }
     static void Goo(Func<long> x, Func<long> y) { }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545601")]
@@ -2914,8 +2874,7 @@ class C
     {
         new C().M();
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545561")]
@@ -2958,8 +2917,7 @@ class X
             Console.WriteLine(Goo(X => (byte)X.Value, (object)null));
         }
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545564, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545564")]
@@ -3006,8 +2964,7 @@ static class C
             Console.WriteLine(Outer(x => Inner(x, null), (object)null));
         }
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545783, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545783")]
@@ -3048,8 +3005,7 @@ class C
             var y = x;
         }));
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [WorkItem(546069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546069")]
@@ -3132,8 +3088,7 @@ class Program
         Goo();
         #line default
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -3166,8 +3121,7 @@ class Program
 #line default
         Goo(0);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -3218,8 +3172,7 @@ class Program
         Console.WriteLine();
         int y = 1;        
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [WorkItem(529698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529698")]
@@ -3250,8 +3203,7 @@ class Program
         int x = 0;
         var z = new List<int> { (x += 1) };
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [WorkItem(609497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609497")]
@@ -3280,8 +3232,7 @@ class Program
     {
         IList<object> y = new List<object>();
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [WorkItem(636319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636319")]
@@ -3312,8 +3263,7 @@ class Program
         IList<dynamic> y = new List<dynamic>();
     }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         [WorkItem(609492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609492")]
@@ -3344,8 +3294,7 @@ class Program
         object y = 1;
     }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         [WorkItem(529950, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529950")]
@@ -3389,8 +3338,7 @@ static class C
         Outer(y => Inner(x => { Action a = () => x.GetType(); }, y), null);
     }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         [WorkItem(619425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/619425")]
@@ -3429,8 +3377,7 @@ class A<B>
         }
     }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         [WorkItem(529840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529840")]
@@ -3492,8 +3439,7 @@ class A
         return 2;
     }
 }
-",
-            ignoreTrivia: false);
+");
         }
 
         [WorkItem(1091946, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091946")]
@@ -3873,7 +3819,7 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [WorkItem(4624, "https://github.com/dotnet/roslyn/issues/4624")]
@@ -3908,7 +3854,7 @@ class C
         M((FormattableString)$""{x}, {y}"");
     }
 }";
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [WorkItem(9576, "https://github.com/dotnet/roslyn/issues/9576")]
@@ -3948,7 +3894,7 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(initial, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -3992,7 +3938,7 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4019,7 +3965,7 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4045,7 +3991,7 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4142,7 +4088,7 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4167,7 +4113,7 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4192,7 +4138,7 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4223,7 +4169,7 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4247,7 +4193,7 @@ class C
         var t = (1 + 2, 1 + 2);
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4276,7 +4222,7 @@ class C
 }";
             // This refactoring should be blocked with an annotation, as the result of a cast is an L-value
             // Follow-up issue: https://github.com/dotnet/roslyn/issues/19047
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4305,7 +4251,7 @@ class C
 }";
             // This refactoring should be blocked with an annotation, as the result of a cast is an L-value
             // Follow-up issue: https://github.com/dotnet/roslyn/issues/19047
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4329,7 +4275,7 @@ class C
         var t = (1 + 2, 3);
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4353,7 +4299,7 @@ class C
         var t = (1 + 2, 3);
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4377,7 +4323,7 @@ class C
         var t = (@int: 1 + 2, 3);
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4401,7 +4347,7 @@ class C
         var t = (where: 1 + 2, 3);
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4425,7 +4371,7 @@ class C
         var t = new { i = 1 + 2, i = 1 + 2 }; // error already
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4451,7 +4397,7 @@ class C
         var t = new { i = j = 1, k = 3 };
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4475,7 +4421,7 @@ class C
         var t = new { /*comment*/ i = 1 + 2, j = 3 };
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -4506,7 +4452,7 @@ class C
         };
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [WorkItem(19247, "https://github.com/dotnet/roslyn/issues/19247")]
@@ -4543,8 +4489,7 @@ class C
 
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(11712, "https://github.com/dotnet/roslyn/issues/11712")]
@@ -4569,8 +4514,7 @@ class C
     {
         return M(ref x) || M(ref x);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(11712, "https://github.com/dotnet/roslyn/issues/11712")]
@@ -4595,8 +4539,7 @@ class C
     {
         return M(out x) || M(out x);
     }
-}",
-ignoreTrivia: false);
+}");
         }
     }
 }

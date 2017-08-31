@@ -244,9 +244,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             out ImmutableArray<byte> assemblyBytes,
             out ImmutableArray<byte> pdbBytes)
         {
-            string assemblyPath;
-            string pdbPath;
-            IlasmUtilities.IlasmTempAssembly(ilSource, appendDefaultHeader, includePdb, out assemblyPath, out pdbPath);
+            IlasmUtilities.IlasmTempAssembly(ilSource, appendDefaultHeader, includePdb, out var assemblyPath, out var pdbPath);
 
             Assert.NotNull(assemblyPath);
             Assert.Equal(pdbPath != null, includePdb);
@@ -271,17 +269,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal static MetadataReference CompileIL(string ilSource, bool prependDefaultHeader = true, bool embedInteropTypes = false)
         {
-            ImmutableArray<byte> assemblyBytes;
-            ImmutableArray<byte> pdbBytes;
-            EmitILToArray(ilSource, prependDefaultHeader, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            EmitILToArray(ilSource, prependDefaultHeader, includePdb: false, assemblyBytes: out var assemblyBytes, pdbBytes: out var pdbBytes);
             return AssemblyMetadata.CreateFromImage(assemblyBytes).GetReference(embedInteropTypes: embedInteropTypes);
         }
 
         internal static MetadataReference GetILModuleReference(string ilSource, bool prependDefaultHeader = true)
         {
-            ImmutableArray<byte> assemblyBytes;
-            ImmutableArray<byte> pdbBytes;
-            EmitILToArray(ilSource, prependDefaultHeader, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            EmitILToArray(ilSource, prependDefaultHeader, includePdb: false, assemblyBytes: out var assemblyBytes, pdbBytes: out var pdbBytes);
             return ModuleMetadata.CreateFromImage(assemblyBytes).GetReference();
         }
 

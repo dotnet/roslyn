@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Remote
     internal class SolutionService : ISolutionController
     {
         private static readonly SemaphoreSlim s_gate = new SemaphoreSlim(initialCount: 1);
-        private static readonly RemoteWorkspace s_primaryWorkspace = new RemoteWorkspace();
+        public static readonly RemoteWorkspace PrimaryWorkspace = new RemoteWorkspace();
 
         private readonly AssetService _assetService;
 
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     return currentSolution;
                 }
 
-                var solution = await CreateSolution_NoLockAsync(solutionChecksum, fromPrimaryBranch, s_primaryWorkspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
+                var solution = await CreateSolution_NoLockAsync(solutionChecksum, fromPrimaryBranch, PrimaryWorkspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
                 s_lastSolution = Tuple.Create(solutionChecksum, solution);
 
                 return solution;
@@ -94,8 +94,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (fromPrimaryBranch)
                 {
                     // if the solutionChecksum is for primary branch, update primary workspace cache with the solution
-                    s_primaryWorkspace.UpdateSolution(solution);
-                    return s_primaryWorkspace.CurrentSolution;
+                    PrimaryWorkspace.UpdateSolution(solution);
+                    return PrimaryWorkspace.CurrentSolution;
                 }
 
                 // otherwise, just return the solution
@@ -111,10 +111,10 @@ namespace Microsoft.CodeAnalysis.Remote
             if (fromPrimaryBranch)
             {
                 // if the solutionChecksum is for primary branch, update primary workspace cache with new solution
-                s_primaryWorkspace.ClearSolution();
-                s_primaryWorkspace.AddSolution(solutionInfo);
+                PrimaryWorkspace.ClearSolution();
+                PrimaryWorkspace.AddSolution(solutionInfo);
 
-                return s_primaryWorkspace.CurrentSolution;
+                return PrimaryWorkspace.CurrentSolution;
             }
 
             // otherwise, just return new solution
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         async Task ISolutionController.UpdatePrimaryWorkspaceAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
-            var currentSolution = s_primaryWorkspace.CurrentSolution;
+            var currentSolution = PrimaryWorkspace.CurrentSolution;
 
             var primarySolutionChecksum = await currentSolution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
             if (primarySolutionChecksum == solutionChecksum)

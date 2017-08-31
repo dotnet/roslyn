@@ -470,9 +470,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Body, "Body");
         }
 
-        public override void VisitLabelStatement(ILabelStatement operation)
+        public override void VisitLabeledStatement(ILabeledStatement operation)
         {
-            LogString(nameof(ILabelStatement));
+            LogString(nameof(ILabeledStatement));
 
             // TODO: Put a better workaround to skip compiler generated labels.
             if (!operation.Label.IsImplicitlyDeclared)
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.LabeledStatement, "LabeledStatement");
+            Visit(operation.Statement, "Statement");
         }
 
         public override void VisitBranchStatement(IBranchStatement operation)
@@ -508,14 +508,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IEmptyStatement));
             LogCommonPropertiesAndNewLine(operation);
-        }
-
-        public override void VisitThrowStatement(IThrowStatement operation)
-        {
-            LogString(nameof(IThrowStatement));
-            LogCommonPropertiesAndNewLine(operation);
-
-            Visit(operation.ThrownObject, "ThrownObject");
         }
 
         public override void VisitReturnStatement(IReturnStatement operation)
@@ -671,6 +663,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(ILocalReferenceExpression));
             LogString($": {operation.Local.Name}");
+            if (operation.IsDeclaration)
+            {
+                LogString($" (IsDeclaration: {operation.IsDeclaration})");
+            }
             LogCommonPropertiesAndNewLine(operation);
         }
 
@@ -694,8 +690,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitInstanceReferenceExpression(IInstanceReferenceExpression operation)
         {
             LogString(nameof(IInstanceReferenceExpression));
-            var kindStr = $"{nameof(InstanceReferenceKind)}.{operation.InstanceReferenceKind}";
-            LogString($" ({kindStr})");
             LogCommonPropertiesAndNewLine(operation);
         }
 
@@ -714,6 +708,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IFieldReferenceExpression));
             LogString($": {operation.Field.ToTestDisplayString()}");
+            if (operation.IsDeclaration)
+            {
+                LogString($" (IsDeclaration: {operation.IsDeclaration})");
+            }
 
             VisitMemberReferenceExpressionCommon(operation);
         }
@@ -768,8 +766,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IConditionalAccessExpression));
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.ConditionalInstance, header: "Left");
-            Visit(operation.ConditionalValue, header: "Right");
+            Visit(operation.Expression, header: nameof(operation.Expression));
+            Visit(operation.WhenNotNull, header: nameof(operation.WhenNotNull));
         }
 
         public override void VisitConditionalAccessInstanceExpression(IConditionalAccessInstanceExpression operation)
@@ -788,15 +786,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IUnaryOperatorExpression));
 
-            var kindStr = $"{nameof(UnaryOperationKind)}.{operation.UnaryOperationKind}";
+            var kindStr = $"{nameof(UnaryOperatorKind)}.{operation.OperatorKind}";
             if (operation.IsLifted)
             {
-                LogString($" ({kindStr}-IsLifted)");
+                kindStr += ", IsLifted";
             }
-            else
+
+            if (operation.IsChecked)
             {
-                LogString($" ({kindStr})");
+                kindStr += ", Checked";
             }
+
+            LogString($" ({kindStr})");
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);
 
@@ -807,15 +808,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IBinaryOperatorExpression));
 
-            var kindStr = $"{nameof(BinaryOperationKind)}.{operation.BinaryOperationKind}";
+            var kindStr = $"{nameof(BinaryOperatorKind)}.{operation.OperatorKind}";
             if (operation.IsLifted)
             {
-                LogString($" ({kindStr}-IsLifted)");
+                kindStr += ", IsLifted";
             }
-            else
+
+            if (operation.IsChecked)
             {
-                LogString($" ({kindStr})");
+                kindStr += ", Checked";
             }
+
+            if (operation.IsCompareText)
+            {
+                kindStr += ", CompareText";
+            }
+
+            LogString($" ({kindStr})");
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);
 
@@ -855,14 +864,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Operand, "Operand");
         }
 
-        public override void VisitConditionalChoiceExpression(IConditionalChoiceExpression operation)
+        public override void VisitConditionalExpression(IConditionalExpression operation)
         {
-            LogString(nameof(IConditionalChoiceExpression));
+            LogString(nameof(IConditionalExpression));
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Condition, "Condition");
-            Visit(operation.IfTrueValue, "IfTrue");
-            Visit(operation.IfFalseValue, "IfFalse");
+            Visit(operation.WhenTrue, "WhenTrue");
+            Visit(operation.WhenFalse, "WhenFalse");
         }
 
         public override void VisitCoalesceExpression(ICoalesceExpression operation)
@@ -877,12 +886,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitIsTypeExpression(IIsTypeExpression operation)
         {
             LogString(nameof(IIsTypeExpression));
+            if (operation.IsNotTypeExpression)
+            {
+                LogString(" (IsNotExpression)");
+            }
+
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Operand, "Operand");
 
             Indent();
-            LogType(operation.Type);
+            LogType(operation.IsType, "IsType");
+            LogNewLine();
             Unindent();
         }
 
@@ -920,12 +935,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitLiteralExpression(ILiteralExpression operation)
         {
             LogString(nameof(ILiteralExpression));
-
-            if (operation.ConstantValue.HasValue && ConstantToString(operation.ConstantValue.Value, quoteString: false) == operation.Text)
-            {
-                LogString($" (Text: {operation.Text})");
-            }
-
             LogCommonPropertiesAndNewLine(operation);
         }
 
@@ -1107,15 +1116,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(ICompoundAssignmentExpression));
 
-            var kindStr = $"{nameof(BinaryOperationKind)}.{operation.BinaryOperationKind}";
+            var kindStr = $"{nameof(BinaryOperatorKind)}.{operation.OperatorKind}";
             if (operation.IsLifted)
             {
-                LogString($" ({kindStr}-IsLifted)");
+                kindStr += ", IsLifted";
             }
-            else
+
+            if (operation.IsChecked)
             {
-                LogString($" ({kindStr})");
+                kindStr += ", Checked";
             }
+
+            LogString($" ({kindStr})");
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);
 
@@ -1127,12 +1139,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IIncrementExpression));
 
-            var unaryKindStr = $"{nameof(UnaryOperandKind)}.{operation.IncrementOperationKind}";
-            LogString($" ({unaryKindStr})");
+            var kindStr = operation.IsPostfix ? "Postfix" : "Prefix";
+            kindStr += operation.IsDecrement ? "Decrement" : "Increment";
+            if (operation.IsLifted)
+            {
+                kindStr += ", IsLifted";
+            }
+
+            if (operation.IsChecked)
+            {
+                kindStr += ", Checked";
+            }
+
+            LogString($" ({kindStr})");
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.Target, "Left");
+            Visit(operation.Target, "Target");
         }
 
         public override void VisitParenthesizedExpression(IParenthesizedExpression operation)
@@ -1201,7 +1224,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(ILocalFunctionStatement));
 
-            LogSymbol(operation.LocalFunctionSymbol, header: " (Local Function");
+            LogSymbol(operation.Symbol, header: " (Symbol");
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
@@ -1218,8 +1241,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitSingleValueCaseClause(ISingleValueCaseClause operation)
         {
             LogString(nameof(ISingleValueCaseClause));
-            var kindStr = $"{nameof(BinaryOperationKind)}.{operation.Equality}";
-            LogString($" (Equality operator kind: {kindStr})");
             LogCaseClauseCommon(operation);
 
             Visit(operation.Value, "Value");
@@ -1228,7 +1249,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitRelationalCaseClause(IRelationalCaseClause operation)
         {
             LogString(nameof(IRelationalCaseClause));
-            var kindStr = $"{nameof(BinaryOperationKind)}.{operation.Relation}";
+            var kindStr = $"{nameof(BinaryOperatorKind)}.{operation.Relation}";
             LogString($" (Relational operator kind: {kindStr})");
             LogCaseClauseCommon(operation);
 

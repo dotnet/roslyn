@@ -6599,5 +6599,35 @@ class Cat { }
         {
             return crefs.Select(syntax => model.GetSymbolInfo(syntax).Symbol).Select(symbol => (object)symbol == null ? null : (Symbol)symbol.OriginalDefinition).ToArray();
         }
+
+        [Fact]
+        [WorkItem(410932, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=410932")]
+        public void LookupOnCrefTypeParameter()
+        {
+            var source = @"
+class Test
+{
+    T F<T>()
+    {
+    }
+
+    /// <summary>
+    /// <see cref=""F{U}()""/>
+    /// </summary>
+    void S()
+    { }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var crefSyntax = (NameMemberCrefSyntax)GetCrefSyntaxes(compilation).Single();
+
+            var name = ((GenericNameSyntax)crefSyntax.Name).TypeArgumentList.Arguments.Single();
+            Assert.Equal("U", name.ToString());
+            var typeParameter = (TypeParameterSymbol)model.GetSymbolInfo(name).Symbol;
+            Assert.Empty(model.LookupSymbols(name.SpanStart, typeParameter, "GetAwaiter"));
+        }
     }
 }

@@ -13,10 +13,6 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </remarks>
     public interface ILiteralExpression : IOperation
     {
-        /// <summary>
-        /// Textual representation of the literal.
-        /// </summary>
-        string Text { get; }
     }
 }
 

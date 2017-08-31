@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         {
             Contract.ThrowIfNull(node);
 
-            Func<SyntaxNode, bool> predicate = n =>
+            bool predicate(SyntaxNode n)
             {
                 if (n is BaseMethodDeclarationSyntax ||
                     n is AccessorDeclarationSyntax ||
@@ -82,14 +82,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return true;
                 }
 
-                var constructorInitializer = n as ConstructorInitializerSyntax;
-                if (constructorInitializer != null)
+                if (n is ConstructorInitializerSyntax constructorInitializer)
                 {
                     return constructorInitializer.ContainsInArgument(node.Span);
                 }
 
                 return false;
-            };
+            }
 
             if (!node.GetAncestorsOrThis<SyntaxNode>().Any(predicate))
             {
