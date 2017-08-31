@@ -32,61 +32,63 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var provider = new VirtualizedStrongNameProvider(
                 existingFullPaths: fs,
                 searchPaths: ImmutableArray.Create(subdir));
+            var subdirSearchPath = ImmutableArray.Create(subdir);
 
             // using base directory; base path ignored
-            var path = provider.ResolveStrongNameKeyFile(fileName);
+            var path = provider.IOOp.ResolveStrongNameKeyFile(fileName, subdirSearchPath);
             Assert.Equal(subFilePath, path, StringComparer.OrdinalIgnoreCase);
 
             // search paths
-            var providerSP = new VirtualizedStrongNameProvider(
-                existingFullPaths: fs,
-                searchPaths: ImmutableArray.Create(@"C:\goo", dir, subdir));
+            var searchPathsSP = ImmutableArray.Create(@"C:\goo", dir, subdir);
 
-            path = providerSP.ResolveStrongNameKeyFile(fileName);
+            path = provider.IOOp.ResolveStrongNameKeyFile(fileName, searchPathsSP);
             Assert.Equal(filePath, path, StringComparer.OrdinalIgnoreCase);
 
             // null base dir, no search paths
-            var providerNullBase = new VirtualizedStrongNameProvider(
-                existingFullPaths: fs,
-                searchPaths: ImmutableArray.Create<string>());
+            var searchPathsEmpty = ImmutableArray.Create<string>();
 
             // relative path
-            path = providerNullBase.ResolveStrongNameKeyFile(fileName);
+            path = provider.IOOp.ResolveStrongNameKeyFile(fileName, searchPathsEmpty);
             Assert.Null(path);
 
             // full path
-            path = providerNullBase.ResolveStrongNameKeyFile(filePath);
+            path = provider.IOOp.ResolveStrongNameKeyFile(filePath, searchPathsEmpty);
             Assert.Equal(filePath, path, StringComparer.OrdinalIgnoreCase);
 
             // null base dir
-            var providerNullBaseSP = new VirtualizedStrongNameProvider(
-                existingFullPaths: fs,
-                searchPaths: ImmutableArray.Create(dir, subdir));
+            var searchPathsNullBaseSP = ImmutableArray.Create(dir, subdir);
 
             // relative path
-            path = providerNullBaseSP.ResolveStrongNameKeyFile(fileName);
+            path = provider.IOOp.ResolveStrongNameKeyFile(fileName, searchPathsNullBaseSP);
             Assert.Equal(filePath, path, StringComparer.OrdinalIgnoreCase);
 
             // full path
-            path = providerNullBaseSP.ResolveStrongNameKeyFile(filePath);
+            path = provider.IOOp.ResolveStrongNameKeyFile(filePath, searchPathsNullBaseSP);
             Assert.Equal(filePath, path, StringComparer.OrdinalIgnoreCase);
         }
 
         public class VirtualizedStrongNameProvider : DesktopStrongNameProvider
         {
-            private readonly HashSet<string> _existingFullPaths;
+            private class VirtualIOOperations: IOOperations
+            {
+                private HashSet<string> _existingFullPaths;
+                public VirtualIOOperations(HashSet<string> existingFullPaths)
+                {
+                    _existingFullPaths = existingFullPaths;
+                }
+
+                internal override bool FileExists(string fullPath)
+                {
+                    return fullPath != null && _existingFullPaths != null && _existingFullPaths.Contains(FileUtilities.NormalizeAbsolutePath(fullPath));
+                }
+            }
 
             public VirtualizedStrongNameProvider(
                 IEnumerable<string> existingFullPaths = null,
                 ImmutableArray<string> searchPaths = default(ImmutableArray<string>))
                 : base(searchPaths.NullToEmpty())
             {
-                _existingFullPaths = new HashSet<string>(existingFullPaths, StringComparer.OrdinalIgnoreCase);
-            }
-
-            internal override bool FileExists(string fullPath)
-            {
-                return fullPath != null && _existingFullPaths != null && _existingFullPaths.Contains(FileUtilities.NormalizeAbsolutePath(fullPath));
+                IOOp = new VirtualIOOperations(new HashSet<string>(existingFullPaths, StringComparer.OrdinalIgnoreCase));
             }
         }
     }

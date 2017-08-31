@@ -36,13 +36,18 @@ namespace Roslyn.Test.Utilities
 
         internal static readonly ImmutableArray<byte> PublicKey = ImmutableArray.Create(TestResources.General.snPublicKey);
 
+        internal static object KeyInstallLock = new object();
+
         // Modifies machine wide state.
         internal unsafe static void InstallKey()
         {
-            if (!s_keyInstalled)
+            lock (KeyInstallLock)
             {
-                InstallKey(TestResources.General.snKey, TestContainerName);
-                s_keyInstalled = true;
+                if (!s_keyInstalled)
+                {
+                    InstallKey(TestResources.General.snKey, TestContainerName);
+                    s_keyInstalled = true;
+                }
             }
         }
 
@@ -65,16 +70,14 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        internal sealed class VirtualizedStrongNameProvider : DesktopStrongNameProvider
+        internal sealed class VirtualizedIOOperations: IOOperations
         {
-            public VirtualizedStrongNameProvider(ImmutableArray<string> searchPaths = default(ImmutableArray<string>), string tempPath = null)
-                : base(searchPaths, tempPath)
-            {
-            }
-
             private static bool PathEquals(string left, string right)
             {
-                return string.Equals(FileUtilities.NormalizeAbsolutePath(left), FileUtilities.NormalizeAbsolutePath(right), StringComparison.OrdinalIgnoreCase);
+                return string.Equals(
+                    FileUtilities.NormalizeAbsolutePath(left), 
+                    FileUtilities.NormalizeAbsolutePath(right), 
+                    StringComparison.OrdinalIgnoreCase);
             }
 
             internal override bool FileExists(string fullPath)

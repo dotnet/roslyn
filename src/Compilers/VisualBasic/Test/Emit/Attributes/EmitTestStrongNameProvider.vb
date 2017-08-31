@@ -1,17 +1,25 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
+Imports System.Reflection.Metadata
+Imports System.Security.Cryptography
+Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Imports Roslyn.Test.Utilities.SigningTestHelpers
 
 Partial Public Class InternalsVisibleToAndStrongNameTests
     Inherits BasicTestBase
+
+    Private Shared ReadOnly BYPASS_STRONGNAME_FEATURE As KeyValuePair(Of String, String)() = {New KeyValuePair(Of String, String)("BypassStrongName", "+")}
 
     Private Class StrongNameProviderWithBadInputStream
         Inherits StrongNameProvider
         Private _underlyingProvider As StrongNameProvider
         Public Property ThrownException As Exception
+
+        Friend Overrides ReadOnly Property Capability As SigningCapability = SigningCapability.SignsStream
 
         Public Sub New(underlyingProvider As StrongNameProvider)
             _underlyingProvider = underlyingProvider
@@ -35,15 +43,20 @@ Partial Public Class InternalsVisibleToAndStrongNameTests
             Return _underlyingProvider.CreateKeys(keyFilePath, keyContainerName, messageProvider)
         End Function
 
-        Friend Overrides Sub SignAssembly(keys As StrongNameKeys, inputStream As Stream, outputStream As Stream)
-            _underlyingProvider.SignAssembly(keys, inputStream, outputStream)
+        Friend Overrides Sub SignStream(keys As StrongNameKeys, inputStream As Stream, outputStream As Stream)
+            _underlyingProvider.SignStream(keys, inputStream, outputStream)
+        End Sub
+
+        Friend Overrides Sub SignPeBuilder(peWriter As ExtendedPEBuilder, peBlob As BlobBuilder, privkey As RSAParameters)
+            Throw ThrownException
         End Sub
     End Class
 
     <Fact>
     Public Sub BadInputStream()
-        Dim testProvider = New StrongNameProviderWithBadInputStream(s_defaultProvider)
+        Dim testProvider = New StrongNameProviderWithBadInputStream(s_defaultDesktopProvider)
         Dim options = TestOptions.DebugDll.WithStrongNameProvider(testProvider).WithCryptoKeyContainer("RoslynTestContainer")
+        Dim parseOptions = TestOptions.Regular.WithFeatures(BYPASS_STRONGNAME_FEATURE)
 
         Dim comp = CreateCompilationWithMscorlib(
             <compilation>
@@ -54,7 +67,7 @@ Public Class C
 End Class
 ]]>
                 </file>
-            </compilation>, options:=options)
+            </compilation>, options:=options, parseOptions:=parseOptions)
 
         comp.Emit(New MemoryStream()).Diagnostics.Verify(
             Diagnostic(ERRID.ERR_PeWritingFailure).WithArguments(testProvider.ThrownException.ToString()).WithLocation(1, 1))

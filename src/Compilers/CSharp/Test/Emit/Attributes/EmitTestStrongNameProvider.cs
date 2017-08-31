@@ -2,15 +2,24 @@
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
+using static Roslyn.Test.Utilities.SigningTestHelpers;
 using System;
 using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.IO;
 using Xunit;
+using Microsoft.Cci;
+using System.Reflection.Metadata;
+using System.Security.Cryptography;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
+
+
     public partial class InternalsVisibleToAndStrongNameTests : CSharpTestBase
     {
+        private static readonly KeyValuePair<string, string>[] BYPASS_STRONGNAME_FEATURE = new[] { new KeyValuePair<string, string>("BypassStrongName", "+") };
+
         /// <summary>
         /// A strong name provider which throws an IOException while creating
         /// the input stream.
@@ -20,6 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             private StrongNameProvider _underlyingProvider;
 
             public Exception ThrownException;
+
+            internal override SigningCapability Capability => SigningCapability.SignsStream;
 
             public StrongNameProviderWithBadInputStream(StrongNameProvider underlyingProvider)
             {
@@ -39,13 +50,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             internal override StrongNameKeys CreateKeys(string keyFilePath, string keyContainerName, CommonMessageProvider messageProvider) =>
                 _underlyingProvider.CreateKeys(keyFilePath, keyContainerName, messageProvider);
 
-            internal override void SignAssembly(StrongNameKeys keys, Stream inputStream, Stream outputStream) =>
-                _underlyingProvider.SignAssembly(keys, inputStream, outputStream);
+            internal override void SignStream(StrongNameKeys keys, Stream inputStream, Stream outputStream) =>
+                _underlyingProvider.SignStream(keys, inputStream, outputStream);
+
+            internal override void SignPeBuilder(ExtendedPEBuilder peBuilder, BlobBuilder peBlob, RSAParameters privkey)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         private class TestDesktopStrongNameProvider : DesktopStrongNameProvider
         {
-            private readonly Func<string, byte[]> m_readAllBytes;
+            private class TestIOOperations: IOOperations {
+                Func<string, byte[]> m_readAllBytes = null;
+
+                internal TestIOOperations(Func<string, byte[]> readAllBytes = null)
+                {
+                    m_readAllBytes = readAllBytes;
+                }
+
+                internal override byte[] ReadAllBytes(string fullPath)
+                {
+                    if (m_readAllBytes != null)
+                    {
+                        return m_readAllBytes(fullPath);
+                    }
+                    else
+                    {
+                        return base.ReadAllBytes(fullPath);
+                    }
+                }
+            }
+
 
             internal delegate void ReadKeysFromContainerDelegate(
                 string keyContainer,
@@ -57,13 +93,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Func<string, byte[]> readAllBytes = null,
                 ReadKeysFromContainerDelegate readKeysFromContainer = null)
             {
-                m_readAllBytes = readAllBytes;
                 m_readKeysFromContainer = readKeysFromContainer;
+                IOOp = new TestIOOperations(readAllBytes);
             }
-
-            internal override byte[] ReadAllBytes(string fullPath) =>
-                m_readAllBytes != null ? m_readAllBytes(fullPath)
-                                       : base.ReadAllBytes(fullPath);
 
             internal override void ReadKeysFromContainer(string keyContainer, out ImmutableArray<byte> publicKey)
             {
@@ -115,7 +147,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 .WithStrongNameProvider(provider)
                 .WithCryptoKeyContainer("RoslynTestContainer");
 
-            var comp = CreateStandardCompilation(src, options: options);
+            var parseOptions = TestOptions.Regular.WithFeatures(BYPASS_STRONGNAME_FEATURE);
+
+            var comp = CreateStandardCompilation(src, options: options, parseOptions: parseOptions);
             comp.VerifyEmitDiagnostics(
                 // error CS7028: Error signing output with public key from container 'RoslynTestContainer' -- Crazy exception you could never have predicted!
                 Diagnostic(ErrorCode.ERR_PublicKeyContainerFailure).WithArguments("RoslynTestContainer", ex.Message).WithLocation(1, 1));
@@ -129,13 +163,14 @@ class C
 {
     public static void Main(string[] args) { }
 }";
-            var testProvider = new StrongNameProviderWithBadInputStream(s_defaultProvider);
+            var testProvider = new StrongNameProviderWithBadInputStream(s_defaultDesktopProvider);
             var options = TestOptions.DebugExe
                 .WithStrongNameProvider(testProvider)
                 .WithCryptoKeyContainer("RoslynTestContainer");
 
-            var comp = CreateStandardCompilation(src,
-                options: options);
+            var parseOptions = TestOptions.Regular.WithFeatures(BYPASS_STRONGNAME_FEATURE);
+
+            var comp = CreateStandardCompilation(src, options: options, parseOptions: parseOptions);
 
             comp.Emit(new MemoryStream()).Diagnostics.Verify(
                 // error CS8104: An error occurred while writing the Portable Executable file.

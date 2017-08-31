@@ -43,7 +43,11 @@ class C
     public static void Main(string[] args) { }
 }";
             var tempDir = Temp.CreateDirectory();
-            var provider = new VirtualizedStrongNameProvider(tempPath: tempDir.Path);
+            var provider = new DesktopStrongNameProvider(tempPath: tempDir.Path)
+            {
+                IOOp = new VirtualizedIOOperations()
+            };
+
             var options = TestOptions
                 .DebugExe
                 .WithStrongNameProvider(provider)
@@ -60,7 +64,9 @@ class C
 {
     public static void Main(string[] args) { }
 }";
-            var provider = new VirtualizedStrongNameProvider(tempPath: null);
+            var provider = new DesktopStrongNameProvider(tempPath: null) {
+                IOOp = new VirtualizedIOOperations()
+            };
             var options = TestOptions
                 .DebugExe
                 .WithStrongNameProvider(provider)
