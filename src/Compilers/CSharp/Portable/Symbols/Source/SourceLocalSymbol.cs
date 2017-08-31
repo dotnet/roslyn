@@ -84,21 +84,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _scopeBinder.ScopeDesignator; }
         }
 
-        internal override uint RefEscapeScope
-        {
-            get
-            {
-                return _refEscapeScope;
-            }
-        }
+        internal override uint RefEscapeScope => _refEscapeScope;
 
-        internal override uint ValEscapeScope
-        {
-            get
-            {
-                return _valEscapeScope;
-            }
-        }
+        internal override uint ValEscapeScope => _valEscapeScope;
 
         /// <summary>
         /// Binder that should be used to bind type syntax for the local.
