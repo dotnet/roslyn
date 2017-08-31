@@ -1055,10 +1055,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (ReferenceEquals(initializerType, null))
             {
-                // Dev10 just reports the assignment conversion error (which must occur, unless the initializer is a null literal).
                 initializerOpt = GenerateConversionForAssignment(declType, initializerOpt, diagnostics);
                 if (!initializerOpt.HasAnyErrors)
                 {
+                    // Dev10 just reports the assignment conversion error, which must occur, except for these cases:
                     Debug.Assert(
                         initializerOpt is BoundConvertedStackAllocExpression ||
                         initializerOpt is BoundConversion conversion && (conversion.Operand.IsLiteralNull() || conversion.Operand.Kind == BoundKind.DefaultExpression),
