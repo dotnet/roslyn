@@ -270,6 +270,8 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             => Throw(_handle, result);
 
         public static void Throw(sqlite3 handle, Result result)
-            => throw new SqlException(result, raw.sqlite3_errmsg(handle));
+            => throw new SqlException(result,
+                raw.sqlite3_errmsg(handle) + "\r\n" +
+                raw.sqlite3_errstr(raw.sqlite3_extended_errcode(handle)));
     }
 }
