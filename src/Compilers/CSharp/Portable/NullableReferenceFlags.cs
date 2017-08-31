@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal enum NullableReferenceFlags
     {
         None = 0,
-        IncludeNonNullWarnings = 0x1,
+        AllowNullAsNonNull = 0x1,
         InferLocalNullability = 0x2,
         AllowMemberOptOut = 0x4,
         AllowAssemblyOptOut = 0x8,

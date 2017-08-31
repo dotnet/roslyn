@@ -359,13 +359,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(diagnostics != null);
 
             var flags = ((CSharpParseOptions)node.SyntaxTree.Options).GetNullableReferenceFlags();
+            var performNullChecks = (flags & NullableReferenceFlags.Enabled) != 0;
+            var includeNonNullableWarnings = performNullChecks && (flags & NullableReferenceFlags.AllowNullAsNonNull) == 0;
             var walker = new DataFlowPass(
                 compilation,
                 member,
                 node,
                 requireOutParamsAssigned: requireOutParamsAssigned,
-                performNullChecks: (flags & NullableReferenceFlags.Enabled) != 0,
-                includeNonNullableWarnings: (flags & NullableReferenceFlags.IncludeNonNullWarnings) != 0);
+                performNullChecks: performNullChecks,
+                includeNonNullableWarnings: includeNonNullableWarnings);
             walker._convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = true;
 
             try

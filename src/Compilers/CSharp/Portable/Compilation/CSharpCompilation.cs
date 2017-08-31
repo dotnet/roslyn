@@ -3150,16 +3150,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Checking [NullableOptOutForAssembly] can result
+        // in cycle decoding attributes. See StaticNullChecking.AllowAssemblyOptOut.
         private bool HaveNullableOptOutForAssembly(AssemblySymbol assembly)
         {
-            return ((SourceModuleSymbol)SourceModule).IsNullableOptOutForAssembly(assembly) &&
-                (this.GetNullableReferenceFlags() & NullableReferenceFlags.AllowAssemblyOptOut) != 0;
+            //return ((SourceModuleSymbol)SourceModule).IsNullableOptOutForAssembly(assembly) &&
+            //    (this.GetNullableReferenceFlags() & NullableReferenceFlags.AllowAssemblyOptOut) != 0;
+            return false;
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Checking [NullableOptOut] can result in cycle
+        // decoding attributes. See StaticNullChecking.NullableOptOut_DecodeAttributeCycle_02.
         private bool HaveNullableOptOutForDefinition(Symbol definition)
         {
-            // PROTOTYPE(NullableReferenceTypes): Checking NullableOptOut can result in cycle
-            // decoding attributes. See StaticNullChecking.NullableOptOut_DecodeAttributeCycle_02.
             //return definition.NullableOptOut &&
             //    (this.GetNullableReferenceFlags() & NullableReferenceFlags.AllowMemberOptOut) != 0;
             return false;

@@ -700,7 +700,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return Module.UtilizesNullableReferenceTypes();
+                // PROTOTYPE(NullableReferenceTypes): Remove PEModule.UtilizesNullableReferenceTypes if not needed.
+                //return Module.UtilizesNullableReferenceTypes();
+                return true;
             }
         }
 

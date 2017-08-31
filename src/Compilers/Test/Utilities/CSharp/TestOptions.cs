@@ -76,9 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return options;
         }
 
-        internal static CSharpParseOptions WithNullCheckingFeature(
-            this CSharpParseOptions options,
-            NullableReferenceFlags flags = NullableReferenceFlags.IncludeNonNullWarnings | NullableReferenceFlags.AllowMemberOptOut | NullableReferenceFlags.AllowAssemblyOptOut)
+        internal static CSharpParseOptions WithNullCheckingFeature(this CSharpParseOptions options, NullableReferenceFlags flags)
         {
             return options.WithFeature("staticNullChecking", ((int)flags).ToString());
         }

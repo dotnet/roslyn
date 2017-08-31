@@ -129,7 +129,7 @@ class A
                 Await listener.CreateWaitTask()
 
                 Assert.True(
-                    diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None).Count() = 1)
+                    diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None).Count() = 2)
             End Using
         End Function
 
@@ -166,7 +166,7 @@ class A
                 Await listener.CreateWaitTask()
 
                 Assert.True(
-                    diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None).Count() = 2)
+                    diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None).Count() = 3)
             End Using
         End Function
 

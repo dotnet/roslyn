@@ -116,7 +116,7 @@ class C
             var comp = CreateCompilation(
                 source,
                 references: new[] { ref0 },
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+                parseOptions: TestOptions.Regular8);
             comp.VerifyEmitDiagnostics(
                 // error CS0518: Predefined type 'System.Boolean' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Boolean").WithLocation(1, 1));
@@ -145,7 +145,7 @@ class C
             var comp = CreateCompilation(
                 source,
                 references: new[] { ref0 },
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+                parseOptions: TestOptions.Regular8);
             comp.VerifyEmitDiagnostics(
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
@@ -183,12 +183,40 @@ class C
             var comp = CreateCompilation(
                 source,
                 references: new[] { ref0 },
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+                parseOptions: TestOptions.Regular8);
             comp.VerifyEmitDiagnostics(
                 // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1),
                 // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void ReferenceTypesFromUnannotatedAssembliesAreNotNullable()
+        {
+            var source0 =
+@"public class A
+{
+    public static void F(string s) { }
+}";
+            var comp0 = CreateStandardCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            var source1 =
+@"class B
+{
+    static void Main()
+    {
+        A.F(string.Empty);
+        A.F(null);
+    }
+}";
+            var comp1 = CreateStandardCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular8);
+            comp1.VerifyDiagnostics(
+                // (6,13): warning CS8600: Cannot convert null to non-nullable reference.
+                //         A.F(null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 13));
         }
 
         [Fact]
@@ -211,7 +239,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             //var a = compilation.GetTypeByMetadataName("A");
             //var aFoo = a.GetMember<MethodSymbol>("Foo");
@@ -242,7 +270,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics();
         }
 
@@ -266,7 +294,7 @@ class B : A
     }
 } 
 ";
-            CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature()).VerifyDiagnostics();
+            CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }
 
         [Fact]
@@ -287,7 +315,7 @@ class B : A
     }
 } 
 ";
-            CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature()).VerifyDiagnostics();
+            CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }
 
         [Fact]
@@ -310,7 +338,7 @@ class B : A
     }
 } 
 ";
-            CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature()).VerifyDiagnostics();
+            CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }
 
         [Fact]
@@ -331,7 +359,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics();
 
             var b = compilation.GetTypeByMetadataName("B");
@@ -361,7 +389,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics();
 
             var b = compilation.GetTypeByMetadataName("B");
@@ -390,7 +418,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics();
 
@@ -430,7 +458,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics();
 
@@ -494,7 +522,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
                 );
 
@@ -534,7 +562,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             // TODO: The overriding is ambigous. We simply matched the first candidate. Should this be an error?
             compilation.VerifyDiagnostics();
@@ -597,7 +625,7 @@ class B : A
 
 class C<T> {}
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics();
 
             var b = compilation.GetTypeByMetadataName("B");
@@ -630,7 +658,7 @@ class B : A
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics();
 
             var b = compilation.GetTypeByMetadataName("B");
@@ -658,7 +686,7 @@ class B : A
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
                  // (11,38): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
                  //     public override void M1<T>(T? x) where T : struct
@@ -721,7 +749,7 @@ class B : A
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
                  // (27,26): error CS0506: 'B.M2<T>(T?)': cannot override inherited member 'A.M2<T>(T?)' because it is not marked virtual, abstract, or override
                  //     public override void M2<T>(T? x)
@@ -786,7 +814,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
                  // (4,50): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                  //     public virtual void M1<T>(System.Nullable<T> x) where T : class
@@ -827,7 +855,7 @@ class B : A
 
 class C<T> {}
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
                  // (4,42): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                  //     public virtual C<System.Nullable<T>> M1<T>() where T : class
@@ -903,7 +931,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
                  // (32,29): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
                  //     public override string? M1()
@@ -988,7 +1016,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (27,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
@@ -1086,7 +1114,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
                  // (42,25): error CS0508: 'B.M3()': return type must be 'int?' to match overridden member 'A.M3()'
                  //     public override int M3()
@@ -1157,7 +1185,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (35,26): error CS0115: 'B.M3(int)': no suitable method found to override
@@ -1218,7 +1246,7 @@ class B2 : A
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (19,49): warning CS8608: Nullability of reference types in type doesn't match overridden member.
@@ -1300,7 +1328,7 @@ class B2 : A
     }
 }
 ";
-            var compilation = CreateStandardCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics();
         }
@@ -1345,7 +1373,7 @@ class B2 : IA
 }
 
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (26,40): warning CS8612: Nullability of reference types in type doesn't match implicitly implemented member 'event Action<string>? IA.E2'.
@@ -1438,7 +1466,7 @@ class B2 : IB
     event System.Action<string?>? IB.E3; // 2
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (34,37): error CS0071: An explicit interface implementation of an event must use event accessor syntax
@@ -1552,7 +1580,7 @@ class B2 : A2
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (28,31): warning CS8608: Nullability of reference types in type doesn't match overridden member.
@@ -1633,7 +1661,7 @@ class B1 : A1
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics();
         }
@@ -1685,7 +1713,7 @@ class B : IA, IA2
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (23,22): warning CS8612: Nullability of reference types in type doesn't match implicitly implemented member 'string[] IA.P2'.
@@ -1775,7 +1803,7 @@ class B : IA, IA2
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (22,17): warning CS8615: Nullability of reference types in type doesn't match implemented member 'string?[] IA.P1'.
@@ -1854,7 +1882,7 @@ class B : A
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (23,26): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
@@ -1910,7 +1938,7 @@ class B : A
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics();
         }
@@ -1951,7 +1979,7 @@ class B : IA
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (23,17): warning CS8613: Nullability of reference types in return type doesn't match implicitly implemented member 'T[] IA.M2<T>()'.
@@ -2019,7 +2047,7 @@ class B : IA
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (23,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'T[] IA.M2<T>()'.
@@ -2085,7 +2113,7 @@ class B : IA
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics();
         }
@@ -2123,7 +2151,7 @@ class B : A
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (22,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
@@ -2177,7 +2205,7 @@ class B : A
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics();
         }
@@ -2289,7 +2317,7 @@ class B : A
 ";
             var compilation = CreateStandardCompilation(source, new[] { CompileIL(ilSource, prependDefaultHeader: false) },
                                                             options: TestOptions.ReleaseDll,
-                                                            parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+                                                            parseOptions: TestOptions.Regular8);
 
             var m1 = compilation.GetTypeByMetadataName("B").GetMember<MethodSymbol>("M1");
             Assert.Equal("C<System.String? modopt(System.Runtime.CompilerServices.IsConst), System.String>", m1.OverriddenMethod.ReturnType.ToTestDisplayString());
@@ -2333,7 +2361,7 @@ class B : IA
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (20,17): warning CS8614: Nullability of reference types in type of parameter 'x' doesn't match implicitly implemented member 'void IA.M2<T>(T[] x)'.
@@ -2396,7 +2424,7 @@ class B : IA
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (20,13): warning CS8617: Nullability of reference types in type of parameter 'x' doesn't match implemented member 'void IA.M2<T>(T[] x)'.
@@ -2477,7 +2505,7 @@ class B3 : A3
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (24,25): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
@@ -2562,7 +2590,7 @@ class B3 : IA3
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (32,16): warning CS8614: Nullability of reference types in type of parameter 'x' doesn't match implicitly implemented member 'int IA2.this[string[] x]'.
@@ -2647,7 +2675,7 @@ class B3 : IA3
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (24,13): warning CS8617: Nullability of reference types in type of parameter 'x' doesn't match implemented member 'int IA1.this[string?[] x]'.
@@ -2704,7 +2732,7 @@ partial class C1
     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
     { }
 }";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (16,18): warning CS8611: Nullability of reference types in type of parameter 'x' doesn't match partial method declaration.
@@ -2756,7 +2784,7 @@ partial class C1
     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
     { }
 }";
-            var compilation = CreateStandardCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics();
         }
@@ -2783,7 +2811,7 @@ partial class C1
     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
     { }
 }";
-            var compilation = CreateStandardCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics();
         }
@@ -2801,7 +2829,7 @@ class A
     string? Test2(string y2) { return y2; }
 }
 ";
-            CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature()).
+            CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8).
                 VerifyDiagnostics(
                  // (5,10): error CS0111: Type 'A' already defines a member called 'Test1' with the same parameter types
                  //     void Test1(string x2) {}
@@ -2827,7 +2855,7 @@ class A
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics();
         }
 
@@ -3182,7 +3210,7 @@ struct S2
 {
     public S1 F5;
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 // (12,21): warning CS8601: Possible null reference assignment.
@@ -3412,7 +3440,7 @@ class C
 class CL1
 {
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (12,12): warning CS8604: Possible null reference argument for parameter 'p' in 'void C.M1(CL1 p)'.
@@ -3484,7 +3512,7 @@ class CL0
         set { }
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 // (10,31): warning CS8600: Cannot convert null to non-nullable reference.
@@ -3520,7 +3548,7 @@ class CL0 : System.Collections.IEnumerable
         throw new System.NotImplementedException();
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 // (10,30): warning CS8600: Cannot convert null to non-nullable reference.
@@ -3577,7 +3605,7 @@ class C
 class CL1
 {
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (15,14): warning CS8601: Possible null reference assignment.
@@ -3655,7 +3683,7 @@ struct S1
     public CL1 F1;
     public CL1? F2;
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (15,14): warning CS8601: Possible null reference assignment.
@@ -3714,7 +3742,7 @@ struct S1
     public CL1 F1;
     public CL1? F2;
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (14,14): warning CS8601: Possible null reference assignment.
@@ -3761,7 +3789,7 @@ class C
 class CL0<T>
 {
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (12,16): warning CS8620: Nullability of reference types in argument of type 'CL0<string?>' doesn't match target type 'CL0<string>' for parameter 'x' in 'void C.M1(ref CL0<string> x)'.
@@ -3922,16 +3950,72 @@ public struct S2
 {
     public object? F2;
 }
-
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature(), references: new[] { c0.EmitToImageReference() });
+", parseOptions: TestOptions.Regular8, references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics(
-                 // (63,16): warning CS8603: Possible null reference return.
-                 //         return y11.F1; 
-                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "y11.F1").WithLocation(63, 16),
-                 // (70,16): hidden CS8607: Expression is probably never null.
-                 //         return y12.F1 ?? new object(); 
-                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y12.F1").WithLocation(70, 16)
+                // (10,30): warning CS8604: Possible null reference argument for parameter 'a' in 'bool string.Equals(string a, string b)'.
+                //         return string.Equals(x1, y1);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("a", "bool string.Equals(string a, string b)").WithLocation(10, 30),
+                // (15,51): warning CS8604: Possible null reference argument for parameter 'location1' in 'object Interlocked.Exchange(ref object location1, object value)'.
+                //         System.Threading.Interlocked.Exchange(ref x2, y2);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("location1", "object Interlocked.Exchange(ref object location1, object value)").WithLocation(15, 51),
+                // (15,55): warning CS8604: Possible null reference argument for parameter 'value' in 'object Interlocked.Exchange(ref object location1, object value)'.
+                //         System.Threading.Interlocked.Exchange(ref x2, y2);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y2").WithArguments("value", "object Interlocked.Exchange(ref object location1, object value)").WithLocation(15, 55),
+                // (21,58): warning CS8604: Possible null reference argument for parameter 'location1' in 'object Interlocked.Exchange(ref object location1, object value)'.
+                //         return System.Threading.Interlocked.Exchange(ref x3, y3) ?? new object(); 
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x3").WithArguments("location1", "object Interlocked.Exchange(ref object location1, object value)").WithLocation(21, 58),
+                // (21,62): warning CS8604: Possible null reference argument for parameter 'value' in 'object Interlocked.Exchange(ref object location1, object value)'.
+                //         return System.Threading.Interlocked.Exchange(ref x3, y3) ?? new object(); 
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y3").WithArguments("value", "object Interlocked.Exchange(ref object location1, object value)").WithLocation(21, 62),
+                // (21,16): hidden CS8607: Expression is probably never null.
+                //         return System.Threading.Interlocked.Exchange(ref x3, y3) ?? new object(); 
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "System.Threading.Interlocked.Exchange(ref x3, y3)").WithLocation(21, 16),
+                // (26,16): hidden CS8607: Expression is probably never null.
+                //         return x4.Target ?? new object(); 
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x4.Target").WithLocation(26, 16),
+                // (31,16): hidden CS8607: Expression is probably never null.
+                //         return x5.F1 ?? new object(); 
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x5.F1").WithLocation(31, 16),
+                // (36,17): warning CS8601: Possible null reference assignment.
+                //         x6.F1 = y6;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y6").WithLocation(36, 17),
+                // (41,17): warning CS8601: Possible null reference assignment.
+                //         x7.P1 = y7;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y7").WithLocation(41, 17),
+                // (46,12): warning CS8604: Possible null reference argument for parameter 'x' in 'object CL0.this[object x].get'.
+                //         x8[y8] = z8;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y8").WithArguments("x", "object CL0.this[object x].get").WithLocation(46, 12),
+                // (46,18): warning CS8601: Possible null reference assignment.
+                //         x8[y8] = z8;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "z8").WithLocation(46, 18),
+                // (51,16): hidden CS8607: Expression is probably never null.
+                //         return x9[1] ?? new object(); 
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x9[1]").WithLocation(51, 16),
+                // (56,16): hidden CS8607: Expression is probably never null.
+                //         return x10.M1().F1 ?? new object(); 
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x10.M1().F1").WithLocation(56, 16),
+                // (62,18): warning CS8601: Possible null reference assignment.
+                //         y11.F1 = z11;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "z11").WithLocation(62, 18),
+                // (70,16): hidden CS8607: Expression is probably never null.
+                //         return y12.F1 ?? new object(); 
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y12.F1").WithLocation(70, 16),
+                // (77,15): hidden CS8607: Expression is probably never null.
+                //         z13 = y13 ?? new object();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y13").WithLocation(77, 15),
+                // (84,15): hidden CS8607: Expression is probably never null.
+                //         z14 = y14 ?? new object();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y14").WithLocation(84, 15),
+                // (92,15): hidden CS8607: Expression is probably never null.
+                //         z15 = y15.F2 ?? new object();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y15.F2").WithLocation(92, 15),
+                // (103,19): hidden CS8607: Expression is probably never null.
+                //             z16 = y16 ?? new object();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y16").WithLocation(103, 19),
+                // (111,15): hidden CS8607: Expression is probably never null.
+                //         z17 = y17.F2 ?? new object();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y17.F2").WithLocation(111, 15)
                 );
         }
 
@@ -3992,28 +4076,42 @@ class C
         object z6 = x6 ?? new object();
     }
 }
-
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature(), references: new[] { c0.EmitToImageReference() });
+", parseOptions: TestOptions.Regular8, references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics(
-                 // (21,21): hidden CS8607: Expression is probably never null.
-                 //         object z2 = x2 ?? new object();
-                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x2").WithLocation(21, 21),
-                 // (26,22): hidden CS8607: Expression is probably never null.
-                 //         object? x3 = M3() ?? M2();
-                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "M3()").WithLocation(26, 22),
-                 // (27,21): hidden CS8607: Expression is probably never null.
-                 //         object z3 = x3 ?? new object();
-                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x3").WithLocation(27, 21),
-                 // (39,21): warning CS8601: Possible null reference assignment.
-                 //         object x5 = M2() ?? M2();
-                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M2() ?? M2()").WithLocation(39, 21),
-                 // (44,22): hidden CS8607: Expression is probably never null.
-                 //         object? x6 = M3() ?? M3();
-                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "M3()").WithLocation(44, 22),
-                 // (45,21): hidden CS8607: Expression is probably never null.
-                 //         object z6 = x6 ?? new object();
-                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x6").WithLocation(45, 21)
+                // (13,22): hidden CS8607: Expression is probably never null.
+                //         object? x1 = CL0.M1() ?? M2();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "CL0.M1()").WithLocation(13, 22),
+                // (15,21): hidden CS8607: Expression is probably never null.
+                //         object z1 = x1 ?? new object();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x1").WithLocation(15, 21),
+                // (20,22): hidden CS8607: Expression is probably never null.
+                //         object? x2 = CL0.M1() ?? M3();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "CL0.M1()").WithLocation(20, 22),
+                // (21,21): hidden CS8607: Expression is probably never null.
+                //         object z2 = x2 ?? new object();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x2").WithLocation(21, 21),
+                // (26,22): hidden CS8607: Expression is probably never null.
+                //         object? x3 = M3() ?? M2();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "M3()").WithLocation(26, 22),
+                // (27,21): hidden CS8607: Expression is probably never null.
+                //         object z3 = x3 ?? new object();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x3").WithLocation(27, 21),
+                // (32,22): hidden CS8607: Expression is probably never null.
+                //         object? x4 = CL0.M1() ?? CL0.M1();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "CL0.M1()").WithLocation(32, 22),
+                // (34,21): hidden CS8607: Expression is probably never null.
+                //         object z4 = x4 ?? new object();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x4").WithLocation(34, 21),
+                // (39,21): warning CS8601: Possible null reference assignment.
+                //         object x5 = M2() ?? M2();
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M2() ?? M2()").WithLocation(39, 21),
+                // (44,22): hidden CS8607: Expression is probably never null.
+                //         object? x6 = M3() ?? M3();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "M3()").WithLocation(44, 22),
+                // (45,21): hidden CS8607: Expression is probably never null.
+                //         object z6 = x6 ?? new object();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x6").WithLocation(45, 21)
                 );
         }
 
@@ -4056,8 +4154,7 @@ class C
         object z3 = x3 ?? new object();
     }
 }
-
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature(), references: new[] { c0.EmitToImageReference() });
+", parseOptions: TestOptions.Regular8, references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics(
                  // (20,22): hidden CS8607: Expression is probably never null.
@@ -4128,22 +4225,21 @@ class C
         object z6 = x6 ?? new object();
     }
 }
-
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature(), references: new[] { c0.EmitToImageReference() });
+", parseOptions: TestOptions.Regular8, references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics(
-                 // (14,21): warning CS8601: Possible null reference assignment.
-                 //         object x1 = M4() ? CL0.M1() : M2();
-                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M4() ? CL0.M1() : M2()").WithLocation(14, 21),
-                 // (26,22): warning CS8601: Possible null reference assignment.
-                 //         object x3 =  M4() ? M3() : M2();
-                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M4() ? M3() : M2()").WithLocation(26, 22),
-                 // (38,22): warning CS8601: Possible null reference assignment.
-                 //         object x5 =  M4() ? M2() : M2();
-                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M4() ? M2() : M2()").WithLocation(38, 22),
-                 // (44,21): hidden CS8607: Expression is probably never null.
-                 //         object z6 = x6 ?? new object();
-                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x6").WithLocation(44, 21)
+                // (14,21): warning CS8601: Possible null reference assignment.
+                //         object x1 = M4() ? CL0.M1() : M2();
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M4() ? CL0.M1() : M2()").WithLocation(14, 21),
+                // (26,22): warning CS8601: Possible null reference assignment.
+                //         object x3 =  M4() ? M3() : M2();
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M4() ? M3() : M2()").WithLocation(26, 22),
+                // (38,22): warning CS8601: Possible null reference assignment.
+                //         object x5 =  M4() ? M2() : M2();
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M4() ? M2() : M2()").WithLocation(38, 22),
+                // (44,21): hidden CS8607: Expression is probably never null.
+                //         object z6 = x6 ?? new object();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x6").WithLocation(44, 21)
                 );
         }
 
@@ -4185,8 +4281,7 @@ class C
         object x3 =  M4() ? M2() : M3();
     }
 }
-
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature(), references: new[] { c0.EmitToImageReference() });
+", parseOptions: TestOptions.Regular8, references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics(
                  // (14,21): warning CS8601: Possible null reference assignment.
@@ -4263,22 +4358,27 @@ class C
         object z6 = x6 ?? new object();
     }
 }
-
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature(), references: new[] { c0.EmitToImageReference() });
+", parseOptions: TestOptions.Regular8, references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics(
-                 // (16,21): warning CS8601: Possible null reference assignment.
-                 //         object y1 = x1;
-                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x1").WithLocation(16, 21),
-                 // (31,21): warning CS8601: Possible null reference assignment.
-                 //         object y3 = x3;
-                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x3").WithLocation(31, 21),
-                 // (46,21): warning CS8601: Possible null reference assignment.
-                 //         object y5 = x5;
-                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x5").WithLocation(46, 21),
-                 // (53,21): hidden CS8607: Expression is probably never null.
-                 //         object z6 = x6 ?? new object();
-                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x6").WithLocation(53, 21)
+                // (16,21): warning CS8601: Possible null reference assignment.
+                //         object y1 = x1;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x1").WithLocation(16, 21),
+                // (24,21): hidden CS8607: Expression is probably never null.
+                //         object z2 = x2 ?? new object();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x2").WithLocation(24, 21),
+                // (31,21): warning CS8601: Possible null reference assignment.
+                //         object y3 = x3;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x3").WithLocation(31, 21),
+                // (39,21): hidden CS8607: Expression is probably never null.
+                //         object z4 = x4 ?? new object();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x4").WithLocation(39, 21),
+                // (46,21): warning CS8601: Possible null reference assignment.
+                //         object y5 = x5;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x5").WithLocation(46, 21),
+                // (53,21): hidden CS8607: Expression is probably never null.
+                //         object z6 = x6 ?? new object();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x6").WithLocation(53, 21)
                 );
         }
 
@@ -4325,16 +4425,15 @@ class C
         object y3 = x3;
     }
 }
-
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature(), references: new[] { c0.EmitToImageReference() });
+", parseOptions: TestOptions.Regular8, references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics(
-                 // (16,21): warning CS8601: Possible null reference assignment.
-                 //         object y1 = x1;
-                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x1").WithLocation(16, 21),
-                 // (31,21): warning CS8601: Possible null reference assignment.
-                 //         object y3 = x3;
-                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x3").WithLocation(31, 21)
+                // (16,21): warning CS8601: Possible null reference assignment.
+                //         object y1 = x1;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x1").WithLocation(16, 21),
+                // (31,21): warning CS8601: Possible null reference assignment.
+                //         object y3 = x3;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x3").WithLocation(31, 21)
                 );
         }
 
@@ -4460,9 +4559,72 @@ class B3 : IA2
     }
 
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature(), references: new[] { c0.EmitToImageReference() });
+", parseOptions: TestOptions.Regular8, references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics(
+                // (8,29): warning CS8608: Nullability of reference types in type doesn't match overridden member.
+                //     public override string? P2 { get; set; }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, "P2").WithLocation(8, 29),
+                // (9,42): warning CS8608: Nullability of reference types in type doesn't match overridden member.
+                //     public override event System.Action? E1;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, "E1").WithLocation(9, 42),
+                // (10,29): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override string? M3(string? x)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M3").WithLocation(10, 29),
+                // (10,29): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
+                //     public override string? M3(string? x)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M3").WithArguments("x").WithLocation(10, 29),
+                // (15,42): warning CS8608: Nullability of reference types in type doesn't match overridden member.
+                //     public override event System.Action? E4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, "E4").WithLocation(15, 42),
+                // (21,29): warning CS8608: Nullability of reference types in type doesn't match overridden member.
+                //     public override string? this[string? x]
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, "this").WithLocation(21, 29),
+                // (21,29): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
+                //     public override string? this[string? x]
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "this").WithArguments("x").WithLocation(21, 29),
+                // (39,33): warning CS8612: Nullability of reference types in type doesn't match implicitly implemented member 'event Action IA2.E8'.
+                //     public event System.Action? E8
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation, "E8").WithArguments("event Action IA2.E8").WithLocation(39, 33),
+                // (45,20): warning CS8613: Nullability of reference types in return type doesn't match implicitly implemented member 'string IA2.M7(string x)'.
+                //     public string? M7(string? x)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation, "M7").WithArguments("string IA2.M7(string x)").WithLocation(45, 20),
+                // (45,20): warning CS8614: Nullability of reference types in type of parameter 'x' doesn't match implicitly implemented member 'string IA2.M7(string x)'.
+                //     public string? M7(string? x)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, "M7").WithArguments("x", "string IA2.M7(string x)").WithLocation(45, 20),
+                // (37,20): warning CS8612: Nullability of reference types in type doesn't match implicitly implemented member 'string IA2.P6'.
+                //     public string? P6 { get; set; }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation, "P6").WithArguments("string IA2.P6").WithLocation(37, 20),
+                // (51,20): warning CS8612: Nullability of reference types in type doesn't match implicitly implemented member 'string IA2.this[string x]'.
+                //     public string? this[string? x]
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation, "this").WithArguments("string IA2.this[string x]").WithLocation(51, 20),
+                // (51,20): warning CS8614: Nullability of reference types in type of parameter 'x' doesn't match implicitly implemented member 'string IA2.this[string x]'.
+                //     public string? this[string? x]
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, "this").WithArguments("x", "string IA2.this[string x]").WithLocation(51, 20),
+                // (38,33): warning CS8612: Nullability of reference types in type doesn't match implicitly implemented member 'event Action IA2.E5'.
+                //     public event System.Action? E5;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation, "E5").WithArguments("event Action IA2.E5").WithLocation(38, 33),
+                // (67,17): warning CS8615: Nullability of reference types in type doesn't match implemented member 'string IA2.P6'.
+                //     string? IA2.P6 { get; set; }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation, "P6").WithArguments("string IA2.P6").WithLocation(67, 17),
+                // (69,30): warning CS8615: Nullability of reference types in type doesn't match implemented member 'event Action IA2.E5'.
+                //     event System.Action? IA2.E5
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation, "E5").WithArguments("event Action IA2.E5").WithLocation(69, 30),
+                // (75,30): warning CS8615: Nullability of reference types in type doesn't match implemented member 'event Action IA2.E8'.
+                //     event System.Action? IA2.E8
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation, "E8").WithArguments("event Action IA2.E8").WithLocation(75, 30),
+                // (86,17): warning CS8615: Nullability of reference types in type doesn't match implemented member 'string IA2.this[string x]'.
+                //     string? IA2.this[string? x]
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation, "this").WithArguments("string IA2.this[string x]").WithLocation(86, 17),
+                // (86,17): warning CS8617: Nullability of reference types in type of parameter 'x' doesn't match implemented member 'string IA2.this[string x]'.
+                //     string? IA2.this[string? x]
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation, "this").WithArguments("x", "string IA2.this[string x]").WithLocation(86, 17),
+                // (81,17): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'string IA2.M7(string x)'.
+                //     string? IA2.M7(string? x)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "M7").WithArguments("string IA2.M7(string x)").WithLocation(81, 17),
+                // (81,17): warning CS8617: Nullability of reference types in type of parameter 'x' doesn't match implemented member 'string IA2.M7(string x)'.
+                //     string? IA2.M7(string? x)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation, "M7").WithArguments("x", "string IA2.M7(string x)").WithLocation(81, 17)
                 );
         }
 
@@ -4495,7 +4657,7 @@ class C
 class CL1
 {
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (10,16): warning CS8603: Possible null reference return.
@@ -4528,7 +4690,7 @@ class C
 class CL1<T>
 {
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (10,16): warning CS8619: Nullability of reference types in value of type 'CL1<string>' doesn't match target type 'CL1<string?>'.
@@ -4622,7 +4784,7 @@ class CL2
     public override bool Equals(object obj) { return false; }
     public override int GetHashCode() { return 0; }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (16,18): warning CS8601: Possible null reference assignment.
@@ -4725,7 +4887,7 @@ class CL2
     public override bool Equals(object obj) { return false; }
     public override int GetHashCode() { return 0; }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (16,18): warning CS8601: Possible null reference assignment.
@@ -4800,7 +4962,7 @@ class CL1
 {
     public bool M1() { return true; }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (12,18): warning CS8601: Possible null reference assignment.
@@ -4870,7 +5032,7 @@ class CL1
     public CL1 M1() { return new CL1(); }
     public string? M2() { return null; }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 // (15,18): warning CS8601: Possible null reference assignment.
@@ -4924,7 +5086,7 @@ class CL1
     public CL1? M2() { return null; }
     public void M3(CL1 x) { }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (10,18): warning CS8601: Possible null reference assignment.
@@ -4997,7 +5159,7 @@ class CL1
     public CL1 M1() { return new CL1(); }
     public string? M2() { return null; }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 // (15,18): warning CS8601: Possible null reference assignment.
@@ -5076,7 +5238,7 @@ class CL1
     public CL1 M1() { return new CL1(); }
     public string? M2() { return null; }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 // (15,18): warning CS8601: Possible null reference assignment.
@@ -5126,7 +5288,7 @@ class CL1
     public bool P1 { get { return true;} }
     public bool P2 { get { return true;} }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 );
@@ -5150,7 +5312,7 @@ class C
         y1.ToString();
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (12,21): hidden CS8607: Expression is probably never null.
@@ -5177,7 +5339,7 @@ class C
         y1.ToString();
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (12,21): hidden CS8605: Result of the comparison is possibly always true.
@@ -5204,7 +5366,7 @@ class C
         y1.ToString();
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (12,9): hidden CS8607: Expression is probably never null.
@@ -5240,7 +5402,7 @@ class C
         y1.ToString();
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (13,13): hidden CS8606: Result of the comparison is possibly always false.
@@ -5276,7 +5438,7 @@ class C
         y1.ToString();
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (13,13): hidden CS8605: Result of the comparison is possibly always true.
@@ -5334,7 +5496,7 @@ class CL1
     public void M1() { }
     public void M2(CL1 x) { }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (15,13): warning CS8602: Possible dereference of a null reference.
@@ -5393,7 +5555,7 @@ class C
 class CL1
 {
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (11,13): hidden CS8606: Result of the comparison is possibly always false.
@@ -5432,7 +5594,7 @@ class C
 class CL1
 {
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 );
@@ -5492,7 +5654,7 @@ class C
 class CL1
 {
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (11,18): warning CS8601: Possible null reference assignment.
@@ -5557,7 +5719,7 @@ class C
 class CL1
 {
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 );
@@ -5587,7 +5749,7 @@ class C
         var z1 = u1?[u1[0]];
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (12,18): warning CS8602: Possible dereference of a null reference.
@@ -5672,7 +5834,7 @@ class C
 class CL1
 {
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (13,14): warning CS8619: Nullability of reference types in value of type 'CL1?[]' doesn't match target type 'CL1[]'.
@@ -5719,7 +5881,7 @@ class C
         var z2 = u2.Length;
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (18,18): warning CS8602: Possible dereference of a null reference.
@@ -5841,7 +6003,7 @@ class C
         u9[0][0,0].ToString();
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 // (11,14): warning CS8600: Cannot convert null to non-nullable reference.
@@ -5963,7 +6125,7 @@ class C
         u9[0][0,0].ToString();
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 // (16,54): warning CS8600: Cannot convert null to non-nullable reference.
@@ -6039,7 +6201,7 @@ class C
 class CL0<T>
 {}
 
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (12,43): warning CS8619: Nullability of reference types in value of type 'CL0<string>' doesn't match target type 'CL0<string?>'.
@@ -6085,7 +6247,7 @@ class CL1
     public CL1 P1 {get; set;}
     public CL1? P2 {get; set;}
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (9,35): warning CS8601: Possible null reference assignment.
@@ -6160,7 +6322,7 @@ struct S2
 {
     public S1 F2;
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (12,14): warning CS8601: Possible null reference assignment.
@@ -6283,7 +6445,7 @@ struct S1
     public CL1? F1;
     public CL1? F3;
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (11,17): error CS0165: Use of unassigned local variable 'y1'
@@ -6363,7 +6525,7 @@ struct S2
 
     S2(CL1 x) { F2 = x; }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (9,14): warning CS8601: Possible null reference assignment.
@@ -6404,7 +6566,7 @@ struct TS2
         E2 = null;
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (15,28): warning CS8601: Possible null reference assignment.
@@ -6528,7 +6690,7 @@ struct S1
     public CL1? p1;
     public CL1? p2;
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (10,14): hidden CS8607: Expression is probably never null.
@@ -6656,7 +6818,7 @@ class CL1
 {
     public CL1? M1(CL1 x) { return null; }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (25,29): error CS0269: Use of unassigned out parameter 'x3'
@@ -6688,7 +6850,7 @@ class C
 class CL1
 {
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (14,14): hidden CS8607: Expression is probably never null.
@@ -6719,7 +6881,7 @@ class C
 class CL1<T>
 {
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (12,14): warning CS8619: Nullability of reference types in value of type '<anonymous type: CL1<string?> F1>' doesn't match target type '<anonymous type: CL1<string> F1>'.
@@ -6745,7 +6907,7 @@ class CL1<T>
 }";
             var comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(flags: NullableReferenceFlags.None));
+                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.None));
             // PROTOTYPE(NullableReferenceTypes): Should report ErrorCode.HDN_ExpressionIsProbablyNeverNull.
             // See comment in DataFlowPass.VisitAnonymousObjectCreationExpression.
             comp.VerifyDiagnostics();
@@ -6770,7 +6932,7 @@ class C
         this?.Test1();
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (14,9): hidden CS8607: Expression is probably never null.
@@ -6847,7 +7009,7 @@ struct S1
 {
     public C0? F1;
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (12,14): warning CS8601: Possible null reference assignment.
@@ -6937,7 +7099,7 @@ struct S1
 {
     public C0? F1;
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (34,14): warning CS8601: Possible null reference assignment.
@@ -6993,7 +7155,7 @@ class C
 class CL1
 {
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (17,18): error CS0165: Use of unassigned local variable 'y1'
@@ -7042,7 +7204,7 @@ class C
 
 class CL1
 {}
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 );
@@ -7075,7 +7237,7 @@ class C
 
 class CL1
 {}
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 );
@@ -7118,7 +7280,7 @@ class C
 
 class CL1
 {}
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (12,37): warning CS8603: Possible null reference return.
@@ -7163,7 +7325,7 @@ class C
 
 class CL1
 {}
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (12,46): warning CS8601: Possible null reference assignment.
@@ -7218,7 +7380,7 @@ class C
 
 class CL1
 {}
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (20,22): warning CS8603: Possible null reference return.
@@ -7279,7 +7441,7 @@ class C
 
 class CL1
 {}
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 );
@@ -7327,7 +7489,7 @@ class C
 
 class CL1
 {}
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (19,22): warning CS8603: Possible null reference return.
@@ -7387,7 +7549,7 @@ class C
 
 class CL1
 {}
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 );
@@ -7433,7 +7595,7 @@ class C
 
 class CL1
 {}
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (21,26): warning CS8601: Possible null reference assignment.
@@ -7485,7 +7647,7 @@ class C
 
 class CL1
 {}
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (22,28): warning CS8603: Possible null reference return.
@@ -7534,7 +7696,7 @@ class C
 
 class CL1
 {}
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (12,50): warning CS8601: Possible null reference assignment.
@@ -7589,7 +7751,7 @@ class C
 
 class CL1
 {}
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (12,51): warning CS8601: Possible null reference assignment.
@@ -7656,7 +7818,7 @@ class C
 
 class CL1
 {}
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (12,33): warning CS8622: Nullability of reference types in type of parameter 'p1' of 'lambda expression' doesn't match the target delegate 'Action<CL1>'.
@@ -7711,7 +7873,7 @@ class C
 
 class CL1
 {}
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 );
@@ -7762,7 +7924,7 @@ class C
                 };
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature(), references: new[] { notAnnotated.EmitToImageReference() });
+", parseOptions: TestOptions.Regular8, references: new[] { notAnnotated.EmitToImageReference() });
 
             c.VerifyDiagnostics(
                  // (20,29): warning CS8601: Possible null reference assignment.
@@ -7800,7 +7962,7 @@ class C
 
 class CL1<T>
 {}
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (10,42): warning CS8622: Nullability of reference types in type of parameter 'p1' of 'lambda expression' doesn't match the target delegate 'Action<CL1<string?>>'.
@@ -7837,7 +7999,7 @@ class C
 
 class CL1<T>
 {}
-", new[] { SystemCoreRef }, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", new[] { SystemCoreRef }, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (12,54): warning CS8622: Nullability of reference types in type of parameter 'p1' of 'lambda expression' doesn't match the target delegate 'Action<CL1<string?>>'.
@@ -7868,7 +8030,7 @@ class C
         x2 = new T2() ?? x2;
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (14,14): hidden CS8607: Expression is probably never null.
@@ -7902,7 +8064,7 @@ class CL0
     public CL0(int x) {}
     public CL0(long x) {}
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (14,14): hidden CS8607: Expression is probably never null.
@@ -7945,7 +8107,7 @@ class CL0
         set { }
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (14,14): hidden CS8607: Expression is probably never null.
@@ -7988,7 +8150,7 @@ class CL0
         set { }
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (9,22): warning CS8601: Possible null reference assignment.
@@ -8031,7 +8193,7 @@ class CL0
         set { }
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (9,22): warning CS8601: Possible null reference assignment.
@@ -8074,7 +8236,7 @@ class CL0
         set { }
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (9,22): warning CS8601: Possible null reference assignment.
@@ -8117,7 +8279,7 @@ class CL0
         set { }
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (14,14): hidden CS8607: Expression is probably never null.
@@ -8160,7 +8322,7 @@ class CL0
         set { }
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (14,14): hidden CS8607: Expression is probably never null.
@@ -8188,7 +8350,7 @@ class C
         x2 = x2[0] ?? x2;
     }
 }
-", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 );
@@ -8228,7 +8390,7 @@ class CL0<T>
         set { }
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 );
@@ -8278,7 +8440,7 @@ class CL1
         set { }
     }
 }
-", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (15,17): warning CS8601: Possible null reference assignment.
@@ -8321,7 +8483,7 @@ class CL0
         set { }
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (9,14): warning CS8602: Possible dereference of a null reference.
@@ -8365,7 +8527,7 @@ class CL0
         return new CL0(); 
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (14,14): hidden CS8607: Expression is probably never null.
@@ -8406,7 +8568,7 @@ class CL0
         return new CL0(); 
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (9,22): warning CS8601: Possible null reference assignment.
@@ -8447,7 +8609,7 @@ class CL0
         return new CL0(); 
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (9,22): warning CS8601: Possible null reference assignment.
@@ -8488,7 +8650,7 @@ class CL0
         return new CL0(); 
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (9,22): warning CS8601: Possible null reference assignment.
@@ -8529,7 +8691,7 @@ class CL0
         return (int)x; 
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (14,14): hidden CS8607: Expression is probably never null.
@@ -8570,7 +8732,7 @@ class CL0
         return x; 
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (14,14): hidden CS8607: Expression is probably never null.
@@ -8598,7 +8760,7 @@ class C
         x2 = x2.M1(0) ?? x2;
     }
 }
-", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 );
@@ -8635,7 +8797,7 @@ class CL0<T>
         return x; 
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 );
@@ -8673,7 +8835,7 @@ class CL0
         return new CL0(); 
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (9,14): warning CS8602: Possible dereference of a null reference.
@@ -8709,7 +8871,7 @@ class C
         dynamic y3 = x3.M1;
     }
 }
-", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (19,22): warning CS8602: Possible dereference of a null reference.
@@ -8750,7 +8912,7 @@ class CL0
     {
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (16,18): hidden CS8607: Expression is probably never null.
@@ -8780,7 +8942,7 @@ class C
         x2 = z2 ?? x2;
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (16,14): hidden CS8607: Expression is probably never null.
@@ -8809,7 +8971,7 @@ class C
         x2 = $""{y2}"" ?? x2;
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (15,14): hidden CS8607: Expression is probably never null.
@@ -8838,7 +9000,7 @@ class C
         x2 = new System.Action(Main) ?? x2;
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (15,14): hidden CS8607: Expression is probably never null.
@@ -8875,7 +9037,7 @@ class C
 }
 
 class CL0<T>{}
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 );
@@ -8901,7 +9063,7 @@ class C : Base
         base.Test();
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 );
@@ -8927,7 +9089,7 @@ class C
         x2 = typeof(C) ?? x2;
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (15,14): hidden CS8607: Expression is probably never null.
@@ -8951,7 +9113,7 @@ class C
         x1 = default(C);
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 // (10,14): warning CS8600: Cannot convert null to non-nullable reference.
@@ -8980,7 +9142,7 @@ class C
         string z2 = x2 + y2 ?? """";
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (15,21): hidden CS8607: Expression is probably never null.
@@ -9009,7 +9171,7 @@ class C
         dynamic z2 = x2 + y2 ?? """";
     }
 }
-", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 );
@@ -9078,7 +9240,7 @@ class CL2
         return y;
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (10,24): warning CS8604: Possible null reference argument for parameter 'y' in 'CL0 CL0.operator +(string? x, CL0 y)'.
@@ -9142,7 +9304,7 @@ class CL0
         return false;
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (10,19): warning CS8604: Possible null reference argument for parameter 'x' in 'bool CL0.operator false(CL0 x)'.
@@ -9193,7 +9355,7 @@ class CL0
         return false;
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (10,19): warning CS8604: Possible null reference argument for parameter 'x' in 'bool CL0.operator false(CL0 x)'.
@@ -9238,7 +9400,7 @@ class CL0
         return false;
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 );
@@ -9277,7 +9439,7 @@ class CL0
         return false;
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (10,19): warning CS8604: Possible null reference argument for parameter 'x' in 'bool CL0.operator true(CL0 x)'.
@@ -9319,7 +9481,7 @@ class CL0
         return false;
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 );
@@ -9363,7 +9525,7 @@ class CL0
         return false;
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (10,19): warning CS8604: Possible null reference argument for parameter 'x' in 'bool CL0.operator true(CL0 x)'.
@@ -9418,7 +9580,7 @@ class CL0
         return false;
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (10,19): warning CS8604: Possible null reference argument for parameter 'x' in 'bool CL0.operator true(CL0 x)'.
@@ -9480,7 +9642,7 @@ class C
         System.Action u8 = x8 - y8;
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (15,28): hidden CS8607: Expression is probably never null.
@@ -9544,7 +9706,7 @@ class CL0
         return null;
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (10,25): warning CS8604: Possible null reference argument for parameter 'y' in 'CL0 CL0.operator &(CL0? x, CL0 y)'.
@@ -9578,7 +9740,7 @@ class CL0
 {
     public void M1() {}
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (10,28): warning CS8602: Possible dereference of a null reference.
@@ -9623,7 +9785,7 @@ class C
 class CL0<T>
 {
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (12,37): warning CS8622: Nullability of reference types in type of parameter 'x' of 'void C.M1<string>(string x)' doesn't match the target delegate 'Action<string?>'.
@@ -9677,7 +9839,7 @@ class C
 class CL0<T>
 {
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 );
@@ -9719,7 +9881,7 @@ class C
 class CL0<T>
 {
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (12,35): warning CS8621: Nullability of reference types in return type of 'string C.M1<string>()' doesn't match the target delegate 'Func<string?>'.
@@ -9773,7 +9935,7 @@ class C
 class CL0<T>
 {
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 );
@@ -9840,7 +10002,7 @@ class CL2
         return new CL2();
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (10,19): warning CS8604: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator !(CL0 x)'.
@@ -9964,7 +10126,7 @@ class CL1 {}
 class CL2 {}
 class CL3 {}
 class CL4 : CL3 {}
-", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 // (10,18): warning CS8604: Possible null reference argument for parameter 'x' in 'CL0.implicit operator CL1(CL0 x)'.
@@ -10029,7 +10191,7 @@ class C
 class CL0<T>
 {
 }
-", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (10,26): warning CS8619: Nullability of reference types in value of type 'CL0<string?>' doesn't match target type 'CL0<string>'.
@@ -10096,7 +10258,7 @@ class CL1
         return new CL1();
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (10,21): warning CS8604: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator ++(CL0 x)'.
@@ -10203,7 +10365,7 @@ class CL1
         return new CL1();
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (10,21): warning CS8604: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator ++(CL0 x)'.
@@ -10316,7 +10478,7 @@ class X4
         set { }
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (10,21): warning CS8604: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator ++(CL0 x)'.
@@ -10386,7 +10548,7 @@ class C
         dynamic u5 = --x5;
     }
 }
-", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (16,22): warning CS8601: Possible null reference assignment.
@@ -10434,7 +10596,7 @@ class C : A
 class B : A
 {
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (10,19): warning CS8604: Possible null reference argument for parameter 'x' in 'C? A.operator ++(A x)'.
@@ -10484,7 +10646,7 @@ class C : A
 class B : A
 {
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (10,16): warning CS8601: Possible null reference assignment.
@@ -10535,7 +10697,7 @@ class Convertible
         return new Convertible();
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (10,29): warning CS8604: Possible null reference argument for parameter 'c' in 'Convertible.implicit operator int(Convertible c)'.
@@ -10580,7 +10742,7 @@ class CL1
         return new CL0();
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (10,19): warning CS8604: Possible null reference argument for parameter 'x' in 'CL1.implicit operator CL0(CL1 x)'.
@@ -10628,7 +10790,7 @@ class CL1
         return new CL0();
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (10,25): warning CS8604: Possible null reference argument for parameter 'y' in 'CL1 CL0.operator +(CL0 x, CL0 y)'.
@@ -10696,7 +10858,7 @@ class CL1
         return new CL0();
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (10,19): warning CS8604: Possible null reference argument for parameter 'x' in 'CL1 CL0.operator +(CL0 x, CL0? y)'.
@@ -10786,7 +10948,7 @@ class CL1
         return new CL0();
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (12,18): warning CS8601: Possible null reference assignment.
@@ -10854,7 +11016,7 @@ class Test
         dynamic u4 = x4 += y4;
     }
 }
-", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", new[] { CSharpRef, SystemCoreRef }, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 );
@@ -10903,7 +11065,7 @@ class CL1
         return new CL0();
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (10,19): warning CS8604: Possible null reference argument for parameter 'x' in 'CL1.implicit operator CL0(CL1 x)'.
@@ -10979,7 +11141,7 @@ class CL3
         set { }
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (10,19): warning CS8604: Possible null reference argument for parameter 'x' in 'CL1.implicit operator CL0(CL1 x)'.
@@ -11052,7 +11214,7 @@ class Test
         E2 += x7;
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 // (12,9): warning CS8602: Possible dereference of a null reference.
@@ -11109,7 +11271,7 @@ struct TS1
         y3 = z3.E1 ?? x3;
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (16,28): hidden CS8607: Expression is probably never null.
@@ -11150,7 +11312,7 @@ struct TS2
     }
 }
 
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (16,28): warning CS8601: Possible null reference assignment.
@@ -11190,7 +11352,7 @@ class CL0
     }
 }
 
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (10,28): error CS0029: Cannot implicitly convert type 'void' to 'System.Action'
@@ -11225,7 +11387,7 @@ class Test
         System.Action v1 = x1.E1;
     }
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (12,28): warning CS8602: Possible dereference of a null reference.
@@ -11281,7 +11443,7 @@ class Test
 }
 
 class CL1 {}
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                  // (10,21): hidden CS8607: Expression is probably never null.
@@ -11337,7 +11499,7 @@ class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
 
     public bool IsCompleted { get { return true; } }
 }";
-            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular8.WithNullCheckingFeature()).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                  // (10,20): hidden CS8607: Expression is probably never null.
                  //         object x = await new D() ?? new object();
                  Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "await new D()").WithLocation(10, 20)
@@ -11373,7 +11535,7 @@ class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
 
     public bool IsCompleted { get { return true; } }
 }";
-            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular8.WithNullCheckingFeature()).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                  // (10,20): warning CS8601: Possible null reference assignment.
                  //         object x = await new D();
                  Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "await new D()").WithLocation(10, 20)
@@ -11428,7 +11590,7 @@ class UsePia
 
             var compilation = CreateCompilation(source,
                                                 new MetadataReference[] { MscorlibRef_v4_0_30316_17626, new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) },
-                                                options: TestOptions.DebugExe, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+                                                options: TestOptions.DebugExe, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (15,14): hidden CS8607: Expression is probably never null.
@@ -11465,7 +11627,7 @@ class C<T> {}
 class F : C<F?>, I1<C<B?>>, I2<C<B>?>
 {}
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             var b = compilation.GetTypeByMetadataName("B");
             Assert.Equal("System.String? B.F1", b.GetMember("F1").ToTestDisplayString());
@@ -11489,20 +11651,22 @@ class F : C<F?>, I1<C<B?>>, I2<C<B>?>
         public void DifferentParseOptions_01()
         {
             var source = @"";
-            Assert.Throws<System.ArgumentException>(() => CreateStandardCompilation(new[] { CSharpSyntaxTree.ParseText(source, TestOptions.Regular8.WithNullCheckingFeature()),
-                                                                                                CSharpSyntaxTree.ParseText(source, TestOptions.Regular8)},
+            var optionsWithoutFeature = TestOptions.Regular8;
+            var optionsWithFeature = optionsWithoutFeature.WithNullCheckingFeature(NullableReferenceFlags.None);
+            Assert.Throws<System.ArgumentException>(() => CreateStandardCompilation(new[] { CSharpSyntaxTree.ParseText(source, optionsWithFeature),
+                                                                                                CSharpSyntaxTree.ParseText(source, optionsWithoutFeature) },
                                                                                         options: TestOptions.ReleaseDll));
 
-            Assert.Throws<System.ArgumentException>(() => CreateStandardCompilation(new[] { CSharpSyntaxTree.ParseText(source, TestOptions.Regular8),
-                                                                                                CSharpSyntaxTree.ParseText(source, TestOptions.Regular8.WithNullCheckingFeature())},
+            Assert.Throws<System.ArgumentException>(() => CreateStandardCompilation(new[] { CSharpSyntaxTree.ParseText(source, optionsWithoutFeature),
+                                                                                                CSharpSyntaxTree.ParseText(source, optionsWithFeature) },
                                                                                         options: TestOptions.ReleaseDll));
 
-            CreateStandardCompilation(new[] { CSharpSyntaxTree.ParseText(source, TestOptions.Regular8.WithNullCheckingFeature()),
-                                                  CSharpSyntaxTree.ParseText(source, TestOptions.Regular8.WithNullCheckingFeature())},
+            CreateStandardCompilation(new[] { CSharpSyntaxTree.ParseText(source, optionsWithFeature),
+                                                  CSharpSyntaxTree.ParseText(source, optionsWithFeature) },
                                           options: TestOptions.ReleaseDll);
 
-            CreateStandardCompilation(new[] { CSharpSyntaxTree.ParseText(source, TestOptions.Regular8),
-                                                  CSharpSyntaxTree.ParseText(source, TestOptions.Regular8)},
+            CreateStandardCompilation(new[] { CSharpSyntaxTree.ParseText(source, optionsWithoutFeature),
+                                                  CSharpSyntaxTree.ParseText(source, optionsWithoutFeature) },
                                           options: TestOptions.ReleaseDll);
         }
 
@@ -11538,7 +11702,7 @@ public class C<T> {}
 public class F : C<F?>, I1<C<B?>>, I2<C<B>?>
 {}
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                 // (5,33): warning CS0067: The event 'B.E1' is never used
@@ -11580,7 +11744,7 @@ public class CL0
 
     public object? P1 { get; set;}
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature(), options: TestOptions.DebugDll);
+", parseOptions: TestOptions.Regular8, options: TestOptions.DebugDll);
 
             string source = @"
 class C 
@@ -11612,13 +11776,13 @@ class C
             };
 
             CSharpCompilation c = CreateStandardCompilation(source,
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics(expected);
 
             c = CreateStandardCompilation(source,
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 references: new[] { c0.ToMetadataReference() });
 
             c.VerifyDiagnostics(expected);
@@ -11632,7 +11796,7 @@ public class CL0
 {
     public object F1;
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature(), options: TestOptions.DebugDll);
+", parseOptions: TestOptions.Regular8, options: TestOptions.DebugDll);
 
             string source = @"
 class C 
@@ -11656,13 +11820,13 @@ class C
             };
 
             CSharpCompilation c = CreateStandardCompilation(source,
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics(expected);
 
             c = CreateStandardCompilation(source,
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 references: new[] { c0.ToMetadataReference() });
 
             c.VerifyDiagnostics(expected);
@@ -11690,7 +11854,7 @@ public class C<T> {}
 [Nullable] public class F : C<F>
 {}
 ";
-            var compilation = CreateStandardCompilation(new[] { source, NullableAttributeDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+            var compilation = CreateStandardCompilation(new[] { source, NullableAttributeDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                 // (7,6): error CS8623: Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.
@@ -11717,15 +11881,18 @@ public class C<T> {}
                 );
         }
 
-        [Fact]
+        // PROTOTYPE(NullableReferenceTypes): [NullableOptOutForAssembly] is disabled.
+        // See CSharpCompilation.HaveNullableOptOutForAssembly.
+        [Fact(Skip = "[NullableOptOut] is disabled")]
         public void OptOutFromAssembly_01()
         {
+            var parseOptions = TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowAssemblyOptOut | NullableReferenceFlags.AllowMemberOptOut);
             CSharpCompilation c0 = CreateStandardCompilation(@"
 public class CL0 
 {
     public object F1;
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature(), options: TestOptions.DebugDll, assemblyName: "OptOutFromAssembly_01_Lib");
+", parseOptions: parseOptions, options: TestOptions.DebugDll, assemblyName: "OptOutFromAssembly_01_Lib");
 
             string source = @"
 [module:System.Runtime.CompilerServices.NullableOptOutForAssembly(""OptOutFromAssembly_01_Lib"")]
@@ -11744,7 +11911,7 @@ class C
 ";
 
             CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: parseOptions,
                                                                 references: new[] { c0.EmitToImageReference() });
 
             CompileAndVerify(c, symbolValidator: m =>
@@ -11753,28 +11920,31 @@ class C
                                                  });
 
             c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: parseOptions,
                                                                 references: new[] { c0.ToMetadataReference() });
 
             c.VerifyDiagnostics();
         }
 
-        [Fact]
+        // PROTOTYPE(NullableReferenceTypes): [NullableOptOutForAssembly] is disabled.
+        // See CSharpCompilation.HaveNullableOptOutForAssembly.
+        [Fact(Skip = "[NullableOptOut] is disabled")]
         public void OptOutFromAssembly_02()
         {
+            var parseOptions = TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowAssemblyOptOut | NullableReferenceFlags.AllowMemberOptOut);
             CSharpCompilation c0 = CreateStandardCompilation(@"
 public class CL0 
 {
     public object F1;
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature(), options: TestOptions.DebugDll, assemblyName: "OptOutFromAssembly_02_Lib1");
+", parseOptions: parseOptions, options: TestOptions.DebugDll, assemblyName: "OptOutFromAssembly_02_Lib1");
 
             CSharpCompilation c1 = CreateStandardCompilation(@"
 public class CL1 
 {
     public object F2;
 }
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature(), options: TestOptions.DebugDll, assemblyName: "OptOutFromAssembly_02_Lib2");
+", parseOptions: parseOptions, options: TestOptions.DebugDll, assemblyName: "OptOutFromAssembly_02_Lib2");
 
             string source = @"
 [module:System.Runtime.CompilerServices.NullableOptOutForAssembly(""OptOutFromAssembly_02_Lib1"")]
@@ -11805,21 +11975,24 @@ class C
             };
 
             CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: parseOptions,
                                                                 references: new[] { c0.EmitToImageReference(), c1.EmitToImageReference() });
 
             c.VerifyDiagnostics(expected);
 
             c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: parseOptions,
                                                                 references: new[] { c0.ToMetadataReference(), c1.ToMetadataReference() });
 
             c.VerifyDiagnostics(expected);
         }
 
-        [Fact]
+        // PROTOTYPE(NullableReferenceTypes): [NullableOptOutForAssembly] is disabled.
+        // See CSharpCompilation.HaveNullableOptOutForAssembly.
+        [Fact(Skip = "[NullableOptOut] is disabled")]
         public void OptOutFromAssembly_03()
         {
+            var parseOptions = TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowAssemblyOptOut | NullableReferenceFlags.AllowMemberOptOut);
             string source = @"
 [module:System.Runtime.CompilerServices.NullableOptOutForAssembly(null)]
 [module:System.Runtime.CompilerServices.NullableOptOutForAssembly(""invalid, assembly, name"")]
@@ -11840,7 +12013,7 @@ class C
 ";
 
             CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+                                                                parseOptions: parseOptions);
 
             c.VerifyDiagnostics(
                  // (2,9): warning CS1700: Assembly reference 'null' is invalid and cannot be resolved
@@ -11947,25 +12120,25 @@ partial class C
 ";
 
             CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, lib, source1, source2 },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
             CSharpCompilation c1 = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, lib },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
             c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source2 }, new[] { c1.ToMetadataReference() },
-                                              parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                              parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
             c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source2 }, new[] { c1.EmitToImageReference() },
-                                              parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                              parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
@@ -12079,7 +12252,7 @@ partial class C
 ";
 
             CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(
@@ -12122,7 +12295,7 @@ partial class C
                 );
 
             CSharpCompilation c1 = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
@@ -12158,13 +12331,13 @@ partial class C
                 };
 
             c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
-                                              parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                              parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(expected);
 
             c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
-                                              parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                              parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(expected);
@@ -12270,7 +12443,7 @@ partial class C
 ";
 
             CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(
@@ -12300,13 +12473,13 @@ partial class C
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(19, 19));
 
             CSharpCompilation c1 = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
             c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
-                                              parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                              parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(
@@ -12330,7 +12503,7 @@ partial class C
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(19, 19));
 
             c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
-                                              parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                              parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(
@@ -12452,25 +12625,25 @@ partial class C
 ";
 
             CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
             CSharpCompilation c1 = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
             c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
-                                              parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                              parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
             c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
-                                              parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                              parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
@@ -12576,25 +12749,25 @@ partial class C
 ";
 
             CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
             CSharpCompilation c1 = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
             c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
-                                              parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                              parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
             c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
-                                              parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                              parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
@@ -12706,25 +12879,25 @@ partial class C
 ";
 
             CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
             CSharpCompilation c1 = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
             c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
-                                              parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                              parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
             c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
-                                              parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                              parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
@@ -12827,25 +13000,25 @@ partial class C
 ";
 
             CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
             CSharpCompilation c1 = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
             c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
-                                              parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                              parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
             c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
-                                              parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                              parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
@@ -12946,25 +13119,25 @@ partial class C
 ";
 
             CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
             CSharpCompilation c1 = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
             c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
-                                              parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                              parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
             c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
-                                              parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                              parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
@@ -13063,25 +13236,25 @@ partial class C
 ";
 
             CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
             CSharpCompilation c1 = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
             c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
-                                              parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                              parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
             c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
-                                              parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                              parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
@@ -13188,7 +13361,7 @@ partial class C
 ";
 
             CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(
@@ -13231,7 +13404,7 @@ partial class C
                 );
 
             CSharpCompilation c1 = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
@@ -13267,13 +13440,13 @@ partial class C
                 };
 
             c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
-                                              parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                              parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(expected);
 
             c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
-                                              parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                              parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(expected);
@@ -13380,7 +13553,7 @@ partial class C
 ";
 
             CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(
@@ -13423,7 +13596,7 @@ partial class C
                 );
 
             CSharpCompilation c1 = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
@@ -13459,13 +13632,13 @@ partial class C
                 };
 
             c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
-                                              parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                              parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(expected);
 
             c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
-                                              parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                              parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(expected);
@@ -13572,7 +13745,7 @@ partial class C
 ";
 
             CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(
@@ -13615,7 +13788,7 @@ partial class C
                 );
 
             CSharpCompilation c1 = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
@@ -13651,13 +13824,13 @@ partial class C
                 };
 
             c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
-                                              parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                              parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(expected);
 
             c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
-                                              parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                              parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(expected);
@@ -13699,7 +13872,7 @@ class C
 ";
 
             CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(
@@ -13770,7 +13943,7 @@ class CL1<T>
 ";
 
             CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(
@@ -13846,7 +14019,7 @@ class CL6 : CL4<string?>
 ";
 
             CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(
@@ -13919,7 +14092,7 @@ class CL6 : CL4<string?>
 ";
 
             CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(
@@ -13958,7 +14131,7 @@ class CL0<T>
 ";
 
             CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(
@@ -14020,7 +14193,7 @@ class CL1<T>
 ";
 
             CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(
@@ -14059,7 +14232,7 @@ class CL0<T>
 ";
 
             CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(
@@ -14130,7 +14303,7 @@ class CL1<T>
 ";
 
             CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(
@@ -14169,7 +14342,7 @@ class CL0<T>
 ";
 
             CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(
@@ -14233,7 +14406,7 @@ class C
 ";
 
             CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(
@@ -14330,7 +14503,7 @@ class CL1<T>
 ";
 
             CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(
@@ -14423,7 +14596,7 @@ delegate void CL2<T>(T? x) where T : class;
 ";
 
             CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(
@@ -14478,7 +14651,7 @@ class C
 ";
 
             CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(
@@ -14521,7 +14694,7 @@ delegate string D2();
 ";
 
             CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(
@@ -14585,7 +14758,7 @@ class CL0<T>
 ";
 
             CSharpCompilation c = CreateStandardCompilation(source,
-                                                                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                                                                parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(
@@ -14616,7 +14789,7 @@ class C : I
 {
     void I.M<T>(T? x) { }
 }";
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8.WithNullCheckingFeature(flags: NullableReferenceFlags.None));
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.None));
             var method = compilation.GetMember<NamedTypeSymbol>("C").GetMethod("I.M");
             var implementations = method.ExplicitInterfaceImplementations;
             Assert.Equal(new[] { "void I.M<T>(T? x)" }, implementations.SelectAsArray(m => m.ToTestDisplayString()));
@@ -14651,7 +14824,7 @@ class C
             var compB = CreateStandardCompilation(
                 sourceB,
                 options: TestOptions.ReleaseExe,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                parseOptions: TestOptions.Regular8,
                 references: new[] { compA.EmitToImageReference() });
             CompileAndVerify(compB, expectedOutput: "");
         }
@@ -14677,14 +14850,14 @@ struct S
 }";
             var comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+                parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,26): warning CS8600: Cannot convert null to non-nullable reference.
                 //     public S(B b) : this(null, b)
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 26));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Update other tests with WithNullCheckingFeature(flags: NullableReferenceFlags.None) to verify expected changes.
+        // PROTOTYPE(NullableReferenceTypes): Update other tests with WithNullCheckingFeature(NullableReferenceFlags.None) to verify expected changes.
 
         [Fact]
         public void WarningOnConversion_Assignment()
@@ -14714,7 +14887,7 @@ class Program
 
             var comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(flags: NullableReferenceFlags.None));
+                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowNullAsNonNull));
             comp.VerifyDiagnostics(
                 // (14,22): warning CS8601: Possible null reference assignment.
                 //         p.LastName = null as string;
@@ -14731,7 +14904,7 @@ class Program
 
             comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings));
+                parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (11,22): warning CS8600: Cannot convert null to non-nullable reference.
                 //         p.LastName = null;
@@ -14793,7 +14966,7 @@ class Program
 
             var comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(flags: NullableReferenceFlags.None));
+                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowNullAsNonNull));
             comp.VerifyDiagnostics(
                 // (14,11): warning CS8604: Possible null reference argument for parameter 'name' in 'void Program.G(string name)'.
                 //         G(null as string);
@@ -14813,7 +14986,7 @@ class Program
 
             comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings));
+                parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (11,11): warning CS8600: Cannot convert null to non-nullable reference.
                 //         G(null);
@@ -14872,7 +15045,7 @@ class Program
 
             var comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(flags: NullableReferenceFlags.None));
+                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowNullAsNonNull));
             comp.VerifyDiagnostics(
                 // (12,27): warning CS8603: Possible null reference return.
                 //     static string F4() => null as string;
@@ -14892,7 +15065,7 @@ class Program
 
             comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings));
+                parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (9,27): warning CS8600: Cannot convert null to non-nullable reference.
                 //     static string F1() => null;
@@ -14973,7 +15146,7 @@ class Program
 
             comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings));
+                parseOptions: TestOptions.Regular8);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -14996,7 +15169,7 @@ class Program
 }";
             var comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings));
+                parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(/* ... */);
         }
 
@@ -15017,7 +15190,7 @@ class Program
 }";
             var comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings));
+                parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,11): warning CS8604: Possible null reference argument for parameter 't' in 'T? C<T>.F(T t)'.
                 //         F(G(t!));
@@ -15045,7 +15218,7 @@ class Program
 }";
             var comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings));
+                parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,23): warning CS8619: Nullability of reference types in value of type 'string[]' doesn't match target type 'string?[]'.
                 //         string?[] t = s;
@@ -15073,7 +15246,7 @@ class Program
 }";
             var comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings));
+                parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,24): warning CS8619: Nullability of reference types in value of type 'C<string>' doesn't match target type 'C<string?>'.
                 //         C<string?> t = s;
@@ -15101,15 +15274,15 @@ class Program
     {
         string? s = null;
         F(ref s!, ""1"");
-        System.Console.Write(s);
+        System.Console.Write(s!);
         s = null;
         G(out s!, ""2"");
-        System.Console.Write(s);
+        System.Console.Write(s!);
     }
 }";
             var comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings),
+                parseOptions: TestOptions.Regular8,
                 options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "12");
@@ -15133,7 +15306,7 @@ class Program
 }";
             var comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings),
+                parseOptions: TestOptions.Regular8,
                 options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(/* ... */);
         }
@@ -15163,7 +15336,7 @@ class C
 
             var comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings));
+                parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (12,14): warning CS8604: Possible null reference argument for parameter 'a' in 'A.implicit operator B(A a)'.
                 //         G((B)a);
@@ -15190,7 +15363,7 @@ class C
 }";
             var comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings));
+                parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,16): error CS8624: The ! operator can only be applied to reference types.
                 //         return (b && G(out var o))!? o : null;
@@ -15220,7 +15393,7 @@ class C
             // Feature enabled.
             var comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings));
+                parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,11): error CS8624: The ! operator can only be applied to reference types.
                 //         G(1!);
@@ -15267,7 +15440,7 @@ class C
 }";
             var comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings));
+                parseOptions: TestOptions.Regular8);
             // PROTOTYPE(NullableReferenceTypes): Suppress warnings.
             comp.VerifyDiagnostics(
                 // (3,41): warning CS8619: Nullability of reference types in value of type 'S<object?>' doesn't match target type 'S<object>'.
@@ -15288,7 +15461,7 @@ class C
 }";
             var comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings));
+                parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // ...
                 );
@@ -15312,7 +15485,7 @@ class C
 }";
             var comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings));
+                parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -15334,7 +15507,7 @@ class C
 }";
             var comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings));
+                parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,11): error CS1503: Argument 1: cannot convert from 'method group!' to 'object'
                 //         G(F!);
@@ -15382,7 +15555,7 @@ End Class";
             var comp = CreateStandardCompilation(
                 source,
                 new[] { ref0 },
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(flags: NullableReferenceFlags.IncludeNonNullWarnings));
+                parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,20): error CS0856: Indexed property 'A.P' has non-optional arguments which must be provided
                 //             return a.P!;
@@ -15413,7 +15586,7 @@ class Program
 }";
             var comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(flags: NullableReferenceFlags.None));
+                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.None));
             comp.VerifyDiagnostics(
                 // (11,11): warning CS8604: Possible null reference argument for parameter 's' in 'void Program.G(string s)'.
                 //         G(p.MiddleName);
@@ -15447,7 +15620,7 @@ class Program
 }";
             var comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(flags: NullableReferenceFlags.None));
+                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.None));
             comp.VerifyDiagnostics(
                 // (14,15): warning CS8604: Possible null reference argument for parameter 's' in 'void C.G(string s)'.
                 //             G(y); // warning
@@ -15472,7 +15645,7 @@ class Program
 }";
             var comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(flags: NullableReferenceFlags.None));
+                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowNullAsNonNull));
             comp.VerifyDiagnostics();
         }
 
@@ -15494,7 +15667,7 @@ class Program
 }";
             var comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(flags: NullableReferenceFlags.None));
+                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowNullAsNonNull));
             comp.VerifyDiagnostics();
         }
 
@@ -15516,7 +15689,7 @@ class Program
                 TestOptions.Regular8.WithFeature("staticNullChecking").GetNullableReferenceFlags());
             Assert.Equal(NullableReferenceFlags.Enabled,
                 TestOptions.Regular8.WithFeature("staticNullChecking", "0").GetNullableReferenceFlags());
-            Assert.Equal(NullableReferenceFlags.Enabled | NullableReferenceFlags.IncludeNonNullWarnings | NullableReferenceFlags.InferLocalNullability,
+            Assert.Equal(NullableReferenceFlags.Enabled | NullableReferenceFlags.AllowNullAsNonNull | NullableReferenceFlags.InferLocalNullability,
                 TestOptions.Regular8.WithFeature("staticNullChecking", "3").GetNullableReferenceFlags());
             Assert.Equal(NullableReferenceFlags.Enabled | NullableReferenceFlags.AllowMemberOptOut | NullableReferenceFlags.AllowAssemblyOptOut,
                 TestOptions.Regular8.WithFeature("staticNullChecking", "12").GetNullableReferenceFlags());
@@ -15544,6 +15717,9 @@ class Program
                 source,
                 parseOptions: TestOptions.Regular8.WithFeature("staticNullChecking"));
             comp.VerifyDiagnostics(
+                // (3,26): warning CS8600: Cannot convert null to non-nullable reference.
+                //     static object F() => null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 26),
                 // (4,35): warning CS8603: Possible null reference return.
                 //     static object F(object? o) => o;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "o").WithLocation(4, 35));
@@ -15552,6 +15728,9 @@ class Program
                 source,
                 parseOptions: TestOptions.Regular8.WithFeature("staticNullChecking", "0"));
             comp.VerifyDiagnostics(
+                // (3,26): warning CS8600: Cannot convert null to non-nullable reference.
+                //     static object F() => null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 26),
                 // (4,35): warning CS8603: Possible null reference return.
                 //     static object F(object? o) => o;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "o").WithLocation(4, 35));
@@ -15560,9 +15739,6 @@ class Program
                 source,
                 parseOptions: TestOptions.Regular8.WithFeature("staticNullChecking", "1"));
             comp.VerifyDiagnostics(
-                // (3,26): warning CS8600: Cannot convert null to non-nullable reference.
-                //     static object F() => null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 26),
                 // (4,35): warning CS8603: Possible null reference return.
                 //     static object F(object? o) => o;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "o").WithLocation(4, 35));
@@ -15571,6 +15747,9 @@ class Program
                 source,
                 parseOptions: TestOptions.Regular8.WithFeature("staticNullChecking", "2"));
             comp.VerifyDiagnostics(
+                // (3,26): warning CS8600: Cannot convert null to non-nullable reference.
+                //     static object F() => null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 26),
                 // (4,35): warning CS8603: Possible null reference return.
                 //     static object F(object? o) => o;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "o").WithLocation(4, 35));
@@ -15579,9 +15758,6 @@ class Program
                 source,
                 parseOptions: TestOptions.Regular8.WithFeature("staticNullChecking", "3"));
             comp.VerifyDiagnostics(
-                // (3,26): warning CS8600: Cannot convert null to non-nullable reference.
-                //     static object F() => null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 26),
                 // (4,35): warning CS8603: Possible null reference return.
                 //     static object F(object? o) => o;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "o").WithLocation(4, 35));
@@ -15626,7 +15802,9 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o").WithArguments("o", "void C.G(object o)").WithLocation(9, 11));
         }
 
-        [Fact]
+        // PROTOTYPE(NullableReferenceTypes): [NullableOptOutForAssembly] is disabled.
+        // See CSharpCompilation.HaveNullableOptOutForAssembly.
+        [Fact(Skip = "[NullableOptOut] is disabled")]
         public void AllowAssemblyOptOut()
         {
             var source0 =
@@ -15643,7 +15821,7 @@ class B
 
             var comp0 = CreateStandardCompilation(
                 new[] { source0, NullableOptOutAttributesDefinition },
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                parseOptions: TestOptions.Regular8,
                 assemblyName: "A.dll");
             comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
@@ -15740,7 +15918,7 @@ class Program
 }";
             var comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+                parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (12,13): warning CS8600: Cannot convert null to non-nullable reference.
                 //         C.F(null);
@@ -15763,7 +15941,7 @@ class Program
 }";
             var comp0 = CreateStandardCompilation(
                 source0,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+                parseOptions: TestOptions.Regular8);
             comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
@@ -15778,7 +15956,7 @@ class Program
 }";
             var comp1 = CreateStandardCompilation(
                 source1,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(),
+                parseOptions: TestOptions.Regular8,
                 references: new[] { ref0 });
             comp1.VerifyDiagnostics(
                 // (6,13): warning CS8600: Cannot convert null to non-nullable reference.
@@ -15796,7 +15974,7 @@ class Program
 }";
             var comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+                parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (3,38): error CS1525: Invalid expression term 'throw'
                 //     static string F(string s) => s + throw new System.Exception();
@@ -15814,7 +15992,7 @@ class Program
 }";
             var comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+                parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (4,37): error CS0266: Cannot implicitly convert type 'T' to 'System.Collections.Generic.IEnumerator<T>'. An explicit conversion exists (are you missing a cast?)
                 //     static IEnumerator<T> M<T>() => default(T);
@@ -15834,7 +16012,7 @@ class Program
 }";
             var comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+                parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,22): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
                 //         var (x, y) = c;
@@ -15865,8 +16043,8 @@ struct S : I
     int I.P => 0;
 }";
             var comp = CreateStandardCompilation(
-                 source,
-                 parseOptions: TestOptions.Regular8);
+                source,
+                parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -15888,7 +16066,10 @@ class A : System.Attribute
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "P").WithArguments("A.P").WithLocation(1, 4),
                 // (1,2): error CS1729: 'A' does not contain a constructor that takes 1 arguments
                 // [A(P)]
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "A(P)").WithArguments("A", "1").WithLocation(1, 2));
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "A(P)").WithArguments("A", "1").WithLocation(1, 2),
+                // (4,17): warning CS8600: Cannot convert null to non-nullable reference.
+                //     string P => null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 17));
         }
 
         // PROTOTYPE(NullableReferenceTypes)
@@ -15930,7 +16111,7 @@ class C
 //    public CL1 F3;
 //    public CL1? F4;
 //}
-", parseOptions: TestOptions.Regular8.WithNullCheckingFeature());
+", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 );
