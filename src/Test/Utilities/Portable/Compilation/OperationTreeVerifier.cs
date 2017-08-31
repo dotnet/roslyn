@@ -886,12 +886,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitIsTypeExpression(IIsTypeExpression operation)
         {
             LogString(nameof(IIsTypeExpression));
+            if (operation.IsNotTypeExpression)
+            {
+                LogString(" (IsNotExpression)");
+            }
+
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Operand, "Operand");
 
             Indent();
-            LogType(operation.Type);
+            LogType(operation.IsType, "IsType");
+            LogNewLine();
             Unindent();
         }
 
