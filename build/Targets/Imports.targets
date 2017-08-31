@@ -6,6 +6,7 @@
     <When Condition="'$(RoslynProjectType)' == 'UnitTest' OR '$(RoslynProjectType)' == 'UnitTestPortable'">
       <PropertyGroup>
         <_IsAnyUnitTest>true</_IsAnyUnitTest>
+        <_NeedRuntimeAssets>true</_NeedRuntimeAssets> 
         <CopyNuGetImplementations>true</CopyNuGetImplementations>
         <OutputPath>$(OutputPath)UnitTests\$(MSBuildProjectName)\</OutputPath>
       </PropertyGroup>
@@ -13,6 +14,7 @@
     <When Condition="'$(RoslynProjectType)' == 'Vsix'">
       <PropertyGroup>
         <_CopyReferences>false</_CopyReferences>
+        <_NeedRuntimeAssets>true</_NeedRuntimeAssets> 
         <CopyNuGetImplementations>true</CopyNuGetImplementations>
         <OutputPath>$(OutputPath)Vsix\$(MSBuildProjectName)\</OutputPath>
       </PropertyGroup>
@@ -30,12 +32,14 @@
     </When>
     <When Condition="'$(RoslynProjectType)' == '' AND '$(OutputType)' == 'Exe'">
       <PropertyGroup>
+        <_NeedRuntimeAssets>true</_NeedRuntimeAssets> 
         <CopyNuGetImplementations>true</CopyNuGetImplementations>
         <OutputPath>$(OutputPath)Exes\$(MSBuildProjectName)\</OutputPath>
       </PropertyGroup>
     </When>
     <When Condition="'$(RoslynProjectType)' == '' AND '$(OutputType)' == 'WinExe'">
       <PropertyGroup>
+        <_NeedRuntimeAssets>true</_NeedRuntimeAssets> 
         <CopyNuGetImplementations>true</CopyNuGetImplementations>
         <OutputPath>$(OutputPath)Exes\$(MSBuildProjectName)\</OutputPath>
       </PropertyGroup>
@@ -499,4 +503,16 @@
   
   <!-- Work around https://github.com/dotnet/roslyn/issues/20945 -->
   <Target Name="_CheckForUnsupportedNETCoreVersion" />
+
+  <!-- This is a work around to force the deployment of certain runtime specific DLLs contained 
+       in lib folders. Lacking this DLLs like System.Security.Cryptography.Algorithms won't deploy
+       on net461 projects. 
+       
+       https://github.com/dotnet/sdk/issues/1552 -->
+  <Target Name="WorkaroundConflictResolution" AfterTargets="_ComputeActiveTFMFileDependencies" Condition="'$(PlatformTarget)' == 'AnyCPU' AND '$(TargetFrameworkIdentifier)' == '.NETFramework' AND '$(_NeedRuntimeAssets)' == 'true'" >
+    <ItemGroup>
+      <_ActiveTFMFileDependencies Remove="@(_ActiveTFMFileDependencies->WithMetadataValue('FileGroup', 'RuntimeTarget'))" />
+    </ItemGroup>
+  </Target>
+
 </Project>
