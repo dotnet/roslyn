@@ -1199,5 +1199,56 @@ class Program
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[10]").WithArguments("System.Span<int>").WithLocation(31, 21)
                 );
         }
+
+        [WorkItem(21831, "https://github.com/dotnet/roslyn/issues/21831")]
+        [Fact()]
+        public void LocalWithNoInitializerEscape()
+        {
+            var text = @"
+    class Program
+    {
+        static void Main()
+        {
+            // uninitialized
+            S1 sp;
+
+            // ok
+            sp = default;
+            
+            int local = 42;
+
+            // error
+            sp = MayWrap(ref local);
+        }
+
+        static S1 SefReferringTest()
+        {
+            S1 sp1 = sp1;
+            return sp1;
+        }
+
+        static S1 MayWrap(ref int arg)
+        {
+            return default;
+        }
+
+        ref struct S1
+        {
+            public ref int this[int i] => throw null;
+        }
+    }
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (15,30): error CS8168: Cannot return local 'local' by reference because it is not a ref local
+                //             sp = MayWrap(ref local);
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(15, 30),
+                // (15,18): error CS8521: Cannot use a result of 'Program.MayWrap(ref int)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
+                //             sp = MayWrap(ref local);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(ref local)").WithArguments("Program.MayWrap(ref int)", "arg").WithLocation(15, 18),
+                // (21,20): error CS8526: Cannot use local 'sp1' in this context because it may expose referenced variables outside of their declaration scope
+                //             return sp1;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "sp1").WithArguments("sp1").WithLocation(21, 20)
+                );
+        }
     }
 }
