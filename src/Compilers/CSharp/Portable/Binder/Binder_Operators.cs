@@ -640,6 +640,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            bool hasError = false;
+            if (left.Kind == BoundKind.UnboundIdentifier)
+            {
+                Error(diagnostics, ErrorCode.ERR_NameNotInContext, left.Syntax, left.Syntax);
+                hasError = true;
+            }
+
+            if (right.Kind == BoundKind.UnboundIdentifier)
+            {
+                Error(diagnostics, ErrorCode.ERR_NameNotInContext, right.Syntax, right.Syntax);
+                hasError = true;
+            }
+
+            if (hasError)
+            {
+                return;
+            }
+
             ErrorCode errorCode = resultKind == LookupResultKind.Ambiguous ?
                 ErrorCode.ERR_AmbigBinaryOps : // Operator '{0}' is ambiguous on operands of type '{1}' and '{2}'
                 ErrorCode.ERR_BadBinaryOps;    // Operator '{0}' cannot be applied to operands of type '{1}' and '{2}'

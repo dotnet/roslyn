@@ -169,6 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         OutVariablePendingInference,
         DeconstructionVariablePendingInference,
         OutDeconstructVarPendingInference,
+        UnboundIdentifier,
     }
 
 
@@ -6079,6 +6080,46 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal sealed partial class UnboundIdentifier : BoundExpression
+    {
+        public UnboundIdentifier(SyntaxNode syntax, string name, bool hasErrors)
+            : base(BoundKind.UnboundIdentifier, syntax, null, hasErrors)
+        {
+
+            Debug.Assert(name != null, "Field 'name' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.Name = name;
+        }
+
+        public UnboundIdentifier(SyntaxNode syntax, string name)
+            : base(BoundKind.UnboundIdentifier, syntax, null)
+        {
+
+            Debug.Assert(name != null, "Field 'name' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.Name = name;
+        }
+
+
+        public string Name { get; }
+
+        public override BoundNode Accept(BoundTreeVisitor visitor)
+        {
+            return visitor.VisitUnboundIdentifier(this);
+        }
+
+        public UnboundIdentifier Update(string name)
+        {
+            if (name != this.Name)
+            {
+                var result = new UnboundIdentifier(this.Syntax, name, this.HasErrors);
+                result.WasCompilerGenerated = this.WasCompilerGenerated;
+                return result;
+            }
+            return this;
+        }
+    }
+
     internal abstract partial class BoundTreeVisitor<A,R>
     {
 
@@ -6385,6 +6426,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitDeconstructionVariablePendingInference(node as DeconstructionVariablePendingInference, arg);
                 case BoundKind.OutDeconstructVarPendingInference: 
                     return VisitOutDeconstructVarPendingInference(node as OutDeconstructVarPendingInference, arg);
+                case BoundKind.UnboundIdentifier: 
+                    return VisitUnboundIdentifier(node as UnboundIdentifier, arg);
             }
 
             return default(R);
@@ -6989,6 +7032,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return this.DefaultVisit(node, arg);
         }
+        public virtual R VisitUnboundIdentifier(UnboundIdentifier node, A arg)
+        {
+            return this.DefaultVisit(node, arg);
+        }
     }
 
     internal abstract partial class BoundTreeVisitor
@@ -7586,6 +7633,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node);
         }
         public virtual BoundNode VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node)
+        {
+            return this.DefaultVisit(node);
+        }
+        public virtual BoundNode VisitUnboundIdentifier(UnboundIdentifier node)
         {
             return this.DefaultVisit(node);
         }
@@ -8358,6 +8409,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
         public override BoundNode VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node)
+        {
+            return null;
+        }
+        public override BoundNode VisitUnboundIdentifier(UnboundIdentifier node)
         {
             return null;
         }
@@ -9236,6 +9291,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update();
+        }
+        public override BoundNode VisitUnboundIdentifier(UnboundIdentifier node)
+        {
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update(node.Name);
         }
     }
 
@@ -10781,6 +10841,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new TreeDumperNode("outDeconstructVarPendingInference", null, new TreeDumperNode[]
             {
+                new TreeDumperNode("type", node.Type, null)
+            }
+            );
+        }
+        public override TreeDumperNode VisitUnboundIdentifier(UnboundIdentifier node, object arg)
+        {
+            return new TreeDumperNode("unboundIdentifier", null, new TreeDumperNode[]
+            {
+                new TreeDumperNode("name", node.Name, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );

@@ -2498,6 +2498,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitUnboundIdentifier(UnboundIdentifier node)
+        {
+            return null;
+        }
+
         public override BoundNode VisitTypeOfOperator(BoundTypeOfOperator node)
         {
             VisitTypeExpression(node.SourceType);

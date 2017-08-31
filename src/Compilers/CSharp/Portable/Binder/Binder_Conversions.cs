@@ -93,6 +93,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreateAnonymousFunctionConversion(syntax, source, conversion, isCast, destination, diagnostics);
             }
 
+            if (conversion.IsTargetEnumeration && source.Kind == BoundKind.UnboundIdentifier)
+            {
+                return CreateTargetEnumerationConversion(syntax, source, conversion, isCast, destination, diagnostics);
+            }
+
             if (conversion.IsTupleLiteralConversion ||
                 (conversion.IsNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion))
             {
@@ -288,6 +293,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 explicitCastInCode: isCast,
                 constantValueOpt: ConstantValue.NotAvailable,
                 type: destination)
+            { WasCompilerGenerated = source.WasCompilerGenerated };
+        }
+
+        private BoundExpression CreateTargetEnumerationConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
+        {
+            var isNullable = destination.IsNullableType();
+            var enumType = isNullable ? destination.GetNullableUnderlyingType() : destination;
+            var fieldSymbol = (FieldSymbol)enumType.GetMembers(((UnboundIdentifier)source).Name)[0];
+            var fieldAccess = BindFieldAccess(syntax, null, fieldSymbol, diagnostics, LookupResultKind.Viable, false);
+
+            if (isNullable)
+            {
+                conversion = new Conversion(ConversionKind.ImplicitNullable, Conversion.IdentityUnderlying);
+            }
+
+            return new BoundConversion(
+                    syntax,
+                    fieldAccess,
+                    conversion,
+                    @checked: false,
+                    explicitCastInCode: isCast,
+                    constantValueOpt: fieldAccess.ConstantValue,
+                    type: destination)
             { WasCompilerGenerated = source.WasCompilerGenerated };
         }
 
