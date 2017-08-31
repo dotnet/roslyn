@@ -755,6 +755,13 @@ namespace Microsoft.CodeAnalysis
                             string finalRefPeFilePath = Arguments.OutputRefFilePath;
                             var refPeStreamProviderOpt = finalRefPeFilePath != null ? new CompilerEmitStreamProvider(this, finalRefPeFilePath) : null;
 
+                            RSAParameters? privateKeyOpt = null;
+                            if (compilation.Options.StrongNameProvider != null && compilation.Feature("BypassStrongName") == null)
+                            {
+                                privateKeyOpt = compilation.StrongNameKeys.PrivateKey;
+                                // PROTOTYPE(strongname): Report an error if PrivateKey is null, meaning that they passed in a public key file.
+                            }
+
                             try
                             {
                                 success = compilation.SerializeToPeStream(
@@ -768,6 +775,7 @@ namespace Microsoft.CodeAnalysis
                                     includePrivateMembers: emitOptions.IncludePrivateMembers,
                                     emitTestCoverageData: emitOptions.EmitTestCoverageData,
                                     pePdbFilePath: emitOptions.PdbFilePath,
+                                    privKeyOpt: privateKeyOpt,
                                     cancellationToken: cancellationToken);
                             }
                             finally

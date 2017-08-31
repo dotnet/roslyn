@@ -130,7 +130,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 PrintReferences(resolvedReferences, consoleOutput)
             End If
 
-            Dim strongNameProvider = New LoggingStrongNameProvider(Arguments.KeyFileSearchPaths, touchedFilesLogger, _tempDirectory)
+            Dim desktopStrongNameProvider As Func(Of StrongNameProvider) =
+                Function()
+                    Return New DesktopStrongNameProvider(Arguments.KeyFileSearchPaths) With {
+                        .IOOp = New LoggingIOOperations(touchedFilesLogger)
+                    }
+                End Function
+
+            Dim portableStrongNameProvider As Func(Of StrongNameProvider) =
+                Function()
+                    Return New PortableStrongNameProvider(Arguments.KeyFileSearchPaths) With {
+                        .IOOp = New LoggingIOOperations(touchedFilesLogger)
+                    }
+                End Function
+
             Dim xmlFileResolver = New LoggingXmlFileResolver(Arguments.BaseDirectory, touchedFilesLogger)
 
             ' TODO: support for #load search paths
@@ -143,11 +156,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                  Arguments.CompilationOptions.
                      WithMetadataReferenceResolver(referenceDirectiveResolver).
                      WithAssemblyIdentityComparer(assemblyIdentityComparer).
-                     WithStrongNameProvider(strongNameProvider).
                      WithXmlReferenceResolver(xmlFileResolver).
                      WithSourceReferenceResolver(sourceFileResolver))
 
-            Return result
+            Return result.WithOptions(
+                result.Options.WithStrongNameProvider(
+                    If(result.Feature("BypassStrongName") = Nothing,
+                        portableStrongNameProvider(),
+                        desktopStrongNameProvider())))
         End Function
 
         Private Sub PrintReferences(resolvedReferences As List(Of MetadataReference), consoleOutput As TextWriter)

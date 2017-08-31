@@ -12,6 +12,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -2221,6 +2222,13 @@ namespace Microsoft.CodeAnalysis
                     moduleBeingBuilt.CompilationFinished();
                 }
 
+                RSAParameters? privateKeyOpt = null;
+                if (Options.StrongNameProvider?.Capability == SigningCapability.SignsPeBuilder)
+                {
+                    privateKeyOpt = StrongNameKeys.PrivateKey;
+                    // PROTOTYPE(strongname): Report an error if PrivateKey is null, meaning that they passed in a public key file.
+                }
+
                 if (success)
                 {
                     success = SerializeToPeStream(
@@ -2234,6 +2242,7 @@ namespace Microsoft.CodeAnalysis
                         includePrivateMembers: options.IncludePrivateMembers,
                         emitTestCoverageData: options.EmitTestCoverageData,
                         pePdbFilePath: options.PdbFilePath,
+                        privKeyOpt: privateKeyOpt,
                         cancellationToken: cancellationToken);
                 }
             }
@@ -2397,6 +2406,7 @@ namespace Microsoft.CodeAnalysis
             bool includePrivateMembers,
             bool emitTestCoverageData,
             string pePdbFilePath,
+            RSAParameters? privKeyOpt,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -2475,7 +2485,7 @@ namespace Microsoft.CodeAnalysis
                     // then stream that to the stream that this method was called with. Otherwise output to the
                     // stream that this method was called with.
                     Stream retStream;
-                    if (!metadataOnly && IsRealSigned)
+                    if (!metadataOnly && IsRealSigned && this.Options.StrongNameProvider.Capability == SigningCapability.SignsStream)
                     {
                         Debug.Assert(Options.StrongNameProvider != null);
 
@@ -2534,6 +2544,7 @@ namespace Microsoft.CodeAnalysis
                         includePrivateMembers,
                         deterministic,
                         emitTestCoverageData,
+                        privKeyOpt,
                         cancellationToken))
                     {
                         if (nativePdbWriter != null)
@@ -2581,7 +2592,7 @@ namespace Microsoft.CodeAnalysis
 
                     try
                     {
-                        Options.StrongNameProvider.SignAssembly(StrongNameKeys, signingInputStream, peStream);
+                        Options.StrongNameProvider.SignStream(StrongNameKeys, signingInputStream, peStream);
                     }
                     catch (DesktopStrongNameProvider.ClrStrongNameMissingException)
                     {
@@ -2620,6 +2631,7 @@ namespace Microsoft.CodeAnalysis
             bool includePrivateMembers,
             bool isDeterministic,
             bool emitTestCoverageData,
+            RSAParameters? privKeyOpt,
             CancellationToken cancellationToken)
         {
             bool emitSecondaryAssembly = getMetadataPeStreamOpt != null;
@@ -2636,6 +2648,7 @@ namespace Microsoft.CodeAnalysis
                 metadataOnly,
                 deterministicPrimaryOutput,
                 emitTestCoverageData,
+                privKeyOpt,
                 cancellationToken))
             {
                 return false;
@@ -2657,6 +2670,7 @@ namespace Microsoft.CodeAnalysis
                     metadataOnly: true,
                     isDeterministic: true,
                     emitTestCoverageData: false,
+                    privKeyOpt: null, // PROTOTYPE(strongname): Do we need to sign ref assemblies? 
                     cancellationToken: cancellationToken))
                 {
                     return false;

@@ -12,6 +12,16 @@ namespace Roslyn.Test.Utilities
 {
     internal static class SigningTestHelpers
     {
+        public static readonly StrongNameProvider s_defaultDesktopProvider = new DesktopStrongNameProvider(ImmutableArray<string>.Empty)
+        {
+            IOOp = new VirtualizedIOOperations()
+        };
+
+        public static readonly StrongNameProvider s_defaultPortableProvider = new PortableStrongNameProvider()
+        {
+            IOOp = new VirtualizedIOOperations()
+        }; 
+
         // these are virtual paths that don't exist on disk
         internal static string KeyPairFile = @"R:\__Test__\KeyPair_" + Guid.NewGuid() + ".snk";
         internal static string PublicKeyFile = @"R:\__Test__\PublicKey_" + Guid.NewGuid() + ".snk";

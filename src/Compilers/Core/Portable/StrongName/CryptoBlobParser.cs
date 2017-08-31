@@ -238,6 +238,10 @@ namespace Microsoft.CodeAnalysis
                     return true;
                 }
             }
+            catch (OutOfMemoryException)
+            {
+                throw;
+            }
             catch (Exception)
             {
                 return false;

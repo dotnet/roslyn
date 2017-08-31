@@ -13,6 +13,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 using Microsoft.CodeAnalysis.Emit;
+using System.Security.Cryptography;
 
 namespace Microsoft.Cci
 {
@@ -35,6 +36,7 @@ namespace Microsoft.Cci
             bool metadataOnly,
             bool isDeterministic,
             bool emitTestCoverageData,
+            RSAParameters? privKeyOpt,
             CancellationToken cancellationToken)
         {
             // If PDB writer is given, we have to have PDB path.
@@ -196,6 +198,14 @@ namespace Microsoft.Cci
                 debugDirectoryBuilder = null;
             }
 
+            var strongNameProvider = context.Module.CommonCompilation.Options.StrongNameProvider;
+
+            var corFlags = properties.CorFlags;
+            if (privKeyOpt != null && strongNameProvider.Capability == SigningCapability.SignsPeBuilder)
+            {
+                corFlags |= CorFlags.StrongNameSigned;
+            }
+
             var peBuilder = new ExtendedPEBuilder(
                 peHeaderBuilder,
                 metadataRootBuilder,
@@ -204,14 +214,19 @@ namespace Microsoft.Cci
                 managedResourceBuilder,
                 CreateNativeResourceSectionSerializer(context.Module),
                 debugDirectoryBuilder,
-                CalculateStrongNameSignatureSize(context.Module),
+                CalculateStrongNameSignatureSize(context.Module, privKeyOpt),
                 entryPointHandle,
-                properties.CorFlags,
+                corFlags,
                 deterministicIdProvider,
                 metadataOnly && !context.IncludePrivateMembers);
 
             var peBlob = new BlobBuilder();
             var peContentId = peBuilder.Serialize(peBlob, out Blob mvidSectionFixup);
+
+            if (privKeyOpt != null && strongNameProvider.Capability == SigningCapability.SignsPeBuilder)
+            {
+                strongNameProvider.SignPeBuilder(peBuilder, peBlob, privKeyOpt.Value);
+            }
 
             PatchModuleVersionIds(mvidFixup, mvidSectionFixup, mvidStringFixup, peContentId.Guid);
 
@@ -317,21 +332,32 @@ namespace Microsoft.Cci
             }
         }
 
-        private static int CalculateStrongNameSignatureSize(CommonPEModuleBuilder module)
+        private static int CalculateStrongNameSignatureSize(CommonPEModuleBuilder module, RSAParameters? privateKey)
         {
             ISourceAssemblySymbolInternal assembly = module.SourceAssemblyOpt;
-            if (assembly == null)
+            if (assembly == null && !privateKey.HasValue)
             {
                 return 0;
             }
 
-            // EDMAURER the count of characters divided by two because the each pair of characters will turn in to one byte.
-            int keySize = (assembly.SignatureKey == null) ? 0 : assembly.SignatureKey.Length / 2;
+            int keySize = 0;
 
-            if (keySize == 0)
+            // EDMAURER the count of characters divided by two because the each pair of characters will turn in to one byte.
+            if (keySize == 0 && assembly != null)
+            {
+                keySize = (assembly.SignatureKey == null) ? 0 : assembly.SignatureKey.Length / 2;
+            }
+
+            if (keySize == 0 && assembly != null)
             {
                 keySize = assembly.Identity.PublicKey.Length;
             }
+
+            if (keySize == 0 && privateKey.HasValue)
+            {
+                keySize = privateKey.Value.Modulus.Length;
+            }
+
 
             if (keySize == 0)
             {

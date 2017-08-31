@@ -9,6 +9,9 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Interop;
 using Roslyn.Utilities;
 using System.Threading;
+using Microsoft.Cci;
+using System.Reflection.Metadata;
+using System.Security.Cryptography;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -118,9 +121,12 @@ namespace Microsoft.CodeAnalysis
 
         private readonly ImmutableArray<string> _keyFileSearchPaths;
         private readonly string _tempPath;
+        internal IOOperations IOOp { get; set; } = new IOOperations();
 
         // for testing/mocking
         internal Func<IClrStrongName> TestStrongNameInterfaceFactory;
+
+        internal override SigningCapability Capability => SigningCapability.SignsStream;
 
         public DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths) : this(keyFileSearchPaths, null)
         {
@@ -142,52 +148,6 @@ namespace Microsoft.CodeAnalysis
             _tempPath = tempPath;
         }
 
-        internal virtual bool FileExists(string fullPath)
-        {
-            Debug.Assert(fullPath == null || PathUtilities.IsAbsolute(fullPath));
-            return File.Exists(fullPath);
-        }
-
-        internal virtual byte[] ReadAllBytes(string fullPath)
-        {
-            Debug.Assert(PathUtilities.IsAbsolute(fullPath));
-            return File.ReadAllBytes(fullPath);
-        }
-
-        /// <summary>
-        /// Resolves assembly strong name key file path.
-        /// Internal for testing.
-        /// </summary>
-        /// <returns>Normalized key file path or null if not found.</returns>
-        internal string ResolveStrongNameKeyFile(string path)
-        {
-            // Dev11: key path is simply appended to the search paths, even if it starts with the current (parent) directory ("." or "..").
-            // This is different from PathUtilities.ResolveRelativePath.
-
-            if (PathUtilities.IsAbsolute(path))
-            {
-                if (FileExists(path))
-                {
-                    return FileUtilities.TryNormalizeAbsolutePath(path);
-                }
-
-                return path;
-            }
-
-            foreach (var searchPath in _keyFileSearchPaths)
-            {
-                string combinedPath = PathUtilities.CombineAbsoluteAndRelativePaths(searchPath, path);
-
-                Debug.Assert(combinedPath == null || PathUtilities.IsAbsolute(combinedPath));
-
-                if (FileExists(combinedPath))
-                {
-                    return FileUtilities.TryNormalizeAbsolutePath(combinedPath);
-                }
-            }
-
-            return null;
-        }
 
         /// <exception cref="IOException"></exception>
         internal override Stream CreateInputStream()
@@ -210,14 +170,14 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    string resolvedKeyFile = ResolveStrongNameKeyFile(keyFilePath);
+                    string resolvedKeyFile = IOOp.ResolveStrongNameKeyFile(keyFilePath, _keyFileSearchPaths);
                     if (resolvedKeyFile == null)
                     {
                         throw new FileNotFoundException(CodeAnalysisResources.FileNotFound, keyFilePath);
                     }
 
                     Debug.Assert(PathUtilities.IsAbsolute(resolvedKeyFile));
-                    var fileContent = ImmutableArray.Create(ReadAllBytes(resolvedKeyFile));
+                    var fileContent = ImmutableArray.Create(IOOp.ReadAllBytes(resolvedKeyFile));
                     return StrongNameKeys.CreateHelper(fileContent, keyFilePath);
                 }
                 catch (Exception ex)
@@ -267,7 +227,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <exception cref="IOException"></exception>
         /// <exception cref="ClrStrongNameMissingException"></exception>
-        internal override void SignAssembly(StrongNameKeys keys, Stream inputStream, Stream outputStream)
+        internal override void SignStream(StrongNameKeys keys, Stream inputStream, Stream outputStream)
         {
             Debug.Assert(inputStream is TempFileStream);
 
@@ -401,6 +361,11 @@ namespace Microsoft.CodeAnalysis
         public override int GetHashCode()
         {
             return Hash.CombineValues(_keyFileSearchPaths, StringComparer.Ordinal);
+        }
+
+        internal override void SignPeBuilder(ExtendedPEBuilder peWriter, BlobBuilder peBlob, RSAParameters privkey)
+        {
+            throw new InvalidOperationException();
         }
     }
 }

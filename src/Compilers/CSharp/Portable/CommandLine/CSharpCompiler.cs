@@ -137,7 +137,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var strongNameProvider = new LoggingStrongNameProvider(Arguments.KeyFileSearchPaths, touchedFilesLogger, _tempDirectory);
 
             var compilation = CSharpCompilation.Create(
                 Arguments.CompilationName,
@@ -146,11 +145,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Arguments.CompilationOptions.
                     WithMetadataReferenceResolver(referenceDirectiveResolver).
                     WithAssemblyIdentityComparer(assemblyIdentityComparer).
-                    WithStrongNameProvider(strongNameProvider).
                     WithXmlReferenceResolver(xmlFileResolver).
                     WithSourceReferenceResolver(sourceFileResolver));
 
-            return compilation;
+            StrongNameProvider LoggingPortableStrongNameProvider()
+            {
+                return new PortableStrongNameProvider(Arguments.KeyFileSearchPaths)
+                {
+                    IOOp = new LoggingIOOperations(touchedFilesLogger)
+                };
+            }
+
+            StrongNameProvider LoggingDesktopStrongNameProvider()
+            {
+                return new DesktopStrongNameProvider(Arguments.KeyFileSearchPaths)
+                {
+                    IOOp = new LoggingIOOperations(touchedFilesLogger)
+                };
+            }
+
+            return compilation.WithOptions(
+                compilation.Feature("ByPassStrongName") == null ?
+                    compilation.Options.WithStrongNameProvider(LoggingPortableStrongNameProvider()) :
+                    compilation.Options.WithStrongNameProvider(LoggingDesktopStrongNameProvider()));
         }
 
         private SyntaxTree ParseFile(
