@@ -1300,7 +1300,7 @@ internal class T
 {
     public T(out DateTime d)
     {
-        d = default(DateTime);
+        d = default;
     }
 }",
 index: 1);

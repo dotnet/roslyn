@@ -1549,7 +1549,7 @@ class C1
         public void TestParseOptions_CSharp_LanguageVersion_Latest()
         {
             CreateCSharpFiles();
-            AssertCSParseOptions(Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp7, options => options.LanguageVersion);
+            AssertCSParseOptions(Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8, options => options.LanguageVersion);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
