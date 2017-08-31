@@ -36,23 +36,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, cancellationToken))
             {
-                // let each client to have unique id so that we can distinguish different clients when service is restarted
-                var currentInstanceId = Interlocked.Add(ref s_instanceId, 1);
-
                 var primary = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
-                var current = $"VS ({Process.GetCurrentProcess().Id}) ({currentInstanceId})";
-
-                var hostGroup = new HostGroup(current);
                 var timeout = TimeSpan.FromMilliseconds(workspace.Options.GetOption(RemoteHostOptions.RequestServiceTimeoutInMS));
-                var remoteHostStream = await RequestServiceAsync(primary, WellKnownRemoteHostServices.RemoteHostService, hostGroup, timeout, cancellationToken).ConfigureAwait(false);
 
-                var instance = new ServiceHubRemoteHostClient(workspace, primary, hostGroup, remoteHostStream);
-
-                // make sure connection is done right
-                var host = await instance._rpc.InvokeAsync<string>(nameof(IRemoteHostService.Connect), current, TelemetryService.DefaultSession.SerializeSettings()).ConfigureAwait(false);
-
-                // TODO: change this to non fatal watson and make VS to use inproc implementation
-                Contract.ThrowIfFalse(host == current.ToString());
+                // Retry (with timeout) until we can connect to RemoteHost (service hub process). 
+                // we are seeing cases where we failed to connect to service hub process when a machine is under heavy load.
+                // (see https://devdiv.visualstudio.com/DevDiv/_workitems/edit/481103 as one of example)
+                var instance = await RetryRemoteCallAsync<IOException, ServiceHubRemoteHostClient>(
+                    () => CreateWorkerAsync(workspace, primary, timeout, cancellationToken), timeout, cancellationToken).ConfigureAwait(false);
 
                 instance.Connected();
 
@@ -62,6 +53,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 // return instance
                 return instance;
+            }
+        }
+
+        public static async Task<ServiceHubRemoteHostClient> CreateWorkerAsync(Workspace workspace, HubClient primary, TimeSpan timeout, CancellationToken cancellationToken)
+        {
+            ServiceHubRemoteHostClient client = null;
+            try
+            {
+                // let each client to have unique id so that we can distinguish different clients when service is restarted
+                var currentInstanceId = Interlocked.Add(ref s_instanceId, 1);
+
+                var current = $"VS ({Process.GetCurrentProcess().Id}) ({currentInstanceId})";
+
+                var hostGroup = new HostGroup(current);
+                var remoteHostStream = await RequestServiceAsync(
+                    primary, WellKnownRemoteHostServices.RemoteHostService, hostGroup, timeout, cancellationToken).ConfigureAwait(false);
+
+                client = new ServiceHubRemoteHostClient(workspace, primary, hostGroup, remoteHostStream);
+
+                await client._rpc.InvokeWithCancellationAsync<string>(
+                    nameof(IRemoteHostService.Connect),
+                    new object[] { current, TelemetryService.DefaultSession.SerializeSettings() },
+                    cancellationToken).ConfigureAwait(false);
+
+                return client;
+            }
+            catch (Exception ex)
+            {
+                // make sure we shutdown client if initializing client has failed.
+                client?.Shutdown();
+
+                // translate to our own cancellation if it is raised.
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // otherwise, report watson and throw original exception
+                WatsonReporter.Report("ServiceHub creation failed", ex, ReportDetailInfo);
+                throw;
             }
         }
 
@@ -88,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private ServiceHubRemoteHostClient(
             Workspace workspace, HubClient hubClient, HostGroup hostGroup, Stream stream) :
-            base(workspace)
+                base(workspace)
         {
             _hubClient = hubClient;
             _hostGroup = hostGroup;
@@ -136,6 +164,40 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             Disconnected();
         }
 
+        /// <summary>
+        /// call <paramref name="funcAsync"/> and retry up to <paramref name="timeout"/> if the call throws
+        /// <typeparamref name="TException"/>. any other exception from the call won't be handled here.
+        /// </summary>
+        private static async Task<TResult> RetryRemoteCallAsync<TException, TResult>(
+            Func<Task<TResult>> funcAsync,
+            TimeSpan timeout,
+            CancellationToken cancellationToken) where TException : Exception
+        {
+            const int retry_delayInMS = 50;
+
+            var start = DateTime.UtcNow;
+            while (DateTime.UtcNow - start < timeout)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                try
+                {
+                    return await funcAsync().ConfigureAwait(false);
+                }
+                catch (TException)
+                {
+                    // throw cancellation token if operation is cancelled
+                    cancellationToken.ThrowIfCancellationRequested();
+                }
+
+                // wait for retry_delayInMS before next try
+                await Task.Delay(retry_delayInMS, cancellationToken).ConfigureAwait(false);
+            }
+
+            // operation timed out, more than we are willing to wait
+            throw new TimeoutException("RequestServiceAsync timed out");
+        }
+
         private static async Task<Stream> RequestServiceAsync(
             HubClient client,
             string serviceName,
@@ -156,7 +218,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 try
                 {
-                    return await RequestServiceAsync(client, descriptor, timeout, cancellationToken).ConfigureAwait(false);
+                    // we are wrapping HubClient.RequestServiceAsync since we can't control its internal timeout value ourselves.
+                    // we have bug opened to track the issue.
+                    // https://devdiv.visualstudio.com/DefaultCollection/DevDiv/Editor/_workitems?id=378757&fullScreen=false&_a=edit
+
+                    // retry on cancellation token since HubClient will throw its own cancellation token
+                    // when it couldn't connect to service hub service for some reasons
+                    // (ex, OOP process GC blocked and not responding to request)
+                    return await RetryRemoteCallAsync<OperationCanceledException, Stream>(
+                        () => client.RequestServiceAsync(descriptor, cancellationToken),
+                        timeout,
+                        cancellationToken).ConfigureAwait(false);
                 }
                 catch (RemoteInvocationException ex)
                 {
@@ -182,41 +254,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             // unreachable
             throw ExceptionUtilities.Unreachable;
-        }
-
-        private static async Task<Stream> RequestServiceAsync(HubClient client, ServiceDescriptor descriptor, TimeSpan timeout, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            // we are wrapping HubClient.RequestServiceAsync since we can't control its internal timeout value ourselves.
-            // we have bug opened to track the issue.
-            // https://devdiv.visualstudio.com/DefaultCollection/DevDiv/Editor/_workitems?id=378757&fullScreen=false&_a=edit
-            const int retry_delayInMS = 50;
-
-            var start = DateTime.UtcNow;
-            while (start - DateTime.UtcNow < timeout)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                try
-                {
-                    return await client.RequestServiceAsync(descriptor, cancellationToken).ConfigureAwait(false);
-                }
-                catch (OperationCanceledException)
-                {
-                    // if it is our own cancellation token, then rethrow
-                    // otherwise, let us retry.
-                    //
-                    // we do this since HubClient itself can throw its own cancellation token
-                    // when it couldn't connect to service hub service for some reasons
-                    // (ex, OOP process GC blocked and not responding to request)
-                    cancellationToken.ThrowIfCancellationRequested();
-                }
-
-                // wait for retry_delayInMS before next try
-                await Task.Delay(retry_delayInMS, cancellationToken).ConfigureAwait(false);
-            }
-
-            // request service to HubClient timed out, more than we are willing to wait
-            throw new TimeoutException("RequestServiceAsync timed out");
         }
 
         private static int ReportDetailInfo(IFaultUtility faultUtility)
