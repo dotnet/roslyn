@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.SigningTestHelpers
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -18570,7 +18571,7 @@ BC30652: Reference required to assembly '5a03232e-1a0f-4d1b-99ba-5d7b40ea931e, V
         Public Sub ValueTupleBase_AssemblyUnification()
             Dim signedDllOptions = TestOptions.ReleaseDll.
                 WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
-                WithStrongNameProvider(New SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray(Of String).Empty))
+                WithStrongNameProvider(s_defaultDesktopProvider)
             Dim comp0v1 = CreateCompilationWithMscorlib(
 <compilation name="A">
     <file name="a.vb"><![CDATA[

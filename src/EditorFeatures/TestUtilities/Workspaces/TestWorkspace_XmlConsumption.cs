@@ -497,11 +497,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     // Activator.CreateInstance does not work with this.
                     if (type == typeof(DesktopStrongNameProvider))
                     {
-                        strongNameProvider = new DesktopStrongNameProvider();
-                    }
-                    else if (type == typeof(SigningTestHelpers.VirtualizedStrongNameProvider))
-                    {
-                        strongNameProvider = new SigningTestHelpers.VirtualizedStrongNameProvider();
+                        strongNameProvider = SigningTestHelpers.s_defaultDesktopProvider;
                     }
                     else
                     {

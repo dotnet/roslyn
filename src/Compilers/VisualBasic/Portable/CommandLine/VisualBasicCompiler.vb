@@ -130,24 +130,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 PrintReferences(resolvedReferences, consoleOutput)
             End If
 
-            Dim strongNameProvider = New LoggingStrongNameProvider(Arguments.KeyFileSearchPaths, touchedFilesLogger, _tempDirectory)
             Dim xmlFileResolver = New LoggingXmlFileResolver(Arguments.BaseDirectory, touchedFilesLogger)
 
             ' TODO: support for #load search paths
             Dim sourceFileResolver = New LoggingSourceFileResolver(ImmutableArray(Of String).Empty, Arguments.BaseDirectory, Arguments.PathMap, touchedFilesLogger)
 
-            Dim result = VisualBasicCompilation.Create(
+            Dim loggingFileSystem = New LoggingStrongNameFileSystem(touchedFilesLogger)
+
+            Return VisualBasicCompilation.Create(
                  Arguments.CompilationName,
                  trees,
                  resolvedReferences,
                  Arguments.CompilationOptions.
                      WithMetadataReferenceResolver(referenceDirectiveResolver).
                      WithAssemblyIdentityComparer(assemblyIdentityComparer).
-                     WithStrongNameProvider(strongNameProvider).
                      WithXmlReferenceResolver(xmlFileResolver).
+                     WithStrongNameProvider(Arguments.GetStrongNameProvider(loggingFileSystem)).
                      WithSourceReferenceResolver(sourceFileResolver))
-
-            Return result
         End Function
 
         Private Sub PrintReferences(resolvedReferences As List(Of MetadataReference), consoleOutput As TextWriter)

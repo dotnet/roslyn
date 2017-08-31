@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             }
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/22437")]
         public async Task PersistentService_Project_WriteReadSameInstance()
         {
             var solution = CreateOrOpenSolution();

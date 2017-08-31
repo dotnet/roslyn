@@ -755,6 +755,12 @@ namespace Microsoft.CodeAnalysis
                             string finalRefPeFilePath = Arguments.OutputRefFilePath;
                             var refPeStreamProviderOpt = finalRefPeFilePath != null ? new CompilerEmitStreamProvider(this, finalRefPeFilePath) : null;
 
+                            RSAParameters? privateKeyOpt = null;
+                            if (compilation.Options.StrongNameProvider?.Capability == SigningCapability.SignsPeBuilder && !compilation.Options.PublicSign)
+                            {
+                                privateKeyOpt = compilation.StrongNameKeys.PrivateKey;
+                            }
+
                             try
                             {
                                 success = compilation.SerializeToPeStream(
@@ -768,6 +774,7 @@ namespace Microsoft.CodeAnalysis
                                     includePrivateMembers: emitOptions.IncludePrivateMembers,
                                     emitTestCoverageData: emitOptions.EmitTestCoverageData,
                                     pePdbFilePath: emitOptions.PdbFilePath,
+                                    privateKeyOpt: privateKeyOpt,
                                     cancellationToken: cancellationToken);
                             }
                             finally

@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis
         //In IDE typing scenarios we often need to infer public key from the same
         //key file blob repeatedly and it is relatively expensive.
         //So we will store last seen blob and corresponding key here.
-        private static Tuple<ImmutableArray<byte>, ImmutableArray<byte>> s_lastSeenKeyPair;
+        private static Tuple<ImmutableArray<byte>, ImmutableArray<byte>, RSAParameters?> s_lastSeenKeyPair;
 
         // Note: Errors are reported by throwing an IOException
         internal static StrongNameKeys CreateHelper(ImmutableArray<byte> keyFileContent, string keyFilePath)
@@ -128,6 +128,7 @@ namespace Microsoft.CodeAnalysis
             {
                 keyPair = cachedKeyPair.Item1;
                 publicKey = cachedKeyPair.Item2;
+                privateKey = cachedKeyPair.Item3;
             }
             else
             {
@@ -146,8 +147,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // Cache the key pair
-                cachedKeyPair = new Tuple<ImmutableArray<byte>, ImmutableArray<byte>>(
-                    keyPair, publicKey);
+                cachedKeyPair = new Tuple<ImmutableArray<byte>, ImmutableArray<byte>, RSAParameters?>(keyPair, publicKey, privateKey);
                 Interlocked.Exchange(ref s_lastSeenKeyPair, cachedKeyPair);
             }
 

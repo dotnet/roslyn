@@ -12,6 +12,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -2221,6 +2222,12 @@ namespace Microsoft.CodeAnalysis
                     moduleBeingBuilt.CompilationFinished();
                 }
 
+                RSAParameters? privateKeyOpt = null;
+                if (Options.StrongNameProvider?.Capability == SigningCapability.SignsPeBuilder && !Options.PublicSign)
+                {
+                    privateKeyOpt = StrongNameKeys.PrivateKey;
+                }
+
                 if (success)
                 {
                     success = SerializeToPeStream(
@@ -2234,6 +2241,7 @@ namespace Microsoft.CodeAnalysis
                         includePrivateMembers: options.IncludePrivateMembers,
                         emitTestCoverageData: options.EmitTestCoverageData,
                         pePdbFilePath: options.PdbFilePath,
+                        privateKeyOpt: privateKeyOpt,
                         cancellationToken: cancellationToken);
                 }
             }
@@ -2397,6 +2405,7 @@ namespace Microsoft.CodeAnalysis
             bool includePrivateMembers,
             bool emitTestCoverageData,
             string pePdbFilePath,
+            RSAParameters? privateKeyOpt,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -2460,6 +2469,7 @@ namespace Microsoft.CodeAnalysis
                     getPortablePdbStream = null;
                 }
 
+                // PROTOTYPE(strongname): simplify this code
                 Func<Stream> getPeStream = () =>
                 {
                     if (metadataDiagnostics.HasAnyErrors())
@@ -2474,12 +2484,12 @@ namespace Microsoft.CodeAnalysis
                         return null;
                     }
 
-                    // Signing can only be done to on-disk files. This is a limitation of the CLR APIs which we use 
-                    // to perform strong naming. If this binary is configured to be signed, create a temp file, output to that
+                    // If the current strong name provider is the Desktop version, signing can only be done to on-disk files. 
+                    // If this binary is configured to be signed, create a temp file, output to that
                     // then stream that to the stream that this method was called with. Otherwise output to the
                     // stream that this method was called with.
                     Stream retStream;
-                    if (!metadataOnly && IsRealSigned)
+                    if (!metadataOnly && IsRealSigned && this.Options.StrongNameProvider.Capability == SigningCapability.SignsStream)
                     {
                         Debug.Assert(Options.StrongNameProvider != null);
 
@@ -2538,6 +2548,7 @@ namespace Microsoft.CodeAnalysis
                         includePrivateMembers,
                         deterministic,
                         emitTestCoverageData,
+                        privateKeyOpt,
                         cancellationToken))
                     {
                         if (nativePdbWriter != null)
@@ -2585,7 +2596,7 @@ namespace Microsoft.CodeAnalysis
 
                     try
                     {
-                        Options.StrongNameProvider.SignAssembly(StrongNameKeys, signingInputStream, peStream);
+                        Options.StrongNameProvider.SignStream(StrongNameKeys, signingInputStream, peStream);
                     }
                     catch (DesktopStrongNameProvider.ClrStrongNameMissingException)
                     {
@@ -2624,6 +2635,7 @@ namespace Microsoft.CodeAnalysis
             bool includePrivateMembers,
             bool isDeterministic,
             bool emitTestCoverageData,
+            RSAParameters? privateKeyOpt,
             CancellationToken cancellationToken)
         {
             bool emitSecondaryAssembly = getMetadataPeStreamOpt != null;
@@ -2640,6 +2652,7 @@ namespace Microsoft.CodeAnalysis
                 metadataOnly,
                 deterministicPrimaryOutput,
                 emitTestCoverageData,
+                privateKeyOpt,
                 cancellationToken))
             {
                 return false;
@@ -2661,6 +2674,7 @@ namespace Microsoft.CodeAnalysis
                     metadataOnly: true,
                     isDeterministic: true,
                     emitTestCoverageData: false,
+                    privateKeyOpt: privateKeyOpt,
                     cancellationToken: cancellationToken))
                 {
                     return false;
