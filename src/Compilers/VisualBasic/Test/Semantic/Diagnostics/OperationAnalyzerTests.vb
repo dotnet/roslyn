@@ -139,31 +139,6 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub BigForVisualBasic()
-            Dim source = <compilation>
-                             <file name="c.vb">
-                                 <![CDATA[
-Class C
-    Public Sub M1()
-        Dim x as Integer
-        For x = 1 To 200000 : Next
-        For x = 1 To 2000000 : Next
-        For x = 1500000 To 0 Step -2 : Next
-        For x = 3000000 To 0 Step -2 : Next
-    End Sub
-End Class
-]]>
-                             </file>
-                         </compilation>
-
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
-            comp.VerifyDiagnostics()
-            comp.VerifyAnalyzerDiagnostics({New BigForTestAnalyzer}, Nothing, Nothing, False,
-                                           Diagnostic(BigForTestAnalyzer.BigForDescriptor.Id, "For x = 1 To 2000000 : Next").WithLocation(5, 9),
-                                           Diagnostic(BigForTestAnalyzer.BigForDescriptor.Id, "For x = 3000000 To 0 Step -2 : Next").WithLocation(7, 9))
-        End Sub
-
-        <Fact>
         Public Sub SwitchVisualBasic()
             Dim source = <compilation>
                              <file name="c.vb">
