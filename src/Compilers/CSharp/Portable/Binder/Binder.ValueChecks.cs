@@ -1903,7 +1903,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(!fieldSymbol.IsStatic && fieldSymbol.ContainingType.IsByRefLikeType);
 
                     // for ref-like fields defer to the receiver.
-                    return GetRefEscape(fieldAccess.ReceiverOpt, scopeOfTheContainingExpression);
+                    return GetValEscape(fieldAccess.ReceiverOpt, scopeOfTheContainingExpression);
 
                 case BoundKind.Call:
                     var call = (BoundCall)expr;
