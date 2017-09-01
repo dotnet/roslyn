@@ -323,23 +323,25 @@ namespace Microsoft.CodeAnalysis.Semantics
         private ILocalReferenceExpression CreateBoundLocalOperation(BoundLocal boundLocal)
         {
             ILocalSymbol local = boundLocal.LocalSymbol;
+            bool isDeclaration = boundLocal.IsDeclaration;
             SyntaxNode syntax = boundLocal.Syntax;
             ITypeSymbol type = boundLocal.Type;
             Optional<object> constantValue = ConvertToOptional(boundLocal.ConstantValue);
             bool isImplicit = boundLocal.WasCompilerGenerated;
-            return new LocalReferenceExpression(local, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LocalReferenceExpression(local, isDeclaration, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IFieldReferenceExpression CreateBoundFieldAccessOperation(BoundFieldAccess boundFieldAccess)
         {
             IFieldSymbol field = boundFieldAccess.FieldSymbol;
+            bool isDeclaration = boundFieldAccess.IsDeclaration;
             Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(boundFieldAccess.FieldSymbol.IsStatic ? null : boundFieldAccess.ReceiverOpt));
             ISymbol member = boundFieldAccess.FieldSymbol;
             SyntaxNode syntax = boundFieldAccess.Syntax;
             ITypeSymbol type = boundFieldAccess.Type;
             Optional<object> constantValue = ConvertToOptional(boundFieldAccess.ConstantValue);
             bool isImplicit = boundFieldAccess.WasCompilerGenerated;
-            return new LazyFieldReferenceExpression(field, instance, member, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyFieldReferenceExpression(field, isDeclaration, instance, member, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IPropertyReferenceExpression CreateBoundPropertyAccessOperation(BoundPropertyAccess boundPropertyAccess)
@@ -547,7 +549,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 case SymbolKind.Field:
                     var field = (FieldSymbol)boundObjectInitializerMember.MemberSymbol;
-                    return new LazyFieldReferenceExpression(field, instance, field, _semanticModel, syntax, type, constantValue, isImplicit);
+                    bool isDeclaration = false;
+                    return new LazyFieldReferenceExpression(field, isDeclaration, instance, field, _semanticModel, syntax, type, constantValue, isImplicit);
                 case SymbolKind.Event:
                     var eventSymbol = (EventSymbol)boundObjectInitializerMember.MemberSymbol;
                     return new LazyEventReferenceExpression(eventSymbol, instance, eventSymbol, _semanticModel, syntax, type, constantValue, isImplicit);
@@ -712,9 +715,10 @@ namespace Microsoft.CodeAnalysis.Semantics
             ITypeSymbol isType = boundIsOperator.TargetType.Type;
             SyntaxNode syntax = boundIsOperator.Syntax;
             ITypeSymbol type = boundIsOperator.Type;
+            bool isNotTypeExpression = false;
             Optional<object> constantValue = ConvertToOptional(boundIsOperator.ConstantValue);
             bool isImplicit = boundIsOperator.WasCompilerGenerated;
-            return new LazyIsTypeExpression(operand, isType, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyIsTypeExpression(operand, isType, isNotTypeExpression, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ISizeOfExpression CreateBoundSizeOfOperatorOperation(BoundSizeOfOperator boundSizeOfOperator)

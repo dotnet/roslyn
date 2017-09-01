@@ -392,7 +392,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (int.Try ... , s ={s}"");'
             InConversion: null
             OutConversion: null
           IArgument (ArgumentKind.Explicit, Matching Parameter: result) (OperationKind.Argument) (Syntax: 'var i')
-            ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'var i')
+            ILocalReferenceExpression: i (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'var i')
             InConversion: null
             OutConversion: null
   IfTrue: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... , s ={s}"");')
@@ -532,7 +532,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ... }')
                           InConversion: null
                           OutConversion: null
                         IArgument (ArgumentKind.Explicit, Matching Parameter: result) (OperationKind.Argument) (Syntax: 'var i')
-                          ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'var i')
+                          ILocalReferenceExpression: i (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'var i')
                           InConversion: null
                           OutConversion: null
                   InConversion: null

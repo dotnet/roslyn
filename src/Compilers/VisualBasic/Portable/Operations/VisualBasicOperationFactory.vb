@@ -565,11 +565,12 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function CreateBoundTypeOfOperation(boundTypeOf As BoundTypeOf) As IIsTypeExpression
             Dim operand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundTypeOf.Operand))
             Dim isType As ITypeSymbol = boundTypeOf.TargetType
+            Dim isNotTypeExpression As Boolean = boundTypeOf.IsTypeOfIsNotExpression
             Dim syntax As SyntaxNode = boundTypeOf.Syntax
             Dim type As ITypeSymbol = boundTypeOf.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundTypeOf.ConstantValueOpt)
             Dim isImplicit As Boolean = boundTypeOf.WasCompilerGenerated
-            Return New LazyIsTypeExpression(operand, isType, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyIsTypeExpression(operand, isType, isNotTypeExpression, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundObjectCreationExpressionOperation(boundObjectCreationExpression As BoundObjectCreationExpression) As IObjectCreationExpression
@@ -701,6 +702,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundFieldAccessOperation(boundFieldAccess As BoundFieldAccess) As IFieldReferenceExpression
             Dim field As IFieldSymbol = boundFieldAccess.FieldSymbol
+            Dim isDeclaration As Boolean = False
             Dim instance As Lazy(Of IOperation) = New Lazy(Of IOperation)(
                 Function()
                     If boundFieldAccess.FieldSymbol.IsShared Then
@@ -715,7 +717,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim type As ITypeSymbol = boundFieldAccess.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundFieldAccess.ConstantValueOpt)
             Dim isImplicit As Boolean = boundFieldAccess.WasCompilerGenerated
-            Return New LazyFieldReferenceExpression(field, instance, member, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyFieldReferenceExpression(field, isDeclaration, instance, member, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundConditionalAccessOperation(boundConditionalAccess As BoundConditionalAccess) As IConditionalAccessExpression
@@ -747,11 +749,12 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundLocalOperation(boundLocal As BoundLocal) As ILocalReferenceExpression
             Dim local As ILocalSymbol = boundLocal.LocalSymbol
+            Dim isDeclaration As Boolean = False
             Dim syntax As SyntaxNode = boundLocal.Syntax
             Dim type As ITypeSymbol = boundLocal.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundLocal.ConstantValueOpt)
             Dim isImplicit As Boolean = boundLocal.WasCompilerGenerated
-            Return New LocalReferenceExpression(local, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LocalReferenceExpression(local, isDeclaration, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundLateMemberAccessOperation(boundLateMemberAccess As BoundLateMemberAccess) As IDynamicMemberReferenceExpression
