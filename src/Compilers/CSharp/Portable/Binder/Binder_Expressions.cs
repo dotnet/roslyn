@@ -1239,106 +1239,137 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default(ImmutableArray<TypeSymbol>);
 
             var lookupResult = LookupResult.GetInstance();
-            LookupOptions options = LookupOptions.AllMethodsOnArityZero;
-            if (invoked)
+            try
             {
-                options |= LookupOptions.MustBeInvocableIfMember;
-            }
-
-            if (!IsInMethodBody && this.EnclosingNameofArgument == null)
-            {
-                Debug.Assert((options & LookupOptions.NamespacesOrTypesOnly) == 0);
-                options |= LookupOptions.MustNotBeMethodTypeParameter;
-            }
-
-            var name = node.Identifier.ValueText;
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            this.LookupSymbolsWithFallback(lookupResult, name, arity: arity, useSiteDiagnostics: ref useSiteDiagnostics, options: options);
-            diagnostics.Add(node, useSiteDiagnostics);
-
-            if (lookupResult.Kind != LookupResultKind.Empty)
-            {
-                // have we detected an error with the current node?
-                bool isError = false;
-                bool wasError;
-                var members = ArrayBuilder<Symbol>.GetInstance();
-                Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, name, node.Arity, members, diagnostics, out wasError);  // reports diagnostics in result.
-
-                isError |= wasError;
-
-                if ((object)symbol == null)
+                LookupOptions options = LookupOptions.AllMethodsOnArityZero;
+                if (invoked)
                 {
-                    Debug.Assert(members.Count > 0);
+                    options |= LookupOptions.MustBeInvocableIfMember;
+                }
 
-                    var receiver = SynthesizeMethodGroupReceiver(node, members);
-                    expression = ConstructBoundMemberGroupAndReportOmittedTypeArguments(
-                        node,
-                        typeArgumentList,
-                        typeArguments,
-                        receiver,
-                        name,
-                        members,
-                        lookupResult,
-                        receiver != null ? BoundMethodGroupFlags.HasImplicitReceiver : BoundMethodGroupFlags.None,
-                        isError,
-                        diagnostics);
+                if (!IsInMethodBody && this.EnclosingNameofArgument == null)
+                {
+                    Debug.Assert((options & LookupOptions.NamespacesOrTypesOnly) == 0);
+                    options |= LookupOptions.MustNotBeMethodTypeParameter;
+                }
+
+                var name = node.Identifier.ValueText;
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                this.LookupSymbolsWithFallback(lookupResult, name, arity: arity, useSiteDiagnostics: ref useSiteDiagnostics, options: options);
+                diagnostics.Add(node, useSiteDiagnostics);
+
+                if (lookupResult.Kind != LookupResultKind.Empty)
+                {
+                    // have we detected an error with the current node?
+                    bool isError = false;
+                    bool wasError;
+                    var members = ArrayBuilder<Symbol>.GetInstance();
+                    Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, name, node.Arity, members, diagnostics, out wasError);  // reports diagnostics in result.
+
+                    isError |= wasError;
+
+                    if ((object)symbol == null)
+                    {
+                        Debug.Assert(members.Count > 0);
+
+                        var receiver = SynthesizeMethodGroupReceiver(node, members);
+                        expression = ConstructBoundMemberGroupAndReportOmittedTypeArguments(
+                            node,
+                            typeArgumentList,
+                            typeArguments,
+                            receiver,
+                            name,
+                            members,
+                            lookupResult,
+                            receiver != null ? BoundMethodGroupFlags.HasImplicitReceiver : BoundMethodGroupFlags.None,
+                            isError,
+                            diagnostics);
+                    }
+                    else
+                    {
+                        bool isNamedType = (symbol.Kind == SymbolKind.NamedType) || (symbol.Kind == SymbolKind.ErrorType);
+
+                        if (hasTypeArguments && isNamedType)
+                        {
+                            symbol = ConstructNamedTypeUnlessTypeArgumentOmitted(node, (NamedTypeSymbol)symbol, typeArgumentList, typeArguments, diagnostics);
+                        }
+
+                        expression = BindNonMethod(node, symbol, diagnostics, lookupResult.Kind, isError);
+
+                        if (!isNamedType && (hasTypeArguments || node.Kind() == SyntaxKind.GenericName))
+                        {
+                            Debug.Assert(isError); // Should have been reported by GetSymbolOrMethodOrPropertyGroup.
+                            expression = new BoundBadExpression(
+                                syntax: node,
+                                resultKind: LookupResultKind.WrongArity,
+                                symbols: ImmutableArray.Create(symbol),
+                                childBoundNodes: ImmutableArray.Create(expression),
+                                type: expression.Type,
+                                hasErrors: isError);
+                        }
+                    }
+
+                    members.Free();
                 }
                 else
                 {
-                    bool isNamedType = (symbol.Kind == SymbolKind.NamedType) || (symbol.Kind == SymbolKind.ErrorType);
-
-                    if (hasTypeArguments && isNamedType)
+                    if (node.Kind() == SyntaxKind.IdentifierName)
                     {
-                        symbol = ConstructNamedTypeUnlessTypeArgumentOmitted(node, (NamedTypeSymbol)symbol, typeArgumentList, typeArguments, diagnostics);
+                        if (FallBackOnDiscard((IdentifierNameSyntax)node, diagnostics))
+                        {
+                            return new BoundDiscardExpression(node, type: null);
+                        }
+
+                        if (IsInTargetTypeContext(node))
+                        {
+                            return new UnboundIdentifier(node, name);
+                        }
                     }
 
-                    expression = BindNonMethod(node, symbol, diagnostics, lookupResult.Kind, isError);
-
-                    if (!isNamedType && (hasTypeArguments || node.Kind() == SyntaxKind.GenericName))
+                    // Otherwise, the simple-name is undefined and a compile-time error occurs.
+                    expression = BadExpression(node);
+                    if (lookupResult.Error != null)
                     {
-                        Debug.Assert(isError); // Should have been reported by GetSymbolOrMethodOrPropertyGroup.
-                        expression = new BoundBadExpression(
-                            syntax: node,
-                            resultKind: LookupResultKind.WrongArity,
-                            symbols: ImmutableArray.Create(symbol),
-                            childBoundNodes: ImmutableArray.Create(expression),
-                            type: expression.Type,
-                            hasErrors: isError);
+                        Error(diagnostics, lookupResult.Error, node);
+                    }
+                    else if (IsJoinRangeVariableInLeftKey(node))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_QueryOuterKey, node, name);
+                    }
+                    else if (IsInJoinRightKey(node))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_QueryInnerKey, node, name);
+                    }
+                    else
+                    {
+                        Error(diagnostics, ErrorCode.ERR_NameNotInContext, node, name);
                     }
                 }
 
-                members.Free();
+                return expression;
             }
-            else
+            finally
             {
-                if (node.IsKind(SyntaxKind.IdentifierName) && FallBackOnDiscard((IdentifierNameSyntax)node, diagnostics))
-                {
-                    lookupResult.Free();
-                    return new BoundDiscardExpression(node, type: null);
-                }
+                lookupResult.Free();
+            }
+        }
 
-                // Otherwise, the simple-name is undefined and a compile-time error occurs.
-                expression = BadExpression(node);
-                if (lookupResult.Error != null)
-                {
-                    Error(diagnostics, lookupResult.Error, node);
-                }
-                else if (IsJoinRangeVariableInLeftKey(node))
-                {
-                    Error(diagnostics, ErrorCode.ERR_QueryOuterKey, node, name);
-                }
-                else if (IsInJoinRightKey(node))
-                {
-                    Error(diagnostics, ErrorCode.ERR_QueryInnerKey, node, name);
-                }
-                else
-                {
-                    Error(diagnostics, ErrorCode.ERR_NameNotInContext, node, name);
-                }
+        private static bool IsInTargetTypeContext(SyntaxNode node)
+        {
+            // TODO(target-enum): where do we want to support this?
+
+            switch (node.Parent?.Kind())
+            {
+                case SyntaxKind.CaseSwitchLabel:
+                case SyntaxKind.ConstantPattern:
+                case SyntaxKind.EqualsExpression:
+                case SyntaxKind.NotEqualsExpression:
+                    return true;
+                default:
+                    return false;
             }
 
-            lookupResult.Free();
-            return expression;
+            // TODO(target-enum): check feature flag
         }
 
         /// <summary>

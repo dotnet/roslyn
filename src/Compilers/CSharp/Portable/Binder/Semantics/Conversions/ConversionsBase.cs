@@ -815,7 +815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.UnboundLambda:
-                    if (HasAnonymousFunctionConversion(sourceExpression, destination))
+                    if (HasAnonymousFunctionConversion((UnboundLambda)sourceExpression, destination))
                     {
                         return Conversion.AnonymousFunction;
                     }
@@ -839,9 +839,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ThrowExpression:
                     return Conversion.ImplicitThrow;
+
+                case BoundKind.UnboundIdentifier:
+                    if (HasTargetEnumerationConversion((UnboundIdentifier)sourceExpression, destination))
+                    {
+                        return Conversion.TargetEnumeration;
+                    }
+                    break;
             }
 
             return Conversion.NoConversion;
+        }
+
+        private static bool HasTargetEnumerationConversion(UnboundIdentifier source, TypeSymbol destination)
+        {
+            Debug.Assert((object)destination != null);
+
+            bool validType = destination.IsEnumType() ||
+                             destination.IsNullableType() && (destination = destination.GetNullableUnderlyingType()).IsEnumType();
+
+            return validType && destination.GetMembers(source.Name).Length == 1;
         }
 
         private static Conversion ClassifyNullLiteralConversion(BoundExpression source, TypeSymbol destination)
@@ -1235,17 +1252,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return LambdaConversionResult.BadTargetType;
         }
 
-        private static bool HasAnonymousFunctionConversion(BoundExpression source, TypeSymbol destination)
+        private static bool HasAnonymousFunctionConversion(UnboundLambda source, TypeSymbol destination)
         {
             Debug.Assert(source != null);
             Debug.Assert((object)destination != null);
 
-            if (source.Kind != BoundKind.UnboundLambda)
-            {
-                return false;
-            }
-
-            return IsAnonymousFunctionCompatibleWithType((UnboundLambda)source, destination) == LambdaConversionResult.Success;
+            return IsAnonymousFunctionCompatibleWithType(source, destination) == LambdaConversionResult.Success;
         }
 
         internal Conversion ClassifyImplicitUserDefinedConversionForV6SwitchGoverningType(TypeSymbol sourceType, out TypeSymbol switchGoverningType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

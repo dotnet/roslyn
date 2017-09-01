@@ -81,7 +81,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConstantValue constantValueOpt = null;
             var convertedExpression = ConvertPatternExpression(operandType, patternExpression, expression, ref constantValueOpt, diagnostics);
             wasExpression = expression.Type?.IsErrorType() != true;
-            if (!convertedExpression.HasErrors && constantValueOpt == null)
+
+            if (convertedExpression.Kind == BoundKind.UnboundIdentifier)
+            {
+                diagnostics.Add(ErrorCode.ERR_NameNotInContext, patternExpression.Location, patternExpression);
+                hasErrors = true;
+            }
+            else if (!convertedExpression.HasErrors && constantValueOpt == null)
             {
                 diagnostics.Add(ErrorCode.ERR_ConstantExpected, patternExpression.Location);
                 hasErrors = true;

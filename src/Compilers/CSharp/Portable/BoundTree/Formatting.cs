@@ -144,4 +144,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return (object)this.Type ?? "default"; }
         }
     }
+
+    internal partial class UnboundIdentifier
+    {
+        public override object Display
+        {
+            get { return this.Name; }
+        }
+    }
 }

@@ -2805,6 +2805,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            if (operand.Kind == BoundKind.UnboundIdentifier)
+            {
+                Error(diagnostics, ErrorCode.ERR_NameNotInContext, syntax, syntax);
+                return;
+            }
+            
             if (operand.Kind == BoundKind.TupleLiteral)
             {
                 var tuple = (BoundTupleLiteral)operand;

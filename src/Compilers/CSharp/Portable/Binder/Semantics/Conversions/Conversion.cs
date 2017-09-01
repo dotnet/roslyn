@@ -194,6 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitDynamic: 
                 case ConversionKind.ExplicitDynamic: 
                 case ConversionKind.InterpolatedString:
+                case ConversionKind.TargetEnumeration:
                     isTrivial = true;
                     break;
 
@@ -237,6 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion Deconstruction => new Conversion(ConversionKind.Deconstruction);
         internal static Conversion IdentityValue => new Conversion(ConversionKind.IdentityValue);
         internal static Conversion PinnedObjectToPointer => new Conversion(ConversionKind.PinnedObjectToPointer);
+        internal static Conversion TargetEnumeration => new Conversion(ConversionKind.TargetEnumeration);
 
         // trivial conversions that could be underlying in nullable conversion
         // NOTE: tuple conversions can be underlying as well, but they are not trivial 
@@ -647,6 +649,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return Kind == ConversionKind.AnonymousFunction;
+            }
+        }
+
+        internal bool IsTargetEnumeration
+        {
+            get
+            {
+                return Kind == ConversionKind.TargetEnumeration;
             }
         }
 

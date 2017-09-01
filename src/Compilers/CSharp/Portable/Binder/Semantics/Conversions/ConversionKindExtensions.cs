@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.NullToPointer:
                 case ConversionKind.InterpolatedString:
                 case ConversionKind.Deconstruction:
+                case ConversionKind.TargetEnumeration:
                     return true;
 
                 case ConversionKind.ExplicitNumeric:
