@@ -371,7 +371,7 @@ function Get-VisualStudioDirAndId() {
         # recorded in that form.
         $name = $obj.installationName
         if ($name -match "VisualStudio(Preview)?/([\d.]+)(\+|-).*") { 
-            $minVersion = New-Object System.Version "15.1.0"
+            $minVersion = New-Object System.Version "15.3.0"
             $version = New-Object System.Version $matches[2]
             if ($version -ge $minVersion) {
                 Write-Output $obj.installationPath
