@@ -7447,7 +7447,7 @@ partial class C
         <entry offset=""0x13"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" />
       </sequencePoints>
     </method>
-    <method containingType=""Program"" name=""&lt;Main&gt;g__Local10_0"" parameterNames=""a"">
+    <method containingType=""Program"" name=""&lt;Main&gt;g__Local1|0_0"" parameterNames=""a"">
       <customDebugInfo>
         <forward declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
       </customDebugInfo>
@@ -7455,7 +7455,7 @@ partial class C
         <entry offset=""0x0"" startLine=""7"" startColumn=""13"" endLine=""7"" endColumn=""21"" />
       </sequencePoints>
     </method>
-    <method containingType=""Program"" name=""&lt;Main&gt;g__Local20_1"" parameterNames=""a"">
+    <method containingType=""Program"" name=""&lt;Main&gt;g__Local2|0_1"" parameterNames=""a"">
       <customDebugInfo>
         <forward declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
         <encLocalSlotMap>
