@@ -288,6 +288,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (ITaskItem[])_store[nameof(ResponseFiles)]; }
         }
 
+        public string SharedCompilationId
+        {
+            set { _store[nameof(SharedCompilationId)] = value; }
+            get { return (string)_store[nameof(SharedCompilationId)]; }
+        }
+
         public bool SkipCompilerExecution
         {
             set { _store[nameof(SkipCompilerExecution)] = value; }
@@ -467,6 +473,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         buildPaths,
                         keepAlive: null,
                         libEnvVariable: LibDirectoryToUse(),
+                        sharedCompilationId: SharedCompilationId,
                         cancellationToken: _sharedCompileCts.Token);
 
                     responseTask.Wait(_sharedCompileCts.Token);

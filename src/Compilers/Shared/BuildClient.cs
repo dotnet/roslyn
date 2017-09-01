@@ -54,14 +54,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
             bool hasShared;
             string keepAlive;
             string errorMessage;
-            string sessionKey;
+            string sharedCompilationId;
             List<string> parsedArgs;
             if (!CommandLineParser.TryParseClientArgs(
                     args,
                     out parsedArgs,
                     out hasShared,
                     out keepAlive,
-                    out sessionKey,
+                    out sharedCompilationId,
                     out errorMessage))
             {
                 Console.Out.WriteLine(errorMessage);
@@ -70,9 +70,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             if (hasShared)
             {
-                sessionKey = sessionKey ?? GetSessionKey(buildPaths);
+                string pipeName = ConstructPipeName(buildPaths, sharedCompilationId);
                 var libDirectory = Environment.GetEnvironmentVariable("LIB");
-                var serverResult = RunServerCompilation(textWriter, parsedArgs, buildPaths, libDirectory, sessionKey, keepAlive);
+                var serverResult = RunServerCompilation(textWriter, parsedArgs, buildPaths, libDirectory, pipeName, keepAlive);
                 if (serverResult.HasValue)
                 {
                     Debug.Assert(serverResult.Value.RanOnServer);
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// Runs the provided compilation on the server.  If the compilation cannot be completed on the server then null
         /// will be returned.
         /// </summary>
-        internal RunCompilationResult? RunServerCompilation(TextWriter textWriter, List<string> arguments, BuildPaths buildPaths, string libDirectory, string sessionName, string keepAlive)
+        internal RunCompilationResult? RunServerCompilation(TextWriter textWriter, List<string> arguments, BuildPaths buildPaths, string libDirectory, string pipeName, string keepAlive)
         {
             BuildResponse buildResponse;
 
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 var buildResponseTask = RunServerCompilation(
                     arguments,
                     buildPaths,
-                    sessionName,
+                    pipeName,
                     keepAlive,
                     libDirectory,
                     CancellationToken.None);
@@ -165,9 +165,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
-        protected abstract Task<BuildResponse> RunServerCompilation(List<string> arguments, BuildPaths buildPaths, string sessionName, string keepAlive, string libDirectory, CancellationToken cancellationToken);
+        protected abstract Task<BuildResponse> RunServerCompilation(List<string> arguments, BuildPaths buildPaths, string pipeName, string keepAlive, string libDirectory, CancellationToken cancellationToken);
 
-        protected abstract string GetSessionKey(BuildPaths buildPaths);
+        protected abstract string ConstructPipeName(BuildPaths buildPaths, string sharedCompilationId = null);
 
         protected static IEnumerable<string> GetCommandLineArgs(IEnumerable<string> args)
         {

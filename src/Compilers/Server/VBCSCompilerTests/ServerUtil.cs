@@ -32,12 +32,22 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         internal CancellationTokenSource CancellationTokenSource { get; }
         internal Task<ServerStats> ServerTask { get; }
         internal Task ListenTask { get; }
+
+        /// <summary>
+        /// Fully constructed server pipe name
+        /// </summary>
         internal string PipeName { get; }
 
-        internal ServerData(CancellationTokenSource cancellationTokenSource, string pipeName, Task<ServerStats> serverTask, Task listenTask)
+        /// <summary>
+        /// "Uniqueifying" component for pipe name, unhashed
+        /// </summary>
+        internal string SharedCompilationId { get; }
+
+        internal ServerData(CancellationTokenSource cancellationTokenSource, string clientDirectory, string sharedCompilationId, Task<ServerStats> serverTask, Task listenTask)
         {
             CancellationTokenSource = cancellationTokenSource;
-            PipeName = pipeName;
+            PipeName = BuildServerConnection.GetPipeNameForPathOpt(clientDirectory, sharedCompilationId);
+            SharedCompilationId = sharedCompilationId;
             ServerTask = serverTask;
             ListenTask = listenTask;
         }
@@ -80,14 +90,27 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 tempDir: tempDir);
         }
 
+        /// <summary>
+        /// Gets the client directory from a host if it has one, or a default otherwise
+        /// </summary>
+        private static string GetClientDirectoryOrDefault(ICompilerServerHost compilerServerHost)
+        {
+            var compilerHostImpl = compilerServerHost as CompilerServerHost;
+            return compilerHostImpl?.ClientDirectory ?? DefaultClientDirectory;
+        }
+
         internal static ServerData CreateServer(
-            string pipeName = null,
+            string sharedCompilationId = null,
             TimeSpan? timeout = null,
             ICompilerServerHost compilerServerHost = null,
             IClientConnectionHost clientConnectionHost = null)
         {
-            pipeName = pipeName ?? Guid.NewGuid().ToString();
+            sharedCompilationId = sharedCompilationId ?? Guid.NewGuid().ToString();
             compilerServerHost = compilerServerHost ?? new DesktopCompilerServerHost(DefaultClientDirectory, DefaultSdkDirectory);
+
+            string clientDirectory = GetClientDirectoryOrDefault(compilerServerHost);
+            // Get the fully constructed, hashed pipe name.
+            string pipeName = BuildServerConnection.GetPipeNameForPathOpt(clientDirectory, sharedCompilationId);
 
             var serverStatsSource = new TaskCompletionSource<ServerStats>();
             var serverListenSource = new TaskCompletionSource<bool>();
@@ -124,15 +147,18 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 Thread.Yield();
             }
 
-            return new ServerData(cts, pipeName, serverStatsSource.Task, serverListenSource.Task);
+            return new ServerData(cts, clientDirectory, sharedCompilationId, serverStatsSource.Task, serverListenSource.Task);
         }
 
         /// <summary>
         /// Create a compiler server that fails all connections.
         /// </summary>
-        internal static ServerData CreateServerFailsConnection(string pipeName = null)
+        internal static ServerData CreateServerFailsConnection(string sharedCompilationId = null)
         {
-            pipeName = pipeName ?? Guid.NewGuid().ToString();
+            // This is the "uniqueifying" component of the pipe name.
+            sharedCompilationId = sharedCompilationId ?? Guid.NewGuid().ToString();
+            // Get the fully constructed, hashed pipe name.
+            string pipeName = BuildServerConnection.GetPipeNameForPathOpt(DefaultClientDirectory, sharedCompilationId);
 
             var taskSource = new TaskCompletionSource<ServerStats>();
             var cts = new CancellationTokenSource();
@@ -164,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 mre.WaitOne();
             }
 
-            return new ServerData(cts, pipeName, taskSource.Task, Task.FromException(new Exception()));
+            return new ServerData(cts, DefaultClientDirectory, sharedCompilationId, taskSource.Task, Task.FromException(new Exception()));
         }
 
         internal static async Task<BuildResponse> Send(string pipeName, BuildRequest request)
