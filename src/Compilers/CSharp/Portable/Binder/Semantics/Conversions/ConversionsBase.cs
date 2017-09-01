@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sourceType = sourceExpression.Type;
 
             //PERF: identity conversion is by far the most common implicit conversion, check for that first
-            if ((object)sourceType != null && HasIdentityConversion(sourceType, destination))
+            if ((object)sourceType != null && HasIdentityConversion(sourceType, destination, ref useSiteDiagnostics))
             {
                 return Conversion.Identity;
             }
@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
 
-            if (HasIdentityConversion(source, destination))
+            if (HasIdentityConversion(source, destination, ref useSiteDiagnostics))
             {
                 return Conversion.Identity;
             }
@@ -807,10 +807,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.SuppressNullableWarningExpression:
-                    var notNullConversion = ClassifyImplicitBuiltInConversionFromExpression(((BoundSuppressNullableWarningExpression)sourceExpression).Expression, source, destination, ref useSiteDiagnostics);
-                    if (notNullConversion.Exists)
+                    var innerExpression = ((BoundSuppressNullableWarningExpression)sourceExpression).Expression;
+                    var innerConversion = ClassifyImplicitBuiltInConversionFromExpression(innerExpression, innerExpression.Type, destination, ref useSiteDiagnostics);
+                    if (innerConversion.Exists)
                     {
-                        return notNullConversion;
+                        return innerConversion;
                     }
                     break;
 
@@ -1312,6 +1313,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool HasIdentityConversion(TypeSymbol type1, TypeSymbol type2)
         {
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            return HasIdentityConversion(type1, type2, ref useSiteDiagnostics);
+        }
+
+        internal static bool HasIdentityConversion(TypeSymbol type1, TypeSymbol type2, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
             // Spec (6.1.1):
             // An identity conversion converts from any type to the same type. This conversion exists 
             // such that an entity that already has a required type can be said to be convertible to 
@@ -1324,7 +1331,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)type1 != null);
             Debug.Assert((object)type2 != null);
 
-            return type1.Equals(type2, TypeCompareKind.AllIgnoreOptions);
+            // PROTOTYPE(NullableReferenceTypes): Equals should return a value that indicates
+            // directly whether the types were equal or equal ignoring nullable modifiers.
+            if (!type1.Equals(type2, TypeCompareKind.AllIgnoreOptions))
+            {
+                return false;
+            }
+
+            if (!type1.Equals(type2, TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes | TypeCompareKind.UnknownNullableModifierMatchesAny))
+            {
+                if (useSiteDiagnostics == null)
+                {
+                    useSiteDiagnostics = new HashSet<DiagnosticInfo>();
+                }
+                // PROTOTYPE(NullableReferenceTypes): Need general WRN_NullabilityMismatch warning.
+                useSiteDiagnostics.Add(new CSDiagnosticInfo(ErrorCode.WRN_NullabilityMismatchInAssignment, type1, type2));
+            }
+
+            return true;
         }
 
         public static bool HasIdentityConversionToAny<T>(T type, ArrayBuilder<T> targetTypes)
@@ -2439,7 +2463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Do a quick check up front to avoid instantiating a new Conversions object,
             // if possible.
-            var quickResult = HasVariantConversionQuick(source, destination);
+            var quickResult = HasVariantConversionQuick(source, destination, ref useSiteDiagnostics);
             if (quickResult.HasValue())
             {
                 return quickResult.Value();
@@ -2449,12 +2473,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 HasVariantConversionNoCycleCheck(source, destination, ref useSiteDiagnostics);
         }
 
-        private static ThreeState HasVariantConversionQuick(NamedTypeSymbol source, NamedTypeSymbol destination)
+        private static ThreeState HasVariantConversionQuick(NamedTypeSymbol source, NamedTypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
 
-            if (HasIdentityConversion(source, destination))
+            if (HasIdentityConversion(source, destination, ref useSiteDiagnostics))
             {
                 return ThreeState.True;
             }

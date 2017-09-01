@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// A simple class that combines a single symbol with annotations
     /// </summary>
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal abstract class SymbolWithAnnotations : IMessageSerializable 
     {
         public abstract Symbol Symbol { get; }
@@ -74,6 +75,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool operator !=(SymbolWithAnnotations x, Symbol y)
         {
             throw ExceptionUtilities.Unreachable;
+        }
+
+        internal virtual string GetDebuggerDisplay()
+        {
+            return ToString();
         }
     }
 
@@ -599,6 +605,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return this;
             }
+
+            internal override string GetDebuggerDisplay()
+            {
+                var str = _typeSymbol.ToString();
+                if (IsNullable == false)
+                {
+                    str += "!";
+                }
+                return str;
+            }
         }
 
         private class NullableReferenceTypeWithoutCustomModifiers : TypeSymbolWithAnnotations
@@ -652,6 +668,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override TypeSymbolWithAnnotations AsNotNullableReferenceType()
             {
                 return new WithoutCustomModifiers(_typeSymbol);
+            }
+
+            internal override string GetDebuggerDisplay()
+            {
+                return _typeSymbol.ToString() + "?";
             }
         }
 
@@ -707,6 +728,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return new WithoutCustomModifiers(_typeSymbol);
             }
+
+            internal override string GetDebuggerDisplay()
+            {
+                return _typeSymbol.ToString();
+            }
         }
 
         private sealed class LazyNullableType : TypeSymbolWithAnnotations
@@ -752,6 +778,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     return _resolved;
                 }
+            }
+
+            internal override string GetDebuggerDisplay()
+            {
+                return _underlying.TypeSymbol.ToString() + "?";
             }
 
             public override TypeSymbol NullableUnderlyingTypeOrSelf => _underlying.TypeSymbol;

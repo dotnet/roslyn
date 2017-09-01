@@ -1930,7 +1930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             Conversion conversion = this.Conversions.ClassifyConversionFromExpression(operand, targetType, ref useSiteDiagnostics, forCast: true);
-            diagnostics.Add(node, useSiteDiagnostics);
+            diagnostics.Add(node, useSiteDiagnostics, ignoreNullabilityWarnings: true);
             if (operand.HasAnyErrors || targetType.IsErrorType() || !conversion.IsValid || targetType.IsStatic)
             {
                 GenerateExplicitConversionErrors(diagnostics, node, conversion, operand, targetType);

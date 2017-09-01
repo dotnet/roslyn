@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 walker.Analyze(ref badRegion, diagnostics);
                 Debug.Assert(!badRegion);
             }
-            catch (BoundTreeVisitor.CancelledByStackGuardException ex) when (diagnostics != null)
+            catch (CancelledByStackGuardException ex) when (diagnostics != null)
             {
                 ex.AddAnError(diagnostics);
             }
@@ -1497,14 +1497,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     InheritNullableStateOfTrackableStruct(targetType.TypeSymbol, slot, GetValueSlotForAssignment(value), IsByRefTarget(slot));
                 }
-
-                if (value != null && (object)value.Type != null &&
-                    targetType.TypeSymbol.Equals(value.Type, TypeCompareKind.AllIgnoreOptions) &&
-                    !targetType.TypeSymbol.Equals(value.Type, 
-                                       TypeCompareKind.CompareNullableModifiersForReferenceTypes | TypeCompareKind.UnknownNullableModifierMatchesAny))
-                {
-                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, value.Syntax, value.Type, targetType.TypeSymbol);
-                }
             }
         }
 
@@ -1972,14 +1964,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReturn, node.ExpressionOpt.Syntax);
                     }
-                }
-
-                if ((object)node.ExpressionOpt.Type != null &&
-                    returnType.TypeSymbol.Equals(node.ExpressionOpt.Type, TypeCompareKind.AllIgnoreOptions) &&
-                    !returnType.TypeSymbol.Equals(node.ExpressionOpt.Type,
-                                       TypeCompareKind.CompareNullableModifiersForReferenceTypes | TypeCompareKind.UnknownNullableModifierMatchesAny))
-                {
-                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, node.ExpressionOpt.Syntax, node.ExpressionOpt.Type, returnType.TypeSymbol);
                 }
             }
 
@@ -2767,8 +2751,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (!invoke.ReturnType.Equals(method.ReturnType, TypeCompareKind.CompareNullableModifiersForReferenceTypes | TypeCompareKind.UnknownNullableModifierMatchesAny) &&
-                invoke.ReturnType.Equals(method.ReturnType, TypeCompareKind.AllIgnoreOptions))
+            if (IsNullabilityMismatch(invoke.ReturnType, method.ReturnType))
             {
                 ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, syntax,
                     new FormattedSymbol(method, SymbolDisplayFormat.MinimallyQualifiedFormat), 
@@ -2779,8 +2762,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < count; i++)
             {
-                if (!invoke.Parameters[i].Type.Equals(method.Parameters[i].Type, TypeCompareKind.CompareNullableModifiersForReferenceTypes | TypeCompareKind.UnknownNullableModifierMatchesAny) &&
-                    invoke.Parameters[i].Type.Equals(method.Parameters[i].Type, TypeCompareKind.AllIgnoreOptions))
+                if (IsNullabilityMismatch(invoke.Parameters[i].Type, method.Parameters[i].Type))
                 {
                     ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, syntax,
                         new FormattedSymbol(method.Parameters[i], SymbolDisplayFormat.ShortFormat),
@@ -4299,6 +4281,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullAsNonNullable, value.Syntax);
             }
             return true;
+        }
+
+        private static bool IsNullabilityMismatch(TypeSymbolWithAnnotations type1, TypeSymbolWithAnnotations type2)
+        {
+            return type1.Equals(type2, TypeCompareKind.AllIgnoreOptions) &&
+                !type1.Equals(type2, TypeCompareKind.CompareNullableModifiersForReferenceTypes | TypeCompareKind.UnknownNullableModifierMatchesAny);
         }
 
         private bool? InferResultNullabilityFromApplicableCandidates(ImmutableArray<Symbol> applicableMembers)

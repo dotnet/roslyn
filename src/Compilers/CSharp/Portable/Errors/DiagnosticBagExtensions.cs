@@ -58,15 +58,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool Add(
             this DiagnosticBag diagnostics,
             SyntaxNode node,
-            HashSet<DiagnosticInfo> useSiteDiagnostics)
+            HashSet<DiagnosticInfo> useSiteDiagnostics,
+            bool ignoreNullabilityWarnings = false)
         {
-            return !useSiteDiagnostics.IsNullOrEmpty() && diagnostics.Add(node.Location, useSiteDiagnostics);
+            return !useSiteDiagnostics.IsNullOrEmpty() && diagnostics.Add(node.Location, useSiteDiagnostics, ignoreNullabilityWarnings);
         }
 
         internal static bool Add(
             this DiagnosticBag diagnostics,
             Location location,
-            HashSet<DiagnosticInfo> useSiteDiagnostics)
+            HashSet<DiagnosticInfo> useSiteDiagnostics,
+            bool ignoreNullabilityWarnings = false)
         {
             if (useSiteDiagnostics.IsNullOrEmpty())
             {
@@ -77,6 +79,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var info in useSiteDiagnostics)
             {
+                if (ignoreNullabilityWarnings && info.Code == (int)ErrorCode.WRN_NullabilityMismatchInAssignment)
+                {
+                    continue;
+                }
+
                 if (info.Severity == DiagnosticSeverity.Error)
                 {
                     haveErrors = true;
