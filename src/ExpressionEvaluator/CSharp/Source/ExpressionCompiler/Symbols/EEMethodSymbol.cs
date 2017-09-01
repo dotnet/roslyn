@@ -710,10 +710,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             if (this.ReturnType.ContainsNullableReferenceTypes())
             {
-                if (SourceAssemblySymbol.GetUseSiteDiagnosticForNullableAttribute(compilation)?.Severity != DiagnosticSeverity.Error)
+                var diagnostics = DiagnosticBag.GetInstance();
+                SourceAssemblySymbol.GetUseSiteDiagnosticsForNullableAttribute(compilation, diagnostics);
+                if (!diagnostics.HasAnyErrors())
                 {
                     AddSynthesizedAttribute(ref attributes, compilation.SynthesizeNullableAttribute(this.ReturnType));
                 }
+                diagnostics.Free();
             }
         }
 

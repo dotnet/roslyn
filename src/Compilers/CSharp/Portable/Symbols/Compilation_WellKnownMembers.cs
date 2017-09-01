@@ -104,6 +104,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     result = null;
                 }
+                else if (type == WellKnownType.System_Runtime_CompilerServices_NullableAttribute)
+                {
+                    // PROTOTYPE(NullableReferenceTypes): Handle consistently with other embedded attributes.
+                    var diagnostics = DiagnosticBag.GetInstance();
+                    result = ((SourceModuleSymbol)SourceModule).GetNullableAttribute(diagnostics);
+                    diagnostics.Free();
+                }
                 else
                 {
                     // well-known types introduced before CSharp7 allow lookup ambiguity and report a warning

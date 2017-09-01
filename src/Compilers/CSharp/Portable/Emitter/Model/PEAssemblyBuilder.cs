@@ -59,7 +59,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes()
         {
-            return _additionalTypes;
+            var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+            builder.AddRange(_additionalTypes);
+            // PROTOTYPE(NullableReferenceTypes): Handle NullableAttribute consistently
+            // with other embedded attributes. For now, we include the type explicitly.
+            var diagnostics = DiagnosticBag.GetInstance();
+            builder.AddIfNotNull(SourceModule.GetNullableAttribute(diagnostics));
+            diagnostics.Free();
+            return builder.ToImmutableAndFree();
         }
 
         public sealed override IEnumerable<Cci.IFileReference> GetFiles(EmitContext context)
