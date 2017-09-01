@@ -1250,5 +1250,54 @@ class Program
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "sp1").WithArguments("sp1").WithLocation(21, 20)
                 );
         }
+
+        [WorkItem(21858, "https://github.com/dotnet/roslyn/issues/21858")]
+        [Fact()]
+        public void FieldOfRefLikeEscape()
+        {
+            var text = @"
+    class Program
+    {
+        static void Main()
+        {
+        }
+
+        ref struct S1
+        {
+            private S2 x;
+
+            public S1(S2 arg) => x = arg;
+
+            public S2 M1()
+            {
+                // ok
+                return x;
+            }
+
+            public S2 M2()
+            {
+                var toReturn = x;
+
+                // ok
+                return toReturn;
+            }
+
+            public ref S2 M3()
+            {
+                // not ok
+                return ref x;
+            }
+        }
+
+        ref struct S2{}
+
+    }
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (31,28): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //                 return ref x;
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "x").WithArguments("this").WithLocation(31, 28)
+                );
+        }
     }
 }
