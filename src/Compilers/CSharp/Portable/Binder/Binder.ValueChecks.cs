@@ -1115,7 +1115,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             uint escapeTo = scopeOfTheContainingExpression;
 
             // collect all writeable ref-like arguments, including receiver
-            if (receiverOpt?.Type?.IsByRefLikeType == true)
+            var receiverType = receiverOpt?.Type;
+            if (receiverType?.IsByRefLikeType == true && receiverType?.IsReadOnly == false)
             {
                 escapeTo = GetValEscape(receiverOpt, scopeOfTheContainingExpression);
             }
