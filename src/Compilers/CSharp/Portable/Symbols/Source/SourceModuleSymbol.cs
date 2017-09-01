@@ -5,7 +5,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -45,6 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// one attribute at a time, in the callback that validates an attribute's application to a symbol. It is assumed
         /// to be complete after a call to GetAttributes(). 
         private ConcurrentDictionary<string, ConcurrentSet<ImmutableArray<byte>>> _lazyNullableOptOutForAssemblyMap;
+
+        private NamedTypeSymbol _lazyNullableAttribute;
 
         internal SourceModuleSymbol(
             SourceAssemblySymbol assemblySymbol,
@@ -619,37 +620,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private NamedTypeSymbol _lazyNullableAttribute;
-
-        internal NamedTypeSymbol GetNullableAttribute()
+        // PROTOTYPE(NullableReferenceTypes): Handle NullableAttribute
+        // consistently with other embedded attributes.
+        internal NamedTypeSymbol GetNullableAttribute(DiagnosticBag diagnostics = null)
         {
             if (UtilizesNullableReferenceTypes && (object)_lazyNullableAttribute == null)
             {
-                ImmutableArray<Symbol> GetNullableAttributeMembers(CSharpCompilation compilation, NamedTypeSymbol containingType)
+                Debug.Assert(diagnostics != null); // First caller should be prepared to handle diagnostics.
+
+                var bag = DiagnosticBag.GetInstance();
+                var symbol = new SynthesizedEmbeddedAttributeSymbol(
+                    _assemblySymbol.DeclaringCompilation,
+                    AttributeDescription.NullableAttribute.Namespace,
+                    AttributeDescription.NullableAttribute.Name,
+                    GetNullableAttributeMembers,
+                    bag);
+                if ((object)Interlocked.CompareExchange(ref _lazyNullableAttribute, symbol, null) == null)
                 {
-                    var boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
-                    var boolArray = TypeSymbolWithAnnotations.Create(
-                        ArrayTypeSymbol.CreateSZArray(
-                            boolType.ContainingAssembly,
-                            TypeSymbolWithAnnotations.Create(boolType)));
-                    return ImmutableArray.Create<Symbol>(
-                        new SynthesizedEmbeddedAttributeConstructorSymbol(
-                            containingType,
-                            m => ImmutableArray<ParameterSymbol>.Empty),
-                        new SynthesizedEmbeddedAttributeConstructorSymbol(
-                            containingType,
-                            m => ImmutableArray.Create(SynthesizedParameterSymbol.Create(m, boolArray, 0, RefKind.None))));
+                    diagnostics.AddRange(bag);
                 }
-                Interlocked.CompareExchange(
-                    ref _lazyNullableAttribute,
-                    new SynthesizedEmbeddedAttributeSymbol(
-                        _assemblySymbol.DeclaringCompilation,
-                        AttributeDescription.NullableAttribute.Namespace,
-                        AttributeDescription.NullableAttribute.Name,
-                        GetNullableAttributeMembers),
-                    null);
+                bag.Free();
             }
+
             return _lazyNullableAttribute;
+        }
+
+        private static ImmutableArray<Symbol> GetNullableAttributeMembers(
+            CSharpCompilation compilation,
+            NamedTypeSymbol containingType,
+            DiagnosticBag diagnostics)
+        {
+            var boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
+            var info = boolType.GetUseSiteDiagnostic();
+            if ((object)info != null)
+            {
+                diagnostics.Add(info, NoLocation.Singleton);
+            }
+            var boolArray = TypeSymbolWithAnnotations.Create(
+                ArrayTypeSymbol.CreateSZArray(
+                    boolType.ContainingAssembly,
+                    TypeSymbolWithAnnotations.Create(boolType)));
+            return ImmutableArray.Create<Symbol>(
+                new SynthesizedEmbeddedAttributeConstructorSymbol(
+                    containingType,
+                    m => ImmutableArray<ParameterSymbol>.Empty),
+                new SynthesizedEmbeddedAttributeConstructorSymbol(
+                    containingType,
+                    m => ImmutableArray.Create(SynthesizedParameterSymbol.Create(m, boolArray, 0, RefKind.None))));
         }
 
         internal override bool UtilizesNullableReferenceTypes

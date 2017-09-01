@@ -91,72 +91,104 @@ class C
                 );
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Test case where NullableAttribute cannot be generated.
-        [Fact(Skip = "TODO")]
-        public void MissingNullableType_01()
+        [Fact]
+        public void NullableAttribute_MissingBoolean()
         {
-            CSharpCompilation core = CreateCompilation(@"
-namespace System
+            var source0 =
+@"namespace System
 {
-    public class Object {}
-    public struct Int32 {}
-    public struct Void {}
-}
-");
-
-            CSharpCompilation c = CreateCompilation(@"
-class C
-{
-    static void Main()
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public class Attribute
     {
-        int? x = null;
     }
+}";
+            var comp0 = CreateCompilation(source0);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
 
-    static void Test(int? x) {}
-}
-", new[] { core.ToMetadataReference() }, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
-
-            c.VerifyDiagnostics(
-                 // error CS8618: Compiler required type 'System.Runtime.CompilerServices.NullableAttribute' cannot be found. Are you missing a reference?
-                 Diagnostic(ErrorCode.ERR_NullableAttributeMissing).WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(1, 1),
-                 // (9,22): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
-                 //     static void Test(int? x) {}
-                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int?").WithArguments("System.Nullable`1").WithLocation(9, 22),
-                 // (6,9): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
-                 //         int? x = null;
-                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int?").WithArguments("System.Nullable`1").WithLocation(6, 9)
-                );
+            var source =
+@"class C
+{
+    object? F() => null;
+}";
+            var comp = CreateCompilation(
+                source,
+                references: new[] { ref0 },
+                parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            comp.VerifyEmitDiagnostics(
+                // error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Boolean").WithLocation(1, 1));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Test case where NullableAttribute cannot be generated.
-        [Fact(Skip = "TODO")]
-        public void MissingNullableType_02()
+        [Fact]
+        public void NullableAttribute_MissingAttribute()
         {
-            CSharpCompilation core = CreateCompilation(@"
-namespace System
+            var source0 =
+@"namespace System
 {
-    public class Object {}
-    public struct Void {}
-}
-");
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+}";
+            var comp0 = CreateCompilation(source0);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
 
-            CSharpCompilation c = CreateCompilation(@"
-class C
+            var source =
+@"class C
 {
-    static void Main()
+    object? F() => null;
+}";
+            var comp = CreateCompilation(
+                source,
+                references: new[] { ref0 },
+                parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            comp.VerifyEmitDiagnostics(
+                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
+                // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1),
+                // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void NullableAttribute_StaticAttributeConstructorOnly()
+        {
+            var source0 =
+@"namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public class Attribute
     {
-        object? x = null;
-        Test(x);
+        static Attribute() { }
+        public Attribute(object o) { }
     }
+}";
+            var comp0 = CreateCompilation(source0);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
 
-    static void Test(object? x) {}
-}
-", new[] { core.ToMetadataReference() }, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
-
-            c.VerifyDiagnostics(
-                 // error CS8618: Compiler required type 'System.Runtime.CompilerServices.NullableAttribute' cannot be found. Are you missing a reference?
-                 Diagnostic(ErrorCode.ERR_NullableAttributeMissing).WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(1, 1)
-                );
+            var source =
+@"class C
+{
+    object? F() => null;
+}";
+            var comp = CreateCompilation(
+                source,
+                references: new[] { ref0 },
+                parseOptions: TestOptions.Regular.WithNullCheckingFeature());
+            comp.VerifyEmitDiagnostics(
+                // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1),
+                // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1));
         }
 
         [Fact]
@@ -11450,76 +11482,6 @@ class F : C<F?>, I1<C<B?>>, I2<C<B>?>
             CreateStandardCompilation(new[] { CSharpSyntaxTree.ParseText(source, TestOptions.Regular),
                                                   CSharpSyntaxTree.ParseText(source, TestOptions.Regular)},
                                           options: TestOptions.ReleaseDll);
-        }
-
-        // PROTOTYPE(NullableReferenceTypes): Test case where NullableAttribute cannot be generated.
-        [Fact(Skip = "TODO")]
-        public void MissingNullableAttribute_01()
-        {
-            var source = @"
-abstract class B
-{
-    string? F1; 
-    event System.Action? E1;
-    string? P1 {get; set;}
-    string?[][,] P2 {get; set;}
-    System.Action<string?> M1(string? x) {throw new System.NotImplementedException();}
-    string[]?[,] M2(string[][,]? x) {throw new System.NotImplementedException();}
-    void M3(string?* x) {}
-    public abstract string? this[System.Action? x] {get; set;} 
-
-    public static implicit operator B?(int x) {throw new System.NotImplementedException();}
-    event System.Action? E2
-    {
-        add { }
-        remove { }
-    }
-}
-
-delegate string? D1();
-
-interface I1<T>{}
-interface I2<T>{}
-
-class C<T> {}
-
-class F : C<F?>, I1<C<B?>>, I2<C<B>?>
-{}
-";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
-
-            compilation.VerifyDiagnostics(
-                // error CS8618: Compiler required type 'System.Runtime.CompilerServices.NullableAttribute' cannot be found. Are you missing a reference?
-                Diagnostic(ErrorCode.ERR_NullableAttributeMissing).WithArguments("System.Runtime.CompilerServices.NullableAttribute"),
-                // (10,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //     void M3(string?* x) {}
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "string?*"),
-                // (10,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
-                //     void M3(string?* x) {}
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "string?*").WithArguments("string"),
-                // (4,13): warning CS0169: The field 'B.F1' is never used
-                //     string? F1; 
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "F1").WithArguments("B.F1").WithLocation(4, 13),
-                // (5,26): warning CS0067: The event 'B.E1' is never used
-                //     event System.Action? E1;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E1").WithArguments("B.E1").WithLocation(5, 26)
-                );
-        }
-
-        // PROTOTYPE(NullableReferenceTypes): Test case where NullableAttribute cannot be generated.
-        [Fact(Skip = "TODO")]
-        public void MissingNullableAttribute_02()
-        {
-            var source = @"
-public abstract class B
-{
-}
-";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithNullCheckingFeature());
-            compilation.VerifyDiagnostics(
-                 // error CS8618: Compiler required type 'System.Runtime.CompilerServices.NullableAttribute' cannot be found. Are you missing a reference?
-                 Diagnostic(ErrorCode.ERR_NullableAttributeMissing).WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(1, 1)
-                );
         }
 
         [Fact]

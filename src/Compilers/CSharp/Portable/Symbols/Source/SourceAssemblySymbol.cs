@@ -650,20 +650,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (compilation.SourceModule.UtilizesNullableReferenceTypes)
             {
-                DiagnosticInfo info = GetUseSiteDiagnosticForNullableAttribute(compilation);
-
-                if ((object)info != null)
-                {
-                    diagnostics.Add(info, NoLocation.Singleton);
-                }
+                GetUseSiteDiagnosticsForNullableAttribute(compilation, diagnostics);
             }
         }
 
-        internal static DiagnosticInfo GetUseSiteDiagnosticForNullableAttribute(CSharpCompilation compilation)
+        internal static void GetUseSiteDiagnosticsForNullableAttribute(CSharpCompilation compilation, DiagnosticBag diagnostics)
         {
-            // PROTOTYPE(NullableReferenceTypes): Verify use-site diagnostics are
-            // reported when generating embedded NullableAttribute type.
-            return null;
+            ((SourceModuleSymbol)compilation.SourceModule).GetNullableAttribute(diagnostics);
         }
 
         /// <summary>

@@ -61,6 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
             builder.AddRange(_additionalTypes);
+            // PROTOTYPE(NullableReferenceTypes): Handle NullableAttribute consistently
+            // with other embedded attributes. For now, we include the type explicitly.
             builder.AddIfNotNull(SourceModule.GetNullableAttribute());
             return builder.ToImmutableAndFree();
         }

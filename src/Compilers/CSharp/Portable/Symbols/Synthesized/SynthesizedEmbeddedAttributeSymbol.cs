@@ -10,6 +10,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
+    // PROTOTYPE(NullableReferenceTypes): Merge with implementation from
+    // `ref readonly`. The one addition from this implementation is support
+    // for additional constructors with parameters.
     internal sealed class SynthesizedEmbeddedAttributeSymbol : NamedTypeSymbol
     {
         private readonly string _name;
@@ -22,17 +25,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation compilation,
             string @namespace,
             string name,
-            Func<CSharpCompilation, NamedTypeSymbol, ImmutableArray<Symbol>> getMembers)
+            Func<CSharpCompilation, NamedTypeSymbol, DiagnosticBag, ImmutableArray<Symbol>> getMembers,
+            DiagnosticBag diagnostics)
         {
             _name = name;
             _baseType = compilation.GetWellKnownType(WellKnownType.System_Attribute);
+            Binder.ReportUseSiteDiagnostics(_baseType, diagnostics, Location.None);
+            
             _module = compilation.SourceModule;
             _namespace = _module.GlobalNamespace;
             foreach (var part in @namespace.Split('.'))
             {
                 _namespace = new MissingNamespaceSymbol(_namespace, part);
             }
-            _members = getMembers(compilation, this);
+            _members = getMembers(compilation, this, diagnostics);
         }
 
         public override int Arity => 0;
@@ -145,7 +151,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var factory = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
             factory.CurrentMethod = this;
 
-            var baseConstructor = ContainingType.BaseType.Constructors.Single(m => m.ParameterCount == 0);
+            var baseType = ContainingType.BaseType;
+            var baseConstructor = baseType.InstanceConstructors.SingleOrDefault(m => m.ParameterCount == 0);
+            if ((object)baseConstructor == null)
+            {
+                diagnostics.Add(ErrorCode.ERR_BadCtorArgCount, NoLocation.Singleton, baseType, 0);
+                return;
+            }
+
             var baseConstructorCall = factory.Call(factory.This(), baseConstructor);
 
             var block = factory.Block(
