@@ -543,7 +543,7 @@ class Class1
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var y /*<bi ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'var y /*<bi ... *</bind>*/;')
     Variables: Local_1: dynamic y
-    Initializer: IDynamicPropertyReferenceExpression (OperationKind.DynamicPropertyReferenceExpression, Type: dynamic) (Syntax: 'd[x]')
+    Initializer: IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic) (Syntax: 'd[x]')
         Expression: IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
         ApplicableSymbols(0)
         Arguments(1):
@@ -629,7 +629,7 @@ internal class Class
 }
 ";
             string expectedOperationTree = @"
-IDynamicObjectCreationExpression (Name: Class) (OperationKind.DynamicObjectCreationExpression, Type: Class) (Syntax: 'new Class(x)')
+IDynamicObjectCreationExpression (OperationKind.DynamicObjectCreationExpression, Type: Class) (Syntax: 'new Class(x)')
   ApplicableSymbols(2):
     Symbol: Class..ctor(Class x)
     Symbol: Class..ctor(System.String x)

@@ -19,16 +19,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Dynamically bound arguments, excluding the instance argument.
         /// </summary>
         ImmutableArray<IOperation> Arguments { get; }
-        
-        /// <summary>
-        /// Optional argument names for named arguments.
-        /// </summary>
-        ImmutableArray<string> ArgumentNames { get; }
-
-        /// <summary>
-        /// Optional argument ref kinds.
-        /// </summary>
-        ImmutableArray<RefKind> ArgumentRefKinds { get; }
     }
 }
 

@@ -444,32 +444,33 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitAnonymousObjectCreationExpression(operation);
         }
 
+        private void VisitDynamicArguments(IHasDynamicArgumentsExpression operation)
+        {
+            var dynamicOperation = (HasDynamicArgumentsExpression)operation;
+            var applicableSymbols = dynamicOperation.ApplicableSymbols;
+            var names = dynamicOperation.ArgumentNames;
+            var refKinds = dynamicOperation.ArgumentRefKinds;
+        }
+
         public override void VisitDynamicObjectCreationExpression(IDynamicObjectCreationExpression operation)
         {
-            var name = operation.MemberName;
-            var applicableSymbols = operation.ApplicableSymbols;
-            var names = operation.ArgumentNames;
-            var refKinds = operation.ArgumentRefKinds;
+            VisitDynamicArguments(operation);
 
             base.VisitDynamicObjectCreationExpression(operation);
         }
 
         public override void VisitDynamicInvocationExpression(IDynamicInvocationExpression operation)
         {
-            var applicableSymbols = operation.ApplicableSymbols;
-            var names = operation.ArgumentNames;
-            var refKinds = operation.ArgumentRefKinds;
+            VisitDynamicArguments(operation);
 
             base.VisitDynamicInvocationExpression(operation);
         }
 
-        public override void VisitDynamicPropertyReferenceExpression(IDynamicPropertyReferenceExpression operation)
+        public override void VisitDynamicIndexerAccessExpression(IDynamicIndexerAccessExpression operation)
         {
-            var applicableSymbols = operation.ApplicableSymbols;
-            var names = operation.ArgumentNames;
-            var refKinds = operation.ArgumentRefKinds;
-            
-            base.VisitDynamicPropertyReferenceExpression(operation);
+            VisitDynamicArguments(operation);
+
+            base.VisitDynamicIndexerAccessExpression(operation);
         }
 
         public override void VisitObjectOrCollectionInitializerExpression(IObjectOrCollectionInitializerExpression operation)

@@ -2,7 +2,6 @@
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -11,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void DynamicPropertyReference_DynamicArgument()
+        public void DynamicIndexerAccessExpression_DynamicArgument()
         {
             string source = @"
 class C
@@ -25,7 +24,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicPropertyReferenceExpression (OperationKind.DynamicPropertyReferenceExpression, Type: dynamic) (Syntax: 'c[d]')
+IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic) (Syntax: 'c[d]')
   Expression: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
   ApplicableSymbols(1):
     Symbol: System.Int32 C.this[System.Int32 i] { get; }
@@ -41,7 +40,7 @@ IDynamicPropertyReferenceExpression (OperationKind.DynamicPropertyReferenceExpre
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void DynamicPropertyReference_MultipleApplicableSymbols()
+        public void DynamicIndexerAccessExpression_MultipleApplicableSymbols()
         {
             string source = @"
 class C
@@ -57,7 +56,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicPropertyReferenceExpression (OperationKind.DynamicPropertyReferenceExpression, Type: dynamic) (Syntax: 'c[d]')
+IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic) (Syntax: 'c[d]')
   Expression: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
   ApplicableSymbols(2):
     Symbol: System.Int32 C.this[System.Int32 i] { get; }
@@ -74,7 +73,7 @@ IDynamicPropertyReferenceExpression (OperationKind.DynamicPropertyReferenceExpre
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void DynamicPropertyReference_MultipleArgumentsAndApplicableSymbols()
+        public void DynamicIndexerAccessExpression_MultipleArgumentsAndApplicableSymbols()
         {
             string source = @"
 class C
@@ -91,7 +90,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicPropertyReferenceExpression (OperationKind.DynamicPropertyReferenceExpression, Type: dynamic) (Syntax: 'c[d, ch]')
+IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic) (Syntax: 'c[d, ch]')
   Expression: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
   ApplicableSymbols(2):
     Symbol: System.Int32 C.this[System.Int32 i, System.Char ch] { get; }
@@ -109,7 +108,7 @@ IDynamicPropertyReferenceExpression (OperationKind.DynamicPropertyReferenceExpre
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void DynamicPropertyReference_ArgumentNames()
+        public void DynamicIndexerAccessExpression_ArgumentNames()
         {
             string source = @"
 class C
@@ -125,7 +124,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicPropertyReferenceExpression (OperationKind.DynamicPropertyReferenceExpression, Type: dynamic) (Syntax: 'c[i: d, ch: e]')
+IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic) (Syntax: 'c[i: d, ch: e]')
   Expression: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
   ApplicableSymbols(2):
     Symbol: System.Int32 C.this[System.Int32 i, System.Char ch] { get; }
@@ -145,7 +144,7 @@ IDynamicPropertyReferenceExpression (OperationKind.DynamicPropertyReferenceExpre
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void DynamicPropertyReference_ArgumentRefKinds()
+        public void DynamicIndexerAccessExpression_ArgumentRefKinds()
         {
             string source = @"
 class C
@@ -159,7 +158,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicPropertyReferenceExpression (OperationKind.DynamicPropertyReferenceExpression, Type: dynamic) (Syntax: 'c[i: d, ch: ref e]')
+IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic) (Syntax: 'c[i: d, ch: ref e]')
   Expression: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
   ApplicableSymbols(1):
     Symbol: System.Int32 C.this[System.Int32 i, ref dynamic ch] { get; }
@@ -184,7 +183,7 @@ IDynamicPropertyReferenceExpression (OperationKind.DynamicPropertyReferenceExpre
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void DynamicPropertyReference_WithDynamicReceiver()
+        public void DynamicIndexerAccessExpression_WithDynamicReceiver()
         {
             string source = @"
 class C
@@ -198,7 +197,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicPropertyReferenceExpression (OperationKind.DynamicPropertyReferenceExpression, Type: dynamic) (Syntax: 'd[i]')
+IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic) (Syntax: 'd[i]')
   Expression: IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
   ApplicableSymbols(0)
   Arguments(1):
@@ -213,7 +212,7 @@ IDynamicPropertyReferenceExpression (OperationKind.DynamicPropertyReferenceExpre
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void DynamicPropertyReference_WithDynamicMemberReceiver()
+        public void DynamicIndexerAccessExpression_WithDynamicMemberReceiver()
         {
             string source = @"
 class C
@@ -227,7 +226,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicPropertyReferenceExpression (OperationKind.DynamicPropertyReferenceExpression, Type: dynamic) (Syntax: 'c.M2[i]')
+IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic) (Syntax: 'c.M2[i]')
   Expression: IDynamicMemberReferenceExpression (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'c.M2')
       Type Arguments(0)
       Instance Receiver: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'c')
@@ -244,7 +243,7 @@ IDynamicPropertyReferenceExpression (OperationKind.DynamicPropertyReferenceExpre
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void DynamicPropertyReference_WithDynamicTypedMemberReceiver()
+        public void DynamicIndexerAccessExpression_WithDynamicTypedMemberReceiver()
         {
             string source = @"
 class C
@@ -258,7 +257,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicPropertyReferenceExpression (OperationKind.DynamicPropertyReferenceExpression, Type: dynamic) (Syntax: 'c.M2[i]')
+IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic) (Syntax: 'c.M2[i]')
   Expression: IDynamicMemberReferenceExpression (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'c.M2')
       Type Arguments(0)
       Instance Receiver: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'c')
@@ -279,7 +278,7 @@ IDynamicPropertyReferenceExpression (OperationKind.DynamicPropertyReferenceExpre
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void DynamicPropertyReference_AllFields()
+        public void DynamicIndexerAccessExpression_AllFields()
         {
             string source = @"
 class C
@@ -295,7 +294,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicPropertyReferenceExpression (OperationKind.DynamicPropertyReferenceExpression, Type: dynamic) (Syntax: 'c[ref i, c: d]')
+IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic) (Syntax: 'c[ref i, c: d]')
   Expression: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
   ApplicableSymbols(2):
     Symbol: System.Int32 C.this[ref System.Int32 i, System.Char c] { get; }
@@ -324,7 +323,7 @@ IDynamicPropertyReferenceExpression (OperationKind.DynamicPropertyReferenceExpre
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void DynamicPropertyReference_ErrorBadDynamicMethodArgLambda()
+        public void DynamicIndexerAccessExpression_ErrorBadDynamicMethodArgLambda()
         {
             string source = @"
 using System;
@@ -341,7 +340,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicPropertyReferenceExpression (OperationKind.DynamicPropertyReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'c[delegate { }, y]')
+IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic, IsInvalid) (Syntax: 'c[delegate { }, y]')
   Expression: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
   ApplicableSymbols(1):
     Symbol: System.Int32 C.this[System.Action a, System.Action y] { get; }
@@ -365,7 +364,7 @@ IDynamicPropertyReferenceExpression (OperationKind.DynamicPropertyReferenceExpre
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void DynamicPropertyReference_OverloadResolutionFailure()
+        public void DynamicIndexerAccessExpression_OverloadResolutionFailure()
         {
             string source = @"
 using System;

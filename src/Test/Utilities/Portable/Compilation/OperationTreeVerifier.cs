@@ -261,12 +261,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Unindent();
         }
 
-        private void VisitArrayCommon<T>(IEnumerable<T> list, string header, bool logElementCount, Action<T> arrayElementVisitor)
+        private void VisitArrayCommon<T>(ImmutableArray<T> list, string header, bool logElementCount, Action<T> arrayElementVisitor)
         {
             Debug.Assert(!string.IsNullOrEmpty(header));
 
             Indent();
-            if (!list.IsEmpty())
+            if (!list.IsDefaultOrEmpty)
             {
                 var elementCount = logElementCount ? $"({list.Count()})" : string.Empty;
                 LogString($"{header}{elementCount}:");
@@ -307,23 +307,32 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogNewLine();
         }
 
-        private void VisitArray<T>(IEnumerable<T> list, string header, bool logElementCount)
+        private void VisitChildren(IOperation operation)
+        {
+            var children = operation.Children.WhereNotNull().ToImmutableArray();
+            if (!children.IsEmpty|| operation.Kind != OperationKind.None)
+            {
+                VisitArray(children, "Children", logElementCount: true);
+            }
+        }
+
+        private void VisitArray<T>(ImmutableArray<T> list, string header, bool logElementCount)
             where T: IOperation
         {
             VisitArrayCommon(list, header, logElementCount, VisitOperationArrayElement);
         }
 
-        private void VisitArray(IEnumerable<ISymbol> list, string header, bool logElementCount)
+        private void VisitArray(ImmutableArray<ISymbol> list, string header, bool logElementCount)
         {
             VisitArrayCommon(list, header, logElementCount, VisitSymbolArrayElement);
         }
 
-        private void VisitArray(IEnumerable<string> list, string header, bool logElementCount)
+        private void VisitArray(ImmutableArray<string> list, string header, bool logElementCount)
         {
             VisitArrayCommon(list, header, logElementCount, VisitStringArrayElement);
         }
 
-        private void VisitArray(IEnumerable<RefKind> list, string header, bool logElementCount)
+        private void VisitArray(ImmutableArray<RefKind> list, string header, bool logElementCount)
         {
             VisitArrayCommon(list, header, logElementCount, VisitRefKindArrayElement);
         }
@@ -338,11 +347,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString("IOperation: ");
             LogCommonPropertiesAndNewLine(operation);
 
-            var children = operation.Children.WhereNotNull();
-            if (children.Any())
-            {
-                VisitArray(children, "Children", logElementCount: true);
-            }
+            VisitChildren(operation);
         }
 
         public override void VisitBlockStatement(IBlockStatement operation)
@@ -617,10 +622,61 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private void VisitDynamicArguments(IHasDynamicArgumentsExpression operation)
         {
-            VisitArray(operation.ApplicableSymbols, "ApplicableSymbols", logElementCount: true);
-            VisitArray(operation.Arguments, "Arguments", logElementCount: true);
-            VisitArray(operation.ArgumentNames, "ArgumentNames", logElementCount: true);
-            VisitArray(operation.ArgumentRefKinds, "ArgumentRefKinds", logElementCount: true);
+            var dynamicOperation = (HasDynamicArgumentsExpression)operation;
+            VisitArray(dynamicOperation.ApplicableSymbols, "ApplicableSymbols", logElementCount: true);
+            VisitArray(dynamicOperation.Arguments, "Arguments", logElementCount: true);
+            VisitArray(dynamicOperation.ArgumentNames, "ArgumentNames", logElementCount: true);
+            VisitArray(dynamicOperation.ArgumentRefKinds, "ArgumentRefKinds", logElementCount: true);
+
+            VerifyGetArgumentNamePublicApi(dynamicOperation, dynamicOperation.ArgumentNames);
+            VerifyGetArgumentRefKindPublicApi(dynamicOperation, dynamicOperation.ArgumentRefKinds);
+        }
+
+        private static void VerifyGetArgumentNamePublicApi(IHasDynamicArgumentsExpression operation, ImmutableArray<string> argumentNames)
+        {
+            var length = operation.Arguments.Length;
+            if (argumentNames.IsDefaultOrEmpty)
+            {
+                for (int i = 0; i < length; i++)
+                {
+                    Assert.Null(operation.GetArgumentName(i));
+                }
+            }
+            else
+            {
+                Assert.Equal(length, argumentNames.Length);
+                for (var i = 0; i < length; i++)
+                {
+                    Assert.Equal(argumentNames[i], operation.GetArgumentName(i));
+                }
+            }
+        }
+
+        private static void VerifyGetArgumentRefKindPublicApi(IHasDynamicArgumentsExpression operation, ImmutableArray<RefKind> argumentRefKinds)
+        {
+            var length = operation.Arguments.Length;
+            if (argumentRefKinds.IsDefault)
+            {
+                for (int i = 0; i < length; i++)
+                {
+                    Assert.Null(operation.GetArgumentRefKind(i));
+                }
+            }
+            else if (argumentRefKinds.IsEmpty)
+            {
+                for (int i = 0; i < length; i++)
+                {
+                    Assert.Equal(RefKind.None, operation.GetArgumentRefKind(i));
+                }
+            }
+            else
+            {
+                Assert.Equal(length, argumentRefKinds.Length);
+                for (var i = 0; i < length; i++)
+                {
+                    Assert.Equal(argumentRefKinds[i], operation.GetArgumentRefKind(i));
+                }
+            }
         }
 
         public override void VisitArgument(IArgument operation)
@@ -968,9 +1024,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitDynamicObjectCreationExpression(IDynamicObjectCreationExpression operation)
         {
             LogString(nameof(IDynamicObjectCreationExpression));
-
-            var name = operation.MemberName;
-            LogString($" (Name: {operation.MemberName})");
             LogCommonPropertiesAndNewLine(operation);
 
             VisitDynamicArguments(operation);
@@ -986,9 +1039,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitDynamicArguments(operation);
         }
 
-        public override void VisitDynamicPropertyReferenceExpression(IDynamicPropertyReferenceExpression operation)
+        public override void VisitDynamicIndexerAccessExpression(IDynamicIndexerAccessExpression operation)
         {
-            LogString(nameof(IDynamicPropertyReferenceExpression));
+            LogString(nameof(IDynamicIndexerAccessExpression));
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Expression, "Expression");
@@ -1180,7 +1233,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IInvalidStatement));
             LogCommonPropertiesAndNewLine(operation);
 
-            VisitArray(operation.Children, "Children", logElementCount: true);
+            VisitChildren(operation);
         }
 
         public override void VisitInvalidExpression(IInvalidExpression operation)
@@ -1188,7 +1241,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IInvalidExpression));
             LogCommonPropertiesAndNewLine(operation);
 
-            VisitArray(operation.Children, "Children", logElementCount: true);
+            VisitChildren(operation);
         }
 
         public override void VisitIfStatement(IIfStatement operation)

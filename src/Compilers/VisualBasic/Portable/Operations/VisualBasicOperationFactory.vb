@@ -569,11 +569,9 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundLateInvocationOperation(boundLateInvocation As BoundLateInvocation) As IOperation
             Dim expression As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundLateInvocation.Member))
-
-            Dim isDynamicPropertyReference = boundLateInvocation.MethodOrPropertyGroupOpt?.Kind = BoundKind.PropertyGroup
             Dim applicableSymbols As ImmutableArray(Of ISymbol)
             If boundLateInvocation.MethodOrPropertyGroupOpt IsNot Nothing Then
-                applicableSymbols = If(isDynamicPropertyReference,
+                applicableSymbols = If(boundLateInvocation.MethodOrPropertyGroupOpt.Kind = BoundKind.PropertyGroup,
                     DirectCast(boundLateInvocation.MethodOrPropertyGroupOpt, BoundPropertyGroup).Properties.As(Of ISymbol),
                     DirectCast(boundLateInvocation.MethodOrPropertyGroupOpt, BoundMethodGroup).Methods.As(Of ISymbol))
             Else
@@ -585,16 +583,13 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                                                                                                         ImmutableArray(Of IOperation).Empty,
                                                                                                                         boundLateInvocation.ArgumentsOpt.SelectAsArray(Function(n) Create(n)))
                                                                                                                  End Function)
-            Dim argumentNames As ImmutableArray(Of String) = boundLateInvocation.ArgumentNamesOpt.NullToEmpty()
-            Dim argumentRefKinds As ImmutableArray(Of RefKind) = ImmutableArray(Of RefKind).Empty
+            Dim argumentNames As ImmutableArray(Of String) = boundLateInvocation.ArgumentNamesOpt
+            Dim argumentRefKinds As ImmutableArray(Of RefKind) = Nothing
             Dim syntax As SyntaxNode = boundLateInvocation.Syntax
             Dim type As ITypeSymbol = boundLateInvocation.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundLateInvocation.ConstantValueOpt)
             Dim isImplicit As Boolean = boundLateInvocation.WasCompilerGenerated
-
-            Return If(isDynamicPropertyReference,
-                New LazyDynamicPropertyReferenceExpression(expression, applicableSymbols, arguments, argumentNames, argumentRefKinds, _semanticModel, syntax, type, constantValue, isImplicit),
-                DirectCast(New LazyDynamicInvocationExpression(expression, applicableSymbols, arguments, argumentNames, argumentRefKinds, _semanticModel, syntax, type, constantValue, isImplicit), IOperation))
+            Return New LazyDynamicInvocationExpression(expression, applicableSymbols, arguments, argumentNames, argumentRefKinds, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundObjectCreationExpressionOperation(boundObjectCreationExpression As BoundObjectCreationExpression) As IObjectCreationExpression

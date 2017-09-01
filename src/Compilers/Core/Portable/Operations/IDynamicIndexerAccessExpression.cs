@@ -3,16 +3,16 @@
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents a dynamically referenced property or indexer expression.
+    /// Represents a dynamic indexer expression in C#.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IDynamicPropertyReferenceExpression : IHasDynamicArgumentsExpression
+    public interface IDynamicIndexerAccessExpression : IHasDynamicArgumentsExpression
     {
         /// <summary>
-        /// Dynamically accessed property reference.
+        /// Dynamically indexed expression.
         /// </summary>
         IOperation Expression { get; }
     }

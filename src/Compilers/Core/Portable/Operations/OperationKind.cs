@@ -143,8 +143,8 @@ namespace Microsoft.CodeAnalysis
         DynamicMemberReferenceExpression = 0x126,
         /// <summary>Indicates an <see cref="IDynamicInvocationExpression"/>.</summary>
         DynamicInvocationExpression = 0x127,
-        /// <summary>Indicates an <see cref="IDynamicPropertyReferenceExpression"/>.</summary>
-        DynamicPropertyReferenceExpression = 0x128,
+        /// <summary>Indicates an <see cref="IDynamicIndexerAccessExpression"/>.</summary>
+        DynamicIndexerAccessExpression = 0x128,
 
         // Expressions that occur only in C#.
 

@@ -12,11 +12,6 @@ namespace Microsoft.CodeAnalysis.Semantics
     public interface IDynamicObjectCreationExpression : IHasDynamicArgumentsExpression
     {
         /// <summary>
-        /// Name of the dynamically invoked member.
-        /// </summary>
-        string MemberName { get; }
-
-        /// <summary>
         /// Object or collection initializer, if any.
         /// </summary>
         IObjectOrCollectionInitializerExpression Initializer { get; }

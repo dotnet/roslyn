@@ -3,7 +3,7 @@
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents a dynamically bound invocation expression.
+    /// Represents a dynamically bound invocation expression in C# and late bound invocation in VB.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     public interface IDynamicInvocationExpression : IHasDynamicArgumentsExpression
     {
         /// <summary>
-        /// Dynamically invoked expression, which could be a dynamic member access, dynamic delegate or an invalid expression.
+        /// Dynamically or late bound expression.
         /// </summary>
         IOperation Expression { get; }
     }

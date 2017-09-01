@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitDynamicPropertyReferenceExpression(IDynamicPropertyReferenceExpression operation)
+        public virtual void VisitDynamicIndexerAccessExpression(IDynamicIndexerAccessExpression operation)
         {
             DefaultVisit(operation);
         }
@@ -810,7 +810,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitDynamicPropertyReferenceExpression(IDynamicPropertyReferenceExpression operation, TArgument argument)
+        public virtual TResult VisitDynamicIndexerAccessExpression(IDynamicIndexerAccessExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
