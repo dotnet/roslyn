@@ -50,79 +50,80 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
 
         private SyntaxNode UpdateRoot(SemanticModel semanticModel, SyntaxNode root, SyntaxNode node, CancellationToken cancellationToken)
         {
+            var editor = new SyntaxEditor(root, CSharpSyntaxGenerator.Instance);
+
+            ImmutableArray<MemberAccessExpressionSyntax> memberAccessExpressions = default;
             if (node is VariableDeclaratorSyntax variableDeclarator)
             {
                 var variableDeclaration = (VariableDeclarationSyntax)variableDeclarator.Parent;
                 if (s_analyzer.TryAnalyzeVariableDeclaration(
                         semanticModel, variableDeclaration,
-                        out var tupleType, out var memberAccessExpressions,
+                        out var tupleType, out memberAccessExpressions,
                         cancellationToken))
                 {
-                    var editor = new SyntaxEditor(root, CSharpSyntaxGenerator.Instance);
-
-                    foreach (var memberAccess in memberAccessExpressions)
-                    {
-                        editor.ReplaceNode(memberAccess, memberAccess.Name.WithTriviaFrom(memberAccess));
-                    }
-
                     editor.ReplaceNode(
                         variableDeclaration.Parent,
-                        CreateDeconstructionStatement(tupleType, (LocalDeclarationStatementSyntax)variableDeclaration.Parent, variableDeclaration));
-
-                    return editor.GetChangedRoot();
+                        CreateDeconstructionStatement(tupleType, (LocalDeclarationStatementSyntax)variableDeclaration.Parent, variableDeclarator));
+                }
+            }
+            else if (node is ForEachStatementSyntax forEachStatement)
+            {
+                if (s_analyzer.TryAnalyzeForEachStatement(
+                        semanticModel, forEachStatement,
+                        out var tupleType, out memberAccessExpressions,
+                        cancellationToken))
+                {
+                    editor.ReplaceNode(
+                        forEachStatement,
+                        CreateForEachVariableStatement(tupleType, forEachStatement));
                 }
             }
 
-            return root;
+            foreach (var memberAccess in memberAccessExpressions.NullToEmpty())
+            {
+                editor.ReplaceNode(memberAccess, memberAccess.Name.WithTriviaFrom(memberAccess));
+            }
+
+            return editor.GetChangedRoot();
         }
 
+        private ForEachVariableStatementSyntax CreateForEachVariableStatement(
+            INamedTypeSymbol tupleType, ForEachStatementSyntax forEachStatement)
+            => SyntaxFactory.ForEachVariableStatement(
+                forEachStatement.ForEachKeyword,
+                forEachStatement.OpenParenToken,
+                CreateTupleOrDeclarationExpression(tupleType, forEachStatement.Type),
+                forEachStatement.InKeyword,
+                forEachStatement.Expression,
+                forEachStatement.CloseParenToken,
+                forEachStatement.Statement);
+
         private ExpressionStatementSyntax CreateDeconstructionStatement(
-            INamedTypeSymbol tupleType, LocalDeclarationStatementSyntax declarationStatement, VariableDeclarationSyntax variableDeclaration)
-        {
-            var variableDeclarator = variableDeclaration.Variables[0];
-            var left = CreateTupleOrDeclarationExpression(tupleType, variableDeclaration.Type);
-            return SyntaxFactory.ExpressionStatement(
+            INamedTypeSymbol tupleType, LocalDeclarationStatementSyntax declarationStatement, VariableDeclaratorSyntax variableDeclarator)
+            => SyntaxFactory.ExpressionStatement(
                 SyntaxFactory.AssignmentExpression(
                     SyntaxKind.SimpleAssignmentExpression,
-                    left,
+                    CreateTupleOrDeclarationExpression(tupleType, declarationStatement.Declaration.Type),
                     variableDeclarator.Initializer.EqualsToken,
                     variableDeclarator.Initializer.Value),
                 declarationStatement.SemicolonToken);
-        }
 
         private ExpressionSyntax CreateTupleOrDeclarationExpression(INamedTypeSymbol tupleType, TypeSyntax typeNode)
-        {
-            if (typeNode.IsKind(SyntaxKind.TupleType))
-            {
-                return CreateTupleExpression((TupleTypeSyntax)typeNode);
-            }
-            else
-            {
-                Debug.Assert(typeNode.IsVar);
-                return CreateDeclarationExpression(tupleType, typeNode);
-            }
-        }
+            => typeNode.IsKind(SyntaxKind.TupleType)
+                ? (ExpressionSyntax)CreateTupleExpression((TupleTypeSyntax)typeNode)
+                : CreateDeclarationExpression(tupleType, typeNode);
 
         private DeclarationExpressionSyntax CreateDeclarationExpression(INamedTypeSymbol tupleType, TypeSyntax typeNode)
-        {
-            return SyntaxFactory.DeclarationExpression(
+            => SyntaxFactory.DeclarationExpression(
                 typeNode, SyntaxFactory.ParenthesizedVariableDesignation(
-                    CreateVariableDesignations(tupleType)));
-        }
-
-        private SeparatedSyntaxList<VariableDesignationSyntax> CreateVariableDesignations(INamedTypeSymbol tupleType)
-        {
-            return SyntaxFactory.SeparatedList<VariableDesignationSyntax>(tupleType.TupleElements.Select(
-                e => SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(e.Name))));
-        }
+                    SyntaxFactory.SeparatedList<VariableDesignationSyntax>(tupleType.TupleElements.Select(
+                        e => SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(e.Name))))));
 
         private TupleExpressionSyntax CreateTupleExpression(TupleTypeSyntax typeNode)
-        {
-            return SyntaxFactory.TupleExpression(
+            => SyntaxFactory.TupleExpression(
                 typeNode.OpenParenToken,
                 SyntaxFactory.SeparatedList<ArgumentSyntax>(new SyntaxNodeOrTokenList(typeNode.Elements.GetWithSeparators().Select(ConvertTupleTypeElementComponent))),
                 typeNode.CloseParenToken);
-        }
 
         private SyntaxNodeOrToken ConvertTupleTypeElementComponent(SyntaxNodeOrToken nodeOrToken)
         {
