@@ -104,6 +104,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             tupleType = null;
             memberAccessExpressions = default;
 
+            // Only support code of the form:
+            //
+            //      var t = ...;  or
+            //      (T1 e1, ..., TN eN) t = ...
             if (!variableDeclaration.IsParentKind(SyntaxKind.LocalDeclarationStatement))
             {
                 return false;
@@ -191,13 +195,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             var references = ArrayBuilder<MemberAccessExpressionSyntax>.GetInstance();
             try
             {
+                // If the user actually uses the tuple local for anything other than accessing 
+                // fields off of it, then we can't deconstruct this tuple into locals.
                 if (!OnlyUsedToAccessTupleFields(
-                        semanticModel, searchScope, local,
-                        references, cancellationToken))
+                        semanticModel, searchScope, local, references, cancellationToken))
                 {
                     return false;
                 }
 
+                // Can only deconstruct the tuple if the names we introduce won't collide
+                // with anything else in scope (either outside, or inside the method).
                 if (AnyTupleFieldNamesCollideWithExistingNames(
                         semanticModel, tupleType, searchScope, cancellationToken))
                 {
@@ -278,12 +285,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                     {
                         if (!(identifierName.Parent is MemberAccessExpressionSyntax memberAccess))
                         {
+                            // We referenced the local in a location where we're not accessing a 
+                            // field off of it.  i.e. Console.WriteLine(tupleLocal);
                             return false;
                         }
 
                         var member = semanticModel.GetSymbolInfo(memberAccess, cancellationToken).GetAnySymbol();
                         if (!(member is IFieldSymbol field))
                         {
+                            // Accessed some non-field member of it (like .ToString()).
                             return false;
                         }
 

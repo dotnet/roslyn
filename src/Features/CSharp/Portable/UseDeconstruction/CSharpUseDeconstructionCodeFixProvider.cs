@@ -57,6 +57,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
         {
             var editor = new SyntaxEditor(root, CSharpSyntaxGenerator.Instance);
 
+            // We use the callback form of ReplaceNode because we may have nested code that
+            // needs to be updated in fix-all situations.  For example, nested foreach statements.
+            // We need to see the results of the inner changes when making the outer changes.
+
             ImmutableArray<MemberAccessExpressionSyntax> memberAccessExpressions = default;
             if (node is VariableDeclaratorSyntax variableDeclarator)
             {
