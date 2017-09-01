@@ -105,7 +105,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
         }
 
         private ForEachVariableStatementSyntax CreateForEachVariableStatement(INamedTypeSymbol tupleType, ForEachStatementSyntax forEachStatement)
-            => SyntaxFactory.ForEachVariableStatement(
+        {
+            // Copy all the tokens/nodes from the existing foreach statement to the new foreach statement.
+            // However, convert the existing declaration over to a "var (x, y)" declaration or (int x, int y)
+            // tuple expression.
+            return SyntaxFactory.ForEachVariableStatement(
                 forEachStatement.ForEachKeyword,
                 forEachStatement.OpenParenToken,
                 CreateTupleOrDeclarationExpression(tupleType, forEachStatement.Type),
@@ -113,21 +117,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 forEachStatement.Expression,
                 forEachStatement.CloseParenToken,
                 forEachStatement.Statement);
+        }
 
         private ExpressionStatementSyntax CreateDeconstructionStatement(
             INamedTypeSymbol tupleType, LocalDeclarationStatementSyntax declarationStatement, VariableDeclaratorSyntax variableDeclarator)
-            => SyntaxFactory.ExpressionStatement(
+        {
+            // Copy all the tokens/nodes from the existing declaration statement to the new assignment
+            // statement. However, convert the existing declaration over to a "var (x, y)" declaration 
+            // or (int x, int y) tuple expression.
+            return SyntaxFactory.ExpressionStatement(
                 SyntaxFactory.AssignmentExpression(
                     SyntaxKind.SimpleAssignmentExpression,
                     CreateTupleOrDeclarationExpression(tupleType, declarationStatement.Declaration.Type),
                     variableDeclarator.Initializer.EqualsToken,
                     variableDeclarator.Initializer.Value),
                 declarationStatement.SemicolonToken);
+        }
 
         private ExpressionSyntax CreateTupleOrDeclarationExpression(INamedTypeSymbol tupleType, TypeSyntax typeNode)
-            => typeNode.IsKind(SyntaxKind.TupleType)
+        {
+            // If we have an explicit tuple type in code, convert that over to a tuple expression.
+            // i.e.   (int x, int y) t = ...   will be converted to (int x, int y) = ...
+            //
+            // If we had the "var t" form we'll conver that to the declaration expression "var (x, y)"
+            return typeNode.IsKind(SyntaxKind.TupleType)
                 ? (ExpressionSyntax)CreateTupleExpression((TupleTypeSyntax)typeNode)
                 : CreateDeclarationExpression(tupleType, typeNode);
+        }
 
         private DeclarationExpressionSyntax CreateDeclarationExpression(INamedTypeSymbol tupleType, TypeSyntax typeNode)
             => SyntaxFactory.DeclarationExpression(
@@ -145,9 +161,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
         {
             if (nodeOrToken.IsToken)
             {
+                // return commas directly as is.
                 return nodeOrToken;
             }
 
+            // "int x" as a tuple element directly translates to "int x" (a declaration expression
+            // with a variable designation 'x').
             var node = (TupleElementSyntax)nodeOrToken.AsNode();
             return SyntaxFactory.Argument(
                 SyntaxFactory.DeclarationExpression(

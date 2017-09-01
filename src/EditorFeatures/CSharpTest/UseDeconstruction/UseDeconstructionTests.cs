@@ -441,5 +441,31 @@ class C
     (string name, int age) GetPerson() => default;
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        public async Task TestTrivia1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        /*1*/(/*2*/int/*3*/ name, /*4*/int/*5*/ age)/*6*/ [|t1|] = GetPerson();
+        Console.WriteLine(/*7*/t1.name/*8*/ + "" "" + /*9*/t1.age/*10*/);
+    }
+
+    (string name, int age) GetPerson() => default;
+}",
+@"class C
+{
+    void M()
+    {
+        /*1*/(/*2*/int/*3*/ name, /*4*/int/*5*/ age)/*6*/ = GetPerson();
+        Console.WriteLine(/*7*/name/*8*/ + "" "" + /*9*/age/*10*/);
+    }
+
+    (string name, int age) GetPerson() => default;
+}");
+        }
     }
 }
