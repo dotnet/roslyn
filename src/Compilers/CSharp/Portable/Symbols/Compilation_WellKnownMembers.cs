@@ -107,7 +107,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (type == WellKnownType.System_Runtime_CompilerServices_NullableAttribute)
                 {
                     // PROTOTYPE(NullableReferenceTypes): Handle consistently with other embedded attributes.
-                    result = ((SourceModuleSymbol)SourceModule).GetNullableAttribute();
+                    var diagnostics = DiagnosticBag.GetInstance();
+                    result = ((SourceModuleSymbol)SourceModule).GetNullableAttribute(diagnostics);
+                    diagnostics.Free();
                 }
                 else
                 {

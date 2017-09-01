@@ -45,7 +45,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// to be complete after a call to GetAttributes(). 
         private ConcurrentDictionary<string, ConcurrentSet<ImmutableArray<byte>>> _lazyNullableOptOutForAssemblyMap;
 
-        private NamedTypeSymbol _lazyNullableAttribute;
+        private sealed class AttributeAndDiagnostics
+        {
+            internal AttributeAndDiagnostics(NamedTypeSymbol attribute, DiagnosticBag diagnostics)
+            {
+                Attribute = attribute;
+                Diagnostics = diagnostics;
+            }
+            internal readonly NamedTypeSymbol Attribute;
+            internal readonly DiagnosticBag Diagnostics;
+        }
+
+        private AttributeAndDiagnostics _lazyNullableAttribute;
 
         internal SourceModuleSymbol(
             SourceAssemblySymbol assemblySymbol,
@@ -622,27 +633,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // PROTOTYPE(NullableReferenceTypes): Handle NullableAttribute
         // consistently with other embedded attributes.
-        internal NamedTypeSymbol GetNullableAttribute(DiagnosticBag diagnostics = null)
+        internal NamedTypeSymbol GetNullableAttribute(DiagnosticBag diagnostics)
         {
-            if (UtilizesNullableReferenceTypes && (object)_lazyNullableAttribute == null)
+            if (!UtilizesNullableReferenceTypes)
             {
-                Debug.Assert(diagnostics != null); // First caller should be prepared to handle diagnostics.
-
-                var bag = DiagnosticBag.GetInstance();
-                var symbol = new SynthesizedEmbeddedAttributeSymbol(
-                    _assemblySymbol.DeclaringCompilation,
-                    AttributeDescription.NullableAttribute.Namespace,
-                    AttributeDescription.NullableAttribute.Name,
-                    GetNullableAttributeMembers,
-                    bag);
-                if ((object)Interlocked.CompareExchange(ref _lazyNullableAttribute, symbol, null) == null)
-                {
-                    diagnostics.AddRange(bag);
-                }
-                bag.Free();
+                return null;
             }
+            if ((object)_lazyNullableAttribute == null)
+            {
+                Interlocked.CompareExchange(ref _lazyNullableAttribute, GetNullableAttributeAndDiagnostics(_assemblySymbol.DeclaringCompilation), null);
+            }
+            diagnostics.AddRange(_lazyNullableAttribute.Diagnostics);
+            return _lazyNullableAttribute.Attribute;
+        }
 
-            return _lazyNullableAttribute;
+        private static AttributeAndDiagnostics GetNullableAttributeAndDiagnostics(CSharpCompilation compilation)
+        {
+            var diagnostics = new DiagnosticBag();
+            var symbol = new SynthesizedEmbeddedAttributeSymbol(
+                compilation,
+                AttributeDescription.NullableAttribute.Namespace,
+                AttributeDescription.NullableAttribute.Name,
+                GetNullableAttributeMembers,
+                diagnostics);
+            return new AttributeAndDiagnostics(symbol, diagnostics);
         }
 
         private static ImmutableArray<Symbol> GetNullableAttributeMembers(
@@ -651,11 +665,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
         {
             var boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
-            var info = boolType.GetUseSiteDiagnostic();
-            if ((object)info != null)
-            {
-                diagnostics.Add(info, NoLocation.Singleton);
-            }
+            Binder.ReportUseSiteDiagnostics(boolType, diagnostics, Location.None);
             var boolArray = TypeSymbolWithAnnotations.Create(
                 ArrayTypeSymbol.CreateSZArray(
                     boolType.ContainingAssembly,

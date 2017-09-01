@@ -63,7 +63,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             builder.AddRange(_additionalTypes);
             // PROTOTYPE(NullableReferenceTypes): Handle NullableAttribute consistently
             // with other embedded attributes. For now, we include the type explicitly.
-            builder.AddIfNotNull(SourceModule.GetNullableAttribute());
+            var diagnostics = DiagnosticBag.GetInstance();
+            builder.AddIfNotNull(SourceModule.GetNullableAttribute(diagnostics));
+            diagnostics.Free();
             return builder.ToImmutableAndFree();
         }
 

@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             factory.CurrentMethod = this;
 
             var baseType = ContainingType.BaseType;
-            var baseConstructor = baseType.InstanceConstructors.SingleOrDefault(m => m.ParameterCount == 0);
+            var baseConstructor = baseType.InstanceConstructors.FirstOrDefault(m => m.ParameterCount == 0);
             if ((object)baseConstructor == null)
             {
                 diagnostics.Add(ErrorCode.ERR_BadCtorArgCount, NoLocation.Singleton, baseType, 0);
