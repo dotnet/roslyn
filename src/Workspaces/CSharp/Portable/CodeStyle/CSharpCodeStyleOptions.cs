@@ -180,6 +180,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_pattern_local_over_anonymous_function"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferLocalOverAnonymousFunction)}")});
 
+        public static readonly Option<CodeStyleOption<bool>> PreferDeconstruction = new Option<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions), nameof(PreferDeconstruction), defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_prefer_deconstruction"),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferDeconstruction)}")});
+
         public static IEnumerable<Option<CodeStyleOption<bool>>> GetCodeStyleOptions()
         {
             yield return UseImplicitTypeForIntrinsicTypes;
@@ -193,6 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             yield return PreferInferredTupleNames;
             yield return PreferInferredAnonymousTypeMemberNames;
             yield return PreferLocalOverAnonymousFunction;
+            yield return PreferDeconstruction;
         }
 
         public static IEnumerable<Option<CodeStyleOption<ExpressionBodyPreference>>> GetExpressionBodyOptions()
