@@ -177,6 +177,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 return false;
             }
 
+            // All tuple elements must have been explicitly provided by the user.
+            foreach (var element in tupleType.TupleElements)
+            {
+                if (element.IsImplicitlyDeclared)
+                {
+                    return false;
+                }
+            }
+
             var variableName = identifier.ValueText;
 
             var references = ArrayBuilder<MemberAccessExpressionSyntax>.GetInstance();
@@ -278,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                             return false;
                         }
 
-                        if (field.CorrespondingTupleField == field)
+                        if (field.IsImplicitlyDeclared)
                         {
                             // They're referring to .Item1-.ItemN.  We can't update this to refer to the local
                             return false;

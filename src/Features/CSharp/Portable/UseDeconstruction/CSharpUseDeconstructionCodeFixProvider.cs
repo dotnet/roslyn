@@ -68,7 +68,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 {
                     editor.ReplaceNode(
                         variableDeclaration.Parent,
-                        CreateDeconstructionStatement(tupleType, (LocalDeclarationStatementSyntax)variableDeclaration.Parent, variableDeclarator));
+                        (current, _) =>
+                        {
+                            var currentDeclarationStatement = (LocalDeclarationStatementSyntax)current;
+                            return CreateDeconstructionStatement(tupleType, currentDeclarationStatement, currentDeclarationStatement.Declaration.Variables[0]);
+                        });
                 }
             }
             else if (node is ForEachStatementSyntax forEachStatement)
@@ -80,13 +84,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 {
                     editor.ReplaceNode(
                         forEachStatement,
-                        CreateForEachVariableStatement(tupleType, forEachStatement));
+                        (current, _) => CreateForEachVariableStatement(tupleType, (ForEachStatementSyntax)current));
                 }
             }
 
             foreach (var memberAccess in memberAccessExpressions.NullToEmpty())
             {
-                editor.ReplaceNode(memberAccess, memberAccess.Name.WithTriviaFrom(memberAccess));
+                editor.ReplaceNode(
+                    memberAccess,
+                    (current, _) =>
+                    {
+                        var currentMemberAccess = (MemberAccessExpressionSyntax)current;
+                        return currentMemberAccess.Name.WithTriviaFrom(currentMemberAccess);
+                    });
             }
 
             return editor.GetChangedRoot();
