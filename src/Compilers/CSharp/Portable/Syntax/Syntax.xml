@@ -1779,6 +1779,7 @@
     <Field Name="OpenBraceToken" Type="SyntaxToken">
       <Kind Name="OpenBraceToken"/>
     </Field>
+    <Field Name="Usings" Type="SyntaxList&lt;UsingDirectiveSyntax&gt;"/>
     <Field Name="Statements" Type="SyntaxList&lt;StatementSyntax&gt;"/>
     <Field Name="CloseBraceToken" Type="SyntaxToken">
       <Kind Name="CloseBraceToken"/>

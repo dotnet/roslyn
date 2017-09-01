@@ -7083,10 +7083,11 @@ tryAgain:
                 : this.EatToken(SyntaxKind.OpenBraceToken);
 
             var statements = _pool.Allocate<StatementSyntax>();
+            var usings = _pool.Allocate<UsingDirectiveSyntax>();
             try
             {
                 CSharpSyntaxNode tmp = openBrace;
-                this.ParseStatements(ref tmp, statements, stopOnSwitchSections: false);
+                this.ParseStatements(ref tmp, statements, usings, stopOnSwitchSections: false);
                 openBrace = (SyntaxToken)tmp;
                 var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
 
@@ -7101,10 +7102,11 @@ tryAgain:
                     statementList = statements;
                 }
 
-                return _syntaxFactory.Block(openBrace, statementList, closeBrace);
+                return _syntaxFactory.Block(openBrace, usings, statementList, closeBrace);
             }
             finally
             {
+                _pool.Free(usings);
                 _pool.Free(statements);
             }
         }
@@ -7131,8 +7133,13 @@ tryAgain:
             }
         }
 
-        private void ParseStatements(ref CSharpSyntaxNode previousNode, SyntaxListBuilder<StatementSyntax> statements, bool stopOnSwitchSections)
+        private void ParseStatements(
+            ref CSharpSyntaxNode previousNode, 
+            SyntaxListBuilder<StatementSyntax> statements,
+            SyntaxListBuilder<UsingDirectiveSyntax> usingsOpt, 
+            bool stopOnSwitchSections)
         {
+            Debug.Assert(stopOnSwitchSections == usingsOpt.IsNull);
             var saveTerm = _termState;
             _termState |= TerminatorState.IsPossibleStatementStartOrStop; // partial statements can abort if a new statement starts
             if (stopOnSwitchSections)
@@ -7144,7 +7151,27 @@ tryAgain:
                 && this.CurrentToken.Kind != SyntaxKind.EndOfFileToken
                 && !(stopOnSwitchSections && this.IsPossibleSwitchSection()))
             {
-                if (this.IsPossibleStatement(acceptAccessibilityMods: true))
+                if (this.IsPossibleUsingDirective())
+                {
+                    var @using = ParseUsingDirective();
+                    if (stopOnSwitchSections || statements.Count > 0)
+                    {
+                        @using = this.AddError(@using, ErrorCode.ERR_UsingAfterElements);
+                        if (statements.Count > 0)
+                        {
+                            statements[statements.Count - 1] = AddTrailingSkippedSyntax(statements[statements.Count - 1], @using);
+                        }
+                        else
+                        {
+                            previousNode = AddTrailingSkippedSyntax(previousNode, @using);
+                        }
+                    }
+                    else
+                    {
+                        usingsOpt.Add(@using);
+                    }
+                }
+                else if (this.IsPossibleStatement(acceptAccessibilityMods: true))
                 {
                     var statement = this.ParseStatementCore();
                     if (statement != null)
@@ -7168,6 +7195,12 @@ tryAgain:
             }
 
             _termState = saveTerm;
+        }
+
+        private bool IsPossibleUsingDirective()
+        {
+            return this.CurrentToken.Kind == SyntaxKind.UsingKeyword
+                && this.PeekToken(1).Kind != SyntaxKind.OpenParenToken;
         }
 
         private bool IsPossibleStatementStartOrStop()
@@ -7323,7 +7356,7 @@ tryAgain:
             BlockSyntax block;
             if (@try.IsMissing)
             {
-                block = _syntaxFactory.Block(this.EatToken(SyntaxKind.OpenBraceToken), default(SyntaxList<StatementSyntax>), this.EatToken(SyntaxKind.CloseBraceToken));
+                block = _syntaxFactory.Block(this.EatToken(SyntaxKind.OpenBraceToken), default, default(SyntaxList<StatementSyntax>), this.EatToken(SyntaxKind.CloseBraceToken));
             }
             else
             {
@@ -7366,6 +7399,7 @@ tryAgain:
                         SyntaxToken.CreateMissing(SyntaxKind.FinallyKeyword, null, null),
                         _syntaxFactory.Block(
                             SyntaxToken.CreateMissing(SyntaxKind.OpenBraceToken, null, null),
+                            default,
                             default(SyntaxList<StatementSyntax>),
                             SyntaxToken.CreateMissing(SyntaxKind.CloseBraceToken, null, null)));
                 }
@@ -7966,7 +8000,7 @@ tryAgain:
 
                 // Next, parse statement list stopping for new sections
                 CSharpSyntaxNode tmp = labels[labels.Count - 1];
-                this.ParseStatements(ref tmp, statements, true);
+                this.ParseStatements(ref tmp, statements, usingsOpt: default, stopOnSwitchSections: true);
                 labels[labels.Count - 1] = (SwitchLabelSyntax)tmp;
 
                 return _syntaxFactory.SwitchSection(labels, statements);
@@ -10662,6 +10696,7 @@ tryAgain:
                     parameterList,
                     _syntaxFactory.Block(
                         openBrace,
+                        default,
                         default(SyntaxList<StatementSyntax>),
                         SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken)));
             }

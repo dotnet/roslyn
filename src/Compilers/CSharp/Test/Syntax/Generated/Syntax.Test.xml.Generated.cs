@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.BlockSyntax GenerateBlock()
         {
-            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Block(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.StatementSyntax>(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Block(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.UsingDirectiveSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.StatementSyntax>(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
         }
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LocalFunctionStatementSyntax GenerateLocalFunctionStatement()
@@ -1977,6 +1977,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateBlock();
             
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind);
+            Assert.NotNull(node.Usings);
             Assert.NotNull(node.Statements);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind);
             
@@ -9329,7 +9330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static BlockSyntax GenerateBlock()
         {
-            return SyntaxFactory.Block(SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SyntaxList<StatementSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+            return SyntaxFactory.Block(SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SyntaxList<UsingDirectiveSyntax>(), new SyntaxList<StatementSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
         }
         
         private static LocalFunctionStatementSyntax GenerateLocalFunctionStatement()
@@ -10895,9 +10896,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateBlock();
             
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind());
+            Assert.NotNull(node.Usings);
             Assert.NotNull(node.Statements);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind());
-            var newNode = node.WithOpenBraceToken(node.OpenBraceToken).WithStatements(node.Statements).WithCloseBraceToken(node.CloseBraceToken);
+            var newNode = node.WithOpenBraceToken(node.OpenBraceToken).WithUsings(node.Usings).WithStatements(node.Statements).WithCloseBraceToken(node.CloseBraceToken);
             Assert.Equal(node, newNode);
         }
         

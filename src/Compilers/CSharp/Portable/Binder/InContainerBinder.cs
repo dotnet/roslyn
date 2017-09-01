@@ -27,12 +27,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// retrieved from <paramref name="declarationSyntax"/>.
         /// </summary>
         internal InContainerBinder(NamespaceOrTypeSymbol container, Binder next, CSharpSyntaxNode declarationSyntax, bool inUsing)
-            : base(next)
+            : this(next, declarationSyntax, inUsing)
         {
             Debug.Assert((object)container != null);
-            Debug.Assert(declarationSyntax != null);
 
             _container = container;
+        }
+
+        internal InContainerBinder(Binder next, CSharpSyntaxNode declarationSyntax, bool inUsing)
+            : base(next)
+        {
+            Debug.Assert(declarationSyntax != null);
+
             _computeImports = basesBeingResolved => Imports.FromSyntax(declarationSyntax, this, basesBeingResolved, inUsing);
         }
 
@@ -105,8 +111,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var merged = _container as MergedNamespaceSymbol;
-                return ((object)merged != null) ? merged.GetConstituentForCompilation(this.Compilation) : _container;
+                if (_container == null)
+                {
+                    return base.ContainingMemberOrLambda;
+                }
+
+                return _container is MergedNamespaceSymbol merged ? merged.GetConstituentForCompilation(this.Compilation) : _container;
             }
         }
 

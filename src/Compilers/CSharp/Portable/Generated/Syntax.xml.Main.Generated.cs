@@ -3093,9 +3093,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     public override SyntaxNode VisitBlock(BlockSyntax node)
     {
       var openBraceToken = this.VisitToken(node.OpenBraceToken);
+      var usings = this.VisitList(node.Usings);
       var statements = this.VisitList(node.Statements);
       var closeBraceToken = this.VisitToken(node.CloseBraceToken);
-      return node.Update(openBraceToken, statements, closeBraceToken);
+      return node.Update(openBraceToken, usings, statements, closeBraceToken);
     }
 
     public override SyntaxNode VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
@@ -6631,7 +6632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
     /// <summary>Creates a new BlockSyntax instance.</summary>
-    public static BlockSyntax Block(SyntaxToken openBraceToken, SyntaxList<StatementSyntax> statements, SyntaxToken closeBraceToken)
+    public static BlockSyntax Block(SyntaxToken openBraceToken, SyntaxList<UsingDirectiveSyntax> usings, SyntaxList<StatementSyntax> statements, SyntaxToken closeBraceToken)
     {
       switch (openBraceToken.Kind())
       {
@@ -6647,14 +6648,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         default:
           throw new ArgumentException("closeBraceToken");
       }
-      return (BlockSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Block((Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node, statements.Node.ToGreenList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.StatementSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node).CreateRed();
+      return (BlockSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Block((Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node, usings.Node.ToGreenList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.UsingDirectiveSyntax>(), statements.Node.ToGreenList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.StatementSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node).CreateRed();
     }
 
 
     /// <summary>Creates a new BlockSyntax instance.</summary>
-    public static BlockSyntax Block(SyntaxList<StatementSyntax> statements = default(SyntaxList<StatementSyntax>))
+    public static BlockSyntax Block(SyntaxList<UsingDirectiveSyntax> usings, SyntaxList<StatementSyntax> statements)
     {
-      return SyntaxFactory.Block(SyntaxFactory.Token(SyntaxKind.OpenBraceToken), statements, SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+      return SyntaxFactory.Block(SyntaxFactory.Token(SyntaxKind.OpenBraceToken), usings, statements, SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+    }
+
+    /// <summary>Creates a new BlockSyntax instance.</summary>
+    public static BlockSyntax Block()
+    {
+      return SyntaxFactory.Block(SyntaxFactory.Token(SyntaxKind.OpenBraceToken), default(SyntaxList<UsingDirectiveSyntax>), default(SyntaxList<StatementSyntax>), SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
     }
 
     /// <summary>Creates a new LocalFunctionStatementSyntax instance.</summary>
