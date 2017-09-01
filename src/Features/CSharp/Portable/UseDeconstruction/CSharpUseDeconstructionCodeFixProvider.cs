@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -35,43 +35,107 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             return SpecializedTasks.EmptyTask;
         }
 
-        protected override async Task FixAllAsync(
+        protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var nodesToProcess = new Queue<SyntaxNode>(diagnostics.Select(d => d.Location.FindToken(cancellationToken).Parent));
+            var nodesToProcess = diagnostics.SelectAsArray(d => d.Location.FindToken(cancellationToken).Parent);
 
-            var originalRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            return editor.ApplyMethodBodySemanticEditsAsync(
+                document, nodesToProcess,
+                (semanticModel, node) => true,
+                (semanticModel, currentRoot, node) => UpdateRoot(semanticModel, currentRoot, node, cancellationToken),
+                cancellationToken);
+        }
 
-            var currentRoot = originalRoot.TrackNodes(nodesToProcess);
-            var currentDocument = document.WithSyntaxRoot(currentRoot);
-            var currentSemanticModel = await currentDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            while (nodesToProcess.Count > 0)
+        private SyntaxNode UpdateRoot(SemanticModel semanticModel, SyntaxNode root, SyntaxNode node, CancellationToken cancellationToken)
+        {
+            if (node is VariableDeclaratorSyntax variableDeclarator)
             {
-                var currentNode = currentRoot.GetCurrentNode(nodesToProcess.Dequeue());
-                if (currentNode is VariableDeclaratorSyntax variableDeclarator)
+                var variableDeclaration = (VariableDeclarationSyntax)variableDeclarator.Parent;
+                if (s_analyzer.TryAnalyzeVariableDeclaration(
+                        semanticModel, variableDeclaration,
+                        out var tupleType, out var memberAccessExpressions,
+                        cancellationToken))
                 {
-                    if (s_analyzer.TryAnalyzeVariableDeclaration(
-                            currentSemanticModel, (VariableDeclarationSyntax)variableDeclarator.Parent,
-                            out var memberAccessExpressions, cancellationToken))
-                    {
-                        var newRoot = currentRoot.ReplaceNodes(
-                            memberAccessExpressions,
-                            (node, _) =>
-                            {
-                                var memberAccess = (MemberAccessExpressionSyntax)node;
-                                return memberAccess.Name.WithTriviaFrom(memberAccess);
-                            });
+                    var editor = new SyntaxEditor(root, CSharpSyntaxGenerator.Instance);
 
-                        currentRoot = newRoot;
-                        currentDocument = currentDocument.WithSyntaxRoot(currentRoot);
-                        currentSemanticModel = await currentDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    foreach (var memberAccess in memberAccessExpressions)
+                    {
+                        editor.ReplaceNode(memberAccess, memberAccess.Name.WithTriviaFrom(memberAccess));
                     }
+
+                    editor.ReplaceNode(
+                        variableDeclaration.Parent,
+                        CreateDeconstructionStatement(tupleType, (LocalDeclarationStatementSyntax)variableDeclaration.Parent, variableDeclaration));
+
+                    return editor.GetChangedRoot();
                 }
             }
 
-            editor.ReplaceNode(originalRoot, currentRoot);
+            return root;
+        }
+
+        private ExpressionStatementSyntax CreateDeconstructionStatement(
+            INamedTypeSymbol tupleType, LocalDeclarationStatementSyntax declarationStatement, VariableDeclarationSyntax variableDeclaration)
+        {
+            var variableDeclarator = variableDeclaration.Variables[0];
+            var left = CreateTupleOrDeclarationExpression(tupleType, variableDeclaration.Type);
+            return SyntaxFactory.ExpressionStatement(
+                SyntaxFactory.AssignmentExpression(
+                    SyntaxKind.SimpleAssignmentExpression,
+                    left,
+                    variableDeclarator.Initializer.EqualsToken,
+                    variableDeclarator.Initializer.Value),
+                declarationStatement.SemicolonToken);
+        }
+
+        private ExpressionSyntax CreateTupleOrDeclarationExpression(INamedTypeSymbol tupleType, TypeSyntax typeNode)
+        {
+            if (typeNode.IsKind(SyntaxKind.TupleType))
+            {
+                return CreateTupleExpression((TupleTypeSyntax)typeNode);
+            }
+            else
+            {
+                Debug.Assert(typeNode.IsVar);
+                return CreateDeclarationExpression(tupleType, typeNode);
+            }
+        }
+
+        private DeclarationExpressionSyntax CreateDeclarationExpression(INamedTypeSymbol tupleType, TypeSyntax typeNode)
+        {
+            return SyntaxFactory.DeclarationExpression(
+                typeNode, SyntaxFactory.ParenthesizedVariableDesignation(
+                    CreateVariableDesignations(tupleType)));
+        }
+
+        private SeparatedSyntaxList<VariableDesignationSyntax> CreateVariableDesignations(INamedTypeSymbol tupleType)
+        {
+            return SyntaxFactory.SeparatedList<VariableDesignationSyntax>(tupleType.TupleElements.Select(
+                e => SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(e.Name))));
+        }
+
+        private TupleExpressionSyntax CreateTupleExpression(TupleTypeSyntax typeNode)
+        {
+            return SyntaxFactory.TupleExpression(
+                typeNode.OpenParenToken,
+                SyntaxFactory.SeparatedList<ArgumentSyntax>(new SyntaxNodeOrTokenList(typeNode.Elements.GetWithSeparators().Select(ConvertTupleTypeElementComponent))),
+                typeNode.CloseParenToken);
+        }
+
+        private SyntaxNodeOrToken ConvertTupleTypeElementComponent(SyntaxNodeOrToken nodeOrToken)
+        {
+            if (nodeOrToken.IsToken)
+            {
+                return nodeOrToken;
+            }
+
+            var node = (TupleElementSyntax)nodeOrToken.AsNode();
+            return SyntaxFactory.Argument(
+                SyntaxFactory.DeclarationExpression(
+                    node.Type,
+                    SyntaxFactory.SingleVariableDesignation(node.Identifier)));
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

@@ -266,6 +266,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsVariableDeclarator(SyntaxNode node)
             => node is VariableDeclaratorSyntax;
 
+        public bool IsMethodBody(SyntaxNode node)
+        {
+            if (node is BlockSyntax ||
+                node is ArrowExpressionClauseSyntax)
+            {
+                return node.Parent is BaseMethodDeclarationSyntax ||
+                       node.Parent is AccessorDeclarationSyntax;
+            }
+
+            return false;
+        }
+
         public SyntaxNode GetExpressionOfReturnStatement(SyntaxNode node)
             => (node as ReturnStatementSyntax)?.Expression;
 

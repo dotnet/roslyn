@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             SyntaxNodeAnalysisContext context, VariableDeclarationSyntax variableDeclaration, DiagnosticSeverity severity)
         {
             if (!this.TryAnalyzeVariableDeclaration(
-                    context.SemanticModel, variableDeclaration,
+                    context.SemanticModel, variableDeclaration, out _,
                     out var memberAccessExpressions, context.CancellationToken))
             {
                 return;
@@ -82,10 +82,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
         }
 
         public bool TryAnalyzeVariableDeclaration(
-            SemanticModel semanticModel, VariableDeclarationSyntax variableDeclaration,
+            SemanticModel semanticModel,
+            VariableDeclarationSyntax variableDeclaration,
+            out INamedTypeSymbol tupleType, 
             out ImmutableArray<MemberAccessExpressionSyntax> memberAccessExpressions,
             CancellationToken cancellationToken)
         {
+            tupleType = null;
             memberAccessExpressions = default;
 
             if (!variableDeclaration.IsParentKind(SyntaxKind.LocalDeclarationStatement))
@@ -115,7 +118,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 return false;
             }
 
-            var tupleType = (INamedTypeSymbol)type;
+            tupleType = (INamedTypeSymbol)type;
+            if (tupleType.TupleElements.Length < 2)
+            {
+                return false;
+            }
 
             var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator, cancellationToken);
             var searchScope = variableDeclaration.Parent.Parent;
@@ -240,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             // Ignore an annonymous type property.  It's ok if they have a name that 
             // matches the name of the local we're introducing.
             return semanticModel.GetAllDeclaredSymbols(container, cancellationToken)
-                                .Where(s => !s.IsAnonymousTypeProperty());
+                                .Where(s => !s.IsAnonymousTypeProperty() && !s.IsTupleField());
         }
     }
 }
