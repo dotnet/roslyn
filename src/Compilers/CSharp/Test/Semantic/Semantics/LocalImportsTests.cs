@@ -105,7 +105,7 @@ public static void M()
         }
 
         [Fact]
-        public void TestExtensionMethod()
+        public void TestLocalImport_ExtensionMethod()
         {
             var source = @"
 class Program
@@ -126,7 +126,7 @@ class Program
         }
 
         [Fact]
-        public void TestAfterStatement()
+        public void TestLocalImport_AfterStatement()
         {
             var source = @"
 class Program
@@ -140,20 +140,50 @@ class Program
 ";
             // TODO(local-imports): needs better diagnostic
 
-            CreateStandardCompilation(source)
-                .VerifyDiagnostics(
-                // (7,15): error CS1003: Syntax error, '(' expected
+            var comp = CreateStandardCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,9): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
                 //         using System;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "System").WithArguments("(", "").WithLocation(7, 15),
-                // (7,21): error CS1026: ) expected
-                //         using System;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(7, 21),
-                // (7,15): error CS0118: 'System' is a namespace but is used like a variable
-                //         using System;
-                Diagnostic(ErrorCode.ERR_BadSKknown, "System").WithArguments("System", "namespace", "variable").WithLocation(7, 15),
-                // (7,21): warning CS0642: Possible mistaken empty statement
-                //         using System;
-                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(7, 21)
+                Diagnostic(ErrorCode.ERR_UsingAfterElements, "using System;").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void TestLocalImport_SwitchSection()
+        {
+            var source = @"
+class Program
+{   
+    public static void Main()
+    {
+        int i = 0;
+        switch (i)
+        {
+            case 1:
+                using System;
+                break;
+        }
+
+        switch (i)
+        {
+            case 1:
+                System.Console.WriteLine();
+                using System;
+                break;
+        }
+    }
+}
+";
+            // TODO(local-imports): needs better diagnostic
+
+            var comp = CreateStandardCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,17): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
+                //                 using System;
+                Diagnostic(ErrorCode.ERR_UsingAfterElements, "using System;").WithLocation(10, 17),
+                // (18,17): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
+                //                 using System;
+                Diagnostic(ErrorCode.ERR_UsingAfterElements, "using System;").WithLocation(18, 17)
                 );
         }
     }
