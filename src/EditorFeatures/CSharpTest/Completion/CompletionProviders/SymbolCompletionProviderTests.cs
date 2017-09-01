@@ -2261,7 +2261,7 @@ class Program
             default:
                 goto $$";
 
-            await VerifyItemExistsAsync(markup, "default:");
+            await VerifyItemExistsAsync(markup, "default");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

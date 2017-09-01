@@ -1493,7 +1493,7 @@ label1:
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var symbols = model.LookupLabels(source.ToString().IndexOf("HERE", StringComparison.Ordinal));
-            Assert.Equal(new[] { "default", "case int i:", "label1" }, symbols.Select(s => s.ToTestDisplayString()));
+            AssertEx.SetEqual(new[] { "default", "case int i:", "label1" }, symbols.Select(s => s.ToTestDisplayString()));
         }
 
         [WorkItem(586815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586815")]

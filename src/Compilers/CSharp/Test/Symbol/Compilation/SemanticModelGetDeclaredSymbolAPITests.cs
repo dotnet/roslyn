@@ -705,7 +705,7 @@ class C
             var labelSymbol = (SourceLabelSymbol)symbol1;
             Assert.Null(labelSymbol.SwitchCaseLabelConstant);
             Assert.Equal(switchLabel, labelSymbol.IdentifierNodeOrToken.AsNode());
-            Assert.Equal("default:", labelSymbol.Name);
+            Assert.Equal("default", labelSymbol.Name);
         }
 
         [Fact]
