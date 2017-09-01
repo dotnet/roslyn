@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -41,6 +40,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
         {
             var nodesToProcess = diagnostics.SelectAsArray(d => d.Location.FindToken(cancellationToken).Parent);
 
+            // When doing a fix all, we have to avoid introducing the same name multiple times
+            // into the same scope.  However, checking results after each change would be very
+            // expensive (lots of forking + new semantic models, etc.).  So we use 
+            // ApplyMethodBodySemanticEditsAsync to help out here.  It will only do the forking
+            // if there are multiple results in the same method body.  If there's only one 
+            // result in a method body, we will just apply it without doing any extra analysis.
             return editor.ApplyMethodBodySemanticEditsAsync(
                 document, nodesToProcess,
                 (semanticModel, node) => true,
@@ -87,8 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             return editor.GetChangedRoot();
         }
 
-        private ForEachVariableStatementSyntax CreateForEachVariableStatement(
-            INamedTypeSymbol tupleType, ForEachStatementSyntax forEachStatement)
+        private ForEachVariableStatementSyntax CreateForEachVariableStatement(INamedTypeSymbol tupleType, ForEachStatementSyntax forEachStatement)
             => SyntaxFactory.ForEachVariableStatement(
                 forEachStatement.ForEachKeyword,
                 forEachStatement.OpenParenToken,
