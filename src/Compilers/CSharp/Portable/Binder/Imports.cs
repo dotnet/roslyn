@@ -72,23 +72,37 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             SyntaxList<UsingDirectiveSyntax> usingDirectives;
             SyntaxList<ExternAliasDirectiveSyntax> externAliasDirectives;
-            if (declarationSyntax.Kind() == SyntaxKind.CompilationUnit)
+            switch (declarationSyntax.Kind())
             {
-                var compilationUnit = (CompilationUnitSyntax)declarationSyntax;
-                // using directives are not in scope within using directives
-                usingDirectives = inUsing ? default(SyntaxList<UsingDirectiveSyntax>) : compilationUnit.Usings;
-                externAliasDirectives = compilationUnit.Externs;
-            }
-            else if (declarationSyntax.Kind() == SyntaxKind.NamespaceDeclaration)
-            {
-                var namespaceDecl = (NamespaceDeclarationSyntax)declarationSyntax;
-                // using directives are not in scope within using directives
-                usingDirectives = inUsing ? default(SyntaxList<UsingDirectiveSyntax>) : namespaceDecl.Usings;
-                externAliasDirectives = namespaceDecl.Externs;
-            }
-            else
-            {
-                return Empty;
+                case SyntaxKind.CompilationUnit:
+                    {
+                        var compilationUnit = (CompilationUnitSyntax)declarationSyntax;
+                        // using directives are not in scope within using directives
+                        usingDirectives = inUsing ? default : compilationUnit.Usings;
+                        externAliasDirectives = compilationUnit.Externs;
+                        break;
+                    }
+
+                case SyntaxKind.NamespaceDeclaration:
+                    {
+                        var namespaceDecl = (NamespaceDeclarationSyntax)declarationSyntax;
+                        // using directives are not in scope within using directives
+                        usingDirectives = inUsing ? default : namespaceDecl.Usings;
+                        externAliasDirectives = namespaceDecl.Externs;
+                        break;
+                    }
+
+                case SyntaxKind.Block:
+                    {
+                        var block = (BlockSyntax)declarationSyntax;
+                        // using directives are not in scope within using directives
+                        usingDirectives = inUsing ? default : block.Usings;
+                        externAliasDirectives = default;
+                        break;
+                    }
+
+                default:
+                    return Empty;
             }
 
             if (usingDirectives.Count == 0 && externAliasDirectives.Count == 0)

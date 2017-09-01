@@ -85,8 +85,8 @@
     <Rule Id="RS0001" Action="Warning" />
     <Rule Id="RS0002" Action="Warning" />
     <Rule Id="RS0005" Action="Warning" />
-    <Rule Id="RS0016" Action="Error" />
-    <Rule Id="RS0017" Action="Error" />
+    <Rule Id="RS0016" Action="None" />
+    <Rule Id="RS0017" Action="None" />
     <Rule Id="RS0022" Action="Error" />
     <Rule Id="RS0024" Action="Error" />
     <Rule Id="RS0025" Action="Error" />

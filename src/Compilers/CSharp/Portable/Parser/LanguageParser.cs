@@ -7083,9 +7083,17 @@ tryAgain:
                 : this.EatToken(SyntaxKind.OpenBraceToken);
 
             var statements = _pool.Allocate<StatementSyntax>();
+            var usings = _pool.Allocate<UsingDirectiveSyntax>();
             try
             {
                 CSharpSyntaxNode tmp = openBrace;
+
+                while (this.CurrentToken.Kind == SyntaxKind.UsingKeyword
+                    && this.PeekToken(1).Kind != SyntaxKind.OpenParenToken)
+                {
+                    usings.Add(this.ParseUsingDirective());
+                }
+
                 this.ParseStatements(ref tmp, statements, stopOnSwitchSections: false);
                 openBrace = (SyntaxToken)tmp;
                 var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
@@ -7101,10 +7109,11 @@ tryAgain:
                     statementList = statements;
                 }
 
-                return _syntaxFactory.Block(openBrace, statementList, closeBrace);
+                return _syntaxFactory.Block(openBrace, usings, statementList, closeBrace);
             }
             finally
             {
+                _pool.Free(usings);
                 _pool.Free(statements);
             }
         }
@@ -7323,7 +7332,7 @@ tryAgain:
             BlockSyntax block;
             if (@try.IsMissing)
             {
-                block = _syntaxFactory.Block(this.EatToken(SyntaxKind.OpenBraceToken), default(SyntaxList<StatementSyntax>), this.EatToken(SyntaxKind.CloseBraceToken));
+                block = _syntaxFactory.Block(this.EatToken(SyntaxKind.OpenBraceToken), default, default(SyntaxList<StatementSyntax>), this.EatToken(SyntaxKind.CloseBraceToken));
             }
             else
             {
@@ -7366,6 +7375,7 @@ tryAgain:
                         SyntaxToken.CreateMissing(SyntaxKind.FinallyKeyword, null, null),
                         _syntaxFactory.Block(
                             SyntaxToken.CreateMissing(SyntaxKind.OpenBraceToken, null, null),
+                            default,
                             default(SyntaxList<StatementSyntax>),
                             SyntaxToken.CreateMissing(SyntaxKind.CloseBraceToken, null, null)));
                 }
@@ -10662,6 +10672,7 @@ tryAgain:
                     parameterList,
                     _syntaxFactory.Block(
                         openBrace,
+                        default,
                         default(SyntaxList<StatementSyntax>),
                         SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken)));
             }

@@ -7237,6 +7237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
   public sealed partial class BlockSyntax : StatementSyntax
   {
+    private SyntaxNode usings;
     private SyntaxNode statements;
 
     internal BlockSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
@@ -7249,24 +7250,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.BlockSyntax)this.Green).openBraceToken, this.Position, 0); }
     }
 
+    public SyntaxList<UsingDirectiveSyntax> Usings 
+    {
+        get
+        {
+            return new SyntaxList<UsingDirectiveSyntax>(this.GetRed(ref this.usings, 1));
+        }
+    }
+
     public SyntaxList<StatementSyntax> Statements 
     {
         get
         {
-            return new SyntaxList<StatementSyntax>(this.GetRed(ref this.statements, 1));
+            return new SyntaxList<StatementSyntax>(this.GetRed(ref this.statements, 2));
         }
     }
 
     public SyntaxToken CloseBraceToken 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.BlockSyntax)this.Green).closeBraceToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.BlockSyntax)this.Green).closeBraceToken, this.GetChildPosition(3), this.GetChildIndex(3)); }
     }
 
     internal override SyntaxNode GetNodeSlot(int index)
     {
         switch (index)
         {
-            case 1: return this.GetRed(ref this.statements, 1);
+            case 1: return this.GetRed(ref this.usings, 1);
+            case 2: return this.GetRed(ref this.statements, 2);
             default: return null;
         }
     }
@@ -7274,7 +7284,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
-            case 1: return this.statements;
+            case 1: return this.usings;
+            case 2: return this.statements;
             default: return null;
         }
     }
@@ -7289,11 +7300,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitBlock(this);
     }
 
-    public BlockSyntax Update(SyntaxToken openBraceToken, SyntaxList<StatementSyntax> statements, SyntaxToken closeBraceToken)
+    public BlockSyntax Update(SyntaxToken openBraceToken, SyntaxList<UsingDirectiveSyntax> usings, SyntaxList<StatementSyntax> statements, SyntaxToken closeBraceToken)
     {
-        if (openBraceToken != this.OpenBraceToken || statements != this.Statements || closeBraceToken != this.CloseBraceToken)
+        if (openBraceToken != this.OpenBraceToken || usings != this.Usings || statements != this.Statements || closeBraceToken != this.CloseBraceToken)
         {
-            var newNode = SyntaxFactory.Block(openBraceToken, statements, closeBraceToken);
+            var newNode = SyntaxFactory.Block(openBraceToken, usings, statements, closeBraceToken);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -7305,17 +7316,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public BlockSyntax WithOpenBraceToken(SyntaxToken openBraceToken)
     {
-        return this.Update(openBraceToken, this.Statements, this.CloseBraceToken);
+        return this.Update(openBraceToken, this.Usings, this.Statements, this.CloseBraceToken);
+    }
+
+    public BlockSyntax WithUsings(SyntaxList<UsingDirectiveSyntax> usings)
+    {
+        return this.Update(this.OpenBraceToken, usings, this.Statements, this.CloseBraceToken);
     }
 
     public BlockSyntax WithStatements(SyntaxList<StatementSyntax> statements)
     {
-        return this.Update(this.OpenBraceToken, statements, this.CloseBraceToken);
+        return this.Update(this.OpenBraceToken, this.Usings, statements, this.CloseBraceToken);
     }
 
     public BlockSyntax WithCloseBraceToken(SyntaxToken closeBraceToken)
     {
-        return this.Update(this.OpenBraceToken, this.Statements, closeBraceToken);
+        return this.Update(this.OpenBraceToken, this.Usings, this.Statements, closeBraceToken);
+    }
+
+    public BlockSyntax AddUsings(params UsingDirectiveSyntax[] items)
+    {
+        return this.WithUsings(this.Usings.AddRange(items));
     }
 
     public BlockSyntax AddStatements(params StatementSyntax[] items)
@@ -7532,6 +7553,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public LocalFunctionStatementSyntax AddConstraintClauses(params TypeParameterConstraintClauseSyntax[] items)
     {
         return this.WithConstraintClauses(this.ConstraintClauses.AddRange(items));
+    }
+
+    public LocalFunctionStatementSyntax AddBodyUsings(params UsingDirectiveSyntax[] items)
+    {
+        var body = this.Body ?? SyntaxFactory.Block();
+        return this.WithBody(body.WithUsings(body.Usings.AddRange(items)));
     }
 
     public LocalFunctionStatementSyntax AddBodyStatements(params StatementSyntax[] items)
@@ -9907,6 +9934,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.Keyword, block);
     }
 
+    public CheckedStatementSyntax AddBlockUsings(params UsingDirectiveSyntax[] items)
+    {
+        return this.WithBlock(this.Block.WithUsings(this.Block.Usings.AddRange(items)));
+    }
+
     public CheckedStatementSyntax AddBlockStatements(params StatementSyntax[] items)
     {
         return this.WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
@@ -9984,6 +10016,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public UnsafeStatementSyntax WithBlock(BlockSyntax block)
     {
         return this.Update(this.UnsafeKeyword, block);
+    }
+
+    public UnsafeStatementSyntax AddBlockUsings(params UsingDirectiveSyntax[] items)
+    {
+        return this.WithBlock(this.Block.WithUsings(this.Block.Usings.AddRange(items)));
     }
 
     public UnsafeStatementSyntax AddBlockStatements(params StatementSyntax[] items)
@@ -10968,6 +11005,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.TryKeyword, this.Block, this.Catches, @finally);
     }
 
+    public TryStatementSyntax AddBlockUsings(params UsingDirectiveSyntax[] items)
+    {
+        return this.WithBlock(this.Block.WithUsings(this.Block.Usings.AddRange(items)));
+    }
+
     public TryStatementSyntax AddBlockStatements(params StatementSyntax[] items)
     {
         return this.WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
@@ -11082,6 +11124,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public CatchClauseSyntax WithBlock(BlockSyntax block)
     {
         return this.Update(this.CatchKeyword, this.Declaration, this.Filter, block);
+    }
+
+    public CatchClauseSyntax AddBlockUsings(params UsingDirectiveSyntax[] items)
+    {
+        return this.WithBlock(this.Block.WithUsings(this.Block.Usings.AddRange(items)));
     }
 
     public CatchClauseSyntax AddBlockStatements(params StatementSyntax[] items)
@@ -11356,6 +11403,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public FinallyClauseSyntax WithBlock(BlockSyntax block)
     {
         return this.Update(this.FinallyKeyword, block);
+    }
+
+    public FinallyClauseSyntax AddBlockUsings(params UsingDirectiveSyntax[] items)
+    {
+        return this.WithBlock(this.Block.WithUsings(this.Block.Usings.AddRange(items)));
     }
 
     public FinallyClauseSyntax AddBlockStatements(params StatementSyntax[] items)
@@ -15019,6 +15071,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.WithConstraintClauses(this.ConstraintClauses.AddRange(items));
     }
 
+    public MethodDeclarationSyntax AddBodyUsings(params UsingDirectiveSyntax[] items)
+    {
+        var body = this.Body ?? SyntaxFactory.Block();
+        return this.WithBody(body.WithUsings(body.Usings.AddRange(items)));
+    }
+
     public MethodDeclarationSyntax AddBodyStatements(params StatementSyntax[] items)
     {
         var body = this.Body ?? SyntaxFactory.Block();
@@ -15224,6 +15282,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public OperatorDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items)
     {
         return this.WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
+    }
+
+    public OperatorDeclarationSyntax AddBodyUsings(params UsingDirectiveSyntax[] items)
+    {
+        var body = this.Body ?? SyntaxFactory.Block();
+        return this.WithBody(body.WithUsings(body.Usings.AddRange(items)));
     }
 
     public OperatorDeclarationSyntax AddBodyStatements(params StatementSyntax[] items)
@@ -15434,6 +15498,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
     }
 
+    public ConversionOperatorDeclarationSyntax AddBodyUsings(params UsingDirectiveSyntax[] items)
+    {
+        var body = this.Body ?? SyntaxFactory.Block();
+        return this.WithBody(body.WithUsings(body.Usings.AddRange(items)));
+    }
+
     public ConversionOperatorDeclarationSyntax AddBodyStatements(params StatementSyntax[] items)
     {
         var body = this.Body ?? SyntaxFactory.Block();
@@ -15628,6 +15698,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public ConstructorDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items)
     {
         return this.WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
+    }
+
+    public ConstructorDeclarationSyntax AddBodyUsings(params UsingDirectiveSyntax[] items)
+    {
+        var body = this.Body ?? SyntaxFactory.Block();
+        return this.WithBody(body.WithUsings(body.Usings.AddRange(items)));
     }
 
     public ConstructorDeclarationSyntax AddBodyStatements(params StatementSyntax[] items)
@@ -15911,6 +15987,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public DestructorDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items)
     {
         return this.WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
+    }
+
+    public DestructorDeclarationSyntax AddBodyUsings(params UsingDirectiveSyntax[] items)
+    {
+        var body = this.Body ?? SyntaxFactory.Block();
+        return this.WithBody(body.WithUsings(body.Usings.AddRange(items)));
     }
 
     public DestructorDeclarationSyntax AddBodyStatements(params StatementSyntax[] items)
@@ -16840,6 +16922,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public AccessorDeclarationSyntax AddModifiers(params SyntaxToken[] items)
     {
         return this.WithModifiers(this.Modifiers.AddRange(items));
+    }
+
+    public AccessorDeclarationSyntax AddBodyUsings(params UsingDirectiveSyntax[] items)
+    {
+        var body = this.Body ?? SyntaxFactory.Block();
+        return this.WithBody(body.WithUsings(body.Usings.AddRange(items)));
     }
 
     public AccessorDeclarationSyntax AddBodyStatements(params StatementSyntax[] items)

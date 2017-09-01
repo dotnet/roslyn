@@ -11631,15 +11631,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
   internal sealed partial class BlockSyntax : StatementSyntax
   {
     internal readonly SyntaxToken openBraceToken;
+    internal readonly GreenNode usings;
     internal readonly GreenNode statements;
     internal readonly SyntaxToken closeBraceToken;
 
-    internal BlockSyntax(SyntaxKind kind, SyntaxToken openBraceToken, GreenNode statements, SyntaxToken closeBraceToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal BlockSyntax(SyntaxKind kind, SyntaxToken openBraceToken, GreenNode usings, GreenNode statements, SyntaxToken closeBraceToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 3;
+        this.SlotCount = 4;
         this.AdjustFlagsAndWidth(openBraceToken);
         this.openBraceToken = openBraceToken;
+        if (usings != null)
+        {
+            this.AdjustFlagsAndWidth(usings);
+            this.usings = usings;
+        }
         if (statements != null)
         {
             this.AdjustFlagsAndWidth(statements);
@@ -11650,13 +11656,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal BlockSyntax(SyntaxKind kind, SyntaxToken openBraceToken, GreenNode statements, SyntaxToken closeBraceToken, SyntaxFactoryContext context)
+    internal BlockSyntax(SyntaxKind kind, SyntaxToken openBraceToken, GreenNode usings, GreenNode statements, SyntaxToken closeBraceToken, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 3;
+        this.SlotCount = 4;
         this.AdjustFlagsAndWidth(openBraceToken);
         this.openBraceToken = openBraceToken;
+        if (usings != null)
+        {
+            this.AdjustFlagsAndWidth(usings);
+            this.usings = usings;
+        }
         if (statements != null)
         {
             this.AdjustFlagsAndWidth(statements);
@@ -11667,12 +11678,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal BlockSyntax(SyntaxKind kind, SyntaxToken openBraceToken, GreenNode statements, SyntaxToken closeBraceToken)
+    internal BlockSyntax(SyntaxKind kind, SyntaxToken openBraceToken, GreenNode usings, GreenNode statements, SyntaxToken closeBraceToken)
         : base(kind)
     {
-        this.SlotCount = 3;
+        this.SlotCount = 4;
         this.AdjustFlagsAndWidth(openBraceToken);
         this.openBraceToken = openBraceToken;
+        if (usings != null)
+        {
+            this.AdjustFlagsAndWidth(usings);
+            this.usings = usings;
+        }
         if (statements != null)
         {
             this.AdjustFlagsAndWidth(statements);
@@ -11683,6 +11699,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     public SyntaxToken OpenBraceToken { get { return this.openBraceToken; } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax> Usings { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax>(this.usings); } }
     public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax> Statements { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax>(this.statements); } }
     public SyntaxToken CloseBraceToken { get { return this.closeBraceToken; } }
 
@@ -11691,8 +11708,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         switch (index)
         {
             case 0: return this.openBraceToken;
-            case 1: return this.statements;
-            case 2: return this.closeBraceToken;
+            case 1: return this.usings;
+            case 2: return this.statements;
+            case 3: return this.closeBraceToken;
             default: return null;
         }
     }
@@ -11712,11 +11730,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         visitor.VisitBlock(this);
     }
 
-    public BlockSyntax Update(SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax> statements, SyntaxToken closeBraceToken)
+    public BlockSyntax Update(SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax> usings, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax> statements, SyntaxToken closeBraceToken)
     {
-        if (openBraceToken != this.OpenBraceToken || statements != this.Statements || closeBraceToken != this.CloseBraceToken)
+        if (openBraceToken != this.OpenBraceToken || usings != this.Usings || statements != this.Statements || closeBraceToken != this.CloseBraceToken)
         {
-            var newNode = SyntaxFactory.Block(openBraceToken, statements, closeBraceToken);
+            var newNode = SyntaxFactory.Block(openBraceToken, usings, statements, closeBraceToken);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -11731,23 +11749,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
     {
-         return new BlockSyntax(this.Kind, this.openBraceToken, this.statements, this.closeBraceToken, diagnostics, GetAnnotations());
+         return new BlockSyntax(this.Kind, this.openBraceToken, this.usings, this.statements, this.closeBraceToken, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new BlockSyntax(this.Kind, this.openBraceToken, this.statements, this.closeBraceToken, GetDiagnostics(), annotations);
+         return new BlockSyntax(this.Kind, this.openBraceToken, this.usings, this.statements, this.closeBraceToken, GetDiagnostics(), annotations);
     }
 
     internal BlockSyntax(ObjectReader reader)
         : base(reader)
     {
-      this.SlotCount = 3;
+      this.SlotCount = 4;
       var openBraceToken = (SyntaxToken)reader.ReadValue();
       if (openBraceToken != null)
       {
          AdjustFlagsAndWidth(openBraceToken);
          this.openBraceToken = openBraceToken;
+      }
+      var usings = (GreenNode)reader.ReadValue();
+      if (usings != null)
+      {
+         AdjustFlagsAndWidth(usings);
+         this.usings = usings;
       }
       var statements = (GreenNode)reader.ReadValue();
       if (statements != null)
@@ -11767,6 +11791,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       base.WriteTo(writer);
       writer.WriteValue(this.openBraceToken);
+      writer.WriteValue(this.usings);
       writer.WriteValue(this.statements);
       writer.WriteValue(this.closeBraceToken);
     }
@@ -36257,9 +36282,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     public override CSharpSyntaxNode VisitBlock(BlockSyntax node)
     {
       var openBraceToken = (SyntaxToken)this.Visit(node.OpenBraceToken);
+      var usings = this.VisitList(node.Usings);
       var statements = this.VisitList(node.Statements);
       var closeBraceToken = (SyntaxToken)this.Visit(node.CloseBraceToken);
-      return node.Update(openBraceToken, statements, closeBraceToken);
+      return node.Update(openBraceToken, usings, statements, closeBraceToken);
     }
 
     public override CSharpSyntaxNode VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
@@ -39997,7 +40023,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public BlockSyntax Block(SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax> statements, SyntaxToken closeBraceToken)
+    public BlockSyntax Block(SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax> usings, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax> statements, SyntaxToken closeBraceToken)
     {
 #if DEBUG
       if (openBraceToken == null)
@@ -40020,17 +40046,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       }
 #endif
 
-      int hash;
-      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.Block, openBraceToken, statements.Node, closeBraceToken, this.context, out hash);
-      if (cached != null) return (BlockSyntax)cached;
-
-      var result = new BlockSyntax(SyntaxKind.Block, openBraceToken, statements.Node, closeBraceToken, this.context);
-      if (hash >= 0)
-      {
-          SyntaxNodeCache.AddNode(result, hash);
-      }
-
-      return result;
+      return new BlockSyntax(SyntaxKind.Block, openBraceToken, usings.Node, statements.Node, closeBraceToken, this.context);
     }
 
     public LocalFunctionStatementSyntax LocalFunctionStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax returnType, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
@@ -46910,7 +46926,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public static BlockSyntax Block(SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax> statements, SyntaxToken closeBraceToken)
+    public static BlockSyntax Block(SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax> usings, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax> statements, SyntaxToken closeBraceToken)
     {
 #if DEBUG
       if (openBraceToken == null)
@@ -46933,17 +46949,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       }
 #endif
 
-      int hash;
-      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.Block, openBraceToken, statements.Node, closeBraceToken, out hash);
-      if (cached != null) return (BlockSyntax)cached;
-
-      var result = new BlockSyntax(SyntaxKind.Block, openBraceToken, statements.Node, closeBraceToken);
-      if (hash >= 0)
-      {
-          SyntaxNodeCache.AddNode(result, hash);
-      }
-
-      return result;
+      return new BlockSyntax(SyntaxKind.Block, openBraceToken, usings.Node, statements.Node, closeBraceToken);
     }
 
     public static LocalFunctionStatementSyntax LocalFunctionStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax returnType, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)

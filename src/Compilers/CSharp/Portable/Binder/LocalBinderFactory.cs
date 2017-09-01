@@ -327,7 +327,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitBlock(BlockSyntax node)
         {
             Debug.Assert((object)_containingMemberOrLambda == _enclosing.ContainingMemberOrLambda);
-            var blockBinder = new BlockBinder(_enclosing, node);
+
+            var importsBinder = new InContainerBinder(_enclosing, node, inUsing: false);
+            var blockBinder = new BlockBinder(importsBinder, node);
             AddToMap(node, blockBinder);
 
             // Visit all the statements inside this block
