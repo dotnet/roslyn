@@ -469,8 +469,8 @@
   <Target Name="BeforeBuild" Condition="'$(MSBuildRuntimeType)' != 'Core'">
     <ValidateBuildEnvironment
       MSBuildBinPath="$(MSBuildBinPath)"
-      MSBuildMinimumFileVersion="15.1.1012"
-      MSBuildMinimumDisplayVersion="MSBuild 15.1"
+      MSBuildMinimumFileVersion="15.3.409"
+      MSBuildMinimumDisplayVersion="MSBuild 15.3"
       />
 
     <Error 
