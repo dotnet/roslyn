@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
         private void AnalyzeVariableDeclaration(
             SyntaxNodeAnalysisContext context, VariableDeclarationSyntax variableDeclaration, DiagnosticSeverity severity)
         {
-            if (!this.TryAnalyzeVariableDeclaration(
+            if (!TryAnalyzeVariableDeclaration(
                     context.SemanticModel, variableDeclaration, out _,
                     out var memberAccessExpressions, context.CancellationToken))
             {
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
         private void AnalyzeForEachStatement(
             SyntaxNodeAnalysisContext context, ForEachStatementSyntax forEachStatement, DiagnosticSeverity severity)
         {
-            if (!this.TryAnalyzeForEachStatement(
+            if (!TryAnalyzeForEachStatement(
                     context.SemanticModel, forEachStatement, out _,
                     out var memberAccessExpressions, context.CancellationToken))
             {
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 forEachStatement.Identifier.GetLocation()));
         }
 
-        public bool TryAnalyzeVariableDeclaration(
+        public static bool TryAnalyzeVariableDeclaration(
             SemanticModel semanticModel,
             VariableDeclarationSyntax variableDeclaration,
             out INamedTypeSymbol tupleType,
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 out tupleType, out memberAccessExpressions, cancellationToken);
         }
 
-        public bool TryAnalyzeForEachStatement(
+        public static bool TryAnalyzeForEachStatement(
             SemanticModel semanticModel,
             ForEachStatementSyntax forEachStatement, 
             out INamedTypeSymbol tupleType,
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 forEachStatement, out tupleType, out memberAccessExpressions, cancellationToken);
         }
 
-        private bool TryAnalyze(
+        private static bool TryAnalyze(
             SemanticModel semanticModel,
             ILocalSymbol local,
             TypeSyntax typeNode,
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             }
         }
 
-        private bool AnyTupleFieldNamesCollideWithExistingNames(
+        private static bool AnyTupleFieldNamesCollideWithExistingNames(
             SemanticModel semanticModel, INamedTypeSymbol tupleType,
             SyntaxNode container, CancellationToken cancellationToken)
         {
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             return false;
         }
 
-        private bool IsViableTupleTypeSyntax(TypeSyntax type)
+        private static bool IsViableTupleTypeSyntax(TypeSyntax type)
         {
             if (type.IsVar)
             {
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             return false;
         }
 
-        private bool OnlyUsedToAccessTupleFields(
+        private static bool OnlyUsedToAccessTupleFields(
             SemanticModel semanticModel, SyntaxNode searchScope, ILocalSymbol local,
             ArrayBuilder<MemberAccessExpressionSyntax> memberAccessLocations, CancellationToken cancellationToken)
         {

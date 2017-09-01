@@ -20,8 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpUseDeconstructionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
-        private readonly CSharpUseDeconstructionDiagnosticAnalyzer s_analyzer = new CSharpUseDeconstructionDiagnosticAnalyzer();
-
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseDeconstructionDiagnosticId);
 
@@ -65,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             if (node is VariableDeclaratorSyntax variableDeclarator)
             {
                 var variableDeclaration = (VariableDeclarationSyntax)variableDeclarator.Parent;
-                if (s_analyzer.TryAnalyzeVariableDeclaration(
+                if (CSharpUseDeconstructionDiagnosticAnalyzer.TryAnalyzeVariableDeclaration(
                         semanticModel, variableDeclaration,
                         out var tupleType, out memberAccessExpressions,
                         cancellationToken))
@@ -81,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             }
             else if (node is ForEachStatementSyntax forEachStatement)
             {
-                if (s_analyzer.TryAnalyzeForEachStatement(
+                if (CSharpUseDeconstructionDiagnosticAnalyzer.TryAnalyzeForEachStatement(
                         semanticModel, forEachStatement,
                         out var tupleType, out memberAccessExpressions,
                         cancellationToken))
