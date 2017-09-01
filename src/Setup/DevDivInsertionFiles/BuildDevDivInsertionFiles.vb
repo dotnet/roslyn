@@ -897,6 +897,7 @@ Public Class BuildDevDivInsertionFiles
         add("Exes\Toolset\System.Xml.XmlDocument.dll")
         add("Exes\Toolset\System.Xml.XPath.dll")
         add("Exes\Toolset\System.Xml.XPath.XDocument.dll")
+		add("Vsix\VisualStudioSetup\Humanizer.dll")
         Return map
     End Function
 
