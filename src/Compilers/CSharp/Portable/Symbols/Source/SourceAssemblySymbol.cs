@@ -661,13 +661,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static DiagnosticInfo GetUseSiteDiagnosticForNullableAttribute(CSharpCompilation compilation)
         {
-            if ((object)compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor) == null ||
-                (object)compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags) == null)
-            {
-                return new CSDiagnosticInfo(ErrorCode.ERR_NullableAttributeMissing, AttributeDescription.NullableAttribute.FullName);
-            }
-
-            return compilation.GetSpecialType(SpecialType.System_Boolean).GetUseSiteDiagnostic();
+            // PROTOTYPE(NullableReferenceTypes): Verify use-site diagnostics are
+            // reported when generating embedded NullableAttribute type.
+            return null;
         }
 
         /// <summary>

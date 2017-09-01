@@ -619,6 +619,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        private NamedTypeSymbol _lazyNullableAttribute;
+
+        internal NamedTypeSymbol GetNullableAttribute()
+        {
+            if (UtilizesNullableReferenceTypes && (object)_lazyNullableAttribute == null)
+            {
+                ImmutableArray<Symbol> GetNullableAttributeMembers(CSharpCompilation compilation, NamedTypeSymbol containingType)
+                {
+                    var boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
+                    var boolArray = TypeSymbolWithAnnotations.Create(
+                        ArrayTypeSymbol.CreateSZArray(
+                            boolType.ContainingAssembly,
+                            TypeSymbolWithAnnotations.Create(boolType)));
+                    return ImmutableArray.Create<Symbol>(
+                        new SynthesizedEmbeddedAttributeConstructorSymbol(
+                            containingType,
+                            m => ImmutableArray<ParameterSymbol>.Empty),
+                        new SynthesizedEmbeddedAttributeConstructorSymbol(
+                            containingType,
+                            m => ImmutableArray.Create(SynthesizedParameterSymbol.Create(m, boolArray, 0, RefKind.None))));
+                }
+                Interlocked.CompareExchange(
+                    ref _lazyNullableAttribute,
+                    new SynthesizedEmbeddedAttributeSymbol(
+                        _assemblySymbol.DeclaringCompilation,
+                        AttributeDescription.NullableAttribute.Namespace,
+                        AttributeDescription.NullableAttribute.Name,
+                        GetNullableAttributeMembers),
+                    null);
+            }
+            return _lazyNullableAttribute;
+        }
+
         internal override bool UtilizesNullableReferenceTypes
         {
             get

@@ -59,7 +59,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes()
         {
-            return _additionalTypes;
+            var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+            builder.AddRange(_additionalTypes);
+            builder.AddIfNotNull(SourceModule.GetNullableAttribute());
+            return builder.ToImmutableAndFree();
         }
 
         public sealed override IEnumerable<Cci.IFileReference> GetFiles(EmitContext context)
