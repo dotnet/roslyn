@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         {
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         {
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         {
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         {
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(17129, "https://github.com/dotnet/roslyn/issues/17129")]
@@ -503,7 +503,7 @@ namespace N
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(17122, "https://github.com/dotnet/roslyn/issues/17122")]

@@ -108,14 +108,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             foreach (var group in orderedGroups)
             {
                 var project = solution.GetProject(group.Key);
-                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-                foreach (var (symbolKey, _) in group)
+                if (project.SupportsCompilation)
                 {
-                    var resolvedSymbol = symbolKey.Resolve(compilation, cancellationToken: cancellationToken).GetAnySymbol();
-                    if (resolvedSymbol is INamedTypeSymbol namedType)
+                    var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+                    foreach (var (symbolKey, _) in group)
                     {
-                        builder.Add(new SymbolAndProjectId<INamedTypeSymbol>(namedType, project.Id));
+                        var resolvedSymbol = symbolKey.Resolve(compilation, cancellationToken: cancellationToken).GetAnySymbol();
+                        if (resolvedSymbol is INamedTypeSymbol namedType)
+                        {
+                            builder.Add(new SymbolAndProjectId<INamedTypeSymbol>(namedType, project.Id));
+                        }
                     }
                 }
             }
@@ -534,6 +537,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             CancellationToken cancellationToken)
         {
             if (metadataTypes.Count == 0)
+            {
+                return;
+            }
+
+            if (!project.SupportsCompilation)
             {
                 return;
             }
