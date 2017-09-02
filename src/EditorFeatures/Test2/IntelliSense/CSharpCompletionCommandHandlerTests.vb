@@ -666,6 +666,27 @@ class C
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(4677, "https://github.com/dotnet/roslyn/issues/4677")>
+        Public Async Function TestEscapedDefaultLabelWithoutSwitch() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void M(object o)
+    {
+@default:
+        goto $$
+    }
+}]]></Document>)
+
+                state.SendTypeChars("d")
+                Await state.AssertSelectedCompletionItem(displayText:="@default", isHardSelected:=True)
+                state.SendTypeChars(";")
+                Assert.Contains("goto @default;", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
         Public Async Function TestSymbolInTupleLiteral() As Task
             Using state = TestState.CreateCSharpTestState(
