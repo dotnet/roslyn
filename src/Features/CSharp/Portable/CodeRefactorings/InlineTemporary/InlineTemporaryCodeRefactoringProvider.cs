@@ -580,14 +580,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 parent = parent.Parent;
             }
 
-            while (parent?.Kind() == SyntaxKind.Argument)
+            while (parent.IsKind(SyntaxKind.Argument))
             {
                 parent = parent.Parent;
-                if (parent?.Kind() != SyntaxKind.TupleExpression)
+                if (!parent.IsKind(SyntaxKind.TupleExpression))
                 {
                     return false;
                 }
-                else if (parent?.IsParentKind(SyntaxKind.SimpleAssignmentExpression) == true)
+                else if (parent.IsParentKind(SyntaxKind.SimpleAssignmentExpression))
                 {
                     return ((AssignmentExpressionSyntax)parent.Parent).Left == parent;
                 }
