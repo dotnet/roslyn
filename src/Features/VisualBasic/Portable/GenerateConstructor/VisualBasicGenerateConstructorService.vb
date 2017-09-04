@@ -266,11 +266,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
                 Return Nothing
             End If
             Dim constructorInitializerSyntax = constructorStatements(0)
-            Dim expression = CType(constructorInitializerSyntax, ExpressionStatementSyntax).Expression
-            If (expression.IsKind(SyntaxKind.InvocationExpression)) Then
-                Return CType(semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol, IMethodSymbol)
+            Dim expressionStatement = TryCast(constructorInitializerSyntax, ExpressionStatementSyntax)
+            If (expressionStatement IsNot Nothing AndAlso expressionStatement.Expression.IsKind(SyntaxKind.InvocationExpression)) Then
+                Dim methodSymbol = TryCast(semanticModel.GetSymbolInfo(expressionStatement.Expression, cancellationToken).Symbol, IMethodSymbol)
+                Return If(methodSymbol IsNot Nothing AndAlso methodSymbol.MethodKind = MethodKind.Constructor, methodSymbol, Nothing)
             End If
-
             Return Nothing
         End Function
     End Class
