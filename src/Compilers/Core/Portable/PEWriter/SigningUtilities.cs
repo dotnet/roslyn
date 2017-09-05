@@ -4,12 +4,14 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection.Metadata;
 using System.Security.Cryptography;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.Cci
 {
     internal static class SigningUtilities
     {
-        public static byte[] CalculateRsaSignature(IEnumerable<Blob> content, RSAParameters privateKey)
+        internal static byte[] CalculateRsaSignature(IEnumerable<Blob> content, RSAParameters privateKey)
         {
             var hash = CalculateSha1(content);
  
@@ -39,6 +41,40 @@ namespace Microsoft.Cci
  
                 return hash.GetHashAndReset();
             }
+        }
+        internal static int CalculateStrongNameSignatureSize(CommonPEModuleBuilder module, RSAParameters? privateKey)
+        {
+            ISourceAssemblySymbolInternal assembly = module.SourceAssemblyOpt;
+            if (assembly == null && !privateKey.HasValue)
+            {
+                return 0;
+            }
+
+            int keySize = 0;
+
+            // EDMAURER the count of characters divided by two because the each pair of characters will turn in to one byte.
+            if (keySize == 0 && assembly != null)
+            {
+                keySize = (assembly.SignatureKey == null) ? 0 : assembly.SignatureKey.Length / 2;
+            }
+
+            if (keySize == 0 && assembly != null)
+            {
+                keySize = assembly.Identity.PublicKey.Length;
+            }
+
+            if (keySize == 0 && privateKey.HasValue)
+            {
+                keySize = privateKey.Value.Modulus.Length;
+            }
+
+
+            if (keySize == 0)
+            {
+                return 0;
+            }
+
+            return (keySize < 128 + 32) ? 128 : keySize - 32;
         }
     }
 }

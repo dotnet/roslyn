@@ -148,16 +148,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     WithXmlReferenceResolver(xmlFileResolver).
                     WithSourceReferenceResolver(sourceFileResolver));
 
-            StrongNameProvider LoggingPortableStrongNameProvider() =>
-                new PortableStrongNameProvider(Arguments.KeyFileSearchPaths, new LoggingIOOperations(touchedFilesLogger));
-
-            StrongNameProvider LoggingDesktopStrongNameProvider() =>
-                new DesktopStrongNameProvider(Arguments.KeyFileSearchPaths, null, new LoggingIOOperations(touchedFilesLogger));
+            var loggingOperations = new LoggingIOOperations(touchedFilesLogger);
+            var searchPaths = Arguments.KeyFileSearchPaths;
 
             return compilation.WithOptions(
-                compilation.Feature("ByPassStrongName") == null ?
-                    compilation.Options.WithStrongNameProvider(LoggingPortableStrongNameProvider()) :
-                    compilation.Options.WithStrongNameProvider(LoggingDesktopStrongNameProvider()));
+                compilation.Options.WithStrongNameProvider(
+                    compilation.Feature("BypassStrongName") == null ?
+                    (StrongNameProvider) new PortableStrongNameProvider(searchPaths, loggingOperations) :
+                    (StrongNameProvider) new DesktopStrongNameProvider(searchPaths, null, loggingOperations)));
         }
 
         private SyntaxTree ParseFile(

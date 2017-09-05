@@ -756,7 +756,7 @@ namespace Microsoft.CodeAnalysis
                             var refPeStreamProviderOpt = finalRefPeFilePath != null ? new CompilerEmitStreamProvider(this, finalRefPeFilePath) : null;
 
                             RSAParameters? privateKeyOpt = null;
-                            if (compilation.Options.StrongNameProvider != null && compilation.Feature("BypassStrongName") == null)
+                            if (compilation.Options.StrongNameProvider?.Capability == SigningCapability.SignsPeBuilder)
                             {
                                 privateKeyOpt = compilation.StrongNameKeys.PrivateKey;
                                 // PROTOTYPE(strongname): Report an error if PrivateKey is null, meaning that they passed in a public key file.
@@ -775,7 +775,7 @@ namespace Microsoft.CodeAnalysis
                                     includePrivateMembers: emitOptions.IncludePrivateMembers,
                                     emitTestCoverageData: emitOptions.EmitTestCoverageData,
                                     pePdbFilePath: emitOptions.PdbFilePath,
-                                    privKeyOpt: privateKeyOpt,
+                                    privateKeyOpt: privateKeyOpt,
                                     cancellationToken: cancellationToken);
                             }
                             finally
