@@ -823,10 +823,7 @@ IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 
                   ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 's')
                   InConversion: null
                   OutConversion: null
-<<<<<<< HEAD
   NextVariables(0)
-=======
->>>>>>> upstream/features/ioperation
 ]]>.Value
 
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)

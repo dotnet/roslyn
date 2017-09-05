@@ -31,7 +31,7 @@ class Program
             string expectedOperationTree = @"
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (st ... }')
   Locals: Local_1: System.String value
-  LoopControlVariable: ILocalReferenceExpression: value (OperationKind.LocalReferenceExpression, Type: System.String, Constant: null) (Syntax: 'foreach (st ... }')
+  LoopControlVariable: ILocalReferenceExpression: value (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.String, Constant: null) (Syntax: 'foreach (st ... }')
   Collection: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'pets')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: ILocalReferenceExpression: pets (OperationKind.LocalReferenceExpression, Type: System.String[]) (Syntax: 'pets')
@@ -76,7 +76,7 @@ class Program
             string expectedOperationTree = @"
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (st ... }')
   Locals: Local_1: System.String item
-  LoopControlVariable: ILocalReferenceExpression: item (OperationKind.LocalReferenceExpression, Type: System.String, Constant: null) (Syntax: 'foreach (st ... }')
+  LoopControlVariable: ILocalReferenceExpression: item (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.String, Constant: null) (Syntax: 'foreach (st ... }')
   Collection: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.List<System.String>) (Syntax: 'list')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: ILocalReferenceExpression: list (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List<System.String>) (Syntax: 'list')
@@ -122,7 +122,7 @@ class Program
             string expectedOperationTree = @"
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (Ke ... }')
   Locals: Local_1: System.Collections.Generic.KeyValuePair<System.Int32, System.Int32> pair
-  LoopControlVariable: ILocalReferenceExpression: pair (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.KeyValuePair<System.Int32, System.Int32>, Constant: null) (Syntax: 'foreach (Ke ... }')
+  LoopControlVariable: ILocalReferenceExpression: pair (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.KeyValuePair<System.Int32, System.Int32>, Constant: null) (Syntax: 'foreach (Ke ... }')
   Collection: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.Dictionary<System.Int32, System.Int32>) (Syntax: '_h')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: IFieldReferenceExpression: System.Collections.Generic.Dictionary<System.Int32, System.Int32> Program._h (Static) (OperationKind.FieldReferenceExpression, Type: System.Collections.Generic.Dictionary<System.Int32, System.Int32>) (Syntax: '_h')
@@ -180,7 +180,7 @@ class Program
             string expectedOperationTree = @"
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (in ... }')
   Locals: Local_1: System.Int32 num
-  LoopControlVariable: ILocalReferenceExpression: num (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: null) (Syntax: 'foreach (in ... }')
+  LoopControlVariable: ILocalReferenceExpression: num (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: null) (Syntax: 'foreach (in ... }')
   Collection: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'numbers')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: ILocalReferenceExpression: numbers (OperationKind.LocalReferenceExpression, Type: System.Int32[]) (Syntax: 'numbers')
@@ -230,7 +230,7 @@ class Program
             string expectedOperationTree = @"
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (in ... }')
   Locals: Local_1: System.Int32 num
-  LoopControlVariable: ILocalReferenceExpression: num (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: null) (Syntax: 'foreach (in ... }')
+  LoopControlVariable: ILocalReferenceExpression: num (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: null) (Syntax: 'foreach (in ... }')
   Collection: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'numbers')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: ILocalReferenceExpression: numbers (OperationKind.LocalReferenceExpression, Type: System.Int32[]) (Syntax: 'numbers')
@@ -278,7 +278,7 @@ class Program
             string expectedOperationTree = @"
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'foreach (st ... }')
   Locals: Local_1: System.String value
-  LoopControlVariable: ILocalReferenceExpression: value (OperationKind.LocalReferenceExpression, Type: System.String, Constant: null, IsInvalid) (Syntax: 'foreach (st ... }')
+  LoopControlVariable: ILocalReferenceExpression: value (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.String, Constant: null, IsInvalid) (Syntax: 'foreach (st ... }')
   Collection: ILocalReferenceExpression: sorted (OperationKind.LocalReferenceExpression, Type: ?, IsInvalid) (Syntax: 'sorted')
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... ine(value);')
@@ -334,7 +334,7 @@ namespace DisplayStructContentsTest
             string expectedOperationTree = @"
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (Fi ... }')
   Locals: Local_1: System.Reflection.FieldInfo fi
-  LoopControlVariable: ILocalReferenceExpression: fi (OperationKind.LocalReferenceExpression, Type: System.Reflection.FieldInfo, Constant: null) (Syntax: 'foreach (Fi ... }')
+  LoopControlVariable: ILocalReferenceExpression: fi (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Reflection.FieldInfo, Constant: null) (Syntax: 'foreach (Fi ... }')
   Collection: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'employee.Ge ... GetFields()')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: IInvocationExpression ( System.Reflection.FieldInfo[] System.Type.GetFields()) (OperationKind.InvocationExpression, Type: System.Reflection.FieldInfo[]) (Syntax: 'employee.Ge ... GetFields()')
@@ -397,7 +397,7 @@ class Class1
             string expectedOperationTree = @"
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (ch ... }')
   Locals: Local_1: System.Char c
-  LoopControlVariable: ILocalReferenceExpression: c (OperationKind.LocalReferenceExpression, Type: System.Char, Constant: null) (Syntax: 'foreach (ch ... }')
+  LoopControlVariable: ILocalReferenceExpression: c (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Char, Constant: null) (Syntax: 'foreach (ch ... }')
   Collection: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String) (Syntax: 's')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String, Constant: """") (Syntax: 's')
@@ -441,7 +441,7 @@ class Program
             string expectedOperationTree = @"
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (va ... }')
   Locals: Local_1: System.Collections.Generic.KeyValuePair<System.Int32, System.Int32> pair
-  LoopControlVariable: ILocalReferenceExpression: pair (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.KeyValuePair<System.Int32, System.Int32>, Constant: null) (Syntax: 'foreach (va ... }')
+  LoopControlVariable: ILocalReferenceExpression: pair (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.KeyValuePair<System.Int32, System.Int32>, Constant: null) (Syntax: 'foreach (va ... }')
   Collection: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.Dictionary<System.Int32, System.Int32>) (Syntax: '_f')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: IFieldReferenceExpression: System.Collections.Generic.Dictionary<System.Int32, System.Int32> Program._f (Static) (OperationKind.FieldReferenceExpression, Type: System.Collections.Generic.Dictionary<System.Int32, System.Int32>) (Syntax: '_f')
@@ -494,7 +494,7 @@ class C
             string expectedOperationTree = @"
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'foreach (Mi ... }')
   Locals: Local_1: MissingType x
-  LoopControlVariable: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: MissingType, Constant: null, IsInvalid) (Syntax: 'foreach (Mi ... }')
+  LoopControlVariable: ILocalReferenceExpression: x (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: MissingType, Constant: null, IsInvalid) (Syntax: 'foreach (Mi ... }')
   Collection: ILocalReferenceExpression: sequence (OperationKind.LocalReferenceExpression, Type: System.Collections.IEnumerable) (Syntax: 'sequence')
   Body: IBlockStatement (1 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       Locals: Local_1: System.Boolean b
@@ -534,7 +534,7 @@ class C
             string expectedOperationTree = @"
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'foreach (in ... }')
   Locals: Local_1: System.Int32 x
-  LoopControlVariable: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: null, IsInvalid) (Syntax: 'foreach (in ... }')
+  LoopControlVariable: ILocalReferenceExpression: x (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: null, IsInvalid) (Syntax: 'foreach (in ... }')
   Collection: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
   NextVariables(0)
@@ -560,7 +560,7 @@ class C
             string expectedOperationTree = @"
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'foreach (in ... }')
   Locals: Local_1: System.Int32 x
-  LoopControlVariable: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: null, IsInvalid) (Syntax: 'foreach (in ... }')
+  LoopControlVariable: ILocalReferenceExpression: x (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: null, IsInvalid) (Syntax: 'foreach (in ... }')
   Collection: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'args')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String[]) (Syntax: 'args')
@@ -586,7 +586,7 @@ class C
             string expectedOperationTree = @"
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'foreach (in ... a) { x++; }')
   Locals: Local_1: System.Int32 x
-  LoopControlVariable: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: null, IsInvalid) (Syntax: 'foreach (in ... a) { x++; }')
+  LoopControlVariable: ILocalReferenceExpression: x (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: null, IsInvalid) (Syntax: 'foreach (in ... a) { x++; }')
   Collection: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'a')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32[]) (Syntax: 'a')
@@ -629,7 +629,7 @@ class Enumerator
             string expectedOperationTree = @"
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (lo ... x in e) { }')
   Locals: Local_1: System.Int64 x
-  LoopControlVariable: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int64, Constant: null) (Syntax: 'foreach (lo ... x in e) { }')
+  LoopControlVariable: ILocalReferenceExpression: x (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int64, Constant: null) (Syntax: 'foreach (lo ... x in e) { }')
   Collection: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Enumerable) (Syntax: 'e')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: IParameterReferenceExpression: e (OperationKind.ParameterReferenceExpression, Type: Enumerable) (Syntax: 'e')
@@ -655,7 +655,7 @@ class C
             string expectedOperationTree = @"
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (var x in s) { }')
   Locals: Local_1: System.Char x
-  LoopControlVariable: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Char, Constant: null) (Syntax: 'foreach (var x in s) { }')
+  LoopControlVariable: ILocalReferenceExpression: x (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Char, Constant: null) (Syntax: 'foreach (var x in s) { }')
   Collection: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String) (Syntax: 's')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 's')
@@ -683,7 +683,7 @@ class C
             string expectedOperationTree = @"
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (var x in a) { }')
   Locals: Local_1: C.var x
-  LoopControlVariable: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: C.var, Constant: null) (Syntax: 'foreach (var x in a) { }')
+  LoopControlVariable: ILocalReferenceExpression: x (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: C.var, Constant: null) (Syntax: 'foreach (var x in a) { }')
   Collection: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'a')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: C.var[]) (Syntax: 'a')
@@ -709,7 +709,7 @@ class C
             string expectedOperationTree = @"
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (int x in d) { }')
   Locals: Local_1: System.Int32 x
-  LoopControlVariable: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: null) (Syntax: 'foreach (int x in d) { }')
+  LoopControlVariable: ILocalReferenceExpression: x (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: null) (Syntax: 'foreach (int x in d) { }')
   Collection: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'd')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
@@ -743,7 +743,7 @@ public class Enumerable<T>
             string expectedOperationTree = @"
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (ob ... }')
   Locals: Local_1: System.Object x
-  LoopControlVariable: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Object, Constant: null) (Syntax: 'foreach (ob ... }')
+  LoopControlVariable: ILocalReferenceExpression: x (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Object, Constant: null) (Syntax: 'foreach (ob ... }')
   Collection: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Enumerable<T>) (Syntax: 'new Enumerable<T>()')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: IObjectCreationExpression (Constructor: Enumerable<T>..ctor()) (OperationKind.ObjectCreationExpression, Type: Enumerable<T>) (Syntax: 'new Enumerable<T>()')
@@ -781,7 +781,7 @@ class C
             string expectedOperationTree = @"
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (st ... e)args) { }')
   Locals: Local_1: System.String x
-  LoopControlVariable: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.String, Constant: null) (Syntax: 'foreach (st ... e)args) { }')
+  LoopControlVariable: ILocalReferenceExpression: x (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.String, Constant: null) (Syntax: 'foreach (st ... e)args) { }')
   Collection: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: '(IEnumerable)args')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: '(IEnumerable)args')
@@ -819,7 +819,7 @@ class Program
             string expectedOperationTree = @"
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (in ... }')
   Locals: Local_1: System.Int32 num
-  LoopControlVariable: ILocalReferenceExpression: num (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: null) (Syntax: 'foreach (in ... }')
+  LoopControlVariable: ILocalReferenceExpression: num (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: null) (Syntax: 'foreach (in ... }')
   Collection: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'numbers')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: ILocalReferenceExpression: numbers (OperationKind.LocalReferenceExpression, Type: System.Int32[]) (Syntax: 'numbers')

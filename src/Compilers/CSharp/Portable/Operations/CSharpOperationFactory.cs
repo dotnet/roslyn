@@ -1189,7 +1189,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             else if (locals.Length == 1)
             {
                 var local = (LocalSymbol)locals.Single();
-                loopControlVariable = new Lazy<IOperation>(() => new LocalReferenceExpression(local, _semanticModel, local.GetDeclaratorSyntax(), local.Type, local.ConstantValue, local.IsImplicitlyDeclared));
+                bool isDeclaration = true;
+                loopControlVariable = new Lazy<IOperation>(() => new LocalReferenceExpression(local, isDeclaration, _semanticModel, local.GetDeclaratorSyntax(), local.Type, local.ConstantValue, local.IsImplicitlyDeclared));
             }
             else
             {
