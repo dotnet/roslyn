@@ -1342,5 +1342,49 @@ class Program
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "new SW().TryGet(out int value2)").WithArguments("SW.TryGet(out int)", "result").WithLocation(10, 13)
                 );
         }
+
+        [WorkItem(21911, "https://github.com/dotnet/roslyn/issues/21911")]
+        [Fact()]
+        public void MemberOfReadonlyRefLikeEscapeSpans()
+        {
+            var text = @"
+    using System;
+
+    public static class Program
+    {
+        public static void Main()
+        {
+            Span<int> stackAllocated = stackalloc int[100];
+
+            // OK, Span is a readonly struct
+            new Span<int>().CopyTo(stackAllocated);
+
+            // OK, ReadOnlySpan is a readonly struct
+            new ReadOnlySpan<int>().CopyTo(stackAllocated);
+
+            // not OK, Span is writeable
+            new NotReadOnly<int>().CopyTo(stackAllocated);
+        }
+    }
+
+    public ref struct NotReadOnly<T>
+    {
+        private Span<T> wrapped;
+
+        public void CopyTo(Span<T> other)
+        {
+            wrapped = other;
+        }
+    }
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (17,43): error CS8526: Cannot use local 'stackAllocated' in this context because it may expose referenced variables outside of their declaration scope
+                //             new NotReadOnly<int>().CopyTo(stackAllocated);
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "stackAllocated").WithArguments("stackAllocated").WithLocation(17, 43),
+                // (17,13): error CS8524: This combination of arguments to 'NotReadOnly<int>.CopyTo(Span<int>)' is disallowed because it may expose variables referenced by parameter 'other' outside of their declaration scope
+                //             new NotReadOnly<int>().CopyTo(stackAllocated);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "new NotReadOnly<int>().CopyTo(stackAllocated)").WithArguments("NotReadOnly<int>.CopyTo(System.Span<int>)", "other").WithLocation(17, 13)
+                );
+        }
     }
 }
