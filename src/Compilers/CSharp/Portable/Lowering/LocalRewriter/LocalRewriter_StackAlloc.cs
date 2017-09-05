@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter
     {
-        public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation stackAllocNode)
+        public override BoundNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression stackAllocNode)
         {
             var rewrittenCount = VisitExpression(stackAllocNode.Count);
 
@@ -21,17 +21,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.StackAllocToPointerType:
                     {
                         var stackSize = RewriteStackAllocCountToSize(rewrittenCount, elementType);
-                        var resultType = new PointerTypeSymbol(elementType);
-
-                        return stackAllocNode.Update(conversionKind, elementType, stackSize, resultType);
+                        return stackAllocNode.Update(elementType, stackSize, conversionKind, stackAllocNode.Type);
                     }
                 case ConversionKind.StackAllocToSpanType:
                     {
-                        BoundLocal countTemp = _factory.StoreToTemp(rewrittenCount, out BoundAssignmentOperator countTempAssignment);
-                        BoundExpression stackSize = RewriteStackAllocCountToSize(countTemp, elementType);
-                        stackAllocNode = stackAllocNode.Update(conversionKind, elementType, stackSize, stackAllocNode.Type);
+                        Debug.Assert(stackAllocNode.Type.IsSpanType());
 
-                        var spanType = _compilation.GetWellKnownType(WellKnownType.System_Span_T).Construct(elementType);
+                        var spanType = (NamedTypeSymbol)stackAllocNode.Type;
+                        var countTemp = _factory.StoreToTemp(rewrittenCount, out BoundAssignmentOperator countTempAssignment);
+                        var stackSize = RewriteStackAllocCountToSize(countTemp, elementType);
+                        stackAllocNode = stackAllocNode.Update(elementType, stackSize, conversionKind, spanType);
+
                         var spanCtor = (MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Span_T__ctor).SymbolAsMember(spanType);
                         var ctorCall = _factory.New(spanCtor, stackAllocNode, countTemp);
 

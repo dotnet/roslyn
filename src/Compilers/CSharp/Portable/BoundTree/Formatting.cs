@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override object Display
         {
-            get { return string.Format(MessageID.IDS_StackAllocExpression.Localize().ToString(), ElementType); }
+            get { return string.Format(MessageID.IDS_StackAllocExpression.Localize().ToString(), ElementType, Count.Syntax); }
         }
     }
 }

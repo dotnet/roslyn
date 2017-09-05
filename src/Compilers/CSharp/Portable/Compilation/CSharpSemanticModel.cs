@@ -1923,17 +1923,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 type = ((BoundConvertedTupleLiteral)boundExpr).NaturalTypeOpt;
                                 break;
                             }
-                        case BoundKind.StackAllocArrayCreation:
-                            {
-                                Debug.Assert(boundExpr.Type is null);
-                                Debug.Assert(highestBoundExpr.Kind == BoundKind.Conversion);
-                                var boundConversion = (BoundConversion)highestBoundExpr;
-
-                                type = null;
-                                convertedType = boundConversion.Type;
-                                conversion = boundConversion.Conversion;
-                                break;
-                            }
                     }
                 }
 

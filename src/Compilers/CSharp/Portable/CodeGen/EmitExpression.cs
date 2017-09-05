@@ -105,8 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitArrayCreationExpression((BoundArrayCreation)expression, used);
                     break;
 
-                case BoundKind.StackAllocArrayCreation:
-                    EmitStackAllocArrayCreationExpression((BoundStackAllocArrayCreation)expression, used);
+                case BoundKind.ConvertedStackAllocExpression:
+                    EmitConvertedStackAllocExpression((BoundConvertedStackAllocExpression)expression, used);
                     break;
 
                 case BoundKind.Conversion:
@@ -1826,7 +1826,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitPopIfUnused(used);
         }
 
-        private void EmitStackAllocArrayCreationExpression(BoundStackAllocArrayCreation expression, bool used)
+        private void EmitConvertedStackAllocExpression(BoundConvertedStackAllocExpression expression, bool used)
         {
             EmitExpression(expression.Count, used: true);
             _builder.EmitOpCode(ILOpCode.Localloc);

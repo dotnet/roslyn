@@ -2061,8 +2061,7 @@ struct S
 ";
             var expected = @"
 No, TypeExpression 'int*' is not a non-moveable variable
-Yes, Conversion 'stackalloc int[1]' is a non-moveable variable
-Yes, StackAllocArrayCreation 'stackalloc int[1]' is a non-moveable variable
+Yes, ConvertedStackAllocExpression 'stackalloc int[1]' is a non-moveable variable
 No, Literal '1' is not a non-moveable variable
 ".Trim();
 
@@ -7620,10 +7619,9 @@ class C
             var countSyntax = arrayTypeSyntax.RankSpecifiers.Single().Sizes.Single();
 
             var stackAllocSummary = model.GetSemanticInfoSummary(stackAllocSyntax);
-            Assert.Null(stackAllocSummary.Type);
+            Assert.Equal(SpecialType.System_Char, ((PointerTypeSymbol)stackAllocSummary.Type).PointedAtType.SpecialType);
             Assert.Equal(SpecialType.System_Void, ((PointerTypeSymbol)stackAllocSummary.ConvertedType).PointedAtType.SpecialType);
-            Assert.Equal(ConversionKind.StackAllocToPointerType, stackAllocSummary.ImplicitConversion.Kind);
-            Assert.Equal(ConversionKind.PointerToVoid, stackAllocSummary.ImplicitConversion.UnderlyingConversions.Single().Kind);
+            Assert.Equal(Conversion.PointerToVoid, stackAllocSummary.ImplicitConversion);
             Assert.Null(stackAllocSummary.Symbol);
             Assert.Equal(0, stackAllocSummary.CandidateSymbols.Length);
             Assert.Equal(CandidateReason.None, stackAllocSummary.CandidateReason);

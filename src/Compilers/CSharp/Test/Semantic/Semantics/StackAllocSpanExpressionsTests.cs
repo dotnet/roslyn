@@ -29,6 +29,7 @@ unsafe class Test
         var obj2 = stackalloc int[10];
         Span<int> obj3 = stackalloc int[10];
         int* obj4 = stackalloc int[10];
+        double* obj5 = stackalloc int[10];
     }
     
     public static implicit operator Test(int* value) 
@@ -37,51 +38,56 @@ unsafe class Test
     }
 }", TestOptions.UnsafeReleaseDll);
 
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (11,24): error CS8520: Conversion of a stackalloc expression of type 'int' to type 'double*' is not possible.
+                //         double* obj5 = stackalloc int[10];
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[10]").WithArguments("int", "double*").WithLocation(11, 24));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
             var variables = tree.GetCompilationUnitRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>();
-            Assert.Equal(4, variables.Count());
+            Assert.Equal(5, variables.Count());
 
             var obj1 = variables.ElementAt(0);
             Assert.Equal("obj1", obj1.Identifier.Text);
 
             var obj1Value = model.GetSemanticInfoSummary(obj1.Initializer.Value);
-            Assert.Null(obj1Value.Type);
+            Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj1Value.Type).PointedAtType.SpecialType);
             Assert.Equal("Test", obj1Value.ConvertedType.Name);
-            Assert.Equal(ConversionKind.StackAllocToPointerType, obj1Value.ImplicitConversion.Kind);
-            Assert.Equal(ConversionKind.ImplicitUserDefined, obj1Value.ImplicitConversion.UnderlyingConversions.Single().Kind);
+            Assert.Equal(ConversionKind.ImplicitUserDefined, obj1Value.ImplicitConversion.Kind);
 
             var obj2 = variables.ElementAt(1);
             Assert.Equal("obj2", obj2.Identifier.Text);
 
             var obj2Value = model.GetSemanticInfoSummary(obj2.Initializer.Value);
-            Assert.Null(obj2Value.Type);
-            Assert.True(obj2Value.ConvertedType is PointerTypeSymbol);
-            Assert.Equal("Int32", ((PointerTypeSymbol)obj2Value.ConvertedType).PointedAtType.Name);
-            Assert.Equal(ConversionKind.StackAllocToPointerType, obj2Value.ImplicitConversion.Kind);
-            Assert.Equal(ConversionKind.Identity, obj2Value.ImplicitConversion.UnderlyingConversions.Single().Kind);
+            Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj2Value.Type).PointedAtType.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj2Value.ConvertedType).PointedAtType.SpecialType);
+            Assert.Equal(ConversionKind.Identity, obj2Value.ImplicitConversion.Kind);
 
             var obj3 = variables.ElementAt(2);
             Assert.Equal("obj3", obj3.Identifier.Text);
 
             var obj3Value = model.GetSemanticInfoSummary(obj3.Initializer.Value);
-            Assert.Null(obj3Value.Type);
+            Assert.Equal("Span", obj3Value.Type.Name);
             Assert.Equal("Span", obj3Value.ConvertedType.Name);
-            Assert.Equal(ConversionKind.StackAllocToSpanType, obj3Value.ImplicitConversion.Kind);
-            Assert.Equal(ConversionKind.Identity, obj3Value.ImplicitConversion.UnderlyingConversions.Single().Kind);
+            Assert.Equal(ConversionKind.Identity, obj3Value.ImplicitConversion.Kind);
 
             var obj4 = variables.ElementAt(3);
             Assert.Equal("obj4", obj4.Identifier.Text);
 
             var obj4Value = model.GetSemanticInfoSummary(obj4.Initializer.Value);
-            Assert.Null(obj4Value.Type);
-            Assert.True(obj4Value.ConvertedType is PointerTypeSymbol);
-            Assert.Equal("Int32", ((PointerTypeSymbol)obj4Value.ConvertedType).PointedAtType.Name);
-            Assert.Equal(ConversionKind.StackAllocToPointerType, obj4Value.ImplicitConversion.Kind);
-            Assert.Equal(ConversionKind.Identity, obj4Value.ImplicitConversion.UnderlyingConversions.Single().Kind);
+            Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj4Value.Type).PointedAtType.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj4Value.ConvertedType).PointedAtType.SpecialType);
+            Assert.Equal(ConversionKind.Identity, obj4Value.ImplicitConversion.Kind);
+
+            var obj5 = variables.ElementAt(4);
+            Assert.Equal("obj5", obj5.Identifier.Text);
+
+            var obj5Value = model.GetSemanticInfoSummary(obj5.Initializer.Value);
+            Assert.Null(obj5Value.Type);
+            Assert.Equal(SpecialType.System_Double, ((PointerTypeSymbol)obj5Value.ConvertedType).PointedAtType.SpecialType);
+            Assert.Equal(ConversionKind.NoConversion, obj5Value.ImplicitConversion.Kind);
         }
 
         [Fact]
@@ -97,6 +103,7 @@ unsafe class Test
         var obj2 = stackalloc int[10];
         Span<int> obj3 = stackalloc int[10];
         int* obj4 = stackalloc int[10];
+        double* obj5 = stackalloc int[10];
     }
     
     public static explicit operator Test(Span<int> value) 
@@ -105,52 +112,57 @@ unsafe class Test
     }
 }", TestOptions.UnsafeReleaseDll);
 
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (11,24): error CS8520: Conversion of a stackalloc expression of type 'int' to type 'double*' is not possible.
+                //         double* obj5 = stackalloc int[10];
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[10]").WithArguments("int", "double*").WithLocation(11, 24));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
             var variables = tree.GetCompilationUnitRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>();
-            Assert.Equal(4, variables.Count());
+            Assert.Equal(5, variables.Count());
 
             var obj1 = variables.ElementAt(0);
             Assert.Equal("obj1", obj1.Identifier.Text);
             Assert.Equal(SyntaxKind.CastExpression, obj1.Initializer.Value.Kind());
 
             var obj1Value = model.GetSemanticInfoSummary(((CastExpressionSyntax)obj1.Initializer.Value).Expression);
-            Assert.Null(obj1Value.Type);
+            Assert.Equal("Span", obj1Value.Type.Name);
             Assert.Equal("Span", obj1Value.ConvertedType.Name);
-            Assert.Equal(ConversionKind.StackAllocToSpanType, obj1Value.ImplicitConversion.Kind);
-            Assert.Equal(ConversionKind.Identity, obj1Value.ImplicitConversion.UnderlyingConversions.Single().Kind);
+            Assert.Equal(ConversionKind.Identity, obj1Value.ImplicitConversion.Kind);
 
             var obj2 = variables.ElementAt(1);
             Assert.Equal("obj2", obj2.Identifier.Text);
 
             var obj2Value = model.GetSemanticInfoSummary(obj2.Initializer.Value);
-            Assert.Null(obj2Value.Type);
-            Assert.True(obj2Value.ConvertedType is PointerTypeSymbol);
-            Assert.Equal("Int32", ((PointerTypeSymbol)obj2Value.ConvertedType).PointedAtType.Name);
-            Assert.Equal(ConversionKind.StackAllocToPointerType, obj2Value.ImplicitConversion.Kind);
-            Assert.Equal(ConversionKind.Identity, obj2Value.ImplicitConversion.UnderlyingConversions.Single().Kind);
+            Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj2Value.Type).PointedAtType.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj2Value.ConvertedType).PointedAtType.SpecialType);
+            Assert.Equal(ConversionKind.Identity, obj2Value.ImplicitConversion.Kind);
 
             var obj3 = variables.ElementAt(2);
             Assert.Equal("obj3", obj3.Identifier.Text);
 
             var obj3Value = model.GetSemanticInfoSummary(obj3.Initializer.Value);
-            Assert.Null(obj3Value.Type);
+            Assert.Equal("Span", obj3Value.Type.Name);
             Assert.Equal("Span", obj3Value.ConvertedType.Name);
-            Assert.Equal(ConversionKind.StackAllocToSpanType, obj3Value.ImplicitConversion.Kind);
-            Assert.Equal(ConversionKind.Identity, obj3Value.ImplicitConversion.UnderlyingConversions.Single().Kind);
+            Assert.Equal(ConversionKind.Identity, obj3Value.ImplicitConversion.Kind);
 
             var obj4 = variables.ElementAt(3);
             Assert.Equal("obj4", obj4.Identifier.Text);
 
             var obj4Value = model.GetSemanticInfoSummary(obj4.Initializer.Value);
-            Assert.Null(obj4Value.Type);
-            Assert.True(obj4Value.ConvertedType is PointerTypeSymbol);
-            Assert.Equal("Int32", ((PointerTypeSymbol)obj4Value.ConvertedType).PointedAtType.Name);
-            Assert.Equal(ConversionKind.StackAllocToPointerType, obj4Value.ImplicitConversion.Kind);
-            Assert.Equal(ConversionKind.Identity, obj4Value.ImplicitConversion.UnderlyingConversions.Single().Kind);
+            Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj4Value.Type).PointedAtType.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj4Value.ConvertedType).PointedAtType.SpecialType);
+            Assert.Equal(ConversionKind.Identity, obj4Value.ImplicitConversion.Kind);
+
+            var obj5 = variables.ElementAt(4);
+            Assert.Equal("obj5", obj5.Identifier.Text);
+
+            var obj5Value = model.GetSemanticInfoSummary(obj5.Initializer.Value);
+            Assert.Null(obj5Value.Type);
+            Assert.Equal(SpecialType.System_Double, ((PointerTypeSymbol)obj5Value.ConvertedType).PointedAtType.SpecialType);
+            Assert.Equal(ConversionKind.NoConversion, obj5Value.ImplicitConversion.Kind);
         }
 
         [Fact]
@@ -225,9 +237,9 @@ class Test
         var x = true ? stackalloc int [10] : stackalloc int [5];
     }
 }", TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'stackalloc expression of type 'int'' and 'stackalloc expression of type 'int''
+                // (6,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'stackalloc int[10]' and 'stackalloc int[5]'
                 //         var x = true ? stackalloc int [10] : stackalloc int [5];
-                Diagnostic(ErrorCode.ERR_InvalidQM, "true ? stackalloc int [10] : stackalloc int [5]").WithArguments("stackalloc expression of type 'int'", "stackalloc expression of type 'int'").WithLocation(6, 17));
+                Diagnostic(ErrorCode.ERR_InvalidQM, "true ? stackalloc int [10] : stackalloc int [5]").WithArguments("stackalloc int[10]", "stackalloc int[5]").WithLocation(6, 17));
         }
 
         [Fact]
@@ -289,9 +301,9 @@ class Test
         var x = true ? stackalloc int [10] : a;
     }
 }", TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (8,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'stackalloc expression of type 'int'' and 'Span<short>'
+                // (8,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'stackalloc int[10]' and 'Span<short>'
                 //         var x = true ? stackalloc int [10] : a;
-                Diagnostic(ErrorCode.ERR_InvalidQM, "true ? stackalloc int [10] : a").WithArguments("stackalloc expression of type 'int'", "System.Span<short>").WithLocation(8, 17));
+                Diagnostic(ErrorCode.ERR_InvalidQM, "true ? stackalloc int [10] : a").WithArguments("stackalloc int[10]", "System.Span<short>").WithLocation(8, 17));
         }
 
         [Fact]
@@ -305,9 +317,9 @@ class Test
         if(stackalloc int[10] == stackalloc int[10]) { }
     }
 }", TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,12): error CS0019: Operator '==' cannot be applied to operands of type 'stackalloc expression of type 'int'' and 'stackalloc expression of type 'int''
+                // (6,12): error CS0019: Operator '==' cannot be applied to operands of type 'stackalloc int[10]' and 'stackalloc int[10]'
                 //         if(stackalloc int[10] == stackalloc int[10]) { }
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "stackalloc int[10] == stackalloc int[10]").WithArguments("==", "stackalloc expression of type 'int'", "stackalloc expression of type 'int'").WithLocation(6, 12));
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "stackalloc int[10] == stackalloc int[10]").WithArguments("==", "stackalloc int[10]", "stackalloc int[10]").WithLocation(6, 12));
         }
 
         [Fact]
@@ -463,9 +475,9 @@ public class Test
 }
 ";
             CreateCompilationWithMscorlibAndSpan(test, TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (6,22): error CS0023: Operator '.' cannot be applied to operand of type 'stackalloc expression of type 'int''
+                // (6,22): error CS0023: Operator '.' cannot be applied to operand of type 'stackalloc int[10]'
                 //         int length = (stackalloc int [10]).Length;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "(stackalloc int [10]).Length").WithArguments(".", "stackalloc expression of type 'int'").WithLocation(6, 22));
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "(stackalloc int [10]).Length").WithArguments(".", "stackalloc int[10]").WithLocation(6, 22));
         }
 
         [Fact]
@@ -487,9 +499,9 @@ unsafe public class Test
 }
 ";
             CreateCompilationWithMscorlibAndSpan(test, TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
-                // (7,16): error CS1503: Argument 1: cannot convert from 'stackalloc expression of type 'int'' to 'Span<short>'
+                // (7,16): error CS1503: Argument 1: cannot convert from 'stackalloc int[10]' to 'Span<short>'
                 //         Invoke(stackalloc int [10]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "stackalloc int [10]").WithArguments("1", "stackalloc expression of type 'int'", "System.Span<short>").WithLocation(7, 16));
+                Diagnostic(ErrorCode.ERR_BadArgType, "stackalloc int [10]").WithArguments("1", "stackalloc int[10]", "System.Span<short>").WithLocation(7, 16));
         }
     }
 }

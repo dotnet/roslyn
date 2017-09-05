@@ -3102,7 +3102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundStackAllocArrayCreation(node, default(ConversionKind), elementType, count, null, hasErrors || typeHasErrors);
+            return new BoundStackAllocArrayCreation(node, elementType, count, type: null, hasErrors: hasErrors || typeHasErrors);
         }
 
         private static int? GetIntegerConstantForArraySize(BoundExpression expression)

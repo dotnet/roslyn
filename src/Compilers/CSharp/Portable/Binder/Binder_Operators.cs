@@ -2193,20 +2193,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     case BoundKind.PointerIndirectionOperator: //Covers ->, since the receiver will be one of these.
                     case BoundKind.PointerElementAccess:
-                    case BoundKind.StackAllocArrayCreation:
+                    case BoundKind.ConvertedStackAllocExpression:
                         {
                             return true;
-                        }
-                    case BoundKind.Conversion:
-                        {
-                            switch (expr.GetConversion().Kind)
-                            {
-                                case ConversionKind.StackAllocToPointerType:
-                                case ConversionKind.StackAllocToSpanType:
-                                    return true;
-                                default:
-                                    return false;
-                            }
                         }
                     case BoundKind.PropertyAccess: // Never a variable.
                     case BoundKind.IndexerAccess: // Never a variable.

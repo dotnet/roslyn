@@ -44,12 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool HasExpressionType(this BoundExpression node)
         {
-            if (node.Kind == BoundKind.StackAllocArrayCreation)
-            {
-                // stackalloc expressions have no 'Type', but an 'ElementType' that is target-typed based on context.
-                return true;
-            }
-
             // null literal, method group, and anonymous function expressions have no type.
             return (object)node.Type != null;
         }

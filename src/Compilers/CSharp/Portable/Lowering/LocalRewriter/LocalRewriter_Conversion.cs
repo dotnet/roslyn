@@ -21,17 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var rewrittenType = VisitType(node.Type);
-            var rewrittenOperand = node.Operand;
-
-            if (rewrittenOperand is BoundStackAllocArrayCreation boundStackAlloc)
-            {
-                // Update operand node with the successful conversion kind
-                rewrittenOperand = boundStackAlloc.Update(node.ConversionKind, boundStackAlloc.ElementType, boundStackAlloc.Count, boundStackAlloc.Type);
-            }
 
             bool wasInExpressionLambda = _inExpressionLambda;
             _inExpressionLambda = _inExpressionLambda || (node.ConversionKind == ConversionKind.AnonymousFunction && !wasInExpressionLambda && rewrittenType.IsExpressionTree());
-            rewrittenOperand = VisitExpression(rewrittenOperand);
+            var rewrittenOperand = VisitExpression(node.Operand);
             _inExpressionLambda = wasInExpressionLambda;
 
             var result = MakeConversionNode(node, node.Syntax, rewrittenOperand, node.Conversion, node.Checked, node.ExplicitCastInCode, node.ConstantValue, rewrittenType);
@@ -203,13 +196,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                     break;
-
-                case ConversionKind.StackAllocToPointerType:
-                case ConversionKind.StackAllocToSpanType:
-                    {
-                        var underlyingConversion = conversion.UnderlyingConversions.Single();
-                        return MakeConversionNode(oldNode, syntax, rewrittenOperand, underlyingConversion, @checked, explicitCastInCode, constantValueOpt, rewrittenType);
-                    }
 
                 case ConversionKind.DefaultOrNullLiteral:
                     if (!_inExpressionLambda || !explicitCastInCode)

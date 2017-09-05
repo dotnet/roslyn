@@ -709,12 +709,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindValueKind valueKind;
             ExpressionSyntax value;
             IsInitializerRefKindValid(initializer, initializer, refKind, diagnostics, out valueKind, out value); // The return value isn't important here; we just want the diagnostics and the BindValueKind
-            return BindInferredVariableInitializer(diagnostics, value, valueKind, errorSyntax);
+            return BindInferredVariableInitializer(diagnostics, value, valueKind, refKind, errorSyntax);
         }
 
         // The location where the error is reported might not be the initializer.
-        protected BoundExpression BindInferredVariableInitializer(DiagnosticBag diagnostics, ExpressionSyntax initializer, BindValueKind valueKind,
-            CSharpSyntaxNode errorSyntax)
+        protected BoundExpression BindInferredVariableInitializer(DiagnosticBag diagnostics, ExpressionSyntax initializer, BindValueKind valueKind, RefKind refKind, CSharpSyntaxNode errorSyntax)
         {
             if (initializer == null)
             {
@@ -735,6 +734,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression expression = BindValue(initializer, diagnostics, valueKind);
+
+            if (expression is BoundStackAllocArrayCreation boundStackAlloc)
+            {
+                var type = new PointerTypeSymbol(boundStackAlloc.ElementType);
+                expression = GenerateConversionForAssignment(type, boundStackAlloc, diagnostics, refKind: refKind);
+            }
 
             // Certain expressions (null literals, method groups and anonymous functions) have no type of 
             // their own and therefore cannot be the initializer of an implicitly typed local.
@@ -860,7 +865,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 aliasOpt = null;
 
-                initializerOpt = BindInferredVariableInitializer(diagnostics, value, valueKind, declarator);
+                initializerOpt = BindInferredVariableInitializer(diagnostics, value, valueKind, localSymbol.RefKind, declarator);
 
                 // If we got a good result then swap the inferred type for the "var" 
                 if ((object)initializerOpt?.Type != null)
@@ -883,11 +888,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
-                else if (initializerOpt is BoundStackAllocArrayCreation boundStackAlloc)
-                {
-                    declTypeOpt = new PointerTypeSymbol(boundStackAlloc.ElementType);
-                    initializerOpt = GenerateConversionForAssignment(declTypeOpt, boundStackAlloc, diagnostics, false, localSymbol.RefKind);
-                }
                 else
                 {
                     declTypeOpt = CreateErrorType("var");
@@ -906,7 +906,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     initializerOpt = BindPossibleArrayInitializer(value, declTypeOpt, valueKind, diagnostics);
                     if (kind != LocalDeclarationKind.FixedVariable)
                     {
-                        // If this is for a fixed statement, we'll do our own conversion since there are some special cases.
+                        // If this is for a fixed statement, we'll do our own conversion since there are some special cases.		
                         initializerOpt = GenerateConversionForAssignment(declTypeOpt, initializerOpt, localDiagnostics, refKind: localSymbol.RefKind);
                     }
                 }
@@ -1055,14 +1055,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (ReferenceEquals(initializerType, null))
             {
-                // Dev10 just reports the assignment conversion error (which must occur, unless the initializer is a null literal).
                 initializerOpt = GenerateConversionForAssignment(declType, initializerOpt, diagnostics);
                 if (!initializerOpt.HasAnyErrors)
                 {
-                    Debug.Assert(initializerOpt is BoundConversion conversion && (
-                        conversion.Operand.IsLiteralNull() ||
-                        conversion.Operand.Kind == BoundKind.DefaultExpression ||
-                        conversion.Operand.Kind == BoundKind.StackAllocArrayCreation),
+                    // Dev10 just reports the assignment conversion error, which must occur, except for these cases:
+                    Debug.Assert(
+                        initializerOpt is BoundConvertedStackAllocExpression ||
+                        initializerOpt is BoundConversion conversion && (conversion.Operand.IsLiteralNull() || conversion.Operand.Kind == BoundKind.DefaultExpression),
                         "All other typeless expressions should have conversion errors");
 
                     // CONSIDER: this is a very confusing error message, but it's what Dev10 reports.

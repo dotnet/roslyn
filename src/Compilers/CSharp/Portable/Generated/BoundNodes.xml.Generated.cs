@@ -147,6 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ArrayCreation,
         ArrayInitialization,
         StackAllocArrayCreation,
+        ConvertedStackAllocExpression,
         FieldAccess,
         HoistedFieldAccess,
         PropertyAccess,
@@ -5227,20 +5228,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundStackAllocArrayCreation : BoundExpression
     {
-        public BoundStackAllocArrayCreation(SyntaxNode syntax, ConversionKind conversionKind, TypeSymbol elementType, BoundExpression count, TypeSymbol type, bool hasErrors = false)
+        public BoundStackAllocArrayCreation(SyntaxNode syntax, TypeSymbol elementType, BoundExpression count, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.StackAllocArrayCreation, syntax, type, hasErrors || count.HasErrors())
         {
 
             Debug.Assert(elementType != null, "Field 'elementType' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(count != null, "Field 'count' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
-            this.ConversionKind = conversionKind;
             this.ElementType = elementType;
             this.Count = count;
         }
 
-
-        public ConversionKind ConversionKind { get; }
 
         public TypeSymbol ElementType { get; }
 
@@ -5251,11 +5249,50 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitStackAllocArrayCreation(this);
         }
 
-        public BoundStackAllocArrayCreation Update(ConversionKind conversionKind, TypeSymbol elementType, BoundExpression count, TypeSymbol type)
+        public BoundStackAllocArrayCreation Update(TypeSymbol elementType, BoundExpression count, TypeSymbol type)
         {
-            if (conversionKind != this.ConversionKind || elementType != this.ElementType || count != this.Count || type != this.Type)
+            if (elementType != this.ElementType || count != this.Count || type != this.Type)
             {
-                var result = new BoundStackAllocArrayCreation(this.Syntax, conversionKind, elementType, count, type, this.HasErrors);
+                var result = new BoundStackAllocArrayCreation(this.Syntax, elementType, count, type, this.HasErrors);
+                result.WasCompilerGenerated = this.WasCompilerGenerated;
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundConvertedStackAllocExpression : BoundExpression
+    {
+        public BoundConvertedStackAllocExpression(SyntaxNode syntax, TypeSymbol elementType, BoundExpression count, ConversionKind conversionKind, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.ConvertedStackAllocExpression, syntax, type, hasErrors || count.HasErrors())
+        {
+
+            Debug.Assert(elementType != null, "Field 'elementType' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(count != null, "Field 'count' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.ElementType = elementType;
+            this.Count = count;
+            this.ConversionKind = conversionKind;
+        }
+
+
+        public TypeSymbol ElementType { get; }
+
+        public BoundExpression Count { get; }
+
+        public ConversionKind ConversionKind { get; }
+
+        public override BoundNode Accept(BoundTreeVisitor visitor)
+        {
+            return visitor.VisitConvertedStackAllocExpression(this);
+        }
+
+        public BoundConvertedStackAllocExpression Update(TypeSymbol elementType, BoundExpression count, ConversionKind conversionKind, TypeSymbol type)
+        {
+            if (elementType != this.ElementType || count != this.Count || conversionKind != this.ConversionKind || type != this.Type)
+            {
+                var result = new BoundConvertedStackAllocExpression(this.Syntax, elementType, count, conversionKind, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -6350,6 +6387,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitArrayInitialization(node as BoundArrayInitialization, arg);
                 case BoundKind.StackAllocArrayCreation: 
                     return VisitStackAllocArrayCreation(node as BoundStackAllocArrayCreation, arg);
+                case BoundKind.ConvertedStackAllocExpression: 
+                    return VisitConvertedStackAllocExpression(node as BoundConvertedStackAllocExpression, arg);
                 case BoundKind.FieldAccess: 
                     return VisitFieldAccess(node as BoundFieldAccess, arg);
                 case BoundKind.HoistedFieldAccess: 
@@ -6907,6 +6946,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node, arg);
         }
         public virtual R VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node, A arg)
+        {
+            return this.DefaultVisit(node, arg);
+        }
+        public virtual R VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node, A arg)
         {
             return this.DefaultVisit(node, arg);
         }
@@ -7507,6 +7550,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node);
         }
         public virtual BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
+        {
+            return this.DefaultVisit(node);
+        }
+        public virtual BoundNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node)
         {
             return this.DefaultVisit(node);
         }
@@ -8255,6 +8302,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
         public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
+        {
+            this.Visit(node.Count);
+            return null;
+        }
+        public override BoundNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node)
         {
             this.Visit(node.Count);
             return null;
@@ -9116,7 +9168,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression count = (BoundExpression)this.Visit(node.Count);
             TypeSymbol elementType = this.VisitType(node.ElementType);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.ConversionKind, elementType, count, type);
+            return node.Update(elementType, count, type);
+        }
+        public override BoundNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node)
+        {
+            BoundExpression count = (BoundExpression)this.Visit(node.Count);
+            TypeSymbol elementType = this.VisitType(node.ElementType);
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update(elementType, count, node.ConversionKind, type);
         }
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)
         {
@@ -10566,9 +10625,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new TreeDumperNode("stackAllocArrayCreation", null, new TreeDumperNode[]
             {
-                new TreeDumperNode("conversionKind", node.ConversionKind, null),
                 new TreeDumperNode("elementType", node.ElementType, null),
                 new TreeDumperNode("count", null, new TreeDumperNode[] { Visit(node.Count, null) }),
+                new TreeDumperNode("type", node.Type, null)
+            }
+            );
+        }
+        public override TreeDumperNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node, object arg)
+        {
+            return new TreeDumperNode("convertedStackAllocExpression", null, new TreeDumperNode[]
+            {
+                new TreeDumperNode("elementType", node.ElementType, null),
+                new TreeDumperNode("count", null, new TreeDumperNode[] { Visit(node.Count, null) }),
+                new TreeDumperNode("conversionKind", node.ConversionKind, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );
