@@ -1299,5 +1299,92 @@ class Program
                 Diagnostic(ErrorCode.ERR_RefReturnStructThis, "x").WithArguments("this").WithLocation(31, 28)
                 );
         }
+
+        [WorkItem(21880, "https://github.com/dotnet/roslyn/issues/21880")]
+        [Fact()]
+        public void MemberOfReadonlyRefLikeEscape()
+        {
+            var text = @"
+    public static class Program
+    {
+        public static void Main()
+        {
+            // OK, SR is readonly
+            new SR().TryGet(out int value1);
+
+            // not OK, TryGet can write into the instance
+            new SW().TryGet(out int value2);
+        }
+    }
+
+    public readonly ref struct SR
+    {
+        public void TryGet(out int result)
+        {
+            result = 1;
+        }
+    }
+
+    public ref struct SW
+    {
+        public void TryGet(out int result)
+        {
+            result = 1;
+        }
+    }
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (10,33): error CS8168: Cannot return local 'value2' by reference because it is not a ref local
+                //             new SW().TryGet(out int value2);
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "int value2").WithArguments("value2").WithLocation(10, 33),
+                // (10,13): error CS8524: This combination of arguments to 'SW.TryGet(out int)' is disallowed because it may expose variables referenced by parameter 'result' outside of their declaration scope
+                //             new SW().TryGet(out int value2);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "new SW().TryGet(out int value2)").WithArguments("SW.TryGet(out int)", "result").WithLocation(10, 13)
+                );
+        }
+
+        [WorkItem(21911, "https://github.com/dotnet/roslyn/issues/21911")]
+        [Fact()]
+        public void MemberOfReadonlyRefLikeEscapeSpans()
+        {
+            var text = @"
+    using System;
+
+    public static class Program
+    {
+        public static void Main()
+        {
+            Span<int> stackAllocated = stackalloc int[100];
+
+            // OK, Span is a readonly struct
+            new Span<int>().CopyTo(stackAllocated);
+
+            // OK, ReadOnlySpan is a readonly struct
+            new ReadOnlySpan<int>().CopyTo(stackAllocated);
+
+            // not OK, Span is writeable
+            new NotReadOnly<int>().CopyTo(stackAllocated);
+        }
+    }
+
+    public ref struct NotReadOnly<T>
+    {
+        private Span<T> wrapped;
+
+        public void CopyTo(Span<T> other)
+        {
+            wrapped = other;
+        }
+    }
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (17,43): error CS8526: Cannot use local 'stackAllocated' in this context because it may expose referenced variables outside of their declaration scope
+                //             new NotReadOnly<int>().CopyTo(stackAllocated);
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "stackAllocated").WithArguments("stackAllocated").WithLocation(17, 43),
+                // (17,13): error CS8524: This combination of arguments to 'NotReadOnly<int>.CopyTo(Span<int>)' is disallowed because it may expose variables referenced by parameter 'other' outside of their declaration scope
+                //             new NotReadOnly<int>().CopyTo(stackAllocated);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "new NotReadOnly<int>().CopyTo(stackAllocated)").WithArguments("NotReadOnly<int>.CopyTo(System.Span<int>)", "other").WithLocation(17, 13)
+                );
+        }
     }
 }

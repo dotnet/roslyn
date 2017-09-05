@@ -1112,12 +1112,16 @@ namespace System
         {
             this.Length = length;
         }
+
+        public void CopyTo(Span<T> other){}
     }
 
     public ref struct ReadOnlySpan<T>
     {
         public ref readonly T this[int i] => throw null;
         public override int GetHashCode() => 2;
+
+        public void CopyTo(Span<T> other){}
     }
 
     public ref struct SpanLike<T>
