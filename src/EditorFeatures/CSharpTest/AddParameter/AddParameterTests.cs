@@ -264,8 +264,7 @@ class C
     {
         new C(true, 0, 0);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")]
@@ -301,8 +300,7 @@ class C
     {
         new C(0, true, 0);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")]
@@ -338,8 +336,7 @@ class C
     {
         new C(0, 0, true);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")]
@@ -377,8 +374,7 @@ class C
     {
         new C(true, 0, 0);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")]
@@ -416,8 +412,7 @@ class C
     {
         new C(0, true, 0);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")]
@@ -455,8 +450,7 @@ class C
     {
         new C(0, 0, true);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(20973, "https://github.com/dotnet/roslyn/issues/20973")]

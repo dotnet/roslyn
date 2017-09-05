@@ -3370,6 +3370,46 @@ class C
             End Using
         End Sub
 
+        <WorkItem(296512, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=296512")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestRegionDirectiveIndentation() As Task
+            Using state = TestState.CreateCSharpTestState(
+                              <Document>
+class C
+{
+    $$
+}
+                              </Document>, includeFormatCommandHandler:=True)
+
+                state.SendTypeChars("#")
+                Await state.WaitForAsynchronousOperationsAsync()
+
+                Assert.Equal("#", state.GetLineFromCurrentCaretPosition().GetText())
+                Await state.AssertNoCompletionSession()
+                state.SendTypeChars("reg")
+                Await state.AssertSelectedCompletionItem(displayText:="region")
+                state.SendReturn()
+                Await state.AssertNoCompletionSession()
+                Assert.Equal("    #region", state.GetLineFromCurrentCaretPosition().GetText())
+                Assert.Equal(state.GetLineFromCurrentCaretPosition().End, state.GetCaretPoint().BufferPosition)
+
+                state.SendReturn()
+                Assert.Equal("", state.GetLineFromCurrentCaretPosition().GetText())
+                state.SendTypeChars("#")
+                Await state.WaitForAsynchronousOperationsAsync()
+
+                Assert.Equal("#", state.GetLineFromCurrentCaretPosition().GetText())
+                Await state.AssertNoCompletionSession()
+                state.SendTypeChars("endr")
+                Await state.AssertSelectedCompletionItem(displayText:="endregion")
+                state.SendReturn()
+                Await state.AssertNoCompletionSession()
+                Assert.Equal("    #endregion", state.GetLineFromCurrentCaretPosition().GetText())
+                Assert.Equal(state.GetLineFromCurrentCaretPosition().End, state.GetCaretPoint().BufferPosition)
+
+            End Using
+        End Function
+
         Private Class MultipleChangeCompletionProvider
             Inherits CompletionProvider
 

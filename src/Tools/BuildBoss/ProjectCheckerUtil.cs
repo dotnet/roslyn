@@ -96,6 +96,7 @@ namespace BuildBoss
             allGood &= IsVsixCorrectlySpecified(textWriter, data);
             allGood &= IsUnitTestNameCorrectlySpecified(textWriter, data);
             allGood &= IsUnitTestPortableCorrectlySpecified(textWriter, data);
+            allGood &= CheckTargetFrameworks(textWriter, data);
 
             return allGood;
         }
@@ -216,7 +217,7 @@ namespace BuildBoss
             var allGood = true;
             foreach (var packageRef in _projectUtil.GetPackageReferences())
             {
-                var name = packageRef.Name.Replace(".", "");
+                var name = packageRef.Name.Replace(".", "").Replace("-", "");
                 var floatingName = $"$({name}Version)";
                 var fixedName = $"$({name}FixedVersion)";
                 if (packageRef.Version != floatingName && packageRef.Version != fixedName)
@@ -425,6 +426,38 @@ namespace BuildBoss
             }
 
             return true;
+        }
+
+        private bool CheckTargetFrameworks(TextWriter textWriter, RoslynProjectData data)
+        {
+            if (!data.IsAnyUnitTest)
+            {
+                return true;
+            }
+
+            var allGood = true;
+            foreach (var targetFramework in _projectUtil.GetAllTargetFrameworks())
+            {
+                switch (targetFramework)
+                {
+                    case "net20":
+                    case "net46":
+                    case "net461":
+                    case "net462":
+                    case "netstandard1.3":
+                    case "netcoreapp1.1":
+                    case "netcoreapp2.0":
+                    case "$(RoslynPortableTargetFrameworks)":
+                        break;
+                    default:
+                        textWriter.WriteLine($"TargetFramework {targetFramework} is not supported in this build");
+                        allGood = false;
+                        break;
+                }
+
+            }
+
+            return allGood;
         }
     }
 }

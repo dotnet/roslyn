@@ -275,7 +275,7 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
         {
             string packageArgs = commonArgs.Replace($"-prop version=\"{BuildVersion}\"", $"-prop version=\"{GetPackageVersion(Path.GetFileNameWithoutExtension(file))}\"");
 
-            p.StartInfo.FileName = Path.GetFullPath(Path.Combine(SolutionRoot, "nuget.exe"));
+            p.StartInfo.FileName = Path.GetFullPath(Path.Combine(SolutionRoot, @"Binaries\Tools\nuget.exe"));
             p.StartInfo.Arguments = $@"pack {file} {packageArgs}";
         }
         else

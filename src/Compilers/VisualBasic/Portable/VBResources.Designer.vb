@@ -12064,6 +12064,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to leading digit separator.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_LeadingDigitSeparator() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_LeadingDigitSeparator", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to implicit line continuation.
         '''</summary>
         Friend ReadOnly Property FEATURE_LineContinuation() As String

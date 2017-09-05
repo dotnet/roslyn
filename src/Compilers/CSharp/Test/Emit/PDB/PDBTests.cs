@@ -6862,6 +6862,52 @@ class C
         }
 
         [Fact]
+        public void TestDeconstruction()
+        {
+            var source = @"
+public class C
+{
+    public static (int, int) F() => (1, 2);
+
+    public static void Main()
+    {
+        int x, y;
+        (x, y) = F();
+        System.Console.WriteLine(x + y);
+    }
+}
+";
+            var c = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            var v = CompileAndVerify(c);
+
+            v.VerifyIL("C.Main", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  .locals init (int V_0, //x
+                int V_1) //y
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: (x, y) = F();
+  IL_0001:  call       ""(int, int) C.F()""
+  IL_0006:  dup
+  IL_0007:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_000c:  stloc.0
+  IL_000d:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_0012:  stloc.1
+  // sequence point: System.Console.WriteLine(x + y);
+  IL_0013:  ldloc.0
+  IL_0014:  ldloc.1
+  IL_0015:  add
+  IL_0016:  call       ""void System.Console.WriteLine(int)""
+  IL_001b:  nop
+  // sequence point: }
+  IL_001c:  ret
+}
+", sequencePoints: "C.Main", source: source);
+        }
+
+        [Fact]
         public void SyntaxOffset_TupleParenthesized()
         {
             var source = @"class C { int F() { (int, (int, int)) x = (1, (2, 3)); return x.Item1 + x.Item2.Item1 + x.Item2.Item2; } }";
@@ -7391,7 +7437,7 @@ partial class C
         </encLocalSlotMap>
         <encLambdaMap>
           <methodOrdinal>0</methodOrdinal>
-          <lambda offset=""99"" />
+          <lambda offset=""115"" />
           <lambda offset=""202"" />
         </encLambdaMap>
       </customDebugInfo>
@@ -7401,7 +7447,7 @@ partial class C
         <entry offset=""0x13"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" />
       </sequencePoints>
     </method>
-    <method containingType=""Program"" name=""&lt;Main&gt;g__Local10_0"" parameterNames=""a"">
+    <method containingType=""Program"" name=""&lt;Main&gt;g__Local1|0_0"" parameterNames=""a"">
       <customDebugInfo>
         <forward declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
       </customDebugInfo>
@@ -7409,7 +7455,7 @@ partial class C
         <entry offset=""0x0"" startLine=""7"" startColumn=""13"" endLine=""7"" endColumn=""21"" />
       </sequencePoints>
     </method>
-    <method containingType=""Program"" name=""&lt;Main&gt;g__Local20_1"" parameterNames=""a"">
+    <method containingType=""Program"" name=""&lt;Main&gt;g__Local2|0_1"" parameterNames=""a"">
       <customDebugInfo>
         <forward declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
         <encLocalSlotMap>

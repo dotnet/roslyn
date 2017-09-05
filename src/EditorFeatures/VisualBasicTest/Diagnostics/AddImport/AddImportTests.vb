@@ -17,22 +17,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
         Friend Overloads Async Function TestAsync(initialMarkup As String,
                                                   expectedMarkup As String,
                                                   Optional index As Integer = 0,
-                                                  Optional ignoreTrivia As Boolean = False,
                                                   Optional priority As CodeActionPriority? = Nothing,
                                                   Optional placeSystemFirst As Boolean = True) As Task
-            Await TestAsync(initialMarkup, expectedMarkup, index, ignoreTrivia, priority, placeSystemFirst, outOfProcess:=False)
-            Await TestAsync(initialMarkup, expectedMarkup, index, ignoreTrivia, priority, placeSystemFirst, outOfProcess:=True)
+            Await TestAsync(initialMarkup, expectedMarkup, index, priority, placeSystemFirst, outOfProcess:=False)
+            Await TestAsync(initialMarkup, expectedMarkup, index, priority, placeSystemFirst, outOfProcess:=True)
         End Function
 
         Friend Overloads Async Function TestAsync(initialMarkup As String,
                                                   expectedMarkup As String,
                                                   index As Integer,
-                                                  ignoreTrivia As Boolean,
                                                   priority As CodeActionPriority?,
                                                   placeSystemFirst As Boolean,
                                                   outOfProcess As Boolean) As Task
             Await TestInRegularAndScript1Async(
-                initialMarkup, expectedMarkup, index, ignoreTrivia, priority,
+                initialMarkup, expectedMarkup, index, priority,
                 parameters:=New TestParameters(
                     options:=[Option](GenerationOptions.PlaceSystemNamespaceFirst, placeSystemFirst),
                     fixProviderData:=outOfProcess))
@@ -793,8 +791,7 @@ Namespace SomeNamespace
     Friend Class SomeAttrAttribute
         Inherits Attribute
     End Class
-End Namespace</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+End Namespace</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
@@ -933,8 +930,7 @@ Module Program
         Debug
     End Sub
 End Module
-</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")>
@@ -956,8 +952,7 @@ Module Program
     Sub Main(args As String())
         Dim x As IEnumerable(Of Integer)
     End Sub
-End Module</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+End Module</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(867425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867425")>
@@ -1556,7 +1551,7 @@ Namespace N
     <My()>
     Class Test
     End Class
-End Namespace", ignoreTrivia:=False)
+End Namespace")
         End Function
 
         <WorkItem(773614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")>
@@ -1591,7 +1586,7 @@ Namespace N
     <My()>
     Class Test
     End Class
-End Namespace", ignoreTrivia:=False)
+End Namespace")
         End Function
 
         <WorkItem(773614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")>
@@ -1626,7 +1621,7 @@ Namespace N
     <Inner.My()>
     Class Test
     End Class
-End Namespace", ignoreTrivia:=False)
+End Namespace")
         End Function
 
         <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
@@ -1663,7 +1658,7 @@ Public Class C
     End Sub
 End Class
 "
-            Await TestAsync(initial, expected, ignoreTrivia:=False)
+            Await TestAsync(initial, expected)
         End Function
 
         <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
@@ -1716,7 +1711,7 @@ Public Class C
     End Class
 End Class
 "
-            Await TestAsync(initial, expected, ignoreTrivia:=False)
+            Await TestAsync(initial, expected)
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
@@ -1744,8 +1739,7 @@ Module Program
     Sub Main(args As String())
         Dim a = File.OpenRead("""")
     End Sub
-End Module",
-ignoreTrivia:=False)
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
@@ -1773,8 +1767,7 @@ Module Program
     Sub Main(args As String())
         Dim a = File.OpenRead("""")
     End Sub
-End Module",
-ignoreTrivia:=False)
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
@@ -1802,8 +1795,7 @@ Module Program
     Sub Main(args As String())
         Dim a = File.OpenRead("""")
     End Sub
-End Module",
-ignoreTrivia:=False)
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
@@ -1848,7 +1840,7 @@ Module Module1
 
 End Module
 "
-            Await TestAsync(initial, expected, ignoreTrivia:=False)
+            Await TestAsync(initial, expected)
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>

@@ -2013,5 +2013,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_BinaryLiterals
         FEATURE_Tuples
         FEATURE_IOperation
+        FEATURE_LeadingDigitSeparator
     End Enum
 End Namespace
