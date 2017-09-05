@@ -5157,6 +5157,25 @@ class Programand
         }
 
         [Fact]
+        public void LocalFunctionCaptures()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+class C
+{
+    int x = 0;
+
+    void M()
+    {
+        /*<bind>*/
+        int L(int a) => x;
+        /*</bind>*/
+    }
+}");
+            Assert.Equal("this", GetSymbolNamesJoined(results.Captured));
+        }
+
+
+        [Fact]
         public void RegionAnalysisLocalFunctions()
         {
             var results = CompileAndAnalyzeDataFlowStatements(@"
@@ -5171,7 +5190,7 @@ class C
         /*</bind>*/
     }
 }");
-            Assert.False(results.Succeeded);
+            Assert.True(results.Succeeded);
         }
 
         [Fact]
@@ -5191,7 +5210,7 @@ class C
         /*</bind>*/
     }
 }");
-            Assert.False(results.Succeeded);
+            Assert.True(results.Succeeded);
         }
 
         [Fact]
@@ -5210,7 +5229,7 @@ class C
         /*</bind>*/
     }
 }");
-            Assert.False(results.Succeeded);
+            Assert.True(results.Succeeded);
         }
 
         [Fact]
@@ -5229,7 +5248,7 @@ class C
         /*</bind>*/
     }
 }");
-            Assert.False(results.Succeeded);
+            Assert.True(results.Succeeded);
         }
 
         [Fact]
@@ -5253,7 +5272,7 @@ class C
 
     int M(int i) => i;
 }");
-            Assert.False(results.Succeeded);
+            Assert.True(results.Succeeded);
         }
 
         [Fact]
@@ -5280,7 +5299,7 @@ class C
 
     int M(int i) => i;
 }");
-            Assert.False(results.Succeeded);
+            Assert.True(results.Succeeded);
         }
 
         [Fact]
@@ -5299,7 +5318,7 @@ class C
         /*</bind>*/
     }
 }");
-            Assert.False(results.Succeeded);
+            Assert.True(results.Succeeded);
         }
 
         [Fact]
