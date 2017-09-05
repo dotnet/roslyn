@@ -3,21 +3,18 @@
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents a group or function aggregation expression inside an Into clause of a Group By or Aggregate query clause in VB.
+    /// Represents an unrolled/lowered query expression in C# and VB.
+    /// For example, for the query expression "from x in set where x.Name != null select x.Name", the select clause is the last clause of the unrolled query expression,
+    /// with the where clause as one of its descendant, and the from clause as the descendant of the where clause.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IAggregationExpression : IOperation
+    public interface ITranslatedQueryExpression : IOperation
     {
         /// <summary>
-        /// Flag indicating if this is a group aggregation clause.
-        /// </summary>
-        bool IsGroupAggregation { get; }
-
-        /// <summary>
-        /// Aggregation expression.
+        /// Underlying unrolled expression.
         /// </summary>
         IOperation Expression { get; }
     }

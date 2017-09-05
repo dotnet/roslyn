@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 case BoundKind.IsPatternExpression:
                     return CreateBoundIsPatternExpressionOperation((BoundIsPatternExpression)boundNode);
                 case BoundKind.QueryClause:
-                    return CreateBoundQueryClauseOrExpressionOperation((BoundQueryClause)boundNode);
+                    return CreateBoundQueryClauseOperation((BoundQueryClause)boundNode);
                 default:
                     var constantValue = ConvertToOptional((boundNode as BoundExpression)?.ConstantValue);
                     return Operation.CreateOperationNone(_semanticModel, boundNode.Syntax, constantValue, getChildren: () => GetIOperationChildren(boundNode));
@@ -1389,135 +1389,19 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyIsPatternExpression(expression, pattern, _semanticModel, syntax, type, constantValue);
         }
 
-        private IOperation CreateBoundQueryClauseOrExpressionOperation(BoundQueryClause boundQueryClause)
+        private IOperation CreateBoundQueryClauseOperation(BoundQueryClause boundQueryClause)
         {
-            var queryClauseKindOpt = GetQueryClauseKind(boundQueryClause);
-            return queryClauseKindOpt.HasValue ?
-                CreateBoundQueryClauseOperation(boundQueryClause, queryClauseKindOpt.Value) :
-                CreateBoundQueryOrContinuationOrOrderExpressionOperation(boundQueryClause);
-        }
-
-        private IQueryClause CreateBoundQueryClauseOperation(BoundQueryClause boundQueryClause, QueryClauseKind queryClauseKind)
-        {
-            Lazy<IOperation> underlyingExpression = new Lazy<IOperation>(() => Create(boundQueryClause.Value));
-            SyntaxNode syntax = boundQueryClause.Syntax;
-            ITypeSymbol type = boundQueryClause.Type;
-            Optional<object> constantValue = ConvertToOptional(boundQueryClause.ConstantValue);
-            
-            switch(queryClauseKind)
+            if (boundQueryClause.Syntax.Kind() != SyntaxKind.QueryExpression)
             {
-                case QueryClauseKind.FromClause:
-                    return new LazyFromQueryClause(underlyingExpression, _semanticModel, syntax, type, constantValue);
-
-                case QueryClauseKind.SelectClause:
-                    return new LazySelectQueryClause(underlyingExpression, _semanticModel, syntax, type, constantValue);
-
-                case QueryClauseKind.WhereClause:
-                    return new LazyWhereQueryClause(underlyingExpression, _semanticModel, syntax, type, constantValue);
-
-                case QueryClauseKind.LetClause:
-                    return new LazyLetQueryClause(underlyingExpression, _semanticModel, syntax, type, constantValue);
-
-                case QueryClauseKind.OrderByClause:
-                    return new LazyOrderByQueryClause(underlyingExpression, _semanticModel, syntax, type, constantValue);
-
-                case QueryClauseKind.GroupByClause:
-                    return new LazyGroupByQueryClause(underlyingExpression, _semanticModel, syntax, type, constantValue);
-
-                case QueryClauseKind.JoinClause:
-                    return new LazyJoinQueryClause(underlyingExpression, _semanticModel, syntax, type, constantValue);
-
-                case QueryClauseKind.JoinIntoClause:
-                    return new LazyJoinIntoQueryClause(underlyingExpression, _semanticModel, syntax, type, constantValue);
-
-                default:
-                    throw ExceptionUtilities.Unreachable;
+                // Currently we have no IOperation APIs for different query clauses or continuation.
+                return Create(boundQueryClause.Value);
             }
-        }
 
-        private IOperation CreateBoundQueryOrContinuationOrOrderExpressionOperation(BoundQueryClause boundQueryClause)
-        {
-            switch(boundQueryClause.Syntax.Kind())
-            {
-                case SyntaxKind.QueryExpression:
-                    return CreateBoundQueryExpressionOperation(boundQueryClause);
-
-                case SyntaxKind.QueryContinuation:
-                    return CreateBoundQueryContinuationOperation(boundQueryClause);
-
-                case SyntaxKind.AscendingOrdering:
-                    return CreateBoundOrderingExpressionOperation(boundQueryClause, OrderKind.Ascending);
-
-                case SyntaxKind.DescendingOrdering:
-                    return CreateBoundOrderingExpressionOperation(boundQueryClause, OrderKind.Descending);
-
-                case SyntaxKind.QueryBody:
-                    return boundQueryClause.Value != null ? Create((BoundQueryClause)boundQueryClause.Value) : null;
-
-                default:
-                    throw ExceptionUtilities.Unreachable;
-            }
-        }
-
-        private IQueryExpression CreateBoundQueryExpressionOperation(BoundQueryClause boundQueryClause)
-        {
-            Lazy<IOperation> lastClauseOrContinuation = new Lazy<IOperation>(() => Create(boundQueryClause.Value));
-            SyntaxNode syntax = boundQueryClause.Syntax;
-            ITypeSymbol type = boundQueryClause.Type;
-            Optional<object> constantValue = ConvertToOptional(boundQueryClause.ConstantValue);
-            return new LazyQueryExpression(lastClauseOrContinuation, _semanticModel, syntax, type, constantValue);
-        }
-
-        private IQueryContinuation CreateBoundQueryContinuationOperation(BoundQueryClause boundQueryClause)
-        {
-            Lazy<IOperation> queryBody = new Lazy<IOperation>(() => Create(boundQueryClause.Value));
-            IRangeVariableSymbol definedSymbol = boundQueryClause.DefinedSymbol;
-            SyntaxNode syntax = boundQueryClause.Syntax;
-            ITypeSymbol type = boundQueryClause.Type;
-            Optional<object> constantValue = ConvertToOptional(boundQueryClause.ConstantValue);
-            return new LazyQueryContinuation(queryBody, definedSymbol, _semanticModel, syntax, type, constantValue);
-        }
-
-        private IOrderingExpression CreateBoundOrderingExpressionOperation(BoundQueryClause boundQueryClause, OrderKind orderKind)
-        {
             Lazy<IOperation> expression = new Lazy<IOperation>(() => Create(boundQueryClause.Value));
             SyntaxNode syntax = boundQueryClause.Syntax;
             ITypeSymbol type = boundQueryClause.Type;
             Optional<object> constantValue = ConvertToOptional(boundQueryClause.ConstantValue);
-            return new LazyOrderingExpression(expression, orderKind, _semanticModel, syntax, type, constantValue);
-        }
-
-        private QueryClauseKind? GetQueryClauseKind(BoundQueryClause boundQueryClause)
-        {
-            switch(boundQueryClause.Syntax.Kind())
-            {
-                case SyntaxKind.FromClause:
-                    return QueryClauseKind.FromClause;
-
-                case SyntaxKind.SelectClause:
-                    return QueryClauseKind.SelectClause;
-
-                case SyntaxKind.WhereClause:
-                    return QueryClauseKind.WhereClause;
-
-                case SyntaxKind.LetClause:
-                    return QueryClauseKind.LetClause;
-
-                case SyntaxKind.OrderByClause:
-                    return QueryClauseKind.OrderByClause;
-
-                case SyntaxKind.GroupClause:
-                    return QueryClauseKind.GroupByClause;
-
-                case SyntaxKind.JoinClause:
-                    return QueryClauseKind.JoinClause;
-
-                case SyntaxKind.JoinIntoClause:
-                    return QueryClauseKind.JoinIntoClause;
-
-                default:
-                    return null;
-            }
+            return new LazyTranslatedQueryExpression(expression, _semanticModel, syntax, type, constantValue);
         }
     }
 }

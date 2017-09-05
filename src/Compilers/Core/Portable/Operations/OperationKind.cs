@@ -142,10 +142,8 @@ namespace Microsoft.CodeAnalysis
         DynamicObjectCreationExpression = 0x125,
         /// <summary>Indicates an <see cref="IDynamicMemberReferenceExpression"/>.</summary>
         DynamicMemberReferenceExpression = 0x126,
-        /// <summary>Indicates an <see cref="IQueryExpression"/>.</summary>
-        QueryExpression = 0x127,
-        /// <summary>Indicates an <see cref="IOrderingExpression"/> in an <see cref="IOrderByQueryClause"/>.</summary>
-        OrderingExpression = 0x128,
+        /// <summary>Indicates an <see cref="ITranslatedQueryExpression"/>.</summary>
+        TranslatedQueryExpression = 0x129,
 
         // Expressions that occur only in C#.
 
@@ -170,8 +168,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>Indicates an <see cref="IOmittedArgumentExpression"/>.</summary>
         OmittedArgumentExpression = 0x300,
-        /// <summary>Indicates an <see cref="IAggregationExpression"/>.</summary>
-        AggregationExpression = 0x301,
+        // Unused 0x301
         /// <summary>Indicates an <see cref="IPlaceholderExpression"/>.</summary>
         PlaceholderExpression = 0x302,
 
@@ -221,10 +218,5 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>Indicates an <see cref="IDefaultCaseClause"/>.</summary>
         DefaultCaseClause = 0x412,
-
-        /// <summary>Indicates an <see cref="IQueryClause"/>.</summary>
-        QueryClause = 0x413,
-        /// <summary>Indicates an <see cref="IQueryContinuation"/>.</summary>
-        QueryContinuation = 0x414,
     }
 }
