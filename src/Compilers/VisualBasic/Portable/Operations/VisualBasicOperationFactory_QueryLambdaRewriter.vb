@@ -65,9 +65,9 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 _uniqueNodes = New HashSet(Of BoundExpression)
             End Sub
 
-            Private Function HandleNode(Of T As BoundExpression)(node As T) As T
+            Private Function HandleNode(Of T As BoundExpression)(node As T, cloneNode As Func(Of T, T)) As T
                 If Not _uniqueNodes.Add(node) Then
-                    node = node.MemberwiseClone(Of T)
+                    node = cloneNode(node)
                     _uniqueNodes.Add(node)
                 End If
 
@@ -76,17 +76,17 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
             Public Overrides Function VisitParameter(node As BoundParameter) As BoundNode
                 node = DirectCast(MyBase.VisitParameter(node), BoundParameter)
-                Return HandleNode(node)
+                Return HandleNode(node, cloneNode:=Function(n) New BoundParameter(node.Syntax, node.ParameterSymbol, node.IsLValue, node.SuppressVirtualCalls, node.Type, node.HasErrors))
             End Function
 
             Public Overrides Function VisitCall(node As BoundCall) As BoundNode
                 node = DirectCast(MyBase.VisitCall(node), BoundCall)
-                Return HandleNode(node)
+                Return HandleNode(node, cloneNode:=Function(n) New BoundCall(node.Syntax, node.Method, node.MethodGroupOpt, node.ReceiverOpt, node.Arguments, node.ConstantValueOpt, node.IsLValue, node.SuppressObjectClone, node.Type, node.HasErrors))
             End Function
 
             Public Overrides Function VisitPropertyAccess(node As BoundPropertyAccess) As BoundNode
                 node = DirectCast(MyBase.VisitPropertyAccess(node), BoundPropertyAccess)
-                Return HandleNode(node)
+                Return HandleNode(node, cloneNode:=Function(n) New BoundPropertyAccess(node.Syntax, node.PropertySymbol, node.PropertyGroupOpt, node.AccessKind, node.IsWriteable, node.IsLValue, node.ReceiverOpt, node.Arguments, node.Type, node.HasErrors))
             End Function
         End Class
     End Class
