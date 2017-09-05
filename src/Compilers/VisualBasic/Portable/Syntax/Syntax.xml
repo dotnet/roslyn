@@ -7433,7 +7433,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="Type.Opcodes.Nullable" />
       </node-kind>
 
-      <child name="ElementType" kind="PredefinedType|@NameSyntax">
+      <child name="ElementType" kind="PredefinedType|@NameSyntax|TupleType">
         <description>The kind of type that is this type is a nullable of. Cannot be an array type or a nullable type.</description>
         <lm-equiv name="ElementType"></lm-equiv>
         <native-equiv name="ElementType"></native-equiv>
@@ -7466,7 +7466,7 @@ Unify Enum declarations with other block type declarations.
       </child>
     </node-structure>
 
-    <node-kind-alias name="NonArrayTypeName" alias="PredefinedType|NullableType|@NameSyntax">
+    <node-kind-alias name="NonArrayTypeName" alias="PredefinedType|NullableType|@NameSyntax|TupleType">
       <description>A type name that cannot be an array type.</description>
     </node-kind-alias>
 
