@@ -85,7 +85,7 @@ class C : B
         </scope>
       </scope>
     </method>
-    <method containingType=""C"" name=""&lt;.ctor&gt;g__h1_3"">
+    <method containingType=""C"" name=""&lt;.ctor&gt;g__h|1_3"">
       <customDebugInfo>
         <forward declaringType=""B"" methodName="".ctor"" parameterNames=""f"" />
       </customDebugInfo>
@@ -101,7 +101,7 @@ class C : B
         <entry offset=""0x0"" startLine=""13"" startColumn=""41"" endLine=""13"" endColumn=""42"" />
       </sequencePoints>
     </method>
-    <method containingType=""C+&lt;&gt;c__DisplayClass1_0"" name=""&lt;.ctor&gt;g__f1"">
+    <method containingType=""C+&lt;&gt;c__DisplayClass1_0"" name=""&lt;.ctor&gt;g__f|1"">
       <customDebugInfo>
         <forward declaringType=""B"" methodName="".ctor"" parameterNames=""f"" />
       </customDebugInfo>
@@ -109,7 +109,7 @@ class C : B
         <entry offset=""0x0"" startLine=""16"" startColumn=""20"" endLine=""16"" endColumn=""21"" />
       </sequencePoints>
     </method>
-    <method containingType=""C+&lt;&gt;c__DisplayClass1_0"" name=""&lt;.ctor&gt;g__g2"">
+    <method containingType=""C+&lt;&gt;c__DisplayClass1_0"" name=""&lt;.ctor&gt;g__g|2"">
       <customDebugInfo>
         <forward declaringType=""B"" methodName="".ctor"" parameterNames=""f"" />
       </customDebugInfo>

@@ -160,7 +160,7 @@ class C
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
             diff1.VerifySynthesizedMembers(
-                "C: {<F>g__x0_0}");
+                "C: {<F>g__x|0_0}");
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -266,7 +266,7 @@ class C
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
-                "C: {<F>g__x0_0}");
+                "C: {<F>g__x|0_0}");
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -375,7 +375,7 @@ class C
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
             diff1.VerifySynthesizedMembers(
-                "C: {<F>g__x0_0}");
+                "C: {<F>g__x|0_0}");
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -484,7 +484,7 @@ class C
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
             diff1.VerifySynthesizedMembers(
-                "C: {<F>g__x0_0, <>c__DisplayClass0_0}",
+                "C: {<F>g__x|0_0, <>c__DisplayClass0_0}",
                 "C.<>c__DisplayClass0_0: {<>4__this, a}");
 
             var md1 = diff1.GetMetadata();
@@ -1272,10 +1272,10 @@ class C
             // new lambda "<F>b__0#1" has been added:
             diff1.VerifySynthesizedMembers(
                 "C: {<>c}",
-                "C.<>c: {<F>g__f0#1}");
+                "C.<>c: {<F>g__f|0#1}");
 
             // added:
-            diff1.VerifyIL("C.<>c.<F>g__f0#1(int)", @"
+            diff1.VerifyIL("C.<>c.<F>g__f|0#1(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1292,10 +1292,10 @@ class C
 
             diff2.VerifySynthesizedMembers(
                 "C: {<>c}",
-                "C.<>c: {<F>g__f0#1}");
+                "C.<>c: {<F>g__f|0#1}");
 
             // updated:
-            diff2.VerifyIL("C.<>c.<F>g__f0#1(int)", @"
+            diff2.VerifyIL("C.<>c.<F>g__f|0#1(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1364,10 +1364,10 @@ class C
 
             // new lambda "<F>b__0#1" has been added:
             diff1.VerifySynthesizedMembers(
-                "C: {<F>g__f0#1}");
+                "C: {<F>g__f|0#1}");
 
             // added:
-            diff1.VerifyIL("C.<F>g__f0#1(int)", @"
+            diff1.VerifyIL("C.<F>g__f|0#1(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1383,10 +1383,10 @@ class C
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
 
             diff2.VerifySynthesizedMembers(
-                "C: {<F>g__f0#1}");
+                "C: {<F>g__f|0#1}");
 
             // updated:
-            diff2.VerifyIL("C.<F>g__f0#1(int)", @"
+            diff2.VerifyIL("C.<F>g__f|0#1(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1671,10 +1671,10 @@ class C
 
             diff1.VerifySynthesizedMembers(
                 "C: {<>c}",
-                "C.<>c: {<F>g__f11_0, <F>g__f21_1#1}");
+                "C.<>c: {<F>g__f1|1_0, <F>g__f2|1_1#1}");
 
             // updated:
-            diff1.VerifyIL("C.<>c.<F>g__f11_0(int)", @"
+            diff1.VerifyIL("C.<>c.<F>g__f1|1_0(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1686,7 +1686,7 @@ class C
 ");
 
             // added:
-            diff1.VerifyIL("C.<>c.<F>g__f21_1#1(int)", @"
+            diff1.VerifyIL("C.<>c.<F>g__f2|1_1#1(int)", @"
 {
   // Code size        5 (0x5)
   .maxstack  2
@@ -1702,11 +1702,11 @@ class C
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
 
             diff2.VerifySynthesizedMembers(
-                "C.<>c: {<F>g__f11_0, <F>g__f21_1#1, <F>g__f31_2#2}",
+                "C.<>c: {<F>g__f1|1_0, <F>g__f2|1_1#1, <F>g__f3|1_2#2}",
                 "C: {<>c}");
 
             // updated:
-            diff2.VerifyIL("C.<>c.<F>g__f11_0(int)", @"
+            diff2.VerifyIL("C.<>c.<F>g__f1|1_0(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1717,7 +1717,7 @@ class C
 }
 ");
             // updated:
-            diff2.VerifyIL("C.<>c.<F>g__f21_1#1(int)", @"
+            diff2.VerifyIL("C.<>c.<F>g__f2|1_1#1(int)", @"
 {
   // Code size        5 (0x5)
   .maxstack  2
@@ -1729,7 +1729,7 @@ class C
 ");
 
             // added:
-            diff2.VerifyIL("C.<>c.<F>g__f31_2#2(int)", @"
+            diff2.VerifyIL("C.<>c.<F>g__f3|1_2#2(int)", @"
 {
   // Code size        8 (0x8)
   .maxstack  2
@@ -1746,10 +1746,10 @@ class C
 
             diff3.VerifySynthesizedMembers(
                 "C: {<>c}",
-                "C.<>c: {<F>g__f11_0, <F>g__f21_1#1, <F>g__f31_2#2}");
+                "C.<>c: {<F>g__f1|1_0, <F>g__f2|1_1#1, <F>g__f3|1_2#2}");
 
             // updated:
-            diff3.VerifyIL("C.<>c.<F>g__f11_0(int)", @"
+            diff3.VerifyIL("C.<>c.<F>g__f1|1_0(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1760,7 +1760,7 @@ class C
 }
 ");
             // updated:
-            diff3.VerifyIL("C.<>c.<F>g__f21_1#1(int)", @"
+            diff3.VerifyIL("C.<>c.<F>g__f2|1_1#1(int)", @"
 {
   // Code size        5 (0x5)
   .maxstack  2
@@ -1772,7 +1772,7 @@ class C
 ");
 
             // updated:
-            diff3.VerifyIL("C.<>c.<F>g__f31_2#2(int)", @"
+            diff3.VerifyIL("C.<>c.<F>g__f3|1_2#2(int)", @"
 {
   // Code size        8 (0x8)
   .maxstack  2
