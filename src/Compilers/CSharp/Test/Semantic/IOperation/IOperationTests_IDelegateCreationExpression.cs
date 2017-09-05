@@ -245,6 +245,124 @@ IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.Conve
             VerifyOperationTreeAndDiagnosticsForTest<CastExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [Fact]
+        public void DelegateCreationExpression_ExplicitDelegateConstructorAndImplicitMethodBindingConversion()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        Action a = /*<bind>*/new Action(M1)/*</bind>*/;
+    }
+
+    void M1()
+    { }
+}
+";
+            string expectedOperationTree = @"
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'new Action(M1)')
+  Target: IMethodBindingExpression: void Program.M1() (OperationKind.MethodBindingExpression, Type: null) (Syntax: 'M1')
+      Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M1')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DelegateCreationExpression_ExplicitDelegateConstructorAndImplicitMethodBindingConversion_InvalidMissingIdentifier()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        Action a = /*<bind>*/new Action(M1)/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInvalid) (Syntax: 'new Action(M1)')
+  Children(1):
+      IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'M1')
+        Children(0)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0103: The name 'M1' does not exist in the current context
+                //         Action a = /*<bind>*/new Action(M1)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "M1").WithArguments("M1").WithLocation(7, 41)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DelegateCreationExpression_ExplicitDelegateConstructorAndImplicitMethodBindingConversion_InvalidReturnType()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        Action a = /*<bind>*/new Action(M1)/*</bind>*/;
+    }
+
+    int M1() => 1;
+}
+";
+            string expectedOperationTree = @"
+IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInvalid) (Syntax: 'new Action(M1)')
+  Children(1):
+      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0407: 'int Program.M1()' has the wrong return type
+                //         Action a = /*<bind>*/new Action(M1)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1()", "int").WithLocation(7, 41)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DelegateCreationExpression_ExplicitDelegateConstructorAndImplicitMethodBindingConversion_InvalidArgumentType()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        Action a = /*<bind>*/new Action(M1)/*</bind>*/;
+    }
+
+    void M1(object o)
+    { }
+}
+";
+            string expectedOperationTree = @"
+IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInvalid) (Syntax: 'new Action(M1)')
+  Children(1):
+      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0123: No overload for 'M1' matches delegate 'Action'
+                //         Action a = /*<bind>*/new Action(M1)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new Action(M1)").WithArguments("M1", "System.Action").WithLocation(7, 30)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        // TODO: Invalid tests for below function
+
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void DelegateCreationExpression_ExplicitDelegateConstructorAndExplicitMethodBindingConversion()
@@ -261,11 +379,10 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None) (Syntax: 'new Action((Action)M1)')
-  Children(1):
-      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: '(Action)M1')
-        Target: IMethodBindingExpression: void Program.M1() (OperationKind.MethodBindingExpression, Type: null) (Syntax: 'M1')
-            Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M1')
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'new Action((Action)M1)')
+  Target: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: '(Action)M1')
+      Target: IMethodBindingExpression: void Program.M1() (OperationKind.MethodBindingExpression, Type: null) (Syntax: 'M1')
+          Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -1718,12 +1718,11 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None) (Syntax: 'new Action(() => { })')
-  Children(1):
-      IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => { }')
-        IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
-          IReturnStatement (OperationKind.ReturnStatement) (Syntax: '{ }')
-            ReturnedValue: null
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'new Action(() => { })')
+  Target: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => { }')
+      IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
+        IReturnStatement (OperationKind.ReturnStatement) (Syntax: '{ }')
+          ReturnedValue: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
             var a = new Action(() => { });
@@ -4999,14 +4998,13 @@ class C1
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None) (Syntax: 'new Action( ... () => { }))')
-  Children(1):
-      IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action) (Syntax: '(Action)(() => { })')
-        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => { }')
-            IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
-              IReturnStatement (OperationKind.ReturnStatement) (Syntax: '{ }')
-                ReturnedValue: null
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'new Action( ... () => { }))')
+  Target: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action) (Syntax: '(Action)(() => { })')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => { }')
+          IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
+            IReturnStatement (OperationKind.ReturnStatement) (Syntax: '{ }')
+              ReturnedValue: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -5203,11 +5201,10 @@ class C1
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Action /*<b ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'Action /*<b ... *</bind>*/;')
     Variables: Local_1: System.Action a
-    Initializer: IOperation:  (OperationKind.None) (Syntax: 'new Action((Action)M2)')
-        Children(1):
-            IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: '(Action)M2')
-              Target: IMethodBindingExpression: void C1.M2() (OperationKind.MethodBindingExpression, Type: null) (Syntax: 'M2')
-                  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'M2')
+    Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'new Action((Action)M2)')
+        Target: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: '(Action)M2')
+            Target: IMethodBindingExpression: void C1.M2() (OperationKind.MethodBindingExpression, Type: null) (Syntax: 'M2')
+                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'M2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

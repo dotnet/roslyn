@@ -261,16 +261,15 @@ class Class
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None) (Syntax: 'new Action( ... })')
-  Children(1):
-      IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => ... }')
-        IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-          IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a();')
-            Expression: IInvocationExpression (virtual void System.Action.Invoke()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'a()')
-                Instance Receiver: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Action) (Syntax: 'a')
-                Arguments(0)
-          IReturnStatement (OperationKind.ReturnStatement) (Syntax: '{ ... }')
-            ReturnedValue: null
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'new Action( ... })')
+  Target: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => ... }')
+      IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+        IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a();')
+          Expression: IInvocationExpression (virtual void System.Action.Invoke()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'a()')
+              Instance Receiver: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Action) (Syntax: 'a')
+              Arguments(0)
+        IReturnStatement (OperationKind.ReturnStatement) (Syntax: '{ ... }')
+          ReturnedValue: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -299,9 +298,9 @@ class Class
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None) (Syntax: 'new Delegate(Method2)')
-  Children(1):
-      IOperation:  (OperationKind.None) (Syntax: 'Method2')
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Class.Delegate) (Syntax: 'new Delegate(Method2)')
+  Target: IMethodBindingExpression: void Class.Method2(System.Int32 x, System.Int32 y) (OperationKind.MethodBindingExpression, Type: null) (Syntax: 'Method2')
+      Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Class) (Syntax: 'Method2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
