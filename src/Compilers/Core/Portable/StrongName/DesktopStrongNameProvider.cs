@@ -121,14 +121,14 @@ namespace Microsoft.CodeAnalysis
 
         private readonly ImmutableArray<string> _keyFileSearchPaths;
         private readonly string _tempPath;
-        internal IOOperations IOOp { get; set; } = new IOOperations();
+        internal IOOperations IOOp { get; private set; } = new IOOperations();
 
         // for testing/mocking
         internal Func<IClrStrongName> TestStrongNameInterfaceFactory;
 
         internal override SigningCapability Capability => SigningCapability.SignsStream;
 
-        public DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths) : this(keyFileSearchPaths, null)
+        public DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths) : this(keyFileSearchPaths, null, null)
         {
         }
 
@@ -137,13 +137,18 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="tempPath">Path to use for any temporary file generation.</param>
         /// <param name="keyFileSearchPaths">An ordered set of fully qualified paths which are searched when locating a cryptographic key file.</param>
-        public DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths = default(ImmutableArray<string>), string tempPath = null)
+        public DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths = default(ImmutableArray<string>), string tempPath = null): this(keyFileSearchPaths, tempPath, null)
+        {
+        }
+
+        internal DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths, string tempPath, IOOperations ioOperations)
         {
             if (!keyFileSearchPaths.IsDefault && keyFileSearchPaths.Any(path => !PathUtilities.IsAbsolute(path)))
             {
                 throw new ArgumentException(CodeAnalysisResources.AbsolutePathExpected, nameof(keyFileSearchPaths));
             }
 
+            IOOp = ioOperations ?? new IOOperations();
             _keyFileSearchPaths = keyFileSearchPaths.NullToEmpty();
             _tempPath = tempPath;
         }

@@ -148,21 +148,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     WithXmlReferenceResolver(xmlFileResolver).
                     WithSourceReferenceResolver(sourceFileResolver));
 
-            StrongNameProvider LoggingPortableStrongNameProvider()
-            {
-                return new PortableStrongNameProvider(Arguments.KeyFileSearchPaths)
-                {
-                    IOOp = new LoggingIOOperations(touchedFilesLogger)
-                };
-            }
+            StrongNameProvider LoggingPortableStrongNameProvider() =>
+                new PortableStrongNameProvider(Arguments.KeyFileSearchPaths, new LoggingIOOperations(touchedFilesLogger));
 
-            StrongNameProvider LoggingDesktopStrongNameProvider()
-            {
-                return new DesktopStrongNameProvider(Arguments.KeyFileSearchPaths)
-                {
-                    IOOp = new LoggingIOOperations(touchedFilesLogger)
-                };
-            }
+            StrongNameProvider LoggingDesktopStrongNameProvider() =>
+                new DesktopStrongNameProvider(Arguments.KeyFileSearchPaths, null, new LoggingIOOperations(touchedFilesLogger));
 
             return compilation.WithOptions(
                 compilation.Feature("ByPassStrongName") == null ?

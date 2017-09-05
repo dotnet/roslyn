@@ -132,16 +132,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim desktopStrongNameProvider As Func(Of StrongNameProvider) =
                 Function()
-                    Return New DesktopStrongNameProvider(Arguments.KeyFileSearchPaths) With {
-                        .IOOp = New LoggingIOOperations(touchedFilesLogger)
-                    }
+                    Return New DesktopStrongNameProvider(Arguments.KeyFileSearchPaths, Nothing, New LoggingIOOperations(touchedFilesLogger))
                 End Function
 
             Dim portableStrongNameProvider As Func(Of StrongNameProvider) =
                 Function()
-                    Return New PortableStrongNameProvider(Arguments.KeyFileSearchPaths) With {
-                        .IOOp = New LoggingIOOperations(touchedFilesLogger)
-                    }
+                    Return New PortableStrongNameProvider(Arguments.KeyFileSearchPaths, New LoggingIOOperations(touchedFilesLogger))
                 End Function
 
             Dim xmlFileResolver = New LoggingXmlFileResolver(Arguments.BaseDirectory, touchedFilesLogger)

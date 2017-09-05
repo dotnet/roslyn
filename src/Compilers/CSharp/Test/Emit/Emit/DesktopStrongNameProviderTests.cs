@@ -7,6 +7,7 @@ using System;
 using System.IO;
 using Xunit;
 using static Roslyn.Test.Utilities.SigningTestHelpers;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -43,10 +44,7 @@ class C
     public static void Main(string[] args) { }
 }";
             var tempDir = Temp.CreateDirectory();
-            var provider = new DesktopStrongNameProvider(tempPath: tempDir.Path)
-            {
-                IOOp = new VirtualizedIOOperations()
-            };
+            var provider = new DesktopStrongNameProvider(ImmutableArray<string>.Empty, tempDir.Path, new VirtualizedIOOperations());
 
             var options = TestOptions
                 .DebugExe
@@ -64,9 +62,7 @@ class C
 {
     public static void Main(string[] args) { }
 }";
-            var provider = new DesktopStrongNameProvider(tempPath: null) {
-                IOOp = new VirtualizedIOOperations()
-            };
+            var provider = new DesktopStrongNameProvider(ImmutableArray<string>.Empty, null, new VirtualizedIOOperations());
             var options = TestOptions
                 .DebugExe
                 .WithStrongNameProvider(provider)

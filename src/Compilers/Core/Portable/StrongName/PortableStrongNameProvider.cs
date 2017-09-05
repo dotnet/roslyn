@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
     internal class PortableStrongNameProvider : StrongNameProvider
     {
         internal readonly ImmutableArray<string> _keySearchPaths;
-        internal IOOperations IOOp { get; set; } = new IOOperations();
+        internal IOOperations IOOp { get; private set; }
 
         public override bool Equals(object other)
         {
@@ -35,9 +35,10 @@ namespace Microsoft.CodeAnalysis
             return 0;
         }
 
-        public PortableStrongNameProvider(ImmutableArray<string> keySearchPaths = default(ImmutableArray<string>))
+        public PortableStrongNameProvider(ImmutableArray<string> keySearchPaths = default, IOOperations ioOp = default)
         {
-            _keySearchPaths = keySearchPaths.NullToEmpty(); 
+            IOOp = ioOp ?? new IOOperations();
+            _keySearchPaths = keySearchPaths.NullToEmpty();
         }
 
         internal override SigningCapability Capability => SigningCapability.SignsPeBuilder;

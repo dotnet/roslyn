@@ -86,9 +86,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             public VirtualizedStrongNameProvider(
                 IEnumerable<string> existingFullPaths = null,
                 ImmutableArray<string> searchPaths = default(ImmutableArray<string>))
-                : base(searchPaths.NullToEmpty())
+                : base(searchPaths.NullToEmpty(), null, new VirtualIOOperations(new HashSet<string>(existingFullPaths, StringComparer.OrdinalIgnoreCase)))
             {
-                IOOp = new VirtualIOOperations(new HashSet<string>(existingFullPaths, StringComparer.OrdinalIgnoreCase));
             }
         }
     }

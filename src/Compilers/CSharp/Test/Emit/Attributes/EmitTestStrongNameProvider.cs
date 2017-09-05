@@ -91,10 +91,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             public TestDesktopStrongNameProvider(
                 Func<string, byte[]> readAllBytes = null,
-                ReadKeysFromContainerDelegate readKeysFromContainer = null)
+                ReadKeysFromContainerDelegate readKeysFromContainer = null): base(ImmutableArray<string>.Empty, null, new TestIOOperations(readAllBytes))
             {
                 m_readKeysFromContainer = readKeysFromContainer;
-                IOOp = new TestIOOperations(readAllBytes);
             }
 
             internal override void ReadKeysFromContainer(string keyContainer, out ImmutableArray<byte> publicKey)
