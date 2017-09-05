@@ -152,12 +152,4 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return string.Format(MessageID.IDS_StackAllocExpression.Localize().ToString(), ElementType, Count.Syntax); }
         }
     }
-
-    internal partial class BoundConvertedStackAllocExpression
-    {
-        public override object Display
-        {
-            get { return string.Format(MessageID.IDS_StackAllocExpression.Localize().ToString(), ElementType, Count.Syntax); }
-        }
-    }
 }

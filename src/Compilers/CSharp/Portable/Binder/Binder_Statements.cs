@@ -738,7 +738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression is BoundStackAllocArrayCreation boundStackAlloc)
             {
                 var type = new PointerTypeSymbol(boundStackAlloc.ElementType);
-                expression = GenerateConversionForAssignment(type, boundStackAlloc, diagnostics, false, refKind);
+                expression = GenerateConversionForAssignment(type, boundStackAlloc, diagnostics, refKind: refKind);
             }
 
             // Certain expressions (null literals, method groups and anonymous functions) have no type of 

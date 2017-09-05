@@ -459,6 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Returns true if the conversion is a stackalloc conversion.
+        /// PROTOTYPE(span) review public API change
         /// </summary>
         public bool IsStackAlloc
         {
