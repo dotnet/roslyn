@@ -2214,7 +2214,7 @@ class D : C
             var assemblyB = ReflectionUtilities.Load(bytesB);
 
             DkmClrRuntimeInstance runtime = null;
-            GetModuleDelegate getModule = (r, a) => (a == assemblyB) ? new DkmClrModuleInstance(r, a, new DkmModule(a.GetName().Name + ".dll")) : null;
+            DkmClrModuleInstance getModule(DkmClrRuntimeInstance r, System.Reflection.Assembly a) => (a == assemblyB) ? new DkmClrModuleInstance(r, a, new DkmModule(a.GetName().Name + ".dll")) : null;
             runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(assemblyA, assemblyB), getModule: getModule);
             using (runtime.Load())
             {
@@ -2266,7 +2266,7 @@ class D : C
     }
 }";
             DkmClrRuntimeInstance runtime = null;
-            GetMemberValueDelegate getMemberValue = (v, m) => (m == "P") ? CreateErrorValue(runtime.GetType(typeof(int?)), "Function evaluation timed out") : null;
+            VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue getMemberValue(VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue v, string m) => (m == "P") ? CreateErrorValue(runtime.GetType(typeof(int?)), "Function evaluation timed out") : null;
             runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(GetAssembly(source)), getMemberValue: getMemberValue);
             using (runtime.Load())
             {

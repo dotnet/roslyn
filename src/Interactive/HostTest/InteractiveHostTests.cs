@@ -1058,7 +1058,7 @@ new object[] { new Class1(), new Class2(), new Class3() }
             var dllDir = Path.GetDirectoryName(dll.Path);
             srcDir.CreateFile("goo.csx").WriteAllText("ReferencePaths.Add(@\"" + dllDir + "\");");
 
-            Func<string, string> normalizeSeparatorsAndFrameworkFolders = (s) => s.Replace("\\", "\\\\").Replace("Framework64", "Framework");
+            string normalizeSeparatorsAndFrameworkFolders(string s) => s.Replace("\\", "\\\\").Replace("Framework64", "Framework");
 
             // print default:
             _host.ExecuteAsync(@"ReferencePaths").Wait();

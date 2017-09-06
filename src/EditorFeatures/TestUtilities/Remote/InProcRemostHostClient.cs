@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.Remoting;
@@ -67,6 +68,11 @@ namespace Roslyn.Test.Utilities.Remote
 
         public AssetStorage AssetStorage => _inprocServices.AssetStorage;
 
+        public void RegisterService(string name, Func<Stream, IServiceProvider, ServiceHubServiceBase> serviceCreator)
+        {
+            _inprocServices.RegisterService(name, serviceCreator);
+        }
+
         public override async Task<Connection> TryCreateConnectionAsync(
             string serviceName, object callbackTarget, CancellationToken cancellationToken)
         {
@@ -128,38 +134,33 @@ namespace Roslyn.Test.Utilities.Remote
         private class InProcRemoteServices
         {
             private readonly ServiceProvider _serviceProvider;
+            private readonly Dictionary<string, Func<Stream, IServiceProvider, ServiceHubServiceBase>> _creatorMap;
 
             public InProcRemoteServices(bool runCacheCleanup)
             {
                 _serviceProvider = new ServiceProvider(runCacheCleanup);
+                _creatorMap = new Dictionary<string, Func<Stream, IServiceProvider, ServiceHubServiceBase>>();
+
+                RegisterService(WellKnownRemoteHostServices.RemoteHostService, (s, p) => new RemoteHostService(s, p));
+                RegisterService(WellKnownServiceHubServices.CodeAnalysisService, (s, p) => new CodeAnalysisService(s, p));
+                RegisterService(WellKnownServiceHubServices.SnapshotService, (s, p) => new SnapshotService(s, p));
+                RegisterService(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, (s, p) => new RemoteSymbolSearchUpdateEngine(s, p));
             }
 
             public AssetStorage AssetStorage => _serviceProvider.AssetStorage;
 
+            public void RegisterService(string name, Func<Stream, IServiceProvider, ServiceHubServiceBase> serviceCreator)
+            {
+                _creatorMap.Add(name, serviceCreator);
+            }
+
             public Task<Stream> RequestServiceAsync(string serviceName, CancellationToken cancellationToken)
             {
-                switch (serviceName)
+                Func<Stream, IServiceProvider, ServiceHubServiceBase> creator;
+                if (_creatorMap.TryGetValue(serviceName, out creator))
                 {
-                    case WellKnownRemoteHostServices.RemoteHostService:
-                        {
-                            var tuple = FullDuplexStream.CreateStreams();
-                            return Task.FromResult<Stream>(new WrappedStream(new RemoteHostService(tuple.Item1, _serviceProvider), tuple.Item2));
-                        }
-                    case WellKnownServiceHubServices.CodeAnalysisService:
-                        {
-                            var tuple = FullDuplexStream.CreateStreams();
-                            return Task.FromResult<Stream>(new WrappedStream(new CodeAnalysisService(tuple.Item1, _serviceProvider), tuple.Item2));
-                        }
-                    case WellKnownServiceHubServices.SnapshotService:
-                        {
-                            var tuple = FullDuplexStream.CreateStreams();
-                            return Task.FromResult<Stream>(new WrappedStream(new SnapshotService(tuple.Item1, _serviceProvider), tuple.Item2));
-                        }
-                    case WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine:
-                        {
-                            var tuple = FullDuplexStream.CreateStreams();
-                            return Task.FromResult<Stream>(new WrappedStream(new RemoteSymbolSearchUpdateEngine(tuple.Item1, _serviceProvider), tuple.Item2));
-                        }
+                    var tuple = FullDuplexStream.CreateStreams();
+                    return Task.FromResult<Stream>(new WrappedStream(creator(tuple.Item1, _serviceProvider), tuple.Item2));
                 }
 
                 throw ExceptionUtilities.UnexpectedValue(serviceName);

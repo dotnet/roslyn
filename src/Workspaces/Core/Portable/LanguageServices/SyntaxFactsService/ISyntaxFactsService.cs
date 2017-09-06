@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsCaseSensitive { get; }
         StringComparer StringComparer { get; }
 
+        SyntaxTrivia ElasticMarker { get; }
         SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
 
         bool SupportsIndexingInitializer(ParseOptions options);
@@ -187,6 +188,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsForEachStatement(SyntaxNode node);
         bool IsLockStatement(SyntaxNode node);
         bool IsUsingStatement(SyntaxNode node);
+        bool IsStatement(SyntaxNode node);
+        bool IsParameter(SyntaxNode node);
+        bool IsVariableDeclarator(SyntaxNode node);
 
         bool IsReturnStatement(SyntaxNode node);
         SyntaxNode GetExpressionOfReturnStatement(SyntaxNode node);
@@ -310,7 +314,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool ContainsInterleavedDirective(SyntaxNode node, CancellationToken cancellationToken);
         bool ContainsInterleavedDirective(ImmutableArray<SyntaxNode> nodes, CancellationToken cancellationToken);
 
-        string GetBannerText(SyntaxNode documentationCommentTriviaSyntax, CancellationToken cancellationToken);
+        string GetBannerText(SyntaxNode documentationCommentTriviaSyntax, int maxBannerLength, CancellationToken cancellationToken);
 
         SyntaxTokenList GetModifiers(SyntaxNode node);
         SyntaxNode WithModifiers(SyntaxNode node, SyntaxTokenList modifiers);

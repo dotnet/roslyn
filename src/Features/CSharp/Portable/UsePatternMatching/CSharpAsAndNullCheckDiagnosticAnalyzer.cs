@@ -95,6 +95,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             }
 
             var semanticModel = syntaxContext.SemanticModel;
+            if (semanticModel.GetSymbolInfo(comparison).GetAnySymbol().IsUserDefinedOperator())
+            {
+                return;
+            }
+
             var typeNode = ((BinaryExpressionSyntax)asExpression).Right;
             var asType = semanticModel.GetTypeInfo(typeNode, cancellationToken).Type;
             if (asType.IsNullable())

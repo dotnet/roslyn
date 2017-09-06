@@ -76,8 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private static XElement CreateCompilationOptionsElement(CompilationOptions options)
         {
-            var vbOptions = options as Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions;
-            if (vbOptions != null)
+            if (options is Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions vbOptions)
             {
                 var element = new XElement(CompilationOptionsElementName,
                     vbOptions.GlobalImports.AsEnumerable().Select(i => new XElement(GlobalImportElementName, i.Name)));

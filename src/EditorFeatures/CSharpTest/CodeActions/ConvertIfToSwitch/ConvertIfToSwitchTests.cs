@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 return;
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 break;
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 break;
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 return;
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 return;
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 return;
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 return;
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 return;
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 return;
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 return;
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 return;
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 break;
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 break;
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 break;
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
@@ -564,7 +564,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         }
         return 7;
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
@@ -595,7 +595,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         if (i == 1) return 6;
         return 7;
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
@@ -633,7 +633,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             return 7;
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
@@ -664,7 +664,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 return i.ToString();
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
@@ -695,7 +695,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         if (i == i) return 0;
         reuturn 7;
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
@@ -738,7 +738,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         }
         reuturn 7;
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
@@ -799,7 +799,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         }
         reuturn 7;
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(21109, "https://github.com/dotnet/roslyn/issues/21109")]
@@ -843,7 +843,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 break;
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(21101, "https://github.com/dotnet/roslyn/issues/21101")]
@@ -873,7 +873,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 return /* t7 */ 3 /* t8 */;
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
@@ -897,8 +897,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when i == 2: return;
-            case 10: return;
+            case 1 when i == 2:
+                return;
+            case 10:
+                return;
         }
     }
 }");
@@ -925,8 +927,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when i == 2 && i == 3: return;
-            case 10: return;
+            case 1 when i == 2 && i == 3:
+                return;
+            case 10:
+                return;
         }
     }
 }");
@@ -953,8 +957,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when i == 2 && (i == 3): return;
-            case 10: return;
+            case 1 when i == 2 && (i == 3):
+                return;
+            case 10:
+                return;
         }
     }
 }");
@@ -981,8 +987,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when (i == 2) && i == 3: return;
-            case 10: return;
+            case 1 when (i == 2) && i == 3:
+                return;
+            case 10:
+                return;
         }
     }
 }");
@@ -1009,8 +1017,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when (i == 2) && (i == 3): return;
-            case 10: return;
+            case 1 when (i == 2) && (i == 3):
+                return;
+            case 10:
+                return;
         }
     }
 }");
@@ -1037,8 +1047,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when i == 2 && i == 3: return;
-            case 10: return;
+            case 1 when i == 2 && i == 3:
+                return;
+            case 10:
+                return;
         }
     }
 }");
@@ -1065,8 +1077,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when i == 2 && (i == 3): return;
-            case 10: return;
+            case 1 when i == 2 && (i == 3):
+                return;
+            case 10:
+                return;
         }
     }
 }");
@@ -1093,8 +1107,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when (i == 2) && i == 3: return;
-            case 10: return;
+            case 1 when (i == 2) && i == 3:
+                return;
+            case 10:
+                return;
         }
     }
 }");
@@ -1121,8 +1137,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when (i == 2) && (i == 3): return;
-            case 10: return;
+            case 1 when (i == 2) && (i == 3):
+                return;
+            case 10:
+                return;
         }
     }
 }");
@@ -1149,8 +1167,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when i == 2 && i == 3: return;
-            case 10: return;
+            case 1 when i == 2 && i == 3:
+                return;
+            case 10:
+                return;
         }
     }
 }");
@@ -1177,8 +1197,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when i == 2 && i == 3: return;
-            case 10: return;
+            case 1 when i == 2 && i == 3:
+                return;
+            case 10:
+                return;
         }
     }
 }");
@@ -1205,8 +1227,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when i == 2 && i == 3: return;
-            case 10: return;
+            case 1 when i == 2 && i == 3:
+                return;
+            case 10:
+                return;
         }
     }
 }");
@@ -1233,8 +1257,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when (i == 2) && i == 3: return;
-            case 10: return;
+            case 1 when (i == 2) && i == 3:
+                return;
+            case 10:
+                return;
         }
     }
 }");
@@ -1261,8 +1287,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when (i == 2) && (i == 3): return;
-            case 10: return;
+            case 1 when (i == 2) && (i == 3):
+                return;
+            case 10:
+                return;
         }
     }
 }");
@@ -1289,8 +1317,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when (i == 2) && i == 3: return;
-            case 10: return;
+            case 1 when (i == 2) && i == 3:
+                return;
+            case 10:
+                return;
         }
     }
 }");
@@ -1317,8 +1347,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case 1 when i == 2 && (i == 3): return;
-            case 10: return;
+            case 1 when i == 2 && (i == 3):
+                return;
+            case 10:
+                return;
         }
     }
 }");

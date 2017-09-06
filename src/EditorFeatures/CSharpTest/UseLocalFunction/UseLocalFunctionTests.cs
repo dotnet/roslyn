@@ -190,7 +190,7 @@ class C
             return fibonacci(v - 1, v - 2);
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
@@ -230,7 +230,7 @@ class C
             return fibonacci(v - 1, v - 2);
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
@@ -270,7 +270,7 @@ class C
             return fibonacci(v - 1, v - 2);
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
@@ -300,7 +300,7 @@ class C
                 ? 1
                 : fibonacci(v - 1, v - 2);
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
@@ -330,7 +330,7 @@ class C
                 ? 1
                 : fibonacci(v - 1, v - 2);
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
@@ -360,7 +360,7 @@ class C
                 ? 1
                 : fibonacci(v - 1, v - 2);
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
@@ -400,7 +400,7 @@ class C
             return fibonacci(v - 1, v - 2);
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
@@ -440,7 +440,7 @@ class C
             return fibonacci(v - 1, v - 2);
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
@@ -480,7 +480,7 @@ class C
             return fibonacci(v - 1, v - 2);
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
@@ -520,7 +520,7 @@ class C
             return fibonacci(v - 1, v - 2);
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
@@ -550,7 +550,7 @@ class C
                 ? 1
                 : fibonacci(v - 1, v - 2);
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
@@ -580,7 +580,7 @@ class C
                 ? 1
                 : fibonacci(v - 1, v - 2);
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
@@ -610,7 +610,7 @@ class C
                 ? 1
                 : fibonacci(v - 1, v - 2);
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
@@ -699,7 +699,7 @@ class C
             return fibonacci(v - 1, v - 2);
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
@@ -740,7 +740,7 @@ class C
             return fibonacci(v - 1, v - 2);
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
@@ -781,7 +781,7 @@ class C
             return fibonacci(v - 1, v - 2);
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
@@ -822,7 +822,7 @@ class C
             return fibonacci(v - 1, v - 2);
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
@@ -863,7 +863,7 @@ class C
             return fibonacci(v - 1, v - 2);
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
@@ -904,7 +904,7 @@ class C
             return fibonacci(v - 1, v - 2);
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
@@ -935,7 +935,7 @@ class C
                 ? 1
                 : fibonacci(v - 1, v - 2);
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
@@ -966,7 +966,7 @@ class C
                 ? 1
                 : fibonacci(v - 1, v - 2);
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
@@ -997,7 +997,7 @@ class C
                 ? 1
                 : fibonacci(v - 1, v - 2);
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
@@ -1031,7 +1031,7 @@ class C
             return fibonacci(v - 1, v - 2);
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
@@ -1065,7 +1065,7 @@ class C
             return fibonacci(v - 1, v - 2);
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
@@ -1097,7 +1097,6 @@ class C
         int fibonacci(int v)
         {
             bool isTrue(bool b) => b;
-
             return fibonacci(v - 1, v - 2);
         }
     }
@@ -1142,7 +1141,7 @@ class C
             return fibonacci(v - 1, v - 2);
         } // Trailing trivia
     }
-}", ignoreTrivia: false);
+}");
         }
     }
 }

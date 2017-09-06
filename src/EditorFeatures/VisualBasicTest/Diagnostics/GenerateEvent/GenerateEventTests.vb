@@ -143,6 +143,7 @@ End Class")
 End Class",
 "Public Class C
     Public Event MyEvent(x As Integer)
+
     Sub EventHandler(ByVal x As Integer) Handles Me.MyEvent
         ' Place code to handle events from BaseClass here. 
     End Sub
@@ -160,6 +161,7 @@ End Class")
 End Class",
 "Public Class C
     Public Event MyEvent(x As Integer)
+
     Sub EventHandler(ByVal x As Integer) Handles MyClass.MyEvent
         ' Place code to handle events from BaseClass here. 
     End Sub
@@ -193,6 +195,7 @@ End Class",
 "Public Class B
     Dim WithEvents x As B
     Public Event E1(x As String)
+
     Private Sub Test(Optional x As String = Nothing) Handles x.E1 'mark 1 
     End Sub
     Private Sub Test2(ParamArray x As String()) Handles x.E2 'mark 2 
@@ -214,6 +217,7 @@ End Class",
 "Public Class B
     Dim WithEvents x As B
     Public Event E2(x() As String)
+
     Private Sub Test(Optional x As String = Nothing) Handles x.E1 'mark 1 
     End Sub
     Private Sub Test2(ParamArray x As String()) Handles x.E2 'mark 2 
@@ -354,7 +358,9 @@ End Class",
     Public Sub New()
         AddHandler XEvent, AddressOf EClass_EventHandler
     End Sub
+
     Public Event XEvent()
+
     Sub EClass_EventHandler()
     End Sub
 End Class")
@@ -377,7 +383,9 @@ End Class",
     Public Sub New()
         RemoveHandler XEvent, AddressOf EClass_EventHandler
     End Sub
+
     Public Event XEvent()
+
     Sub EClass_EventHandler()
     End Sub
 End Class")
@@ -400,7 +408,9 @@ End Class",
     Public Sub New()
         AddHandler Me.XEvent, AddressOf EClass_EventHandler
     End Sub
+
     Public Event XEvent()
+
     Sub EClass_EventHandler()
     End Sub
 End Class")
@@ -423,7 +433,9 @@ End Class",
     Public Sub New()
         RemoveHandler Me.XEvent, AddressOf EClass_EventHandler
     End Sub
+
     Public Event XEvent()
+
     Sub EClass_EventHandler()
     End Sub
 End Class")
@@ -446,7 +458,9 @@ End Class",
     Public Sub New()
         AddHandler MyClass.XEvent, AddressOf EClass_EventHandler
     End Sub
+
     Public Event XEvent()
+
     Sub EClass_EventHandler()
     End Sub
 End Class")
@@ -469,7 +483,9 @@ End Class",
     Public Sub New()
         RemoveHandler MyClass.XEvent, AddressOf EClass_EventHandler
     End Sub
+
     Public Event XEvent()
+
     Sub EClass_EventHandler()
     End Sub
 End Class")
@@ -622,7 +638,7 @@ public class EventClass
 
 public delegate void XEventHandler(string argument);
 </Text>.NormalizedValue
-            Await TestInRegularAndScriptAsync(initialMarkup, expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(initialMarkup, expected)
         End Function
 
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
@@ -660,7 +676,7 @@ public class EventClass
 
 public delegate void XEventHandler(string argument);
 </Text>.NormalizedValue
-            Await TestInRegularAndScriptAsync(initialMarkup, expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(initialMarkup, expected)
         End Function
 
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
@@ -702,7 +718,7 @@ public class EventClass
 
 public delegate void XEventHandler(object sender, EventArgs e);
 </Text>.NormalizedValue
-            Await TestInRegularAndScriptAsync(initialMarkup, expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(initialMarkup, expected)
         End Function
 
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
@@ -744,7 +760,7 @@ public class EventClass
 
 public delegate void XEventHandler(object sender, EventArgs e);
 </Text>.NormalizedValue
-            Await TestInRegularAndScriptAsync(initialMarkup, expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(initialMarkup, expected)
         End Function
 
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
@@ -785,7 +801,7 @@ public class EventClass
 
 public delegate void XEventHandler(object a, EventArgs b);
 </Text>.NormalizedValue
-            Await TestInRegularAndScriptAsync(initialMarkup, expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(initialMarkup, expected)
         End Function
 
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
@@ -826,7 +842,7 @@ public class EventClass
 
 public delegate void XEventHandler(object a, EventArgs b);
 </Text>.NormalizedValue
-            Await TestInRegularAndScriptAsync(initialMarkup, expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(initialMarkup, expected)
         End Function
 
         <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>

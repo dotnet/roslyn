@@ -341,8 +341,8 @@ End Module"
         Dim GooMember1 As String
     End Structure
     Sub Main(x As Integer)
-        Const {|Rename:V|} As String = ""t"" + ""test"" 
- Dim f1 = New GooStruct With {.GooMember1 = V}
+        Const {|Rename:V|} As String = ""t"" + ""test""
+        Dim f1 = New GooStruct With {.GooMember1 = V}
     End Sub
 End Module"
             Await TestInRegularAndScriptAsync(source, expected, index:=2)
@@ -380,7 +380,7 @@ Module Program
     End Sub
 End Module
 "
-            Await TestInRegularAndScriptAsync(code, expected, index:=3, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected, index:=3)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
@@ -393,8 +393,8 @@ End Module
  End Sub
 End Class"
             Dim expected = "Class Program
-    Private Const {|Rename:V|} As String = ""t"" + ""test"" 
- Dim q = New With {.str = V}
+    Private Const {|Rename:V|} As String = ""t"" + ""test""
+    Dim q = New With {.str = V}
     Dim r = New With {.str = V}
     Sub Goo()
         Dim x = V
@@ -466,6 +466,7 @@ End Class"
 End Module"
             Dim expected = "Module Module1
     Private Const {|Rename:V|} As Integer = 42
+
     Sub Goo(Optional x As Integer = V)
     End Sub
 End Module"
@@ -483,6 +484,7 @@ End Module"
 End Module"
             Dim expected = "Module Module1
     Private Const {|Rename:V|} As Integer = 42
+
     Sub Bar(Optional x As Integer = V)
     End Sub
     Sub Goo(Optional x As Integer = V)
@@ -692,6 +694,7 @@ count:=2)
 End Class",
 "Class Goo
     Private Const {|Rename:V|} As Integer = 2 + 2
+
     Sub New()
         Me.New(V)
     End Sub
@@ -743,8 +746,7 @@ b""
     End Function
 End Class
 ",
-index:=3,
-ignoreTrivia:=False)
+index:=3)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
@@ -766,8 +768,7 @@ Class C
     End Sub
 End Class
 ",
-index:=1,
-ignoreTrivia:=False)
+index:=1)
         End Function
 
         <WorkItem(540487, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540487")>
@@ -792,7 +793,7 @@ Module Program
 End Module
 "
 
-            Await TestInRegularAndScriptAsync(code, expected, index:=2, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected, index:=2)
         End Function
 
         <WorkItem(540491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540491")>
@@ -827,6 +828,7 @@ End Class")
 End Class",
 "Class Goo
     Private Const {|Rename:X|} As Integer = 42
+
     Sub New()
         MyClass.New(X)
     End Sub
@@ -991,7 +993,7 @@ Module M
 End Module
 "
 
-            Await TestInRegularAndScriptAsync(code, expected, index:=3, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected, index:=3)
         End Function
 
         <WorkItem(543029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543029"), WorkItem(542963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542963"), WorkItem(542295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542295")>
@@ -1014,6 +1016,7 @@ Imports System.Linq
 Module Program
     Sub Main(args As String())
         Dim q As Object
+
         If True Then
             Dim {|Rename:p|} As Object = Sub()
                               End Sub
@@ -1111,10 +1114,11 @@ count:=2)
 NewLines(input),
 "Module Program
     Private Const {|Rename:V|} As String = """"
-    <Obsolete(V)>
-    Sub Main(args As String())
-    End Sub
-End Module")
+
+    <Obsolete(V)> 
+ Sub Main(args As String()) 
+ End Sub 
+ End Module")
         End Function
 
         <WorkItem(542947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542947")>
@@ -1170,7 +1174,7 @@ Module Program
 End Module
 "
 
-            Await TestInRegularAndScriptAsync(code, expected, index:=3, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected, index:=3)
         End Function
 
         <WorkItem(541966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541966")>
@@ -1208,7 +1212,7 @@ Module Program
 End Module
 "
 
-            Await TestInRegularAndScriptAsync(code, expected, index:=3, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected, index:=3)
         End Function
 
         <WorkItem(541966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541966")>
@@ -1241,7 +1245,7 @@ Module Program
 End Module
 "
 
-            Await TestInRegularAndScriptAsync(code, expected, index:=3, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected, index:=3)
         End Function
 
         <WorkItem(543273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543273")>
@@ -1257,10 +1261,9 @@ End Module",
 "Imports System
 Module Program
     Sub Main
-        Dim a = Sub(x As Integer)
-                    Dim {|Rename:value|} As Integer = x + 1
-                    Console.WriteLine(value) ' Introduce local 
-                End Sub
+        Dim a = Sub(x As Integer) Dim {|Rename:value|} As Integer = x + 1
+                    Console.WriteLine(value)
+                End Sub ' Introduce local 
     End Sub
 End Module")
         End Function
@@ -1279,6 +1282,7 @@ End Module",
 Module Program
     Sub Main
         Dim a = Sub(x As Integer)
+
                     If True Then
                         Dim {|Rename:value|} As Integer = x + 1
                         Console.WriteLine(value)
@@ -1304,6 +1308,7 @@ End Module",
 Module Program
     Sub Main
         Dim a = Sub(x As Integer)
+
                     If True Then
                         Console.WriteLine()
                     Else
@@ -1350,8 +1355,7 @@ index:=1)
 End Module",
 "Module Program
     Sub Main(args As String())
-        Dim query = Sub(a)
-                        Dim {|Rename:arg1|} As Object = a Or a
+        Dim query = Sub(a) Dim {|Rename:arg1|} As Object = a Or a
                         a = New With {Key .Key = Function(ByVal arg As Integer) As Integer
                                                      Return arg
                                                  End Function}.Key.Invoke(arg1)
@@ -1442,7 +1446,8 @@ End Class",
 "Imports System.Linq
 Public Class Base
     Public Function Sample(ByVal arg As Integer) As Integer
-        Dim results = From s In New Integer() {1} Let {|Rename:v|} = Sample(s)
+        Dim results = From s In New Integer() {1}
+                      Let {|Rename:v|} = Sample(s)
                       Select v
         Return 0
     End Function
@@ -1480,8 +1485,8 @@ End Class",
 "Imports System.Linq
 Public Class Base
     Public Function Sample(ByVal arg As Integer) As Integer
-        Dim results = From s In New Integer() {1} Let {|Rename:v|} = Sample(s)
-                      Where v > 21
+        Dim results = From s In New Integer() {1}
+                      Let {|Rename:v|} = Sample(s) Where v > 21
                       Select Sample(s)
         Return 0
     End Function
@@ -1504,8 +1509,8 @@ End Class",
 "Imports System.Linq
 Public Class Base
     Public Function Sample(ByVal arg As Integer) As Integer
-        Dim results = From s In New Integer() {1} Let {|Rename:v|} = Sample(s)
-                      Where v > 21
+        Dim results = From s In New Integer() {1}
+                      Let {|Rename:v|} = Sample(s) Where v > 21
                       Select v
         Return 0
     End Function
@@ -1530,7 +1535,8 @@ End Class",
 Public Class Base
     Public Function Sample(ByVal arg As Integer) As Integer
         Dim results = From s In New Integer() {1}
-                      Where Sample(s) > 21 Let {|Rename:v|} = Sample(s)
+                      Where Sample(s) > 21
+                      Let {|Rename:v|} = Sample(s)
                       Select v
         Return 0
     End Function
@@ -1552,7 +1558,8 @@ End Class",
 "Imports System.Linq
 Public Class Base
     Public Function Sample(ByVal arg As Integer) As Integer
-        Dim results = From s In New Integer() {1} Let {|Rename:v|} = Sample(s)
+        Dim results = From s In New Integer() {1}
+                      Let {|Rename:v|} = Sample(s)
                       Where v > 21
                       Select v
         Return 0
@@ -1711,7 +1718,7 @@ Public Class C2
 End Class
 "
 
-            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
         <WorkItem(529510, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529510")>
@@ -1776,8 +1783,8 @@ End Module")
     Property Prop As New List(Of String) From {[|""One""|], ""two""}
 End Module",
 "Module Module1
-    Private Const {|Rename:V|} As String = ""One"" 
- Property Prop As New List(Of String) From {V, ""two""}
+    Private Const {|Rename:V|} As String = ""One""
+    Property Prop As New List(Of String) From {V, ""two""}
 End Module")
         End Function
 
@@ -1802,7 +1809,7 @@ Module Module1
 End Module
 "
 
-            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
         <WorkItem(545258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545258")>
@@ -1835,7 +1842,7 @@ End Class
                 {String.Format(FeaturesResources.Introduce_local_constant_for_0, "5"),
                 String.Format(FeaturesResources.Introduce_local_constant_for_all_occurrences_of_0, "5")})
 
-            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
         <WorkItem(545258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545258")>
@@ -1893,7 +1900,7 @@ End Class
                                       {String.Format(FeaturesResources.Introduce_local_constant_for_0, "5"),
                                        String.Format(FeaturesResources.Introduce_local_constant_for_all_occurrences_of_0, "5")})
 
-            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
         <WorkItem(545525, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545525")>
@@ -1993,8 +2000,9 @@ Partial Class C
     End Sub
 End Class",
 "Partial Class C
-    Private Const {|Rename:V|} As String = ""HELLO"" 
- Sub goo1(Optional x As String = V)
+    Private Const {|Rename:V|} As String = ""HELLO""
+
+    Sub goo1(Optional x As String = V)
     End Sub
 End Class
 Partial Class C
@@ -2050,7 +2058,7 @@ Module M
 End Module
 "
 
-            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
         <WorkItem(546815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546815")>
@@ -2071,6 +2079,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Private Const {|Rename:V|} As Boolean = True
+
     Sub Main(args As String())
         If V Then
         End If
@@ -2123,7 +2132,7 @@ Module Program
 End Module
 "
 
-            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
         <WorkItem(530720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530720")>
@@ -2150,7 +2159,7 @@ Module Program
 End Module
 "
 
-            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
         <WorkItem(531478, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531478")>
@@ -2183,7 +2192,7 @@ Module Program
 End Module
 "
 
-            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
         <WorkItem(632327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632327")>
@@ -2218,7 +2227,7 @@ Public Class Index_vbhtml
 End Class
 "
 
-            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
         <WorkItem(632327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632327")>
@@ -2253,7 +2262,7 @@ Public Class Index_vbhtml
 End Class
 "
 
-            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
         <WorkItem(682683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682683")>
@@ -2282,7 +2291,7 @@ Module Program
 End Module
 "
 
-            Await TestInRegularAndScriptAsync(code, expected, index:=2, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected, index:=2)
         End Function
 
         <WorkItem(1022458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022458")>
@@ -2319,7 +2328,7 @@ Module Program
 End Module
 "
 
-            Await TestInRegularAndScriptAsync(code, expected, index:=1, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected, index:=1)
         End Function
 
         <WorkItem(939259, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939259")>
@@ -2352,7 +2361,7 @@ Module Program
 End Module
 "
 
-            Await TestInRegularAndScriptAsync(code, expected, index:=3, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected, index:=3)
         End Function
 
         <WorkItem(909152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/909152")>
@@ -2397,7 +2406,7 @@ Class C
     End Function
 End Class
 "
-            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
         <WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")>
@@ -2510,7 +2519,7 @@ Friend Class DebugDataTipInfo
 End Class
 "
 
-            Await TestInRegularAndScriptAsync(code, expected, index:=1, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected, index:=1)
         End Function
 
         <WorkItem(1065661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065661")>
@@ -2567,7 +2576,7 @@ Module Program
 End Module
 "
 
-            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
         <WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")>
@@ -2594,7 +2603,7 @@ Module Program
 End Module
 "
 
-            Await TestInRegularAndScriptAsync(code, expected, index:=1, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected, index:=1)
         End Function
 
         <WorkItem(3147, "https://github.com/dotnet/roslyn/issues/3147")>
@@ -2627,7 +2636,7 @@ Namespace N
     End Class
 End Namespace"
 
-            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
         <WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")>
@@ -2648,7 +2657,7 @@ Class C
     Property Name As String = V
 End Class
 "
-            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
         <WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")>
@@ -2669,7 +2678,7 @@ Class C
     Property Grades As Integer() = p
 End Class
 "
-            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
         <WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")>
@@ -2690,7 +2699,7 @@ Class C
     Public Property Items As New List(Of String) From {V, ""T"", ""W""}
 End Class
 "
-            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
         <WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")>
@@ -2711,7 +2720,7 @@ Class C
     Property Orders As New List(Of Object)(V)
 End Class
 "
-            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
         <WorkItem(11777, "https://github.com/dotnet/roslyn/issues/11777")>
@@ -2766,7 +2775,7 @@ Class C
     End Sub
 End Class
 "
-            Await TestAsync(code, expected, ignoreTrivia:=False, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
+            Await TestAsync(code, expected, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
@@ -2790,7 +2799,7 @@ Class C
     End Sub
 End Class
 "
-            Await TestAsync(code, expected, ignoreTrivia:=False, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
+            Await TestAsync(code, expected, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
@@ -2816,7 +2825,7 @@ Class C
     End Sub
 End Class
 "
-            Await TestAsync(code, expected, index:=1, ignoreTrivia:=False,
+            Await TestAsync(code, expected, index:=1,
                 parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
         End Function
 
@@ -2839,7 +2848,7 @@ Class C
     End Sub
 End Class
 "
-            Await TestInRegularAndScriptAsync(code, expected, index:=1, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected, index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
@@ -2863,7 +2872,7 @@ Class C
     End Sub
 End Class
 "
-            Await TestAsync(code, expected, ignoreTrivia:=False, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
+            Await TestAsync(code, expected, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
@@ -2887,7 +2896,7 @@ Class C
     End Sub
 End Class
 "
-            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
         <WorkItem(2423, "https://github.com/dotnet/roslyn/issues/2423")>

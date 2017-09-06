@@ -324,7 +324,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 
     void M()
     {
-        var v = new C(() => {
+        var v = new C(() =>
+        {
             var v2 = new C
             {
                 i = 1
@@ -364,7 +365,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
     {
         var v = new C
         {
-            j = () => {
+            j = () =>
+            {
                 var v2 = new C
                 {
                     i = 1
@@ -446,8 +448,7 @@ class C
             j = 2 // Bar
         };
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(15459, "https://github.com/dotnet/roslyn/issues/15459")]
@@ -534,7 +535,7 @@ public class Goo
     }
 
     public string Value { get; set; }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(19253, "https://github.com/dotnet/roslyn/issues/19253")]
@@ -575,7 +576,7 @@ class MyClass
 
         int horse = 1;
     }
-}", ignoreTrivia: false);
+}");
         }
     }
 }

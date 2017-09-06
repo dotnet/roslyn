@@ -22,8 +22,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             // flatten loggers
             foreach (var logger in loggers.WhereNotNull())
             {
-                var aggregateLogger = logger as AggregateLogger;
-                if (aggregateLogger != null)
+                if (logger is AggregateLogger aggregateLogger)
                 {
                     set.UnionWith(aggregateLogger._loggers);
                     continue;

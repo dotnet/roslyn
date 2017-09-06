@@ -27,12 +27,14 @@ namespace Roslyn.Test.Utilities
 
         private static IRuntimeEnvironmentFactory GetFactoryImplementation()
         {
-#if NET46
+#if NET461 || NET46
             return new Roslyn.Test.Utilities.Desktop.DesktopRuntimeEnvironmentFactory();
 #elif NETCOREAPP2_0
             return new Roslyn.Test.Utilities.CoreClr.CoreCLRRuntimeEnvironmentFactory();
-#else
+#elif NETSTANDARD1_3
             throw new NotSupportedException();
+#else
+#error Unsupported configuration
 #endif
         }
 
@@ -297,8 +299,7 @@ namespace Roslyn.Test.Utilities
                     }
                     else
                     {
-                        AssemblyIdentity identity;
-                        AssemblyIdentity.TryParseDisplayName(module.FullName, out identity);
+                        AssemblyIdentity.TryParseDisplayName(module.FullName, out var identity);
                         fileName = identity.Name;
                     }
 

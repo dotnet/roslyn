@@ -34,6 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Tuples
         IOperation
         InferredTupleNames
+        LeadingDigitSeparator
     End Enum
 
     Friend Module FeatureExtensions
@@ -89,6 +90,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case Feature.InferredTupleNames
                     Return LanguageVersion.VisualBasic15_3
+
+                Case Feature.LeadingDigitSeparator
+                    Return LanguageVersion.VisualBasic15_5
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
@@ -153,6 +157,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_Tuples
                 Case Feature.IOperation
                     Return ERRID.FEATURE_IOperation
+                Case Feature.LeadingDigitSeparator
+                    Return ERRID.FEATURE_LeadingDigitSeparator
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select

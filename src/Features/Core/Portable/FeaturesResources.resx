@@ -1298,4 +1298,16 @@ This version used in: {2}</value>
   <data name="Add_file_banner" xml:space="preserve">
     <value>Add file banner</value>
   </data>
+  <data name="Warning_Method_overrides_symbol_from_metadata" xml:space="preserve">
+    <value>Warning: Method overrides symbol from metadata</value>
+  </data>
+  <data name="Use_0" xml:space="preserve">
+    <value>Use {0}</value>
+  </data>
+  <data name="Switching_between_lambda_and_local_function_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Switching between a lambda and a local function will prevent the debug session from continuing.</value>
+  </data>
+  <data name="Switching_between_lambda_and_local_function_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Switching between a lambda and a local function will prevent the debug session from continuing.</value>
+  </data>
 </root>

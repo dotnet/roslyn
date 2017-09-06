@@ -101,8 +101,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     int this[int i]
     {
         get => Bar();
-        }
-    }", options: UseExpressionBody);
+    }
+}", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -144,8 +144,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     int Goo
     {
         set => [|Bar|]();
-        }
-    }", options: UseExpressionBody);
+    }
+}", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -180,8 +180,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     int Goo
     {
         get => throw new NotImplementedException();
-        }
-    }", options: UseExpressionBody);
+    }
+}", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     {
         get => throw new NotImplementedException(); // comment
     }
-}", ignoreTrivia: false, options: UseExpressionBody);
+}", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             throw new NotImplementedException(); // comment
         }
     }
-}", ignoreTrivia: false, options: UseBlockBodyIncludingPropertiesAndIndexers);
+}", options: UseBlockBodyIncludingPropertiesAndIndexers);
         }
 
         [WorkItem(20350, "https://github.com/dotnet/roslyn/issues/20350")]
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             return Bar();
         }
     }
-}", options: UseBlockBodyIncludingPropertiesAndIndexers, ignoreTrivia: false);
+}", options: UseBlockBodyIncludingPropertiesAndIndexers);
         }
 
         [WorkItem(20350, "https://github.com/dotnet/roslyn/issues/20350")]
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             Bar();
         }
     }
-}", options: UseBlockBodyIncludingPropertiesAndIndexers, ignoreTrivia: false);
+}", options: UseBlockBodyIncludingPropertiesAndIndexers);
         }
 
         [WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
@@ -361,7 +361,7 @@ class C
 using System;
 class C
 {
-    int Goo 
+    int Goo
     {
         get
         {
@@ -387,15 +387,14 @@ class C
 using System;
 class C
 {
-    int Goo 
+    int Goo
     {
         get
         {
             throw new NotImplementedException();
         }
     }
-
-    int Bar 
+    int Bar
     {
         get
         {
