@@ -250,8 +250,7 @@ namespace Roslyn.Test.PdbUtilities
 
             internal void ReadBString(out string value)
             {
-                ushort len;
-                this.ReadUInt16(out len);
+                this.ReadUInt16(out var len);
                 value = Encoding.UTF8.GetString(_buffer, _offset, len);
                 _offset += len;
             }
@@ -280,29 +279,18 @@ namespace Roslyn.Test.PdbUtilities
 
             internal void ReadGuid(out Guid guid)
             {
-                uint a;
-                ushort b;
-                ushort c;
-                byte d;
-                byte e;
-                byte f;
-                byte g;
-                byte h;
-                byte i;
-                byte j;
-                byte k;
 
-                ReadUInt32(out a);
-                ReadUInt16(out b);
-                ReadUInt16(out c);
-                ReadUInt8(out d);
-                ReadUInt8(out e);
-                ReadUInt8(out f);
-                ReadUInt8(out g);
-                ReadUInt8(out h);
-                ReadUInt8(out i);
-                ReadUInt8(out j);
-                ReadUInt8(out k);
+                ReadUInt32(out var a);
+                ReadUInt16(out var b);
+                ReadUInt16(out var c);
+                ReadUInt8(out var d);
+                ReadUInt8(out var e);
+                ReadUInt8(out var f);
+                ReadUInt8(out var g);
+                ReadUInt8(out var h);
+                ReadUInt8(out var i);
+                ReadUInt8(out var j);
+                ReadUInt8(out var k);
 
                 guid = unchecked(new Guid((int)a, (short)b, (short)c, d, e, f, g, h, i, j, k));
             }
@@ -454,11 +442,9 @@ namespace Roslyn.Test.PdbUtilities
                     {
                         throw new ArgumentException("Argument_KeyLessThanZero");
                     }
-                    uint seed;
-                    uint incr;
                     // Take a snapshot of buckets, in case another thread does a resize
                     bucket[] lbuckets = _buckets;
-                    uint hashcode = InitHash(key, lbuckets.Length, out seed, out incr);
+                    uint hashcode = InitHash(key, lbuckets.Length, out var seed, out var incr);
                     int ntry = 0;
 
                     bucket b;
@@ -548,12 +534,9 @@ namespace Roslyn.Test.PdbUtilities
                 {
                     rehash();
                 }
-
-                uint seed;
-                uint incr;
                 // Assume we only have one thread writing concurrently.  Modify
                 // buckets to contain new data, as long as we insert in the right order.
-                uint hashcode = InitHash(key, _buckets.Length, out seed, out incr);
+                uint hashcode = InitHash(key, _buckets.Length, out var seed, out var incr);
                 int ntry = 0;
                 int emptySlotNumber = -1; // We use the empty slot number to cache the first empty slot. We chose to reuse slots
                 // create by remove that have the collision bit set over using up new slots.
@@ -980,8 +963,7 @@ namespace Roslyn.Test.PdbUtilities
                 stream.Read(reader, bits);
 
                 // 0..3 in directory pages
-                int count;
-                bits.ReadInt32(out count);
+                bits.ReadInt32(out var count);
 
                 // 4..n
                 int[] sizes = new int[count];
@@ -1208,13 +1190,10 @@ namespace Roslyn.Test.PdbUtilities
             PdbFileHeader head = new PdbFileHeader(read, bits);
             PdbReader reader = new PdbReader(read, head.pageSize);
             MsfDirectory dir = new MsfDirectory(reader, head, bits);
-            DbiModuleInfo[] modules = null;
-            DbiDbgHdr header;
 
             dir.streams[1].Read(reader, bits);
             Dictionary<string, int> nameIndex = LoadNameIndex(bits);
-            int nameStream;
-            if (!nameIndex.TryGetValue("/NAMES", out nameStream))
+            if (!nameIndex.TryGetValue("/NAMES", out var nameStream))
             {
                 throw new Exception("No `name' stream");
             }
@@ -1223,7 +1202,7 @@ namespace Roslyn.Test.PdbUtilities
             IntHashTable names = LoadNameStream(bits);
 
             dir.streams[3].Read(reader, bits);
-            LoadDbiStream(bits, out modules, out header, true);
+            LoadDbiStream(bits, out var modules, out var header, true);
 
             if (modules != null)
             {
@@ -1247,30 +1226,22 @@ namespace Roslyn.Test.PdbUtilities
         private static Dictionary<string, int> LoadNameIndex(BitAccess bits)
         {
             Dictionary<string, int> result = new Dictionary<string, int>();
-            int ver;
-            int sig;
-            int age;
-            Guid guid;
-            bits.ReadInt32(out ver);    //  0..3  Version
-            bits.ReadInt32(out sig);    //  4..7  Signature
-            bits.ReadInt32(out age);    //  8..11 Age
-            bits.ReadGuid(out guid);       // 12..27 GUID
+            bits.ReadInt32(out var ver);    //  0..3  Version
+            bits.ReadInt32(out var sig);    //  4..7  Signature
+            bits.ReadInt32(out var age);    //  8..11 Age
+            bits.ReadGuid(out var guid);       // 12..27 GUID
 
             // Read string buffer.
-            int buf;
-            bits.ReadInt32(out buf);    // 28..31 Bytes of Strings
+            bits.ReadInt32(out var buf);    // 28..31 Bytes of Strings
 
             int beg = bits.Position;
             int nxt = bits.Position + buf;
 
             bits.Position = nxt;
+            // n+4..7 maximum ni.
 
-            // Read map index.
-            int cnt;        // n+0..3 hash size.
-            int max;        // n+4..7 maximum ni.
-
-            bits.ReadInt32(out cnt);
-            bits.ReadInt32(out max);
+            bits.ReadInt32(out var cnt);
+            bits.ReadInt32(out var max);
 
             BitSet present = new BitSet(bits);
             BitSet deleted = new BitSet(bits);
@@ -1284,15 +1255,12 @@ namespace Roslyn.Test.PdbUtilities
             {
                 if (present.IsSet(i))
                 {
-                    int ns;
-                    int ni;
-                    bits.ReadInt32(out ns);
-                    bits.ReadInt32(out ni);
+                    bits.ReadInt32(out var ns);
+                    bits.ReadInt32(out var ni);
 
-                    string name;
                     int saved = bits.Position;
                     bits.Position = beg + ns;
-                    bits.ReadCString(out name);
+                    bits.ReadCString(out var name);
                     bits.Position = saved;
 
                     result.Add(name.ToUpperInvariant(), ni);
@@ -1314,8 +1282,7 @@ namespace Roslyn.Test.PdbUtilities
             Dictionary<string, int> nameIndex, PdbReader reader, Dictionary<uint, PdbTokenLine> tokenToSourceMapping)
         {
             bits.Position = 0;
-            int sig;
-            bits.ReadInt32(out sig);
+            bits.ReadInt32(out var sig);
             if (sig != 4)
             {
                 throw new Exception(string.Format("Invalid signature. (sig={0})", sig));
@@ -1325,14 +1292,12 @@ namespace Roslyn.Test.PdbUtilities
 
             while (bits.Position < module.cbSyms)
             {
-                ushort siz;
-                ushort rec;
 
-                bits.ReadUInt16(out siz);
+                bits.ReadUInt16(out var siz);
                 int star = bits.Position;
                 int stop = bits.Position + siz;
                 bits.Position = star;
-                bits.ReadUInt16(out rec);
+                bits.ReadUInt16(out var rec);
 
                 switch ((SYM)rec)
                 {
@@ -1348,20 +1313,13 @@ namespace Roslyn.Test.PdbUtilities
                             string name = bits.ReadString();
                             if (name == "TSLI")
                             {
-                                uint token;
-                                uint file_id;
-                                uint line;
-                                uint column;
-                                uint endLine;
-                                uint endColumn;
-                                bits.ReadUInt32(out token);
-                                bits.ReadUInt32(out file_id);
-                                bits.ReadUInt32(out line);
-                                bits.ReadUInt32(out column);
-                                bits.ReadUInt32(out endLine);
-                                bits.ReadUInt32(out endColumn);
-                                PdbTokenLine tokenLine;
-                                if (!tokenToSourceMapping.TryGetValue(token, out tokenLine))
+                                bits.ReadUInt32(out var token);
+                                bits.ReadUInt32(out var file_id);
+                                bits.ReadUInt32(out var line);
+                                bits.ReadUInt32(out var column);
+                                bits.ReadUInt32(out var endLine);
+                                bits.ReadUInt32(out var endColumn);
+                                if (!tokenToSourceMapping.TryGetValue(token, out var tokenLine))
                                     tokenToSourceMapping.Add(token, new PdbTokenLine(token, file_id, line, column, endLine, endColumn));
                                 else
                                 {
@@ -1407,10 +1365,8 @@ namespace Roslyn.Test.PdbUtilities
             int begin = bits.Position;
             while (bits.Position < limit)
             {
-                int sig;
-                int siz;
-                bits.ReadInt32(out sig);
-                bits.ReadInt32(out siz);
+                bits.ReadInt32(out var sig);
+                bits.ReadInt32(out var siz);
                 int place = bits.Position;
                 int endSym = bits.Position + siz;
 
@@ -1444,15 +1400,11 @@ namespace Roslyn.Test.PdbUtilities
         private static IntHashTable LoadNameStream(BitAccess bits)
         {
             IntHashTable ht = new IntHashTable();
-
-            uint sig;
-            int ver;
-            bits.ReadUInt32(out sig);   //  0..3  Signature
-            bits.ReadInt32(out ver);    //  4..7  Version
+            bits.ReadUInt32(out var sig);   //  0..3  Signature
+            bits.ReadInt32(out var ver);    //  4..7  Version
 
             // Read (or skip) string buffer.
-            int buf;
-            bits.ReadInt32(out buf);    //  8..11 Bytes of Strings
+            bits.ReadInt32(out var buf);    //  8..11 Bytes of Strings
 
             if (sig != 0xeffeeffe || ver != 1)
             {
@@ -1463,22 +1415,19 @@ namespace Roslyn.Test.PdbUtilities
             bits.Position = nxt;
 
             // Read hash table.
-            int siz;
-            bits.ReadInt32(out siz);    // n+0..3 Number of hash buckets.
+            bits.ReadInt32(out var siz);    // n+0..3 Number of hash buckets.
             nxt = bits.Position;
 
             for (int i = 0; i < siz; i++)
             {
-                int ni;
-                string name;
 
-                bits.ReadInt32(out ni);
+                bits.ReadInt32(out var ni);
 
                 if (ni != 0)
                 {
                     int saved = bits.Position;
                     bits.Position = beg + ni;
-                    bits.ReadCString(out name);
+                    bits.ReadCString(out var name);
                     bits.Position = saved;
 
                     ht.Add(ni, name);

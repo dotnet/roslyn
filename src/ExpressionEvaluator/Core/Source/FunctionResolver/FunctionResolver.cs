@@ -97,9 +97,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
                 foreach (var moduleInstance in runtime.GetModuleInstances())
                 {
-                    var module = moduleInstance as DkmClrModuleInstance;
                     // Only interested in managed modules.
-                    if (module != null)
+                    if (moduleInstance is DkmClrModuleInstance module)
                     {
                         yield return module;
                     }

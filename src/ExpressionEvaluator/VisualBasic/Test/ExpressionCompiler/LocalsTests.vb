@@ -910,7 +910,8 @@ End Class
 
                     Assert.Equal(locals.Count, 4)
 
-                    VerifyLocal(testData, typeName, locals(0), "<>m0", "x2", expectedILOpt:=
+                    VerifyLocal(testData, typeName, locals(0), "<>m0", "x1")
+                    VerifyLocal(testData, typeName, locals(1), "<>m1", "x2", expectedILOpt:=
 "{
   // Code size        7 (0x7)
   .maxstack  1
@@ -921,9 +922,8 @@ End Class
   IL_0001:  ldfld      ""C._Closure$__1-0.$VB$Local_x2 As Object""
   IL_0006:  ret
 }")
-                    VerifyLocal(testData, typeName, locals(1), "<>m1", "x3")
-                    VerifyLocal(testData, typeName, locals(2), "<>m2", "x4")
-                    VerifyLocal(testData, typeName, locals(3), "<>m3", "x1")
+                    VerifyLocal(testData, typeName, locals(2), "<>m2", "x3")
+                    VerifyLocal(testData, typeName, locals(3), "<>m3", "x4")
 
                     context = CreateMethodContext(runtime, methodName:="C._Closure$__1-0._Lambda$__1")
                     testData = New CompilationTestData()
@@ -933,7 +933,8 @@ End Class
 
                     Assert.Equal(locals.Count, 6)
 
-                    VerifyLocal(testData, typeName, locals(0), "<>m0", "y2", expectedILOpt:=
+                    VerifyLocal(testData, typeName, locals(0), "<>m0", "y1")
+                    VerifyLocal(testData, typeName, locals(1), "<>m1", "y2", expectedILOpt:=
 "{
   // Code size        7 (0x7)
   .maxstack  1
@@ -944,8 +945,7 @@ End Class
   IL_0001:  ldfld      ""C._Closure$__1-1.$VB$Local_y2 As Object""
   IL_0006:  ret
 }")
-                    VerifyLocal(testData, typeName, locals(1), "<>m1", "y3")
-                    VerifyLocal(testData, typeName, locals(2), "<>m2", "y1")
+                    VerifyLocal(testData, typeName, locals(2), "<>m2", "y3")
                     VerifyLocal(testData, typeName, locals(3), "<>m3", "x2")
                     VerifyLocal(testData, typeName, locals(4), "<>m4", "x3", expectedILOpt:=
 "{
@@ -968,7 +968,8 @@ End Class
 
                     Assert.Equal(locals.Count, 7)
 
-                    VerifyLocal(testData, typeName, locals(0), "<>m0", "z2", expectedILOpt:=
+                    VerifyLocal(testData, typeName, locals(0), "<>m0", "z1")
+                    VerifyLocal(testData, typeName, locals(1), "<>m1", "z2", expectedILOpt:=
 "{
   // Code size        7 (0x7)
   .maxstack  1
@@ -979,7 +980,6 @@ End Class
   IL_0001:  ldfld      ""C._Closure$__1-2.$VB$Local_z2 As Object""
   IL_0006:  ret
 }")
-                    VerifyLocal(testData, typeName, locals(1), "<>m1", "z1")
                     VerifyLocal(testData, typeName, locals(2), "<>m2", "y2")
                     VerifyLocal(testData, typeName, locals(3), "<>m3", "y3")
                     VerifyLocal(testData, typeName, locals(4), "<>m4", "x2")
@@ -3240,6 +3240,41 @@ End Module"
 
                     GetLocals(runtime, "Module1.Main", debugInfo, locals, count:=0)
 
+                    locals.Free()
+                End Sub)
+        End Sub
+
+        <WorkItem(298297, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=298297")>
+        <Fact>
+        Public Sub OrderOfArguments_ArgumentsOnly()
+            Const source = "
+Imports System.Collections.Generic
+Class C
+    Iterator Shared Function F(y As Object, x As Object) As IEnumerable(Of Object)
+        Yield x
+    #ExternalSource(""test"", 999)
+        DummySequencePoint()
+    #End ExternalSource
+        Yield y
+    End Function
+
+    Shared Sub DummySequencePoint()
+    End Sub
+End Class"
+            Dim comp = CreateCompilationWithMscorlib({source}, {MsvbRef}, options:=TestOptions.DebugDll)
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context As EvaluationContext
+                    context = CreateMethodContext(runtime, "C.VB$StateMachine_1_F.MoveNext", atLineNumber:=999)
+                    Dim unused As String = Nothing
+                    Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
+                    context.CompileGetLocals(locals, argumentsOnly:=True, typeName:=unused, testData:=Nothing)
+                    Assert.Equal(2, locals.Count)
+                    ' The order must confirm the order of the arguments in the method signature.
+                    Dim typeName As String = Nothing
+                    Dim testData As CompilationTestData = Nothing
+                    Assert.Equal("y", locals(0).LocalName)
+                    Assert.Equal("x", locals(1).LocalName)
                     locals.Free()
                 End Sub)
         End Sub

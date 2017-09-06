@@ -3210,6 +3210,28 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
+        [Fact]
+        public void MethodUpdate_LocalFunctionsParameterRefnessInBody()
+        {
+            var src1 = @"class C { public void M(int a) { void f(ref int b) => b = 1; } }";
+            var src2 = @"class C { public void M(int a) { void f(out int b) => b = 1; } } ";
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyEdits(
+                "Update [public void M(int a) { void f(ref int b) => b = 1; }]@10 -> [public void M(int a) { void f(out int b) => b = 1; }]@10");
+        }
+
+        [Fact]
+        public void MethodUpdate_LambdaParameterRefnessInBody()
+        {
+            var src1 = @"class C { public void M(int a) { f((ref int b) => b = 1); } }";
+            var src2 = @"class C { public void M(int a) { f((out int b) => b = 1); } } ";
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyEdits(
+                "Update [public void M(int a) { f((ref int b) => b = 1); }]@10 -> [public void M(int a) { f((out int b) => b = 1); }]@10");
+        }
+
         #endregion
 
         #region Operators

@@ -61,8 +61,7 @@ namespace ProcessWatchdog
 
                 foreach (Process descendant in GetDescendants(_parentProcess.Id))
                 {
-                    UniqueProcess uniqueDescendant;
-                    if (UniqueProcess.TryCreate(descendant, out uniqueDescendant))
+                    if (UniqueProcess.TryCreate(descendant, out var uniqueDescendant))
                     {
                         if (!existingProcesses.Contains(uniqueDescendant))
                         {
@@ -98,8 +97,7 @@ namespace ProcessWatchdog
             string description = MakeProcessDescription(process);
             Process procDumpProcess = _procDump.MonitorProcess(process.Id, description);
 
-            TrackedProcess trackedProcess;
-            if (TrackedProcess.TryCreate(process, procDumpProcess, description, out trackedProcess))
+            if (TrackedProcess.TryCreate(process, procDumpProcess, description, out var trackedProcess))
             {
                 _trackedProcesses.Add(trackedProcess);
             }
@@ -194,11 +192,8 @@ namespace ProcessWatchdog
                 bool result = false;
                 trackedProcess = null;
 
-                UniqueProcess uniqueProcess;
-                UniqueProcess uniqueProcDumpProcess;
-
-                if (UniqueProcess.TryCreate(process, out uniqueProcess)
-                    && UniqueProcess.TryCreate(procDumpProcess, out uniqueProcDumpProcess))
+                if (UniqueProcess.TryCreate(process, out var uniqueProcess)
+                    && UniqueProcess.TryCreate(procDumpProcess, out var uniqueProcDumpProcess))
                 {
                     trackedProcess = new TrackedProcess(uniqueProcess, uniqueProcDumpProcess, description);
                     result = true;

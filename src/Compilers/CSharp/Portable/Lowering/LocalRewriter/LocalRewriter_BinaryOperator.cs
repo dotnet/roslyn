@@ -2091,14 +2091,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SpecialType.System_Int32:
                         // add operator can take int32 and extend to 64bit if necessary
+                        // however in a case of checked operation, the operation is treated as unsigned with overflow ( add.ovf.un , sub.ovf.un )
+                        // the IL spec is a bit vague whether JIT should sign or zero extend the shorter operand in such case
+                        // and there could be inconsistencies in implementation or bugs.
+                        // As a result, in checked contexts, we will force sign-extending cast to be sure
+                        if (isChecked)
+                        {
+                            var constVal = numericOperand.ConstantValue;
+                            if (constVal == null || constVal.Int32Value < 0)
+                            {
+                                destinationType = SpecialType.System_IntPtr;
+                            }
+                        }
                         break;
                     case SpecialType.System_UInt32:
-                        // add operator treats operands as signed and will sign-extend on x64
-                        // to prevent sign-extending, convert the operand to unsigned native int.
-                        var constVal = numericOperand.ConstantValue;
-                        if (constVal == null || constVal.UInt32Value > int.MaxValue)
                         {
-                            destinationType = SpecialType.System_UIntPtr;
+                            // add operator treats operands as signed and will sign-extend on x64
+                            // to prevent sign-extending, convert the operand to unsigned native int.
+                            var constVal = numericOperand.ConstantValue;
+                            if (constVal == null || constVal.UInt32Value > int.MaxValue)
+                            {
+                                destinationType = SpecialType.System_UIntPtr;
+                            }
                         }
                         break;
                     case SpecialType.System_Int64:

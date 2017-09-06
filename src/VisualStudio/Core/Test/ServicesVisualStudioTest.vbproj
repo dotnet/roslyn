@@ -8,7 +8,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.VisualStudio.Services.UnitTests</AssemblyName>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net461</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <ForceGenerationOfBindingRedirects>true</ForceGenerationOfBindingRedirects>
     <RoslynProjectType>UnitTest</RoslynProjectType>

@@ -34,8 +34,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             Assert.True(storage.TryAddAsset(checksum, data));
 
-            object stored;
-            Assert.True(storage.TryGetAsset(checksum, out stored));
+            Assert.True(storage.TryGetAsset(checksum, out object stored));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
@@ -52,8 +51,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             {
                 await Task.Delay(10);
 
-                object stored;
-                if (!storage.TryGetAsset(checksum, out stored))
+                if (!storage.TryGetAsset(checksum, out object stored))
                 {
                     // asset is deleted
                     return;

@@ -2919,6 +2919,16 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Switching between a lambda and a local function will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Switching_between_lambda_and_local_function_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Switching_between_lambda_and_local_function_will_prevent_the_debug_session_from_c" +
+                        "ontinuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Take &apos;{0}&apos;.
         /// </summary>
         internal static string Take_0 {
@@ -3351,6 +3361,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Updating_the_variance_of_0_will_prevent_the_debug_session_from_continuing {
             get {
                 return ResourceManager.GetString("Updating_the_variance_of_0_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use {0}.
+        /// </summary>
+        internal static string Use_0 {
+            get {
+                return ResourceManager.GetString("Use_0", resourceCulture);
             }
         }
         

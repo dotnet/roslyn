@@ -142,6 +142,15 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             // ?. is not available in expression-trees.  Disallow the fix in that case.
             var semanticFacts = GetSemanticFactsService();
             var semanticModel = context.SemanticModel;
+
+            if (semanticModel.GetTypeInfo(conditionalExpression).Type?.IsValueType == true)
+            {
+                // User has something like:  If(str is nothing, nothing, str.Length)
+                // In this case, converting to str?.Length changes the type of this from
+                // int to int?
+                return;
+            }
+
             if (semanticFacts.IsInExpressionTree(semanticModel, conditionNode, expressionTypeOpt, cancellationToken))
             {
                 return;
