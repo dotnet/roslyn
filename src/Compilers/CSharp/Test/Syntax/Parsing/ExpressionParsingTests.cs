@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             TestPostfixUnary(SyntaxKind.PlusPlusToken);
             TestPostfixUnary(SyntaxKind.MinusMinusToken);
-            TestPostfixUnary(SyntaxKind.ExclamationToken, TestOptions.Regular.WithNullCheckingFeature());
+            TestPostfixUnary(SyntaxKind.ExclamationToken, TestOptions.Regular8);
         }
 
         private void TestBinary(SyntaxKind kind)

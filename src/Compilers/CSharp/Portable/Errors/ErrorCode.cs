@@ -1524,5 +1524,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UnreferencedLocalFunction = 8321,
         ERR_DynamicLocalFunctionTypeParameter = 8322,
         #endregion diagnostics introduced for C# 7.2
+
+        // Available  = 8323-8349
+
+        ERR_FeatureNotAvailableInVersion8 = 8350,
     }
 }

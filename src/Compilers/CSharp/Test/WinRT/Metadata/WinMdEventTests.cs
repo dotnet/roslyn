@@ -2360,12 +2360,12 @@ public partial class A : I
                 verify: OSVersion.IsWin8);
 
             verifier.VerifyDiagnostics(
-    // (6,42): warning CS0067: The event 'A.d2' is never used
-    //     public event genericDelegate<object> d2;
-    Diagnostic(ErrorCode.WRN_UnreferencedEvent, "d2").WithArguments("A.d2"),
-    // (7,34): warning CS0067: The event 'A.d3' is never used
-    //     public event dynamicDelegate d3;
-    Diagnostic(ErrorCode.WRN_UnreferencedEvent, "d3").WithArguments("A.d3"));
+                // (7,42): warning CS0067: The event 'A.d2' is never used
+                //     public event genericDelegate<object> d2;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "d2").WithArguments("A.d2").WithLocation(7, 42),
+                // (8,34): warning CS0067: The event 'A.d3' is never used
+                //     public event dynamicDelegate d3;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "d3").WithArguments("A.d3").WithLocation(8, 34));
             verifier.VerifyIL("A.Scenario1",
 @"
 {

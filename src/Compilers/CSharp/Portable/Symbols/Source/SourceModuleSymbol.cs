@@ -627,7 +627,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (UtilizesNullableReferenceTypes)
             {
-                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor));
+                // PROTOTYPE(NullableReferenceTypes): Support NetModule.
+                if (compilation.Options.OutputKind != OutputKind.NetModule)
+                {
+                    AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor));
+                }
             }
         }
 
@@ -683,6 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                // PROTOTYPE(NullableReferenceTypes): C#8 projects require System.Attribute.
                 return _assemblySymbol.DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking);
             }
         }

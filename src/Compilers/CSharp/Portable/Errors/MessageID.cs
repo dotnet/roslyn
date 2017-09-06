@@ -178,8 +178,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (feature)
             {
-                case MessageID.IDS_FeatureStaticNullChecking:
-                    return "staticNullChecking";
                 case MessageID.IDS_FeatureIOperation:
                     return "IOperation";
                 default:
@@ -193,6 +191,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
+                // C# 8 features.
+                case MessageID.IDS_FeatureStaticNullChecking:
+                    return LanguageVersion.CSharp8;
+
                 // C# 7.2 features.
                 case MessageID.IDS_FeatureLeadingDigitSeparator:
                     return LanguageVersion.CSharp7_2;

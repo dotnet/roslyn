@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             TestPostfixUnaryOperator(SyntaxKind.PlusPlusToken);
             TestPostfixUnaryOperator(SyntaxKind.MinusMinusToken);
-            TestPostfixUnaryOperator(SyntaxKind.ExclamationToken, TestOptions.Regular.WithNullCheckingFeature());
+            TestPostfixUnaryOperator(SyntaxKind.ExclamationToken, TestOptions.Regular8);
         }
 
         [Fact]

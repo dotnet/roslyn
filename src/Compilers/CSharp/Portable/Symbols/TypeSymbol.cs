@@ -1139,7 +1139,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (((CSharpParseOptions)implementingMember.Locations[0].SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
                 !implementingMember.IsImplicitlyDeclared && !implementingMember.IsAccessor() &&
-                !implementingMember.NullableOptOut &&
+                // PROTOTYPE(NullableReferenceTypes): Checking NullableOptOut can result in cycle
+                // decoding attributes. See StaticNullChecking.NullableOptOut_DecodeAttributeCycle_01.
+                //!implementingMember.NullableOptOut &&
                 (compilation = implementingMember.DeclaringCompilation) != null)
             {
                 Symbol implementedMember;

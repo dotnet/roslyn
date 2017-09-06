@@ -327,7 +327,8 @@ public enum E
 }
 ";
 
-            var comp = CreateCompilation(source);
+            // PROTOTYPE(NullableReferenceTypes): C#8 projects require System.Attribute.
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
                 // (2,13): error CS0518: Predefined type 'System.Enum' is not defined or imported
                 // public enum E
@@ -364,7 +365,8 @@ public enum E : short
 }
 ";
 
-            var comp = CreateCompilation(source);
+            // PROTOTYPE(NullableReferenceTypes): C#8 projects require System.Attribute.
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
                 // (2,13): error CS0518: Predefined type 'System.Enum' is not defined or imported
                 // public enum E : short
@@ -424,7 +426,8 @@ public class Test : short { }
 public class Test : short { }
 ";
 
-            var comp = CreateCompilation(source);
+            // PROTOTYPE(NullableReferenceTypes): C#8 projects require System.Attribute.
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
                 // (2,21): error CS0518: Predefined type 'System.Int16' is not defined or imported
                 // public class Test : short { }
@@ -480,7 +483,8 @@ public struct Test : short { }
 public struct Test : short { }
 ";
 
-            var comp = CreateCompilation(source);
+            // PROTOTYPE(NullableReferenceTypes): C#8 projects require System.Attribute.
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
                 // (2,22): error CS0518: Predefined type 'System.Int16' is not defined or imported
                 // public struct Test : short { }
@@ -541,7 +545,8 @@ public interface Test : short { }
 public interface Test : short { }
 ";
 
-            var comp = CreateCompilation(source);
+            // PROTOTYPE(NullableReferenceTypes): C#8 projects require System.Attribute.
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
                 // (2,25): error CS0518: Predefined type 'System.Int16' is not defined or imported
                 // public interface Test : short { }
@@ -602,7 +607,8 @@ public class C<T> where T : int
 }
 ";
 
-            var comp = CreateCompilation(source);
+            // PROTOTYPE(NullableReferenceTypes): C#8 projects require System.Attribute.
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
                 // (2,14): error CS0518: Predefined type 'System.Object' is not defined or imported
                 // public class C<T> where T : int

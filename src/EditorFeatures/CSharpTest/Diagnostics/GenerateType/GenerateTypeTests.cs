@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -1300,7 +1301,7 @@ internal class T
 {
     public T(out DateTime d)
     {
-        d = default(DateTime);
+        d = default;
     }
 }",
 index: 1);
@@ -1398,6 +1399,35 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task GenerateWithOutParameters6CSharp7()
+        {
+            await TestAsync(
+@"class Class<X>
+{
+    void M(X d)
+    {
+        new [|T|](out d);
+    }
+}",
+@"class Class<X>
+{
+    void M(X d)
+    {
+        new T(out d);
+    }
+
+    private class T
+    {
+        public T(out X d)
+        {
+            d = default(X);
+        }
+    }
+}",
+index: 2, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithOutParameters6()
         {
             await TestInRegularAndScriptAsync(
@@ -1419,7 +1449,7 @@ index: 1);
     {
         public T(out X d)
         {
-            d = default(X);
+            d = default;
         }
     }
 }",
