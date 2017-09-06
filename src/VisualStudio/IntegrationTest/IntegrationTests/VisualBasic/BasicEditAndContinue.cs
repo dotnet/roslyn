@@ -23,7 +23,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
         public void UpdateActiveStatementLeafNode()
         {
             VisualStudio.Editor.SetText(@"
@@ -54,7 +54,7 @@ End Module
             VisualStudio.Debugger.CheckExpression("names(1)", "String", "\"bar\"");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
         public void AddTryCatchAroundActiveStatement()
         {
             VisualStudio.Editor.SetText(@"
@@ -82,7 +82,7 @@ End Try");
             VisualStudio.Editor.Verify.CurrentLineText("End Try");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
         public void EditLambdaExpression()
         {
             VisualStudio.Editor.SetText(@"
@@ -113,7 +113,7 @@ End Module");
             VisualStudio.ErrorList.Verify.NoBuildErrors();
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
         public void EnCWhileDebuggingFromImmediateWindow()
         {
             VisualStudio.Editor.SetText(@"
@@ -136,6 +136,7 @@ End Module");
             VisualStudio.Debugger.ExecuteStatement("Module1.Main()");
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
         private void SetupMultiProjectSolution()
         {
             var basicLibrary = new ProjectUtils.Project("BasicLibrary1");
@@ -177,7 +178,7 @@ End Module
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
         public void MultiProjectDebuggingWhereNotAllModulesAreLoaded()
         {
             SetupMultiProjectSolution();
@@ -188,7 +189,7 @@ End Module
             VisualStudio.ErrorList.Verify.NoErrors();
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
         public void DocumentStateTrackingReadonlyInRunMode()
         {
             SetupMultiProjectSolution();
@@ -238,7 +239,7 @@ End Module
             VisualStudio.Editor.Verify.IsProjectItemDirty(expectedValue: false);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
         public void LocalsWindowUpdatesAfterLocalGetsItsTypeUpdatedDuringEnC()
         {
             VisualStudio.Editor.SetText(@"
@@ -261,7 +262,7 @@ End Module
             VisualStudio.LocalsWindow.Verify.CheckEntry("goo", "Single", "10");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
         public void LocalsWindowUpdatesCorrectlyDuringEnC()
         {
             VisualStudio.Editor.SetText(@"
@@ -294,7 +295,7 @@ End Module
             VisualStudio.LocalsWindow.Verify.CheckEntry("lLng", "Long", "444");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
         public void WatchWindowUpdatesCorrectlyDuringEnC()
         {
             VisualStudio.Editor.SetText(@"
