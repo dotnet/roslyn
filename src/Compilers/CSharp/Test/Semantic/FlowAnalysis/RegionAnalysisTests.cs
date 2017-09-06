@@ -5545,6 +5545,35 @@ class C
             Assert.Equal("x, y", GetSymbolNamesJoined(results.AlwaysAssigned));
         }
 
+        [Fact]
+        public void LocalFuncCapture7()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+class C
+{
+    void M()
+    {
+        int x;
+        void L()
+        {
+            /*<bind>*/
+            int y = 0;
+            y++;
+            x = 0;
+            /*</bind>*/
+        }
+    }
+}");
+            Assert.Equal("x", GetSymbolNamesJoined(results.Captured));
+            Assert.Equal("y", GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Equal(null, GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Equal("y", GetSymbolNamesJoined(results.ReadInside));
+            Assert.Equal("x, y", GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Equal(null, GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Equal("this", GetSymbolNamesJoined(results.WrittenOutside));
+            Assert.Equal("x, y", GetSymbolNamesJoined(results.AlwaysAssigned));
+        }
+
         #endregion
     }
 }
