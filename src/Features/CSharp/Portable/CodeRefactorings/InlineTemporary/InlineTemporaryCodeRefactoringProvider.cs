@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                             newInitializerSymbolInfo = newSemanticModelForInlinedDocument.GetSymbolInfo(inlinedNode, cancellationToken);
                             if (!SpeculationAnalyzer.SymbolInfosAreCompatible(originalInitializerSymbolInfo, newInitializerSymbolInfo, performEquivalenceCheck: true))
                             {
-                                initReplacementNodesWithChangedSemantics();
+                                replacementNodesWithChangedSemantics = replacementNodesWithChangedSemantics ?? new Dictionary<SyntaxNode, SyntaxNode>();
                                 replacementNodesWithChangedSemantics.Add(inlinedNode, originalNode);
                             }
                         }
@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                         // Verification: Do not inline a variable into the left side of a deconstruction-assignment
                         if (IsInDeconstructionAssignmentLeft(innerInitializerInInlineNode))
                         {
-                            initReplacementNodesWithChangedSemantics();
+                            replacementNodesWithChangedSemantics = replacementNodesWithChangedSemantics ?? new Dictionary<SyntaxNode, SyntaxNode>();
                             replacementNodesWithChangedSemantics.Add(inlinedNode, originalNode);
                         }
                     }
@@ -562,14 +562,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                     newNode.WithAdditionalAnnotations(ConflictAnnotation.Create(CSharpFeaturesResources.Conflict_s_detected));
 
             return await inlinedDocument.ReplaceNodesAsync(replacementNodesWithChangedSemantics.Keys, conflictAnnotationAdder, cancellationToken).ConfigureAwait(false);
-
-            void initReplacementNodesWithChangedSemantics()
-            {
-                if (replacementNodesWithChangedSemantics == null)
-                {
-                    replacementNodesWithChangedSemantics = new Dictionary<SyntaxNode, SyntaxNode>();
-                }
-            }
         }
 
         private static bool IsInDeconstructionAssignmentLeft(ExpressionSyntax node)
