@@ -2367,6 +2367,7 @@ namespace Microsoft.CodeAnalysis
             return _lazyContainsNoPiaLocalTypes == ThreeState.True;
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Remove if not needed.
         internal bool UtilizesNullableReferenceTypes()
         {
             if (_lazyUtilizesNullableReferenceTypes == ThreeState.Unknown)

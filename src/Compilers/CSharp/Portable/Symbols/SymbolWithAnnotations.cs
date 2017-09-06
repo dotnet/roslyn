@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
@@ -491,36 +490,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             result = this;
 
-            if (position < transforms.Length)
+            bool isNullable;
+            if (transforms.IsDefault)
             {
-                bool isNullable = transforms[position++];
-
-                TypeSymbol oldTypeSymbol = TypeSymbol;
-                TypeSymbol newTypeSymbol;
-
-                if (!oldTypeSymbol.ApplyNullableTransforms(transforms, ref position, out newTypeSymbol))
-                {
-                    return false;
-                }
-
-                if ((object)oldTypeSymbol != newTypeSymbol)
-                {
-                    result = result.DoUpdate(newTypeSymbol, result.CustomModifiers);
-                }
-
-                if (isNullable)
-                {
-                    result = result.AsNullableReferenceType();
-                }
-                else
-                {
-                    result = result.AsNotNullableReferenceType();
-                }
-
-                return true;
+                // No explicit transforms. All reference types are non-nullable.
+                isNullable = false;
+            }
+            else if (position < transforms.Length)
+            {
+                isNullable = transforms[position++];
+            }
+            else
+            {
+                return false;
             }
 
-            return false;
+            TypeSymbol oldTypeSymbol = TypeSymbol;
+            TypeSymbol newTypeSymbol;
+
+            if (!oldTypeSymbol.ApplyNullableTransforms(transforms, ref position, out newTypeSymbol))
+            {
+                return false;
+            }
+
+            if ((object)oldTypeSymbol != newTypeSymbol)
+            {
+                result = result.DoUpdate(newTypeSymbol, result.CustomModifiers);
+            }
+
+            if (isNullable)
+            {
+                result = result.AsNullableReferenceType();
+            }
+            else
+            {
+                result = result.AsNotNullableReferenceType();
+            }
+
+            return true;
         }
 
         public TypeSymbolWithAnnotations SetUnknownNullabilityForReferenceTypes()
