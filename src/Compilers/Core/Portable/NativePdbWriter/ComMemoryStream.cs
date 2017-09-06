@@ -45,14 +45,18 @@ namespace Roslyn.Utilities
             int remainingBytes = _length;
             while (remainingBytes > 0)
             {
-                int bytesToCopy = Math.Min(_chunkSize, remainingBytes);
+                int bytesToCopy;
                 if (chunkIndex < _chunks.Count)
                 {
-                    stream.Write(_chunks[chunkIndex++], 0, bytesToCopy);
+                    var chunk = _chunks[chunkIndex];
+                    bytesToCopy = Math.Min(chunk.Length, remainingBytes);
+                    stream.Write(chunk, 0, bytesToCopy);
+                    chunkIndex++;
                 }
                 else
                 {
                     // Fill remaining space with zero bytes
+                    bytesToCopy = remainingBytes;
                     for (int i = 0; i < bytesToCopy; i++)
                     {
                         stream.WriteByte(0);
@@ -74,11 +78,14 @@ namespace Roslyn.Utilities
                 byte[] chunk;
                 if (chunkIndex < _chunks.Count)
                 {
-                    bytesToCopy = Math.Min(_chunkSize, remainingBytes);
-                    chunk = _chunks[chunkIndex++];
+                    chunk = _chunks[chunkIndex];
+                    bytesToCopy = Math.Min(chunk.Length, remainingBytes);
+                    chunkIndex++;
                 }
                 else
                 {
+                    // The caller seeked behind the end of the stream and didn't write there.
+                    // The allocated array is not big in practice. 
                     chunk = new byte[remainingBytes];
                     bytesToCopy = remainingBytes;
                 }
