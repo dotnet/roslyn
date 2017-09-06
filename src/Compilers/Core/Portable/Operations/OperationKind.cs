@@ -50,7 +50,8 @@ namespace Microsoft.CodeAnalysis
         // Statements that occur only C#.
 
         /// <summary>Indicates an <see cref="IFixedStatement"/>.</summary>
-        FixedStatement = 0x30,
+        // https://github.com/dotnet/roslyn/issues/21281
+        //FixedStatement = 0x30,
 
         LocalFunctionStatement = 0x31,
 

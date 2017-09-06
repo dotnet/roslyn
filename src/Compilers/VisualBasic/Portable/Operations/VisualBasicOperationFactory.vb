@@ -990,6 +990,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function CreateBoundBlockOperation(boundBlock As BoundBlock) As IBlockStatement
             Dim statements As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
                 Function()
+                    ' We should not be filtering OperationKind.None statements.
+                    ' https://github.com/dotnet/roslyn/issues/21776
                     Return boundBlock.Statements.Select(Function(n) Create(n)).Where(Function(s) s.Kind <> OperationKind.None).ToImmutableArray()
                 End Function)
             Dim locals As ImmutableArray(Of ILocalSymbol) = boundBlock.Locals.As(Of ILocalSymbol)()

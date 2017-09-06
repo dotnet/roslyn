@@ -11,7 +11,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IFixedStatement : IOperation
+    // Internal until reviewed: https://github.com/dotnet/roslyn/issues/21281
+    internal interface IFixedStatement : IOperation
     {
         /// <summary>
         /// Variables to be fixed.
