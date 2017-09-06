@@ -145,6 +145,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.False(xc <> children, "Verifying <> operator for ChildSyntaxList items - This should return false as xc was assigned from Children")
         End Sub
 
+        <Fact>
+        <WorkItem(21812, "https://github.com/dotnet/roslyn/issues/21812")>
+        Public Sub TestTupleTypeInSyntaxFactory()
+            Dim int = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntegerKeyword))
+            Dim tuple = SyntaxFactory.TupleType(SyntaxFactory.TypedTupleElement(int), SyntaxFactory.TypedTupleElement(int))
+
+            Dim array = SyntaxFactory.ArrayType(tuple) ' no exception
+            Dim nullable = SyntaxFactory.NullableType(tuple) ' no exception
+
+            Dim intArrayCreation = SyntaxFactory.ArrayCreationExpression(int, SyntaxFactory.CollectionInitializer())
+            Assert.Throws(Of ArgumentException)(Sub() SyntaxFactory.ArrayCreationExpression(tuple, SyntaxFactory.CollectionInitializer()))
+
+            Dim intAttributeCreation = SyntaxFactory.Attribute(int)
+            Assert.Throws(Of ArgumentException)(Sub() SyntaxFactory.Attribute(tuple))
+        End Sub
+
         ' Verify spans within a list of consecutive nodes are all consistent.
         Private Sub VerifyListSpans(Of T As VisualBasicSyntaxNode)(list As SyntaxList(Of T), expectedFullSpan As TextSpan)
             If list.Count > 0 Then
