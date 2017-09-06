@@ -10,7 +10,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Compilers.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net461</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
