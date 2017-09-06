@@ -764,7 +764,8 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 's')
                   ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 's')
                   InConversion: null
-                  OutConversion: null]]>.Value
+                  OutConversion: null
+]]>.Value
 
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
         End Sub

@@ -1172,7 +1172,7 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
             Left: IFieldReferenceExpression: C1.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field')
                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C1() Wi ... ivateField}')
             Right: IFieldReferenceExpression: C2.PrivateField As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'PrivateField')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C2) (Syntax: 'PrivateField')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C2) (Syntax: 'PrivateField')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

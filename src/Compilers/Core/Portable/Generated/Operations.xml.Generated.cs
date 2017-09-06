@@ -1616,15 +1616,17 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseFieldReferenceExpression : MemberReferenceExpression, IFieldReferenceExpression
     {
-        public BaseFieldReferenceExpression(IFieldSymbol field, ISymbol member, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public BaseFieldReferenceExpression(IFieldSymbol field, bool isDeclaration, ISymbol member, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(member, OperationKind.FieldReferenceExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Field = field;
+            IsDeclaration = isDeclaration;
         }
         /// <summary>
         /// Referenced field.
         /// </summary>
         public IFieldSymbol Field { get; }
+        public bool IsDeclaration { get; }
         public override IEnumerable<IOperation> Children
         {
             get
@@ -1648,8 +1650,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class FieldReferenceExpression : BaseFieldReferenceExpression, IFieldReferenceExpression
     {
-        public FieldReferenceExpression(IFieldSymbol field, IOperation instance, ISymbol member, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(field, member, semanticModel, syntax, type, constantValue, isImplicit)
+        public FieldReferenceExpression(IFieldSymbol field, bool isDeclaration, IOperation instance, ISymbol member, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(field, isDeclaration, member, semanticModel, syntax, type, constantValue, isImplicit)
         {
             InstanceImpl = instance;
         }
@@ -1663,8 +1665,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<IOperation> _lazyInstance;
 
-        public LazyFieldReferenceExpression(IFieldSymbol field, Lazy<IOperation> instance, ISymbol member, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(field, member, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyFieldReferenceExpression(IFieldSymbol field, bool isDeclaration, Lazy<IOperation> instance, ISymbol member, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(field, isDeclaration, member, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyInstance = instance ?? throw new System.ArgumentNullException(nameof(instance));
         }
@@ -1677,7 +1679,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal abstract partial class BaseFixedStatement : Operation, IFixedStatement
     {
         protected BaseFixedStatement(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-                    base(OperationKind.FixedStatement, semanticModel, syntax, type, constantValue, isImplicit)
+                    // https://github.com/dotnet/roslyn/issues/21281
+                    //base(OperationKind.FixedStatement, semanticModel, syntax, type, constantValue)
+                    base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -2120,16 +2124,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class InstanceReferenceExpression : Operation, IInstanceReferenceExpression
     {
-        public InstanceReferenceExpression(InstanceReferenceKind instanceReferenceKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public InstanceReferenceExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.InstanceReferenceExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            InstanceReferenceKind = instanceReferenceKind;
         }
-        ///
-        /// <summary>
-        /// Kind of instance reference.
-        /// </summary>
-        public InstanceReferenceKind InstanceReferenceKind { get; }
         public override IEnumerable<IOperation> Children
         {
             get
@@ -2557,10 +2555,11 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseIsTypeExpression : Operation, IIsTypeExpression
     {
-        protected BaseIsTypeExpression(ITypeSymbol isType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseIsTypeExpression(ITypeSymbol isType, bool isNotTypeExpression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
                     base(OperationKind.IsTypeExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
             IsType = isType;
+            IsNotTypeExpression = isNotTypeExpression;
         }
 
         protected abstract IOperation OperandImpl { get; }
@@ -2568,6 +2567,12 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Type for which to test.
         /// </summary>
         public ITypeSymbol IsType { get; }
+        /// <summary>
+        /// Flag indicating if this is an "is not" type expression.
+        /// True for VB "TypeOf ... IsNot ..." expression.
+        /// False, otherwise.
+        /// </summary>
+        public bool IsNotTypeExpression { get; }
         public override IEnumerable<IOperation> Children
         {
             get
@@ -2594,8 +2599,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class IsTypeExpression : BaseIsTypeExpression, IIsTypeExpression
     {
-        public IsTypeExpression(IOperation operand, ITypeSymbol isType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(isType, semanticModel, syntax, type, constantValue, isImplicit)
+        public IsTypeExpression(IOperation operand, ITypeSymbol isType, bool isNotTypeExpression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(isType, isNotTypeExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
             OperandImpl = operand;
         }
@@ -2610,7 +2615,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<IOperation> _lazyOperand;
 
-        public LazyIsTypeExpression(Lazy<IOperation> operand, ITypeSymbol isType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(isType, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyIsTypeExpression(Lazy<IOperation> operand, ITypeSymbol isType, bool isNotTypeExpression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(isType, isNotTypeExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyOperand = operand ?? throw new System.ArgumentNullException(nameof(operand));
         }
@@ -2843,15 +2848,17 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LocalReferenceExpression : Operation, ILocalReferenceExpression
     {
-        public LocalReferenceExpression(ILocalSymbol local, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public LocalReferenceExpression(ILocalSymbol local, bool isDeclaration, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.LocalReferenceExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Local = local;
+            IsDeclaration = isDeclaration;
         }
         /// <summary>
         /// Referenced local variable.
         /// </summary>
         public ILocalSymbol Local { get; }
+        public bool IsDeclaration { get; }
         public override IEnumerable<IOperation> Children
         {
             get

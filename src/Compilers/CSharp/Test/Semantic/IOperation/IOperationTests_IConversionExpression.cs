@@ -1552,7 +1552,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'DType /*<bi ... *</bind>*/;')
     Variables: Local_1: Program.DType d1
     Initializer: IMethodBindingExpression: void Program.M1() (OperationKind.MethodBindingExpression, Type: Program.DType) (Syntax: 'M1')
-        Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M1')
+        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2780,7 +2780,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: C2 c2
     Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: C2 C2.op_Implicit(C1 c1)) (OperationKind.ConversionExpression, Type: C2) (Syntax: 'this')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: C2 C2.op_Implicit(C1 c1))
-        Operand: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'this')
+        Operand: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'this')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2866,7 +2866,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperatorMethod: System.Int32 C1.op_Implicit(C1 c1)) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: '(int)this')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Int32 C1.op_Implicit(C1 c1))
-                Operand: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'this')
+                Operand: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'this')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'i1' is assigned but its value is never used
@@ -2910,7 +2910,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: C2 c2
     Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C2, IsInvalid) (Syntax: 'this')
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid) (Syntax: 'this')
+        Operand: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid) (Syntax: 'this')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'C1' to 'C2'
@@ -2960,7 +2960,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: C3 c3
     Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: C3 C3.op_Implicit(C2 c2)) (OperationKind.ConversionExpression, Type: C3) (Syntax: 'this')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: C3 C3.op_Implicit(C2 c2))
-        Operand: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: C2) (Syntax: 'this')
+        Operand: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C2) (Syntax: 'this')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -5100,8 +5100,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'Action /*<b ... *</bind>*/;')
     Variables: Local_1: System.Action a
     Initializer: IMethodBindingExpression: void C1.M2() (OperationKind.MethodBindingExpression, Type: System.Action) (Syntax: '(Action)M2')
-        Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'M2')
-
+        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'M2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -5164,7 +5163,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Action /*<b ... *</bind>*/;')
     Variables: Local_1: System.Action a
     Initializer: IMethodBindingExpression: System.Int32 C1.M2() (OperationKind.MethodBindingExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)M2')
-        Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid) (Syntax: 'M2')
+        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid) (Syntax: 'M2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0407: 'int C1.M2()' has the wrong return type
@@ -5202,7 +5201,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Initializer: IOperation:  (OperationKind.None) (Syntax: 'new Action((Action)M2)')
         Children(1):
             IMethodBindingExpression: void C1.M2() (OperationKind.MethodBindingExpression, Type: System.Action) (Syntax: '(Action)M2')
-              Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'M2')
+              Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'M2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -5263,7 +5262,7 @@ class C1
 IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInvalid) (Syntax: 'new Action((Action)M2)')
   Children(1):
       IMethodBindingExpression: System.Int32 C1.M2() (OperationKind.MethodBindingExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)M2')
-        Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid) (Syntax: 'M2')
+        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid) (Syntax: 'M2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0407: 'int C1.M2()' has the wrong return type
