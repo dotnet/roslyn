@@ -132,7 +132,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureGenericPatternMatching = MessageBase + 12720,
         IDS_FeatureAsyncMain = MessageBase + 12721,
         IDS_LangVersions = MessageBase +  12722,
-        IDS_FeaturePrivateProtected = MessageBase + 12723,
+
+        IDS_FeatureLeadingDigitSeparator = MessageBase + 12723,
+        IDS_FeatureNonTrailingNamedArguments = MessageBase + 12724,
+        IDS_FeaturePrivateProtected = MessageBase + 12725,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -189,6 +192,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
+                // C# 7.2 features.
+                case MessageID.IDS_FeatureNonTrailingNamedArguments: // semantic check
+                case MessageID.IDS_FeatureLeadingDigitSeparator:
                 case MessageID.IDS_FeaturePrivateProtected:
                     return LanguageVersion.CSharp7_2;
 

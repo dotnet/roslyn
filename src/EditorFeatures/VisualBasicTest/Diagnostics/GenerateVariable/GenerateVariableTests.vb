@@ -1364,8 +1364,7 @@ End Module</Text>.Value.Replace(vbLf, vbCrLf),
         End If
     End Sub
 End Module</Text>.Value.Replace(vbLf, vbCrLf),
-index:=2,
-ignoreTrivia:=False)
+index:=2)
         End Function
 
         <WorkItem(666189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666189")>
@@ -1377,8 +1376,7 @@ x = [|Goo|]</Text>.Value.Replace(vbLf, vbCrLf),
 <Text>Dim x As Integer
 Public Property Goo As Integer
 x = Goo</Text>.Value.Replace(vbLf, vbCrLf),
-parseOptions:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script),
-ignoreTrivia:=False)
+parseOptions:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script))
         End Function
         <WorkItem(666189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666189")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
@@ -1390,7 +1388,6 @@ x = [|Goo|]</Text>.Value.Replace(vbLf, vbCrLf),
 Private Goo As Integer
 x = Goo</Text>.Value.Replace(vbLf, vbCrLf),
 parseOptions:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script),
-ignoreTrivia:=False,
 index:=1)
         End Function
 

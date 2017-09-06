@@ -15,8 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             // Computing the width... less so. We need "MaxTextRightCoordinate", but we won't have
             // that until a layout occurs.  Fortunately, a layout is going to occur because we set
             // 'Height' above.
-            EventHandler<TextViewLayoutChangedEventArgs> firstLayout = null;
-            firstLayout = (sender, args) =>
+            void firstLayout(object sender, TextViewLayoutChangedEventArgs args)
             {
                 view.VisualElement.Dispatcher.BeginInvoke(new Action(() =>
                 {
@@ -32,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
                     view.VisualElement.Width = view.MaxTextRightCoordinate;
                 }));
-            };
+            }
 
             view.LayoutChanged += firstLayout;
         }

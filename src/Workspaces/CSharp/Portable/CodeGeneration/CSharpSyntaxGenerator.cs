@@ -46,8 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private SyntaxNode AsUsingDirective(SyntaxNode node)
         {
-            var name = node as NameSyntax;
-            if (name != null)
+            if (node is NameSyntax name)
             {
                 return this.NamespaceImportDeclaration(name);
             }
@@ -859,14 +858,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static AttributeArgumentSyntax AsAttributeArgument(SyntaxNode node)
         {
-            var expr = node as ExpressionSyntax;
-            if (expr != null)
+            if (node is ExpressionSyntax expr)
             {
                 return SyntaxFactory.AttributeArgument(expr);
             }
 
-            var arg = node as ArgumentSyntax;
-            if (arg != null && arg.Expression != null)
+            if (node is ArgumentSyntax arg && arg.Expression != null)
             {
                 return SyntaxFactory.AttributeArgument(default, arg.NameColon, arg.Expression);
             }
@@ -901,8 +898,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static AttributeListSyntax AsAttributeList(SyntaxNode node)
         {
-            var attr = node as AttributeSyntax;
-            if (attr != null)
+            if (node is AttributeSyntax attr)
             {
                 return SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(attr));
             }
@@ -3573,8 +3569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static StatementSyntax AsStatement(SyntaxNode node)
         {
-            var expression = node as ExpressionSyntax;
-            if (expression != null)
+            if (node is ExpressionSyntax expression)
             {
                 return SyntaxFactory.ExpressionStatement(expression);
             }

@@ -754,7 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var args = (this, diagnostics, syntax);
                     type.VisitType((typePart, argTuple, isNested) =>
                     {
-                        argTuple.Item1.ReportDiagnosticsIfObsolete(argTuple.Item2, typePart, argTuple.Item3, hasBaseReceiver: false);
+                        argTuple.Item1.ReportDiagnosticsIfObsolete(argTuple.diagnostics, typePart, argTuple.syntax, hasBaseReceiver: false);
                         return false;
                     }, args);
                 }

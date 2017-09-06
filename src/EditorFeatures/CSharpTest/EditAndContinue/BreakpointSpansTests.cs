@@ -35,14 +35,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
 
         private void Test(string markup, bool isMissing, bool isLine, ParseOptions options = null)
         {
-            int? position;
-            TextSpan? expectedSpan;
-            string source;
-            MarkupTestFile.GetPositionAndSpan(markup, out source, out position, out expectedSpan);
+            MarkupTestFile.GetPositionAndSpan(
+                markup, out var source, out var position, out TextSpan? expectedSpan);
             var tree = SyntaxFactory.ParseSyntaxTree(source, options);
 
-            TextSpan breakpointSpan;
-            bool hasBreakpoint = BreakpointSpans.TryGetBreakpointSpan(tree, position.Value, CancellationToken.None, out breakpointSpan);
+            bool hasBreakpoint = BreakpointSpans.TryGetBreakpointSpan(
+                tree, position.Value, CancellationToken.None, out var breakpointSpan);
 
             if (isLine)
             {
@@ -81,8 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
             int lastSpanEnd = 0;
             while (position < endPosition)
             {
-                TextSpan span;
-                if (BreakpointSpans.TryGetClosestBreakpointSpan(root, position, out span) && span.End > lastSpanEnd)
+                if (BreakpointSpans.TryGetClosestBreakpointSpan(root, position, out var span) && span.End > lastSpanEnd)
                 {
                     position = lastSpanEnd = span.End;
                     yield return span;
@@ -1191,7 +1188,7 @@ $$    [|private int i = 3;|]
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingBreakpoints)]
+        [Fact]
         public void VariableDeclarator3b()
         {
             TestSpan(
@@ -1204,7 +1201,7 @@ $$    [|private int i = 3;|]
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingBreakpoints)]
+        [Fact]
         public void VariableDeclarator3c()
         {
             TestSpan(
@@ -1703,7 +1700,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
     try
     {
     }
-    catch(Exception e) [|if$$ (e.Message != null)|]
+    catch(Exception e) [|when$$ (e.Message != null)|]
     {
     }
   }
@@ -1721,7 +1718,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
     try
     {
     }
-    catch(Exception e) [|if (e.Message != null)|]      $$
+    catch(Exception e) [|when (e.Message != null)|]      $$
     {
     }
   }
@@ -4657,6 +4654,19 @@ $$        int Local(object[] a) => [|a.Length|];
     {
         int Local(object[] a) => [|a.Length|];$$
     }
+}");
+        }
+
+        [Fact, WorkItem(98990, "https://developercommunity.visualstudio.com/content/problem/98990/cant-set-breakpoint.html")]
+        public void IncompleteExpressionStatement()
+        {
+            TestSpan(
+@"class C
+{
+  void Goo()
+  {
+    [|$$aaa|]
+  }
 }");
         }
     }

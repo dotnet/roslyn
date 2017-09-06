@@ -6,17 +6,19 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -341,24 +343,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 parseOptionsOpt = parseOptionsOpt.WithKind(SourceCodeKind.Script);
 
                 var metadataService = Services.GetService<IMetadataService>();
-                var directory = PathUtilities.GetDirectoryName(moniker);
+                var scriptEnvironmentService = Services.GetService<IScriptEnvironmentService>();
+
+                // Misc files workspace always provides the service:
+                Contract.ThrowIfNull(scriptEnvironmentService);
+
+                var baseDirectory = PathUtilities.GetDirectoryName(moniker);
 
                 // TODO (https://github.com/dotnet/roslyn/issues/5325, https://github.com/dotnet/roslyn/issues/13886): 
                 // - Need to have a way to specify these somewhere in VS options.
                 // - Use RuntimeMetadataReferenceResolver like in InteractiveEvaluator.CreateMetadataReferenceResolver
-                // - Add default namespace imports
+                // - Add default namespace imports, default metadata references to match csi.rsp
                 // - Add default script globals available in 'csi goo.csx' environment: CommandLineScriptGlobals
-
-                var referenceSearchPaths = ImmutableArray<string>.Empty;
-                var sourceSearchPaths = ImmutableArray<string>.Empty;
 
                 var referenceResolver = new WorkspaceMetadataFileReferenceResolver(
                     metadataService,
-                    new RelativePathResolver(referenceSearchPaths, directory));
+                    new RelativePathResolver(scriptEnvironmentService.MetadataReferenceSearchPaths, baseDirectory));
 
                 compilationOptionsOpt = compilationOptionsOpt.
                     WithMetadataReferenceResolver(referenceResolver).
-                    WithSourceReferenceResolver(new SourceFileResolver(sourceSearchPaths, directory));
+                    WithSourceReferenceResolver(new SourceFileResolver(scriptEnvironmentService.SourceReferenceSearchPaths, baseDirectory));
             }
 
             // First, create the project

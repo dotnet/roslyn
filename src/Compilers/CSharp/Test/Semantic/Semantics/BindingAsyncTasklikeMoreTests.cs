@@ -413,11 +413,11 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var verifier = CompileAndVerify(compilation);
             verifier.VerifyDiagnostics();
             var testData = verifier.TestData;
-            var method = (MethodSymbol)testData.GetMethodData("C.<M>g__F0_0()").Method;
+            var method = (MethodSymbol)testData.GetMethodData("C.<M>g__F|0_0()").Method;
             Assert.True(method.IsAsync);
             Assert.True(method.IsTaskReturningAsync(compilation));
             Assert.Equal("MyTask", method.ReturnType.ToDisplayString());
-            method = (MethodSymbol)testData.GetMethodData("C.<M>g__G0_1<T>(T)").Method;
+            method = (MethodSymbol)testData.GetMethodData("C.<M>g__G|0_1<T>(T)").Method;
             Assert.True(method.IsAsync);
             Assert.True(method.IsGenericTaskReturningAsync(compilation));
             Assert.Equal("MyTask<T>", method.ReturnType.ToDisplayString());

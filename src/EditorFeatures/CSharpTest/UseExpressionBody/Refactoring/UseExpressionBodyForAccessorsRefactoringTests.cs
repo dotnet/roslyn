@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
                 this.SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task TestUpdatePropertyIfPropertyWantsBlockAndAccesorWantsExpression()
+        public async Task TestUpdatePropertyIfPropertyWantsBlockAndAccessorWantsExpression()
         {
             await TestInRegularAndScript1Async(
 @"class C
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             return Bar();
         }
     }
-}", ignoreTrivia: false, parameters: new TestParameters(options: UseExpressionBodyForAccessors_ExpressionBodyForProperties));
+}", parameters: new TestParameters(options: UseExpressionBodyForAccessors_ExpressionBodyForProperties));
         }
     }
 }

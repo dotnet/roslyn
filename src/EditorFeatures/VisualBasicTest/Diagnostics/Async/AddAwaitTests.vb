@@ -54,7 +54,7 @@ Module Program
     End Sub
 End Module
 </File>
-            Await TestAsync(initial, expected, ignoreTrivia:=False)
+            Await TestAsync(initial, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
@@ -177,7 +177,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(initial, expected, ignoreTrivia:=False)
+            Await TestAsync(initial, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
@@ -251,7 +251,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(initial, expected, ignoreTrivia:=False)
+            Await TestAsync(initial, expected)
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
