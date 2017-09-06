@@ -43,6 +43,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Return Nothing
             End If
 
+            ' A BoundUserDefined conversion is always the operand of a BoundConversion, and is handled
+            ' by the BoundConversion creation. We should never receive one in this top level create call.
+            Debug.Assert(boundNode.Kind <> BoundKind.UserDefinedConversion)
+
             Return _cache.GetOrAdd(boundNode, Function(n) CreateInternal(n))
         End Function
 
@@ -115,8 +119,6 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return CreateBoundDirectCastOperation(DirectCast(boundNode, BoundDirectCast))
                 Case BoundKind.Conversion
                     Return CreateBoundConversionOperation(DirectCast(boundNode, BoundConversion))
-                Case BoundKind.UserDefinedConversion
-                    Return CreateBoundUserDefinedConversionOperation(DirectCast(boundNode, BoundUserDefinedConversion))
                 Case BoundKind.TernaryConditionalExpression
                     Return CreateBoundTernaryConditionalExpressionOperation(DirectCast(boundNode, BoundTernaryConditionalExpression))
                 Case BoundKind.TypeOf
@@ -288,30 +290,27 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function CreateBoundMeReferenceOperation(boundMeReference As BoundMeReference) As IInstanceReferenceExpression
-            Dim instanceReferenceKind As InstanceReferenceKind = If(boundMeReference.WasCompilerGenerated, InstanceReferenceKind.Implicit, InstanceReferenceKind.Explicit)
             Dim syntax As SyntaxNode = boundMeReference.Syntax
             Dim type As ITypeSymbol = boundMeReference.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundMeReference.ConstantValueOpt)
             Dim isImplicit As Boolean = boundMeReference.WasCompilerGenerated
-            Return New InstanceReferenceExpression(instanceReferenceKind, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New InstanceReferenceExpression(_semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundMyBaseReferenceOperation(boundMyBaseReference As BoundMyBaseReference) As IInstanceReferenceExpression
-            Dim instanceReferenceKind As InstanceReferenceKind = InstanceReferenceKind.BaseClass
             Dim syntax As SyntaxNode = boundMyBaseReference.Syntax
             Dim type As ITypeSymbol = boundMyBaseReference.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundMyBaseReference.ConstantValueOpt)
             Dim isImplicit As Boolean = boundMyBaseReference.WasCompilerGenerated
-            Return New InstanceReferenceExpression(instanceReferenceKind, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New InstanceReferenceExpression(_semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundMyClassReferenceOperation(boundMyClassReference As BoundMyClassReference) As IInstanceReferenceExpression
-            Dim instanceReferenceKind As InstanceReferenceKind = InstanceReferenceKind.ThisClass
             Dim syntax As SyntaxNode = boundMyClassReference.Syntax
             Dim type As ITypeSymbol = boundMyClassReference.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundMyClassReference.ConstantValueOpt)
             Dim isImplicit As Boolean = boundMyClassReference.WasCompilerGenerated
-            Return New InstanceReferenceExpression(instanceReferenceKind, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New InstanceReferenceExpression(_semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundLiteralOperation(boundLiteral As BoundLiteral) As ILiteralExpression
@@ -505,7 +504,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function CreateBoundTryCastOperation(boundTryCast As BoundTryCast) As IConversionExpression
             Dim operand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundTryCast.Operand))
             Dim syntax As SyntaxNode = boundTryCast.Syntax
-            Dim conversion As Conversion = _semanticModel.GetConversion(syntax)
+            Dim conversion As Conversion = New Conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(boundTryCast.ConversionKind, Nothing))
             Dim isExplicitCastInCode As Boolean = True
             Dim isTryCast As Boolean = True
             Dim isChecked As Boolean = False
@@ -518,7 +517,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function CreateBoundDirectCastOperation(boundDirectCast As BoundDirectCast) As IConversionExpression
             Dim operand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundDirectCast.Operand))
             Dim syntax As SyntaxNode = boundDirectCast.Syntax
-            Dim conversion As Conversion = _semanticModel.GetConversion(syntax)
+            Dim conversion As Conversion = New Conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(boundDirectCast.ConversionKind, Nothing))
             Dim isExplicit As Boolean = True
             Dim isTryCast As Boolean = False
             Dim isChecked As Boolean = False
@@ -529,28 +528,26 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function CreateBoundConversionOperation(boundConversion As BoundConversion) As IConversionExpression
-            Dim operand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundConversion.Operand))
+            Dim operand As Lazy(Of IOperation)
+            Dim methodSymbol As MethodSymbol
+
+            If (boundConversion.ConversionKind And VisualBasic.ConversionKind.UserDefined) = VisualBasic.ConversionKind.UserDefined Then
+                Dim userDefinedConversion As BoundUserDefinedConversion = DirectCast(boundConversion.Operand, BoundUserDefinedConversion)
+                methodSymbol = userDefinedConversion.Call.Method
+                operand = New Lazy(Of IOperation)(Function() Create(userDefinedConversion.Operand))
+            Else
+                methodSymbol = Nothing
+                operand = New Lazy(Of IOperation)(Function() Create(boundConversion.Operand))
+            End If
+
+            Dim conversion = New Conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(boundConversion.ConversionKind, methodSymbol))
             Dim syntax As SyntaxNode = boundConversion.Syntax
-            Dim conversion As Conversion = _semanticModel.GetConversion(syntax)
             Dim isExplicit As Boolean = boundConversion.ExplicitCastInCode
             Dim isTryCast As Boolean = False
             Dim isChecked As Boolean = False
             Dim type As ITypeSymbol = boundConversion.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundConversion.ConstantValueOpt)
             Dim isImplicit As Boolean = boundConversion.WasCompilerGenerated
-            Return New LazyVisualBasicConversionExpression(operand, conversion, isExplicit, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)
-        End Function
-
-        Private Function CreateBoundUserDefinedConversionOperation(boundUserDefinedConversion As BoundUserDefinedConversion) As IConversionExpression
-            Dim operand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundUserDefinedConversion.Operand))
-            Dim syntax As SyntaxNode = boundUserDefinedConversion.Syntax
-            Dim conversion As Conversion = _semanticModel.GetConversion(syntax)
-            Dim isExplicit As Boolean = Not boundUserDefinedConversion.WasCompilerGenerated
-            Dim isTryCast As Boolean = False
-            Dim isChecked As Boolean = False
-            Dim type As ITypeSymbol = boundUserDefinedConversion.Type
-            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundUserDefinedConversion.ConstantValueOpt)
-            Dim isImplicit As Boolean = boundUserDefinedConversion.WasCompilerGenerated
             Return New LazyVisualBasicConversionExpression(operand, conversion, isExplicit, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
@@ -568,11 +565,12 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function CreateBoundTypeOfOperation(boundTypeOf As BoundTypeOf) As IIsTypeExpression
             Dim operand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundTypeOf.Operand))
             Dim isType As ITypeSymbol = boundTypeOf.TargetType
+            Dim isNotTypeExpression As Boolean = boundTypeOf.IsTypeOfIsNotExpression
             Dim syntax As SyntaxNode = boundTypeOf.Syntax
             Dim type As ITypeSymbol = boundTypeOf.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundTypeOf.ConstantValueOpt)
             Dim isImplicit As Boolean = boundTypeOf.WasCompilerGenerated
-            Return New LazyIsTypeExpression(operand, isType, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyIsTypeExpression(operand, isType, isNotTypeExpression, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundObjectCreationExpressionOperation(boundObjectCreationExpression As BoundObjectCreationExpression) As IObjectCreationExpression
@@ -704,6 +702,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundFieldAccessOperation(boundFieldAccess As BoundFieldAccess) As IFieldReferenceExpression
             Dim field As IFieldSymbol = boundFieldAccess.FieldSymbol
+            Dim isDeclaration As Boolean = False
             Dim instance As Lazy(Of IOperation) = New Lazy(Of IOperation)(
                 Function()
                     If boundFieldAccess.FieldSymbol.IsShared Then
@@ -718,7 +717,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim type As ITypeSymbol = boundFieldAccess.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundFieldAccess.ConstantValueOpt)
             Dim isImplicit As Boolean = boundFieldAccess.WasCompilerGenerated
-            Return New LazyFieldReferenceExpression(field, instance, member, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyFieldReferenceExpression(field, isDeclaration, instance, member, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundConditionalAccessOperation(boundConditionalAccess As BoundConditionalAccess) As IConditionalAccessExpression
@@ -750,11 +749,12 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundLocalOperation(boundLocal As BoundLocal) As ILocalReferenceExpression
             Dim local As ILocalSymbol = boundLocal.LocalSymbol
+            Dim isDeclaration As Boolean = False
             Dim syntax As SyntaxNode = boundLocal.Syntax
             Dim type As ITypeSymbol = boundLocal.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundLocal.ConstantValueOpt)
             Dim isImplicit As Boolean = boundLocal.WasCompilerGenerated
-            Return New LocalReferenceExpression(local, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LocalReferenceExpression(local, isDeclaration, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundLateMemberAccessOperation(boundLateMemberAccess As BoundLateMemberAccess) As IDynamicMemberReferenceExpression

@@ -129,7 +129,7 @@ IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'If x = Noth ... En
       Operand: IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'x = Nothing')
           Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')
           Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program, Constant: null, IsInvalid) (Syntax: 'Nothing')
-              Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, IsInvalid) (Syntax: 'Nothing')
   IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'If x = Noth ... End If')
   IfFalse: null
@@ -229,9 +229,10 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement, IsInvalid) (Synta
         Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Add) (OperationKind.CompoundAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: 'For i As In ... Next i')
             Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i As Integer')
             Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: 'For i As In ... Next i')
-                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: 'For i As In ... Next i')
-  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'For i As In ... Next i')]]>.Value
+  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'For i As In ... Next i')
+]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
 BC30035: Syntax error.
@@ -288,7 +289,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement, IsInvalid) (Synta
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Object, IsInvalid) (Syntax: 'For Step (M ... Next')
             Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'For Step (M ... Next')
             Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'For Step (M ... Next')
-                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: 'For Step (M ... Next')
   AtLoopBottom:
       IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'For Step (M ... Next')

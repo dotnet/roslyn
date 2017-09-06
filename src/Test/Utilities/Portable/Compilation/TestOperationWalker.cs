@@ -241,6 +241,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitLocalReferenceExpression(ILocalReferenceExpression operation)
         {
             var local = operation.Local;
+            var isDeclaration = operation.IsDeclaration;
 
             base.VisitLocalReferenceExpression(operation);
         }
@@ -261,8 +262,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitInstanceReferenceExpression(IInstanceReferenceExpression operation)
         {
-            var instanceReferenceKind = operation.InstanceReferenceKind;
-
             base.VisitInstanceReferenceExpression(operation);
         }
 

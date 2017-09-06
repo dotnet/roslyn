@@ -324,23 +324,25 @@ namespace Microsoft.CodeAnalysis.Semantics
         private ILocalReferenceExpression CreateBoundLocalOperation(BoundLocal boundLocal)
         {
             ILocalSymbol local = boundLocal.LocalSymbol;
+            bool isDeclaration = boundLocal.IsDeclaration;
             SyntaxNode syntax = boundLocal.Syntax;
             ITypeSymbol type = boundLocal.Type;
             Optional<object> constantValue = ConvertToOptional(boundLocal.ConstantValue);
             bool isImplicit = boundLocal.WasCompilerGenerated;
-            return new LocalReferenceExpression(local, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LocalReferenceExpression(local, isDeclaration, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IFieldReferenceExpression CreateBoundFieldAccessOperation(BoundFieldAccess boundFieldAccess)
         {
             IFieldSymbol field = boundFieldAccess.FieldSymbol;
+            bool isDeclaration = boundFieldAccess.IsDeclaration;
             Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(boundFieldAccess.FieldSymbol.IsStatic ? null : boundFieldAccess.ReceiverOpt));
             ISymbol member = boundFieldAccess.FieldSymbol;
             SyntaxNode syntax = boundFieldAccess.Syntax;
             ITypeSymbol type = boundFieldAccess.Type;
             Optional<object> constantValue = ConvertToOptional(boundFieldAccess.ConstantValue);
             bool isImplicit = boundFieldAccess.WasCompilerGenerated;
-            return new LazyFieldReferenceExpression(field, instance, member, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyFieldReferenceExpression(field, isDeclaration, instance, member, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IPropertyReferenceExpression CreateBoundPropertyAccessOperation(BoundPropertyAccess boundPropertyAccess)
@@ -533,8 +535,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         private IMemberReferenceExpression CreateBoundObjectInitializerMemberOperation(BoundObjectInitializerMember boundObjectInitializerMember)
         {
             Lazy<IOperation> instance = new Lazy<IOperation>(() => new InstanceReferenceExpression(
-                InstanceReferenceKind.Implicit,
-                _semanticModel,
+                semanticModel: _semanticModel,
                 syntax: boundObjectInitializerMember.Syntax,
                 type: boundObjectInitializerMember.MemberSymbol.ContainingType,
                 constantValue: default(Optional<object>),
@@ -549,7 +550,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 case SymbolKind.Field:
                     var field = (FieldSymbol)boundObjectInitializerMember.MemberSymbol;
-                    return new LazyFieldReferenceExpression(field, instance, field, _semanticModel, syntax, type, constantValue, isImplicit);
+                    bool isDeclaration = false;
+                    return new LazyFieldReferenceExpression(field, isDeclaration, instance, field, _semanticModel, syntax, type, constantValue, isImplicit);
                 case SymbolKind.Event:
                     var eventSymbol = (EventSymbol)boundObjectInitializerMember.MemberSymbol;
                     return new LazyEventReferenceExpression(eventSymbol, instance, eventSymbol, _semanticModel, syntax, type, constantValue, isImplicit);
@@ -667,7 +669,6 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IOperation CreateBoundConversionOperation(BoundConversion boundConversion)
         {
-            ConversionKind conversionKind = GetConversionKind(boundConversion.ConversionKind);
             bool isImplicit = boundConversion.WasCompilerGenerated;
             if (boundConversion.ConversionKind == CSharp.ConversionKind.MethodGroup)
             {
@@ -683,7 +684,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 Lazy<IOperation> operand = new Lazy<IOperation>(() => Create(boundConversion.Operand));
                 SyntaxNode syntax = boundConversion.Syntax;
-                Conversion conversion = _semanticModel.GetConversion(syntax);
+                Conversion conversion = boundConversion.Conversion;
                 bool isExplicit = boundConversion.ExplicitCastInCode;
                 bool isTryCast = false;
                 // Checked conversions only matter if the conversion is a Numeric conversion. Don't have true unless the conversion is actually numeric.
@@ -698,7 +699,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             Lazy<IOperation> operand = new Lazy<IOperation>(() => Create(boundAsOperator.Operand));
             SyntaxNode syntax = boundAsOperator.Syntax;
-            Conversion conversion = _semanticModel.GetConversion(syntax);
+            Conversion conversion = boundAsOperator.Conversion;
             bool isExplicit = true;
             bool isTryCast = true;
             bool isChecked = false;
@@ -714,9 +715,10 @@ namespace Microsoft.CodeAnalysis.Semantics
             ITypeSymbol isType = boundIsOperator.TargetType.Type;
             SyntaxNode syntax = boundIsOperator.Syntax;
             ITypeSymbol type = boundIsOperator.Type;
+            bool isNotTypeExpression = false;
             Optional<object> constantValue = ConvertToOptional(boundIsOperator.ConstantValue);
             bool isImplicit = boundIsOperator.WasCompilerGenerated;
-            return new LazyIsTypeExpression(operand, isType, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyIsTypeExpression(operand, isType, isNotTypeExpression, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ISizeOfExpression CreateBoundSizeOfOperatorOperation(BoundSizeOfOperator boundSizeOfOperator)
@@ -772,22 +774,20 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IInstanceReferenceExpression CreateBoundBaseReferenceOperation(BoundBaseReference boundBaseReference)
         {
-            InstanceReferenceKind instanceReferenceKind = InstanceReferenceKind.BaseClass;
             SyntaxNode syntax = boundBaseReference.Syntax;
             ITypeSymbol type = boundBaseReference.Type;
             Optional<object> constantValue = ConvertToOptional(boundBaseReference.ConstantValue);
             bool isImplicit = boundBaseReference.WasCompilerGenerated;
-            return new InstanceReferenceExpression(instanceReferenceKind, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new InstanceReferenceExpression(_semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IInstanceReferenceExpression CreateBoundThisReferenceOperation(BoundThisReference boundThisReference)
         {
-            InstanceReferenceKind instanceReferenceKind = boundThisReference.Syntax.Kind() == SyntaxKind.ThisExpression ? InstanceReferenceKind.Explicit : InstanceReferenceKind.Implicit;
             SyntaxNode syntax = boundThisReference.Syntax;
             ITypeSymbol type = boundThisReference.Type;
             Optional<object> constantValue = ConvertToOptional(boundThisReference.ConstantValue);
             bool isImplicit = boundThisReference.WasCompilerGenerated;
-            return new InstanceReferenceExpression(instanceReferenceKind, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new InstanceReferenceExpression(_semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IOperation CreateBoundAssignmentOperatorOrMemberInitializerOperation(BoundAssignmentOperator boundAssignmentOperator)
@@ -997,12 +997,11 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IInstanceReferenceExpression CreateBoundImplicitReceiverOperation(BoundImplicitReceiver boundImplicitReceiver)
         {
-            InstanceReferenceKind instanceReferenceKind = InstanceReferenceKind.Implicit;
             SyntaxNode syntax = boundImplicitReceiver.Syntax;
             ITypeSymbol type = boundImplicitReceiver.Type;
             Optional<object> constantValue = ConvertToOptional(boundImplicitReceiver.ConstantValue);
             bool isImplicit = boundImplicitReceiver.WasCompilerGenerated;
-            return new InstanceReferenceExpression(instanceReferenceKind, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new InstanceReferenceExpression(_semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IConditionalAccessExpression CreateBoundConditionalAccessOperation(BoundConditionalAccess boundConditionalAccess)

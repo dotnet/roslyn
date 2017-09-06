@@ -664,6 +664,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(ILocalReferenceExpression));
             LogString($": {operation.Local.Name}");
+            if (operation.IsDeclaration)
+            {
+                LogString($" (IsDeclaration: {operation.IsDeclaration})");
+            }
             LogCommonPropertiesAndNewLine(operation);
         }
 
@@ -687,8 +691,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitInstanceReferenceExpression(IInstanceReferenceExpression operation)
         {
             LogString(nameof(IInstanceReferenceExpression));
-            var kindStr = $"{nameof(InstanceReferenceKind)}.{operation.InstanceReferenceKind}";
-            LogString($" ({kindStr})");
             LogCommonPropertiesAndNewLine(operation);
         }
 
@@ -707,6 +709,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IFieldReferenceExpression));
             LogString($": {operation.Field.ToTestDisplayString()}");
+            if (operation.IsDeclaration)
+            {
+                LogString($" (IsDeclaration: {operation.IsDeclaration})");
+            }
 
             VisitMemberReferenceExpressionCommon(operation);
         }
@@ -881,12 +887,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitIsTypeExpression(IIsTypeExpression operation)
         {
             LogString(nameof(IIsTypeExpression));
+            if (operation.IsNotTypeExpression)
+            {
+                LogString(" (IsNotExpression)");
+            }
+
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Operand, "Operand");
 
             Indent();
-            LogType(operation.Type);
+            LogType(operation.IsType, "IsType");
+            LogNewLine();
             Unindent();
         }
 

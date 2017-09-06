@@ -970,7 +970,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  (operationContext) =>
                  {
                      IInstanceReferenceExpression instanceReference = (IInstanceReferenceExpression)operationContext.Operation;
-                     operationContext.ReportDiagnostic(Diagnostic.Create(instanceReference.InstanceReferenceKind == InstanceReferenceKind.Implicit ? ImplicitInstanceDescriptor : ExplicitInstanceDescriptor, instanceReference.Syntax.GetLocation()));
+                     operationContext.ReportDiagnostic(Diagnostic.Create(instanceReference.IsImplicit ? ImplicitInstanceDescriptor : ExplicitInstanceDescriptor,
+                                                                         instanceReference.Syntax.GetLocation()));
                  },
                  OperationKind.InstanceReferenceExpression);
         }
