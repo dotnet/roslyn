@@ -4534,8 +4534,7 @@ lElseClause:
                         allConvertibleToObject = False
                     End If
 
-                    ' this will pick up lambdas which couldn't be inferred, typeless tuples, and array literals which lacked a dominant type,
-                    ' and AddressOf expressions.
+                    ' this will pick up AddressOf expressions.
                 End If
             Next
 

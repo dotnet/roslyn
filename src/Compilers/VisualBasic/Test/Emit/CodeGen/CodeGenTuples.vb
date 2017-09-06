@@ -20873,6 +20873,84 @@ End Module
                          tupleSymbol.ConvertedType.ToTestDisplayString())
         End Sub
 
+        <Fact>
+        <WorkItem(21785, "https://github.com/dotnet/roslyn/issues/21785")>
+        Public Sub TypelessTupleInArrayInitializerWithInferenceFailure()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Private mTupleArray = { (X:=0, P:=AddressOf MyFunction) }
+
+    Sub Main()
+        System.Console.Write(mTupleArray(1).P(Nothing))
+    End Sub
+
+    Public Function MyFunction(ArgBytes As Byte()) As Integer
+        Return 1
+    End Function
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, options:=TestOptions.DebugExe)
+            comp.AssertTheseDiagnostics(<errors>
+BC30491: Expression does not produce a value.
+    Private mTupleArray = { (X:=0, P:=AddressOf MyFunction) }
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                        </errors>)
+
+            Dim tree = comp.SyntaxTrees(0)
+
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim node = nodes.OfType(Of TupleExpressionSyntax)().ElementAt(0)
+
+            Assert.Equal("(X:=0, P:=AddressOf MyFunction)", node.ToString())
+            Dim tupleSymbol = model.GetTypeInfo(node)
+            Assert.Null(tupleSymbol.Type)
+
+            Assert.Equal("System.Object", tupleSymbol.ConvertedType.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        <WorkItem(21785, "https://github.com/dotnet/roslyn/issues/21785")>
+        Public Sub TypelessTupleInArrayInitializerWithInferenceSuccess()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Main()
+        Dim y As MyDelegate = AddressOf MyFunction
+        Dim mTupleArray = { (X:=0, P:=y), (X:=0, P:=AddressOf MyFunction) }
+        System.Console.Write(mTupleArray(1).P(Nothing))
+    End Sub
+
+    Delegate Function MyDelegate(ArgBytes As Byte()) As Integer
+
+    Public Function MyFunction(ArgBytes As Byte()) As Integer
+        Return 1
+    End Function
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, options:=TestOptions.DebugExe)
+            comp.AssertNoDiagnostics()
+            CompileAndVerify(comp, expectedOutput:="1")
+
+            Dim tree = comp.SyntaxTrees(0)
+
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim node = nodes.OfType(Of TupleExpressionSyntax)().ElementAt(1)
+
+            Assert.Equal("(X:=0, P:=AddressOf MyFunction)", node.ToString())
+            Dim tupleSymbol = model.GetTypeInfo(node)
+            Assert.Null(tupleSymbol.Type)
+
+            Assert.Equal("(X As System.Int32, P As Module1.MyDelegate)", tupleSymbol.ConvertedType.ToTestDisplayString())
+        End Sub
+
     End Class
 
 End Namespace
