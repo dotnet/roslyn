@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             Inherits AsynchronousOperationListener
         End Class
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/21920"), Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544957")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544957")>
         Public Sub TestDoNotRecomputeAfterFullRecompute()
             Using workspace = TestWorkspace.Create(
                 <Workspace>
