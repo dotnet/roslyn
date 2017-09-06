@@ -179,7 +179,43 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
         #endregion
 
+        private DotnetHost _dotnetHostInfo;
+        private DotnetHost DotnetHostInfo
+        {
+            get
+            {
+                if (_dotnetHostInfo is null)
+                {
+                    CommandLineBuilderExtension commandLineBuilder = new CommandLineBuilderExtension();
+                    AddCommandLineCommands(commandLineBuilder);
+                    var commandLine = commandLineBuilder.ToString();
+
+                    if (string.IsNullOrEmpty(ToolPath))
+                    {
+                        _dotnetHostInfo = DotnetHost.CreateManagedToolInvocation(ToolNameWithoutExtension, commandLine);
+
+                        // See comment in ManagedCompiler.cs on why this if statement is here.
+                        if (ToolExe != _dotnetHostInfo.ToolNameOpt)
+                        {
+                            _dotnetHostInfo = DotnetHost.CreateUnmanagedToolInvocation(ToolPath, commandLine);
+                        }
+                    }
+                    else
+                    {
+                        // Explicitly provided ToolPath, don't try to figure anything out
+                        _dotnetHostInfo = DotnetHost.CreateUnmanagedToolInvocation(ToolPath, commandLine);
+                    }
+                }
+                return _dotnetHostInfo;
+            }
+        }
+
         #region Tool Members
+
+        protected abstract string ToolNameWithoutExtension { get; }
+
+        protected sealed override string ToolName => DotnetHostInfo.ToolNameOpt;
+
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
             if (ProvideCommandLineArgs)
@@ -194,9 +230,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected override string GenerateCommandLineCommands()
         {
-            var commandLineBuilder = new CommandLineBuilderExtension();
-            AddCommandLineCommands(commandLineBuilder);
-            return commandLineBuilder.ToString();
+            return DotnetHostInfo.CommandLineArgs;
         }
 
         /// <summary>
@@ -204,7 +238,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         protected override string GenerateFullPathToTool()
         {
-            var pathToTool = Utilities.GenerateFullPathToTool(ToolName);
+            var pathToTool = DotnetHostInfo.PathToToolOpt;
 
             if (null == pathToTool)
             {
