@@ -191,6 +191,99 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
+        public void DelegateCreationExpression_DelegateExpression()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        /*<bind>*/Action a = delegate() { };/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Action a =  ... gate() { };')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'Action a =  ... gate() { };')
+    Variables: Local_1: System.Action a
+    Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'delegate() { }')
+        Target: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'delegate() { }')
+            IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
+              IReturnStatement (OperationKind.ReturnStatement) (Syntax: '{ }')
+                ReturnedValue: null
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DelegateCreationExpression_DelegateExpression_InvalidReturnType()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        /*<bind>*/Action a = delegate() { return 1; };/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Action a =  ... eturn 1; };')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Action a =  ... eturn 1; };')
+    Variables: Local_1: System.Action a
+    Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: 'delegate() { return 1; }')
+        Target: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'delegate() { return 1; }')
+            IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ return 1; }')
+              IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'return 1;')
+                ReturnedValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS8030: Anonymous function converted to a void returning delegate cannot return a value
+                //         /*<bind>*/Action a = delegate() { return 1; };/*</bind>*/
+                Diagnostic(ErrorCode.ERR_RetNoObjectRequiredLambda, "return").WithLocation(7, 43)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DelegateCreationExpression_DelegateExpression_InvalidArgumentType()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        /*<bind>*/Action a = delegate(int i) { };/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Action a =  ... int i) { };')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Action a =  ... int i) { };')
+    Variables: Local_1: System.Action a
+    Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: 'delegate(int i) { }')
+        Target: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'delegate(int i) { }')
+            IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ }')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1593: Delegate 'Action' does not take 1 arguments
+                //         /*<bind>*/Action a = delegate(int i) { };/*</bind>*/
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "delegate(int i) { }").WithArguments("System.Action", "1").WithLocation(7, 30)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
         public void DelegateCreationExpression_ImplicitMethodBinding()
         {
             string source = @"
